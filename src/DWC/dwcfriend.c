@@ -68,7 +68,7 @@ extern void* fn_8033891C(void);
 extern s32 fn_803517BC(void* userData, const DWCFriendRecord* friendData);
 extern BOOL fn_803685D0(void* connection, s32 profile);
 extern s32 fn_80368648(void* connection, s32 profile);
-extern s32 fn_80337350(s32 status, const char* statusString, const char* locationString);
+extern s32 DWCi_SetGPStatus(s32 status, const char* statusString, const char* locationString);
 extern s32 DWC_GetCommonValueString(const char* key, char* value, const char* text, char delimiter);
 extern s32 DWC_Base64Encode(const void* source, u32 size, void* destination, u32 capacity);
 extern s32 DWC_Base64Decode(const char* source, u32 size, void* destination, u32 capacity);
@@ -128,7 +128,7 @@ BOOL DWC_SetOwnStatusData(const void* data, u32 size) {
     length = DWC_Base64Encode(data, size, encoded, 255);
     if (length == -1) return 0;
     encoded[length] = 0;
-    return fn_80337350(-1, NULL, encoded) == 0;
+    return DWCi_SetGPStatus(-1, NULL, encoded) == 0;
 }
 
 BOOL DWC_CanChangeFriendList(void) {
@@ -362,3 +362,36 @@ s32 DWCi_GetFriendListIndex(s32 profile) {
     }
     return -1;
 }
+
+/* Verified fields in the GP connection; the rest remains opaque. */
+typedef struct DWCGPConnectionStatusView {
+    u8 unknown0[0x230];
+    s32 status;
+    char statusString[256];
+    char locationString[256];
+} DWCGPConnectionStatusView;
+#ifdef __MWERKS__
+typedef char DWCGPStatusOffsetCheck[offsetof(DWCGPConnectionStatusView, status) == 0x230 ? 1 : -1];
+typedef char DWCGPLocationOffsetCheck[offsetof(DWCGPConnectionStatusView, locationString) == 0x334 ? 1 : -1];
+#endif
+extern s32 fn_803686D0(void* connection, s32 status, const char* statusString, const char* locationString);
+
+void DWCi_InitGPProcessCount(void) {
+    if (lbl_805A0F70 != NULL) {
+        lbl_805A0F70->processCount = 0;
+        lbl_805A0F70->lastProcessTime = OSGetTime();
+    }
+}
+
+s32 DWCi_SetGPStatus(s32 status, const char* statusString, const char* locationString) {
+    if (lbl_805A0F70 == NULL || !fn_80339410()) return 0;
+    if (status == -1) status = (*(DWCGPConnectionStatusView**)lbl_805A0F70->connection)->status;
+    else DWC_Printf(4, lbl_80489460 + 0x118, status);
+    if (statusString == NULL) statusString = (*(DWCGPConnectionStatusView**)lbl_805A0F70->connection)->statusString;
+    else DWC_Printf(4, lbl_80489460 + 0x138, statusString);
+    if (locationString == NULL) locationString = (*(DWCGPConnectionStatusView**)lbl_805A0F70->connection)->locationString;
+    else DWC_Printf(4, lbl_80489460 + 0x15C, locationString);
+    return fn_803686D0(lbl_805A0F70->connection, status, statusString, locationString);
+}
+
+void DWCi_ShutdownFriend(void) { lbl_805A0F70 = NULL; }
