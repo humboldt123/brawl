@@ -437,7 +437,7 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_common,
         "host": False,
-        "objects": [Object(NonMatching, "DWC/dwcbase64.c"), Object(NonMatching, "DWC/dwcerror.c")],
+        "objects": [Object(NonMatching, "DWC/dwcbase64.c"), Object(NonMatching, "DWC/dwcerror.c"), Object(NonMatching, "DWC/dwcmemfunc.c")],
     },
     # --- sibling-project libraries (begin) ---
     {
