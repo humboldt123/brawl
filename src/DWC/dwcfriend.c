@@ -157,7 +157,7 @@ extern s32 fn_80367C74(void* connection);
 extern BOOL fn_80383698(void);
 extern BOOL fn_803836B0(void);
 extern void fn_80383470(void);
-extern void fn_80337474(DWCFriendRecord* friends, s32 count);
+extern void DWCi_UpdateFriendReq(DWCFriendRecord* friends, s32 count);
 extern s32 lbl_805A0F78;
 extern s32 lbl_805A0F7C;
 extern const char lbl_804894BC[];
@@ -234,7 +234,7 @@ void DWCi_FriendProcess(void) {
         }
         if (result != 0 || lbl_805A0F70->phase == 0) return;
         if (lbl_805A0F70->friends != NULL && lbl_805A0F70->state != 3 && lbl_805A0F70->processCount > 7) {
-            if (lbl_805A0F70->state < 2) fn_80337474(lbl_805A0F70->friends, lbl_805A0F70->friendCount);
+            if (lbl_805A0F70->state < 2) DWCi_UpdateFriendReq(lbl_805A0F70->friends, lbl_805A0F70->friendCount);
             if (lbl_805A0F70->friendIndex >= lbl_805A0F70->friendCount) {
                 lbl_805A0F70->state = 3;
                 ++lbl_805A0F70->completed;
@@ -395,3 +395,85 @@ s32 DWCi_SetGPStatus(s32 status, const char* statusString, const char* locationS
 }
 
 void DWCi_ShutdownFriend(void) { lbl_805A0F70 = NULL; }
+
+extern s32 fn_803683A0(void* connection, s32* count);
+extern s32 fn_80337BBC(s32 result);
+extern BOOL fn_80350C4C(const DWCFriendRecord* friendData);
+extern void fn_80351A80(DWCFriendRecord* friendData, s32 profile);
+extern void fn_80350C7C(DWCFriendRecord* friendData);
+extern BOOL fn_80337780(DWCFriendRecord* friends, s32 index, s32 profile);
+extern s32 fn_80368538(void* connection, s32 profile, s32* index);
+extern s32 fn_803680C8(void* connection, s32 profile, const char* message);
+extern void fn_80351AE8(void* userData, const DWCFriendRecord* friendData, char* name);
+extern void fn_80337E1C(void* connection, void* event, void* parameter);
+extern s32 fn_80367EA8(void* connection, const char* firstName, const char* lastName,
+                     const char* email, const char* nick, const char* uniqueNick,
+                     s32 icq, s32 blocking, DWCGPInfoCallback callback, void* parameter);
+extern const char lbl_8059F080[];
+
+void DWCi_UpdateFriendReq(DWCFriendRecord* friends, s32 count) {
+    s32 buddyIndex;
+    s32 buddyCount;
+    char userName[24];
+    DWCBuddyStatusView status;
+    s32 index;
+    s32 profile;
+    if (lbl_805A0F70->state == 0) {
+        fn_80337BBC(fn_803683A0(lbl_805A0F70->connection, &buddyCount));
+        DWC_Printf(0x20000, lbl_80489460 + 0x184, buddyCount);
+        for (buddyIndex = 0; buddyIndex < buddyCount; ++buddyIndex) {
+            fn_80337BBC(fn_803683E8(lbl_805A0F70->connection, buddyIndex, &status));
+            for (index = 0; index < count; ++index) {
+                DWCFriendRecord* list = lbl_805A0F70->friends;
+                if (list == NULL) profile = 0;
+                else {
+                    profile = fn_803517BC(fn_8033891C(), list + index);
+                    if (profile == 0 || profile == -1) profile = 0;
+                }
+                if (status.profile == profile) {
+                    if (!fn_80350C4C(friends + index)) {
+                        fn_80351A80(friends + index, status.profile);
+                        fn_80350C7C(friends + index);
+                        lbl_805A0F70->changed = 1;
+                    }
+                    break;
+                }
+            }
+            if (index == count) {
+                DWC_Printf(0x20000, lbl_80489460 + 0x19C, status.profile);
+                fn_80337BBC(fn_80368648(lbl_805A0F70->connection, status.profile));
+                --buddyCount;
+                --buddyIndex;
+            }
+        }
+        lbl_805A0F70->state = 1;
+    }
+    while (lbl_805A0F70->friendIndex < count) {
+        DWCFriendRecord* list = lbl_805A0F70->friends;
+        if (list == NULL) profile = 0;
+        else {
+            profile = fn_803517BC(fn_8033891C(), list + lbl_805A0F70->friendIndex);
+            if (profile == 0 || profile == -1) profile = 0;
+        }
+        if (profile != 0) {
+            if (!fn_80337780(friends, lbl_805A0F70->friendIndex, profile)) {
+                fn_80337BBC(fn_80368538(lbl_805A0F70->connection, profile, &buddyIndex));
+                if (buddyIndex == -1) {
+                    fn_80337BBC(fn_803680C8(lbl_805A0F70->connection, profile, lbl_8059F080));
+                    DWC_Printf(0x20000, lbl_80489460 + 0x1B0, profile);
+                }
+            }
+        } else {
+            profile = fn_803517BC(fn_8033891C(), friends + lbl_805A0F70->friendIndex);
+            if (profile == -1) {
+                fn_80351AE8(fn_8033891C(), friends + lbl_805A0F70->friendIndex, userName);
+                fn_80367EA8(lbl_805A0F70->connection, NULL, NULL, NULL, NULL, userName,
+                           0, 0, fn_80337E1C, (void*)(size_t)lbl_805A0F70->friendIndex);
+                DWC_Printf(0x20000, lbl_80489460 + 0x1CC);
+                lbl_805A0F70->state = 2;
+                return;
+            }
+        }
+        ++lbl_805A0F70->friendIndex;
+    }
+}
