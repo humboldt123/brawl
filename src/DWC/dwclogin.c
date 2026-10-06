@@ -20,13 +20,18 @@ typedef struct DWCLoginControlView {
     u32 unknown34;
     s64 startTime;
     u32 temporaryLoginId[3];
-    u8 unknown4C[0x200];
+    char authToken[0x100];
+    char authChallenge[0x100];
     char userName[28];
 } DWCLoginControlView;
 #ifdef __MWERKS__
 typedef char DWCLoginSizeCheck[sizeof(DWCLoginControlView) == 0x268 ? 1 : -1];
 typedef char DWCLoginTimerCheck[offsetof(DWCLoginControlView, startTime) == 0x38 ? 1 : -1];
 typedef char DWCLoginCallbackCheck[offsetof(DWCLoginControlView, callback) == 0x14 ? 1 : -1];
+typedef char DWCLoginTemporaryCheck[offsetof(DWCLoginControlView, temporaryLoginId) == 0x40 ? 1 : -1];
+typedef char DWCLoginTokenCheck[offsetof(DWCLoginControlView, authToken) == 0x4C ? 1 : -1];
+typedef char DWCLoginChallengeCheck[offsetof(DWCLoginControlView, authChallenge) == 0x14C ? 1 : -1];
+typedef char DWCLoginUserNameCheck[offsetof(DWCLoginControlView, userName) == 0x24C ? 1 : -1];
 #endif
 extern DWCLoginControlView* lbl_805A0F80;
 extern const char lbl_80489A00[];
@@ -34,7 +39,7 @@ extern void DWC_Printf(u32 level, const char* format, ...);
 extern u64 fn_80350C0C(const void* loginId);
 extern u32 fn_80350C1C(const void* loginId);
 extern BOOL DWCi_RemoteLogin(void);
-extern void fn_80338F5C(void);
+extern void DWCi_RemoteLoginProcess(void);
 extern BOOL DWCi_IsError(void);
 extern void DWCi_SetError(s32 error, s32 code);
 extern s32 fn_80367C74(void* connection);
@@ -74,7 +79,7 @@ void DWCi_LoginProcess(void) {
     if (lbl_805A0F80 == NULL || DWCi_IsError()) return;
     switch (lbl_805A0F80->state) {
     case 1:
-        fn_80338F5C();
+        DWCi_RemoteLoginProcess();
         break;
     case 2: case 3: case 4:
         if (lbl_805A0F80->connection != NULL && *(u32*)lbl_805A0F80->connection != 0)
@@ -261,4 +266,64 @@ BOOL DWCi_RemoteLogin(void) {
         userId = 0;
     }
     return fn_803520B8(lbl_805A0F80->playerName, lbl_805A0F80->userName + 9, userId, DWC_Alloc, DWC_Free);
+}
+
+extern void fn_80352418(void);
+extern BOOL fn_80352AF4(void);
+extern s32 fn_80352B0C(void);
+extern void fn_80352B18(char* token, char* challenge);
+extern u64 fn_80352B64(void);
+extern void fn_80350C24(void* loginId, u64 userId);
+extern s32 fn_80367D20(void* connection, const char* token, const char* challenge,
+                     s32 firewall, s32 blocking,
+                     void (*callback)(void*, void*, void*), void* parameter);
+
+void DWCi_RemoteLoginProcess(void) {
+    s32 result;
+    fn_80352418();
+    if (!fn_80352AB8()) return;
+    if (fn_80352AF4()) {
+        DWC_Printf(0x20, lbl_80489A00 + 0x2F0);
+        fn_80352B18(lbl_805A0F80->authToken, lbl_805A0F80->authChallenge);
+        if (fn_80351284(lbl_805A0F80->userData)) {
+            DWC_Printf(0x20, lbl_80489A00 + 0x300);
+            lbl_805A0F80->startTime = OSGetTime();
+            lbl_805A0F80->timed = 1;
+            result = fn_80367D20(lbl_805A0F80->connection, lbl_805A0F80->authToken,
+                                lbl_805A0F80->authChallenge, 1, 0, DWCi_GPConnectCallback, NULL);
+            if (DWCi_LoginHandleGPError(result) == 0) lbl_805A0F80->state = 2;
+        } else {
+            fn_80350C24(lbl_805A0F80->temporaryLoginId, fn_80352B64());
+            DWC_Printf(0x20, lbl_80489A00 + 0x300);
+            lbl_805A0F80->startTime = OSGetTime();
+            lbl_805A0F80->timed = 1;
+            result = fn_80367D20(lbl_805A0F80->connection, lbl_805A0F80->authToken,
+                                lbl_805A0F80->authChallenge, 1, 0, DWCi_GPConnectCallback, NULL);
+            if (DWCi_LoginHandleGPError(result) == 0) lbl_805A0F80->state = 3;
+        }
+    } else {
+        result = fn_80352B0C();
+        DWC_Printf(0x20, lbl_80489A00 + 0x328, result);
+        if (result <= -29000) {
+            if (lbl_805A0F80 != NULL) {
+                DWCi_SetError(9, result);
+                if (lbl_805A0F80->callback != NULL)
+                    lbl_805A0F80->callback(9, 0, lbl_805A0F80->parameter);
+                if (lbl_805A0F80 != NULL) {
+                    lbl_805A0F80->state = 0;
+                    lbl_805A0F80->timed = 0;
+                }
+            }
+        } else {
+            if (lbl_805A0F80 != NULL) {
+                DWCi_SetError(2, result);
+                if (lbl_805A0F80->callback != NULL)
+                    lbl_805A0F80->callback(2, 0, lbl_805A0F80->parameter);
+                if (lbl_805A0F80 != NULL) {
+                    lbl_805A0F80->state = 0;
+                    lbl_805A0F80->timed = 0;
+                }
+            }
+        }
+    }
 }
