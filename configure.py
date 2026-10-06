@@ -446,6 +446,7 @@ config.libs = [
             Object(NonMatching, "DWC/dwcghttp.c"),
             Object(NonMatching, "DWC/dwccommon.c"),
             Object(NonMatching, "DWC/dwcfriend.c"),
+            Object(NonMatching, "DWC/dwclogin.c"),
         ],
     },
     # --- sibling-project libraries (begin) ---

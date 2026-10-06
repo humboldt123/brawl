@@ -1415,6 +1415,9 @@ DWC/dwccommon.c:
 DWC/dwcfriend.c:
 	.text       start:0x80336698 end:0x80338600
 
+DWC/dwclogin.c:
+	.text       start:0x80338600 end:0x8033891C
+
 Runtime.PPCEABI.H/__va_arg.c:
 	.text       start:0x803F065C end:0x803F0724
 

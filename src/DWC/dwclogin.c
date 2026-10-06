@@ -1,0 +1,97 @@
+#include <types.h>
+#include <stddef.h>
+#include <string.h>
+#include <revolution/OS/OSHardware.h>
+
+typedef void (*DWCLoginCallback)(s32 error, s32 profile, void* parameter);
+/* Verified layout; the rest of the login controller remains opaque. */
+typedef struct DWCLoginControlView {
+    void* connection;
+    s32 state;
+    u32 product;
+    u32 gameCode;
+    char* playerName;
+    DWCLoginCallback callback;
+    void* parameter;
+    void* userData;
+    u8 unknown20[0x10];
+    u32 timed;
+    u32 unknown34;
+    s64 startTime;
+    u8 unknown40[0x228];
+} DWCLoginControlView;
+#ifdef __MWERKS__
+typedef char DWCLoginSizeCheck[sizeof(DWCLoginControlView) == 0x268 ? 1 : -1];
+typedef char DWCLoginTimerCheck[offsetof(DWCLoginControlView, startTime) == 0x38 ? 1 : -1];
+typedef char DWCLoginCallbackCheck[offsetof(DWCLoginControlView, callback) == 0x14 ? 1 : -1];
+#endif
+extern DWCLoginControlView* lbl_805A0F80;
+extern const char lbl_80489A00[];
+extern void DWC_Printf(u32 level, const char* format, ...);
+extern u64 fn_80350C0C(const void* loginId);
+extern u32 fn_80350C1C(const void* loginId);
+extern BOOL fn_80338D90(void);
+extern void fn_80338F5C(void);
+extern BOOL DWCi_IsError(void);
+extern void DWCi_SetError(s32 error, s32 code);
+extern s32 fn_80367C74(void* connection);
+extern u64 OSGetTime(void);
+
+void DWCi_LoginInit(void* control, void* userData, void* connection, u32 product, u32 gameCode,
+                    char* playerName, DWCLoginCallback callback, void* parameter) {
+    DWC_Printf(0x20, lbl_80489A00);
+    lbl_805A0F80 = control;
+    memset(control, 0, 0x268);
+    lbl_805A0F80->connection = connection;
+    lbl_805A0F80->state = 0;
+    lbl_805A0F80->product = product;
+    lbl_805A0F80->gameCode = gameCode;
+    lbl_805A0F80->playerName = playerName;
+    lbl_805A0F80->callback = callback;
+    lbl_805A0F80->parameter = parameter;
+    lbl_805A0F80->userData = userData;
+    DWC_Printf(0x20, lbl_80489A00 + 0xC);
+    DWC_Printf(0x20, lbl_80489A00 + 0x38, fn_80350C0C((u8*)userData + 4));
+    DWC_Printf(0x20, lbl_80489A00 + 0x58, fn_80350C1C((u8*)userData + 4));
+    DWC_Printf(0x20, lbl_80489A00 + 0x78, fn_80350C0C((u8*)userData + 0x10));
+    DWC_Printf(0x20, lbl_80489A00 + 0x98, fn_80350C1C((u8*)userData + 0x10));
+    DWC_Printf(0x20, lbl_80489A00 + 0xC);
+}
+
+BOOL DWCi_LoginAsync(void) {
+    if (fn_80338D90()) {
+        lbl_805A0F80->state = 1;
+        lbl_805A0F80->timed = 0;
+        return 1;
+    }
+    return 0;
+}
+
+void DWCi_LoginProcess(void) {
+    if (lbl_805A0F80 == NULL || DWCi_IsError()) return;
+    switch (lbl_805A0F80->state) {
+    case 1:
+        fn_80338F5C();
+        break;
+    case 2: case 3: case 4:
+        if (lbl_805A0F80->connection != NULL && *(u32*)lbl_805A0F80->connection != 0)
+            fn_80367C74(lbl_805A0F80->connection);
+        if (lbl_805A0F80->timed != 0 &&
+            (s64)(OSGetTime() - lbl_805A0F80->startTime) / (OS_BUS_CLOCK_SPEED / 4 / 1000) > 60000) {
+            if (lbl_805A0F80 != NULL) {
+                DWCi_SetError(6, -61070);
+                if (lbl_805A0F80->callback != NULL)
+                    lbl_805A0F80->callback(6, 0, lbl_805A0F80->parameter);
+                if (lbl_805A0F80 != NULL) {
+                    lbl_805A0F80->state = 0;
+                    lbl_805A0F80->timed = 0;
+                }
+            }
+            lbl_805A0F80->timed = 0;
+        }
+        break;
+    default:
+        DWC_Printf(4, lbl_80489A00 + 0xB8);
+        break;
+    }
+}
