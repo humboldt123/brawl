@@ -13621,11 +13621,11 @@ updateBetweenVersions__13hkVersionUtilFR19hkArray<9hkVariant>R21hkObjectUpdateTr
 updateToCurrentVersion__13hkVersionUtilFR16hkPackfileReaderRC17hkVersionRegistry = .text:0x80334D24; // type:function size:0xC0
 DWC_Base64Encode = .text:0x80334DE4; // type:function size:0x190
 DWC_Base64Decode = .text:0x80334F74; // type:function size:0x1D8
-fn_8033514C = .text:0x8033514C; // type:function size:0x18
+DWC_GetLastError = .text:0x8033514C; // type:function size:0x18
 DWC_GetLastErrorEx = .text:0x80335164; // type:function size:0xB8
 DWC_ClearError = .text:0x8033521C; // type:function size:0x1C
-fn_80335238 = .text:0x80335238; // type:function size:0x14
-fn_8033524C = .text:0x8033524C; // type:function size:0x18
+DWCi_IsError = .text:0x80335238; // type:function size:0x14
+DWCi_SetError = .text:0x8033524C; // type:function size:0x18
 DWC_Init = .text:0x80335264; // type:function size:0xC4
 DWC_Shutdown = .text:0x80335328; // type:function size:0x54
 fn_8033537C = .text:0x8033537C; // type:function size:0x8

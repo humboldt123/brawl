@@ -1394,6 +1394,9 @@ havok/hkVersionUtil.cpp:
 DWC/dwcbase64.c:
 	.text       start:0x80334DE4 end:0x8033514C
 
+DWC/dwcerror.c:
+	.text       start:0x8033514C end:0x80335264
+
 Runtime.PPCEABI.H/__va_arg.c:
 	.text       start:0x803F065C end:0x803F0724
 
