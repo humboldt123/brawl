@@ -19,7 +19,9 @@ typedef struct DWCLoginControlView {
     u32 timed;
     u32 unknown34;
     s64 startTime;
-    u8 unknown40[0x228];
+    u32 temporaryLoginId[3];
+    u8 unknown4C[0x200];
+    char userName[28];
 } DWCLoginControlView;
 #ifdef __MWERKS__
 typedef char DWCLoginSizeCheck[sizeof(DWCLoginControlView) == 0x268 ? 1 : -1];
@@ -31,7 +33,7 @@ extern const char lbl_80489A00[];
 extern void DWC_Printf(u32 level, const char* format, ...);
 extern u64 fn_80350C0C(const void* loginId);
 extern u32 fn_80350C1C(const void* loginId);
-extern BOOL fn_80338D90(void);
+extern BOOL DWCi_RemoteLogin(void);
 extern void fn_80338F5C(void);
 extern BOOL DWCi_IsError(void);
 extern void DWCi_SetError(s32 error, s32 code);
@@ -60,7 +62,7 @@ void DWCi_LoginInit(void* control, void* userData, void* connection, u32 product
 }
 
 BOOL DWCi_LoginAsync(void) {
-    if (fn_80338D90()) {
+    if (DWCi_RemoteLogin()) {
         lbl_805A0F80->state = 1;
         lbl_805A0F80->timed = 0;
         return 1;
@@ -215,4 +217,48 @@ void DWCi_GPConnectCallback(void* connection, void* argument, void* parameter) {
     } else if (lbl_805A0F80->state == 3) {
         DWCi_LoginHandleGPError(fn_80367F78(connection, event->profile, 0, 0, fn_803391A8, NULL));
     }
+}
+
+extern BOOL fn_80351284(const void* userData);
+extern BOOL fn_8035126C(const void* loginId);
+extern BOOL fn_8035121C(const void* loginId);
+extern void fn_80351154(void* loginId);
+extern void fn_80350C44(void* loginId, u32 playerId);
+extern void fn_80350D74(const void* loginId, u32 gameCode, char* userName);
+extern void* DWC_Alloc(int kind, u32 size);
+extern void DWC_Free(int kind, void* allocation, int size);
+extern BOOL fn_803520B8(const void* playerName, const char* authName, u64 userId,
+                      void* (*alloc)(int, u32), void (*free)(int, void*, int));
+
+BOOL DWCi_RemoteLogin(void) {
+    u64 userId;
+    DWC_Printf(0x20, lbl_80489A00 + 0x1A4);
+    if (fn_80351284(lbl_805A0F80->userData)) {
+        DWC_Printf(0x20, lbl_80489A00 + 0x1B8);
+        fn_80350D74((u8*)lbl_805A0F80->userData + 0x10,
+                   *(u32*)((u8*)lbl_805A0F80->userData + 0x24), lbl_805A0F80->userName);
+        userId = fn_80350C0C((u8*)lbl_805A0F80->userData + 0x10);
+    } else {
+        DWC_Printf(0x20, lbl_80489A00 + 0x1E8);
+        if (!fn_8035126C(lbl_805A0F80->temporaryLoginId)) {
+            DWC_Printf(0x20, lbl_80489A00 + 0x218);
+            if (fn_8035121C((u8*)lbl_805A0F80->userData + 4)) {
+                u32* pseudo = (u32*)((u8*)lbl_805A0F80->userData + 4);
+                DWC_Printf(0x20, lbl_80489A00 + 0x254);
+                lbl_805A0F80->temporaryLoginId[0] = pseudo[0];
+                lbl_805A0F80->temporaryLoginId[1] = pseudo[1];
+                lbl_805A0F80->temporaryLoginId[2] = pseudo[2];
+            } else {
+                DWC_Printf(0x20, lbl_80489A00 + 0x280);
+                fn_80351154(lbl_805A0F80->temporaryLoginId);
+            }
+        } else {
+            DWC_Printf(0x20, lbl_80489A00 + 0x2AC);
+            fn_80350C44(lbl_805A0F80->temporaryLoginId,
+                       (u32)((OSGetTime() * 0x5D588B656C078965ULL + 0x269EC3) >> 32));
+        }
+        fn_80350D74(lbl_805A0F80->temporaryLoginId, lbl_805A0F80->gameCode, lbl_805A0F80->userName);
+        userId = 0;
+    }
+    return fn_803520B8(lbl_805A0F80->playerName, lbl_805A0F80->userName + 9, userId, DWC_Alloc, DWC_Free);
 }
