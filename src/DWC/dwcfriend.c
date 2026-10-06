@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <revolution/OS/OSHardware.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 typedef struct DWCBuddyStatusView {
@@ -290,8 +291,8 @@ typedef struct DWCGPBuddyEventView {
 typedef void (*DWCGPInfoCallback)(void* connection, void* event, void* parameter);
 extern s32 fn_80367F78(void* connection, s32 profile, s32 checkCache, s32 blocking,
                       DWCGPInfoCallback callback, void* parameter);
-extern void fn_80338128(void* connection, void* event, void* parameter);
-extern void fn_80338358(void* connection, void* event, void* parameter);
+extern void DWCi_GPGetInfoCallback_RecvBuddyRequest(void* connection, void* event, void* parameter);
+extern void DWCi_GPGetInfoCallback_RecvAuthMessage(void* connection, void* event, void* parameter);
 extern s32 fn_803683E8(void* connection, s32 index, DWCBuddyStatusView* status);
 extern const char lbl_804894E8[];
 extern const char lbl_80489508[];
@@ -302,14 +303,14 @@ void DWCi_GPRecvBuddyRequestCallback(void* connection, const DWCGPBuddyEventView
     DWC_Printf(0x20000, lbl_804894E8, event->profile);
     if (lbl_805A0F70->friends != NULL) {
         DWC_Printf(0x20000, lbl_80489508);
-        fn_80367F78(connection, event->profile, 0, 0, fn_80338128, NULL);
+        fn_80367F78(connection, event->profile, 0, 0, DWCi_GPGetInfoCallback_RecvBuddyRequest, NULL);
     }
 }
 
 BOOL DWCi_GPRecvBuddyAuthCallback(void* connection, const DWCGPBuddyEventView* event, void* parameter) {
     DWC_Printf(0x20000, lbl_80489524, event->profile);
     DWC_Printf(0x20000, lbl_80489508);
-    fn_80367F78(connection, event->profile, 0, 0, fn_80338358, NULL);
+    fn_80367F78(connection, event->profile, 0, 0, DWCi_GPGetInfoCallback_RecvAuthMessage, NULL);
     return 1;
 }
 
@@ -686,4 +687,106 @@ void DWCi_GPProfileSearchCallback(void* connection, void* argument, void* parame
         ++lbl_805A0F70->friendIndex;
         lbl_805A0F70->state = 1;
     }
+}
+
+typedef struct DWCGPInfoView {
+    s32 result;
+    s32 profile;
+    u8 unknown8[0x86];
+    char lastName[64];
+} DWCGPInfoView;
+typedef struct DWCUserGameCodeView {
+    u8 unknown0[0x24];
+    u32 gameCode;
+} DWCUserGameCodeView;
+typedef char DWCGPInfoLastNameOffsetCheck[offsetof(DWCGPInfoView, lastName) == 0x8E ? 1 : -1];
+extern s32 fn_80368238(void* connection, s32 profile);
+extern s32 fn_803682A8(void* connection, s32 profile);
+
+void DWCi_GPGetInfoCallback_RecvBuddyRequest(void* connection, void* argument, void* parameter) {
+    DWCGPInfoView* info = argument;
+    BOOL accepted = 0;
+    s32 index;
+    char gameCode[5];
+    char userName[24];
+    if (info->result != 0) {
+        DWC_Printf(0x20, lbl_80489460 + 0x2C8, info->result);
+        return;
+    }
+    DWC_Printf(4, lbl_80489460 + 0x2EC, info->profile, info->lastName);
+    for (index = 0; index < lbl_805A0F70->friendCount; ++index) {
+        if (fn_80350C70(lbl_805A0F70->friends + index) == 1) {
+            fn_80351AE8(fn_8033891C(), lbl_805A0F70->friends + index, userName);
+            if (strcmp(userName, info->lastName) == 0) {
+                fn_80368238(connection, info->profile);
+                fn_80351A80(lbl_805A0F70->friends + index, info->profile);
+                accepted = 1;
+                DWC_Printf(0x20000, lbl_80489460 + 0x318, info->profile, index);
+            }
+        } else if (fn_80350C70(lbl_805A0F70->friends + index) == 3 || fn_80350C70(lbl_805A0F70->friends + index) == 2) {
+            u32 code = ((DWCUserGameCodeView*)fn_8033891C())->gameCode;
+            snprintf(gameCode, 5, lbl_80489460 + 0x344, code >> 24, (code >> 16) & 255, (code >> 8) & 255, code & 255);
+            if (info->profile == fn_803517BC(fn_8033891C(), lbl_805A0F70->friends + index) && strncmp(gameCode, info->lastName + 9, 4) == 0) {
+                fn_80368238(connection, info->profile);
+                accepted = 1;
+                DWC_Printf(0x20000, lbl_80489460 + 0x350, info->profile, index);
+            }
+        }
+    }
+    if (accepted) {
+        DWCi_HandleGPError(fn_803680C8(lbl_805A0F70->connection, info->profile, lbl_8059F080));
+        DWC_Printf(0x20000, lbl_80489460 + 0x1B0, info->profile);
+    } else {
+        fn_803682A8(connection, info->profile);
+        DWC_Printf(0x20000, lbl_80489460 + 0x37C, info->profile);
+    }
+}
+
+void DWCi_GPGetInfoCallback_RecvAuthMessage(void* connection, void* argument, void* parameter) {
+    DWCGPInfoView* info = argument;
+    BOOL established = 0;
+    BOOL alreadyBuddy = 0;
+    s32 index;
+    char userName[256];
+    char location[256];
+    if (info->result != 0) {
+        DWC_Printf(0x20, lbl_80489460 + 0x39C, info->result);
+        return;
+    }
+    DWC_Printf(4, lbl_80489460 + 0x3C0, info->profile, info->lastName);
+    for (index = 0; index < lbl_805A0F70->friendCount; ++index) {
+        if (fn_80350C70(lbl_805A0F70->friends + index) == 1) {
+            fn_80351AE8(fn_8033891C(), lbl_805A0F70->friends + index, userName);
+            if (strcmp(userName, info->lastName) == 0) {
+                fn_80351A80(lbl_805A0F70->friends + index, info->profile);
+                fn_80350C7C(lbl_805A0F70->friends + index);
+                established = 1;
+                DWC_Printf(0x20000, lbl_80489460 + 0x3EC, info->profile, index);
+            }
+        } else if (fn_80350C70(lbl_805A0F70->friends + index) == 3 || fn_80350C70(lbl_805A0F70->friends + index) == 2) {
+            if (info->profile == fn_803517BC(fn_8033891C(), lbl_805A0F70->friends + index)) {
+                if (fn_80350C4C(lbl_805A0F70->friends + index) == 1) {
+                    DWC_Printf(0x20000, lbl_80489460 + 0x418, index);
+                    alreadyBuddy = 1;
+                } else {
+                    fn_80351A80(lbl_805A0F70->friends + index, info->profile);
+                    fn_80350C7C(lbl_805A0F70->friends + index);
+                    established = 1;
+                    DWC_Printf(0x20000, lbl_80489460 + 0x440, info->profile, index);
+                }
+            }
+        }
+    }
+    if (established) {
+        index = DWCi_RefreshFriendListAll(lbl_805A0F70->friends, lbl_805A0F70->friendCount, info->profile);
+        if (!alreadyBuddy) {
+            if (lbl_805A0F70->buddyCallback != NULL && lbl_805A0F70->phase != 1)
+                lbl_805A0F70->buddyCallback(index, lbl_805A0F70->buddyParameter);
+            if (lbl_805A0F70->statusCallback != NULL) {
+                u8 status = DWC_GetFriendStatusSC(lbl_805A0F70->friends + index, NULL, NULL, location);
+                lbl_805A0F70->statusCallback(index, status, location, lbl_805A0F70->statusParameter);
+            }
+        }
+        lbl_805A0F70->changed = 1;
+    } else if (!alreadyBuddy) DWC_Printf(0x20000, lbl_80489460 + 0x470, info->profile);
 }
