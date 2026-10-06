@@ -6,7 +6,9 @@ typedef void (*DWCMainCallback)(void);
 typedef struct DWCMainMatchView {
     u8 unknown00[0x10];
     void* qr2;
-    u8 unknown14[0x18];
+    u8 unknown14;
+    u8 phase;
+    u8 unknown16[0x16];
     u8 unknown2C;
     u8 unknown2D[0xCB];
     void* serverBrowser;
@@ -19,8 +21,8 @@ typedef struct DWCMainControlView {
     s32 receiveBufferSize;
     void* connection;
     void* userData;
-    u32 unknown24;
-    u32 unknown28;
+    s32 phase;
+    s32 previousPhase;
     u8 unknown2C;
     u8 unknown2D;
     char playerName[0x36];
@@ -88,8 +90,8 @@ void DWC_InitFriendsMatch(u32 unused0, void* userData, u32 product, u32 unused3,
     lbl_805A0F88->receiveBufferSize = receiveBufferSize != 0 ? receiveBufferSize : 0x2000;
     lbl_805A0F88->connection = NULL;
     lbl_805A0F88->userData = userData;
-    lbl_805A0F88->unknown24 = 0;
-    lbl_805A0F88->unknown28 = 0;
+    lbl_805A0F88->phase = 0;
+    lbl_805A0F88->previousPhase = 0;
     lbl_805A0F88->unknown2C = 0;
     lbl_805A0F88->unknown2D = 0;
     lbl_805A0F88->unknown11D8 = 0;
@@ -127,7 +129,7 @@ extern void fn_803791BC(void* qr2);
 extern void fn_803895D0(void* browser);
 extern void fn_8033C0D4(void);
 extern void fn_80383470(void);
-extern s32 fn_80367CB0(void* connection, s32 event, void* callback, void* parameter);
+extern s32 fn_80367CB0(void* connection, s32 event, void (*callback)(void*, void*, void*), void* parameter);
 extern s32 fn_80367C74(void* connection);
 extern void fn_80367C54(void* connection);
 extern void DWCi_ShutdownLogin(void);
@@ -170,4 +172,82 @@ void DWC_ShutdownFriendsMatch(void) {
     }
     DWC_Free(4, lbl_805A0F88, 0);
     lbl_805A0F88 = NULL;
+}
+
+extern BOOL DWCi_IsError(void);
+extern void DWCi_LoginProcess(void);
+extern void DWCi_FriendProcess(void);
+extern void fn_8033DD60(BOOL active);
+extern void fn_8034E790(void);
+extern s32 fn_8035E1A8(void);
+extern void DWCi_StopLogin(s32 error, s32 code);
+extern s32 fn_80367C28(void* connection, u32 product, u32 nameSpace, u32 partner);
+extern s32 fn_8033AEEC(s32 result);
+extern BOOL DWCi_LoginAsync(void);
+extern const char lbl_80489EAC[];
+extern void fn_8033B45C(void*, void*, void*);
+extern void fn_8033B8CC(void*, void*, void*);
+extern void DWCi_GPRecvBuddyAuthCallback(void*, void*, void*);
+extern void DWCi_GPRecvBuddyRequestCallback(void*, void*, void*);
+extern void DWCi_GPRecvBuddyStatusCallback(void*, void*, void*);
+
+void DWC_ProcessFriendsMatch(void) {
+    s32 result;
+    if (lbl_805A0F88 == NULL || lbl_805A0F88->phase == 0 || DWCi_IsError()) return;
+    switch (lbl_805A0F88->phase) {
+    case 1:
+        result = fn_8035E1A8();
+        switch (result) {
+        case 1:
+            DWC_Printf(0x10, lbl_80489EAC);
+            result = fn_80367C28(&lbl_805A0F88->connection, *(u32*)(lbl_805A0F88->login + 8), 0x10, 0xB);
+            if (fn_8033AEEC(result) != 0) return;
+            result = fn_80367CB0(&lbl_805A0F88->connection, 0, fn_8033B45C, NULL);
+            if (fn_8033AEEC(result) != 0) return;
+            result = fn_80367CB0(&lbl_805A0F88->connection, 3, fn_8033B8CC, NULL);
+            if (fn_8033AEEC(result) != 0) return;
+            result = fn_80367CB0(&lbl_805A0F88->connection, 7, DWCi_GPRecvBuddyAuthCallback, NULL);
+            if (fn_8033AEEC(result) != 0) return;
+            result = fn_80367CB0(&lbl_805A0F88->connection, 1, DWCi_GPRecvBuddyRequestCallback, NULL);
+            if (fn_8033AEEC(result) != 0) return;
+            result = fn_80367CB0(&lbl_805A0F88->connection, 2, DWCi_GPRecvBuddyStatusCallback, NULL);
+            if (fn_8033AEEC(result) != 0) return;
+            lbl_805A0F88->previousPhase = lbl_805A0F88->phase;
+            lbl_805A0F88->phase = 2;
+            if (!DWCi_LoginAsync()) DWCi_StopLogin(2, -20100);
+            break;
+        case 2:
+            DWCi_StopLogin(3, -20110);
+            return;
+        case 3:
+            DWCi_StopLogin(4, -20101);
+            return;
+        }
+        break;
+    case 2:
+        DWCi_LoginProcess();
+        break;
+    case 3:
+    case 4:
+        DWCi_FriendProcess();
+        fn_8033DD60(0);
+        break;
+    case 5:
+        fn_8033DD60(1);
+        DWCi_FriendProcess();
+        break;
+    case 6:
+        fn_8034E790();
+        DWCi_FriendProcess();
+        if (lbl_805A0F88->match.phase == 2 || lbl_805A0F88->match.phase == 3) fn_8033DD60(1);
+        else if (lbl_805A0F88->socket != NULL) fn_8033DD60(0);
+        break;
+    }
+    if (lbl_805A0F88->match.unknown2C == 1) {
+        if (lbl_805A0F88->match.qr2 != NULL) {
+            fn_803791BC(lbl_805A0F88->match.qr2);
+            lbl_805A0F88->match.qr2 = NULL;
+        }
+        lbl_805A0F88->match.unknown2C = 0;
+    }
 }
