@@ -1397,6 +1397,9 @@ DWC/dwcbase64.c:
 DWC/dwcerror.c:
 	.text       start:0x8033514C end:0x80335264
 
+DWC/dwcinit.c:
+	.text       start:0x80335264 end:0x80335384
+
 DWC/dwcmemfunc.c:
 	.text       start:0x80335384 end:0x80335630
 
