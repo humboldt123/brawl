@@ -1419,7 +1419,7 @@ DWC/dwclogin.c:
 	.text       start:0x80338600 end:0x8033949C
 
 DWC/dwcmain.c:
-	.text       start:0x8033949C end:0x8033972C
+	.text       start:0x8033949C end:0x80339894
 
 Runtime.PPCEABI.H/__va_arg.c:
 	.text       start:0x803F065C end:0x803F0724
