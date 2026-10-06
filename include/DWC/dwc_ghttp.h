@@ -28,3 +28,10 @@ BOOL DWC_ProcessGHTTP(void);
 void GHTTPProgressCallback(s32 request, s32 state, const char* buffer, u32 bufferSize,
                            u32 received, u32 total, DWCGHTTPParamEntry* entry);
 void DWCi_RemoveDWCGHTTPParamEntry(DWCGHTTPParamEntry* entry);
+BOOL GHTTPCompletedCallback(s32 request, s32 result, void* buffer, u32 length, DWCGHTTPParamEntry* entry);
+void DWC_GHTTPNewPost(void** post);
+s32 DWC_PostGHTTPData(const char* url, void** post, DWCCompletedCallback completed, void* parameter);
+s32 DWC_GetGHTTPDataEx(const char* url, s32 bufferSize, BOOL bufferClear,
+                       DWCProgressCallback progress, DWCCompletedCallback completed, void* parameter);
+void DWC_CancelGHTTPRequest(s32 request);
+s32 DWCi_HandleGHTTPError(s32 result);
