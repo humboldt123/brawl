@@ -62,7 +62,7 @@ extern const char lbl_8059F078[];
 extern const char lbl_8059F07C[];
 extern const char lbl_80489460[];
 extern const char lbl_8048948C[];
-extern BOOL fn_80337AF0(const DWCFriendRecord* friendData, DWCBuddyStatusView* status);
+extern BOOL DWCi_GetFriendBuddyStatus(const DWCFriendRecord* friendData, DWCBuddyStatusView* status);
 extern BOOL fn_803512B4(const DWCFriendRecord* friendData);
 extern BOOL fn_80339410(void);
 extern void* fn_8033891C(void);
@@ -78,7 +78,7 @@ extern void DWC_Printf(u32 level, const char* format, ...);
 u8 DWC_GetFriendStatusSC(const DWCFriendRecord* friendData, u8* maxPlayers, u8* players, char* location) {
     char value[8];
     DWCBuddyStatusView status;
-    if (!fn_80337AF0(friendData, &status)) {
+    if (!DWCi_GetFriendBuddyStatus(friendData, &status)) {
         if (maxPlayers != NULL) *maxPlayers = 0;
         if (players != NULL) *players = 0;
         return 0;
@@ -398,7 +398,7 @@ s32 DWCi_SetGPStatus(s32 status, const char* statusString, const char* locationS
 void DWCi_ShutdownFriend(void) { lbl_805A0F70 = NULL; }
 
 extern s32 fn_803683A0(void* connection, s32* count);
-extern s32 fn_80337BBC(s32 result);
+extern s32 DWCi_HandleGPError(s32 result);
 extern BOOL fn_80350C4C(const DWCFriendRecord* friendData);
 extern void fn_80351A80(DWCFriendRecord* friendData, s32 profile);
 extern void fn_80350C7C(DWCFriendRecord* friendData);
@@ -420,10 +420,10 @@ void DWCi_UpdateFriendReq(DWCFriendRecord* friends, s32 count) {
     s32 index;
     s32 profile;
     if (lbl_805A0F70->state == 0) {
-        fn_80337BBC(fn_803683A0(lbl_805A0F70->connection, &buddyCount));
+        DWCi_HandleGPError(fn_803683A0(lbl_805A0F70->connection, &buddyCount));
         DWC_Printf(0x20000, lbl_80489460 + 0x184, buddyCount);
         for (buddyIndex = 0; buddyIndex < buddyCount; ++buddyIndex) {
-            fn_80337BBC(fn_803683E8(lbl_805A0F70->connection, buddyIndex, &status));
+            DWCi_HandleGPError(fn_803683E8(lbl_805A0F70->connection, buddyIndex, &status));
             for (index = 0; index < count; ++index) {
                 DWCFriendRecord* list = lbl_805A0F70->friends;
                 if (list == NULL) profile = 0;
@@ -442,7 +442,7 @@ void DWCi_UpdateFriendReq(DWCFriendRecord* friends, s32 count) {
             }
             if (index == count) {
                 DWC_Printf(0x20000, lbl_80489460 + 0x19C, status.profile);
-                fn_80337BBC(fn_80368648(lbl_805A0F70->connection, status.profile));
+                DWCi_HandleGPError(fn_80368648(lbl_805A0F70->connection, status.profile));
                 --buddyCount;
                 --buddyIndex;
             }
@@ -458,9 +458,9 @@ void DWCi_UpdateFriendReq(DWCFriendRecord* friends, s32 count) {
         }
         if (profile != 0) {
             if (!DWCi_RefreshFriendListForth(friends, lbl_805A0F70->friendIndex, profile)) {
-                fn_80337BBC(fn_80368538(lbl_805A0F70->connection, profile, &buddyIndex));
+                DWCi_HandleGPError(fn_80368538(lbl_805A0F70->connection, profile, &buddyIndex));
                 if (buddyIndex == -1) {
-                    fn_80337BBC(fn_803680C8(lbl_805A0F70->connection, profile, lbl_8059F080));
+                    DWCi_HandleGPError(fn_803680C8(lbl_805A0F70->connection, profile, lbl_8059F080));
                     DWC_Printf(0x20000, lbl_80489460 + 0x1B0, profile);
                 }
             }
@@ -551,4 +551,41 @@ s32 DWCi_RefreshFriendListAll(DWCFriendRecord* friends, s32 count, s32 profile) 
         }
     }
     return found;
+}
+
+BOOL DWCi_GetFriendBuddyStatus(const DWCFriendRecord* friendData, DWCBuddyStatusView* status) {
+    s32 index = 0;
+    s32 profile;
+    if (lbl_805A0F70 == NULL || !fn_80339410()) return 0;
+    profile = fn_803517BC(fn_8033891C(), friendData);
+    if (profile > 0 && fn_80368538(lbl_805A0F70->connection, profile, &index) != 0) return 0;
+    if (profile <= 0 || index == -1) return 0;
+    return fn_803683E8(lbl_805A0F70->connection, index, status) == 0;
+}
+
+extern const char lbl_80489678[];
+
+s32 DWCi_HandleGPError(s32 result) {
+    s32 error;
+    s32 code;
+    if (result == 0) return 0;
+    DWC_Printf(2, lbl_80489678, result);
+    /* The original defines these locals only for GP results 1 through 4. */
+    switch (result) {
+    case 1: error = 9; code = -1; break;
+    case 2: error = 9; code = -2; break;
+    case 3: error = 6; code = -10; break;
+    case 4: error = 6; code = -20; break;
+    }
+    if (lbl_805A0F70 != NULL && error != 0) {
+        DWCi_SetError(error, code - 71000);
+        if (lbl_805A0F70->phase != 0 && lbl_805A0F70->phase != 2)
+            lbl_805A0F70->updateCallback(error, lbl_805A0F70->changed, lbl_805A0F70->updateParameter);
+        if (lbl_805A0F70 != NULL) {
+            lbl_805A0F70->phase = 0;
+            lbl_805A0F70->state = 0;
+            lbl_805A0F70->completed = 0;
+        }
+    }
+    return result;
 }
