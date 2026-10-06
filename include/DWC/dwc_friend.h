@@ -9,3 +9,6 @@ s32 DWC_GetNumFriend(const DWCFriendRecord* friends, s32 count);
 BOOL DWC_SetOwnStatusData(const void* data, u32 size);
 BOOL DWC_CanChangeFriendList(void);
 void DWC_DeleteBuddyFriendData(DWCFriendRecord* friendData);
+
+typedef void (*DWCBuddyFriendCallback)(s32 index, void* parameter);
+BOOL DWC_SetBuddyFriendCallback(DWCBuddyFriendCallback callback, void* parameter);

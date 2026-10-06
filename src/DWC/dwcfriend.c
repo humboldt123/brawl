@@ -1,5 +1,6 @@
 #include <DWC/dwc_friend.h>
 #include <stddef.h>
+#include <revolution/OS/OSHardware.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,12 +13,36 @@ typedef struct DWCBuddyStatusView {
     u32 unknown20C;
 } DWCBuddyStatusView;
 
+typedef void (*DWCFriendUpdateCallback)(s32 error, u8 changed, void* parameter);
+
+/* This view describes only the verified first 0x60 bytes of the controller. */
 typedef struct DWCFriendControlView {
-    u32 unknown0;
+    s32 phase;
     void* connection;
-    u8 unknown8[0x1A];
+    u32 processCount;
+    u32 unknownC;
+    s64 lastProcessTime;
+    s32 friendCount;
+    DWCFriendRecord* friends;
+    u8 friendIndex;
+    u8 changed;
     u8 state;
-    u8 unknown23;
+    u8 completed;
+    u32 statsPending;
+    u32 unknown28;
+    void* userData;
+    DWCFriendUpdateCallback updateCallback;
+    void* updateParameter;
+    void* statusCallback;
+    void* statusParameter;
+    void* deleteCallback;
+    void* deleteParameter;
+    DWCBuddyFriendCallback buddyCallback;
+    void* buddyParameter;
+    u32 unknown50;
+    u32 unknown54;
+    u32 unknown58;
+    u32 unknown5C;
 } DWCFriendControlView;
 
 typedef char DWCBuddyStatusSizeCheck[sizeof(DWCBuddyStatusView) == 0x210 ? 1 : -1];
@@ -25,6 +50,9 @@ typedef char DWCFriendRecordSizeCheck[sizeof(DWCFriendRecord) == 12 ? 1 : -1];
 #ifdef __MWERKS__
 typedef char DWCFriendControlStateCheck[offsetof(DWCFriendControlView, state) == 0x22 ? 1 : -1];
 typedef char DWCFriendControlConnectionCheck[offsetof(DWCFriendControlView, connection) == 4 ? 1 : -1];
+typedef char DWCFriendControlTimeCheck[offsetof(DWCFriendControlView, lastProcessTime) == 0x10 ? 1 : -1];
+typedef char DWCFriendControlCallbackCheck[offsetof(DWCFriendControlView, buddyCallback) == 0x48 ? 1 : -1];
+typedef char DWCFriendControlViewSizeCheck[sizeof(DWCFriendControlView) == 0x60 ? 1 : -1];
 #endif
 
 extern DWCFriendControlView* lbl_805A0F70;
@@ -119,4 +147,134 @@ void DWC_DeleteBuddyFriendData(DWCFriendRecord* friendData) {
     }
     DWC_Printf(4, lbl_8048948C);
     memset(friendData, 0, 12);
+}
+
+extern u64 OSGetTime(void);
+extern BOOL DWCi_IsError(void);
+extern void DWCi_SetError(s32 error, s32 code);
+extern s32 fn_80367C74(void* connection);
+extern BOOL fn_80383698(void);
+extern BOOL fn_803836B0(void);
+extern void fn_80383470(void);
+extern void fn_80337474(DWCFriendRecord* friends, s32 count);
+extern s32 lbl_805A0F78;
+extern s32 lbl_805A0F7C;
+extern const char lbl_804894BC[];
+
+BOOL DWC_SetBuddyFriendCallback(DWCBuddyFriendCallback callback, void* parameter) {
+    if (lbl_805A0F70 == NULL) return 0;
+    lbl_805A0F70->buddyCallback = callback;
+    lbl_805A0F70->buddyParameter = parameter;
+    return 1;
+}
+
+void DWCi_FriendInit(void* control, void* connection, void* userData,
+                     DWCFriendRecord* friends, s32 count) {
+    lbl_805A0F70 = control;
+    lbl_805A0F70->phase = 0;
+    lbl_805A0F70->connection = connection;
+    lbl_805A0F70->processCount = 0;
+    lbl_805A0F70->lastProcessTime = 0;
+    lbl_805A0F70->friendCount = count;
+    lbl_805A0F70->friends = friends;
+    lbl_805A0F70->friendIndex = 0;
+    lbl_805A0F70->changed = 0;
+    lbl_805A0F70->state = 0;
+    lbl_805A0F70->completed = 0;
+    lbl_805A0F70->statsPending = 0;
+    lbl_805A0F70->unknown28 = 0;
+    lbl_805A0F70->userData = userData;
+    lbl_805A0F70->updateCallback = NULL;
+    lbl_805A0F70->updateParameter = NULL;
+    lbl_805A0F70->statusCallback = NULL;
+    lbl_805A0F70->statusParameter = NULL;
+    lbl_805A0F70->deleteCallback = NULL;
+    lbl_805A0F70->deleteParameter = NULL;
+    lbl_805A0F70->buddyCallback = NULL;
+    lbl_805A0F70->buddyParameter = NULL;
+    lbl_805A0F70->unknown50 = 0;
+    lbl_805A0F70->unknown54 = 0;
+    lbl_805A0F70->unknown58 = 0;
+    lbl_805A0F70->unknown5C = 0;
+}
+
+void DWCi_FriendProcess(void) {
+    s32 result;
+    if (lbl_805A0F70 == NULL || DWCi_IsError()) return;
+    if (lbl_805A0F70->friends == NULL) {
+        if (lbl_805A0F70->connection != NULL && *(u32*)lbl_805A0F70->connection != 0) {
+            if ((s64)(OSGetTime() - lbl_805A0F70->lastProcessTime) / (OS_BUS_CLOCK_SPEED / 4 / 1000) >= 300) {
+                ++lbl_805A0F70->processCount;
+                fn_80367C74(lbl_805A0F70->connection);
+                lbl_805A0F70->lastProcessTime = OSGetTime();
+            }
+        }
+        return;
+    }
+    if (lbl_805A0F70->statsPending || fn_80383698()) {
+        lbl_805A0F78 = 1;
+        lbl_805A0F7C = 0;
+        if (!fn_803836B0()) {
+            lbl_805A0F78 = 0;
+            DWC_Printf(8, lbl_804894BC);
+        }
+        lbl_805A0F78 = 0;
+        if (lbl_805A0F7C == 1) {
+            lbl_805A0F7C = 0;
+            fn_80383470();
+        }
+    }
+    if (lbl_805A0F70->connection != NULL && *(u32*)lbl_805A0F70->connection != 0) {
+        result = 0;
+        if ((s64)(OSGetTime() - lbl_805A0F70->lastProcessTime) / (OS_BUS_CLOCK_SPEED / 4 / 1000) >= 300) {
+            ++lbl_805A0F70->processCount;
+            result = fn_80367C74(lbl_805A0F70->connection);
+            lbl_805A0F70->lastProcessTime = OSGetTime();
+        }
+        if (result != 0 || lbl_805A0F70->phase == 0) return;
+        if (lbl_805A0F70->friends != NULL && lbl_805A0F70->state != 3 && lbl_805A0F70->processCount > 7) {
+            if (lbl_805A0F70->state < 2) fn_80337474(lbl_805A0F70->friends, lbl_805A0F70->friendCount);
+            if (lbl_805A0F70->friendIndex >= lbl_805A0F70->friendCount) {
+                lbl_805A0F70->state = 3;
+                ++lbl_805A0F70->completed;
+            }
+        }
+    }
+    if (lbl_805A0F70->completed >= 2) {
+        lbl_805A0F70->completed = 0;
+        lbl_805A0F70->updateCallback(0, lbl_805A0F70->changed, lbl_805A0F70->updateParameter);
+        lbl_805A0F70->phase = 2;
+    }
+}
+
+void DWCi_UpdateServersAsync(void* unused0, void* unused1,
+                             DWCFriendUpdateCallback callback, void* parameter,
+                             void* statusCallback, void* statusParameter,
+                             void* deleteCallback, void* deleteParameter) {
+    lbl_805A0F70->updateCallback = callback;
+    lbl_805A0F70->updateParameter = parameter;
+    lbl_805A0F70->statusCallback = statusCallback;
+    lbl_805A0F70->statusParameter = statusParameter;
+    lbl_805A0F70->deleteCallback = deleteCallback;
+    lbl_805A0F70->deleteParameter = deleteParameter;
+    lbl_805A0F70->changed = 0;
+    lbl_805A0F70->state = 0;
+    lbl_805A0F70->completed = 0;
+    lbl_805A0F70->friendIndex = 0;
+    lbl_805A0F70->phase = 1;
+    if (lbl_805A0F70->friends == NULL) ++lbl_805A0F70->completed;
+    ++lbl_805A0F70->completed;
+}
+
+void DWCi_StopFriendProcess(s32 error, s32 code) {
+    if (lbl_805A0F70 == NULL || error == 0) return;
+    DWCi_SetError(error, code);
+    if (lbl_805A0F70->phase != 0 && lbl_805A0F70->phase != 2) {
+        lbl_805A0F70->updateCallback(error, lbl_805A0F70->changed, lbl_805A0F70->updateParameter);
+    }
+    if (lbl_805A0F70 != NULL) {
+        lbl_805A0F70->phase = 0;
+        lbl_805A0F70->state = 0;
+        lbl_805A0F70->completed = 0;
+    }
 }
