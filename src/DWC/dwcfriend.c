@@ -13,6 +13,7 @@ typedef struct DWCBuddyStatusView {
     u32 unknown20C;
 } DWCBuddyStatusView;
 
+typedef void (*DWCPersistentCallback)(s32 error, void* parameter);
 typedef void (*DWCFriendDeleteCallback)(s32 removed, s32 retained, void* parameter);
 typedef void (*DWCFriendStatusCallback)(s32 index, u8 status, const char* location, void* parameter);
 typedef void (*DWCFriendUpdateCallback)(s32 error, u8 changed, void* parameter);
@@ -41,8 +42,8 @@ typedef struct DWCFriendControlView {
     void* deleteParameter;
     DWCBuddyFriendCallback buddyCallback;
     void* buddyParameter;
-    u32 unknown50;
-    u32 unknown54;
+    DWCPersistentCallback persistentCallback;
+    void* persistentParameter;
     u32 unknown58;
     u32 unknown5C;
 } DWCFriendControlView;
@@ -194,8 +195,8 @@ void DWCi_FriendInit(void* control, void* connection, void* userData,
     lbl_805A0F70->deleteParameter = NULL;
     lbl_805A0F70->buddyCallback = NULL;
     lbl_805A0F70->buddyParameter = NULL;
-    lbl_805A0F70->unknown50 = 0;
-    lbl_805A0F70->unknown54 = 0;
+    lbl_805A0F70->persistentCallback = 0;
+    lbl_805A0F70->persistentParameter = 0;
     lbl_805A0F70->unknown58 = 0;
     lbl_805A0F70->unknown5C = 0;
 }
@@ -586,6 +587,34 @@ s32 DWCi_HandleGPError(s32 result) {
             lbl_805A0F70->state = 0;
             lbl_805A0F70->completed = 0;
         }
+    }
+    return result;
+}
+
+extern s32 lbl_805A0F74;
+extern const char lbl_80489690[];
+
+u32 DWCi_HandlePersError(u32 result) {
+    s32 error;
+    s32 code;
+    if (result == 0) return 0;
+    DWC_Printf(2, lbl_80489690, result);
+    /* Other result values leave these locals unset in the original. */
+    switch (result) {
+    case 1: error = 6; code = -50; break;
+    case 2: error = 6; code = -30; break;
+    case 3: error = 6; code = -20; break;
+    case 5: error = 6; code = -40; break;
+    case 7: error = 6; code = -70; break;
+    }
+    if (lbl_805A0F74 == 1 && lbl_805A0F70 != NULL && error != 0) {
+        DWCi_SetError(error, code - 92000);
+        if (lbl_805A0F78 == 1) lbl_805A0F7C = 1;
+        else fn_80383470();
+        lbl_805A0F74 = 0;
+        if (lbl_805A0F70 != NULL) lbl_805A0F70->statsPending = 0;
+        if (lbl_805A0F70->persistentCallback != NULL)
+            lbl_805A0F70->persistentCallback(error, lbl_805A0F70->persistentParameter);
     }
     return result;
 }
