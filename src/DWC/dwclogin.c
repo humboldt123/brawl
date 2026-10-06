@@ -1,5 +1,6 @@
 #include <types.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
 #include <revolution/OS/OSHardware.h>
 
@@ -141,4 +142,77 @@ s32 DWCi_LoginHandleGPError(s32 result) {
         }
     }
     return result;
+}
+
+typedef struct DWCLoginUserProfileView { u8 unknown0[0x1C]; s32 profile; } DWCLoginUserProfileView;
+typedef struct DWCLoginConnectEvent { s32 result; s32 profile; } DWCLoginConnectEvent;
+typedef struct DWCLoginMatchTimeView {
+    u8 unknown0[0x4B8];
+    s64 startTime;
+    s64 elapsedTime;
+} DWCLoginMatchTimeView;
+typedef char DWCLoginMatchTimeOffsetCheck[offsetof(DWCLoginMatchTimeView, elapsedTime) == 0x4C0 ? 1 : -1];
+extern const char* fn_8034F7A4(void);
+extern u64 fn_8034F684(void);
+extern const char* fn_8034F79C(void);
+extern s32 fn_80368058(void* connection, s32 field, const char* text);
+extern DWCLoginMatchTimeView* fn_8034E158(void);
+extern u32 fn_80342554(void);
+extern s32 fn_80342328(s32 status);
+extern s32 fn_8033AAF0(void);
+extern s32 fn_8033CD90(s32 profile);
+extern void fn_803391A8(void* connection, void* event, void* parameter);
+extern s32 fn_80367F78(void* connection, s32 profile, s32 cache, s32 blocking,
+                      void (*callback)(void*, void*, void*), void* parameter);
+
+void DWCi_GPConnectCallback(void* connection, void* argument, void* parameter) {
+    DWCLoginConnectEvent* event = argument;
+    char identity[31];
+    const char* gameName;
+    const char* consoleName;
+    u64 consoleId;
+    u64 now;
+    s64 start;
+    DWCLoginMatchTimeView* match;
+    DWC_Printf(0x20, lbl_80489A00 + 0xEC, event->result);
+    lbl_805A0F80->timed = 0;
+    gameName = fn_8034F7A4();
+    consoleId = fn_8034F684();
+    consoleName = fn_8034F79C();
+    snprintf(identity, 31, lbl_80489A00 + 0x11C, consoleName, consoleId, gameName);
+    if (DWCi_LoginHandleGPError(fn_80368058(connection, 0x704, identity)) != 0) return;
+    if (event->result != 0) {
+        DWCi_LoginHandleGPError(event->result);
+        return;
+    }
+    if (lbl_805A0F80->state == 2) {
+        if (((DWCLoginUserProfileView*)lbl_805A0F80->userData)->profile == event->profile) {
+            DWC_Printf(0x20, lbl_80489A00 + 0x12C);
+            lbl_805A0F80->state = 5;
+            now = OSGetTime();
+            start = fn_8034E158()->startTime;
+            match = fn_8034E158();
+            match->elapsedTime = (s64)(now - (u64)start);
+            DWC_Printf(0x200000, lbl_80489A00 + 0x148,
+                       (s32)(fn_8034E158()->elapsedTime / (OS_BUS_CLOCK_SPEED / 4 / 1000)));
+            DWC_Printf(0x200000, lbl_80489A00 + 0x164, fn_80342554());
+            if (DWCi_LoginHandleGPError(fn_80342328(1)) == 0) {
+                lbl_805A0F80->callback(0, event->profile, lbl_805A0F80->parameter);
+                if (fn_8033AAF0() == 0) fn_8033CD90(event->profile);
+            }
+        } else {
+            DWC_Printf(0x20, lbl_80489A00 + 0x184);
+            if (lbl_805A0F80 != NULL) {
+                DWCi_SetError(6, -60000);
+                if (lbl_805A0F80->callback != NULL)
+                    lbl_805A0F80->callback(6, 0, lbl_805A0F80->parameter);
+                if (lbl_805A0F80 != NULL) {
+                    lbl_805A0F80->state = 0;
+                    lbl_805A0F80->timed = 0;
+                }
+            }
+        }
+    } else if (lbl_805A0F80->state == 3) {
+        DWCi_LoginHandleGPError(fn_80367F78(connection, event->profile, 0, 0, fn_803391A8, NULL));
+    }
 }
