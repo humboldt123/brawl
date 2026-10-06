@@ -35,3 +35,23 @@ void DWC_Free(int kind, void* allocation, int size) {
     if (allocation == NULL) return;
     lbl_805A0F58(kind, (DWCAllocationHeader*)allocation - 1, size);
 }
+
+extern void fn_8034F028(void* destination, const void* source, u32 size);
+
+void* DWCi_GsMalloc(u32 size) { return DWC_Alloc(9, size); }
+
+void* DWCi_GsRealloc(void* allocation, u32 size) {
+    void* replacement = DWC_Alloc(9, size);
+    if (replacement == NULL) return NULL;
+    if (allocation != NULL) {
+        DWCAllocationHeader* header = (DWCAllocationHeader*)allocation - 1;
+        u32 previousSize = header->size;
+        u32 copySize = size < previousSize ? size : previousSize;
+        fn_8034F028(replacement, allocation, copySize);
+        DWC_Free(9, allocation, previousSize);
+    }
+    return replacement;
+}
+
+void DWCi_GsFree(void* allocation) { DWC_Free(9, allocation, 0); }
+void* DWCi_GsMemalign(int alignment, u32 size) { return DWC_AllocEx(9, size, alignment); }

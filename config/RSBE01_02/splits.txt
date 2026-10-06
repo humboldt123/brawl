@@ -1398,7 +1398,7 @@ DWC/dwcerror.c:
 	.text       start:0x8033514C end:0x80335264
 
 DWC/dwcmemfunc.c:
-	.text       start:0x80335384 end:0x8033546C
+	.text       start:0x80335384 end:0x80335630
 
 Runtime.PPCEABI.H/__va_arg.c:
 	.text       start:0x803F065C end:0x803F0724
