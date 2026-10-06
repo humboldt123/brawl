@@ -512,3 +512,43 @@ BOOL DWCi_RefreshFriendListForth(DWCFriendRecord* friends, s32 index, s32 profil
     }
     return 0;
 }
+
+s32 DWCi_RefreshFriendListAll(DWCFriendRecord* friends, s32 count, s32 profile) {
+    s32 found = -1;
+    s32 first;
+    s32 second;
+    for (first = 0; first < count; ++first) {
+        DWCFriendRecord* list = lbl_805A0F70->friends;
+        s32 current;
+        if (list == NULL) current = 0;
+        else {
+            current = fn_803517BC(fn_8033891C(), list + first);
+            if (current == 0 || current == -1) current = 0;
+        }
+        if (current != 0) {
+            if (current == profile) found = first;
+            for (second = first + 1; second < count; ++second) {
+                s32 candidate;
+                list = lbl_805A0F70->friends;
+                if (list == NULL) candidate = 0;
+                else {
+                    candidate = fn_803517BC(fn_8033891C(), list + second);
+                    if (candidate == 0 || candidate == -1) candidate = 0;
+                }
+                if (current == candidate) {
+                    if (fn_80350C70(friends + first) == 2 && fn_80350C70(friends + second) == 3)
+                        fn_80351A80(friends + first, current);
+                    if (fn_80350C4C(friends + second)) fn_80350C7C(friends + first);
+                    DWC_Printf(0x20000, lbl_80489648, first, second, fn_80350C70(friends + first));
+                    if (lbl_805A0F70 != NULL) {
+                        memset(friends + second, 0, 12);
+                        if (lbl_805A0F70->deleteCallback != NULL)
+                            lbl_805A0F70->deleteCallback(second, first, lbl_805A0F70->deleteParameter);
+                    }
+                    lbl_805A0F70->changed = 1;
+                }
+            }
+        }
+    }
+    return found;
+}
