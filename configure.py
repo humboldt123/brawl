@@ -432,6 +432,13 @@ def MatchingFor(*versions):
 config.warn_missing_config = True
 config.warn_missing_source = False
 config.libs = [
+    {
+        "lib": "DWC",
+        "mw_version": config.linker_version,
+        "cflags": cflags_common,
+        "host": False,
+        "objects": [Object(NonMatching, "DWC/dwcbase64.c")],
+    },
     # --- sibling-project libraries (begin) ---
     {
         "lib": "NWLib",

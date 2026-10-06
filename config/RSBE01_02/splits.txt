@@ -1391,6 +1391,9 @@ havok/hkVersionUtil.cpp:
 	.text       start:0x80334BF8 end:0x80334DE4
 	.rodata     start:0x804156D0 end:0x804156E0
 
+DWC/dwcbase64.c:
+	.text       start:0x80334DE4 end:0x8033514C
+
 Runtime.PPCEABI.H/__va_arg.c:
 	.text       start:0x803F065C end:0x803F0724
 
