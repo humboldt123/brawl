@@ -407,7 +407,7 @@ extern BOOL DWCi_RefreshFriendListForth(DWCFriendRecord* friends, s32 index, s32
 extern s32 fn_80368538(void* connection, s32 profile, s32* index);
 extern s32 fn_803680C8(void* connection, s32 profile, const char* message);
 extern void fn_80351AE8(void* userData, const DWCFriendRecord* friendData, char* name);
-extern void fn_80337E1C(void* connection, void* event, void* parameter);
+extern void DWCi_GPProfileSearchCallback(void* connection, void* event, void* parameter);
 extern s32 fn_80367EA8(void* connection, const char* firstName, const char* lastName,
                      const char* email, const char* nick, const char* uniqueNick,
                      s32 icq, s32 blocking, DWCGPInfoCallback callback, void* parameter);
@@ -470,7 +470,7 @@ void DWCi_UpdateFriendReq(DWCFriendRecord* friends, s32 count) {
             if (profile == -1) {
                 fn_80351AE8(fn_8033891C(), friends + lbl_805A0F70->friendIndex, userName);
                 fn_80367EA8(lbl_805A0F70->connection, NULL, NULL, NULL, NULL, userName,
-                           0, 0, fn_80337E1C, (void*)(size_t)lbl_805A0F70->friendIndex);
+                           0, 0, DWCi_GPProfileSearchCallback, (void*)(size_t)lbl_805A0F70->friendIndex);
                 DWC_Printf(0x20000, lbl_80489460 + 0x1CC);
                 lbl_805A0F70->state = 2;
                 return;
@@ -617,4 +617,73 @@ u32 DWCi_HandlePersError(u32 result) {
             lbl_805A0F70->persistentCallback(error, lbl_805A0F70->persistentParameter);
     }
     return result;
+}
+
+typedef struct DWCGPProfileMatchView {
+    s32 profile;
+    u8 unknown4[0xA8];
+} DWCGPProfileMatchView;
+typedef struct DWCGPProfileSearchView {
+    s32 result;
+    s32 count;
+    s32 more;
+    DWCGPProfileMatchView* matches;
+} DWCGPProfileSearchView;
+typedef char DWCGPProfileMatchSizeCheck[sizeof(DWCGPProfileMatchView) == 0xAC ? 1 : -1];
+#ifdef __MWERKS__
+typedef char DWCGPProfileSearchOffsetCheck[offsetof(DWCGPProfileSearchView, matches) == 12 ? 1 : -1];
+#endif
+
+void DWCi_GPProfileSearchCallback(void* connection, void* argument, void* parameter) {
+    DWCGPProfileSearchView* event = argument;
+    s32 index = (s32)(size_t)parameter;
+    s32 match;
+    s32 buddyIndex;
+    char location[256];
+    DWC_Printf(4, lbl_80489460 + 0x270, event->count, event->more);
+    if (event->result == 0 && event->count != 0 && fn_80350C70(lbl_805A0F70->friends + index) != 0) {
+        if (event->count > 1) DWC_Printf(0x20000, lbl_80489460 + 0x28C, event->count);
+        if (lbl_805A0F70->phase == 1) {
+            for (match = 0; match < event->count; ++match) {
+                if (DWCi_RefreshFriendListForth(lbl_805A0F70->friends, index, event->matches[match].profile)) {
+                    ++lbl_805A0F70->friendIndex;
+                    lbl_805A0F70->state = 1;
+                    event->more = 0x601;
+                    return;
+                }
+            }
+            for (match = 0; match < event->count; ++match) {
+                DWCi_HandleGPError(fn_80368538(connection, event->matches[match].profile, &buddyIndex));
+                if (buddyIndex != -1) {
+                    /* The original uses match zero here, even when a later match is the buddy. */
+                    fn_80351A80(lbl_805A0F70->friends + index, event->matches[0].profile);
+                    fn_80350C7C(lbl_805A0F70->friends + index);
+                    if (lbl_805A0F70->buddyCallback != NULL && lbl_805A0F70->phase != 1)
+                        lbl_805A0F70->buddyCallback(index, lbl_805A0F70->buddyParameter);
+                    if (lbl_805A0F70->statusCallback != NULL) {
+                        u8 status = DWC_GetFriendStatusSC(lbl_805A0F70->friends + index, NULL, NULL, location);
+                        lbl_805A0F70->statusCallback(index, status, location, lbl_805A0F70->statusParameter);
+                    }
+                    ++lbl_805A0F70->friendIndex;
+                    lbl_805A0F70->state = 1;
+                    event->more = 0x601;
+                    lbl_805A0F70->changed = 1;
+                    return;
+                }
+                DWCi_HandleGPError(fn_803680C8(lbl_805A0F70->connection, event->matches[match].profile, lbl_8059F080));
+                DWC_Printf(0x20000, lbl_80489460 + 0x1B0, event->matches[match].profile);
+            }
+            if (event->more == 0x600) DWC_Printf(4, lbl_80489460 + 0x2AC);
+            else {
+                ++lbl_805A0F70->friendIndex;
+                lbl_805A0F70->state = 1;
+            }
+        }
+        return;
+    }
+    if (event->result != 0) DWCi_HandleGPError(event->result);
+    else if (lbl_805A0F70->phase == 1 || fn_80350C70(lbl_805A0F70->friends + index) == 0) {
+        ++lbl_805A0F70->friendIndex;
+        lbl_805A0F70->state = 1;
+    }
 }
