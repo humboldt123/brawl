@@ -1406,6 +1406,9 @@ DWC/dwcmemfunc.c:
 DWC/dwcreport.c:
 	.text       start:0x80335630 end:0x80335988
 
+DWC/dwcghttp.c:
+	.text       start:0x80335988 end:0x803362EC
+
 Runtime.PPCEABI.H/__va_arg.c:
 	.text       start:0x803F065C end:0x803F0724
 
