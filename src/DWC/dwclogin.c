@@ -168,7 +168,7 @@ extern u32 fn_80342554(void);
 extern s32 fn_80342328(s32 status);
 extern s32 fn_8033AAF0(void);
 extern s32 fn_8033CD90(s32 profile);
-extern void fn_803391A8(void* connection, void* event, void* parameter);
+extern void DWCi_GPGetInfoCallback(void* connection, void* event, void* parameter);
 extern s32 fn_80367F78(void* connection, s32 profile, s32 cache, s32 blocking,
                       void (*callback)(void*, void*, void*), void* parameter);
 
@@ -220,7 +220,7 @@ void DWCi_GPConnectCallback(void* connection, void* argument, void* parameter) {
             }
         }
     } else if (lbl_805A0F80->state == 3) {
-        DWCi_LoginHandleGPError(fn_80367F78(connection, event->profile, 0, 0, fn_803391A8, NULL));
+        DWCi_LoginHandleGPError(fn_80367F78(connection, event->profile, 0, 0, DWCi_GPGetInfoCallback, NULL));
     }
 }
 
@@ -326,4 +326,73 @@ void DWCi_RemoteLoginProcess(void) {
             }
         }
     }
+}
+
+typedef struct DWCLoginInfoEvent {
+    s32 result;
+    s32 profile;
+    u8 unknown08[0x86];
+    char lastName[0x100];
+} DWCLoginInfoEvent;
+typedef char DWCLoginLastNameCheck[offsetof(DWCLoginInfoEvent, lastName) == 0x8E ? 1 : -1];
+extern void fn_80351480(void* userData, const void* loginId, s32 profile);
+extern void fn_80367E4C(void* connection);
+extern s32 fn_80368990(void* connection, char* ticket);
+
+void DWCi_GPGetInfoCallback(void* connection, void* eventPointer, void* parameter) {
+    DWCLoginInfoEvent* event = eventPointer;
+    char temporaryName[24];
+    char pseudoName[24];
+    char newName[28];
+    s32 result;
+    (void)parameter;
+    if (event->result != 0) {
+        DWC_Printf(0x20, lbl_80489A00 + 0x428, event->result);
+        return;
+    }
+    if (lbl_805A0F80->state == 3) {
+        if (event->lastName[0] == 0) {
+            DWC_Printf(0x20, lbl_80489A00 + 0x340);
+            fn_80350D74((u8*)lbl_805A0F80->userData + 4, lbl_805A0F80->gameCode, newName);
+            result = fn_80368058(connection, 0x705, newName);
+            if (DWCi_LoginHandleGPError(result) != 0) return;
+            lbl_805A0F80->state = 4;
+            result = fn_80367F78(connection, event->profile, 0, 0, DWCi_GPGetInfoCallback, NULL);
+            if (DWCi_LoginHandleGPError(result) != 0) return;
+            DWC_Printf(0x20, lbl_80489A00 + 0x374);
+        } else {
+            DWC_Printf(0x20, lbl_80489A00 + 0x38C);
+            fn_80367E4C(connection);
+            DWCi_RemoteLogin();
+            lbl_805A0F80->state = 1;
+        }
+    } else if (lbl_805A0F80->state == 4) {
+        fn_80350D74((u8*)lbl_805A0F80->userData + 4, lbl_805A0F80->gameCode, pseudoName);
+        if (strcmp(event->lastName, pseudoName) == 0) {
+            fn_80350D74(lbl_805A0F80->temporaryLoginId, lbl_805A0F80->gameCode, temporaryName);
+            DWC_Printf(0x20, lbl_80489A00 + 0x3C0, temporaryName, pseudoName, event->profile);
+            fn_80351480(lbl_805A0F80->userData, lbl_805A0F80->temporaryLoginId, event->profile);
+            fn_80367E4C(connection);
+            DWC_Printf(0x20, lbl_80489A00 + 0x300);
+            lbl_805A0F80->startTime = OSGetTime();
+            lbl_805A0F80->timed = 1;
+            result = fn_80367D20(lbl_805A0F80->connection, lbl_805A0F80->authToken,
+                                lbl_805A0F80->authChallenge, 1, 0, DWCi_GPConnectCallback, NULL);
+            if (DWCi_LoginHandleGPError(result) == 0) lbl_805A0F80->state = 2;
+        } else {
+            DWC_Printf(0x20, lbl_80489A00 + 0x3E8, event->lastName, event->profile);
+            result = fn_80367F78(connection, event->profile, 0, 0, DWCi_GPGetInfoCallback, NULL);
+            if (DWCi_LoginHandleGPError(result) != 0) return;
+        }
+    }
+}
+
+BOOL DWCi_CheckLogin(void) {
+    if (lbl_805A0F80 != NULL && lbl_805A0F80->state == 5) return 1;
+    return 0;
+}
+
+BOOL DWCi_GetLoginTicket(char* ticket) {
+    if (DWCi_CheckLogin()) return fn_80368990(lbl_805A0F80->connection, ticket) == 0;
+    return 0;
 }

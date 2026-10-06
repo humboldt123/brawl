@@ -66,7 +66,7 @@ extern const char lbl_80489460[];
 extern const char lbl_8048948C[];
 extern BOOL DWCi_GetFriendBuddyStatus(const DWCFriendRecord* friendData, DWCBuddyStatusView* status);
 extern BOOL fn_803512B4(const DWCFriendRecord* friendData);
-extern BOOL fn_80339410(void);
+extern BOOL DWCi_CheckLogin(void);
 extern void* DWCi_GetUserData(void);
 extern s32 fn_803517BC(void* userData, const DWCFriendRecord* friendData);
 extern BOOL fn_803685D0(void* connection, s32 profile);
@@ -127,7 +127,7 @@ s32 DWC_GetNumFriend(const DWCFriendRecord* friends, s32 count) {
 BOOL DWC_SetOwnStatusData(const void* data, u32 size) {
     char encoded[256];
     s32 length;
-    if (lbl_805A0F70 == NULL || !fn_80339410()) return 0;
+    if (lbl_805A0F70 == NULL || !DWCi_CheckLogin()) return 0;
     length = DWC_Base64Encode(data, size, encoded, 255);
     if (length == -1) return 0;
     encoded[length] = 0;
@@ -140,7 +140,7 @@ BOOL DWC_CanChangeFriendList(void) {
 }
 
 void DWC_DeleteBuddyFriendData(DWCFriendRecord* friendData) {
-    if (lbl_805A0F70 != NULL && fn_80339410() && DWCi_GetUserData() != NULL) {
+    if (lbl_805A0F70 != NULL && DWCi_CheckLogin() && DWCi_GetUserData() != NULL) {
         s32 profile = fn_803517BC(DWCi_GetUserData(), friendData);
         if (profile != 0 && profile != -1 && fn_803685D0(lbl_805A0F70->connection, profile)) {
             fn_80368648(lbl_805A0F70->connection, profile);
@@ -387,7 +387,7 @@ void DWCi_InitGPProcessCount(void) {
 }
 
 s32 DWCi_SetGPStatus(s32 status, const char* statusString, const char* locationString) {
-    if (lbl_805A0F70 == NULL || !fn_80339410()) return 0;
+    if (lbl_805A0F70 == NULL || !DWCi_CheckLogin()) return 0;
     if (status == -1) status = (*(DWCGPConnectionStatusView**)lbl_805A0F70->connection)->status;
     else DWC_Printf(4, lbl_80489460 + 0x118, status);
     if (statusString == NULL) statusString = (*(DWCGPConnectionStatusView**)lbl_805A0F70->connection)->statusString;
@@ -558,7 +558,7 @@ s32 DWCi_RefreshFriendListAll(DWCFriendRecord* friends, s32 count, s32 profile) 
 BOOL DWCi_GetFriendBuddyStatus(const DWCFriendRecord* friendData, DWCBuddyStatusView* status) {
     s32 index = 0;
     s32 profile;
-    if (lbl_805A0F70 == NULL || !fn_80339410()) return 0;
+    if (lbl_805A0F70 == NULL || !DWCi_CheckLogin()) return 0;
     profile = fn_803517BC(DWCi_GetUserData(), friendData);
     if (profile > 0 && fn_80368538(lbl_805A0F70->connection, profile, &index) != 0) return 0;
     if (profile <= 0 || index == -1) return 0;
