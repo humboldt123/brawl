@@ -337,3 +337,28 @@ void DWCi_GPRecvBuddyStatusCallback(void* connection, const DWCGPBuddyEventView*
         }
     }
 }
+
+s32 DWCi_GetProfileIDFromList(s32 index) {
+    DWCFriendRecord* friends = lbl_805A0F70->friends;
+    s32 profile;
+    if (friends == NULL) return 0;
+    profile = fn_803517BC(fn_8033891C(), friends + index);
+    if (profile == 0 || profile == -1) return 0;
+    return profile;
+}
+
+s32 DWCi_GetFriendListIndex(s32 profile) {
+    s32 index;
+    if (lbl_805A0F70 == NULL || profile == 0) return -1;
+    for (index = 0; index < lbl_805A0F70->friendCount; ++index) {
+        DWCFriendRecord* friends = lbl_805A0F70->friends;
+        s32 candidate;
+        if (friends == NULL) candidate = 0;
+        else {
+            candidate = fn_803517BC(fn_8033891C(), friends + index);
+            if (candidate == 0 || candidate == -1) candidate = 0;
+        }
+        if (profile == candidate) return index;
+    }
+    return -1;
+}
