@@ -36,3 +36,38 @@ s32 DWC_GetCommonValueString(const char* key, char* value, const char* text, cha
     }
     return -1;
 }
+
+typedef struct DWCRandomState {
+    u64 value;
+    u64 multiplier;
+    u64 increment;
+} DWCRandomState;
+
+extern DWCRandomState lbl_80533718;
+extern void fn_80390010(u8* address);
+extern u64 OSGetTime(void);
+
+u32 DWCi_GetMathRand32(u32 maximum) {
+    u32 value;
+    if (lbl_80533718.value == 0 && lbl_80533718.multiplier == 0 && lbl_80533718.increment == 0) {
+        u8 address[8];
+        fn_80390010(address);
+        lbl_80533718.value = (OSGetTime() << 24) | ((u32)address[2] << 16) |
+                            ((u32)address[3] << 8) | address[4];
+        lbl_80533718.multiplier = 0x5D588B656C078965ULL;
+        lbl_80533718.increment = 0x269EC3;
+    }
+    lbl_80533718.value = lbl_80533718.value * lbl_80533718.multiplier + lbl_80533718.increment;
+    value = lbl_80533718.value >> 32;
+    if (maximum != 0) value = ((u64)value * maximum) >> 32;
+    return value;
+}
+
+s32 DWCi_WStrLen(const u16* text) {
+    s32 length = 0;
+    while (*text != 0) {
+        ++text;
+        ++length;
+    }
+    return length;
+}
