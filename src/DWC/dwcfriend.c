@@ -13,6 +13,7 @@ typedef struct DWCBuddyStatusView {
     u32 unknown20C;
 } DWCBuddyStatusView;
 
+typedef void (*DWCFriendDeleteCallback)(s32 removed, s32 retained, void* parameter);
 typedef void (*DWCFriendStatusCallback)(s32 index, u8 status, const char* location, void* parameter);
 typedef void (*DWCFriendUpdateCallback)(s32 error, u8 changed, void* parameter);
 
@@ -36,7 +37,7 @@ typedef struct DWCFriendControlView {
     void* updateParameter;
     DWCFriendStatusCallback statusCallback;
     void* statusParameter;
-    void* deleteCallback;
+    DWCFriendDeleteCallback deleteCallback;
     void* deleteParameter;
     DWCBuddyFriendCallback buddyCallback;
     void* buddyParameter;
@@ -251,7 +252,7 @@ void DWCi_FriendProcess(void) {
 void DWCi_UpdateServersAsync(void* unused0, void* unused1,
                              DWCFriendUpdateCallback callback, void* parameter,
                              DWCFriendStatusCallback statusCallback, void* statusParameter,
-                             void* deleteCallback, void* deleteParameter) {
+                             DWCFriendDeleteCallback deleteCallback, void* deleteParameter) {
     lbl_805A0F70->updateCallback = callback;
     lbl_805A0F70->updateParameter = parameter;
     lbl_805A0F70->statusCallback = statusCallback;
@@ -401,7 +402,7 @@ extern s32 fn_80337BBC(s32 result);
 extern BOOL fn_80350C4C(const DWCFriendRecord* friendData);
 extern void fn_80351A80(DWCFriendRecord* friendData, s32 profile);
 extern void fn_80350C7C(DWCFriendRecord* friendData);
-extern BOOL fn_80337780(DWCFriendRecord* friends, s32 index, s32 profile);
+extern BOOL DWCi_RefreshFriendListForth(DWCFriendRecord* friends, s32 index, s32 profile);
 extern s32 fn_80368538(void* connection, s32 profile, s32* index);
 extern s32 fn_803680C8(void* connection, s32 profile, const char* message);
 extern void fn_80351AE8(void* userData, const DWCFriendRecord* friendData, char* name);
@@ -456,7 +457,7 @@ void DWCi_UpdateFriendReq(DWCFriendRecord* friends, s32 count) {
             if (profile == 0 || profile == -1) profile = 0;
         }
         if (profile != 0) {
-            if (!fn_80337780(friends, lbl_805A0F70->friendIndex, profile)) {
+            if (!DWCi_RefreshFriendListForth(friends, lbl_805A0F70->friendIndex, profile)) {
                 fn_80337BBC(fn_80368538(lbl_805A0F70->connection, profile, &buddyIndex));
                 if (buddyIndex == -1) {
                     fn_80337BBC(fn_803680C8(lbl_805A0F70->connection, profile, lbl_8059F080));
@@ -476,4 +477,38 @@ void DWCi_UpdateFriendReq(DWCFriendRecord* friends, s32 count) {
         }
         ++lbl_805A0F70->friendIndex;
     }
+}
+
+extern s32 fn_80350C70(const DWCFriendRecord* friendData);
+extern const char lbl_80489648[];
+
+BOOL DWCi_RefreshFriendListForth(DWCFriendRecord* friends, s32 index, s32 profile) {
+    s32 previous;
+    for (previous = 0; previous < index; ++previous) {
+        DWCFriendRecord* list = lbl_805A0F70->friends;
+        s32 candidate;
+        if (list == NULL) candidate = 0;
+        else {
+            candidate = fn_803517BC(fn_8033891C(), list + previous);
+            if (candidate == 0 || candidate == -1) candidate = 0;
+        }
+        if (candidate != 0 && candidate == profile) {
+            DWCFriendRecord* earlier = friends + previous;
+            DWC_Printf(0x20000, lbl_80489648, previous, index, fn_80350C70(earlier));
+            if (!fn_80350C4C(friends + index) || fn_80350C4C(earlier)) {
+                if (lbl_805A0F70 != NULL) {
+                    memset(friends + index, 0, 12);
+                    if (lbl_805A0F70->deleteCallback != NULL)
+                        lbl_805A0F70->deleteCallback(index, previous, lbl_805A0F70->deleteParameter);
+                }
+            } else if (lbl_805A0F70 != NULL) {
+                memset(earlier, 0, 12);
+                if (lbl_805A0F70->deleteCallback != NULL)
+                    lbl_805A0F70->deleteCallback(previous, index, lbl_805A0F70->deleteParameter);
+            }
+            lbl_805A0F70->changed = 1;
+            return 1;
+        }
+    }
+    return 0;
 }
