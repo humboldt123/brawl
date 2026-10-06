@@ -13,6 +13,7 @@ typedef struct DWCBuddyStatusView {
     u32 unknown20C;
 } DWCBuddyStatusView;
 
+typedef void (*DWCFriendStatusCallback)(s32 index, u8 status, const char* location, void* parameter);
 typedef void (*DWCFriendUpdateCallback)(s32 error, u8 changed, void* parameter);
 
 /* This view describes only the verified first 0x60 bytes of the controller. */
@@ -33,7 +34,7 @@ typedef struct DWCFriendControlView {
     void* userData;
     DWCFriendUpdateCallback updateCallback;
     void* updateParameter;
-    void* statusCallback;
+    DWCFriendStatusCallback statusCallback;
     void* statusParameter;
     void* deleteCallback;
     void* deleteParameter;
@@ -249,7 +250,7 @@ void DWCi_FriendProcess(void) {
 
 void DWCi_UpdateServersAsync(void* unused0, void* unused1,
                              DWCFriendUpdateCallback callback, void* parameter,
-                             void* statusCallback, void* statusParameter,
+                             DWCFriendStatusCallback statusCallback, void* statusParameter,
                              void* deleteCallback, void* deleteParameter) {
     lbl_805A0F70->updateCallback = callback;
     lbl_805A0F70->updateParameter = parameter;
@@ -276,5 +277,63 @@ void DWCi_StopFriendProcess(s32 error, s32 code) {
         lbl_805A0F70->phase = 0;
         lbl_805A0F70->state = 0;
         lbl_805A0F70->completed = 0;
+    }
+}
+
+typedef struct DWCGPBuddyEventView {
+    s32 profile;
+    u32 unknown4;
+    s32 buddyIndex;
+} DWCGPBuddyEventView;
+typedef void (*DWCGPInfoCallback)(void* connection, void* event, void* parameter);
+extern s32 fn_80367F78(void* connection, s32 profile, s32 checkCache, s32 blocking,
+                      DWCGPInfoCallback callback, void* parameter);
+extern void fn_80338128(void* connection, void* event, void* parameter);
+extern void fn_80338358(void* connection, void* event, void* parameter);
+extern s32 fn_803683E8(void* connection, s32 index, DWCBuddyStatusView* status);
+extern const char lbl_804894E8[];
+extern const char lbl_80489508[];
+extern const char lbl_80489524[];
+extern const char lbl_80489554[];
+
+void DWCi_GPRecvBuddyRequestCallback(void* connection, const DWCGPBuddyEventView* event, void* parameter) {
+    DWC_Printf(0x20000, lbl_804894E8, event->profile);
+    if (lbl_805A0F70->friends != NULL) {
+        DWC_Printf(0x20000, lbl_80489508);
+        fn_80367F78(connection, event->profile, 0, 0, fn_80338128, NULL);
+    }
+}
+
+BOOL DWCi_GPRecvBuddyAuthCallback(void* connection, const DWCGPBuddyEventView* event, void* parameter) {
+    DWC_Printf(0x20000, lbl_80489524, event->profile);
+    DWC_Printf(0x20000, lbl_80489508);
+    fn_80367F78(connection, event->profile, 0, 0, fn_80338358, NULL);
+    return 1;
+}
+
+void DWCi_GPRecvBuddyStatusCallback(void* connection, const DWCGPBuddyEventView* event, void* parameter) {
+    DWCBuddyStatusView status;
+    s32 index;
+    s32 profile;
+    DWC_Printf(0x20000, lbl_80489554, event->profile);
+    if (lbl_805A0F70->statusCallback != NULL) {
+        if (lbl_805A0F70 == NULL || event->profile == 0) {
+            index = -1;
+        } else {
+            for (index = 0; index < lbl_805A0F70->friendCount; ++index) {
+                DWCFriendRecord* friends = lbl_805A0F70->friends;
+                if (friends == NULL) profile = 0;
+                else {
+                    profile = fn_803517BC(fn_8033891C(), friends + index);
+                    if (profile == 0 || profile == -1) profile = 0;
+                }
+                if (event->profile == profile) break;
+            }
+            if (index >= lbl_805A0F70->friendCount) index = -1;
+        }
+        if (index != -1) {
+            fn_803683E8(connection, event->buddyIndex, &status);
+            lbl_805A0F70->statusCallback(index, status.status, status.locationString, lbl_805A0F70->statusParameter);
+        }
     }
 }
