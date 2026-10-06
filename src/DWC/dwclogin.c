@@ -95,3 +95,50 @@ void DWCi_LoginProcess(void) {
         break;
     }
 }
+
+void* DWCi_GetUserData(void) {
+    if (lbl_805A0F80 != NULL) return lbl_805A0F80->userData;
+    return NULL;
+}
+
+void DWCi_StopLogin(s32 error, s32 code) {
+    if (lbl_805A0F80 == NULL || error == 0) return;
+    DWCi_SetError(error, code);
+    if (lbl_805A0F80->callback != NULL)
+        lbl_805A0F80->callback(error, 0, lbl_805A0F80->parameter);
+    if (lbl_805A0F80 != NULL) {
+        lbl_805A0F80->state = 0;
+        lbl_805A0F80->timed = 0;
+    }
+}
+
+extern BOOL fn_80352AB8(void);
+extern void fn_803522DC(void);
+void DWCi_ShutdownLogin(void) {
+    if (!fn_80352AB8()) fn_803522DC();
+    lbl_805A0F80 = NULL;
+}
+
+s32 DWCi_LoginHandleGPError(s32 result) {
+    s32 error;
+    s32 code;
+    if (result == 0) return 0;
+    DWC_Printf(2, lbl_80489A00 + 0xD8, result);
+    /* Other values leave these locals unset in the original. */
+    switch (result) {
+    case 1: error = 9; code = -1; break;
+    case 2: error = 9; code = -2; break;
+    case 3: error = 6; code = -10; break;
+    case 4: error = 6; code = -20; break;
+    }
+    if (lbl_805A0F80 != NULL && error != 0) {
+        DWCi_SetError(error, code - 61000);
+        if (lbl_805A0F80->callback != NULL)
+            lbl_805A0F80->callback(error, 0, lbl_805A0F80->parameter);
+        if (lbl_805A0F80 != NULL) {
+            lbl_805A0F80->state = 0;
+            lbl_805A0F80->timed = 0;
+        }
+    }
+    return result;
+}
