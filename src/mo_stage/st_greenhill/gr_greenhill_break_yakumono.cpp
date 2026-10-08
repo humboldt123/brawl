@@ -6,8 +6,8 @@ void grGreenhillBreak::updateJoint(float deltaFrame) {
     if (m_joint == NULL) {
         grCollision* collision = m_collision;
         if (collision != NULL) {
-            u32 jointNum = (u16)collision->m_jointLen;
-            u32 i;
+            u16 jointNum = collision->m_jointLen;
+            u16 i;
             grCollisionJoint* joint;
             for (i = 0; i != jointNum; i++) {
                 joint = collision->getJoint(i);
