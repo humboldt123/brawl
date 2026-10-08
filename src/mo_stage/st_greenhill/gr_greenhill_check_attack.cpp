@@ -11,13 +11,18 @@ void grGreenhillCheck::setAttack() {
         return;
     }
 
-    soCollisionAttackData attack(constants[11]);
+    float one = constants[11];
+    soCollisionAttackData attack(one);
     u32 nodeIndex = getNodeIndex(0, g_greenhillCheckBallNode);
     Vec3f offset;
     getNodePosition(&offset, 0, nodeIndex);
-    offset = Vec3f(constants[0], constants[9], -offset.m_z);
+    float five = constants[9];
+    float zero = constants[0];
+    offset.m_x = zero;
+    offset.m_y = five;
+    offset.m_z = -offset.m_z;
 
-    setAttackGimmickDetails(&attack, constants[9], constants[11], constants[11], constants[11],
+    setAttackGimmickDetails(&attack, five, one, one, one,
         10, &offset, 361, 70, 0, 70, nodeIndex,
         0x3FF, 7, false, 15,
         soCollisionAttackData::Attribute_Normal, soCollisionAttackData::Sound_Level_Medium,

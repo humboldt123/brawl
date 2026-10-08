@@ -8,9 +8,9 @@ extern const char g_greenhillCheckMarkerBallMaterial[]; // "markerBall"
 
 // Tints the ball's marker material: state 0 blue, state 1 red.
 void grGreenhillCheck::changeColor(int state) {
-    nw4r::g3d::ResMatTevColor tevColor;
-    nw4r::g3d::ResMat resMat;
     nw4r::g3d::ResMdl resMdl;
+    nw4r::g3d::ResMat resMat;
+    nw4r::g3d::ResMatTevColor tevColor;
     nw4r::g3d::ScnMdl* scnMdl = m_sceneModels[0];
     if (scnMdl != NULL) {
         resMdl = scnMdl->m_resMdl;
@@ -20,9 +20,9 @@ void grGreenhillCheck::changeColor(int state) {
                 nw4r::g3d::ScnMdl::CopiedMatAccess access(scnMdl, resMat->m_id);
                 tevColor = access.GetResMatTevColor(false);
                 if (tevColor.IsValid()) {
+                    GXColor color;
                     GXColor colorA;
                     GXColor colorB;
-                    GXColor color;
                     switch (state) {
                     case 0:
                         colorA = g_greenhillCheckColorA;
