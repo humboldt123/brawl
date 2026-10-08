@@ -80,6 +80,7 @@ public:
     grGreenhillBreak(const char* taskName);
     virtual ~grGreenhillBreak();
     virtual void update(float deltaFrame);
+    virtual bool setNode();
     virtual void onDamage(int index, soDamage* damage, soDamageAttackerInfo* attackerInfo);
     static grGreenhillBreak* create(int mdlIndex, const char* nodeName, const char* taskName);
     virtual void updateJoint(float deltaFrame);
@@ -162,10 +163,20 @@ static_assert(sizeof(grGreenhillGuest) == 0x168, "grGreenhillGuest layout");
 
 class grGreenhillGuestLine : public grGreenhill {
     GreenhillGuestData* unk158;
+    u32 m_nodeIndex;       // 0x15C node of the guests' run line
+    u8 m_animId;           // 0x160 current animation
+    u8 unk161[3];
+    float m_motionEndFrame; // 0x164
 
 public:
+    grGreenhillGuestLine(const char* taskName);
+    virtual ~grGreenhillGuestLine();
+    virtual void processAnim();
+    virtual void update(float deltaFrame);
+    virtual bool setNode();
     static grGreenhillGuestLine* create(int mdlIndex, const char* nodeName, const char* taskName);
     virtual void updateActive(float deltaFrame);
     virtual void setMotion(u32 index, bool loop, bool force, float* frameCount);
     virtual void setGuestData(GreenhillGuestData* data) { unk158 = data; }
 };
+static_assert(sizeof(grGreenhillGuestLine) == 0x168, "grGreenhillGuestLine layout");
