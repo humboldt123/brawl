@@ -13,11 +13,11 @@ void grGreenhillCheck::changeColor(int state) {
     nw4r::g3d::ResMdl resMdl;
     nw4r::g3d::ScnMdl* scnMdl = m_sceneModels[0];
     if (scnMdl != NULL) {
-        resMdl = scnMdl->GetResMdl();
+        resMdl = scnMdl->m_resMdl;
         if (resMdl.IsValid()) {
             resMat = resMdl.GetResMat(g_greenhillCheckMarkerBallMaterial);
             if (resMat.IsValid()) {
-                nw4r::g3d::ScnMdl::CopiedMatAccess access(scnMdl, resMat.GetID());
+                nw4r::g3d::ScnMdl::CopiedMatAccess access(scnMdl, resMat->m_id);
                 tevColor = access.GetResMatTevColor(false);
                 if (tevColor.IsValid()) {
                     GXColor colorA;
