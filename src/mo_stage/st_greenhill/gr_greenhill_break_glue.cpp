@@ -35,7 +35,11 @@ grGreenhillBreak::grGreenhillBreak(const char* taskName) : grGreenhill(taskName)
     unk190[3] = NULL;
     unk190[4] = NULL;
     createSoundWork(1, 1);
-    m_soundEffects[0].set(static_cast<SndID>(0x1d19), 0, 0, 0, Vec2f(g_greenhillBreakConstants[0], g_greenhillBreakConstants[0]));
+    m_soundEffects[0].m_id = 0x1d19;
+    m_soundEffects[0].m_repeatFrame = 0;
+    m_soundEffects[0].m_nodeIndex = 0;
+    m_soundEffects[0].m_endFrame = 0;
+    m_soundEffects[0].m_offsetPos = Vec2f(g_greenhillBreakConstants[0], g_greenhillBreakConstants[0]);
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
     if (callback == NULL) {
         return;
