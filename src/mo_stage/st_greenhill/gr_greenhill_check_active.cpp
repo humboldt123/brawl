@@ -28,15 +28,13 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
     if (params == NULL) {
         return;
     }
-    const float* constants = g_greenhillCheckConstants;
-
     m_timer -= deltaFrame;
-    if (m_timer < constants[0]) {
-        m_timer = constants[0];
+    if (m_timer < g_greenhillCheckConstants[0]) {
+        m_timer = g_greenhillCheckConstants[0];
     }
     m_timer2 -= deltaFrame;
-    if (m_timer2 < constants[0]) {
-        m_timer2 = constants[0];
+    if (m_timer2 < g_greenhillCheckConstants[0]) {
+        m_timer2 = g_greenhillCheckConstants[0];
     }
 
     switch (m_state) {
@@ -47,7 +45,12 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
         disableHit(0, 0);
         disableAttack(0);
         m_attackEnabled = 0;
-        if (m_order[1] == 4) {
+        if (m_order[1] != 4) {
+            m_order[0] = m_order[1];
+            m_order[1] = m_order[2];
+            m_order[2] = m_order[3];
+            m_order[3] = 4;
+        } else {
             // The order is used up (or never built): shuffle the four markers, avoiding the one used last.
             u8 previousFirst = m_order[0];
             m_order[0] = 0;
@@ -57,20 +60,14 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
             do {
                 int count = 4;
                 for (u8 i = 0; i < 4; i++) {
-                    u8 j = (u8)(count * randf());
-                    if (j >= 3) {
-                        j = 3;
-                    }
+                    int value = (int)(count * randf());
+                    int nonZero = ((u8)value != 0) ? value : 0;
+                    u8 j = ((u8)nonZero >= 3) ? 3 : nonZero;
                     u8 swap = m_order[i];
                     m_order[i] = m_order[j];
                     m_order[j] = swap;
                 }
             } while (m_order[0] == previousFirst);
-        } else {
-            m_order[0] = m_order[1];
-            m_order[1] = m_order[2];
-            m_order[2] = m_order[3];
-            m_order[3] = 4;
         }
         m_orderDone = 0;
         if (m_yakumono != NULL) {
@@ -83,7 +80,7 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
     }
     case 1:
         // Wait for the drop; skip a marker whose breakable piece is already gone.
-        if (constants[0] == m_timer) {
+        if (g_greenhillCheckConstants[0] == m_timer) {
             switch (m_order[0]) {
             case 1:
                 if (unk160[1] == 2) {
@@ -108,7 +105,8 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
             setMotion(4, false, true, &m_motionEndFrame);
             enableHit(0, 0);
             float random = randf();
-            m_timer = params->unk4 + (params->unk8 - params->unk4) * random;
+            float span = params->unk8 - params->unk4;
+            m_timer = params->unk4 + span * random;
             unk15C[0] = 4;
             m_state = 9;
         } else if (!m_isVisible) {
@@ -129,14 +127,13 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
         Vec3f ballPos;
         getNodePosition(&ballPos, 0, g_greenhillCheckBallNode);
         // Danger zone for the AI: a box around the ball.
-        const float half = g_greenhillCheckDangerHalfExtent;
         Vec2f corners[2];
-        corners[0].m_x = ballPos.m_x - half;
-        corners[0].m_y = half + ballPos.m_y;
-        corners[1].m_x = half + ballPos.m_x;
-        corners[1].m_y = ballPos.m_y - half;
+        corners[0].m_x = ballPos.m_x - g_greenhillCheckDangerHalfExtent;
+        corners[0].m_y = g_greenhillCheckDangerHalfExtent + ballPos.m_y;
+        corners[1].m_x = g_greenhillCheckDangerHalfExtent + ballPos.m_x;
+        corners[1].m_y = ballPos.m_y - g_greenhillCheckDangerHalfExtent;
         m_dangerZoneId = g_aiMgr->setDangerZone(&corners[0], &corners[1], m_dangerZoneId, false, false);
-        if (constants[0] == m_timer2) {
+        if (g_greenhillCheckConstants[0] == m_timer2) {
             if (getMotionFrame(0) < unk17C) {
                 // The roll animation wrapped around: the ball is done.
                 setMotion(4, false, true, &m_motionEndFrame);
@@ -162,7 +159,7 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
         break;
     }
     case 9:
-        if (constants[0] == m_timer) {
+        if (g_greenhillCheckConstants[0] == m_timer) {
             setMotion(1, false, true, &m_motionEndFrame);
             disableHit(0, 0);
             m_sndGenerator.playSE(static_cast<SndID>(0x1d18), 0, 0, -1);
@@ -171,7 +168,7 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
         } else if (unk15C[0] == 3) {
             // A fighter hit the ball: roll.
             setMotion(3, true, true, &m_motionEndFrame);
-            unk17C = constants[0];
+            unk17C = g_greenhillCheckConstants[0];
             disableHit(0, 0);
             setAttack();
             m_effectId = g_ecMgr->setEffect(ef_ptc_stg_greenhill_marker);
