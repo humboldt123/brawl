@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gr/gr_yakumono.h>
+#include <snd/snd_3d_generator.h>
 
 struct GreenhillGuestData;
 
@@ -43,11 +44,28 @@ public:
     virtual void setBreakInfo(u8* state) { unk168 = state; }
 };
 
+// The checkered ball hazard (HYPOTHESIS name: "Check" after the marker nodes it rolls between). The ball picks a random
+// order for the four marker positions, drops onto them in turn and hurts fighters it hits.
 class grGreenhillCheck : public grGreenhill {
-    u8 unk158[4];
-    u8* unk15C;
-    u8* unk160;
-    Vec3f* unk164;
+    float m_timer2;             // 0x158
+    u8* unk15C;                 // 0x15C state work shared with the stage
+    u8* unk160;                 // 0x160 state of the breakable pieces
+    Vec3f* unk164;              // 0x164 the four marker positions
+    u8 m_order[4];              // 0x168 random permutation of the marker positions
+    u8 m_orderDone;             // 0x16C
+    u8 unk16D[3];
+    s32 m_hitTeam;              // 0x170
+    u32 m_effectId;             // 0x174
+    u8 unk178;                  // 0x178
+    u8 unk179[3];
+    float unk17C;               // 0x17C
+    float m_motionEndFrame;     // 0x180
+    u8 unk184;                  // 0x184
+    u8 m_attackEnabled;         // 0x185
+    u8 unk186[2];
+    void* unk188[5];            // 0x188
+    snd3DGenerator m_sndGenerator; // 0x19C
+    s32 m_dangerZoneId;         // 0x1A4
 
 public:
     static grGreenhillCheck* create(int mdlIndex, const char* nodeName, const char* taskName);
@@ -62,6 +80,7 @@ public:
     virtual void setStateWork(u8* state) { unk15C = state; }
     virtual void setStateBreakWork(u8* states) { unk160 = states; }
 };
+static_assert(sizeof(grGreenhillCheck) == 0x1A8, "grGreenhillCheck layout");
 
 class grGreenhillGuest : public grGreenhill {
     GreenhillGuestData* unk158;

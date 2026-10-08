@@ -18,6 +18,15 @@ mo_stage/st_greenhill/st_greenhill.cpp:
 	.data       start:0x00000000 end:0x00000538
 	.bss        start:0x00000008 end:0x00000018
 
+mo_stage/st_greenhill/gr_greenhill_check_callback.cpp:
+	.text       start:0x000026B8 end:0x00002774
+
+mo_stage/st_greenhill/gr_greenhill_check_attack.cpp:
+	.text       start:0x00002FBC end:0x00003158
+
+mo_stage/st_greenhill/gr_greenhill_check_color.cpp:
+	.text       start:0x00003158 end:0x000032B0
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x0000CD70 end:0x0000CE0C
 	.data       start:0x000046E0 end:0x000046ED
