@@ -4,6 +4,7 @@
 #include <ft/robot/ft_robot.h>
 #include <ft/robot/ft_robot_extend_param_accesser.h>
 #include <ft/robot/ft_robot_link_event.h>
+#include <ft/robot/ft_robot_unk8.h>
 #include <ft/robot/ft_robot_status_uniq_process_special_arm_spin.h>
 #include <ft/robot/ft_robot_transactor.h>
 #include <ac/ac_anim_cmd_impl.h>
@@ -106,6 +107,8 @@ template wnRobotGyroHolder* ftRobotArticleSubPool<wnRobotGyroHolder, 1>::getInst
 template wnRobotFinalBeam* ftRobotArticleSubPool<wnRobotFinalBeam, 1>::getInstanceAt(s32);
 
 #pragma dont_inline off
+
+ftRobotUnk8::ftRobotUnk8(int a, int b) : unk0(a), unk4(b) { }
 
 s32 ftRobotArticleMediator::getMediateNum() { return 4; }
 void ftRobotArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
