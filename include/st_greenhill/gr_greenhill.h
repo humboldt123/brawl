@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gr/gr_yakumono.h>
+#include <gr/collision/gr_collision_joint.h>
 #include <snd/snd_3d_generator.h>
 
 struct GreenhillGuestData;
@@ -16,17 +17,26 @@ public:
 };
 static_assert(sizeof(grGreenhill) == 0x158, "Class is wrong size!");
 
+// The stage backdrop piece: it owns the collision joints of the hanging platform pieces and publishes the four
+// marker positions the Check ball and the guests use.
 class grGreenhillBg : public grGreenhill {
-    Vec3f* unk158;
-    u8* unk15C;
+    Vec3f* m_posGimmickWork;       // 0x158 four marker positions (filled every frame from the model nodes)
+    u8* m_breakInfo;               // 0x15C state of the breakable pieces (3 bytes)
+    u32 m_node[9];                 // 0x160 node indices looked up by name on the first update
+    grCollisionJoint* m_joint[7];  // 0x184
 
 public:
+    grGreenhillBg(const char* taskName);
+    virtual ~grGreenhillBg();
+    virtual void processAnim();
+    virtual void update(float deltaFrame);
     static grGreenhillBg* create(int mdlIndex, const char* nodeName, const char* taskName);
     virtual void updateJoint(float deltaFrame);
     virtual void updateHang(float deltaFrame);
-    virtual void setPosGimmickWork(Vec3f* positions) { unk158 = positions; }
-    virtual void setBreakInfo(u8* state) { unk15C = state; }
+    virtual void setPosGimmickWork(Vec3f* positions) { m_posGimmickWork = positions; }
+    virtual void setBreakInfo(u8* state) { m_breakInfo = state; }
 };
+static_assert(sizeof(grGreenhillBg) == 0x1A0, "grGreenhillBg layout");
 
 class grGreenhillBreak : public grGreenhill {
     u8 unk158[0xC];
