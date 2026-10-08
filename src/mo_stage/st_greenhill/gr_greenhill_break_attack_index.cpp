@@ -13,13 +13,19 @@ void grGreenhillBreak::setAttack(int index) {
 
     switch (index) {
     case 0:
-        offset = Vec3f(constants[10], constants[11], offset.m_z);
+        offset.m_x = constants[10];
+        offset.m_y = constants[11];
+        offset.m_z = -offset.m_z;
         break;
     case 1:
-        offset = Vec3f(constants[0], constants[11], offset.m_z);
+        offset.m_x = constants[0];
+        offset.m_y = constants[11];
+        offset.m_z = -offset.m_z;
         break;
     case 2:
-        offset = Vec3f(constants[12], constants[11], offset.m_z);
+        offset.m_x = constants[12];
+        offset.m_y = constants[11];
+        offset.m_z = -offset.m_z;
         break;
     }
 
