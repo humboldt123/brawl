@@ -1,4 +1,5 @@
 #include <st_greenhill/gr_greenhill.h>
+#include <st_greenhill/gr_greenhill_anim.h>
 #include <memory.h>
 
 // Switches the ball model to one of its five animations (0 drop, 1 leave, 2 break, 3 roll, 4 idle - HYPOTHESIS names);
@@ -36,27 +37,27 @@ void grGreenhillCheck::setMotion(u32 animId, bool shouldLoop, bool force, float*
 
     bool result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > animId);
     if (result) {
-        setChrAnim2(animId, model, modelAnim, Heaps::StageInstance);
-    }
-
-    result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > animId);
-    if (result) {
-        setVisibilityAnim2(animId, model, modelAnim, Heaps::StageInstance);
+        grGreenhillBindChr(animId, model, modelAnim, Heaps::StageInstance);
     }
 
     result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > animId);
     if (result) {
-        setTexPatAnim2(animId, model, modelAnim, Heaps::StageInstance);
+        grGreenhillBindTexPat(animId, model, modelAnim, Heaps::StageInstance);
     }
 
     result = (modelAnim->m_resFile.GetResAnmTexSrtNumEntries() > animId);
     if (result) {
-        setTexSortAnim2(animId, model, modelAnim, Heaps::StageInstance);
+        grGreenhillBindTexSrt(animId, model, modelAnim, Heaps::StageInstance);
     }
 
     result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > animId);
     if (result) {
-        setColorAnim2(animId, model, modelAnim, Heaps::StageInstance);
+        grGreenhillBindMatClr(animId, model, modelAnim, Heaps::StageInstance);
+    }
+
+    result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > animId);
+    if (result) {
+        grGreenhillBindVis(animId, model, modelAnim, Heaps::StageInstance);
     }
 
     gfModelAnimation::bind(sceneMdl, modelAnim);
