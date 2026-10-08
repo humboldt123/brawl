@@ -76,8 +76,8 @@ void grGreenhillBg::updateJoint(float deltaFrame) {
     if (m_joint[0] == NULL && m_state != 0) {
         grCollision* collision = m_collision;
         if (collision != NULL) {
-            u16 jointNum = collision->m_jointLen;
-            for (u16 i = 0; i != jointNum; i++) {
+            u32 jointNum = (u16)collision->m_jointLen;
+            for (u32 i = 0; i != jointNum; i++) {
                 grCollisionJoint* joint = collision->getJoint(i);
                 if (joint != NULL && joint->m_ground == this) {
                     u16 node = joint->m_nodeIndex;
@@ -110,35 +110,36 @@ void grGreenhillBg::updateJoint(float deltaFrame) {
 
 // Keeps the two breakable hang pieces (state 1 / 2 of the shared break info) and the ledges around them in sync.
 void grGreenhillBg::updateHang(float deltaFrame) {
+    const char* names = g_greenhillNodeNames;
     if (m_breakInfo == NULL) {
         return;
     }
     switch (m_state) {
     case 0:
-        getNodeIndex(&m_node[0], 0, g_greenhillNodeNames + 0x50);
-        getNodeIndex(&m_node[1], 0, g_greenhillNodeNames + 0x5C);
-        getNodeIndex(&m_node[2], 0, g_greenhillNodeNames + 0x68);
-        getNodeIndex(&m_node[3], 0, g_greenhillNodeNames + 0x78);
-        getNodeIndex(&m_node[4], 0, g_greenhillNodeNames + 0x00);
-        getNodeIndex(&m_node[5], 0, g_greenhillNodeNames + 0x14);
-        getNodeIndex(&m_node[6], 0, g_greenhillNodeNames + 0x28);
-        getNodeIndex(&m_node[7], 0, g_greenhillNodeNames + 0x3C);
-        getNodeIndex(&m_node[8], 0, g_greenhillNodeNames + 0x80);
+        getNodeIndex(&m_node[0], 0, names + 0x50);
+        getNodeIndex(&m_node[1], 0, names + 0x5C);
+        getNodeIndex(&m_node[2], 0, names + 0x68);
+        getNodeIndex(&m_node[3], 0, names + 0x78);
+        getNodeIndex(&m_node[4], 0, names + 0x00);
+        getNodeIndex(&m_node[5], 0, names + 0x14);
+        getNodeIndex(&m_node[6], 0, names + 0x28);
+        getNodeIndex(&m_node[7], 0, names + 0x3C);
+        getNodeIndex(&m_node[8], 0, names + 0x80);
         m_state = 1;
         // fall through
     case 1:
         if (m_joint[0] != NULL) {
             u16 ledgeFlags = 0;
             if (m_breakInfo[0] == 1) {
-                if (m_breakInfo[1] == 1) {
-                    grGreenhillJointDisable(m_joint[3]);
-                } else {
+                if (m_breakInfo[1] != 1) {
                     grGreenhillJointEnable(m_joint[3]);
-                }
-                if (m_breakInfo[2] == 1) {
-                    grGreenhillJointDisable(m_joint[4]);
                 } else {
+                    grGreenhillJointDisable(m_joint[3]);
+                }
+                if (m_breakInfo[2] != 1) {
                     grGreenhillJointEnable(m_joint[4]);
+                } else {
+                    grGreenhillJointDisable(m_joint[4]);
                 }
             } else {
                 grGreenhillJointDisable(m_joint[3]);
