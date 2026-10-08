@@ -7,8 +7,8 @@ extern const float g_greenhillBreakConstants[]; // [0] = 0.0f, [11] and [12] bou
 
 // A fighter hit the piece: the damage wears the piece down, and while it is hit the dust effect is replayed.
 void grGreenhillBreak::onDamage(int index, soDamage* damage, soDamageAttackerInfo* attackerInfo) {
-    const float* constants = g_greenhillBreakConstants;
     float damageAdd = damage->m_damageAdd;
+    const float* constants = g_greenhillBreakConstants;
     fn_27_26399C(m_yakumono);
 
     unk170 -= damageAdd;
