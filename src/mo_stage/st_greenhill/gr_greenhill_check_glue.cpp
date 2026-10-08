@@ -44,15 +44,15 @@ grGreenhillCheck::grGreenhillCheck(const char* taskName) : grGreenhill(taskName)
 }
 
 grGreenhillCheck::~grGreenhillCheck() {
-    delete[] static_cast<u8*>(unk188[0]);
+    delete static_cast<u8*>(unk188[0]);
     unk188[0] = NULL;
-    delete[] static_cast<u8*>(unk188[1]);
+    delete static_cast<u8*>(unk188[1]);
     unk188[1] = NULL;
-    delete[] static_cast<u8*>(unk188[2]);
+    delete static_cast<u8*>(unk188[2]);
     unk188[2] = NULL;
-    delete[] static_cast<u8*>(unk188[3]);
+    delete static_cast<u8*>(unk188[3]);
     unk188[3] = NULL;
-    delete[] static_cast<u8*>(unk188[4]);
+    delete static_cast<u8*>(unk188[4]);
     unk188[4] = NULL;
 }
 

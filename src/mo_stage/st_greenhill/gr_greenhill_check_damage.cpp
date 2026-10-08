@@ -9,8 +9,9 @@ void grGreenhillCheck::onDamage(int index, soDamage* damage, soDamageAttackerInf
     unk15C[0] = 3;
     m_sndGenerator.playSE(static_cast<SndID>(0x1d16), 0, 0, -1);
     m_sndGenerator.setPos(&unk164[m_order[0]]);
-    m_hitTeam = damage->m_collisionLog.m_teamNo;
+    int team = damage->m_collisionLog.m_teamNo;
+    m_hitTeam = team;
     if (m_yakumono != NULL) {
-        m_yakumono->setTeam(damage->m_collisionLog.m_teamNo);
+        m_yakumono->setTeam(team);
     }
 }
