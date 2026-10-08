@@ -21,17 +21,17 @@ void grGreenhillCheck::changeColor(int state) {
                 tevColor = access.GetResMatTevColor(false);
                 if (tevColor.IsValid()) {
                     GXColor color;
-                    GXColor colorA;
-                    GXColor colorB;
                     switch (state) {
-                    case 0:
-                        colorA = g_greenhillCheckColorA;
+                    case 0: {
+                        GXColor colorA = g_greenhillCheckColorA;
                         color = colorA;
                         break;
-                    case 1:
-                        colorB = g_greenhillCheckColorB;
+                    }
+                    case 1: {
+                        GXColor colorB = g_greenhillCheckColorB;
                         color = colorB;
                         break;
+                    }
                     }
                     tevColor.GXSetTevColor(GX_TEVREG0, color);
                     tevColor.DCStore(false);
