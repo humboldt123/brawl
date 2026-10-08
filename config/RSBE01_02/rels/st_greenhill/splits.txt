@@ -52,6 +52,9 @@ mo_stage/st_greenhill/gr_greenhill_break_yakumono.cpp:
 mo_stage/st_greenhill/gr_greenhill_break_update.cpp:
 	.text       start:0x0000A3B4 end:0x0000A918
 
+mo_stage/st_greenhill/gr_greenhill_break_node.cpp:
+	.text       start:0x0000A918 end:0x0000A9D0
+
 mo_stage/st_greenhill/gr_greenhill_break_attack.cpp:
 	.text       start:0x0000B3E4 end:0x0000B464
 
@@ -81,9 +84,6 @@ mo_stage/st_greenhill/gr_greenhill_guestline_active.cpp:
 
 mo_stage/st_greenhill/gr_greenhill_guestline_motion.cpp:
 	.text       start:0x0000C8D4 end:0x0000CD70
-
-mo_stage/st_greenhill/gr_greenhill_break_node.cpp:
-	.text       start:0x0000A918 end:0x0000A9D0
 
 mo_stage/mo_stage.cpp:
 	.text       start:0x0000CD70 end:0x0000CE0C
