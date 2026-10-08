@@ -1,4 +1,6 @@
 #define SO_SLOW_GET_INSTANCE_OUT_OF_LINE
+// The constructor calls the status table's default constructor in sora_melee instead of inlining it.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/robot/ft_robot.h>
@@ -6,6 +8,12 @@
 #include <ft/robot/ft_robot_link_event.h>
 #include <ft/robot/ft_robot_unk8.h>
 #include <ft/robot/ft_robot_status_uniq_process_special_arm_spin.h>
+#include <ft/robot/ft_robot_status_uniq_process_final.h>
+#include <ft/robot/ft_robot_status_uniq_process_special_beam.h>
+#include <ft/robot/ft_robot_status_uniq_process_special_burner.h>
+#include <ft/robot/ft_robot_status_uniq_process_special_burner_attack.h>
+#include <ft/robot/ft_robot_status_uniq_process_special_burner_start.h>
+#include <ft/robot/ft_robot_status_uniq_process_special_gyro.h>
 #include <ft/robot/ft_robot_transactor.h>
 #include <ac/ac_anim_cmd_impl.h>
 #include <it/it_manager.h>
@@ -19,6 +27,14 @@
 ftRobotExtendParamAccesser g_ftRobotExtendParamAccesser;
 ftClassInfoImpl<Fighter_Robot, ftRobot> g_ftClassInfoRobot;
 
+// The physics module's second interface is not declared yet: the constructor calls slot 0x54 of the vtable at +8
+// with the module pointer itself and a zero argument (HYPOTHESIS: resets the physics state).
+static void ftRobotPhysicsModuleCall54(void* module, int arg) {
+    typedef void (*Fn)(void*, int);
+    void** table = *reinterpret_cast<void***>(reinterpret_cast<u8*>(module) + 8);
+    reinterpret_cast<Fn>(table[0x54 / sizeof(void*)])(module, arg);
+}
+
 ftRobot::ftRobot(s32 entryId,
                  Heaps::HeapType instHeap,
                  Heaps::HeapType nwModelInstHeap,
@@ -29,7 +45,26 @@ ftRobot::ftRobot(s32 entryId,
                                         nwModelInstHeap,
                                         nwMotionInstHeap) {
     m_commonData = g_ftCommonDataAccesser.getData(Fighter_Robot);
-    // TODO: install Robot status processes, model/node conversion and physics configuration.
+    // Register the character-specific status processes in action order (index 6 is unused).
+    soStatusUniqProcess* processes[12] = {0};
+    processes[0] = &g_ftRobotStatusUniqProcessSpecialBeam;
+    processes[1] = &g_ftRobotStatusUniqProcessSpecialArmSpin;
+    processes[2] = &g_ftRobotStatusUniqProcessSpecialBurnerStart;
+    processes[3] = &g_ftRobotStatusUniqProcessSpecialGyro;
+    processes[4] = &g_ftRobotStatusUniqProcessFinal;
+    processes[5] = &g_ftRobotStatusUniqProcessSpecialArmSpin;
+    processes[7] = &g_ftRobotStatusUniqProcessSpecialBurner;
+    processes[8] = &g_ftRobotStatusUniqProcessSpecialBurnerAttack;
+    processes[9] = &g_ftRobotStatusUniqProcessSpecialGyro;
+    processes[10] = &g_ftRobotStatusUniqProcessSpecialGyro;
+    processes[11] = &g_ftRobotStatusUniqProcessSpecialGyro;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 12);
+
+    // HYPOTHESIS: the common data record points at the reflector shape groups (+0xb0); group index 2 is the one added.
+    soCollisionReflectorGroupData* reflectors = *reinterpret_cast<soCollisionReflectorGroupData**>(reinterpret_cast<u8*>(m_commonData) + 0xb0);
+    m_moduleAccesser->getCollisionReflectorModule().add(reflectors, 2);
+    m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
+    ftRobotPhysicsModuleCall54(m_moduleAccesser->m_enumerationStart->m_physicsModule, 0);
     soSlopeModule* slope = static_cast<soSlopeModule*>(m_moduleAccesser->m_enumerationStart->m_slopeModule);
     slope->setPartNode(0x5D);
     slope->setInvalidStatus(6);
