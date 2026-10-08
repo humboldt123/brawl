@@ -5,6 +5,11 @@
 // MATCH-ONLY: the stage's float constant pool (0.0f).
 extern const float g_greenhillBreakConstants[]; // [0] = 0.0f
 
+// MATCH-ONLY: passing the offset by value reproduces the original's temporary copies.
+static inline void assignVec2f(Vec2f& dst, Vec2f src) {
+    dst = src;
+}
+
 grGreenhillBreak* grGreenhillBreak::create(int mdlIndex, const char* nodeName, const char* taskName) {
     grGreenhillBreak* ground = new (Heaps::StageInstance) grGreenhillBreak(taskName);
     if (ground != NULL) {
@@ -39,7 +44,7 @@ grGreenhillBreak::grGreenhillBreak(const char* taskName) : grGreenhill(taskName)
     m_soundEffects[0].m_repeatFrame = 0;
     m_soundEffects[0].m_nodeIndex = 0;
     m_soundEffects[0].m_endFrame = 0;
-    m_soundEffects[0].m_offsetPos = Vec2f(g_greenhillBreakConstants[0], g_greenhillBreakConstants[0]);
+    assignVec2f(m_soundEffects[0].m_offsetPos, Vec2f(g_greenhillBreakConstants[0], g_greenhillBreakConstants[0]));
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
     if (callback == NULL) {
         return;
