@@ -3,12 +3,12 @@
 
 // MATCH-ONLY: the stage's float constant pool and node name strings.
 extern const float g_greenhillBreakConstants[]; // [0] = 0.0f, [1] .. [4] timers
-extern const char g_greenhillBreakNodeNames[];  // "DanmenBrk02", "DanmenBrk03", "DanmenBrk01"
+extern const char g_greenhillBreakNodeNames[][12]; // "DanmenBrk02", "DanmenBrk03", "DanmenBrk01"
 
 // Drives the breakable piece: it waits a random time, breaks (hit boxes off, collision gone), stays away for a while,
 // comes back blinking and then goes idle again.
 void grGreenhillBreak::updateBreak(float deltaFrame) {
-    const char* names = g_greenhillBreakNodeNames;
+    const char (*names)[12] = g_greenhillBreakNodeNames;
     const float* constants = g_greenhillBreakConstants;
     grGreenhillBreakParam* data = (grGreenhillBreakParam*)getStageData();
     if (data == NULL) {
@@ -38,14 +38,14 @@ void grGreenhillBreak::updateBreak(float deltaFrame) {
         enableHit(2, 0);
         switch (m_type) {
         case 0:
-            getNodeIndex(&m_nodeA, 0, names);
-            getNodeIndex(&m_nodeB, 0, names + 12);
+            getNodeIndex(&m_nodeA, 0, names[0]);
+            getNodeIndex(&m_nodeB, 0, names[1]);
             break;
         case 1:
-            getNodeIndex(&m_nodeA, 0, names + 24);
+            getNodeIndex(&m_nodeA, 0, names[2]);
             break;
         case 2:
-            getNodeIndex(&m_nodeA, 0, names + 24);
+            getNodeIndex(&m_nodeA, 0, names[2]);
             break;
         }
         switch (m_type) {
@@ -61,8 +61,8 @@ void grGreenhillBreak::updateBreak(float deltaFrame) {
         }
         *unk164 = 5;
         unk170 = data->unk10;
-        m_state = 1;
         m_timer = data->m_waitMin + (data->m_waitMax - data->m_waitMin) * randf();
+        m_state = 1;
         break;
     case 1:
         if (constants[0] == unk15C && unk18D == 1) {
