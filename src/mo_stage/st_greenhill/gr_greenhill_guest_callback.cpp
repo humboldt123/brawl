@@ -18,8 +18,7 @@ void grGreenhillGuest::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
-            Vec3f pos;
-            unk158->unk04.getPosition(&pos);
+            Vec3f pos = unk158->unk04.getPosition();
             Vec3f rot;
             unk158->unk04.getRotate(&rot);
             Matrix matrix;
