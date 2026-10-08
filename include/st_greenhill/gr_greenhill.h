@@ -137,15 +137,28 @@ public:
 };
 static_assert(sizeof(grGreenhillCheck) == 0x1A8, "grGreenhillCheck layout");
 
+// Per-stage parameters the Guest object reads through getStageData(). Only the fields that are used are named.
+struct grGreenhillGuestParam {
+    u8 unk00[0x40];
+    float unk40;  // added to the guest's progress every frame
+    float unk44;  // upper limit of the progress
+};
+
 class grGreenhillGuest : public grGreenhill {
     GreenhillGuestData* unk158;
+    snd3DGenerator m_sndGenerator; // 0x15C
+    u8 unk164;                     // 0x164 sound already played
 
 public:
+    grGreenhillGuest(const char* taskName);
+    virtual ~grGreenhillGuest();
+    virtual void update(float deltaFrame);
     static grGreenhillGuest* create(int mdlIndex, const char* nodeName, const char* taskName);
     virtual void updateActive(float deltaFrame);
     virtual void updateCallBack(float deltaFrame);
     virtual void setGuestData(GreenhillGuestData* data) { unk158 = data; }
 };
+static_assert(sizeof(grGreenhillGuest) == 0x168, "grGreenhillGuest layout");
 
 class grGreenhillGuestLine : public grGreenhill {
     GreenhillGuestData* unk158;
