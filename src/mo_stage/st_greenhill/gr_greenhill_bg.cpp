@@ -42,12 +42,13 @@ grGreenhillBg::~grGreenhillBg() { }
 
 // The four marker positions are re-read from the model every frame.
 void grGreenhillBg::processAnim() {
+    const char* names = g_greenhillNodeNames;
     Ground::processAnim();
     if (m_posGimmickWork != NULL) {
-        getNodePosition(&m_posGimmickWork[0], 0, g_greenhillNodeNames + 0x00);
-        getNodePosition(&m_posGimmickWork[1], 0, g_greenhillNodeNames + 0x14);
-        getNodePosition(&m_posGimmickWork[2], 0, g_greenhillNodeNames + 0x28);
-        getNodePosition(&m_posGimmickWork[3], 0, g_greenhillNodeNames + 0x3C);
+        getNodePosition(&m_posGimmickWork[0], 0, names + 0x00);
+        getNodePosition(&m_posGimmickWork[1], 0, names + 0x14);
+        getNodePosition(&m_posGimmickWork[2], 0, names + 0x28);
+        getNodePosition(&m_posGimmickWork[3], 0, names + 0x3C);
     }
 }
 
@@ -132,18 +133,18 @@ void grGreenhillBg::updateHang(float deltaFrame) {
             u16 ledgeFlags = 0;
             if (m_breakInfo[0] == 1) {
                 if (m_breakInfo[1] != 1) {
+                    grGreenhillJointEnable(m_joint[2]);
+                } else {
+                    grGreenhillJointDisable(m_joint[2]);
+                }
+                if (m_breakInfo[2] != 1) {
                     grGreenhillJointEnable(m_joint[3]);
                 } else {
                     grGreenhillJointDisable(m_joint[3]);
                 }
-                if (m_breakInfo[2] != 1) {
-                    grGreenhillJointEnable(m_joint[4]);
-                } else {
-                    grGreenhillJointDisable(m_joint[4]);
-                }
             } else {
+                grGreenhillJointDisable(m_joint[2]);
                 grGreenhillJointDisable(m_joint[3]);
-                grGreenhillJointDisable(m_joint[4]);
             }
             if (m_breakInfo[1] == 1) {
                 setNodeVisibility(true, 0, m_node[0], true, false);
@@ -162,16 +163,16 @@ void grGreenhillBg::updateHang(float deltaFrame) {
             if (m_breakInfo[2] == 1) {
                 setNodeVisibility(true, 0, m_node[1], true, false);
                 if (m_breakInfo[0] != 1) {
-                    grGreenhillJointEnable(m_joint[5]);
+                    grGreenhillJointEnable(m_joint[4]);
                 } else {
-                    grGreenhillJointDisable(m_joint[5]);
+                    grGreenhillJointDisable(m_joint[4]);
                 }
-                grGreenhillJointEnable(m_joint[6]);
+                grGreenhillJointEnable(m_joint[5]);
             } else {
                 setNodeVisibility(false, 0, m_node[1], true, false);
                 ledgeFlags |= 0x2000;
+                grGreenhillJointDisable(m_joint[4]);
                 grGreenhillJointDisable(m_joint[5]);
-                grGreenhillJointDisable(m_joint[6]);
             }
             m_joint[6]->m_0x52 = ledgeFlags;
         }
