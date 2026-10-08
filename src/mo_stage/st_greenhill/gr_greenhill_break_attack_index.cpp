@@ -64,7 +64,7 @@ void grGreenhillBreak::setAttack(int index) {
         0, &offset, 90, 50, 100, 80, unk184,
         0x3FF, 7, false, 15,
         soCollisionAttackData::Attribute_Normal, soCollisionAttackData::Sound_Level_Medium,
-        soCollisionAttackData::Sound_Attribute_Punch,
+        soCollisionAttackData::Sound_Attribute_None,
         false, false, false, false, false, false, 0, 60,
         false, false, false, soCollisionAttackData::Lr_Check_Pos,
         false, false, false, false, false, soCollisionAttackData::Region_None, true);
