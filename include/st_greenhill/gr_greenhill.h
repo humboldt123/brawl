@@ -7,8 +7,8 @@ struct GreenhillGuestData;
 
 class grGreenhill : public grYakumono {
 protected:
-    u8 unk150;
-    float unk154;
+    u8 m_state;          // 0x150 (HYPOTHESIS: same role as in the Pirate Ship gimmicks)
+    float m_timer;       // 0x154
 };
 static_assert(sizeof(grGreenhill) == 0x158, "Class is wrong size!");
 
