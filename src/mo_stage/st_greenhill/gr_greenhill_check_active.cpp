@@ -58,7 +58,7 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
             m_order[2] = 2;
             m_order[3] = 3;
             do {
-                int count = 4;
+                u32 count = 4;
                 for (u8 i = 0; i < 4; i++) {
                     int value = (int)(count * randf());
                     int nonZero = ((u8)value != 0) ? value : 0;
@@ -127,11 +127,17 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
         Vec3f ballPos;
         getNodePosition(&ballPos, 0, g_greenhillCheckBallNode);
         // Danger zone for the AI: a box around the ball.
+        // MATCH-ONLY: coordinate temporaries preserve MWCC register allocation.
+        const float halfExtent = g_greenhillCheckDangerHalfExtent;
+        float left = ballPos.m_x - halfExtent;
+        float top = halfExtent + ballPos.m_y;
+        float bottom = ballPos.m_y - halfExtent;
+        float right = halfExtent + ballPos.m_x;
         Vec2f corners[2];
-        corners[0].m_x = ballPos.m_x - g_greenhillCheckDangerHalfExtent;
-        corners[0].m_y = g_greenhillCheckDangerHalfExtent + ballPos.m_y;
-        corners[1].m_x = g_greenhillCheckDangerHalfExtent + ballPos.m_x;
-        corners[1].m_y = ballPos.m_y - g_greenhillCheckDangerHalfExtent;
+        corners[0].m_x = left;
+        corners[0].m_y = top;
+        corners[1].m_x = right;
+        corners[1].m_y = bottom;
         m_dangerZoneId = g_aiMgr->setDangerZone(&corners[0], &corners[1], m_dangerZoneId, false, false);
         if (g_greenhillCheckConstants[0] == m_timer2) {
             if (getMotionFrame(0) < unk17C) {
@@ -165,17 +171,21 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
             m_sndGenerator.playSE(static_cast<SndID>(0x1d18), 0, 0, -1);
             m_sndGenerator.setPos(&unk164[m_order[0]]);
             m_state = 6;
-        } else if (unk15C[0] == 3) {
-            // A fighter hit the ball: roll.
-            setMotion(3, true, true, &m_motionEndFrame);
-            unk17C = g_greenhillCheckConstants[0];
-            disableHit(0, 0);
-            setAttack();
-            m_effectId = g_ecMgr->setEffect(ef_ptc_stg_greenhill_marker);
-            g_ecMgr->setParent(m_effectId, m_sceneModels[0], g_greenhillCheckBallPositionNode, false);
-            changeColor(1);
-            m_timer2 = params->unk0;
-            m_state = 8;
+        } else {
+            switch (unk15C[0]) {
+            case 3:
+                // A fighter hit the ball: roll.
+                setMotion(3, true, true, &m_motionEndFrame);
+                unk17C = g_greenhillCheckConstants[0];
+                disableHit(0, 0);
+                setAttack();
+                m_effectId = g_ecMgr->setEffect(ef_ptc_stg_greenhill_marker);
+                g_ecMgr->setParent(m_effectId, m_sceneModels[0], g_greenhillCheckBallPositionNode, false);
+                changeColor(1);
+                m_timer2 = params->unk0;
+                m_state = 8;
+                break;
+            }
         }
         break;
     }
