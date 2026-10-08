@@ -6,6 +6,9 @@
 
 struct GreenhillGuestData;
 
+// HYPOTHESIS: an unnamed sora_melee function that takes a Yakumono (the original calls it right after a hit).
+extern "C" void fn_27_26399C(Yakumono* yakumono);
+
 class grGreenhill : public grYakumono {
 protected:
     u8 m_state;          // 0x150 (HYPOTHESIS: same role as in the Pirate Ship gimmicks)
@@ -77,6 +80,7 @@ public:
     grGreenhillBreak(const char* taskName);
     virtual ~grGreenhillBreak();
     virtual void update(float deltaFrame);
+    virtual void onDamage(int index, soDamage* damage, soDamageAttackerInfo* attackerInfo);
     static grGreenhillBreak* create(int mdlIndex, const char* nodeName, const char* taskName);
     virtual void updateJoint(float deltaFrame);
     virtual void updateYakumono(float deltaFrame);

@@ -1,8 +1,5 @@
 #include <st_greenhill/gr_greenhill.h>
 
-// HYPOTHESIS: an unnamed sora_melee function that takes a Yakumono (the original calls it right after a hit).
-extern "C" void fn_27_26399C(Yakumono* yakumono);
-
 // A fighter hit the ball: remember the attacker's team and let the ball react (state work 3).
 void grGreenhillCheck::onDamage(int index, soDamage* damage, soDamageAttackerInfo* attackerInfo) {
     fn_27_26399C(m_yakumono);

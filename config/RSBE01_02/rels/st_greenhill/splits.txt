@@ -61,6 +61,9 @@ mo_stage/st_greenhill/gr_greenhill_break_attack_index.cpp:
 mo_stage/st_greenhill/gr_greenhill_break_motion.cpp:
 	.text       start:0x0000B714 end:0x0000BB5C
 
+mo_stage/st_greenhill/gr_greenhill_break_damage.cpp:
+	.text       start:0x0000BB5C end:0x0000BC58
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x0000CD70 end:0x0000CE0C
 	.data       start:0x000046E0 end:0x000046ED
