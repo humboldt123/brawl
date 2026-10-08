@@ -56,7 +56,7 @@ class grGreenhillCheck : public grGreenhill {
     u8 unk16D[3];
     s32 m_hitTeam;              // 0x170
     u32 m_effectId;             // 0x174
-    u8 unk178;                  // 0x178
+    u8 m_animId;                // 0x178 current animation (5 = none yet)
     u8 unk179[3];
     float unk17C;               // 0x17C
     float m_motionEndFrame;     // 0x180

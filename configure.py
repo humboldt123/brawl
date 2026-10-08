@@ -5316,6 +5316,7 @@ config.libs = [
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_callback.cpp"),
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_attack.cpp"),
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_color.cpp"),
+            Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_motion.cpp"),
         ],
     },
     {
