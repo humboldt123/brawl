@@ -66,7 +66,7 @@ void grGreenhillBreak::setAttack(int index) {
         soCollisionAttackData::Attribute_Normal, soCollisionAttackData::Sound_Level_Medium,
         soCollisionAttackData::Sound_Attribute_Punch,
         false, false, false, false, false, false, 0, 60,
-        false, false, false, soCollisionAttackData::Lr_Check_Forward,
+        false, false, false, soCollisionAttackData::Lr_Check_Pos,
         false, false, false, false, false, soCollisionAttackData::Region_None, true);
     m_yakumono->setAttack(index, 0, &attack);
 }
