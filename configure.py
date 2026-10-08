@@ -5312,6 +5312,7 @@ config.libs = [
         "host": False,
         "objects": [
             Object(Matching, "mo_stage/st_greenhill/st_greenhill.cpp"),
+            Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_glue.cpp"),
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_active.cpp"),
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_callback.cpp"),
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_attack.cpp"),

@@ -9,6 +9,10 @@ class grGreenhill : public grYakumono {
 protected:
     u8 m_state;          // 0x150 (HYPOTHESIS: same role as in the Pirate Ship gimmicks)
     float m_timer;       // 0x154
+
+public:
+    grGreenhill(const char* taskName);
+    virtual ~grGreenhill();
 };
 static_assert(sizeof(grGreenhill) == 0x158, "Class is wrong size!");
 
@@ -68,6 +72,10 @@ class grGreenhillCheck : public grGreenhill {
     s32 m_dangerZoneId;         // 0x1A4
 
 public:
+    grGreenhillCheck(const char* taskName);
+    virtual ~grGreenhillCheck();
+    virtual void update(float deltaFrame);
+    virtual void onDamage(int index, soDamage* damage, soDamageAttackerInfo* attackerInfo);
     static grGreenhillCheck* create(int mdlIndex, const char* nodeName, const char* taskName);
     virtual void updateYakumono(float deltaFrame);
     virtual void updateActive(float deltaFrame);
