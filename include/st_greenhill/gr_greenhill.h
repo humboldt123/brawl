@@ -38,13 +38,29 @@ public:
 };
 static_assert(sizeof(grGreenhillBg) == 0x1A0, "grGreenhillBg layout");
 
+// The breakable ground pieces of the stage (HYPOTHESIS name meaning, from the "Break" in the class name and the effect
+// ef_ptc_stg_greenhill_zimen_damage).
 class grGreenhillBreak : public grGreenhill {
-    u8 unk158[0xC];
-    u8* unk164;
-    u8* unk168;
-    u8 unk16C;
+    Vec3f unk158;               // 0x158
+    u8* unk164;                 // 0x164 state work
+    u8* unk168;                 // 0x168 break info shared with the Bg and Check objects
+    u8 m_type;                  // 0x16C
+    u8 unk16D[3];
+    float unk170;               // 0x170
+    u8 m_animId;                // 0x174 current animation
+    u8 unk175[3];
+    float unk178;               // 0x178
+    void* unk17C[4];            // 0x17C
+    u8 unk18C;                  // 0x18C
+    u8 unk18D;                  // 0x18D
+    u8 unk18E[2];
+    void* unk190[5];            // 0x190
+    snd3DGenerator m_sndGenerator; // 0x1A4
 
 public:
+    grGreenhillBreak(const char* taskName);
+    virtual ~grGreenhillBreak();
+    virtual void update(float deltaFrame);
     static grGreenhillBreak* create(int mdlIndex, const char* nodeName, const char* taskName);
     virtual void updateJoint(float deltaFrame);
     virtual void updateYakumono(float deltaFrame);
@@ -54,9 +70,10 @@ public:
     virtual void setAttack(int index);
     virtual void setMotion(u32 index, bool loop, bool force, float* frameCount);
     virtual void setStateWork(u8* state) { unk164 = state; }
-    virtual void setType(u8 type) { unk16C = type; }
+    virtual void setType(u8 type) { m_type = type; }
     virtual void setBreakInfo(u8* state) { unk168 = state; }
 };
+static_assert(sizeof(grGreenhillBreak) == 0x1AC, "grGreenhillBreak layout");
 
 // The checkered ball hazard (HYPOTHESIS name: "Check" after the marker nodes it rolls between). The ball picks a random
 // order for the four marker positions, drops onto them in turn and hurts fighters it hits.

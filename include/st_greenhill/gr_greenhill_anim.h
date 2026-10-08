@@ -4,6 +4,7 @@
 // index stays a full 32-bit value (the shared helpers take a u8). These copies keep the original code shape.
 
 #include <gf/gf_model.h>
+#include <gr/ground.h>
 
 static inline void grGreenhillBindChr(u32 animId, nw4r::g3d::ResMdl model, gfModelAnimation* modelAnim, Heaps::HeapType heap) {
     if (animId < modelAnim->m_resFile.GetResAnmChrNumEntries()) {
@@ -92,5 +93,74 @@ static inline void grGreenhillBindVis(u32 animId, nw4r::g3d::ResMdl model, gfMod
                 modelAnim->m_anmObjVisRes = anmObj;
             }
         }
+    }
+}
+
+// Shared body of the Check, Break and GuestLine setMotion: switch the model to animation animId (below animCount),
+// rebinding every animation type, and report the frame count of the new animation.
+static inline void grGreenhillSetMotion(Ground* ground, u8& currentAnim, u32 animCount, u32 animId, bool shouldLoop,
+                                        bool force, float* frameCount) {
+    if (currentAnim == animId && force == 0) {
+        return;
+    }
+
+    nw4r::g3d::ScnMdl* sceneMdl = *ground->m_sceneModels;
+    if (sceneMdl == NULL) {
+        return;
+    }
+
+    gfModelAnimation* modelAnim = *ground->m_modelAnims;
+    if (modelAnim == NULL) {
+        return;
+    }
+
+    nw4r::g3d::ResMdl model = sceneMdl->m_resMdl;
+    if (!model.IsValid()) {
+        return;
+    }
+
+    modelAnim->unbindNodeAnim(sceneMdl);
+    modelAnim->unbindVisibleAnim(sceneMdl);
+    modelAnim->unbindTexAnim(sceneMdl);
+    modelAnim->unbindTexSrtAnim(sceneMdl);
+    modelAnim->unbindMatColAnim(sceneMdl);
+    currentAnim = animId;
+
+    if (animId >= animCount) {
+        return;
+    }
+
+    bool result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > animId);
+    if (result) {
+        grGreenhillBindChr(animId, model, modelAnim, Heaps::StageInstance);
+    }
+
+    result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > animId);
+    if (result) {
+        grGreenhillBindTexPat(animId, model, modelAnim, Heaps::StageInstance);
+    }
+
+    result = (modelAnim->m_resFile.GetResAnmTexSrtNumEntries() > animId);
+    if (result) {
+        grGreenhillBindTexSrt(animId, model, modelAnim, Heaps::StageInstance);
+    }
+
+    result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > animId);
+    if (result) {
+        grGreenhillBindMatClr(animId, model, modelAnim, Heaps::StageInstance);
+    }
+
+    result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > animId);
+    if (result) {
+        grGreenhillBindVis(animId, model, modelAnim, Heaps::StageInstance);
+    }
+
+    gfModelAnimation::bind(sceneMdl, modelAnim);
+    modelAnim->setFrame(0.0);
+    modelAnim->setUpdateRate(1.0);
+    modelAnim->setLoop(shouldLoop);
+
+    if (frameCount != NULL) {
+        *frameCount = modelAnim->getFrameCount();
     }
 }

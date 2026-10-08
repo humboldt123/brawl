@@ -5320,6 +5320,8 @@ config.libs = [
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_color.cpp"),
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_motion.cpp"),
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_check_damage.cpp"),
+            Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_break_glue.cpp"),
+            Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_break_motion.cpp"),
         ],
     },
     {
