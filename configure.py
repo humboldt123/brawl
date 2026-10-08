@@ -5324,6 +5324,7 @@ config.libs = [
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_break_motion.cpp"),
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_break_yakumono.cpp"),
             Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_break_attack.cpp"),
+            Object(NonMatching, "mo_stage/st_greenhill/gr_greenhill_break_update.cpp"),
         ],
     },
     {

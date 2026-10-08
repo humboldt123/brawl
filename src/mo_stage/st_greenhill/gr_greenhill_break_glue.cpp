@@ -15,9 +15,9 @@ grGreenhillBreak* grGreenhillBreak::create(int mdlIndex, const char* nodeName, c
 }
 
 grGreenhillBreak::grGreenhillBreak(const char* taskName) : grGreenhill(taskName) {
-    unk158.m_x = g_greenhillBreakConstants[0];
-    unk158.m_y = g_greenhillBreakConstants[0];
-    unk158.m_z = g_greenhillBreakConstants[0];
+    unk158 = g_greenhillBreakConstants[0];
+    unk15C = g_greenhillBreakConstants[0];
+    unk160 = g_greenhillBreakConstants[0];
     unk164 = NULL;
     m_type = 3;
     unk170 = g_greenhillBreakConstants[0];

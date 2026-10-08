@@ -40,8 +40,21 @@ static_assert(sizeof(grGreenhillBg) == 0x1A0, "grGreenhillBg layout");
 
 // The breakable ground pieces of the stage (HYPOTHESIS name meaning, from the "Break" in the class name and the effect
 // ef_ptc_stg_greenhill_zimen_damage).
+// Per-stage parameters the Break object reads through getStageData(). Only the fields that are used are named.
+struct grGreenhillBreakParam {
+    u8 unk00[0x10];
+    float unk10;        // copied to grGreenhillBreak::unk170
+    u8 unk14[0x10];
+    float m_waitMin;    // 0x24 range for the first countdown
+    float m_waitMax;    // 0x28
+    float unk2C;        // 0x2C countdown while the piece is gone
+    float unk30;        // 0x30 respawn threshold
+};
+
 class grGreenhillBreak : public grGreenhill {
-    Vec3f unk158;               // 0x158
+    float unk158;               // 0x158 blink timer
+    float unk15C;               // 0x15C
+    float unk160;               // 0x160
     u8* unk164;                 // 0x164 state work
     u8* unk168;                 // 0x168 break info shared with the Bg and Check objects
     u8 m_type;                  // 0x16C
