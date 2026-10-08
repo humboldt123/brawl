@@ -46,6 +46,12 @@ mo_stage/st_greenhill/gr_greenhill_check_damage.cpp:
 mo_stage/st_greenhill/gr_greenhill_break_glue.cpp:
 	.text       start:0x00009D54 end:0x0000A0D8
 
+mo_stage/st_greenhill/gr_greenhill_break_yakumono.cpp:
+	.text       start:0x0000A0D8 end:0x0000A3B4
+
+mo_stage/st_greenhill/gr_greenhill_break_attack.cpp:
+	.text       start:0x0000B3E4 end:0x0000B464
+
 mo_stage/st_greenhill/gr_greenhill_break_motion.cpp:
 	.text       start:0x0000B714 end:0x0000BB5C
 

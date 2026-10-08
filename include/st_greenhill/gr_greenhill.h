@@ -50,7 +50,10 @@ class grGreenhillBreak : public grGreenhill {
     u8 m_animId;                // 0x174 current animation
     u8 unk175[3];
     float unk178;               // 0x178
-    void* unk17C[4];            // 0x17C
+    u32 m_nodeA;                // 0x17C node indices of the two visible pieces
+    u32 m_nodeB;                // 0x180
+    u32 unk184;                 // 0x184
+    grCollisionJoint* m_joint;  // 0x188 collision joint owned by this object
     u8 unk18C;                  // 0x18C
     u8 unk18D;                  // 0x18D
     u8 unk18E[2];

@@ -23,10 +23,10 @@ grGreenhillBreak::grGreenhillBreak(const char* taskName) : grGreenhill(taskName)
     unk170 = g_greenhillBreakConstants[0];
     m_animId = 1;
     unk178 = g_greenhillBreakConstants[0];
-    unk17C[0] = NULL;
-    unk17C[1] = NULL;
-    unk17C[2] = NULL;
-    unk17C[3] = NULL;
+    m_nodeA = 0;
+    m_nodeB = 0;
+    unk184 = 0;
+    m_joint = NULL;
     unk18C = 0;
     unk18D = 0;
     unk190[0] = NULL;
