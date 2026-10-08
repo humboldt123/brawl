@@ -146,6 +146,7 @@ struct ftRobotArticleSlotTag {
     u8 m_pad0;
     u8 m_pad1;
     ftRobotArticleSlotTag() : m_pad0(0), m_pad1(0) { }
+    ~ftRobotArticleSlotTag() { } // MATCH-ONLY: a non-trivial destructor keeps the otherwise dead tag stores
 };
 
 #define FT_ROBOT_UNUSED_SLOT(n, value) \
