@@ -70,16 +70,16 @@ void ftYoshiStatusUniqProcessFinalCommon::execFixPosCounter(soModuleAccesser* ac
     Vec2f controllerSpeed = controller->getSpeed();
     if (acc->getSituationModule().getKind() == 0) {
         soGroundModule& ground = acc->getGroundModule();
-        bool attached = ground.attachGround(0);
+        bool passable = ground.isPassableGround(0);
         bool keepGravity = false;
-        if (attached) {
+        if (passable) {
             float threshold = soValueAccesser::getConstantFloat(acc, 0xC5F, 0);
             float stickY = acc->getControllerModule().getStickY();
             keepGravity = stickY < threshold;
         }
         if (keepGravity) {
-            // Native calls isOnDynamicCollision(8) here; its result is unused.
-            ground.isOnDynamicCollision(8);
+            // Native calls ignoreTouchLine(8, 0) here; this call returns void.
+            ground.ignoreTouchLine(static_cast<grCollStatus::TouchMask>(8), 0);
             gravity->resume();
         } else {
             if (gravitySpeed.m_y < 0.0f) gravitySpeed.m_y = 0.0f;
