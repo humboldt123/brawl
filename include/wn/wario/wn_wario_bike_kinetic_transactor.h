@@ -45,6 +45,7 @@ public:
     void changeKineticSub7(wnWarioBikeKineticPools* pools, soModuleAccesser* accesser);
     void changeKineticSub8(wnWarioBikeKineticPools* pools, soModuleAccesser* accesser);
 
+    static float ABS(float);
     static void updateEnergy(soKineticEnergyNormal* energy, soModuleAccesser* accesser);
     static void updateEnergy1(wnKineticEnergyGravity* energy, soModuleAccesser* accesser);
 };
