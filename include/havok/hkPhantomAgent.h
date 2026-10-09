@@ -31,6 +31,8 @@ struct hkPenetrationTarget {
 // constructor stores the root (topmost m_parent) body of each side and the shape type of each
 // body's own shape; cleanup() notifies the phantom callback shape of a side when that side's
 // shape is a phantom callback (HK_SHAPE_PHANTOM_CALLBACK).
+struct hkCollisionDispatcher;
+
 struct hkPhantomAgent : hkCollisionAgent {
     HK_DECLARE_REF_ALLOCATOR(0x1d)
 
@@ -45,14 +47,14 @@ struct hkPhantomAgent : hkCollisionAgent {
     virtual ~hkPhantomAgent();
 
     static hkPhantomAgent* createPhantomAgent(hkCdBody* bodyA, hkCdBody* bodyB, int flags, int unk8Value);
-    static void registerAgent(void* dispatcher);
+    static void registerAgent(hkCollisionDispatcher* dispatcher);
     static void staticGetClosestPoints();
     static void staticGetPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target);
     static void staticLinearCast();
 
     virtual void cleanup();
-    virtual void processCollision();
+    virtual void processCollision(void* a, void* b, void* c);
     virtual void getPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target);
-    virtual void getClosestPoints();
-    virtual void linearCast();
+    virtual void getClosestPoints(void* a, void* b, void* c, void* target);
+    virtual void linearCast(void* a, void* b, void* c, void* target, void* d);
 };

@@ -3,6 +3,8 @@
 #include <havok/hkCollisionAgent.h>
 #include <havok/hkPhantomAgent.h>
 
+struct hkCollisionDispatcher;
+
 // Bounding-volume collision agent. It owns up to two sub-agents: A at 0x0C (always set by the
 // constructor) and B at 0x10 (null after construction, optional).
 //

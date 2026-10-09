@@ -26,6 +26,7 @@ struct hkBoxBoxAgent : hkCollisionAgent {
     static void staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
 
     virtual void cleanup();
+    virtual void processCollision(void* unk0, void* unk1, void* unk2); // 0x1C, not written yet
     virtual void getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
 };

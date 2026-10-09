@@ -24,47 +24,32 @@
 
 #include <havok/hkSphereTriangleAgent.h>
 #include <havok/hkShapeType.h>
+#include <havok/hkCollisionDispatcher.h>
 
-// Stand-in for hkCollisionDispatcher::registerCollisionAgent (not recovered yet; takes the dispatcher as this).
-extern "C" void fn_802CC0EC(hkCollisionDispatcher* dispatcher, void* funcs, int typeA, int typeB);
 // Stand-in for the sub-object constructor (other unit): copies the triangle data at src into dst.
 extern "C" void fn_80325184(void* src, void* dst);
 // Stand-ins for the symmetric linear cast and the linear cast of other units (staticLinearCast not written yet).
 extern "C" void fn_802C84B4();
 extern "C" void fn_802B7FD0();
 
-namespace {
-typedef void (*AgentFunc)();
-
-// Layout of the table handed to the dispatcher (stack copy in registerAgent).
-struct AgentFuncs {
-    AgentFunc create;                 // 0x00
-    AgentFunc staticGetPenetrations;  // 0x04
-    AgentFunc staticGetClosestPoints; // 0x08
-    AgentFunc staticLinearCast;       // 0x0C
-    u8 unk10;                         // 0x10
-    u8 unk11;                         // 0x11
-};
-} // namespace
-
 void hkSphereTriangleAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
-    AgentFuncs triangle;
-    triangle.create = (AgentFunc)createTriangleSphereAgent;
-    triangle.staticGetPenetrations = (AgentFunc)hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::staticGetPenetrations;
-    triangle.staticGetClosestPoints = (AgentFunc)hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::staticGetClosestPoints;
-    triangle.staticLinearCast = (AgentFunc)fn_802C84B4;
-    triangle.unk10 = 1;
-    triangle.unk11 = 0;
-    fn_802CC0EC(dispatcher, &triangle, HK_SHAPE_TRIANGLE, HK_SHAPE_SPHERE);
+    hkAgentFuncs triangle;
+    triangle.create = (hkAgentFunc)createTriangleSphereAgent;
+    triangle.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::staticGetPenetrations;
+    triangle.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::staticGetClosestPoints;
+    triangle.staticLinearCast = (hkAgentFunc)fn_802C84B4;
+    triangle.symmetricA = 1;
+    triangle.symmetricB = 0;
+    dispatcher->registerCollisionAgent(&triangle, HK_SHAPE_TRIANGLE, HK_SHAPE_SPHERE);
 
-    AgentFuncs sphere;
-    sphere.create = (AgentFunc)createSphereTriangleAgent;
-    sphere.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
-    sphere.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
-    sphere.staticLinearCast = (AgentFunc)fn_802B7FD0;
-    sphere.unk10 = 0;
-    sphere.unk11 = 0;
-    fn_802CC0EC(dispatcher, &sphere, HK_SHAPE_SPHERE, HK_SHAPE_TRIANGLE);
+    hkAgentFuncs sphere;
+    sphere.create = (hkAgentFunc)createSphereTriangleAgent;
+    sphere.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
+    sphere.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
+    sphere.staticLinearCast = (hkAgentFunc)fn_802B7FD0;
+    sphere.symmetricA = 0;
+    sphere.symmetricB = 0;
+    dispatcher->registerCollisionAgent(&sphere, HK_SHAPE_SPHERE, HK_SHAPE_TRIANGLE);
 }
 
 hkSphereTriangleAgent::hkSphereTriangleAgent(hkContactMgr* contactMgr, void* src) : hkCollisionAgent((int)contactMgr) {

@@ -12,35 +12,20 @@
 
 #include <havok/hkSphereSphereAgent.h>
 #include <havok/hkShapeType.h>
+#include <havok/hkCollisionDispatcher.h>
 
-// Stand-in for hkCollisionDispatcher::registerCollisionAgent (not recovered yet; takes the dispatcher as this).
-extern "C" void fn_802CC0EC(hkCollisionDispatcher* dispatcher, void* funcs, int typeA, int typeB);
 // Stand-in for hkIterativeLinearCastAgent::staticLinearCast (other unit).
 extern "C" void fn_802B7FD0();
 
-namespace {
-typedef void (*AgentFunc)();
-
-// Layout of the table handed to the dispatcher (stack copy in registerAgent).
-struct AgentFuncs {
-    AgentFunc create;                // 0x00
-    AgentFunc staticGetPenetrations; // 0x04
-    AgentFunc staticGetClosestPoints; // 0x08
-    AgentFunc staticLinearCast;      // 0x0C
-    u8 unk10;                        // 0x10
-    u8 unk11;                        // 0x11
-};
-} // namespace
-
 void hkSphereSphereAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
-    AgentFuncs funcs;
-    funcs.create = (AgentFunc)createSphereSphereAgent;
-    funcs.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
-    funcs.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
-    funcs.staticLinearCast = (AgentFunc)fn_802B7FD0;
-    funcs.unk10 = 0;
-    funcs.unk11 = 0;
-    fn_802CC0EC(dispatcher, &funcs, HK_SHAPE_SPHERE, HK_SHAPE_SPHERE);
+    hkAgentFuncs funcs;
+    funcs.create = (hkAgentFunc)createSphereSphereAgent;
+    funcs.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
+    funcs.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
+    funcs.staticLinearCast = (hkAgentFunc)fn_802B7FD0;
+    funcs.symmetricA = 0;
+    funcs.symmetricB = 0;
+    dispatcher->registerCollisionAgent(&funcs, HK_SHAPE_SPHERE, HK_SHAPE_SPHERE);
 }
 
 hkSphereSphereAgent* hkSphereSphereAgent::createSphereSphereAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr) {

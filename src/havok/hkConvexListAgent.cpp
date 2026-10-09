@@ -51,11 +51,11 @@
 //   0x802B1894   164  __dt   [map: hkSymmetricAgent_11hkListAgent_____dt]
 
 #include <havok/hkConvexListAgent.h>
+#include <havok/hkCollisionDispatcher.h>
 #include <havok/hkShapeType.h>
 
 // Dispatcher registration entry point (not recovered yet; takes the dispatcher, a registration record
 // and the two shape type ids). Same routine as hkPhantomAgent and hkSphereSphereAgent use.
-extern "C" void fn_802CC0EC(void* dispatcher, void* reg, int typeA, int typeB);
 // Stand-ins for the symmetric linear-cast agent functions (other classes, other units).
 extern "C" void fn_802B1454();
 extern "C" void fn_802B14E4();
@@ -77,8 +77,6 @@ extern "C" void fn_802FC6AC(void* subObject, void* pairData, int unk8);
 extern "C" void fn_802FEA54(void* subObject, void* args);
 extern "C" void fn_802FCB14(void* subObject);
 
-namespace {
-typedef void (*AgentFunc)();
 
 // Head of the 0x30 sub-object: an empty list whose head points at the inline buffer after it.
 struct SubObjectHead {
@@ -96,35 +94,24 @@ struct FilterArgs {
     int unk8;     // 0x10
 };
 
-// Layout of the table handed to the dispatcher (stack copy in registerAgent).
-struct AgentRegistration {
-    AgentFunc create;                  // 0x00
-    AgentFunc staticGetPenetrations;   // 0x04
-    AgentFunc staticGetClosestPoints;  // 0x08
-    AgentFunc staticLinearCast;        // 0x0C
-    u8 symmetricA;                     // 0x10
-    u8 symmetricB;                     // 0x11
-};
-} // namespace
-
 void hkConvexListAgent::registerAgent(void* dispatcher) {
-    AgentRegistration convexList;
-    convexList.create = (AgentFunc)createListConvexAgent;
-    convexList.staticGetPenetrations = (AgentFunc)fn_802B1454;
-    convexList.staticGetClosestPoints = (AgentFunc)fn_802B14E4;
-    convexList.staticLinearCast = (AgentFunc)fn_802B152C;
+    hkAgentFuncs convexList;
+    convexList.create = (hkAgentFunc)createListConvexAgent;
+    convexList.staticGetPenetrations = (hkAgentFunc)fn_802B1454;
+    convexList.staticGetClosestPoints = (hkAgentFunc)fn_802B14E4;
+    convexList.staticLinearCast = (hkAgentFunc)fn_802B152C;
     convexList.symmetricA = 1;
     convexList.symmetricB = 1;
-    fn_802CC0EC(dispatcher, &convexList, HK_SHAPE_CONVEX_LIST, HK_SHAPE_CONVEX);
+    ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&convexList, HK_SHAPE_CONVEX_LIST, HK_SHAPE_CONVEX);
 
-    AgentRegistration listConvex;
-    listConvex.create = (AgentFunc)createConvexListAgent;
-    listConvex.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
-    listConvex.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
-    listConvex.staticLinearCast = (AgentFunc)staticLinearCast;
+    hkAgentFuncs listConvex;
+    listConvex.create = (hkAgentFunc)createConvexListAgent;
+    listConvex.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
+    listConvex.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
+    listConvex.staticLinearCast = (hkAgentFunc)staticLinearCast;
     listConvex.symmetricA = 0;
     listConvex.symmetricB = 1;
-    fn_802CC0EC(dispatcher, &listConvex, HK_SHAPE_CONVEX, HK_SHAPE_CONVEX_LIST);
+    ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&listConvex, HK_SHAPE_CONVEX, HK_SHAPE_CONVEX_LIST);
 }
 
 hkCollisionAgent* hkConvexListAgent::createConvexListAgent(void* a, void* b, void* c, int flag) {

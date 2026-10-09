@@ -33,9 +33,9 @@ hkNullAgent* hkNullAgent::getNullAgent() {
 }
 
 void hkNullAgent::cleanup() {}
-void hkNullAgent::processCollision() {}
-void hkNullAgent::linearCast() {}
-void hkNullAgent::getClosestPoints() {}
-void hkNullAgent::getPenetrations() {}
+void hkNullAgent::processCollision(void* a, void* b, void* c) {}
+void hkNullAgent::linearCast(void* a, void* b, void* c, void* target, void* d) {}
+void hkNullAgent::getClosestPoints(void* a, void* b, void* c, void* target) {}
+void hkNullAgent::getPenetrations(void* a, void* b, void* c, void* target) {}
 
 hkNullAgent::~hkNullAgent() {}

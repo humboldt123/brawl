@@ -2,6 +2,8 @@
 
 #include <havok/hkCollisionAgent.h>
 
+struct hkCollisionDispatcher;
+
 // Collision agent for a shape collection against another shape (0x38 bytes). Only the factories and
 // the registration are recovered so far; the members are not identified yet.
 struct hkShapeCollectionAgent : hkCollisionAgent {

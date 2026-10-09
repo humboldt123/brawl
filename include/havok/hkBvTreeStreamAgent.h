@@ -4,6 +4,8 @@
 #include <havok/hkArray.h>
 #include <havok/hkVector4.h>
 
+struct hkCollisionDispatcher;
+
 struct hkCdBody;
 struct hkPenetrationTarget;
 

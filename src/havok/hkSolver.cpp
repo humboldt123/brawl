@@ -87,5 +87,180 @@
 //   0x8029E710   416  hkSolveConstraints   [map: hkSolver__hkSolveConstraints]
 //   0x8029E8B0   232  applyVelField   [map: hkSolver__applyVelField]
 //   0x8029E998     4  
-//   0x8029E99C  1776  integrateVelocities   [map: hkSolver__integrateVelocities]
-//   0x8029F08C    12  __sinit_\hkSolver_cpp   [map: hkSolvercpp____sinit_]
+
+#include <havok/hkSolver.h>
+#include <havok/hkJacobianSchema.h>
+#include <havok/hkJacobianHeaderSchema.h>
+#include <havok/hkJacobianElement.h>
+#include <havok/hkJacobianBallSocketChainSchema.h>
+#include <havok/hkJacobianPoweredChainSchema.h>
+#include <havok/hkJacobianStiffSpringChainSchema.h>
+#include <havok/hkVelocityAccumulatorOffset.h>
+#include <havok/hkVelocityAccumulator.h>
+#include <havok/hk1Lin2AngJacobian.h>
+#include <havok/hk2Lin2AngJacobian.h>
+#include <havok/hk2AngJacobian.h>
+#include <havok/hk3dAngularMotorSolverInfo.h>
+#include <havok/hkChainSolverInfo.h>
+#include <havok/hkVector8.h>
+#include <havok/hkVector4.h>
+
+void hkSolver::hkSolveUpload() {}
+
+void hkSolverInfo::hkDebugPrintfAccumulators() {}
+
+u8* hkVelocityAccumulatorOffset::getAccumulator(u8* base) const {
+    return base + m_offset;
+}
+
+void hkSolver::loadVelocityAccumulators() {}
+
+void hkSolver::popVelocityAccumulators() {}
+
+void hkSolver::storeVelocityAccumulators() {}
+
+u8* hkJacobianBallSocketChainSchema::getAccumulatorOffsetsBase() const {
+    return (u8*)this + 0x10;
+}
+
+u8* hkJacobianBallSocketChainSchema::getMatrixBuffer(u8* base) const {
+    u32 t = (m_numChains << 2) - m_numChains;
+    return base + t * 0x30;
+}
+
+u8* hkJacobianBallSocketChainSchema::getTempBuffer(u8* base) const {
+    u32 t = (m_numChains << 2) - m_numChains;
+    return base + t * 0x30 + m_numChains * 0x90;
+}
+
+hkChainSolverInfo::hkChainSolverInfo(u32 v) {
+    m_word00 = v;
+}
+
+u8* hkJacobianPoweredChainSchema::getAngularJacobians(u8* base) const {
+    u32 t = (m_numChains << 2) - m_numChains;
+    return base + t * 0x30;
+}
+
+u8* hkJacobianPoweredChainSchema::getAccumulatorOffsetsBase() const {
+    return (u8*)this + 0x18;
+}
+
+u8* hkJacobianPoweredChainSchema::getMatrixBuffer(u8* base) const {
+    u32 t = (m_numChains << 2) - m_numChains;
+    return base + t * 0x30 + t * 0x20;
+}
+
+u8* hkJacobianPoweredChainSchema::getChildConstraintStatusBase() const {
+    return (u8*)this + m_numChains * 4 + 0x1C;
+}
+
+u8* hkJacobianPoweredChainSchema::getTempBuffer(u8* base) const {
+    u32 t = (m_numChains << 2) - m_numChains;
+    return base + t * 0x30 + t * 0x20 + m_numChains * 0x3C0;
+}
+
+u8* hkJacobianPoweredChainSchema::getVelocityBuffer(u8* base) const {
+    u32 t = (m_numChains << 2) - m_numChains;
+    return base + t * 0x30 + t * 0x20 + m_numChains * 0x3C0 + (m_numChains + 1) * 0x20;
+}
+
+float hk2AngJacobian::getAngularRhs() const {
+    return *(float*)((u8*)this + 0x1C);
+}
+
+void hk2AngJacobian::setAngularRhs(float f) {
+    *(float*)((u8*)this + 0x1C) = f;
+}
+
+int hk3dAngularMotorSolverInfo::getState(int index) const {
+    return (m_states >> (index << 1)) & 3;
+}
+
+void hkSolver::storeDelayedResult() {}
+
+void hkSolver::prefetchVelocityAccumulators() {}
+
+void hkSolver::loadFixedRegisters() {}
+
+hkJacobianElement* hkJacobianElement::as2Ang() {
+    return this;
+}
+
+u8* hkJacobianBallSocketChainSchema::getEnd(u8* base) const {
+    u32 t = (m_numChains << 2) - m_numChains;
+    return base + t * 0x30 + m_numChains * 0x90 + (m_numChains + 1) * 0x10;
+}
+
+u8* hkJacobianStiffSpringChainSchema::getEnd(u8* base) const {
+    u8* end = base + m_numChains * 0x30 + m_numChains * 0xC + (m_numChains + 1) * 4;
+    return (u8*)(((u32)end + 0xF) & ~0xF);
+}
+
+s32 hkJacobianSchema::getSchemaType() const {
+    return (s32)m_tag >> 24;
+}
+
+u32 hkJacobianSchema::getSchemaSize() const {
+    return m_tag & 0xFFFF;
+}
+
+u8* hkJacobianHeaderSchema::getBodyA(u8* base) const {
+    return base + unk08;
+}
+
+u8* hkJacobianHeaderSchema::getBodyB(u8* base) const {
+    return base + unk0C;
+}
+
+u8* hkJacobianHeaderSchema::getJacobian(u8* base) const {
+    return base + unk04;
+}
+
+hk1Lin2AngJacobian* hk1Lin2AngJacobian::next(int n) const {
+    return (hk1Lin2AngJacobian*)((u8*)this + n * 0x30);
+}
+
+hk2Lin2AngJacobian* hk2Lin2AngJacobian::next(int n) const {
+    return (hk2Lin2AngJacobian*)((u8*)this + n * 0x40);
+}
+
+hk2AngJacobian* hk2AngJacobian::next(int n) const {
+    return (hk2AngJacobian*)((u8*)this + n * 0x20);
+}
+
+hkVector4* hkVelocityAccumulator::getSumLinearVel() {
+    return (hkVector4*)((u8*)this + 0x40);
+}
+
+void hkVector8::setZero8() {
+    m_v[3] = 0.0f;
+    m_v[2] = 0.0f;
+    m_v[1] = 0.0f;
+    m_v[0] = 0.0f;
+    m_v[7] = 0.0f;
+    m_v[6] = 0.0f;
+    m_v[5] = 0.0f;
+    m_v[4] = 0.0f;
+}
+
+void hkVector8::setSub8(const hkVector8& a, const hkVector8& b) {
+    m_v[0] = a.m_v[0] - b.m_v[0];
+    m_v[1] = a.m_v[1] - b.m_v[1];
+    m_v[2] = a.m_v[2] - b.m_v[2];
+    m_v[3] = a.m_v[3] - b.m_v[3];
+    m_v[4] = a.m_v[4] - b.m_v[4];
+    m_v[5] = a.m_v[5] - b.m_v[5];
+    m_v[6] = a.m_v[6] - b.m_v[6];
+    m_v[7] = a.m_v[7] - b.m_v[7];
+}
+
+void hkSolver::applyAngularImpulse(hkReal impulse, hkVector8* jac, hkVelocityAccumulator* a, hkVelocityAccumulator* b, hkReal* sum) {
+    a->unk20.x += impulse * a->unk30.x * jac->m_v[0];
+    a->unk20.y += impulse * a->unk30.y * jac->m_v[1];
+    a->unk20.z += impulse * a->unk30.z * jac->m_v[2];
+    b->unk20.x += impulse * b->unk30.x * jac->m_v[4];
+    b->unk20.y += impulse * b->unk30.y * jac->m_v[5];
+    b->unk20.z += impulse * b->unk30.z * jac->m_v[6];
+    *sum += impulse;
+}

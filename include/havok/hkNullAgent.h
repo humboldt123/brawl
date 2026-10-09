@@ -17,8 +17,8 @@ struct hkNullAgent : hkCollisionAgent {
     static hkNullAgent* getNullAgent();
 
     virtual void cleanup();
-    virtual void processCollision();
-    virtual void linearCast();
-    virtual void getClosestPoints();
-    virtual void getPenetrations();
+    virtual void processCollision(void* a, void* b, void* c);
+    virtual void linearCast(void* a, void* b, void* c, void* target, void* d);
+    virtual void getClosestPoints(void* a, void* b, void* c, void* target);
+    virtual void getPenetrations(void* a, void* b, void* c, void* target);
 };

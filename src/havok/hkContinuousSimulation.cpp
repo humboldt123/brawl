@@ -35,3 +35,45 @@
 //   0x8032B8DC   672  insertAt   [map: hkArray_P8hkEntity___insertAt]
 //   0x8032BB7C    96  insertAt   [map: hkArray_P8hkEntity___insertAt1]
 //   0x8032BBDC    12  __sinit_\hkContinuousSimulation_cpp   [map: hkContinuousSimulationcpp____sinit_]
+
+#include <havok/hkContinuousSimulation.h>
+#include <havok/hkDefaultToiResourceMgr.h>
+#include <havok/hkWorld.h>
+
+hkContinuousSimulation::hkContinuousSimulation(hkWorld* world) : hkSimulation(world) {
+    m_unk0C = 1;
+    hkDefaultToiResourceMgr* mgr = new hkDefaultToiResourceMgr();
+    m_toiResourceMgr = mgr;
+    m_unk38 = 0;
+}
+
+hkContinuousSimulation::~hkContinuousSimulation() {
+    if (m_toiResourceMgr != 0) {
+        delete m_toiResourceMgr;
+    }
+}
+
+// Debug-only consistency checks: empty in this build.
+void hkContinuousSimulation::assertThereIsNoCollisionInformationForEntities(const void* entities) {}
+
+void hkContinuousSimulation::assertThereIsNoCollisionInformationForAgent(const void* agent) {}
+
+// Adds dt to the time of every pending TOI event of the continuous simulation owned by the world.
+void hkContinuousSimulation::warpTime(hkReal dt) {
+    hkContinuousSimulation* sim = (hkContinuousSimulation*)m_world->m_unk08; // HYPOTHESIS: world field holds the simulation
+    for (int i = 0; i < sim->m_toiEvents.m_size; i++) {
+        sim->m_toiEvents.begin()[i].unk00 += dt;
+    }
+}
+
+// Removes every TOI event whose key (0x18) matches the agent key (0x10 of the agent). Walks backwards and
+// replaces a removed event with the last one. HYPOTHESIS: agent key is the word at 0x10.
+void hkContinuousSimulation::removeCollisionInformationForAgent(const void* agent) {
+    for (int i = m_toiEvents.m_size - 1; i >= 0; i--) {
+        hkToiEvent* events = m_toiEvents.begin();
+        if (events[i].unk18 == ((const u32*)agent)[4]) {
+            m_toiEvents.m_size--;
+            events[i].copyFrom(events[m_toiEvents.m_size]);
+        }
+    }
+}

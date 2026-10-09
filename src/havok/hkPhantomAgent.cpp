@@ -15,34 +15,19 @@
 
 #include <havok/hkPhantomAgent.h>
 #include <havok/hkShape.h>
-
-// HYPOTHESIS: registration record passed to the collision dispatcher. Layout from the stack
-// frame: four function slots at 0x08..0x14 followed by two flags at 0x18 and 0x19.
-typedef void (*hkAgentFunction)();
-struct hkAgentRegistration {
-    hkAgentFunction create;
-    hkAgentFunction staticGetPenetrations;
-    hkAgentFunction staticGetClosestPoints;
-    hkAgentFunction staticLinearCast;
-    bool m_symmetricA; // HYPOTHESIS
-    bool m_symmetricB; // HYPOTHESIS
-};
-
-// HYPOTHESIS: dispatcher registration entry point (name unknown, takes the dispatcher, a
-// registration record and the two shape type ids).
-extern "C" void fn_802CC0EC(void* dispatcher, hkAgentRegistration* reg, int typeA, int typeB);
+#include <havok/hkCollisionDispatcher.h>
 
 // Registers this agent for phantom callback shapes (type 0x1a) against any other shape type (-1).
-void hkPhantomAgent::registerAgent(void* dispatcher) {
-    hkAgentRegistration reg;
-    reg.m_symmetricA = false;
-    reg.create = (hkAgentFunction)&hkPhantomAgent::createPhantomAgent;
-    reg.staticGetPenetrations = (hkAgentFunction)&hkPhantomAgent::staticGetPenetrations;
-    reg.staticGetClosestPoints = (hkAgentFunction)&hkPhantomAgent::staticGetClosestPoints;
-    reg.staticLinearCast = (hkAgentFunction)&hkPhantomAgent::staticLinearCast;
-    reg.m_symmetricB = true;
-    fn_802CC0EC(dispatcher, &reg, HK_SHAPE_PHANTOM_CALLBACK, -1);
-    fn_802CC0EC(dispatcher, &reg, -1, HK_SHAPE_PHANTOM_CALLBACK);
+void hkPhantomAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
+    hkAgentFuncs reg;
+    reg.symmetricA = false;
+    reg.create = (hkAgentFunc)&hkPhantomAgent::createPhantomAgent;
+    reg.staticGetPenetrations = (hkAgentFunc)&hkPhantomAgent::staticGetPenetrations;
+    reg.staticGetClosestPoints = (hkAgentFunc)&hkPhantomAgent::staticGetClosestPoints;
+    reg.staticLinearCast = (hkAgentFunc)&hkPhantomAgent::staticLinearCast;
+    reg.symmetricB = true;
+    dispatcher->registerCollisionAgent(&reg, HK_SHAPE_PHANTOM_CALLBACK, -1);
+    dispatcher->registerCollisionAgent(&reg, -1, HK_SHAPE_PHANTOM_CALLBACK);
 }
 
 hkPhantomAgent::hkPhantomAgent(hkCdBody* bodyA, hkCdBody* bodyB, int unk8Value) : hkCollisionAgent(unk8Value) {
@@ -112,7 +97,7 @@ void hkPhantomAgent::cleanup() {
 
 hkPhantomAgent::~hkPhantomAgent() {}
 
-void hkPhantomAgent::processCollision() {}
+void hkPhantomAgent::processCollision(void* a, void* b, void* c) {}
 
 void hkPhantomAgent::getPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target) {
     target->forwardPenetrations(a, b, c);
@@ -122,7 +107,7 @@ void hkPhantomAgent::staticGetPenetrations(void* a, void* b, void* c, hkPenetrat
     target->forwardPenetrations(a, b, target);
 }
 
-void hkPhantomAgent::getClosestPoints() {}
+void hkPhantomAgent::getClosestPoints(void* a, void* b, void* c, void* target) {}
 void hkPhantomAgent::staticGetClosestPoints() {}
-void hkPhantomAgent::linearCast() {}
+void hkPhantomAgent::linearCast(void* a, void* b, void* c, void* target, void* d) {}
 void hkPhantomAgent::staticLinearCast() {}

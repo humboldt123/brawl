@@ -1,32 +1,136 @@
 // Havok translation unit hkWorldOperationUtil.o (main.dol 0x802F7E24-0x802FB244).
-// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x802F7E24   724  updateEntityBP   [map: hkWorldOperationUtil__updateEntityBP]
-//   0x802F80F8   388  addEntityBP   [map: hkWorldOperationUtil__addEntityBP]
-//   0x802F827C   364  addPhantomBP   [map: hkWorldOperationUtil__addPhantomBP]
-//   0x802F83E8   412  addEntitySI   [map: hkWorldOperationUtil__addEntitySI]
-//   0x802F8584   352  removeEntityBP   [map: hkWorldOperationUtil__removeEntityBP]
-//   0x802F86E4   296  removePhantomBP   [map: hkWorldOperationUtil__removePhantomBP]
-//   0x802F880C   192  removeEntitySI   [map: hkWorldOperationUtil__removeEntitySI]
-//   0x802F88CC   296  removeAttachedActionsFromFixedIsland   [map: hkWorldOperationUtil__removeAttachedActionsFromFixedIsland]
-//   0x802F89F4   464  removeAttachedActionsFromDynamicIsland   [map: hkWorldOperationUtil__removeAttachedActionsFromDynamicIsland]
-//   0x802F8BC4   548  addActionsToEntitysIsland   [map: hkWorldOperationUtil__addActionsToEntitysIsland]
-//   0x802F8DE8   148  removeIsland   [map: hkWorldOperationUtil__removeIsland]
-//   0x802F8E7C    68  addConstraintToCriticalLockedIsland   [map: hkWorldOperationUtil__addConstraintToCriticalLockedIsland]
-//   0x802F8EC0    64  removeConstraintFromCriticalLockedIsland   [map: hkWorldOperationUtil__removeConstraintFromCriticalLockedIsland]
-//   0x802F8F00   152  addConstraintImmediately   [map: hkWorldOperationUtil__addConstraintImmediately]
-//   0x802F8F98   212  removeConstraintImmediately   [map: hkWorldOperationUtil__removeConstraintImmediately]
-//   0x802F906C    44  splitSimulationIslands   [map: hkWorldOperationUtil__splitSimulationIslands]
-//   0x802F9098  2412  splitSimulationIslands   [map: hkWorldOperationUtil__splitSimulationIslands1]
-//   0x802F9A04    88  mergeIslands   [map: hkWorldOperationUtil__mergeIslands]
-//   0x802F9A5C  1632  internalMergeTwoIslands   [map: hkWorldOperationUtil__internalMergeTwoIslands]
-//   0x802FA0BC  1252  setRigidBodyMotionType   [map: hkWorldOperationUtil__setRigidBodyMotionType]
-//   0x802FA5A0   320  removeAttachedConstraints   [map: hkWorldOperationUtil__removeAttachedConstraints]
-//   0x802FA6E0   228  removeAttachedAgentsConnectingTheEntityAndAFixedPartnerEn   [map: hkWorldOperationUtil__removeAttachedAgentsConnectingTheEntityAndAFixedPartnerEntityPlus]
-//   0x802FA7C4   380  cleanupDirtyIslands   [map: hkWorldOperationUtil__cleanupDirtyIslands]
-//   0x802FA940   380  internalActivateIsland   [map: hkWorldOperationUtil__internalActivateIsland]
-//   0x802FAABC   320  internalDeactivateIsland   [map: hkWorldOperationUtil__internalDeactivateIsland]
-//   0x802FABFC   140  markIslandInactive   [map: hkWorldOperationUtil__markIslandInactive]
-//   0x802FAC88   156  markIslandActive   [map: hkWorldOperationUtil__markIslandActive]
-//   0x802FAD24    44  removeIslandFromDirtyList   [map: hkWorldOperationUtil__removeIslandFromDirtyList]
-//   0x802FAD50  1216  replaceMotionObject   [map: hkWorldOperationUtil__replaceMotionObject]
-//   0x802FB210    52  swap   [map: hkArray_P15hkAgentNnSector___swap]
+// Work in progress. Functions in address order (method names from the Havok TU map):
+//   0x802F7E24  updateEntityBP, addEntityBP, addPhantomBP, addEntitySI, removeEntityBP, removePhantomBP,
+//   removeEntitySI, removeAttachedActionsFromFixedIsland, removeAttachedActionsFromDynamicIsland,
+//   addActionsToEntitysIsland, removeIsland, addConstraintToCriticalLockedIsland,
+//   removeConstraintFromCriticalLockedIsland, addConstraintImmediately, removeConstraintImmediately,
+//   splitSimulationIslands, splitSimulationIslands1, mergeIslands, internalMergeTwoIslands,
+//   setRigidBodyMotionType, removeAttachedConstraints, ..., removeIslandFromDirtyList, ...
+
+#include <havok/hkWorldOperationUtil.h>
+#include <havok/hkWorldCallbackUtil.h>
+#include <havok/hkWorldConstraintUtil.h>
+#include <havok/hkSimulationIsland.h>
+#include <havok/hkEntity.h>
+
+void hkWorldOperationUtil::addConstraintToCriticalLockedIsland(hkWorld* world, hkConstraintInstance* constraint) {
+    hkWorldConstraintUtil::addConstraint(world, constraint);
+    hkWorldCallbackUtil::fireConstraintAdded(world, constraint);
+}
+
+void hkWorldOperationUtil::removeConstraintFromCriticalLockedIsland(hkWorld* world, hkConstraintInstance* constraint) {
+    if (hkWorldCallbackUtil::listenersAt<hkWorldCallbackUtil::ConstraintListener>(world, 0xFC).m_size != 0) {
+        hkWorldCallbackUtil::fireConstraintRemoved(world, constraint);
+    }
+    hkWorldConstraintUtil::removeConstraint(constraint);
+}
+
+void hkWorldOperationUtil::splitSimulationIslands(hkWorld* world) {
+    u8 flag = 1;
+    splitSimulationIslands1(world, &flag);
+}
+
+
+// Islands whose state changes are queued in the world's dirty list (hkWorld::m_unk40, an hkArray of islands).
+void hkWorldOperationUtil::markIslandInactive(hkWorld* world, hkSimulationIsland* island) {
+    // Activity state (top two bits of the byte at 0x27) cleared; see hkEntity::getActivationState.
+    u32 state = *((u8*)island + 0x27);
+    state &= ~0xC0;
+    *((u8*)island + 0x27) = (u8)state;
+    if (*(u16*)((u8*)island + 0x22) == 0xFFFF) {
+        hkArray<hkSimulationIsland*>& dirty = *(hkArray<hkSimulationIsland*>*)&world->m_unk40;
+        *(u16*)((u8*)island + 0x22) = (u16)dirty.m_size;
+        dirty.pushBack(island);
+    }
+}
+
+void hkWorldOperationUtil::markIslandActive(hkWorld* world, hkSimulationIsland* island) {
+    *((u8*)island + 0x25) = 0;
+    u32 activity = 1;
+    u8* state = (u8*)island + 0x27;
+    *state = (*state & ~0xC0) | (activity << 6);
+    *((u8*)island + 0x24) = 0;
+    if (*(u16*)((u8*)island + 0x22) == 0xFFFF) {
+        hkArray<hkSimulationIsland*>& dirty = *(hkArray<hkSimulationIsland*>*)&world->m_unk40;
+        *(u16*)((u8*)island + 0x22) = (u16)dirty.m_size;
+        dirty.pushBack(island);
+    }
+}
+
+// Removes an island from one of the world's island arrays by moving the last entry into its slot.
+// The island's index (u16 at 0x20, not recovered in hkSimulationIsland.h) is kept up to date.
+static void removeIslandFromArray(hkArray<hkSimulationIsland*>& islands, hkSimulationIsland* island) {
+    islands[*(u16*)((u8*)island + 0x20)] = islands[islands.m_size - 1];
+    hkSimulationIsland* moved = islands[*(u16*)((u8*)island + 0x20)];
+    *(u16*)((u8*)moved + 0x20) = *(u16*)((u8*)island + 0x20);
+    islands.m_size--;
+}
+
+#pragma dont_inline on
+void hkWorldOperationUtil::removeIslandFromDirtyList(hkWorld* world, hkSimulationIsland* island) {
+    // Dirty-list index of the island: u16 at 0x22 (not recovered in hkSimulationIsland.h).
+    u16 index = *(u16*)((u8*)island + 0x22);
+    if (index == 0xFFFF) {
+        return;
+    }
+    ((int*)world->m_unk40.m_data)[index] = 0;
+    *(u16*)((u8*)island + 0x22) = 0xFFFF;
+}
+#pragma dont_inline reset
+
+void hkWorldOperationUtil::removeIsland(hkWorld* world, hkSimulationIsland* island) {
+    if ((island->m_flags26 & 3) == 0) {
+        removeIslandFromArray(*(hkArray<hkSimulationIsland*>*)&world->m_unk34, island);
+    } else {
+        removeIslandFromArray(*(hkArray<hkSimulationIsland*>*)&world->m_unk28, island);
+    }
+    removeIslandFromDirtyList(world, island);
+}
+
+hkConstraintInstance* hkWorldOperationUtil::addConstraintImmediately(hkWorld* world, hkConstraintInstance* constraint, bool fireCallback) {
+    world->m_lockCount++;
+    hkWorldConstraintUtil::addConstraint(world, constraint);
+    if (fireCallback) {
+        hkWorldCallbackUtil::fireConstraintAdded(world, constraint);
+    }
+    if (--world->m_lockCount == 0 && world->m_unk78 != 0 && (s8)world->m_unk84 == 0) {
+        world->internal_executePendingOperations();
+    }
+    return constraint;
+}
+
+void hkWorldOperationUtil::mergeIslands(hkWorld* world, hkEntity* entityA, hkEntity* entityB) {
+    hkSimulationIsland* islandA = entityA->m_simulationIsland;
+    hkSimulationIsland* islandB = entityB->m_simulationIsland;
+    if (world->m_lockCount != 0) {
+        hkWorldOperation::BiggestOperation operation;
+        operation.m_kind = 0x0C;
+        operation.m_entityA = entityA;
+        operation.m_entityB = entityB;
+        world->queueOperation(&operation);
+    } else {
+        internalMergeTwoIslands(world, islandA, islandB);
+    }
+}
+
+void hkWorldOperationUtil::removeConstraintImmediately(hkWorld* world, hkConstraintInstance* constraint, bool fireCallback) {
+    // HYPOTHESIS: the constraint's word at 0x08 is the island whose activity state (bits 0xC0 of 0x26) is set.
+    hkSimulationIsland* island = *(hkSimulationIsland**)((u8*)constraint + 0x08);
+    u32 activity = 1;
+    island->m_flags26 = (island->m_flags26 & ~0xC0) | (activity << 6);
+    if (world->m_lockCount != 0) {
+        if (fireCallback && hkWorldCallbackUtil::listenersAt<hkWorldCallbackUtil::ConstraintListener>(world, 0xFC).m_size != 0) {
+            hkWorldCallbackUtil::fireConstraintRemoved(world, constraint);
+        }
+        hkWorldConstraintUtil::removeConstraint(constraint);
+        return;
+    }
+    world->m_lockCount++;
+    if (fireCallback && hkWorldCallbackUtil::listenersAt<hkWorldCallbackUtil::ConstraintListener>(world, 0xFC).m_size != 0) {
+        hkWorldCallbackUtil::fireConstraintRemoved(world, constraint);
+    }
+    hkWorldConstraintUtil::removeConstraint(constraint);
+    if (--world->m_lockCount == 0 && world->m_unk78 != 0 && (s8)world->m_unk84 == 0) {
+        world->internal_executePendingOperations();
+    }
+}

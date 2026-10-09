@@ -2,6 +2,8 @@
 
 #include <havok/hkCollisionAgent.h>
 
+struct hkCollisionDispatcher;
+
 // Collision agent for a convex shape against a convex-list shape (HK_SHAPE_CONVEX_LIST). Object size 0x80.
 // The constructor (not recovered yet) fills the 0x0C..0x2F sub-object and the pair pointers; the
 // 0x30 sub-object is torn down by cleanup(). Layout is HYPOTHESIS until the constructor is matched.

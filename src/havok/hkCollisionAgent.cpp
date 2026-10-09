@@ -11,8 +11,8 @@
 #include <havok/hkCollisionAgent.h>
 
 // Default hooks of the base agent: empty in the original.
-void hkCollisionAgent::invalidateTim() {}
-void hkCollisionAgent::warpTime() {}
-void hkCollisionAgent::removePoint() {}
-void hkCollisionAgent::commitPotential() {}
-void hkCollisionAgent::createZombie() {}
+void hkCollisionAgent::invalidateTim(void* arg) {}
+void hkCollisionAgent::warpTime(float t0, float t1, void* arg) {}
+void hkCollisionAgent::removePoint(u16 key) {}
+void hkCollisionAgent::commitPotential(u16 key) {}
+void hkCollisionAgent::createZombie(u16 key) {}

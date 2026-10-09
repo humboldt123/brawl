@@ -13,45 +13,35 @@
 //   0x802B9E38   972  processCollision   [map: hkMultiRayConvexAgent__processCollision]
 
 #include <havok/hkMultiRayConvexAgent.h>
+#include <havok/hkCollisionDispatcher.h>
 #include <havok/hkShapeType.h>
 
-// Stand-in for hkCollisionDispatcher::registerCollisionAgent (not recovered yet; takes the dispatcher as this).
-extern "C" void fn_802CC0EC(hkCollisionDispatcher* dispatcher, void* funcs, int typeA, int typeB);
 // Stand-in for hkIterativeLinearCastAgent::staticLinearCast (other unit).
 extern "C" void fn_802B7FD0();
 
 namespace {
-typedef void (*AgentFunc)();
 
 // Layout of the table handed to the dispatcher (stack copy in registerAgent).
-struct AgentFuncs {
-    AgentFunc create;                 // 0x00
-    AgentFunc staticGetPenetrations;  // 0x04
-    AgentFunc staticGetClosestPoints; // 0x08
-    AgentFunc staticLinearCast;       // 0x0C
-    u8 symmetricA;                    // 0x10
-    u8 symmetricB;                    // 0x11
-};
 } // namespace
 
 void hkMultiRayConvexAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
-    AgentFuncs symmetric;
-    symmetric.create = (AgentFunc)createConvexMultiRayAgent;
-    symmetric.staticGetPenetrations = (AgentFunc)hkSymmetricAgentLinearCast_21hkMultiRayConvexAgent_::staticGetPenetrations;
-    symmetric.staticGetClosestPoints = (AgentFunc)hkSymmetricAgentLinearCast_21hkMultiRayConvexAgent_::staticGetClosestPoints;
-    symmetric.staticLinearCast = (AgentFunc)hkSymmetricAgentLinearCast_21hkMultiRayConvexAgent_::staticLinearCast;
+    hkAgentFuncs symmetric;
+    symmetric.create = (hkAgentFunc)createConvexMultiRayAgent;
+    symmetric.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_21hkMultiRayConvexAgent_::staticGetPenetrations;
+    symmetric.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_21hkMultiRayConvexAgent_::staticGetClosestPoints;
+    symmetric.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast_21hkMultiRayConvexAgent_::staticLinearCast;
     symmetric.symmetricA = 1;
     symmetric.symmetricB = 1;
-    fn_802CC0EC(dispatcher, &symmetric, 1, HK_SHAPE_MULTI_RAY);
+    dispatcher->registerCollisionAgent(&symmetric, 1, HK_SHAPE_MULTI_RAY);
 
-    AgentFuncs plain;
-    plain.create = (AgentFunc)createMultiRayConvexAgent;
-    plain.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
-    plain.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
-    plain.staticLinearCast = (AgentFunc)fn_802B7FD0;
+    hkAgentFuncs plain;
+    plain.create = (hkAgentFunc)createMultiRayConvexAgent;
+    plain.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
+    plain.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
+    plain.staticLinearCast = (hkAgentFunc)fn_802B7FD0;
     plain.symmetricA = 0;
     plain.symmetricB = 1;
-    fn_802CC0EC(dispatcher, &plain, HK_SHAPE_MULTI_RAY, 1);
+    dispatcher->registerCollisionAgent(&plain, HK_SHAPE_MULTI_RAY, 1);
 }
 
 // The allocation size is stored before the constructor runs; the convex x multi-ray agent is the

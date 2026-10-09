@@ -20,46 +20,31 @@
 
 #include <havok/hkSphereBoxAgent.h>
 #include <havok/hkShapeType.h>
+#include <havok/hkCollisionDispatcher.h>
 
-// Stand-in for hkCollisionDispatcher::registerCollisionAgent (not recovered yet; takes the dispatcher as this).
-extern "C" void fn_802CC0EC(hkCollisionDispatcher* dispatcher, void* funcs, int typeA, int typeB);
 // Stand-in for the symmetric linear cast (staticLinearCast, not written yet).
 extern "C" void fn_802C3B88();
 // Stand-in for hkIterativeLinearCastAgent::staticLinearCast (other unit).
 extern "C" void fn_802B7FD0();
 
-namespace {
-typedef void (*AgentFunc)();
-
-// Layout of the table handed to the dispatcher (stack copy in registerAgent).
-struct AgentFuncs {
-    AgentFunc create;                 // 0x00
-    AgentFunc staticGetPenetrations;  // 0x04
-    AgentFunc staticGetClosestPoints; // 0x08
-    AgentFunc staticLinearCast;       // 0x0C
-    u8 unk10;                         // 0x10
-    u8 unk11;                         // 0x11
-};
-} // namespace
-
 void hkSphereBoxAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
-    AgentFuncs box;
-    box.create = (AgentFunc)createBoxSphereAgent;
-    box.staticGetPenetrations = (AgentFunc)hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::staticGetPenetrations;
-    box.staticGetClosestPoints = (AgentFunc)hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::staticGetClosestPoints;
-    box.staticLinearCast = (AgentFunc)fn_802C3B88;
-    box.unk10 = 1;
-    box.unk11 = 0;
-    fn_802CC0EC(dispatcher, &box, HK_SHAPE_BOX, HK_SHAPE_SPHERE);
+    hkAgentFuncs box;
+    box.create = (hkAgentFunc)createBoxSphereAgent;
+    box.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::staticGetPenetrations;
+    box.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::staticGetClosestPoints;
+    box.staticLinearCast = (hkAgentFunc)fn_802C3B88;
+    box.symmetricA = 1;
+    box.symmetricB = 0;
+    dispatcher->registerCollisionAgent(&box, HK_SHAPE_BOX, HK_SHAPE_SPHERE);
 
-    AgentFuncs sphere;
-    sphere.create = (AgentFunc)createSphereBoxAgent;
-    sphere.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
-    sphere.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
-    sphere.staticLinearCast = (AgentFunc)fn_802B7FD0;
-    sphere.unk10 = 0;
-    sphere.unk11 = 0;
-    fn_802CC0EC(dispatcher, &sphere, HK_SHAPE_SPHERE, HK_SHAPE_BOX);
+    hkAgentFuncs sphere;
+    sphere.create = (hkAgentFunc)createSphereBoxAgent;
+    sphere.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
+    sphere.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
+    sphere.staticLinearCast = (hkAgentFunc)fn_802B7FD0;
+    sphere.symmetricA = 0;
+    sphere.symmetricB = 0;
+    dispatcher->registerCollisionAgent(&sphere, HK_SHAPE_SPHERE, HK_SHAPE_BOX);
 }
 
 hkSphereBoxAgent* hkSphereBoxAgent::createBoxSphereAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr) {

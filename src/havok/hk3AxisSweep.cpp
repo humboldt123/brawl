@@ -46,3 +46,68 @@
 //   0x80312D68   332  shiftBroadPhase   [map: hk3AxisSweep__shiftBroadPhase]
 //   0x80312EB4   140  hk3AxisSweep16CreateBroadPhase   [map: hkVector4__hk3AxisSweep16CreateBroadPhase]
 //   0x80312F40    60  __sinit_\hk3AxisSweep_cpp   [map: hk3AxisSweepcpp____sinit_]
+
+#include <havok/hk3AxisSweep.h>
+
+void hk3AxisSweep::beginOverlap(const hkBpNode* a, const hkBpNode* b, hkArray<hkBroadPhaseHandlePair>& pairs) {
+    hkBroadPhaseHandlePair& pair = pairs.expandOne();
+    pair.m_a = a->m_handle;
+    pair.m_b = b->m_handle;
+}
+
+void hk3AxisSweep::endOverlap(const hkBpNode* a, const hkBpNode* b, hkArray<hkBroadPhaseHandlePair>& pairs) {
+    hkBroadPhaseHandlePair& pair = pairs.expandOne();
+    pair.m_a = a->m_handle;
+    pair.m_b = b->m_handle;
+}
+
+hk3AxisSweep::hkBpAxis::hkBpAxis() {
+    unk00 = 0;
+    unk04 = 0;
+    unk08 = 0x80000000;
+}
+
+const hk3AxisSweep::hkBpEndPoint* hk3AxisSweep::hkBpAxis::find(const hkBpEndPoint* begin, const hkBpEndPoint* end, u16 value) const {
+    const hkBpEndPoint* lo = begin;
+    const hkBpEndPoint* hi = end;
+    while (hi - lo > 16) {
+        const hkBpEndPoint* mid = lo + ((unsigned)(hi - lo) >> 1);
+        if (mid->m_value < value) {
+            lo = mid;
+        }
+        else {
+            hi = mid;
+        }
+    }
+    while (lo->m_value < value) {
+        lo++;
+    }
+    return lo;
+}
+
+int hk3AxisSweep::getNumObjects() const {
+    return m_numNodes - 1;
+}
+
+void hk3AxisSweep::getAabb(const hkBroadPhaseHandle* handle, hkAabb& aabb) const {
+    getAabbFromNode(&m_nodes[handle->m_id], aabb);
+}
+
+int hk3AxisSweep::getAabbCacheSize() const {
+    return (m_numNodes - unkA0) * 2 * sizeof(hkBpAxis) + 0x24;
+}
+
+void hk3AxisSweep::getAllAabbs(hkArray<hkAabb>& aabbs) const {
+    if (aabbs.getCapacity() < m_numNodes - unkA0) {
+        hkArrayUtil::_reserve(&aabbs, m_numNodes - unkA0, sizeof(hkAabb));
+    }
+    aabbs.m_size = m_numNodes - unkA0;
+    int out = 0;
+    for (int i = 0; i < m_numNodes; i++) {
+        const hkBpNode* node = &m_nodes[i];
+        if (((u32)node->m_handle & 1) == 0) {
+            getAabbFromNode(node, aabbs.begin()[out]);
+            out++;
+        }
+    }
+}

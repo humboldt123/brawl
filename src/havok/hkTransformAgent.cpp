@@ -33,6 +33,7 @@
 //   0x802CA9D8   120  addCdPoint   [map: hkSimpleClosestContactCollector__addCdPoint]
 
 #include <havok/hkTransformAgent.h>
+#include <havok/hkCollisionDispatcher.h>
 #include <havok/hkShapeType.h>
 #include <havok/hkTransform.h>
 #include <havok/hkFlagCdBodyPairCollector.h>
@@ -40,41 +41,30 @@
 #include <havok/hkSimpleClosestContactCollector.h>
 #include <havok/hkSymmetricAgentFlipCollectors.h>
 
-// Stand-in for hkCollisionDispatcher::registerCollisionAgent (not recovered yet; takes the dispatcher as this).
-extern "C" void fn_802CC0EC(hkCollisionDispatcher* dispatcher, void* funcs, int typeA, int typeB);
 
 namespace {
-typedef void (*AgentFunc)();
 
 // Layout of the table handed to the dispatcher (stack copy in registerAgent).
-struct AgentFuncs {
-    AgentFunc create;                 // 0x00
-    AgentFunc staticGetPenetrations;  // 0x04
-    AgentFunc staticGetClosestPoints; // 0x08
-    AgentFunc staticLinearCast;       // 0x0C
-    u8 symmetricA;                    // 0x10
-    u8 symmetricB;                    // 0x11
-};
 } // namespace
 
 void hkTransformAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
-    AgentFuncs symmetric;
-    symmetric.create = (AgentFunc)createTransformBAgent;
-    symmetric.staticGetPenetrations = (AgentFunc)hkSymmetricAgentLinearCast_16hkTransformAgent_::staticGetPenetrations;
-    symmetric.staticGetClosestPoints = (AgentFunc)hkSymmetricAgentLinearCast_16hkTransformAgent_::staticGetClosestPoints;
-    symmetric.staticLinearCast = (AgentFunc)hkSymmetricAgentLinearCast_16hkTransformAgent_::staticLinearCast;
+    hkAgentFuncs symmetric;
+    symmetric.create = (hkAgentFunc)createTransformBAgent;
+    symmetric.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_16hkTransformAgent_::staticGetPenetrations;
+    symmetric.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_16hkTransformAgent_::staticGetClosestPoints;
+    symmetric.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast_16hkTransformAgent_::staticLinearCast;
     symmetric.symmetricA = 1;
     symmetric.symmetricB = 1;
-    fn_802CC0EC(dispatcher, &symmetric, -1, HK_SHAPE_TRANSFORM);
+    dispatcher->registerCollisionAgent(&symmetric, -1, HK_SHAPE_TRANSFORM);
 
-    AgentFuncs plain;
-    plain.create = (AgentFunc)createTransformAAgent;
-    plain.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
-    plain.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
-    plain.staticLinearCast = (AgentFunc)staticLinearCast;
+    hkAgentFuncs plain;
+    plain.create = (hkAgentFunc)createTransformAAgent;
+    plain.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
+    plain.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
+    plain.staticLinearCast = (hkAgentFunc)staticLinearCast;
     plain.symmetricA = 0;
     plain.symmetricB = 1;
-    fn_802CC0EC(dispatcher, &plain, HK_SHAPE_TRANSFORM, -1);
+    dispatcher->registerCollisionAgent(&plain, HK_SHAPE_TRANSFORM, -1);
 }
 
 // Stand-in for the transform composition used by updateShapeCollectionFilter (not recovered yet).

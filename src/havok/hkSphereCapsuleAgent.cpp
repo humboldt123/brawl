@@ -23,45 +23,30 @@
 #include <havok/hkSphereBoxAgent.h>
 #include <havok/hkSphereCapsuleAgent.h>
 #include <havok/hkShapeType.h>
+#include <havok/hkCollisionDispatcher.h>
 
-// Stand-in for hkCollisionDispatcher::registerCollisionAgent (not recovered yet; takes the dispatcher as this).
-extern "C" void fn_802CC0EC(hkCollisionDispatcher* dispatcher, void* funcs, int typeA, int typeB);
 // Stand-ins for the symmetric linear cast (staticLinearCast, not written yet) and the linear cast of other units.
 extern "C" void fn_802C5A9C();
 extern "C" void fn_802B7FD0();
 
-namespace {
-typedef void (*AgentFunc)();
-
-// Layout of the table handed to the dispatcher (stack copy in registerAgent).
-struct AgentFuncs {
-    AgentFunc create;                 // 0x00
-    AgentFunc staticGetPenetrations;  // 0x04
-    AgentFunc staticGetClosestPoints; // 0x08
-    AgentFunc staticLinearCast;       // 0x0C
-    u8 unk10;                         // 0x10
-    u8 unk11;                         // 0x11
-};
-} // namespace
-
 void hkSphereCapsuleAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
-    AgentFuncs capsule;
-    capsule.create = (AgentFunc)createCapsuleSphereAgent;
-    capsule.staticGetPenetrations = (AgentFunc)hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_::staticGetPenetrations;
-    capsule.staticGetClosestPoints = (AgentFunc)hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_::staticGetClosestPoints;
-    capsule.staticLinearCast = (AgentFunc)fn_802C5A9C;
-    capsule.unk10 = 1;
-    capsule.unk11 = 0;
-    fn_802CC0EC(dispatcher, &capsule, HK_SHAPE_CAPSULE, HK_SHAPE_SPHERE);
+    hkAgentFuncs capsule;
+    capsule.create = (hkAgentFunc)createCapsuleSphereAgent;
+    capsule.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_::staticGetPenetrations;
+    capsule.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_::staticGetClosestPoints;
+    capsule.staticLinearCast = (hkAgentFunc)fn_802C5A9C;
+    capsule.symmetricA = 1;
+    capsule.symmetricB = 0;
+    dispatcher->registerCollisionAgent(&capsule, HK_SHAPE_CAPSULE, HK_SHAPE_SPHERE);
 
-    AgentFuncs sphere;
-    sphere.create = (AgentFunc)createSphereCapsuleAgent;
-    sphere.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
-    sphere.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
-    sphere.staticLinearCast = (AgentFunc)fn_802B7FD0;
-    sphere.unk10 = 0;
-    sphere.unk11 = 0;
-    fn_802CC0EC(dispatcher, &sphere, HK_SHAPE_SPHERE, HK_SHAPE_CAPSULE);
+    hkAgentFuncs sphere;
+    sphere.create = (hkAgentFunc)createSphereCapsuleAgent;
+    sphere.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
+    sphere.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
+    sphere.staticLinearCast = (hkAgentFunc)fn_802B7FD0;
+    sphere.symmetricA = 0;
+    sphere.symmetricB = 0;
+    dispatcher->registerCollisionAgent(&sphere, HK_SHAPE_SPHERE, HK_SHAPE_CAPSULE);
 }
 
 hkSphereCapsuleAgent* hkSphereCapsuleAgent::createCapsuleSphereAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr) {

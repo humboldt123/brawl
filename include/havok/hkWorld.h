@@ -65,4 +65,6 @@ struct hkWorld : hkReferencedObject {
     void unlock();
     void lockIslandForConstraintUpdate();
     void unlockIslandForConstraintUpdate();
+    // Runs the queued world operations (map name hkWorld__internal_executePendingOperations, fn_802EFE70).
+    void internal_executePendingOperations();
 };

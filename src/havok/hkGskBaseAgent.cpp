@@ -51,7 +51,7 @@ hkGskBaseAgent::hkGskBaseAgent(hkCdBody* bodyA, hkCdBody* bodyB, hkContactMgr* c
 
 void hkGskBaseAgent::processCollision(void* unk0, void* unk1, void* unk2) {}
 
-void hkGskBaseAgent::invalidateTim() {
+void hkGskBaseAgent::invalidateTim(void* arg) {
     unk2C = 0.0f;
     unk28 = 0.0f;
     unk24 = 0.0f;
@@ -65,7 +65,7 @@ void hkGskBaseAgent::cleanup() {
 
 hkGskBaseAgent::~hkGskBaseAgent() {}
 
-void hkGskBaseAgent::warpTime(float oldTime, float newTime) {
+void hkGskBaseAgent::warpTime(float oldTime, float newTime, void* arg) {
     if (unk18 == oldTime) {
         unk18 = newTime;
     } else {
