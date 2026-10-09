@@ -5530,7 +5530,13 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_dxgreens/st_dxgreens.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgreens/gr_dxgreens.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgreens/gr_dxgreens_blockpos.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgreens/gr_dxgreens_block.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgreens/gr_dxgreens_whispy.cpp"),
+        ],
     },
     {
         "lib": "st_dxonett",

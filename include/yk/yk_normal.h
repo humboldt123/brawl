@@ -70,14 +70,15 @@ struct soCollisionAttackModuleBuildConfigNull {
 template <class TAttackConfig, class THitConfig>
 class ykNormal;
 
-// The damage half of the gimmick: nine damage records and the damage module that uses them.
+// The damage half of the gimmick: one damage record per hit part and the damage module that uses them.
+template <u32 N>
 class ykDamageModuleBuilder {
-    soArrayVector<soDamage, 9> m_damageArrayVector;
+    soArrayVector<soDamage, N> m_damageArrayVector;
     ykDamageModuleImpl m_damageModule;
 
 public:
     ykDamageModuleBuilder(soModuleAccesser* moduleAccesser, void* unk, soEventObserverRegistrationDesc* registrationDesc)
-        : m_damageArrayVector(9, 0), m_damageModule(moduleAccesser, &m_damageArrayVector, unk, getNullTransactor(), registrationDesc) { }
+        : m_damageArrayVector(N, 0), m_damageModule(moduleAccesser, &m_damageArrayVector, unk, getNullTransactor(), registrationDesc) { }
     ykDamageModuleImpl* getModule() { return &m_damageModule; }
 
 private:
@@ -93,7 +94,7 @@ class ykNormal<soCollisionAttackModuleBuildConfigNull, soCollisionHitModuleBuild
 
     soCollisionAttackModuleBuildConfigNull m_attackConfig;
     HitConfig m_hitConfig; // the part arrays followed by the hit module (the module is a private member of the config)
-    ykDamageModuleBuilder m_damageBuilder;
+    ykDamageModuleBuilder<P> m_damageBuilder;
 
     // MATCH-ONLY: the hit module sits after the three arrays of the build config
     M* hitModule() {
@@ -105,6 +106,34 @@ public:
     ykNormal(ykInitInfo* info)
         : Yakumono(info, "ykNormal", (soCollisionAttackModule*)lbl_27_bss_384, hitModule(), m_damageBuilder.getModule(),
                    lbl_27_bss_598, lbl_27_bss_444),
+          m_hitConfig(&moduleAccesser, m_taskId, (gfTask::Category)(u8)m_taskCategory, lbl_27_data_54C60),
+          m_damageBuilder(&moduleAccesser, lbl_27_bss_5FF4, lbl_27_data_54C60) {
+        postInitialize();
+        activate(info->m_pos, -1.0f, 0.0f);
+    }
+    virtual ~ykNormal() { }
+};
+
+// The same with an attack module of its own (the Yakumono both hits and is hit).
+template <class TAttackConfig, soCollision::Category Cat, u32 P, u32 G, class M, u32 Mask, bool b1>
+class ykNormal<TAttackConfig, soCollisionHitModuleBuildConfig<Cat, P, G, M, Mask, b1> > : public Yakumono {
+    typedef soCollisionHitModuleBuildConfig<Cat, P, G, M, Mask, b1> HitConfig;
+
+    TAttackConfig m_attackConfig;
+    HitConfig m_hitConfig;
+    ykDamageModuleBuilder<P> m_damageBuilder;
+
+    // MATCH-ONLY: the hit module sits after the three arrays of the build config
+    M* hitModule() {
+        return reinterpret_cast<M*>(reinterpret_cast<u8*>(&m_hitConfig) + sizeof(soArrayVector<soCollisionHitPart, P>) +
+                                    sizeof(soArrayVector<soCollisionGroup, G>) + sizeof(soArrayVector<soCollisionHitGroup, G>));
+    }
+
+public:
+    ykNormal(ykInitInfo* info)
+        : Yakumono(info, "ykNormal", &m_attackConfig.m_attackModule, hitModule(), m_damageBuilder.getModule(),
+                   lbl_27_bss_598, lbl_27_bss_444),
+          m_attackConfig(&moduleAccesser, m_taskId, (gfTask::Category)(u8)m_taskCategory, lbl_27_data_54C60),
           m_hitConfig(&moduleAccesser, m_taskId, (gfTask::Category)(u8)m_taskCategory, lbl_27_data_54C60),
           m_damageBuilder(&moduleAccesser, lbl_27_bss_5FF4, lbl_27_data_54C60) {
         postInitialize();
