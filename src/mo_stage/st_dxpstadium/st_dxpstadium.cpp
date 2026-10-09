@@ -638,8 +638,8 @@ void stDxPStadium::update(float deltaFrame) {
                 m_eventVision.set(600.0f, 1200.0f);
                 if (m_visionCount >= 7) {
                     m_visionCount = 0;
-                    m_eventVision.set(300.0f, 300.0f);
                     choice = 2;
+                    m_eventVision.set(300.0f, 300.0f);
                 }
                 m_eventVision.end();
                 m_visionActive = false;
@@ -808,9 +808,9 @@ void stDxPStadium::startPlayerVision() {
     Vec3f pos;
     stadiumVision(this)->setDisplay(false);
     getGround(0)->setNodeVisibility(true, 0, "Dummy", false, false);
+    int* next;
     int count = 0;
     int players[4] = {count, count, count, count};
-    int* next;
     next = players;
     for (int i = 0; i < 4; i++) {
         if (getPlayerPosition(i, &pos) == true) {
