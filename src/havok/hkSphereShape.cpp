@@ -1,0 +1,17 @@
+// Havok translation unit hkSphereShape.o (main.dol 0x802D5D88-0x802D6454).
+// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+//   0x802D5D88    32  finishLoadedObjecthkSphereShape   [map: hkSphereShape__finishLoadedObjecthkSphereShape]
+//   0x802D5DA8    20  cleanupLoadedObjecthkSphereShape   [map: hkSphereShape__cleanupLoadedObjecthkSphereShape]
+//   0x802D5DBC    60  getVtablehkSphereShape   [map: hkSphereShape__getVtablehkSphereShape]
+//   0x802D5DF8    36  __ct   [map: hkSphereShape____ct]
+//   0x802D5E1C     8  getType   [map: hkSphereShape__getType]
+//   0x802D5E24    24  getSupportingVertex   [map: hkSphereShape__getSupportingVertex]
+//   0x802D5E3C   204  convertVertexIdsToVertices   [map: hkSphereShape__convertVertexIdsToVertices]
+//   0x802D5F08    24  getFirstVertex   [map: hkSphereShape__getFirstVertex]
+//   0x802D5F20     8  getNumVertices   [map: hkSphereShape__getNumVertices]
+//   0x802D5F28   132  getAabb   [map: hkSphereShape__getAabb]
+//   0x802D5FAC    16  getCollisionSpheresInfo   [map: hkSphereShape__getCollisionSpheresInfo]
+//   0x802D5FBC    72  getCollisionSpheres   [map: hkSphereShape__getCollisionSpheres]
+//   0x802D6004   920  castRay   [map: hkSphereShape__castRay]
+//   0x802D639C   100  calcStatistics   [map: hkSphereShape__calcStatistics]
+//   0x802D6400    84  __sinit_\hkSphereShape_cpp   [map: hkSphereShapecpp____sinit_]

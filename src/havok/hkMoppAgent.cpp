@@ -1,0 +1,16 @@
+// Havok translation unit hkMoppAgent.o (main.dol 0x802A8E1C-0x802A99B0).
+// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+//   0x802A8E1C    60  __ct   [map: hkMoppAgent____ct]
+//   0x802A8E58   248  registerAgent   [map: hkMoppAgent__registerAgent]
+//   0x802A8F50   212  createBvBvAgent   [map: hkMoppAgent__createBvBvAgent]
+//   0x802A9024   156  __dt   [map: hkMoppAgent____dt]
+//   0x802A90C0   640  staticLinearCast   [map: hkMoppAgent__staticLinearCast]
+//   0x802A9380   352  linearCast   [map: hkSymmetricAgent_11hkMoppAgent___linearCast]
+//   0x802A94E0    72  getPenetrations   [map: hkSymmetricAgentLinearCast_11hkMoppAgent___getPenetrations]
+//   0x802A9528    72  staticGetPenetrations   [map: hkSymmetricAgentLinearCast_11hkMoppAgent___staticGetPenetrations]
+//   0x802A9570    72  getClosestPoints   [map: hkSymmetricAgentLinearCast_11hkMoppAgent___getClosestPoints]
+//   0x802A95B8    72  staticGetClosestPoints   [map: hkSymmetricAgentLinearCast_11hkMoppAgent___staticGetClosestPoints]
+//   0x802A9600   352  staticLinearCast   [map: hkSymmetricAgentLinearCast_11hkMoppAgent___staticLinearCast]
+//   0x802A9760   412  processCollision   [map: hkSymmetricAgentLinearCast_11hkMoppAgent___processCollision]
+//   0x802A98FC    16  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_11hkMoppAgent___updateShapeCollectionFilter]
+//   0x802A990C   164  __dt   [map: hkSymmetricAgent_11hkMoppAgent_____dt]

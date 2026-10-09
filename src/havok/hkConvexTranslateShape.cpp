@@ -1,0 +1,18 @@
+// Havok translation unit hkConvexTranslateShape.o (main.dol 0x802D0A94-0x802D1520).
+// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+//   0x802D0A94    44  finishLoadedObjecthkConvexTranslateShape   [map: hkConvexTranslateShape__finishLoadedObjecthkConvexTranslateShape]
+//   0x802D0AC0    20  cleanupLoadedObjecthkConvexTranslateShape   [map: hkConvexTranslateShape__cleanupLoadedObjecthkConvexTranslateShape]
+//   0x802D0AD4   192  __dt   [map: hkConvexTranslateShape____dt]
+//   0x802D0B94    72  getVtablehkConvexTranslateShape   [map: hkConvexTranslateShape__getVtablehkConvexTranslateShape]
+//   0x802D0BDC     8  getType   [map: hkConvexTranslateShape__getType]
+//   0x802D0BE4   300  getAabb   [map: hkConvexTranslateShape__getAabb]
+//   0x802D0D10   112  getMaximumProjection   [map: hkConvexTranslateShape__getMaximumProjection]
+//   0x802D0D80   492  castRay   [map: hkConvexTranslateShape__castRay]
+//   0x802D0F6C   272  castRayWithCollector   [map: hkConvexTranslateShape__castRayWithCollector]
+//   0x802D107C   120  getSupportingVertex   [map: hkConvexTranslateShape__getSupportingVertex]
+//   0x802D10F4   408  convertVertexIdsToVertices   [map: hkConvexTranslateShape__convertVertexIdsToVertices]
+//   0x802D128C   136  getFirstVertex   [map: hkConvexTranslateShape__getFirstVertex]
+//   0x802D1314    68  getCollisionSpheresInfo   [map: hkConvexTranslateShape__getCollisionSpheresInfo]
+//   0x802D1358   220  getCollisionSpheres   [map: hkConvexTranslateShape__getCollisionSpheres]
+//   0x802D1434   152  calcStatistics   [map: hkConvexTranslateShape__calcStatistics]
+//   0x802D14CC    84  __sinit_\hkConvexTranslateShape_cpp   [map: hkConvexTranslateShapecpp____sinit_]

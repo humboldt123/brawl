@@ -1,0 +1,18 @@
+// Havok translation unit hkInertiaTensorComputer.o (main.dol 0x8032C42C-0x8032D42C).
+// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+//   0x8032C42C   120  __ct   [map: hkMassProperties____ct]
+//   0x8032C4A4   100  __as   [map: hkMatrix3____as]
+//   0x8032C508  1336  computeCapsuleVolumeMassProperties   [map: hkInertiaTensorComputer__computeCapsuleVolumeMassProperties]
+//   0x8032CA40    88  acos   [map: hkMath__acos]
+//   0x8032CA98     4  setRotation   [map: hkTransform__setRotation]
+//   0x8032CA9C   128  setIdentity   [map: hkTransform__setIdentity]
+//   0x8032CB1C    36  setTranslation   [map: hkTransform__setTranslation]
+//   0x8032CB40   216  __ct   [map: hkMassElement____ct]
+//   0x8032CC18     8  getTranslation   [map: hkTransform__getTranslation]
+//   0x8032CC20   244  __ct   [map: hkInplaceArray_13hkMassElement_3_____ct]
+//   0x8032CD14   148  __dt   [map: hkInplaceArray_13hkMassElement_3_____dt]
+//   0x8032CDA8   172  __as   [map: hkTransform____as]
+//   0x8032CE54   376  pushBack   [map: hkArray_13hkMassElement___pushBack]
+//   0x8032CFCC   776  combineMassProperties   [map: hkInertiaTensorComputer__combineMassProperties]
+//   0x8032D2D4   172  shiftInertiaToCom   [map: hkInertiaTensorComputer__shiftInertiaToCom]
+//   0x8032D380   172  shiftInertiaFromCom   [map: hkInertiaTensorComputer__shiftInertiaFromCom]

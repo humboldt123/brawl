@@ -1,0 +1,16 @@
+// Havok translation unit hkAgent1nMachine.o (main.dol 0x802FC6AC-0x802FEDA0).
+// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+//   0x802FC6AC   376  hkAgent1nMachine_Destroy   [map: hkAgent1nMachine__hkAgent1nMachine_Destroy]
+//   0x802FC824   356  hkAgent1nMachine_InvalidateTim   [map: hkAgent1nMachine__hkAgent1nMachine_InvalidateTim]
+//   0x802FC988   396  hkAgent1nMachine_WarpTime   [map: hkAgent1nMachine__hkAgent1nMachine_WarpTime]
+//   0x802FCB14   152  hkAgent1nMachine_Create   [map: hkAgent1nMachine__hkAgent1nMachine_Create]
+//   0x802FCBAC   232  hkAgent1nMachine_initInputAtTime   [map: hkAgent3Input__hkAgent1nMachine_initInputAtTime]
+//   0x802FCC94    92  hkAgent1nMachine_flipInput   [map: hkAgent3ProcessInput__hkAgent1nMachine_flipInput]
+//   0x802FCCF0  4120  hkAgent1nMachine_Process   [map: hkAgent1nMachine__hkAgent1nMachine_Process]
+//   0x802FDD08  2232  hkAgent1nMachine_Weld   [map: hkAgent1nMachine__hkAgent1nMachine_Weld]
+//   0x802FE5C0   956  hkAgent1nMachine_VisitAllAgents   [map: hkAgent1nTrack__hkAgent1nMachine_VisitAllAgents]
+//   0x802FE97C   216  hkAgent1nMachine_UpdateShapeCollectionFilterVisitor   [map: hkAgent1nMachine_VisitorInput__hkAgent1nMachine_UpdateShapeCollectionFilterVisitor]
+//   0x802FEA54    12  hkAgent1nMachine_UpdateShapeCollectionFilter   [map: hkAgent1nMachine__hkAgent1nMachine_UpdateShapeCollectionFilter]
+//   0x802FEA60   232  calc1nStatistics   [map: hkAgentMachineUtil__calc1nStatistics]
+//   0x802FEB48   392  calcNnStatistics   [map: hkAgentMachineUtil__calcNnStatistics]
+//   0x802FECD0   208  calcNnStatisticsContactMgrsOnly   [map: hkAgentMachineUtil__calcNnStatisticsContactMgrsOnly]

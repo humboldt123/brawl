@@ -1,0 +1,16 @@
+// Havok translation unit hkGroupFilter.o (main.dol 0x802CD000-0x802CD568).
+// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+//   0x802CD000    64  finishLoadedObjecthkGroupFilter   [map: hkGroupFilter__finishLoadedObjecthkGroupFilter]
+//   0x802CD040    20  cleanupLoadedObjecthkGroupFilter   [map: hkGroupFilter__cleanupLoadedObjecthkGroupFilter]
+//   0x802CD054    92  getVtablehkGroupFilter   [map: hkGroupFilter__getVtablehkGroupFilter]
+//   0x802CD0B0   196  __ct   [map: hkGroupFilter____ct]
+//   0x802CD174    92  __dt   [map: hkGroupFilter____dt]
+//   0x802CD1D0   120  isCollisionEnabled   [map: hkGroupFilter__isCollisionEnabled]
+//   0x802CD248    12  isCollisionEnabled   [map: hkGroupFilter__isCollisionEnabled1]
+//   0x802CD254   320  isCollisionEnabled   [map: hkGroupFilter__isCollisionEnabled2]
+//   0x802CD394    92  isCollisionEnabled   [map: hkGroupFilter__isCollisionEnabled3]
+//   0x802CD3F0    12  isCollisionEnabled   [map: hkGroupFilter__isCollisionEnabled4]
+//   0x802CD3FC   220  enableCollisionsUsingBitfield   [map: hkGroupFilter__enableCollisionsUsingBitfield]
+//   0x802CD4D8    56  disableCollisionsBetween   [map: hkGroupFilter__disableCollisionsBetween]
+//   0x802CD510     8  dummyUnused   [map: hkGroupFilter__dummyUnused]
+//   0x802CD518    80  __sinit_\hkGroupFilter_cpp   [map: hkGroupFiltercpp____sinit_]

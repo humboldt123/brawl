@@ -1,0 +1,15 @@
+// Havok translation unit hkConstrainedSystemFilter.o (main.dol 0x8032BD74-0x8032C304).
+// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+//   0x8032BD74   112  setIdentity   [map: hkMatrix3__setIdentity]
+//   0x8032BDE4    72  finishLoadedObjecthkConstrainedSystemFilter   [map: hkConstrainedSystemFilter__finishLoadedObjecthkConstrainedSystemFilter]
+//   0x8032BE2C    20  cleanupLoadedObjecthkConstrainedSystemFilter   [map: hkConstrainedSystemFilter__cleanupLoadedObjecthkConstrainedSystemFilter]
+//   0x8032BE40   100  getVtablehkConstrainedSystemFilter   [map: hkConstrainedSystemFilter__getVtablehkConstrainedSystemFilter]
+//   0x8032BEA4   100  __ct   [map: hkConstrainedSystemFilter____ct]
+//   0x8032BF08   228  __dt   [map: hkConstrainedSystemFilter____dt]
+//   0x8032BFEC   344  isCollisionEnabled   [map: hkConstrainedSystemFilter__isCollisionEnabled]
+//   0x8032C144    88  isCollisionEnabled   [map: hkConstrainedSystemFilter__isCollisionEnabled1]
+//   0x8032C19C    88  isCollisionEnabled   [map: hkConstrainedSystemFilter__isCollisionEnabled2]
+//   0x8032C1F4    88  isCollisionEnabled   [map: hkConstrainedSystemFilter__isCollisionEnabled3]
+//   0x8032C24C   100  constraintAddedCallback   [map: hkConstrainedSystemFilter__constraintAddedCallback]
+//   0x8032C2B0     4  constraintRemovedCallback   [map: hkConstrainedSystemFilter__constraintRemovedCallback]
+//   0x8032C2B4    80  __sinit_\hkConstrainedSystemFilter_cpp   [map: hkConstrainedSystemFiltercpp____sinit_]

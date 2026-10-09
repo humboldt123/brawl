@@ -1,0 +1,18 @@
+// Havok translation unit hkPredGskAgent3.o (main.dol 0x803007FC-0x803020E0).
+// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+//   0x803007FC   192  registerAgent3   [map: hkPredGskAgent3__registerAgent3]
+//   0x803008BC   188  create   [map: hkPredGskAgent3__create]
+//   0x80300978    36  getTotalSizeInBytes   [map: hkGskManifold__getTotalSizeInBytes]
+//   0x8030099C     8  hkAddByteOffset<v>   [map: hkPredGskAgent3__hkAddByteOffset_v_]
+//   0x803009A4   396  sepNormal   [map: hkPredGskAgent3__sepNormal]
+//   0x80300B30   124  cleanup   [map: hkPredGskAgent3__cleanup]
+//   0x80300BAC    60  removePoint   [map: hkPredGskAgent3__removePoint]
+//   0x80300BE8    72  commitPotential   [map: hkPredGskAgent3__commitPotential]
+//   0x80300C30    60  createZombie   [map: hkPredGskAgent3__createZombie]
+//   0x80300C6C    16  destroy   [map: hkPredGskAgent3__destroy]
+//   0x80300C7C  1128  process   [map: hkPredGskAgent3__process]
+//   0x803010E4    24  getRootCollidable   [map: hkCdBody__getRootCollidable]
+//   0x803010FC     4  __ct   [map: hkGskManifoldWork____ct]
+//   0x80301100  1656  hkGskManifold_init   [map: hkPredGskAgent3__hkGskManifold_init]
+//   0x80301778     8  getTolerance   [map: hkCollisionInput__getTolerance]
+//   0x80301780  2400  hkGskAgentUtil_processCollisionNoTim   [map: hkAgent3Input__hkGskAgentUtil_processCollisionNoTim]

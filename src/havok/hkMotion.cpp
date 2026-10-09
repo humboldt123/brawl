@@ -1,0 +1,16 @@
+// Havok translation unit hkMotion.o (main.dol 0x802E4338-0x802E46B0).
+// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+//   0x802E4338   128  __ct   [map: hkMotion____ct]
+//   0x802E43B8    44  setMass   [map: hkMotion__setMass]
+//   0x802E43E4    28  getMass   [map: hkMotion__getMass]
+//   0x802E4400     8  setMassInv   [map: hkMotion__setMassInv]
+//   0x802E4408    16  setCenterOfMassInLocal   [map: hkMotion__setCenterOfMassInLocal]
+//   0x802E4418    16  setPosition   [map: hkMotion__setPosition]
+//   0x802E4428    16  setRotation   [map: hkMotion__setRotation]
+//   0x802E4438    20  setPositionAndRotation   [map: hkMotion__setPositionAndRotation]
+//   0x802E444C    16  setTransform   [map: hkMotion__setTransform]
+//   0x802E445C    36  setLinearVelocity   [map: hkMotion__setLinearVelocity]
+//   0x802E4480    36  setAngularVelocity   [map: hkMotion__setAngularVelocity]
+//   0x802E44A4    72  applyLinearImpulse   [map: hkMotion__applyLinearImpulse]
+//   0x802E44EC   444  getMotionStateAndVelocities   [map: hkMotion__getMotionStateAndVelocities]
+//   0x802E46A8     8  setDeactivationClass   [map: hkMotion__setDeactivationClass]
