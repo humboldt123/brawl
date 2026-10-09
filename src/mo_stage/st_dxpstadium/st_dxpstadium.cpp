@@ -629,10 +629,11 @@ void stDxPStadium::update(float deltaFrame) {
                 }
                 // FALL-THROUGH
             case 0: {
-                u32 choice = randi(2);
-                if (choice >= 1) {
-                    choice = 1;
+                u32 rnd = randi(2);
+                if (rnd >= 1) {
+                    rnd = 1;
                 }
+                int choice = rnd;
                 m_visionCount += 1;
                 m_eventVision.set(600.0f, 1200.0f);
                 if (m_visionCount >= 7) {
