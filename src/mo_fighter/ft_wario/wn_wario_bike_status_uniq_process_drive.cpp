@@ -1,12 +1,12 @@
 // MATCH-ONLY: retain native fighter-module scheduling.
 #pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
+#include <wn/wario/wn_wario_bike_kinetic_transactor.h>
 #include <wn/wn_kinetic_energy_gravity.h>
 #include <so/so_kinetic_energy_normal.h>
 #include <wn/wario/wn_wario_bike_status_uniq_process.h>
 #include <so/so_module_accesser.h>
 #include <wn/wario/wn_wario_bike_link_event.h>
-#include <math.h>
 
 void wnWarioBikeStatusUniqProcessDrive::initStatus(soModuleAccesser* a) {
     soWorkManageModule& work = a->getWorkManageModule();
@@ -71,7 +71,7 @@ void wnWarioBikeStatusUniqProcessDrive::execFixPos(soModuleAccesser* a) {
     float launchSpeed = 0.0f;
     if (work.isFlag(0x22000002)) {
         if (front || rear) {
-            float difference = fabsf(angle - groundAngle);
+            float difference = wnWarioBikeKineticTransactor::ABS(angle - groundAngle);
             if (difference > param->unk48 && !work.isFlag(0x22000007)) {
                 work.onFlag(0x22000007);
                 launchSpeed = difference / 90.0f * param->unk50;
@@ -106,12 +106,16 @@ void wnWarioBikeStatusUniqProcessDrive::execFixPos(soModuleAccesser* a) {
             status.changeStatusRequest(3, a);
             angle += increase;
         } else {
+            // MATCH-ONLY: initialize before the sign test so the native zero can serve both uses.
+            float acceleration = 0.0f;
             int stickSign = stickX < 0.0f ? -1 : 1;
-            normal.m_accel = Vec2f(lr == (float)stickSign ? param->unk54 * stickX : 0.0f, 0.0f);
+            if (lr == (float)stickSign)
+                acceleration = param->unk54 * stickX;
+            normal.m_accel = Vec2f(acceleration, 0.0f);
             if (!work.isFlag(0x2200000c) && stickX * lr >= param->unk94) {
                 work.onFlag(0x2200000c);
                 a->getSoundModule().playSENo3d(SndID(0x12ba), false);
-            } else if (work.isFlag(0x2200000c) && fabsf(stickX) <= param->unk98)
+            } else if (work.isFlag(0x2200000c) && wnWarioBikeKineticTransactor::ABS(stickX) <= param->unk98)
                 work.offFlag(0x2200000c);
             if (touch) {
                 if (angle > groundAngle) {
@@ -128,14 +132,14 @@ void wnWarioBikeStatusUniqProcessDrive::execFixPos(soModuleAccesser* a) {
                 angle += param->unk64;
                 if (angle > 45.0f) angle = 45.0f;
             }
-            if (touch && 0.0f != fabsf(stickX) && lr != (float)(stickX < 0.0f ? -1 : 1))
+            if (touch && 0.0f != wnWarioBikeKineticTransactor::ABS(stickX) && lr != (float)(stickX < 0.0f ? -1 : 1))
                 status.changeStatusRequest(5, a);
         }
     } else if (lr == (float)(stickX < 0.0f ? -1 : 1)) {
-        angle -= param->unk4C * fabsf(stickX);
+        angle -= param->unk4C * wnWarioBikeKineticTransactor::ABS(stickX);
         if (angle < -45.0f) angle = -45.0f;
-    } else if (fabsf(stickX) > 0.0f) {
-        angle += param->unk4C * fabsf(stickX);
+    } else if (wnWarioBikeKineticTransactor::ABS(stickX) > 0.0f) {
+        angle += param->unk4C * wnWarioBikeKineticTransactor::ABS(stickX);
         if (angle > 45.0f) angle = 45.0f;
     }
     work.setFloat(angle, 0x21000000);
