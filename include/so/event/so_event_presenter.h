@@ -66,11 +66,22 @@ public:
     void addObserverSub(s32 manageId, T* obsvr, s8 p3); // MATCH-ONLY: a call into sora_melee in the fighter RELs
 #else
     void addObserverSub(s32 manageId, T* obsvr, s8 p3) {
+#ifdef YK_STAGE_FULL // MATCH-ONLY: the stage RELs inline this into addObserver with the flags cleared in this order
+        s32 removeID;
+        bool check3, check4, check1, check2;
+        check4 = false;
+        check3 = false;
+        check2 = false;
+        check1 = false;
+#else
         bool check3 = false;
         bool check4 = false;
         bool check1 = false;
         bool check2 = false;
+#endif
+#ifndef YK_STAGE_FULL
         s32 removeID;
+#endif
         s32 checkID = m_manageID;
 
         if (m_manageID >= 0 && m_unitID >= 0)

@@ -11,6 +11,29 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_dxyorster/st_dxyorster.cpp:
+	.text       start:0x00000070 end:0x00000B00
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000008
+	.data       start:0x00000000 end:0x00000430
+	.bss        start:0x00000008 end:0x00000018
+
+mo_stage/st_dxyorster/gr_dxyorster.cpp:
+	.text       start:0x00000B00 end:0x00001140
+	.rodata     start:0x00000008 end:0x00000020
+	.data       start:0x00000430 end:0x000008C8
+
+mo_stage/st_dxyorster/gr_dxyorster_block.cpp:
+	.text       start:0x00001140 end:0x000019F8
+	.rodata     start:0x00000020 end:0x00000038
+	.data       start:0x000008C8 end:0x00000AF8
+
+mo_stage/st_dxyorster/gr_dxyorster_blockpos.cpp:
+	.text       start:0x000019F8 end:0x00007AC8
+	.rodata     start:0x00000038 end:0x0000005C
+	.data       start:0x00000AF8 end:0x00002518
+	.bss        start:0x00000018 end:0x00000048
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x00007AC8 end:0x00007B64
 	.data       start:0x00002518 end:0x00002525

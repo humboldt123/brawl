@@ -11,7 +11,14 @@ struct clTarget {
     int m_4;
 
 #ifdef YK_STAGE_INLINE // the stage RELs emit these two inline (YK_STAGE_INLINE is defined by the stage units that need it)
+#ifdef YK_CLTARGET_4_FIRST // the constructor of some stage RELs writes the second member first
+    clTarget() {
+        m_4 = -1;
+        m_0 = -1;
+    }
+#else
     clTarget() : m_0(-1), m_4(-1) { }
+#endif
     ~clTarget() { }
 #else
     clTarget();

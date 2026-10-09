@@ -1,6 +1,11 @@
-// Verified copy layout for the abstract-template instantiation.
 #pragma once
 
+// SHADOW of BrawlHeaders/so/collision/so_collision_hit_part.h: translation units that define YK_STAGE_FULL (the stage RELs
+// instantiate the soArrayVector<soCollisionHitPart> functions themselves) use the copy layout of
+// so/collision/templates/so_collision_hit_part.h; everything else sees the unchanged SDK declarations.
+#ifdef YK_STAGE_FULL
+#include <so/collision/templates/so_collision_hit_part.h>
+#else
 #include <StaticAssert.h>
 #include <mt/mt_vector.h>
 #include <so/so_array.h>
@@ -24,13 +29,6 @@ struct soCollisionHitData {
     soCollision::ShapeType m_shapeType : 1;
     unsigned int m_0x1c_1 : 16;
 
-    // MATCH-ONLY: aggregate positions and the flag word preserve the original bitwise copy.
-    soCollisionHitData& operator=(const soCollisionHitData& other) {
-        union DataWords { u32 words[8]; };
-        *(DataWords*)this = *(const DataWords*)&other;
-        return *this;
-    }
-
     struct Simple {
         Vec3f m_startOffsetPos;
         Vec3f m_endOffsetPos;
@@ -47,19 +45,15 @@ static_assert(sizeof(soCollisionHitData) == 32, "Class is wrong size!");
 
 class soCollisionHitPart {
     int m_status;
-    u32 unk4;
+    char _0x4[4];
     soCollisionHitData m_hitData;
     soArrayVector<clTarget, 6> m_clTargetArrayVector;
-    u8 unk64;
-    u8 unk65;
+    char _0x64[4];
 
 public:
-#ifdef YK_STAGE_FULL
-    soCollisionHitPart() { } // the stage RELs emit the default constructor themselves (only the clTarget array is constructed)
-#else
     soCollisionHitPart();
-#endif
     soCollisionHitPart(soCollision::Category selfCategory, u32 opponentCategory);
     ~soCollisionHitPart();
 };
 static_assert(sizeof(soCollisionHitPart) == 0x68, "Class is wrong size!");
+#endif
