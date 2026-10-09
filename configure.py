@@ -5493,7 +5493,9 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_dxcorneria/st_dxcorneria.cpp"),
+        ],
     },
     {
         "lib": "st_dxgarden",
