@@ -1,4 +1,14 @@
+#define FT_FIGHTER_ANIMCMD_LONG
+#define FT_KINETIC_MEDIATOR_MODE_ARG
+#define FT_MARTH_RUNTIME_HELPERS
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_class_info_impl.h>
+#include <ft/ft_common_data_accesser.h>
+#include <ft/ft_owner.h>
+#include <so/article/so_generate_article_manage_module.h>
+#include <so/damage/so_damage.h>
+#include <ft/purin/ft_purin_status_uniq_process.h>
+#include <ft/purin/ft_purin_status_uniq_process_special_n.h>
 #include <so/anim/so_anim_cmd_event_presenter.h>
 #include <so/situation/so_situation_event_presenter.h>
 #include <so/so_heap_module_impl.h>
@@ -69,15 +79,22 @@ public:
 class ftPurin : public ftFighterBuilder<ftPurinBuildConfig> {
 
     // begin ftPurin fields
-    soArrayContractibleTable<const soStatusData> unk9A48;
-    void* unk9A58; // TODO type
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
 public:
     ftPurin(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftPurin();
+    virtual void onStart(int);
+    virtual void notifyEventChangeSituation(SituationKind, SituationKind, soModuleAccesser*);
+    virtual void notifyEventCollisionAttackFighter(soCollisionLog*, soModuleAccesser*);
+    virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    virtual void notifyEventOnDamage(soDamage*, bool, soModuleAccesser*);
 };
-// static_assert(sizeof(ftPurin) == 0x9A5C, "Class is the wrong size!");
+static_assert(sizeof(ftPurin) == 0x9A5C, "Class is the wrong size!");
+
 
 #define FT_BC ftPurinBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
@@ -90,16 +107,103 @@ ftPurin::ftPurin(s32 entryId,
                                          Fighter_Jigglypuff,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Jigglypuff)) {
+    soStatusUniqProcess* processes[14] = {
+        &g_ftPurinStatusUniqProcessSpecialNStart,
+        &g_ftPurinStatusUniqProcessSpecialS,
+        &g_ftPurinStatusUniqProcessSpecialHi,
+        &g_ftPurinStatusUniqProcessSpecialLw,
+        &g_ftPurinStatusUniqProcessFinal,
+        &g_ftPurinStatusUniqProcessSpecialNHold,
+        &g_ftPurinStatusUniqProcessSpecialNHoldMax,
+        &g_ftPurinStatusUniqProcessSpecialNRoll,
+        &g_ftPurinStatusUniqProcessSpecialNRollAir,
+        &g_ftPurinStatusUniqProcessSpecialNTurn,
+        &g_ftPurinStatusUniqProcessSpecialNEnd,
+        &g_ftPurinStatusUniqProcessSpecialNHitEnd,
+        &g_ftPurinStatusUniqProcessFinal,
+        &g_ftPurinStatusUniqProcessFinal
+    };
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 14);
 }
 
-// FIXME: Test code present only to emit the constructor; delete once ftPurin is done
-void testBuilder() {
-    soInsideEventManageModuleBuilder<ftPurinInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
-    soResourceIdAccesserImpl idAccImpl(0, 1, 2);
-    ftPopoResourceIdAccesserImpl popoIdAccImpl(nullptr);
+ftPurin::~ftPurin() { }
+
+void ftPurin::onStart(int kind) {
+    // Costume variant 2 replaces article zero when the fighter starts.
+    if (static_cast<int>(getOwner()->getFighterColor()) == 2) {
+        soGenerateArticleManageModule& articles =
+            *static_cast<soGenerateArticleManageModule*>(m_moduleAccesser->m_enumerationStart->m_generateArticleManageModule);
+        articles.removeExist(0, 0);
+        soArticle* article = static_cast<soGenerateArticleManageModule*>(
+            m_moduleAccesser->m_enumerationStart->m_generateArticleManageModule)->generate(0, NULL, NULL);
+        if (!article->isNull()) {
+            static_cast<soGenerateArticleManageModule*>(
+                m_moduleAccesser->m_enumerationStart->m_generateArticleManageModule)->entry(article);
+        }
+    }
+    Fighter::onStart(kind);
 }
-soInsideEventManageModuleBuilder<ftPurinInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
+
+void ftPurin::notifyEventChangeSituation(SituationKind kind, SituationKind previous, soModuleAccesser* acc) {
+    switch (acc->getStatusModule().getStatusKind()) {
+    case 0x114:
+        // Pound consumes this reset request in its aerial speed update.
+        acc->getWorkManageModule().onFlag(0x22000012);
+        break;
+    }
+    Fighter::notifyEventChangeSituation(kind, previous, acc);
+}
+
+void ftPurin::notifyEventCollisionAttackFighter(soCollisionLog* log, soModuleAccesser* acc) {
+    // HYPOTHESIS: byte 0x21 selects the collision result; only value 1
+    // requests the Rollout hit response. Its enum identity is unresolved.
+    if (static_cast<u8>(log->_33) == 1) {
+        switch (acc->getStatusModule().getStatusKind()) {
+        case 0x119:
+        case 0x11a:
+            acc->getWorkManageModule().onFlag(0x22000012);
+            break;
+        }
+    }
+}
+
+bool ftPurin::notifyEventCollisionAttackCheck(u32 flags) {
+    soModuleAccesser* acc = m_moduleAccesser;
+    switch (acc->getStatusModule().getStatusKind()) {
+    case 0x119:
+    case 0x11a:
+        if (acc->getWorkManageModule().isFlag(0x22000012)) {
+            acc->getWorkManageModule().offFlag(0x22000012);
+            if (ftPurinStatusUniqProcessSpecialNUtility::ftProcHitSpecialNPurin(acc) == true) {
+                return true;
+            }
+        }
+        break;
+    }
+    return Fighter::notifyEventCollisionAttackCheck(flags);
+}
+
+void ftPurin::notifyEventOnDamage(soDamage* damage, bool flag, soModuleAccesser* acc) {
+    switch (acc->getStatusModule().getStatusKind()) {
+    case 0x117:
+    case 0x118:
+    case 0x119:
+    case 0x11a:
+    case 0x11b:
+    case 0x11c:
+    case 0x11d:
+        // Read the five unsigned attribute bits; the SDK enum bitfield is signed.
+        if ((*reinterpret_cast<const u32*>(reinterpret_cast<const u8*>(&damage->m_attackData) + 0x30) & 0x1f) == soCollisionAttackData::Attribute_Turn) {
+            ftPurinStatusUniqProcessSpecialNUtility::ftProcDamageTurnPurinSpecialN(acc);
+        }
+        break;
+    }
+    Fighter::notifyEventOnDamage(damage, flag, acc);
+}
+
 
 ftPurinExtendParamAccesser g_ftPurinExtendParamAccesser;
+
+ftClassInfoImpl<Fighter_Jigglypuff, ftPurin> g_ftClassInfoPurin;

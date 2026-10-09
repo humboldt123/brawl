@@ -6,7 +6,6 @@
 #include <math.h>
 
 void ftPurinStatusUniqProcessSpecialS::initStatus(soModuleAccesser*) { }
-void ftPurinStatusUniqProcessSpecialS::exitStatus(soModuleAccesser*, int) { }
 
 // Work flags request one-shot launch and reset for aerial Pound.
 void ftPurinStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccesser) {
@@ -15,7 +14,7 @@ void ftPurinStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccess
             moduleAccesser->getWorkManageModule().offFlag(0x22000011);
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
             ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
-            float angle = getAngleSpecialAirSPurin(moduleAccesser->getControllerModule().getStickY(), moduleAccesser);
+            float angle = getAngleSpecialAirSPurin(moduleAccesser, moduleAccesser->getControllerModule().getStickY());
             Vec2f launchSpeed;
             float launchComponent = static_cast<float>(cos(angle));
             soPostureModule& posture = moduleAccesser->getPostureModule();
@@ -61,9 +60,11 @@ inline void soKineticEnergyNormal::setSpeed(Vec2f* speed) {
     m_speed.m_y = speed->m_y;
 }
 
+void ftPurinStatusUniqProcessSpecialS::exitStatus(soModuleAccesser*, int) { }
+
 // Apply the vertical-stick dead zone, cap its magnitude, and convert the
 // configured maximum steering angle from degrees to radians.
-float ftPurinStatusUniqProcessSpecialS::getAngleSpecialAirSPurin(float stickY, soModuleAccesser* moduleAccesser) {
+float ftPurinStatusUniqProcessSpecialS::getAngleSpecialAirSPurin(soModuleAccesser* moduleAccesser, float stickY) {
     float magnitude = __fabsf(stickY);
     if (magnitude > soValueAccesser::getConstantFloat(moduleAccesser, 0xFC7, 0)) {
         magnitude = soValueAccesser::getConstantFloat(moduleAccesser, 0xFC7, 0);
