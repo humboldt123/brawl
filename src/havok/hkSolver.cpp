@@ -1,91 +1,91 @@
 // Havok translation unit hkSolver.o (main.dol 0x80296734-0x8029F098).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x80296734     4  hkSolveUpload
-//   0x80296738     4  hkDebugPrintfAccumulators
-//   0x8029673C  1948  hkSolver_solveStiffSpringChain
-//   0x80296ED8     8  hkAddByteOffset<17hkJacobianElement>
-//   0x80296EE0    12  getAccumulator
-//   0x80296EEC     4  loadVelocityAccumulators
-//   0x80296EF0  1364  getLinearDv0UserTau
-//   0x80297444    68  add4
-//   0x80297488    12  __cl
-//   0x80297494     4  popVelocityAccumulators
-//   0x80297498   648  applyImpulse
-//   0x80297720    52  setMul4
-//   0x80297754     4  storeVelocityAccumulators
-//   0x80297758   828  hkSolver_solveBallAndSocketChain
-//   0x80297A94     8  getAccumulatorOffsetsBase
-//   0x80297A9C    24  getMatrixBuffer
-//   0x80297AB4    32  getTempBuffer
-//   0x80297AD4   108  _setMul3
-//   0x80297B40    12  getSimdAt
-//   0x80297B4C  1604  hkSolver_solvePoweredChain
-//   0x80298190     8  __ct
-//   0x80298198    24  getAngularJacobians
-//   0x802981B0     8  getAccumulatorOffsetsBase
-//   0x802981B8    32  getMatrixBuffer
-//   0x802981D8    20  getChildConstraintStatusBase
-//   0x802981EC    40  getTempBuffer
-//   0x80298214    52  getVelocityBuffer
-//   0x80298248     8  getAngularRhs
-//   0x80298250     8  setAngularRhs
-//   0x80298258     8  __opi
-//   0x80298260    20  getState
-//   0x80298274    40  setZero8
-//   0x8029829C   620  _setMul6
-//   0x80298508   132  setSub8
-//   0x8029858C   424  applyAngularImpulse
-//   0x80298734     8  __as
-//   0x8029873C     8  __as
-//   0x80298744     8  __as
-//   0x8029874C     8  __as
-//   0x80298754     8  __as
-//   0x8029875C     8  __as
-//   0x80298764     8  __as
-//   0x8029876C     8  __as
-//   0x80298774     8  __as
-//   0x8029877C     8  __opP14hk2AngJacobian
-//   0x80298784     8  __opP26hk3dAngularMotorSolverInfo
-//   0x8029878C     8  __opP9hkVector8
-//   0x80298794     8  __opP30hkConstraintChainMatrix6Triple
-//   0x8029879C     8  __opP27hkVelocityAccumulatorOffset
-//   0x802987A4     8  __opP18hk1Lin2AngJacobian
-//   0x802987AC  1788  hkSolveStepJacobians
-//   0x80298EA8     4  loadFixedRegisters
-//   0x80298EAC  2324  stepJacobian
-//   0x802997C0    12  getSchemaType
-//   0x802997CC     4  prefetchVelocityAccumulators
-//   0x802997D0    12  getBodyA
-//   0x802997DC    12  getBodyB
-//   0x802997E8    12  getJacobian
-//   0x802997F4     8  hkAddByteOffset<16hkJacobianSchema>
-//   0x802997FC    12  getSchemaSize
-//   0x80299808  1020  solveSingleContact
-//   0x80299C04    12  next
-//   0x80299C10  2736  solvePairContact
-//   0x8029A6C0  2248  solve3dFriction
-//   0x8029AF88    12  next
-//   0x8029AF94  1804  solve2dFriction
-//   0x8029B6A0     4  as2Ang
-//   0x8029B6A4   624  solve1dAngFriction
-//   0x8029B914  1440  solve1dAngLimits
-//   0x8029BEB4  1160  solve1dAngularMotor
-//   0x8029C33C   664  solve1dAngular
-//   0x8029C5D4   984  solve1dBilateral
-//   0x8029C9AC  1764  solve1dBilateralUserTau
-//   0x8029D090   984  solve1dFriction
-//   0x8029D468  1524  solve1dLinLimits
-//   0x8029DA5C  1868  solve1dLinearMotor
-//   0x8029E1A8  1204  solvePulley
-//   0x8029E65C    12  next
-//   0x8029E668     8  getSumLinearVel
-//   0x8029E670     8  hkAddByteOffset<20hkJacobianGotoSchema>
-//   0x8029E678     4  storeDelayedResult
-//   0x8029E67C    44  getEnd
-//   0x8029E6A8    44  getEnd
-//   0x8029E6D4    60  getEnd
-//   0x8029E710   416  hkSolveConstraints
-//   0x8029E8B0   232  applyVelField
+//   0x80296734     4  hkSolveUpload   [map: hkSolver__hkSolveUpload]
+//   0x80296738     4  hkDebugPrintfAccumulators   [map: hkSolverInfo__hkDebugPrintfAccumulators]
+//   0x8029673C  1948  hkSolver_solveStiffSpringChain   [map: hkSolver__hkSolver_solveStiffSpringChain]
+//   0x80296ED8     8  hkAddByteOffset<17hkJacobianElement>   [map: hkJacobianElement__hkAddByteOffset_17hkJacobianElement_]
+//   0x80296EE0    12  getAccumulator   [map: hkVelocityAccumulatorOffset__getAccumulator]
+//   0x80296EEC     4  loadVelocityAccumulators   [map: hkSolver__loadVelocityAccumulators]
+//   0x80296EF0  1364  getLinearDv0UserTau   [map: hkSolver__getLinearDv0UserTau]
+//   0x80297444    68  add4   [map: hkVector4__add4]
+//   0x80297488    12  __cl   [map: hkVector4____cl1]
+//   0x80297494     4  popVelocityAccumulators   [map: hkSolver__popVelocityAccumulators]
+//   0x80297498   648  applyImpulse   [map: hkSolver__applyImpulse]
+//   0x80297720    52  setMul4   [map: hkVector4__setMul4]
+//   0x80297754     4  storeVelocityAccumulators   [map: hkSolver__storeVelocityAccumulators]
+//   0x80297758   828  hkSolver_solveBallAndSocketChain   [map: hkSolver__hkSolver_solveBallAndSocketChain]
+//   0x80297A94     8  getAccumulatorOffsetsBase   [map: hkJacobianBallSocketChainSchema__getAccumulatorOffsetsBase]
+//   0x80297A9C    24  getMatrixBuffer   [map: hkJacobianBallSocketChainSchema__getMatrixBuffer]
+//   0x80297AB4    32  getTempBuffer   [map: hkJacobianBallSocketChainSchema__getTempBuffer]
+//   0x80297AD4   108  _setMul3   [map: hkVector4___setMul3]
+//   0x80297B40    12  getSimdAt   [map: hkVector4__getSimdAt]
+//   0x80297B4C  1604  hkSolver_solvePoweredChain   [map: hkSolver__hkSolver_solvePoweredChain]
+//   0x80298190     8  __ct   [map: hkChainSolverInfo____ct]
+//   0x80298198    24  getAngularJacobians   [map: hkJacobianPoweredChainSchema__getAngularJacobians]
+//   0x802981B0     8  getAccumulatorOffsetsBase   [map: hkJacobianPoweredChainSchema__getAccumulatorOffsetsBase]
+//   0x802981B8    32  getMatrixBuffer   [map: hkJacobianPoweredChainSchema__getMatrixBuffer]
+//   0x802981D8    20  getChildConstraintStatusBase   [map: hkJacobianPoweredChainSchema__getChildConstraintStatusBase]
+//   0x802981EC    40  getTempBuffer   [map: hkJacobianPoweredChainSchema__getTempBuffer]
+//   0x80298214    52  getVelocityBuffer   [map: hkJacobianPoweredChainSchema__getVelocityBuffer]
+//   0x80298248     8  getAngularRhs   [map: hk2AngJacobian__getAngularRhs]
+//   0x80298250     8  setAngularRhs   [map: hk2AngJacobian__setAngularRhs]
+//   0x80298258     8  __opi   [map: hkPadSpu_i_____opi]
+//   0x80298260    20  getState   [map: hk3dAngularMotorSolverInfo__getState]
+//   0x80298274    40  setZero8   [map: hkVector8__setZero8]
+//   0x8029829C   620  _setMul6   [map: hkVector8___setMul6]
+//   0x80298508   132  setSub8   [map: hkVector8__setSub8]
+//   0x8029858C   424  applyAngularImpulse   [map: hkSolver__applyAngularImpulse]
+//   0x80298734     8  __as   [map: hkPadSpu_i_____as]
+//   0x8029873C     8  __as   [map: hkPadSpuf_f_____as]
+//   0x80298744     8  __as   [map: hkPadSpu_P18hk1Lin2AngJacobian_____as]
+//   0x8029874C     8  __as   [map: hkPadSpu_P14hk2AngJacobian_____as]
+//   0x80298754     8  __as   [map: hkPadSpu_P27hkVelocityAccumulatorOffset_____as]
+//   0x8029875C     8  __as   [map: hkPadSpu_P21hkVelocityAccumulator_____as]
+//   0x80298764     8  __as   [map: hkPadSpu_P30hkConstraintChainMatrix6Triple_____as]
+//   0x8029876C     8  __as   [map: hkPadSpu_P26hk3dAngularMotorSolverInfo_____as]
+//   0x80298774     8  __as   [map: hkPadSpu_P9hkVector8_____as]
+//   0x8029877C     8  __opP14hk2AngJacobian   [map: hkPadSpu_P14hk2AngJacobian_____opP14hk2AngJacobian]
+//   0x80298784     8  __opP26hk3dAngularMotorSolverInfo   [map: hkPadSpu_P26hk3dAngularMotorSolverInfo_____opP26hk3dAngularMotorSolverInfo]
+//   0x8029878C     8  __opP9hkVector8   [map: hkPadSpu_P9hkVector8_____opP9hkVector8]
+//   0x80298794     8  __opP30hkConstraintChainMatrix6Triple   [map: hkPadSpu_P30hkConstraintChainMatrix6Triple_____opP30hkConstraintChainMatrix6Triple]
+//   0x8029879C     8  __opP27hkVelocityAccumulatorOffset   [map: hkPadSpu_P27hkVelocityAccumulatorOffset_____opP27hkVelocityAccumulatorOffset]
+//   0x802987A4     8  __opP18hk1Lin2AngJacobian   [map: hkPadSpu_P18hk1Lin2AngJacobian_____opP18hk1Lin2AngJacobian]
+//   0x802987AC  1788  hkSolveStepJacobians   [map: hkSolver__hkSolveStepJacobians]
+//   0x80298EA8     4  loadFixedRegisters   [map: hkSolver__loadFixedRegisters]
+//   0x80298EAC  2324  stepJacobian   [map: hkSolver__stepJacobian]
+//   0x802997C0    12  getSchemaType   [map: hkJacobianSchema__getSchemaType]
+//   0x802997CC     4  prefetchVelocityAccumulators   [map: hkSolver__prefetchVelocityAccumulators]
+//   0x802997D0    12  getBodyA   [map: hkJacobianHeaderSchema__getBodyA]
+//   0x802997DC    12  getBodyB   [map: hkJacobianHeaderSchema__getBodyB]
+//   0x802997E8    12  getJacobian   [map: hkJacobianHeaderSchema__getJacobian]
+//   0x802997F4     8  hkAddByteOffset<16hkJacobianSchema>   [map: hkJacobianSchema__hkAddByteOffset_16hkJacobianSchema_]
+//   0x802997FC    12  getSchemaSize   [map: hkJacobianSchema__getSchemaSize]
+//   0x80299808  1020  solveSingleContact   [map: hkSolver__solveSingleContact]
+//   0x80299C04    12  next   [map: hk1Lin2AngJacobian__next]
+//   0x80299C10  2736  solvePairContact   [map: hkSolver__solvePairContact]
+//   0x8029A6C0  2248  solve3dFriction   [map: hkSolver__solve3dFriction]
+//   0x8029AF88    12  next   [map: hk2AngJacobian__next]
+//   0x8029AF94  1804  solve2dFriction   [map: hkSolver__solve2dFriction]
+//   0x8029B6A0     4  as2Ang   [map: hkJacobianElement__as2Ang]
+//   0x8029B6A4   624  solve1dAngFriction   [map: hkSolver__solve1dAngFriction]
+//   0x8029B914  1440  solve1dAngLimits   [map: hkSolver__solve1dAngLimits]
+//   0x8029BEB4  1160  solve1dAngularMotor   [map: hkSolver__solve1dAngularMotor]
+//   0x8029C33C   664  solve1dAngular   [map: hkSolver__solve1dAngular]
+//   0x8029C5D4   984  solve1dBilateral   [map: hkSolver__solve1dBilateral]
+//   0x8029C9AC  1764  solve1dBilateralUserTau   [map: hkSolver__solve1dBilateralUserTau]
+//   0x8029D090   984  solve1dFriction   [map: hkSolver__solve1dFriction]
+//   0x8029D468  1524  solve1dLinLimits   [map: hkSolver__solve1dLinLimits]
+//   0x8029DA5C  1868  solve1dLinearMotor   [map: hkSolver__solve1dLinearMotor]
+//   0x8029E1A8  1204  solvePulley   [map: hkSolver__solvePulley]
+//   0x8029E65C    12  next   [map: hk2Lin2AngJacobian__next]
+//   0x8029E668     8  getSumLinearVel   [map: hkVelocityAccumulator__getSumLinearVel]
+//   0x8029E670     8  hkAddByteOffset<20hkJacobianGotoSchema>   [map: hkJacobianGotoSchema__hkAddByteOffset_20hkJacobianGotoSchema_]
+//   0x8029E678     4  storeDelayedResult   [map: hkSolver__storeDelayedResult]
+//   0x8029E67C    44  getEnd   [map: hkJacobianStiffSpringChainSchema__getEnd]
+//   0x8029E6A8    44  getEnd   [map: hkJacobianBallSocketChainSchema__getEnd]
+//   0x8029E6D4    60  getEnd   [map: hkJacobianPoweredChainSchema__getEnd]
+//   0x8029E710   416  hkSolveConstraints   [map: hkSolver__hkSolveConstraints]
+//   0x8029E8B0   232  applyVelField   [map: hkSolver__applyVelField]
 //   0x8029E998     4  
-//   0x8029E99C  1776  integrateVelocities
-//   0x8029F08C    12  __sinit_\hkSolver_cpp
+//   0x8029E99C  1776  integrateVelocities   [map: hkSolver__integrateVelocities]
+//   0x8029F08C    12  __sinit_\hkSolver_cpp   [map: hkSolvercpp____sinit_]

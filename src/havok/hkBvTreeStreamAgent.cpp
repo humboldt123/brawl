@@ -1,43 +1,43 @@
 // Havok translation unit hkBvTreeStreamAgent.o (main.dol 0x802A99B0-0x802AA9B8).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x802A99B0   164  __ct
-//   0x802A9A54     8  getInstance
-//   0x802A9AF0   204  registerAgent
-//   0x802A9BBC   204  registerConvexListAgent
-//   0x802A9C88   204  registerMultiRayAgent
-//   0x802A9D54   132  createBvTreeShapeAgent
-//   0x802A9DD8   156  __dt
-//   0x802A9E74   124  createShapeBvAgent
-//   0x802A9EF0    20  getPenetrations
-//   0x802A9F04    20  getClosestPoints
-//   0x802A9F18    24  linearCast
-//   0x802A9F30    88  cleanup
-//   0x802A9F88   748  processCollision
-//   0x802AA274    12  getInstance
-//   0x802AA280    28  memoryAvailable
-//   0x802AA29C     8  getEnd
-//   0x802AA2A4    12  setTime
-//   0x802AA2B0     8  setEnd
-//   0x802AA2B8     8  getMotionState
-//   0x802AA2C0     4  getTransform
-//   0x802AA2C4     4  __ct
-//   0x802AA2C8     8  getShape
-//   0x802AA2D0    44  getAvailableMemory
-//   0x802AA2FC     8  getShapeCollection
-//   0x802AA304     4  __ct
-//   0x802AA308    28  __ct
-//   0x802AA324    32  pushBackUnchecked
-//   0x802AA344     8  getSize
-//   0x802AA34C     8  getSize
-//   0x802AA354     8  begin
-//   0x802AA35C   108  updateShapeCollectionFilter
-//   0x802AA3C8     8  invalidateTim
-//   0x802AA3D0     8  warpTime
-//   0x802AA3D8   168  calcStatistics
-//   0x802AA480   352  linearCast
-//   0x802AA5E0    72  getPenetrations
-//   0x802AA628    72  getClosestPoints
-//   0x802AA670   412  processCollision
-//   0x802AA80C    16  updateShapeCollectionFilter
-//   0x802AA81C   164  __dt
-//   0x802AA8C0   248  registerAgent
+//   0x802A99B0   164  __ct   [map: hkBvTreeStreamAgent____ct]
+//   0x802A9A54     8  getInstance   [map: hkMemory__getInstance]
+//   0x802A9AF0   204  registerAgent   [map: hkBvTreeStreamAgent__registerAgent]
+//   0x802A9BBC   204  registerConvexListAgent   [map: hkBvTreeStreamAgent__registerConvexListAgent]
+//   0x802A9C88   204  registerMultiRayAgent   [map: hkBvTreeStreamAgent__registerMultiRayAgent]
+//   0x802A9D54   132  createBvTreeShapeAgent   [map: hkBvTreeStreamAgent__createBvTreeShapeAgent]
+//   0x802A9DD8   156  __dt   [map: hkBvTreeStreamAgent____dt]
+//   0x802A9E74   124  createShapeBvAgent   [map: hkBvTreeStreamAgent__createShapeBvAgent]
+//   0x802A9EF0    20  getPenetrations   [map: hkBvTreeStreamAgent__getPenetrations]
+//   0x802A9F04    20  getClosestPoints   [map: hkBvTreeStreamAgent__getClosestPoints]
+//   0x802A9F18    24  linearCast   [map: hkBvTreeStreamAgent__linearCast]
+//   0x802A9F30    88  cleanup   [map: hkBvTreeStreamAgent__cleanup]
+//   0x802A9F88   748  processCollision   [map: hkBvTreeStreamAgent__processCollision]
+//   0x802AA274    12  getInstance   [map: hkMonitorStream__getInstance]
+//   0x802AA280    28  memoryAvailable   [map: hkMonitorStream__memoryAvailable]
+//   0x802AA29C     8  getEnd   [map: hkMonitorStream__getEnd]
+//   0x802AA2A4    12  setTime   [map: hkMonitorStream12TimerCommandFv__setTime]
+//   0x802AA2B0     8  setEnd   [map: hkMonitorStream__setEnd]
+//   0x802AA2B8     8  getMotionState   [map: hkCdBody__getMotionState]
+//   0x802AA2C0     4  getTransform   [map: hkMotionState__getTransform]
+//   0x802AA2C4     4  __ct   [map: hkTransform____ct1]
+//   0x802AA2C8     8  getShape   [map: hkCdBody__getShape]
+//   0x802AA2D0    44  getAvailableMemory   [map: hkMemory__getAvailableMemory]
+//   0x802AA2FC     8  getShapeCollection   [map: hkBvTreeShape__getShapeCollection]
+//   0x802AA304     4  __ct   [map: hkAgent3ProcessInput____ct]
+//   0x802AA308    28  __ct   [map: hkInplaceArray_Ui_128_____ct]
+//   0x802AA324    32  pushBackUnchecked   [map: hkArray_Ui___pushBackUnchecked]
+//   0x802AA344     8  getSize   [map: hkArray_Ui___getSize]
+//   0x802AA34C     8  getSize   [map: hkArray_Q214hkAgent1nTrack14SectorDirEntry___getSize]
+//   0x802AA354     8  begin   [map: hkArray_Ui___begin]
+//   0x802AA35C   108  updateShapeCollectionFilter   [map: hkBvTreeStreamAgent__updateShapeCollectionFilter]
+//   0x802AA3C8     8  invalidateTim   [map: hkBvTreeStreamAgent__invalidateTim]
+//   0x802AA3D0     8  warpTime   [map: hkBvTreeStreamAgent__warpTime]
+//   0x802AA3D8   168  calcStatistics   [map: hkBvTreeStreamAgent__calcStatistics]
+//   0x802AA480   352  linearCast   [map: hkSymmetricAgent_19hkBvTreeStreamAgent___linearCast]
+//   0x802AA5E0    72  getPenetrations   [map: hkSymmetricAgentLinearCast_19hkBvTreeStreamAgent___getPenetrations]
+//   0x802AA628    72  getClosestPoints   [map: hkSymmetricAgentLinearCast_19hkBvTreeStreamAgent___getClosestPoints]
+//   0x802AA670   412  processCollision   [map: hkSymmetricAgentLinearCast_19hkBvTreeStreamAgent___processCollision]
+//   0x802AA80C    16  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_19hkBvTreeStreamAgent___updateShapeCollectionFilter]
+//   0x802AA81C   164  __dt   [map: hkSymmetricAgent_19hkBvTreeStreamAgent_____dt]
+//   0x802AA8C0   248  registerAgent   [map: hkMoppBvTreeStreamAgent__registerAgent]

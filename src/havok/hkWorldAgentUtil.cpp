@@ -1,35 +1,35 @@
 // Havok translation unit hkWorldAgentUtil.o (main.dol 0x802F34F0-0x802F5D5C).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x802F34F0   384  addAgent
-//   0x802F3670   268  removeAgent
-//   0x802F377C    92  removeAgentAndItsToiEvents
-//   0x802F37D8   164  getIslandFromAgentEntry
-//   0x802F387C   116  invalidateTim
-//   0x802F38F0   176  warpTime
-//   0x802F39A0   248  fireActionAdded
-//   0x802F3A98   248  fireActionRemoved
-//   0x802F3B90   248  fireEntityAdded
-//   0x802F3C88   248  fireEntityRemoved
-//   0x802F3D80   248  fireEntityShapeSet
-//   0x802F3E78   248  firePhantomAdded
-//   0x802F3F70   248  firePhantomRemoved
-//   0x802F4068   248  fireConstraintAdded
-//   0x802F4160   248  fireConstraintRemoved
-//   0x802F4258   256  fireContactPointAdded
-//   0x802F4358   256  fireContactPointConfirmed
-//   0x802F4458   256  fireContactPointRemoved
-//   0x802F4558   256  fireContactProcess
-//   0x802F4658   236  fireWorldDeleted
-//   0x802F4744   508  fireIslandActivated
-//   0x802F4940   508  fireIslandDeactivated
-//   0x802F4B3C   236  firePostSimulationCallback
-//   0x802F4C28   252  firePostIntegrateCallback
-//   0x802F4D24   252  firePostCollideCallback
-//   0x802F4E20   232  fireIslandPostIntegrateCallback
-//   0x802F4F08   232  fireIslandPostCollideCallback
-//   0x802F4FF0   248  fireInactiveEntityMoved
-//   0x802F50E8  1340  addConstraint
-//   0x802F5624   680  removeConstraint
-//   0x802F58CC   100  updateFatherOfMovedAtom
-//   0x802F5930   100  insertAt
-//   0x802F5994   968  insertAt
+//   0x802F34F0   384  addAgent   [map: hkWorldAgentUtil__addAgent]
+//   0x802F3670   268  removeAgent   [map: hkWorldAgentUtil__removeAgent]
+//   0x802F377C    92  removeAgentAndItsToiEvents   [map: hkWorldAgentUtil__removeAgentAndItsToiEvents]
+//   0x802F37D8   164  getIslandFromAgentEntry   [map: hkWorldAgentUtil__getIslandFromAgentEntry]
+//   0x802F387C   116  invalidateTim   [map: hkWorldAgentUtil__invalidateTim]
+//   0x802F38F0   176  warpTime   [map: hkWorldAgentUtil__warpTime]
+//   0x802F39A0   248  fireActionAdded   [map: hkWorldCallbackUtil__fireActionAdded]
+//   0x802F3A98   248  fireActionRemoved   [map: hkWorldCallbackUtil__fireActionRemoved]
+//   0x802F3B90   248  fireEntityAdded   [map: hkWorldCallbackUtil__fireEntityAdded]
+//   0x802F3C88   248  fireEntityRemoved   [map: hkWorldCallbackUtil__fireEntityRemoved]
+//   0x802F3D80   248  fireEntityShapeSet   [map: hkWorldCallbackUtil__fireEntityShapeSet]
+//   0x802F3E78   248  firePhantomAdded   [map: hkWorldCallbackUtil__firePhantomAdded]
+//   0x802F3F70   248  firePhantomRemoved   [map: hkWorldCallbackUtil__firePhantomRemoved]
+//   0x802F4068   248  fireConstraintAdded   [map: hkWorldCallbackUtil__fireConstraintAdded]
+//   0x802F4160   248  fireConstraintRemoved   [map: hkWorldCallbackUtil__fireConstraintRemoved]
+//   0x802F4258   256  fireContactPointAdded   [map: hkWorldCallbackUtil__fireContactPointAdded]
+//   0x802F4358   256  fireContactPointConfirmed   [map: hkWorldCallbackUtil__fireContactPointConfirmed]
+//   0x802F4458   256  fireContactPointRemoved   [map: hkWorldCallbackUtil__fireContactPointRemoved]
+//   0x802F4558   256  fireContactProcess   [map: hkWorldCallbackUtil__fireContactProcess]
+//   0x802F4658   236  fireWorldDeleted   [map: hkWorldCallbackUtil__fireWorldDeleted]
+//   0x802F4744   508  fireIslandActivated   [map: hkWorldCallbackUtil__fireIslandActivated]
+//   0x802F4940   508  fireIslandDeactivated   [map: hkWorldCallbackUtil__fireIslandDeactivated]
+//   0x802F4B3C   236  firePostSimulationCallback   [map: hkWorldCallbackUtil__firePostSimulationCallback]
+//   0x802F4C28   252  firePostIntegrateCallback   [map: hkWorldCallbackUtil__firePostIntegrateCallback]
+//   0x802F4D24   252  firePostCollideCallback   [map: hkWorldCallbackUtil__firePostCollideCallback]
+//   0x802F4E20   232  fireIslandPostIntegrateCallback   [map: hkWorldCallbackUtil__fireIslandPostIntegrateCallback]
+//   0x802F4F08   232  fireIslandPostCollideCallback   [map: hkWorldCallbackUtil__fireIslandPostCollideCallback]
+//   0x802F4FF0   248  fireInactiveEntityMoved   [map: hkWorldCallbackUtil__fireInactiveEntityMoved]
+//   0x802F50E8  1340  addConstraint   [map: hkWorldConstraintUtil__addConstraint]
+//   0x802F5624   680  removeConstraint   [map: hkWorldConstraintUtil__removeConstraint]
+//   0x802F58CC   100  updateFatherOfMovedAtom   [map: hkWorldConstraintUtil__updateFatherOfMovedAtom]
+//   0x802F5930   100  insertAt   [map: hkArray_20hkConstraintInternal___insertAt]
+//   0x802F5994   968  insertAt   [map: hkArray_20hkConstraintInternal___insertAt1]

@@ -1,31 +1,31 @@
 // Havok translation unit hkBvAgent.o (main.dol 0x802A1ED4-0x802A3A4C).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x802A1ED4   256  __ct
-//   0x802A1FD4    32  __dl
-//   0x802A1FF4   204  registerAgent
-//   0x802A20C0   124  createBvShapeAgent
-//   0x802A213C   132  createShapeBvAgent
-//   0x802A21C0    92  __dt
-//   0x802A221C   128  cleanup
-//   0x802A229C   104  invalidateTim
-//   0x802A2304   136  warpTime
-//   0x802A238C    32  removePoint
-//   0x802A23AC    32  commitPotential
-//   0x802A23CC    32  createZombie
-//   0x802A23EC   616  processCollision
-//   0x802A26B0   664  linearCast
-//   0x802A29A4   572  staticLinearCast
-//   0x802A2BE0   616  getClosestPoints
-//   0x802A2E48   524  staticGetClosestPoints
-//   0x802A3054   228  getPenetrations
-//   0x802A3138   344  staticGetPenetrations
-//   0x802A3290   192  updateShapeCollectionFilter
-//   0x802A3350   352  linearCast
-//   0x802A34B0    72  getPenetrations
-//   0x802A34F8    72  staticGetPenetrations
-//   0x802A3540    72  getClosestPoints
-//   0x802A3588    72  staticGetClosestPoints
-//   0x802A35D0   352  staticLinearCast
-//   0x802A3730   412  processCollision
-//   0x802A38CC    16  updateShapeCollectionFilter
-//   0x802A39F0    92  __dt
+//   0x802A1ED4   256  __ct   [map: hkBvAgent____ct]
+//   0x802A1FD4    32  __dl   [map: hkCollisionAgent____dl]
+//   0x802A1FF4   204  registerAgent   [map: hkBvAgent__registerAgent]
+//   0x802A20C0   124  createBvShapeAgent   [map: hkBvAgent__createBvShapeAgent]
+//   0x802A213C   132  createShapeBvAgent   [map: hkBvAgent__createShapeBvAgent]
+//   0x802A21C0    92  __dt   [map: hkBvAgent____dt]
+//   0x802A221C   128  cleanup   [map: hkBvAgent__cleanup]
+//   0x802A229C   104  invalidateTim   [map: hkBvAgent__invalidateTim]
+//   0x802A2304   136  warpTime   [map: hkBvAgent__warpTime]
+//   0x802A238C    32  removePoint   [map: hkBvAgent__removePoint]
+//   0x802A23AC    32  commitPotential   [map: hkBvAgent__commitPotential]
+//   0x802A23CC    32  createZombie   [map: hkBvAgent__createZombie]
+//   0x802A23EC   616  processCollision   [map: hkBvAgent__processCollision]
+//   0x802A26B0   664  linearCast   [map: hkBvAgent__linearCast]
+//   0x802A29A4   572  staticLinearCast   [map: hkBvAgent__staticLinearCast]
+//   0x802A2BE0   616  getClosestPoints   [map: hkBvAgent__getClosestPoints]
+//   0x802A2E48   524  staticGetClosestPoints   [map: hkBvAgent__staticGetClosestPoints]
+//   0x802A3054   228  getPenetrations   [map: hkBvAgent__getPenetrations]
+//   0x802A3138   344  staticGetPenetrations   [map: hkBvAgent__staticGetPenetrations]
+//   0x802A3290   192  updateShapeCollectionFilter   [map: hkBvAgent__updateShapeCollectionFilter]
+//   0x802A3350   352  linearCast   [map: hkSymmetricAgent_9hkBvAgent___linearCast]
+//   0x802A34B0    72  getPenetrations   [map: hkSymmetricAgentLinearCast_9hkBvAgent___getPenetrations]
+//   0x802A34F8    72  staticGetPenetrations   [map: hkSymmetricAgentLinearCast_9hkBvAgent___staticGetPenetrations]
+//   0x802A3540    72  getClosestPoints   [map: hkSymmetricAgentLinearCast_9hkBvAgent___getClosestPoints]
+//   0x802A3588    72  staticGetClosestPoints   [map: hkSymmetricAgentLinearCast_9hkBvAgent___staticGetClosestPoints]
+//   0x802A35D0   352  staticLinearCast   [map: hkSymmetricAgentLinearCast_9hkBvAgent___staticLinearCast]
+//   0x802A3730   412  processCollision   [map: hkSymmetricAgentLinearCast_9hkBvAgent___processCollision]
+//   0x802A38CC    16  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_9hkBvAgent___updateShapeCollectionFilter]
+//   0x802A39F0    92  __dt   [map: hkSymmetricAgent_9hkBvAgent_____dt]

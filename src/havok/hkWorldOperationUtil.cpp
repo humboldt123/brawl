@@ -1,32 +1,32 @@
 // Havok translation unit hkWorldOperationUtil.o (main.dol 0x802F7E24-0x802FB244).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x802F7E24   724  updateEntityBP
-//   0x802F80F8   388  addEntityBP
-//   0x802F827C   364  addPhantomBP
-//   0x802F83E8   412  addEntitySI
-//   0x802F8584   352  removeEntityBP
-//   0x802F86E4   296  removePhantomBP
-//   0x802F880C   192  removeEntitySI
-//   0x802F88CC   296  removeAttachedActionsFromFixedIsland
-//   0x802F89F4   464  removeAttachedActionsFromDynamicIsland
-//   0x802F8BC4   548  addActionsToEntitysIsland
-//   0x802F8DE8   148  removeIsland
-//   0x802F8E7C    68  addConstraintToCriticalLockedIsland
-//   0x802F8EC0    64  removeConstraintFromCriticalLockedIsland
-//   0x802F8F00   152  addConstraintImmediately
-//   0x802F8F98   212  removeConstraintImmediately
-//   0x802F906C    44  splitSimulationIslands
-//   0x802F9098  2412  splitSimulationIslands
-//   0x802F9A04    88  mergeIslands
-//   0x802F9A5C  1632  internalMergeTwoIslands
-//   0x802FA0BC  1252  setRigidBodyMotionType
-//   0x802FA5A0   320  removeAttachedConstraints
-//   0x802FA6E0   228  removeAttachedAgentsConnectingTheEntityAndAFixedPartnerEn
-//   0x802FA7C4   380  cleanupDirtyIslands
-//   0x802FA940   380  internalActivateIsland
-//   0x802FAABC   320  internalDeactivateIsland
-//   0x802FABFC   140  markIslandInactive
-//   0x802FAC88   156  markIslandActive
-//   0x802FAD24    44  removeIslandFromDirtyList
-//   0x802FAD50  1216  replaceMotionObject
-//   0x802FB210    52  swap
+//   0x802F7E24   724  updateEntityBP   [map: hkWorldOperationUtil__updateEntityBP]
+//   0x802F80F8   388  addEntityBP   [map: hkWorldOperationUtil__addEntityBP]
+//   0x802F827C   364  addPhantomBP   [map: hkWorldOperationUtil__addPhantomBP]
+//   0x802F83E8   412  addEntitySI   [map: hkWorldOperationUtil__addEntitySI]
+//   0x802F8584   352  removeEntityBP   [map: hkWorldOperationUtil__removeEntityBP]
+//   0x802F86E4   296  removePhantomBP   [map: hkWorldOperationUtil__removePhantomBP]
+//   0x802F880C   192  removeEntitySI   [map: hkWorldOperationUtil__removeEntitySI]
+//   0x802F88CC   296  removeAttachedActionsFromFixedIsland   [map: hkWorldOperationUtil__removeAttachedActionsFromFixedIsland]
+//   0x802F89F4   464  removeAttachedActionsFromDynamicIsland   [map: hkWorldOperationUtil__removeAttachedActionsFromDynamicIsland]
+//   0x802F8BC4   548  addActionsToEntitysIsland   [map: hkWorldOperationUtil__addActionsToEntitysIsland]
+//   0x802F8DE8   148  removeIsland   [map: hkWorldOperationUtil__removeIsland]
+//   0x802F8E7C    68  addConstraintToCriticalLockedIsland   [map: hkWorldOperationUtil__addConstraintToCriticalLockedIsland]
+//   0x802F8EC0    64  removeConstraintFromCriticalLockedIsland   [map: hkWorldOperationUtil__removeConstraintFromCriticalLockedIsland]
+//   0x802F8F00   152  addConstraintImmediately   [map: hkWorldOperationUtil__addConstraintImmediately]
+//   0x802F8F98   212  removeConstraintImmediately   [map: hkWorldOperationUtil__removeConstraintImmediately]
+//   0x802F906C    44  splitSimulationIslands   [map: hkWorldOperationUtil__splitSimulationIslands]
+//   0x802F9098  2412  splitSimulationIslands   [map: hkWorldOperationUtil__splitSimulationIslands1]
+//   0x802F9A04    88  mergeIslands   [map: hkWorldOperationUtil__mergeIslands]
+//   0x802F9A5C  1632  internalMergeTwoIslands   [map: hkWorldOperationUtil__internalMergeTwoIslands]
+//   0x802FA0BC  1252  setRigidBodyMotionType   [map: hkWorldOperationUtil__setRigidBodyMotionType]
+//   0x802FA5A0   320  removeAttachedConstraints   [map: hkWorldOperationUtil__removeAttachedConstraints]
+//   0x802FA6E0   228  removeAttachedAgentsConnectingTheEntityAndAFixedPartnerEn   [map: hkWorldOperationUtil__removeAttachedAgentsConnectingTheEntityAndAFixedPartnerEntityPlus]
+//   0x802FA7C4   380  cleanupDirtyIslands   [map: hkWorldOperationUtil__cleanupDirtyIslands]
+//   0x802FA940   380  internalActivateIsland   [map: hkWorldOperationUtil__internalActivateIsland]
+//   0x802FAABC   320  internalDeactivateIsland   [map: hkWorldOperationUtil__internalDeactivateIsland]
+//   0x802FABFC   140  markIslandInactive   [map: hkWorldOperationUtil__markIslandInactive]
+//   0x802FAC88   156  markIslandActive   [map: hkWorldOperationUtil__markIslandActive]
+//   0x802FAD24    44  removeIslandFromDirtyList   [map: hkWorldOperationUtil__removeIslandFromDirtyList]
+//   0x802FAD50  1216  replaceMotionObject   [map: hkWorldOperationUtil__replaceMotionObject]
+//   0x802FB210    52  swap   [map: hkArray_P15hkAgentNnSector___swap]

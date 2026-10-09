@@ -1,39 +1,39 @@
 // Havok translation unit hkSimpleContactConstraintInfo.o (main.dol 0x80293CBC-0x80295108).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x80293CBC  1720  hkSimpleContactConstraintDataBuildJacobian
-//   0x80294374    12  getContactPoints
-//   0x80294380    24  getContactPointProperties
-//   0x80294398    24  setZero4
-//   0x802943B0    36  initHeader
-//   0x802943D4     8  hkGetByteOffset
-//   0x802943DC     4  initBuilder
-//   0x802943E0     4  as1Lin2Ang
-//   0x802943E4   860  buildLinearBegin
-//   0x80294740    36  __as
-//   0x80294764    68  setSub4
-//   0x802947A8    72  setCross
-//   0x802947F0     4  getPosition
-//   0x802947F4     8  getNormal
-//   0x802947FC     8  getFriction8_8
-//   0x80294804   116  calculateRhs
-//   0x80294878     8  getDistance
-//   0x80294880    12  buildLinearEnd
-//   0x8029488C   132  addLastPosition
-//   0x80294910     4  copyJacRegToJac1Reg
-//   0x80294914    16  initSingleContact
-//   0x80294924   772  getInvJac01Optimized
-//   0x80294C28    20  initPairContact
-//   0x80294C3C    28  lengthSquared3
-//   0x80294C58    40  dot3
-//   0x80294C80   156  normalize3
-//   0x80294D1C    52  mul4
-//   0x80294D50    12  getColumn
-//   0x80294D5C    12  getIdentity
-//   0x80294D68    68  setAbs4
-//   0x80294DAC    40  init2dFriction
-//   0x80294DD4   660  buildAngularBegin
-//   0x80295068    20  initAngular
-//   0x8029507C    12  buildAngularEnd
-//   0x80295088    16  mulInvJacDiag
-//   0x80295098   108  length3
-//   0x80295104     4  exitBuilder
+//   0x80293CBC  1720  hkSimpleContactConstraintDataBuildJacobian   [map: hkSimpleContactConstraintInfo__hkSimpleContactConstraintDataBuildJacobian]
+//   0x80294374    12  getContactPoints   [map: hkSimpleContactConstraintAtom__getContactPoints]
+//   0x80294380    24  getContactPointProperties   [map: hkSimpleContactConstraintAtom__getContactPointProperties]
+//   0x80294398    24  setZero4   [map: hkVector4__setZero4]
+//   0x802943B0    36  initHeader   [map: hkJacobianHeaderSchema__initHeader]
+//   0x802943D4     8  hkGetByteOffset   [map: hkSimpleContactConstraintInfo__hkGetByteOffset]
+//   0x802943DC     4  initBuilder   [map: hkJacobianBuilder__initBuilder]
+//   0x802943E0     4  as1Lin2Ang   [map: hkJacobianElement__as1Lin2Ang]
+//   0x802943E4   860  buildLinearBegin   [map: hkJacobianBuilder__buildLinearBegin]
+//   0x80294740    36  __as   [map: hkVector4____as]
+//   0x80294764    68  setSub4   [map: hkVector4__setSub4]
+//   0x802947A8    72  setCross   [map: hkVector4__setCross]
+//   0x802947F0     4  getPosition   [map: hkContactPoint__getPosition]
+//   0x802947F4     8  getNormal   [map: hkContactPoint__getNormal]
+//   0x802947FC     8  getFriction8_8   [map: hkContactPointMaterial__getFriction8_8]
+//   0x80294804   116  calculateRhs   [map: hkContactPoint__calculateRhs]
+//   0x80294878     8  getDistance   [map: hkContactPoint__getDistance]
+//   0x80294880    12  buildLinearEnd   [map: hkJacobianBuilder__buildLinearEnd]
+//   0x8029488C   132  addLastPosition   [map: hkJacobianBuilder__addLastPosition]
+//   0x80294910     4  copyJacRegToJac1Reg   [map: hkJacobianBuilder__copyJacRegToJac1Reg]
+//   0x80294914    16  initSingleContact   [map: hkJacobianSingleContactSchema__initSingleContact]
+//   0x80294924   772  getInvJac01Optimized   [map: hkJacobianBuilder__getInvJac01Optimized]
+//   0x80294C28    20  initPairContact   [map: hkJacobianPairContactSchema__initPairContact]
+//   0x80294C3C    28  lengthSquared3   [map: hkVector4__lengthSquared3]
+//   0x80294C58    40  dot3   [map: hkVector4__dot3]
+//   0x80294C80   156  normalize3   [map: hkVector4__normalize3]
+//   0x80294D1C    52  mul4   [map: hkVector4__mul4]
+//   0x80294D50    12  getColumn   [map: hkTransform__getColumn]
+//   0x80294D5C    12  getIdentity   [map: hkTransform__getIdentity]
+//   0x80294D68    68  setAbs4   [map: hkVector4__setAbs4]
+//   0x80294DAC    40  init2dFriction   [map: hkJacobian2dFrictionSchema__init2dFriction]
+//   0x80294DD4   660  buildAngularBegin   [map: hkJacobianBuilder__buildAngularBegin]
+//   0x80295068    20  initAngular   [map: hkJacobian3dFrictionSchema__initAngular]
+//   0x8029507C    12  buildAngularEnd   [map: hkJacobianBuilder__buildAngularEnd]
+//   0x80295088    16  mulInvJacDiag   [map: hkJacobianBuilder__mulInvJacDiag]
+//   0x80295098   108  length3   [map: hkVector4__length3]
+//   0x80295104     4  exitBuilder   [map: hkJacobianBuilder__exitBuilder]

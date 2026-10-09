@@ -1,20 +1,20 @@
 // Havok translation unit hkCapsuleTriangleAgent.o (main.dol 0x802AC30C-0x802AEE5C).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x802AC30C   204  registerAgent
-//   0x802AC3D8   192  createTriangleCapsuleAgent
-//   0x802AC498    92  __dt
-//   0x802AC4F4   176  createCapsuleTriangleAgent
-//   0x802AC5A4   144  cleanup
-//   0x802AC634  1552  getClosestPoints
-//   0x802ACC44  1588  staticGetClosestPoints
-//   0x802AD278  1400  getPenetrations
-//   0x802AD7F0  1424  staticGetPenetrations
-//   0x802ADD80  1624  processCollision
-//   0x802AE3D8    72  getPenetrations
-//   0x802AE420    72  staticGetPenetrations
-//   0x802AE468    72  getClosestPoints
-//   0x802AE4B0    72  staticGetClosestPoints
-//   0x802AE4F8   352  staticLinearCast
-//   0x802AE658  1956  processCollision
-//   0x802AEDFC     4  updateShapeCollectionFilter
-//   0x802AEE00    92  __dt
+//   0x802AC30C   204  registerAgent   [map: hkCapsuleTriangleAgent__registerAgent]
+//   0x802AC3D8   192  createTriangleCapsuleAgent   [map: hkCapsuleTriangleAgent__createTriangleCapsuleAgent]
+//   0x802AC498    92  __dt   [map: hkCapsuleTriangleAgent____dt]
+//   0x802AC4F4   176  createCapsuleTriangleAgent   [map: hkCapsuleTriangleAgent__createCapsuleTriangleAgent]
+//   0x802AC5A4   144  cleanup   [map: hkCapsuleTriangleAgent__cleanup]
+//   0x802AC634  1552  getClosestPoints   [map: hkCapsuleTriangleAgent__getClosestPoints]
+//   0x802ACC44  1588  staticGetClosestPoints   [map: hkCapsuleTriangleAgent__staticGetClosestPoints]
+//   0x802AD278  1400  getPenetrations   [map: hkCapsuleTriangleAgent__getPenetrations]
+//   0x802AD7F0  1424  staticGetPenetrations   [map: hkCapsuleTriangleAgent__staticGetPenetrations]
+//   0x802ADD80  1624  processCollision   [map: hkCapsuleTriangleAgent__processCollision]
+//   0x802AE3D8    72  getPenetrations   [map: hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent___getPenetrations]
+//   0x802AE420    72  staticGetPenetrations   [map: hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent___staticGetPenetrations]
+//   0x802AE468    72  getClosestPoints   [map: hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent___getClosestPoints]
+//   0x802AE4B0    72  staticGetClosestPoints   [map: hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent___staticGetClosestPoints]
+//   0x802AE4F8   352  staticLinearCast   [map: hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent___staticLinearCast]
+//   0x802AE658  1956  processCollision   [map: hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent___processCollision]
+//   0x802AEDFC     4  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent___updateShapeCollectionFilter]
+//   0x802AEE00    92  __dt   [map: hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_____dt]

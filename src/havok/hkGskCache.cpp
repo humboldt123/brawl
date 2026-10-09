@@ -1,21 +1,21 @@
 // Havok translation unit hkGskCache.o (main.dol 0x8031C8CC-0x8031FEFC).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x8031C8CC  1176  initTriangle
-//   0x8031CD64   496  init
-//   0x8031CF54   436  findBestProjection
-//   0x8031D108   424  case0To1
-//   0x8031D2B0   364  case1To2
-//   0x8031D41C   676  case2To3
-//   0x8031D6C0   112  case3To4
-//   0x8031D730   460  getPointForSimplex
-//   0x8031D8FC   176  addPointToSimplex
-//   0x8031D9AC   556  tryToExpandPolytope
-//   0x8031DBD8   776  convertResultToFeature
-//   0x8031DEE0  2076  builtTetrahedron
-//   0x8031E6FC   836  calculatePenetrationDepth
-//   0x8031EA40    76  rand01
-//   0x8031EA8C   156  randomVector
-//   0x8031EB28   576  hkCalculatePenetrationDepth
-//   0x8031ED68  1632  hkCalcMultiPenetrationDepth
-//   0x8031F458   516  hkCvxCvxDistByHeuristicSamplingPerformSample
-//   0x8031F65C  2208  hkCvxCvxDistByHeuristicSampling
+//   0x8031C8CC  1176  initTriangle   [map: hkGskCache__initTriangle]
+//   0x8031CD64   496  init   [map: hkGskCache__init]
+//   0x8031CF54   436  findBestProjection   [map: hkConvexPenetrationUtil__findBestProjection]
+//   0x8031D108   424  case0To1   [map: hkConvexPenetrationUtil__case0To1]
+//   0x8031D2B0   364  case1To2   [map: hkConvexPenetrationUtil__case1To2]
+//   0x8031D41C   676  case2To3   [map: hkConvexPenetrationUtil__case2To3]
+//   0x8031D6C0   112  case3To4   [map: hkConvexPenetrationUtil__case3To4]
+//   0x8031D730   460  getPointForSimplex   [map: hkConvexPenetrationUtil__getPointForSimplex]
+//   0x8031D8FC   176  addPointToSimplex   [map: hkConvexPenetrationUtil__addPointToSimplex]
+//   0x8031D9AC   556  tryToExpandPolytope   [map: hkConvexPenetrationUtil__tryToExpandPolytope]
+//   0x8031DBD8   776  convertResultToFeature   [map: hkConvexPenetrationUtil__convertResultToFeature]
+//   0x8031DEE0  2076  builtTetrahedron   [map: hkConvexPenetrationUtil__builtTetrahedron]
+//   0x8031E6FC   836  calculatePenetrationDepth   [map: hkConvexPenetrationUtil__calculatePenetrationDepth]
+//   0x8031EA40    76  rand01   [map: hkConvexPenetrationUtil__rand01]
+//   0x8031EA8C   156  randomVector   [map: hkConvexPenetrationUtil__randomVector]
+//   0x8031EB28   576  hkCalculatePenetrationDepth   [map: hkConvexShape__hkCalculatePenetrationDepth]
+//   0x8031ED68  1632  hkCalcMultiPenetrationDepth   [map: hkTransform__hkCalcMultiPenetrationDepth]
+//   0x8031F458   516  hkCvxCvxDistByHeuristicSamplingPerformSample   [map: hkConvexShape__hkCvxCvxDistByHeuristicSamplingPerformSample]
+//   0x8031F65C  2208  hkCvxCvxDistByHeuristicSampling   [map: hkCvxCvxDistByHeuristicSampling__hkCvxCvxDistByHeuristicSampling]

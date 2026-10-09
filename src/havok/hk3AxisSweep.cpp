@@ -1,48 +1,48 @@
 // Havok translation unit hk3AxisSweep.o (main.dol 0x8030880C-0x80312F7C).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x8030880C   136  beginOverlap
-//   0x80308894   136  endOverlap
-//   0x8030891C   220  beginOverlapCheckMarker
-//   0x803089F8   256  endOverlapCheckMarker
-//   0x80308AF8  3676  updateAabbs
-//   0x80309954  2852  __ct
-//   0x8030A478    24  __ct
-//   0x8030A578   324  __dt
-//   0x8030A6BC    32  __dl
-//   0x8030A6DC  1328  mergeBatch
-//   0x8030AC0C   236  removeBatch
-//   0x8030ACF8   268  insert
-//   0x8030AE04   552  remove
-//   0x8030B02C   428  updateNodesAfterInsert
-//   0x8030B1D8   352  updateNodesAfterDelete
-//   0x8030B338   900  setBitsBasedOnXInterval
-//   0x8030B6BC   456  reQuerySingleObject
-//   0x8030B884  1844  addObject
-//   0x8030BFB8  1180  removeObject
-//   0x8030C454  2608  addObjectBatch
-//   0x8030CE84    44  quickSort<Q212hk3AxisSweep12hkBpEndPoint>
-//   0x8030CEB0    60  quickSort<Q212hk3AxisSweep12hkBpEndPoint,Q211hkAlgorithm3
-//   0x8030CEEC   344  quickSortRecursive<Q212hk3AxisSweep12hkBpEndPoint,Q211hkA
-//   0x8030D044  1624  removeObjectBatch
-//   0x8030D69C    12  getNumObjects
-//   0x8030D6A8   176  getAllAabbs
-//   0x8030D758    20  getAabb
-//   0x8030D76C    92  find
-//   0x8030D7C8  1316  queryBatchAabbSub
-//   0x8030DCEC  3484  querySingleAabb
-//   0x8030EA88    28  getAabbCacheSize
-//   0x8030EAA4  3688  calcAabbCache
-//   0x8030FA54   332  calcAabbCache
-//   0x8030FBA0   820  calcAabbCacheInternal
-//   0x8030FED4  1248  defragment
-//   0x803103B4    44  quickSort<Q212hk3AxisSweep12ValueIntPair>
-//   0x803103E0    60  quickSort<Q212hk3AxisSweep12ValueIntPair,Q211hkAlgorithm3
-//   0x8031041C   344  quickSortRecursive<Q212hk3AxisSweep12ValueIntPair,Q211hkA
-//   0x80310694  3864  castRay
-//   0x803116CC  4316  castAabb
-//   0x803127A8   376  getAabbFromNode
-//   0x80312920   532  calcStatistics
-//   0x80312B34   564  shiftAllObjects
-//   0x80312D68   332  shiftBroadPhase
-//   0x80312EB4   140  hk3AxisSweep16CreateBroadPhase
-//   0x80312F40    60  __sinit_\hk3AxisSweep_cpp
+//   0x8030880C   136  beginOverlap   [map: hk3AxisSweep__beginOverlap]
+//   0x80308894   136  endOverlap   [map: hk3AxisSweep__endOverlap]
+//   0x8030891C   220  beginOverlapCheckMarker   [map: hk3AxisSweep__beginOverlapCheckMarker]
+//   0x803089F8   256  endOverlapCheckMarker   [map: hk3AxisSweep__endOverlapCheckMarker]
+//   0x80308AF8  3676  updateAabbs   [map: hk3AxisSweep__updateAabbs]
+//   0x80309954  2852  __ct   [map: hk3AxisSweep____ct]
+//   0x8030A478    24  __ct   [map: hk3AxisSweep8hkBpAxisFv____ct]
+//   0x8030A578   324  __dt   [map: hk3AxisSweep____dt]
+//   0x8030A6BC    32  __dl   [map: hkBroadPhase____dl]
+//   0x8030A6DC  1328  mergeBatch   [map: hk3AxisSweep8hkBpAxisFPQ212hk3AxisSweep8hkBpNodeiiiPQ212hk3AxisSweep12hkBpEndPoint__mergeBatch]
+//   0x8030AC0C   236  removeBatch   [map: hk3AxisSweep8hkBpAxisFPQ212hk3AxisSweep8hkBpNodeiRC15hkFixedArray_i___removeBatch]
+//   0x8030ACF8   268  insert   [map: hk3AxisSweep8hkBpAxisFPQ212hk3AxisSweep8hkBpNodeiUsUsRUsRUs__insert]
+//   0x8030AE04   552  remove   [map: hk3AxisSweep8hkBpAxisFii__remove]
+//   0x8030B02C   428  updateNodesAfterInsert   [map: hk3AxisSweep__updateNodesAfterInsert]
+//   0x8030B1D8   352  updateNodesAfterDelete   [map: hk3AxisSweep__updateNodesAfterDelete]
+//   0x8030B338   900  setBitsBasedOnXInterval   [map: hk3AxisSweep__setBitsBasedOnXInterval]
+//   0x8030B6BC   456  reQuerySingleObject   [map: hk3AxisSweep__reQuerySingleObject]
+//   0x8030B884  1844  addObject   [map: hk3AxisSweep__addObject]
+//   0x8030BFB8  1180  removeObject   [map: hk3AxisSweep__removeObject]
+//   0x8030C454  2608  addObjectBatch   [map: hk3AxisSweep__addObjectBatch]
+//   0x8030CE84    44  quickSort<Q212hk3AxisSweep12hkBpEndPoint>   [map: hkAlgorithm__quickSort_Q212hk3AxisSweep12hkBpEndPoint_]
+//   0x8030CEB0    60  quickSort<Q212hk3AxisSweep12hkBpEndPoint,Q211hkAlgorithm3   [map: hkAlgorithm__quickSort_Q212hk3AxisSweep12hkBpEndPoint_Q211hkAlgorithm36less_Q212hk3AxisSweep12hkBpEndPoint__]
+//   0x8030CEEC   344  quickSortRecursive<Q212hk3AxisSweep12hkBpEndPoint,Q211hkA   [map: hkAlgorithm__quickSortRecursive_Q212hk3AxisSweep12hkBpEndPoint_Q211hkAlgorithm36less_Q212hk3AxisSweep12hkBpEndPoi___]
+//   0x8030D044  1624  removeObjectBatch   [map: hk3AxisSweep__removeObjectBatch]
+//   0x8030D69C    12  getNumObjects   [map: hk3AxisSweep__getNumObjects]
+//   0x8030D6A8   176  getAllAabbs   [map: hk3AxisSweep__getAllAabbs]
+//   0x8030D758    20  getAabb   [map: hk3AxisSweep__getAabb]
+//   0x8030D76C    92  find   [map: hk3AxisSweep8hkBpAxisCFPCQ212hk3AxisSweep12hkBpEndPointPCQ212hk3AxisSweep12hkBpEndPointUs__find]
+//   0x8030D7C8  1316  queryBatchAabbSub   [map: hk3AxisSweep__queryBatchAabbSub]
+//   0x8030DCEC  3484  querySingleAabb   [map: hk3AxisSweep__querySingleAabb]
+//   0x8030EA88    28  getAabbCacheSize   [map: hk3AxisSweep__getAabbCacheSize]
+//   0x8030EAA4  3688  calcAabbCache   [map: hk3AxisSweep__calcAabbCache]
+//   0x8030FA54   332  calcAabbCache   [map: hk3AxisSweep__calcAabbCache1]
+//   0x8030FBA0   820  calcAabbCacheInternal   [map: hk3AxisSweep__calcAabbCacheInternal]
+//   0x8030FED4  1248  defragment   [map: hk3AxisSweep__defragment]
+//   0x803103B4    44  quickSort<Q212hk3AxisSweep12ValueIntPair>   [map: hkAlgorithm__quickSort_Q212hk3AxisSweep12ValueIntPair_]
+//   0x803103E0    60  quickSort<Q212hk3AxisSweep12ValueIntPair,Q211hkAlgorithm3   [map: hkAlgorithm__quickSort_Q212hk3AxisSweep12ValueIntPair_Q211hkAlgorithm36less_Q212hk3AxisSweep12ValueIntPair__]
+//   0x8031041C   344  quickSortRecursive<Q212hk3AxisSweep12ValueIntPair,Q211hkA   [map: hkAlgorithm__quickSortRecursive_Q212hk3AxisSweep12ValueIntPair_Q211hkAlgorithm36less_Q212hk3AxisSweep12ValueIntPa___]
+//   0x80310694  3864  castRay   [map: hk3AxisSweep__castRay]
+//   0x803116CC  4316  castAabb   [map: hk3AxisSweep__castAabb]
+//   0x803127A8   376  getAabbFromNode   [map: hk3AxisSweep__getAabbFromNode]
+//   0x80312920   532  calcStatistics   [map: hk3AxisSweep__calcStatistics]
+//   0x80312B34   564  shiftAllObjects   [map: hk3AxisSweep__shiftAllObjects]
+//   0x80312D68   332  shiftBroadPhase   [map: hk3AxisSweep__shiftBroadPhase]
+//   0x80312EB4   140  hk3AxisSweep16CreateBroadPhase   [map: hkVector4__hk3AxisSweep16CreateBroadPhase]
+//   0x80312F40    60  __sinit_\hk3AxisSweep_cpp   [map: hk3AxisSweepcpp____sinit_]
