@@ -685,8 +685,8 @@ void stDxPStadium::update(float deltaFrame) {
 // then goes dark again (m_eventScreen phases 0-2).
 void stDxPStadium::updateVisionTerrain(float deltaFrame) {
     if (m_eventScreen.isEvent()) {
-        int screenKind = 0;
         int terrain = m_terrain;
+        int screenKind = 0;
         if (m_unk6F8 == true) {
             terrain = 3;
         }
@@ -805,7 +805,8 @@ void stDxPStadium::startPlayerVision() {
     getGround(0)->setNodeVisibility(true, 0, "Dummy", false, false);
     int count = 0;
     int players[4] = {count, count, count, count};
-    int* next = players;
+    int* next;
+    next = players;
     for (int i = 0; i < 4; i++) {
         if (getPlayerPosition(i, &pos) == true) {
             *next++ = i;
