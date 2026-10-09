@@ -27,6 +27,23 @@
 
 stClassInfoImpl<Stages::DxPStadium, stDxPStadium> stDxPStadium::bss_loc_14;
 
+// HYPOTHESIS: bit 0 of the byte at +0xF of the melee init data is set while the big screen shows Jigglypuff.
+struct stDxPStadiumMeleeFlags {
+    u8 pad : 7;
+    u8 jigglypuff : 1;
+};
+// MATCH-ONLY: the original reads the first two bytes of a player's init data (character kind, state) as bytes.
+struct stDxPStadiumPlayerBytes {
+    u8 kind;
+    u8 state;
+};
+
+static inline void stDxPStadiumSwap(u8& x, u8& y) {
+    u8 tmp = x;
+    x = y;
+    y = tmp;
+}
+
 // The big screen is ground 0 and always a grStadiumVision.
 static inline grStadiumVision* stadiumVision(stDxPStadium* stage) {
     return static_cast<grStadiumVision*>(stage->getGround(0));
@@ -56,9 +73,7 @@ stDxPStadium::stDxPStadium() : stMelee("stDxPStadium", Stages::DxPStadium) {
         if (b >= 3) {
             b = 3;
         }
-        u8 tmp = m_pickOrder[a];
-        m_pickOrder[a] = m_pickOrder[b];
-        m_pickOrder[b] = tmp;
+        stDxPStadiumSwap(m_pickOrder[a], m_pickOrder[b]);
     }
     m_unk6F8 = false;
     m_visionActive = false;
@@ -86,8 +101,7 @@ stDxPStadium::~stDxPStadium() {
     }
     releaseArchive();
     // HYPOTHESIS: the flag marks that the big screen shows Jigglypuff (see startPlayerVision)
-    u8* flags = reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0xF;
-    *flags &= ~1;
+    reinterpret_cast<stDxPStadiumMeleeFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0xF)->jigglypuff = 0;
 }
 
 bool stDxPStadium::loading() {
@@ -548,9 +562,7 @@ void stDxPStadium::update(float deltaFrame) {
                 if (b >= 3) {
                     b = 3;
                 }
-                u8 tmp = m_pickOrder[a];
-                m_pickOrder[a] = m_pickOrder[b];
-                m_pickOrder[b] = tmp;
+                stDxPStadiumSwap(m_pickOrder[a], m_pickOrder[b]);
             }
         }
     }
@@ -749,14 +761,16 @@ void stDxPStadium::setVision(u8 kind) {
 
 // Puts one of the fighters in play on the big screen (round robin).
 void stDxPStadium::startPlayerVision() {
+    Vec3f pos;
+    int players[4] = {0, 0, 0, 0};
     stadiumVision(this)->setDisplay(false);
     getGround(0)->setNodeVisibility(true, 0, "Dummy", false, false);
-    int players[4] = {0, 0, 0, 0};
+    int* next = players;
     int count = 0;
     for (int i = 0; i < 4; i++) {
-        Vec3f pos;
         if (getPlayerPosition(i, &pos) == true) {
-            players[count++] = i;
+            *next++ = i;
+            count++;
         }
     }
     if (m_visionNext >= count) {
@@ -764,12 +778,12 @@ void stDxPStadium::startPlayerVision() {
     }
     m_visionActive = true;
     m_visionPlayer = players[m_visionNext++];
-    gmPlayerInitData* player = &g_GameGlobal->m_modeMelee->m_playersInitData[m_visionPlayer];
-    u8* flags = reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0xF;
-    if (player->m_characterKind == Character_Jigglypuff && player->m_state == 3) {
-        *flags |= 1;
+    stDxPStadiumPlayerBytes* player = reinterpret_cast<stDxPStadiumPlayerBytes*>(&g_GameGlobal->m_modeMelee->m_playersInitData[m_visionPlayer]);
+    stDxPStadiumMeleeFlags* flags = reinterpret_cast<stDxPStadiumMeleeFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0xF);
+    if (player->kind == Character_Jigglypuff && player->state == 3) {
+        flags->jigglypuff = 1;
     } else {
-        *flags &= ~1;
+        flags->jigglypuff = 0;
     }
 }
 
