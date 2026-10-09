@@ -123,10 +123,10 @@ stDxPStadium::stDxPStadium() : stMelee("stDxPStadium", Stages::DxPStadium) {
     m_visionPosB.m_x = 0.0f;
     m_visionPosB.m_y = 0.0f;
     m_visionPosB.m_z = 0.0f;
-    m_visionLeft = 0.0f;
-    m_visionTop = 0.0f;
-    m_visionRight = 1.0f;
-    m_visionBottom = 1.0f;
+    m_visionMin.m_x = 0.0f;
+    m_visionMin.m_y = 0.0f;
+    m_visionMax.m_x = 1.0f;
+    m_visionMax.m_y = 1.0f;
     m_beltTrigger = NULL;
     m_beltData = NULL;
 }
@@ -936,10 +936,8 @@ void stDxPStadium::updateVisionRect() {
             rectMax.m_y = 1.0f;
             rectMin.m_y = 1.0f - height;
         }
-        m_visionLeft = rectMin.m_x;
-        m_visionTop = rectMin.m_y;
-        m_visionRight = rectMax.m_x;
-        m_visionBottom = rectMax.m_y;
+        m_visionMin = rectMin;
+        m_visionMax = rectMax;
     }
 }
 
@@ -947,21 +945,17 @@ void stDxPStadium::updateVisionRect() {
 // the fight, scaled and shifted so that only the rectangle around the fighter is visible.
 void stDxPStadium::updateVisionScreen() {
     if (m_visionActive) {
-        Vec2f sum;
-        sum.m_x = m_visionLeft + m_visionRight;
-        sum.m_y = m_visionTop + m_visionBottom;
-        float width = m_visionRight - m_visionLeft;
-        Vec2f center = sum * 0.5f;
-        float height = m_visionBottom - m_visionTop;
+        Vec2f center = (m_visionMin + m_visionMax) * 0.5f;
+        float width = m_visionMax.m_x - m_visionMin.m_x;
+        float height = m_visionMax.m_y - m_visionMin.m_y;
         nw4r::g3d::ResMdl resMdl = getGround(0)->m_sceneModels[0]->m_resMdl;
         nw4r::g3d::ResMat resMat = resMdl.GetResMat("MDummy");
-        nw4r::g3d::ResTexSrt texSrt(NULL);
         nw4r::g3d::ResTexObj texObj(reinterpret_cast<u8*>(resMat.ptr()) + 0x3C);
         GXTexObj* screenTex = texObj.GetTexObj(GX_TEXMAP0);
         if (gfCopyEFBMgr::getInstance()->isValid(0) == true) {
             *screenTex = *gfCopyEFBMgr::getInstance()->getCopyEFBTex(0);
         }
-        texSrt = nw4r::g3d::ResTexSrt(reinterpret_cast<u8*>(resMat.ptr()) + 0x1A4);
+        nw4r::g3d::ResTexSrt texSrt(reinterpret_cast<u8*>(resMat.ptr()) + 0x1A4);
         texSrt.SetMapMode(0, 0, -1, -1);
         nw4r::g3d::ResTexSrtData* srt = texSrt.ptr();
         srt->m_range.m_x = width;

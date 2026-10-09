@@ -59,10 +59,8 @@ class stDxPStadium : public stMelee {
     float m_visionZoom;              // 0x6CC
     Vec3f m_visionPosA;              // 0x6D0: smoothed corner of the fighter's camera box
     Vec3f m_visionPosB;              // 0x6DC
-    float m_visionLeft;              // 0x6E8: where the fighter is on the screen (0-1)
-    float m_visionTop;               // 0x6EC
-    float m_visionRight;             // 0x6F0
-    float m_visionBottom;            // 0x6F4
+    Vec2f m_visionMin;               // 0x6E8: where the fighter is on the screen (0-1)
+    Vec2f m_visionMax;               // 0x6F0
     bool m_unk6F8;                   // 0x6F8: HYPOTHESIS: the terrain is settling (water pools)
     stTrigger* m_beltTrigger;        // 0x6FC: the conveyor belt of the water terrain
     grGimmickBeltConveyorData* m_beltData; // 0x700
