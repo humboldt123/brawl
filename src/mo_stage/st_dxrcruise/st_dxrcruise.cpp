@@ -278,7 +278,7 @@ void stDxCruise::update(float deltaFrame) {
             case 5:
                 m_blockHeight[i] = 0.0f;
                 m_blockEvent[i].m_manualFramesLeft += deltaFrame;
-                if (m_blockEvent[i].m_manualFramesLeft - 10.0f * (float)(int)(m_blockEvent[i].m_manualFramesLeft / 10.0f) < 4.0f) {
+                if (m_blockEvent[i].m_manualFramesLeft - 10.0f * (float)(int)(m_blockEvent[i].m_manualFramesLeft / 10.0f) < 3.0f) {
                     getGround(i + 14)->setVisibility(0);
                 } else {
                     getGround(i + 14)->setVisibility(1);
