@@ -340,7 +340,7 @@ void ftRobot::onStart(int param) {
     m_moduleAccesser->getEffectModule().removeCommon(0x1a);
     m_moduleAccesser->getEffectModule().removeCommon(0x26);
     m_moduleAccesser->getEffectModule().removeCommon(0x25);
-    if ((u32)(param - 4) < 2) {
+    if ((u32)(param - 4) <= 1) {
         m_moduleAccesser->getWorkManageModule().onFlag(0x12000047);
     } else {
         m_moduleAccesser->getWorkManageModule().offFlag(0x12000047);
@@ -393,7 +393,7 @@ struct ftRobotSealInfo {
 void ftRobot::analyzeSeal(void* sealInfo) {
     ftRobotSealInfo* info = static_cast<ftRobotSealInfo*>(sealInfo);
     if (info->kind == 0x3f) {
-        s32 generation = (s32)(info->amount * 0.5f);
+        s32 generation = (s32)(info->amount / 2.0f);
         m_moduleAccesser->getWorkManageModule().setInt(generation, 0x10000044);
     }
 }
@@ -415,74 +415,71 @@ void ftRobot::processFixPosition() {
     Fighter::processFixPosition();
 }
 
-// HYPOTHESIS: the statuses that cut the Final Smash beam short (hit reactions, knockdowns, grabs, ...).
-static bool ftRobotIsFinalInterruptStatus(int status) {
-    switch (status) {
-    case 0x3d:
-    case 0x3e:
-    case 0x3f:
-    case 0x40:
-    case 0x41:
-    case 0x42:
-    case 0x43:
-    case 0x44:
-    case 0x45:
-    case 0x46:
-    case 0x47:
-    case 0x48:
-    case 0x49:
-    case 0x5c:
-    case 0x5d:
-    case 0x5e:
-    case 0x6e:
-    case 0x6f:
-    case 0x70:
-    case 0xbd:
-    case 0xcc:
-    case 0xcd:
-    case 0xce:
-    case 0xcf:
-    case 0xd0:
-    case 0xd1:
-    case 0xd2:
-    case 0xd3:
-    case 0xd4:
-    case 0xd5:
-    case 0xd6:
-    case 0xd7:
-    case 0xd8:
-    case 0xd9:
-    case 0xda:
-    case 0xdb:
-    case 0xe6:
-    case 0xe7:
-    case 0xe8:
-    case 0xe9:
-    case 0xea:
-    case 0xeb:
-    case 0xec:
-    case 0xed:
-    case 0xee:
-    case 0xef:
-    case 0xf0:
-        return true;
-    default:
-        return false;
-    }
-}
-
 void ftRobot::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* acc) {
     if (acc->getWorkManageModule().isFlag(0x12000042)) {
-        soGenerateArticleManageModule& articles = ftRobotGetArticleModule(acc);
-        acc->getCollisionHitModule().setWhole(2, 0);
-        if (ftRobotIsFinalInterruptStatus(statusKind)) {
+        const soModuleEnumeration* modules = acc->m_enumerationStart;
+        soGenerateArticleManageModule& articles = *static_cast<soGenerateArticleManageModule*>(modules->m_generateArticleManageModule);
+        modules->m_collisionHitModule->setWhole(2, 0);
+        // Damage, capture and related interruptions remove the Final Smash beam.
+        switch (statusKind) {
+        case 0x3d:
+        case 0x3e:
+        case 0x3f:
+        case 0x40:
+        case 0x41:
+        case 0x42:
+        case 0x43:
+        case 0x44:
+        case 0x45:
+        case 0x46:
+        case 0x47:
+        case 0x48:
+        case 0x49:
+        case 0x5c:
+        case 0x5d:
+        case 0x5e:
+        case 0x6e:
+        case 0x6f:
+        case 0x70:
+        case 0xbd:
+        case 0xcc:
+        case 0xcd:
+        case 0xce:
+        case 0xcf:
+        case 0xd0:
+        case 0xd1:
+        case 0xd2:
+        case 0xd3:
+        case 0xd4:
+        case 0xd5:
+        case 0xd6:
+        case 0xd7:
+        case 0xd8:
+        case 0xd9:
+        case 0xda:
+        case 0xdb:
+        case 0xe6:
+        case 0xe7:
+        case 0xe8:
+        case 0xe9:
+        case 0xea:
+        case 0xeb:
+        case 0xec:
+        case 0xed:
+        case 0xee:
+        case 0xef:
+        case 0xf0:
             articles.removeExist(3, 0);
             acc->getControllerModule().stopRumbleKind(2, 8);
-        } else if (articles.isGeneratable(3)) {
-            soArticle* beam = articles.generate(3, NULL, NULL);
-            if (!beam->isNull()) {
-                articles.entry(beam);
+            break;
+        default:
+            if (articles.isGeneratable(3)) {
+                soArticle* beam = articles.generate(3, NULL, NULL);
+                if (!beam->isNull()) {
+                    articles.entry(beam);
+                }
             }
+            break;
         }
     }
     Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, acc);
@@ -515,7 +512,7 @@ void ftRobot::notifyEventChangeSituation(SituationKind kind, SituationKind prevK
 
 bool ftRobot::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, int index) {
     bool result;
-    char group = cmd->getGroup();
+    s8 group = cmd->getGroup();
     if (!isObserv(group)) {
         result = false;
     } else {
@@ -730,13 +727,15 @@ struct ftRobotFinalLinkEvent : soLinkEventArgs {
 // article is started once the opening animation raises flag 0x12000044, then the volleys follow until the timer
 // (int 0x10000042) runs out.
 void ftRobot::updateFinal(soModuleAccesser* acc) {
-    soGenerateArticleManageModule& articles = ftRobotGetArticleModule(acc);
-    acc->getDamageModule().setReactionMul(soValueAccesser::getConstantFloat(acc, 0xfd4, 0));
+    const soModuleEnumeration* modules = acc->m_enumerationStart;
+    soGenerateArticleManageModule& articles = *static_cast<soGenerateArticleManageModule*>(modules->m_generateArticleManageModule);
+    modules->m_damageModule->setReactionMul(soValueAccesser::getConstantFloat(acc, 0xfd4, 0));
     acc->getCollisionHitModule().setWhole(2, 0);
     if (acc->getWorkManageModule().isFlag(0x12000043) && acc->getWorkManageModule().getInt(0x10000042) > 0) {
         acc->getWorkManageModule().subInt(1, 0x10000042);
+        soWorkManageModule& timerWork = acc->getWorkManageModule();
         int cueFrames = soValueAccesser::getConstantInt(acc, 0x5dca, 0);
-        if (acc->getWorkManageModule().getInt(0x10000042) <= cueFrames && !acc->getWorkManageModule().isFlag(0x12000046)) {
+        if (timerWork.getInt(0x10000042) <= cueFrames && !acc->getWorkManageModule().isFlag(0x12000046)) {
             acc->getWorkManageModule().onFlag(0x12000046);
             acc->getEffectModule().reqCommon(0.0f, 0x25);
         }
