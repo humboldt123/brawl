@@ -255,7 +255,7 @@ void stDxCruise::update(float deltaFrame) {
                 }
                 m_blockHeight[i] += deltaFrame * m_blockSpeed[i];
                 Vec3f pos = static_cast<grGimmick*>(getGround(i + 14))->getPos();
-                if (pos.m_y <= 2.0f * CameraController::getInstance()->unk154) {
+                if (pos.m_y <= 2.0f * *reinterpret_cast<float*>(reinterpret_cast<u8*>(CameraController::getInstance()) + 0x154)) {
                     m_blockEvent[i].setPhase(3);
                     static_cast<grMadein*>(getGround(i + 14))->endEntity();
                     getGround(i + 14)->setEnableCollisionStatus(false);
