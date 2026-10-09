@@ -130,7 +130,7 @@ private:
  ******************************************************************************/
 class AnmObjShpRes : public AnmObjShp, protected FrameCtrl {
 public:
-    static AnmObjShpRes* Construct(MEMAllocator* pAllocator, u32* pSize,
+    static AnmObjShpRes* Construct(MEMAllocator* pAllocator, int* pSize,
                                    ResAnmShp shp, ResMdl mdl, bool cache);
 
     AnmObjShpRes(MEMAllocator* pAllocator, ResAnmShp shp, u16* pBindingBuf,

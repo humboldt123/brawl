@@ -127,7 +127,7 @@ public:
  ******************************************************************************/
 class AnmObjMatClrRes : public AnmObjMatClr, protected FrameCtrl {
 public:
-    static AnmObjMatClrRes* Construct(MEMAllocator* pAllocator, u32* pSize,
+    static AnmObjMatClrRes* Construct(MEMAllocator* pAllocator, int* pSize,
                                       ResAnmClr clr, ResMdl mdl, bool cache);
 
     AnmObjMatClrRes(MEMAllocator* pAllocator, ResAnmClr clr, u16* pBindingBuf,

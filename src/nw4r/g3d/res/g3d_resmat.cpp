@@ -2,6 +2,16 @@
 
 #include <cstring>
 
+// Stand-ins for ResTex::GetTexObjParam / GetTexObjCIParam (g3d_restex.cpp).
+// symbols.txt still names these addresses fn_80192A44 / fn_80192B00, and the
+// matched call sites reference those names. HYPOTHESIS: same functions.
+extern "C" bool fn_80192A44(const nw4r::g3d::ResTex* pTex, void** ppTexData,
+                            u16* pWidth, u16* pHeight, GXTexFmt* pFormat,
+                            f32* pMinLod, f32* pMaxLod, GXBool* pMipMap);
+extern "C" bool fn_80192B00(const nw4r::g3d::ResTex* pTex, void** ppTexData,
+                            u16* pWidth, u16* pHeight, GXCITexFmt* pFormatCI,
+                            f32* pMinLod, f32* pMaxLod, GXBool* pMipMap);
+
 namespace nw4r {
 namespace g3d {
 
@@ -1519,12 +1529,11 @@ void ResMat::Release() {
 }
 
 bool ResMat::ForceBindTex(const ResTex tex, const char* pName) {
-    u32 i;
     u32 bindNum = 0;
     u32 nameLen = std::strlen(pName);
 
     u32 texPlttInfoNum = GetNumResTexPlttInfo();
-    for (i = 0; i < texPlttInfoNum; i++) {
+    for (u32 i = 0; i < texPlttInfoNum; i++) {
         bool bound;
         ResTexPlttInfo info = GetResTexPlttInfo(i);
         ResTexObj texObj = GetResTexObj();
@@ -1586,16 +1595,16 @@ inline void ResTexPlttInfo::BindTex_(const ResTex tex, ResTexObj texObj) {
 
     if (IsCIFmt()) {
         GXCITexFmt fmtCi;
-        tex.GetTexObjCIParam(&pTexData, &width, &height, &fmtCi, &minLod,
-                             &maxLod, &mipmap);
+        fn_80192B00(&tex, &pTexData, &width, &height, &fmtCi, &minLod,
+                    &maxLod, &mipmap);
 
         GXInitTexObjCI(pGXObj, pTexData, width, height,
                        static_cast<GXTexFmt>(fmtCi), r.wrap_s, r.wrap_t, mipmap,
                        r.tlutID);
     } else {
         GXTexFmt fmt;
-        tex.GetTexObjParam(&pTexData, &width, &height, &fmt, &minLod, &maxLod,
-                           &mipmap);
+        fn_80192A44(&tex, &pTexData, &width, &height, &fmt, &minLod, &maxLod,
+                    &mipmap);
 
         GXInitTexObj(pGXObj, pTexData, width, height, fmt, r.wrap_s, r.wrap_t,
                      mipmap);

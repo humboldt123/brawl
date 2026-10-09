@@ -56,9 +56,7 @@ hkResult PackfileObjectsListener::objectCallback(void* object, const hkClass& kl
 
 } // namespace
 
-hkBinaryPackfileReader::hkBinaryPackfileReader() {
-    m_header = 0;
-    m_sectionHeaders = 0;
+hkBinaryPackfileReader::hkBinaryPackfileReader() : m_header(0), m_sectionHeaders(0) {
     m_startOffset = 0;
     m_loadedObjects = 0;
     m_tracker = 0;
@@ -357,7 +355,7 @@ hkResult hkBinaryPackfileReader::loadSectionHeadersNoSeek(hkStreamReader* reader
         m_sectionHeaders = (hkPackfileSectionHeader*)buffer;
         int old = m_sections.getSize();
         int n = m_header->m_numSections;
-        if (old < n) {
+        if (n > old) {
             m_sections.reserveSmart(n);
             for (int i = old; i < n; i++) {
                 m_sections[i] = 0;
@@ -611,7 +609,7 @@ int hkPointerMultiMap<Value>::getFreeIndex() {
         m_freeList = m_elements[idx].m_next;
     } else {
         idx = m_elements.m_size;
-        if (m_elements.m_size == (m_elements.m_capacityAndFlags & hkArrayBase::CAPACITY_MASK)) {
+        if (idx == m_elements.getCapacity()) {
             hkArrayUtil::_reserveMore(&m_elements, sizeof(Entry));
         }
         m_elements.m_size++;
@@ -623,15 +621,19 @@ namespace {
 
 int extractAndAdvanceInt(const char* base, int& offset) {
     int cur = offset;
-    offset = cur + 4;
-    return *(const int*)(base + cur);
+    int next = cur + 4;
+    int value = *(const int*)(base + cur);
+    offset = next;
+    return value;
 }
 
 const char* extractAndAdvanceString(const char* base, int& offset) {
-    int len = 0;
     const char* s = base + offset;
-    for (const char* c = s; *c != 0; c++) {
+    const char* c = s;
+    int len = 0;
+    while (*c != 0) {
         len++;
+        c++;
     }
     for (; (len & 3) != 0; len++) {
     }
@@ -642,8 +644,8 @@ const char* extractAndAdvanceString(const char* base, int& offset) {
 } // namespace
 
 void hkPackfileSectionHeader::getExports(void* sectionData, hkArray<hkPackfileData::Export>& exports) const {
-    int offset = 0;
     const char* table = (const char*)sectionData + m_exportsOffset;
+    int offset = 0;
     while (offset < m_importsOffset - m_exportsOffset) {
         int dataOffset = extractAndAdvanceInt(table, offset);
         if (dataOffset == -1) {
@@ -657,8 +659,8 @@ void hkPackfileSectionHeader::getExports(void* sectionData, hkArray<hkPackfileDa
 }
 
 void hkPackfileSectionHeader::getImports(void* sectionData, hkArray<hkPackfileData::Import>& imports) const {
-    int offset = 0;
     const char* table = (const char*)sectionData + m_importsOffset;
+    int offset = 0;
     while (offset < m_endOffset - m_importsOffset) {
         int dataOffset = extractAndAdvanceInt(table, offset);
         if (dataOffset == -1) {

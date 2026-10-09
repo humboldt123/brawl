@@ -460,13 +460,13 @@ ScnGroup* ScnGroup::Construct(MEMAllocator* pAllocator, u32* pSize,
 
     if (pAllocator != NULL) {
         u8* pBuffer = reinterpret_cast<u8*>(Alloc(pAllocator, size));
-
-        if (pBuffer != NULL) {
-            ScnObj** ppObj =
-                reinterpret_cast<ScnObj**>(pBuffer + sizeof(ScnGroup));
-
-            pGroup = new (pBuffer) ScnGroup(pAllocator, ppObj, capacity);
+        if (pBuffer == NULL) {
+            return NULL;
         }
+
+        pGroup = new (pBuffer) ScnGroup(
+            pAllocator, reinterpret_cast<ScnObj**>(pBuffer + sizeof(ScnGroup)),
+            capacity);
     }
 
     return pGroup;

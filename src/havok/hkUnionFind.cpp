@@ -7,9 +7,9 @@ static inline int* parentData(hkArrayBase* a) {
 hkUnionFind::hkUnionFind(hkArrayBase& parents, int numElements) {
     m_parents = &parents;
     if ((parents.m_capacityAndFlags & hkArrayBase::CAPACITY_MASK) < numElements) {
-        int newCapacity = (parents.m_capacityAndFlags & hkArrayBase::CAPACITY_MASK) * 2;
-        if (numElements >= newCapacity) {
-            newCapacity = numElements;
+        int newCapacity = numElements;
+        if (numElements < (parents.m_capacityAndFlags & hkArrayBase::CAPACITY_MASK) * 2) {
+            newCapacity = (parents.m_capacityAndFlags & hkArrayBase::CAPACITY_MASK) * 2;
         }
         hkArrayUtil::_reserve(&parents, newCapacity, 4);
     }
@@ -26,8 +26,12 @@ void hkUnionFind::addEdge(int a, int b) {
         b = t;
     }
     int ra = a;
-    while (parentData(m_parents)[ra] >= 0) {
-        ra = parentData(m_parents)[ra];
+    for (;;) {
+        int p = parentData(m_parents)[ra];
+        if (p < 0) {
+            break;
+        }
+        ra = p;
     }
     int i = a;
     while (parentData(m_parents)[i] >= 0) {
@@ -36,8 +40,12 @@ void hkUnionFind::addEdge(int a, int b) {
         i = next;
     }
     int rb = b;
-    while (parentData(m_parents)[rb] >= 0) {
-        rb = parentData(m_parents)[rb];
+    for (;;) {
+        int p = parentData(m_parents)[rb];
+        if (p < 0) {
+            break;
+        }
+        rb = p;
     }
     i = b;
     while (parentData(m_parents)[i] >= 0) {
@@ -58,19 +66,22 @@ void hkUnionFind::addEdge(int a, int b) {
     }
 }
 
+// MATCH-ONLY: out-of-line call from assignGroups, and direct m_data access (no parentData helper inside the region).
+#pragma dont_inline on
 void hkUnionFind::collapseTree() {
     int* end;
     int* p;
-    p = parentData(m_parents);
+    p = ((int*)m_parents->m_data);
     end = p + m_parents->m_size;
     for (; p != end; p++) {
         if (*p >= 0) {
-            while (parentData(m_parents)[*p] >= 0) {
-                *p = parentData(m_parents)[*p];
+            while (((int*)m_parents->m_data)[*p] >= 0) {
+                *p = ((int*)m_parents->m_data)[*p];
             }
         }
     }
 }
+#pragma dont_inline reset
 
 void hkUnionFind::assignGroups(hkArrayBase& groupSizes) {
     collapseTree();

@@ -223,6 +223,22 @@ inline void SetMdlViewMtxSR(register math::MTX34* pViewPos,
  ******************************************************************************/
 namespace {
 
+// HYPOTHESIS: normalize that falls back to +Y when the input has a NaN
+// component or is zero (the target tests isnan on each component first).
+inline void VEC3NormalizeGuarded(math::VEC3* pVec) {
+    const math::VEC3 def(0.0f, 1.0f, 0.0f);
+    bool nanFlag = false;
+    if (isnan(pVec->x) || isnan(pVec->y) || isnan(pVec->z)) {
+        nanFlag = true;
+    }
+    const math::VEC3* pSrc = nanFlag ? &def : pVec;
+    *pVec = *pSrc;
+    const bool isZero = pSrc->x == 0.0f && pSrc->y == 0.0f && pSrc->z == 0.0f;
+    const math::VEC3* pFin = isZero ? &def : pVec;
+    *pVec = *pFin;
+    math::VEC3Normalize(pVec, pVec);
+}
+
 inline f32 GetMtx34Scale(const math::MTX34& rMtx, int col) {
     return math::FSqrt(rMtx.m[0][col] * rMtx.m[0][col] +
                        rMtx.m[1][col] * rMtx.m[1][col] +
@@ -238,7 +254,7 @@ void Calc_BILLBOARD_STD(math::MTX34* pViewPos,
 #pragma unused(mdl)
 
     math::VEC3 vy(pViewPos->_01, pViewPos->_11, 0.0f);
-    math::VEC3Normalize(&vy, &vy);
+    VEC3NormalizeGuarded(&vy);
 
     if (uniformScale) {
         f32 s = GetMtx34Scale(pModelMtxArray[id], 0);
@@ -263,10 +279,10 @@ void Calc_BILLBOARD_PERSP_STD(math::MTX34* pViewPos,
     math::VEC3 vy(pViewPos->_01, pViewPos->_11, pViewPos->_21);
     math::VEC3 vz(-pViewPos->_03, -pViewPos->_13, -pViewPos->_23);
 
-    math::VEC3Normalize(&vz, &vz);
+    VEC3NormalizeGuarded(&vz);
     math::VEC3Cross(&vx, &vy, &vz);
 
-    math::VEC3Normalize(&vx, &vx);
+    VEC3NormalizeGuarded(&vx);
     math::VEC3Cross(&vy, &vz, &vx);
 
     if (uniformScale) {
@@ -310,7 +326,7 @@ void Calc_BILLBOARD_ROT(math::MTX34* pViewPos,
         vy.z = 0.0f;
     }
 
-    math::VEC3Normalize(&vy, &vy);
+    VEC3NormalizeGuarded(&vy);
 
     if (uniformScale) {
         f32 s = GetMtx34Scale(pModelMtxArray[id], 0);
@@ -355,10 +371,10 @@ void Calc_BILLBOARD_PERSP_ROT(math::MTX34* pViewPos,
         vy.z = pModelMtxArray[id]._21;
     }
 
-    math::VEC3Normalize(&vz, &vz);
+    VEC3NormalizeGuarded(&vz);
     math::VEC3Cross(&vx, &vy, &vz);
 
-    math::VEC3Normalize(&vx, &vx);
+    VEC3NormalizeGuarded(&vx);
     math::VEC3Cross(&vy, &vz, &vx);
 
     if (uniformScale) {
@@ -388,7 +404,7 @@ void Calc_BILLBOARD_Y(math::MTX34* pViewPos, const math::MTX34* pModelMtxArray,
 
     vy *= invSY;
 
-    math::VEC3Normalize(&vx, &vx);
+    VEC3NormalizeGuarded(&vx);
     math::VEC3Cross(&vz, &vx, &vy);
 
     if (uniformScale) {
@@ -418,7 +434,7 @@ void Calc_BILLBOARD_PERSP_Y(math::MTX34* pViewPos,
     vy *= invSY;
     math::VEC3Cross(&vx, &vy, &vz);
 
-    math::VEC3Normalize(&vx, &vx);
+    VEC3NormalizeGuarded(&vx);
     math::VEC3Cross(&vz, &vx, &vy);
 
     if (uniformScale) {

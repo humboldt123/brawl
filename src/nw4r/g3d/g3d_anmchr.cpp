@@ -551,7 +551,7 @@ f32 AnmObjChrBlend::GetWeight(int idx) const {
  * AnmObjChrRes
  *
  ******************************************************************************/
-AnmObjChrRes* AnmObjChrRes::Construct(MEMAllocator* pAllocator, u32* pSize,
+AnmObjChrRes* AnmObjChrRes::Construct(MEMAllocator* pAllocator, int* pSize,
                                       ResAnmChr chr, ResMdl mdl, bool cache) {
     if (!chr.IsValid() || !mdl.IsValid()) {
         return NULL;

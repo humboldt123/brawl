@@ -36,7 +36,7 @@ class ResFile : public ResCommon<ResFileData> {
 public:
     NW4R_G3D_RESOURCE_FUNC_DEF(ResFile);
 
-    void Init();
+    static void Init(void* arg);
     void Terminate();
     bool CheckRevision() const;
 

@@ -76,7 +76,7 @@ public:
 
     void UpdateFrame();
 
-    void EnableScnMdlCallbackTiming(Timing timing);
+    void EnableScnMdlCallbackTiming(u32 timing);
     void DisableScnMdlCallbackTiming(Timing timing);
 
     math::MTX34* GetViewPosMtxArray();
