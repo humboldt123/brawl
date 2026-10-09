@@ -41,8 +41,6 @@ namespace nw4r {
 
             virtual void GetGlyph(Glyph* glyphPtr, CharCode c) const;
 
-            virtual bool HasGlyph(CharCode c) const;
-
             virtual FontEncoding GetEncoding() const;
 
         private:

@@ -55,8 +55,8 @@ namespace nw4r {
             virtual int GetCharWidth(u16 ch) const = 0;                        // at 0x48
             virtual const CharWidths GetCharWidths(u16 ch) const = 0;          // at 0x4C
             virtual void GetGlyph(Glyph* pGlyph, u16 ch) const = 0;            // at 0x50
-            virtual bool HasGlyph(CharCode c) const = 0;                       // at 0x54
-            virtual FontEncoding GetEncoding() const = 0;                      // at 0x58
+            // Brawl's font ABI predates the sibling library's HasGlyph virtual.
+            virtual FontEncoding GetEncoding() const = 0;                      // at 0x54
 
             void InitReaderFunc(FontEncoding);
 
