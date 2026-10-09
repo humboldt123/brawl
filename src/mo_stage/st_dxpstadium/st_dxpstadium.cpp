@@ -83,12 +83,13 @@ stDxPStadium::stDxPStadium() : stMelee("stDxPStadium", Stages::DxPStadium) {
     m_pickOrder[1] = 1;
     m_pickOrder[2] = 2;
     m_pickOrder[3] = 3;
+    u32 a, b;
     for (int i = 0; i < 32; i++) {
-        u32 a = randi(4);
+        a = randi(4);
         if (a >= 3) {
             a = 3;
         }
-        u32 b = randi(4);
+        b = randi(4);
         if (b >= 3) {
             b = 3;
         }
@@ -590,7 +591,8 @@ void stDxPStadium::update(float deltaFrame) {
             m_pickOrder[1] = 1;
             m_pickOrder[2] = 2;
             m_pickOrder[3] = 3;
-            for (int i = 0; i < 32; i++) {
+            int i;
+            for (i = 0; i < 32; i++) {
                 u32 a = randi(4);
                 if (a >= 3) {
                     a = 3;
