@@ -70,9 +70,9 @@ void ftYoshiStatusUniqProcessFinalCommon::execFixPosCounter(soModuleAccesser* ac
     Vec2f controllerSpeed = controller->getSpeed();
     if (acc->getSituationModule().getKind() == 0) {
         soGroundModule& ground = acc->getGroundModule();
-        bool attached = ground.attachGround(0);
+        bool groundAttached = ground.attachGround(0);
         bool keepGravity = false;
-        if (attached) {
+        if (groundAttached) {
             float threshold = soValueAccesser::getConstantFloat(acc, 0xC5F, 0);
             float stickY = acc->getControllerModule().getStickY();
             keepGravity = stickY < threshold;

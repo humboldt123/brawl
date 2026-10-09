@@ -387,6 +387,7 @@ public:
     void setSafePos(Vec2f* pos);
     void warp(Vec3f* pos);
     void setVanishMode(bool);
+    void setRenderPriority(u8 priority); // Added locally: sora_melee 0x28E7B4 (st_heal)
     bool sendTouchMessage(int taskId, Vec3f* pos, float);
 };
 static_assert(sizeof(BaseItem) == 0x3d60, "Class is wrong size!");

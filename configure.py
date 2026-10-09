@@ -492,7 +492,7 @@ config.libs = [
             Object(Matching, "nw4r/ut/ut_CharStrmReader.cpp"),
             Object(Matching, "nw4r/ut/ut_Font.cpp"),
             Object(Matching, "nw4r/ut/ut_ResFont.cpp"),
-            Object(NonMatching, "nw4r/lyt/lyt_resourceAccessor.cpp"),
+            Object(Matching, "nw4r/lyt/lyt_resourceAccessor.cpp"),
         ],
     },
     {
@@ -855,6 +855,7 @@ config.libs = [
             Object(Matching, "havok/hkString.cpp"),
             Object(Matching, "havok/hkMultiThreadLock.cpp"),
             Object(Matching, "havok/hkAabbClass.cpp"),
+            Object(NonMatching, "havok/hkMatrix3.cpp", extra_cflags=["-fp_contract on"]),
             Object(Matching, "havok/hkMotionStateClass.cpp"),
             Object(Matching, "havok/hkSweptTransformClass.cpp"),
             Object(Matching, "havok/hkCdBodyClass.cpp", extra_cflags=["-Cpp_exceptions on"]),
@@ -5156,7 +5157,10 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_battle/st_battlefield.cpp"),
+            Object(NonMatching, "mo_stage/st_battle/gr_battlefield.cpp"),
+        ],
     },
     {
         "lib": "st_battles",
@@ -5322,7 +5326,18 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_fzero/gr_fzero_trainer_warning.cpp"),
+            Object(NonMatching, "mo_stage/st_fzero/gr_fzero_bg.cpp"),
+            Object(NonMatching, "mo_stage/st_fzero/gr_fzero_startline.cpp"),
+            Object(NonMatching, "mo_stage/st_fzero/gr_fzero_platering.cpp"),
+            Object(NonMatching, "mo_stage/st_fzero/gr_fzero_ashiba.cpp"),
+            Object(NonMatching, "mo_stage/st_fzero/gr_fzero_car.cpp"),
+            Object(NonMatching, "mo_stage/st_fzero/gr_fzero_node.cpp"),
+            Object(NonMatching, "mo_stage/st_fzero/gr_fzero_wall.cpp"),
+            Object(NonMatching, "mo_stage/st_fzero/gr_fzero_attack.cpp"),
+            Object(NonMatching, "mo_stage/st_fzero/st_fzero.cpp"),
+        ],
     },
     {
         "lib": "st_greenhill",
@@ -5380,7 +5395,9 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_heal/st_heal.cpp"),
+        ],
     },
     {
         "lib": "st_homerun",

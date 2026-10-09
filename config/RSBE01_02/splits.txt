@@ -1099,6 +1099,9 @@ havok/hkMotionStateClass.cpp:
 	.rodata     start:0x8040F6E8 end:0x8040F868
 	.bss        start:0x805324D0 end:0x80532500
 
+havok/hkMatrix3.cpp:
+	.text       start:0x802829C4 end:0x80283ACC
+
 havok/hkSweptTransformClass.cpp:
 	.text       start:0x80285D40 end:0x80285DA4
 	.ctors      start:0x80406610 end:0x80406614
