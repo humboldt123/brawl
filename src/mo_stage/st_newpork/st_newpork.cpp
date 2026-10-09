@@ -178,7 +178,7 @@ stNewpork::stNewpork() : stMelee("stNewpork", Stages::NewPork), m_chimeraMtx(tru
 
 stNewpork::~stNewpork() {
     releaseArchive();
-    fn_8009EE60(&m_subject, -1);
+    __dt__9cmSubjectFv(&m_subject, -1);
 }
 
 bool stNewpork::loading() {

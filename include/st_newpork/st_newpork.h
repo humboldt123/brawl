@@ -28,15 +28,15 @@ public:
     virtual void preload() { }
 };
 
-// Unnamed camera helpers of the main binary (cmSubject::cmSubject(int, int) and cmSubject::~cmSubject(int)).
-extern "C" void fn_8009ED40(cmSubject* subject, int a, int b);
-extern "C" void fn_8009EE60(cmSubject* subject, int deleteFlag);
+// The destructor of cmSubject takes a hidden delete flag in the main binary (this, flag); the stage passes -1 to
+// destroy the member in place. The constructor is the real cmSubject(int kind, int flag) from cm/cm_subject.h.
+extern "C" void __dt__9cmSubjectFv(cmSubject* subject, int deleteFlag);
 
 // A camera subject that is built with the stage (the constructor of cmSubject is not in the headers). The stage
 // destroys it itself.
 class stNewporkSubject : public cmSubject {
 public:
-    stNewporkSubject() { fn_8009ED40(this, 0, 1); }
+    stNewporkSubject() : cmSubject(0, 1) { }
 };
 
 // One ground object of New Pork City. The stage builds eight of them from the "grNewpork*" models; the model index
