@@ -658,12 +658,12 @@ void stOrpheon::setJointCliff(bool enable) {
     for (u32 i = 0; i != collisionNum; i++) {
         grCollision* collision = getCollision(i);
         if (collision != NULL) {
-            u16 flags = 0;
+            u32 flags = 0;
             if (!enable) {
                 flags |= 0x6000;
             }
             u16 jointNum = collision->m_jointLen;
-            for (u16 j = 0; j != jointNum; j++) {
+            for (u32 j = 0; j != jointNum; j++) {
                 grCollisionJoint* joint = collision->getJoint(j);
                 if (joint != NULL) {
                     joint->m_0x52 = flags;
