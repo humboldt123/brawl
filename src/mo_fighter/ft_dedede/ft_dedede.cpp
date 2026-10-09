@@ -2,6 +2,8 @@
 #include <ft/ft_class_info_impl.h>
 #include <ft/dedede/ft_dedede.h>
 #include <ft/dedede/ft_dedede_extend_param_accesser.h>
+#include <ft/ft_kinetic_energy_controller.h>
+#include <so/so_value_accesser.h>
 
 #define FT_BC ftDededeBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
@@ -28,6 +30,24 @@ void testBuilder() {
     soResourceIdAccesserImpl idAccImpl(0, 1, 2);
 }
 soInsideEventManageModuleBuilder<ftDededeInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
+
+// Destructors whose bodies are empty; the compiler emits the deleting variants.
+#pragma dont_inline on
+soResourceIdAccesser::~soResourceIdAccesser() { }
+#pragma dont_inline off
+ftKineticEnergyController::~ftKineticEnergyController() { }
+#pragma dont_inline on
+ftVirtualNodeMatrixPool::~ftVirtualNodeMatrixPool() { }
+#pragma dont_inline off
+
+// ftDedede::notifyArticleEventRemove forwards to the StageObject version (tail call).
+extern "C" void fn_117_99E0(StageObject* self, int unk1, int* unk2) { self->StageObject::notifyArticleEventRemove(unk1, unk2); }
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
 
 // Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
 extern "C" {
