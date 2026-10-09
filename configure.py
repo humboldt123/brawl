@@ -5530,7 +5530,9 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_stadium/st_stadium.cpp"),
+        ],
     },
     {
         "lib": "st_stageedit",
