@@ -3,6 +3,7 @@
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
+#include <ft/ft_owner.h>
 #include <ft/robot/ft_robot.h>
 #include <ft/robot/ft_robot_extend_param_accesser.h>
 #include <ft/robot/ft_robot_link_event.h>
@@ -340,7 +341,7 @@ void ftRobot::onStart(int param) {
     m_moduleAccesser->getEffectModule().removeCommon(0x1a);
     m_moduleAccesser->getEffectModule().removeCommon(0x26);
     m_moduleAccesser->getEffectModule().removeCommon(0x25);
-    if ((u32)(param - 4) < 2) {
+    if ((u32)(param - 4) <= 1) {
         m_moduleAccesser->getWorkManageModule().onFlag(0x12000047);
     } else {
         m_moduleAccesser->getWorkManageModule().offFlag(0x12000047);
@@ -393,7 +394,7 @@ struct ftRobotSealInfo {
 void ftRobot::analyzeSeal(void* sealInfo) {
     ftRobotSealInfo* info = static_cast<ftRobotSealInfo*>(sealInfo);
     if (info->kind == 0x3f) {
-        s32 generation = (s32)(info->amount * 0.5f);
+        s32 generation = (s32)(info->amount / 2.0f);
         m_moduleAccesser->getWorkManageModule().setInt(generation, 0x10000044);
     }
 }
@@ -415,74 +416,71 @@ void ftRobot::processFixPosition() {
     Fighter::processFixPosition();
 }
 
-// HYPOTHESIS: the statuses that cut the Final Smash beam short (hit reactions, knockdowns, grabs, ...).
-static bool ftRobotIsFinalInterruptStatus(int status) {
-    switch (status) {
-    case 0x3d:
-    case 0x3e:
-    case 0x3f:
-    case 0x40:
-    case 0x41:
-    case 0x42:
-    case 0x43:
-    case 0x44:
-    case 0x45:
-    case 0x46:
-    case 0x47:
-    case 0x48:
-    case 0x49:
-    case 0x5c:
-    case 0x5d:
-    case 0x5e:
-    case 0x6e:
-    case 0x6f:
-    case 0x70:
-    case 0xbd:
-    case 0xcc:
-    case 0xcd:
-    case 0xce:
-    case 0xcf:
-    case 0xd0:
-    case 0xd1:
-    case 0xd2:
-    case 0xd3:
-    case 0xd4:
-    case 0xd5:
-    case 0xd6:
-    case 0xd7:
-    case 0xd8:
-    case 0xd9:
-    case 0xda:
-    case 0xdb:
-    case 0xe6:
-    case 0xe7:
-    case 0xe8:
-    case 0xe9:
-    case 0xea:
-    case 0xeb:
-    case 0xec:
-    case 0xed:
-    case 0xee:
-    case 0xef:
-    case 0xf0:
-        return true;
-    default:
-        return false;
-    }
-}
-
 void ftRobot::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* acc) {
     if (acc->getWorkManageModule().isFlag(0x12000042)) {
-        soGenerateArticleManageModule& articles = ftRobotGetArticleModule(acc);
-        acc->getCollisionHitModule().setWhole(2, 0);
-        if (ftRobotIsFinalInterruptStatus(statusKind)) {
+        const soModuleEnumeration* modules = acc->m_enumerationStart;
+        soGenerateArticleManageModule& articles = *static_cast<soGenerateArticleManageModule*>(modules->m_generateArticleManageModule);
+        modules->m_collisionHitModule->setWhole(2, 0);
+        // Damage, capture and related interruptions remove the Final Smash beam.
+        switch (statusKind) {
+        case 0x3d:
+        case 0x3e:
+        case 0x3f:
+        case 0x40:
+        case 0x41:
+        case 0x42:
+        case 0x43:
+        case 0x44:
+        case 0x45:
+        case 0x46:
+        case 0x47:
+        case 0x48:
+        case 0x49:
+        case 0x5c:
+        case 0x5d:
+        case 0x5e:
+        case 0x6e:
+        case 0x6f:
+        case 0x70:
+        case 0xbd:
+        case 0xcc:
+        case 0xcd:
+        case 0xce:
+        case 0xcf:
+        case 0xd0:
+        case 0xd1:
+        case 0xd2:
+        case 0xd3:
+        case 0xd4:
+        case 0xd5:
+        case 0xd6:
+        case 0xd7:
+        case 0xd8:
+        case 0xd9:
+        case 0xda:
+        case 0xdb:
+        case 0xe6:
+        case 0xe7:
+        case 0xe8:
+        case 0xe9:
+        case 0xea:
+        case 0xeb:
+        case 0xec:
+        case 0xed:
+        case 0xee:
+        case 0xef:
+        case 0xf0:
             articles.removeExist(3, 0);
             acc->getControllerModule().stopRumbleKind(2, 8);
-        } else if (articles.isGeneratable(3)) {
-            soArticle* beam = articles.generate(3, NULL, NULL);
-            if (!beam->isNull()) {
-                articles.entry(beam);
+            break;
+        default:
+            if (articles.isGeneratable(3)) {
+                soArticle* beam = articles.generate(3, NULL, NULL);
+                if (!beam->isNull()) {
+                    articles.entry(beam);
+                }
             }
+            break;
         }
     }
     Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, acc);
@@ -515,7 +513,7 @@ void ftRobot::notifyEventChangeSituation(SituationKind kind, SituationKind prevK
 
 bool ftRobot::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, int index) {
     bool result;
-    char group = cmd->getGroup();
+    s8 group = cmd->getGroup();
     if (!isObserv(group)) {
         result = false;
     } else {
@@ -624,31 +622,15 @@ soStatusModuleImpl::~soStatusModuleImpl() { }
 soResourceIdAccesser::~soResourceIdAccesser() { }
 #pragma dont_inline off
 
-// Shared owner/weapon methods are absent from the SDK declarations. These ABI
-// declarations preserve the observed PPC arguments until their classes are complete.
-extern "C" s32 ftRobotOwnerGetTeam(ftOwner* owner);
-extern "C" void ftRobotActivateGyro(wnRobotGyro* weapon, s32 founderTaskId,
-                                   u32 resourceId, s32 team, const Vec3f* position,
-                                   float lr, float power);
-
-// The original Fighter owner getter uses slot 0x2EC of the primary vtable
-// at +0x3C; the SDK declaration currently places getOwner at +0x2F0.
-static ftOwner* ftRobotGetFounderOwner(Fighter* fighter) {
-    typedef ftOwner* (*GetOwner)(Fighter*);
-    void** table = *reinterpret_cast<void***>(reinterpret_cast<u8*>(fighter) + 0x3C);
-    GetOwner getter = reinterpret_cast<GetOwner>(table[0x2EC / sizeof(void*)]);
-    return getter(fighter);
-}
-
 bool ftRobotArticleActivator<wnRobotGyro>::activate(wnRobotGyro* weapon, soModuleAccesser* acc) {
     Fighter& founder = dynamic_cast<Fighter&>(*acc->m_stageObject);
+    const soModuleEnumeration* modules = acc->m_enumerationStart;
+    soPostureModule& posture = *modules->m_postureModule;
+    soResourceModule& resources = *modules->m_resourceModule;
     s32 founderTaskId = founder.m_taskId;
-    float power = acc->getWorkManageModule().getFloat(0x11000014);
-    float lr = acc->getPostureModule().getLr();
-    Vec3f position(0.0f, 0.0f, 0.0f);
-    s32 team = ftRobotOwnerGetTeam(ftRobotGetFounderOwner(&founder));
-    u32 resourceId = acc->getResourceModule().getResourceIdAccesser()->getMdlResId();
-    ftRobotActivateGyro(weapon, founderTaskId, resourceId, team, &position, lr, power);
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlResId(),
+                     founder.getOwner()->getTeam(), Vec3f(0.0f, 0.0f, 0.0f),
+                     posture.getLr(), modules->m_workManageModule->getFloat(0x11000014));
     return true;
 }
 
@@ -669,29 +651,18 @@ public:
     virtual void reserved0C();
     virtual ftRobotTeamAbiView* getTeam(); // +0x10
 };
-static s32 ftRobotGetModuleTeam(soModuleAccesser* acc) {
-    ftRobotTeamModuleAbiView* module =
-        reinterpret_cast<ftRobotTeamModuleAbiView*>(acc->m_enumerationStart->m_teamModule);
-    return module->getTeam()->getTeam();
-}
-extern "C" u32 ftRobotOwnerGetFighterColor(ftOwner* owner);
-extern "C" void ftRobotActivateGyroHolder(wnRobotGyroHolder* weapon, s32 founderTaskId,
-                                         u32 resourceId, s32 team, const Vec3f* position,
-                                         SituationKind situation, float lr);
-extern "C" void ftRobotActivateFinalBeam(wnRobotFinalBeam* weapon, s32 founderTaskId,
-                                        u32 resourceId, s32 team, const Vec3f* position,
-                                        s32 count, s32 selection, float lr);
-
 bool ftRobotArticleActivator<wnRobotGyroHolder>::activate(wnRobotGyroHolder* weapon, soModuleAccesser* acc) {
     Fighter& founder = dynamic_cast<Fighter&>(*acc->m_stageObject);
-    (void)ftRobotOwnerGetFighterColor(ftRobotGetFounderOwner(&founder));
+    (void)founder.getOwner()->getFighterColor();
+    const soModuleEnumeration* modules = acc->m_enumerationStart;
+    soPostureModule& posture = *modules->m_postureModule;
+    void* teamModule = modules->m_teamModule;
+    soResourceModule& resources = *modules->m_resourceModule;
     s32 founderTaskId = acc->m_stageObject->m_taskId;
-    SituationKind situation = acc->getSituationModule().getKind();
-    Vec3f position(0.0f, 0.0f, 0.0f);
-    float lr = acc->getPostureModule().getLr();
-    s32 team = ftRobotGetModuleTeam(acc);
-    u32 resourceId = acc->getResourceModule().getResourceIdAccesser()->getMdlResId();
-    ftRobotActivateGyroHolder(weapon, founderTaskId, resourceId, team, &position, situation, lr);
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlResId(),
+                     reinterpret_cast<ftRobotTeamModuleAbiView*>(teamModule)->getTeam()->getTeam(),
+                     posture.getLr(), Vec3f(0.0f, 0.0f, 0.0f),
+                     modules->m_situationModule->getKind());
     return true;
 }
 
@@ -705,20 +676,27 @@ bool ftRobotArticleActivator<wnRobotFinalBeam>::activate(wnRobotFinalBeam* weapo
             acc->getControllerModule().setRumble(2, 0, false, 8);
         }
     }
+    const soModuleEnumeration* modules = acc->m_enumerationStart;
+    void* teamModule = modules->m_teamModule;
+    soResourceModule& resources = *modules->m_resourceModule;
     s32 founderTaskId = acc->m_stageObject->m_taskId;
     s32 count = soValueAccesser::getConstantInt(acc, 0x5DCB, 0);
-    s32 team = ftRobotGetModuleTeam(acc);
-    u32 resourceId = acc->getResourceModule().getResourceIdAccesser()->getEtcResId();
-    ftRobotActivateFinalBeam(weapon, founderTaskId, resourceId, team, &position, count, selection, lr);
+    s32 team = reinterpret_cast<ftRobotTeamModuleAbiView*>(teamModule)->getTeam()->getTeam();
+    u32 resourceId = resources.getResourceIdAccesser()->getEtcResId();
+    weapon->activate(founderTaskId, resourceId, team, &position, lr, count, selection);
     return true;
 }
 
+// MATCH-ONLY: the native singleton addresses its guard, instance and destructor
+// registration separately rather than pooling them into one BSS base.
+#pragma pool_data off
 #pragma dont_inline on
 ftRobotTransactor* ftRobotTransactor::getInstance() {
     static ftRobotTransactor instance;
     return &instance;
 }
 #pragma dont_inline off
+#pragma pool_data reset
 
 // Link event payload for the Final Smash articles: a kind and a result byte the receiver may set (HYPOTHESIS).
 struct ftRobotFinalLinkEvent : soLinkEventArgs {
@@ -730,13 +708,16 @@ struct ftRobotFinalLinkEvent : soLinkEventArgs {
 // article is started once the opening animation raises flag 0x12000044, then the volleys follow until the timer
 // (int 0x10000042) runs out.
 void ftRobot::updateFinal(soModuleAccesser* acc) {
-    soGenerateArticleManageModule& articles = ftRobotGetArticleModule(acc);
-    acc->getDamageModule().setReactionMul(soValueAccesser::getConstantFloat(acc, 0xfd4, 0));
+    const soModuleEnumeration* modules = acc->m_enumerationStart;
+    soGenerateArticleManageModule& articles = *static_cast<soGenerateArticleManageModule*>(modules->m_generateArticleManageModule);
+    soDamageModule& damage = *modules->m_damageModule;
+    damage.setReactionMul(soValueAccesser::getConstantFloat(acc, 0xfd4, 0));
     acc->getCollisionHitModule().setWhole(2, 0);
     if (acc->getWorkManageModule().isFlag(0x12000043) && acc->getWorkManageModule().getInt(0x10000042) > 0) {
         acc->getWorkManageModule().subInt(1, 0x10000042);
+        soWorkManageModule& timerWork = acc->getWorkManageModule();
         int cueFrames = soValueAccesser::getConstantInt(acc, 0x5dca, 0);
-        if (acc->getWorkManageModule().getInt(0x10000042) <= cueFrames && !acc->getWorkManageModule().isFlag(0x12000046)) {
+        if (timerWork.getInt(0x10000042) <= cueFrames && !acc->getWorkManageModule().isFlag(0x12000046)) {
             acc->getWorkManageModule().onFlag(0x12000046);
             acc->getEffectModule().reqCommon(0.0f, 0x25);
         }

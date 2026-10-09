@@ -42,6 +42,8 @@ class wnRobotGyro : public Weapon {
 public:
     wnRobotGyro(s32 articleId, const ftRobotArticleConstructionInfo& info, void* data);
     virtual ~wnRobotGyro();
+    // HYPOTHESIS: source reference spelling; the callee reads all three position components.
+    void activate(s32 founderTaskId, u32 resourceId, s32 team, const Vec3f& position, float lr, float power);
 };
 #include <wn/robot/wn_robot_beam.h>
 class wnRobotGyroHolder : public Weapon {
@@ -49,12 +51,17 @@ class wnRobotGyroHolder : public Weapon {
 public:
     wnRobotGyroHolder(s32 articleId, const ftRobotArticleConstructionInfo& info, void* data);
     virtual ~wnRobotGyroHolder();
+    // HYPOTHESIS: source reference spelling, as for the Gyro activation above.
+    void activate(s32 founderTaskId, u32 resourceId, s32 team, float lr, const Vec3f& position,
+                  SituationKind situation);
 };
 class wnRobotFinalBeam : public Weapon {
     u8 m_unreconstructed[0x220c - sizeof(Weapon)];
 public:
     wnRobotFinalBeam(s32 articleId, const ftRobotArticleConstructionInfo& info, void* data);
     virtual ~wnRobotFinalBeam();
+    void activate(s32 founderTaskId, u32 resourceId, s32 team, const Vec3f* position, float lr,
+                  s32 count, s32 selection);
 };
 static_assert(sizeof(wnRobotGyro) == 0x2030, "Gyro layout is wrong!");
 static_assert(sizeof(wnRobotGyroHolder) == 0x1bfc, "Gyro holder layout is wrong!");
