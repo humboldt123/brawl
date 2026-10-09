@@ -29,7 +29,6 @@ namespace nw4r {
                 virtual int GetCharWidth(CharCode c) const;
                 virtual const CharWidths GetCharWidths(CharCode c) const;
                 virtual void GetGlyph(Glyph* glyph, CharCode c) const;
-                virtual bool HasGlyph(CharCode c) const;
                 virtual FontEncoding GetEncoding() const;
 
                 void SetResourceBuffer(void*, FontInformation*);
@@ -47,6 +46,9 @@ namespace nw4r {
 
                 void* mResource;
                 FontInformation* mFontInfo;
+                // Brawl caches the last code-to-glyph lookup, including misses.
+                mutable CharCode mCachedCharCode;
+                mutable u16 mCachedGlyphIndex;
             };
         };  // namespace detail
 

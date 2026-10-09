@@ -489,9 +489,9 @@ config.libs = [
         "host": False,
         "objects": [
             Object(Matching, "nw4r/ut/ut_binaryFileFormat.cpp"),
-            Object(NonMatching, "nw4r/ut/ut_CharStrmReader.cpp"),
-            Object(NonMatching, "nw4r/ut/ut_Font.cpp"),
-            Object(NonMatching, "nw4r/ut/ut_ResFont.cpp"),
+            Object(Matching, "nw4r/ut/ut_CharStrmReader.cpp"),
+            Object(Matching, "nw4r/ut/ut_Font.cpp"),
+            Object(Matching, "nw4r/ut/ut_ResFont.cpp"),
             Object(Matching, "nw4r/lyt/lyt_resourceAccessor.cpp"),
         ],
     },
