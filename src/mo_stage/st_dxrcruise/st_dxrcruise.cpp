@@ -11,6 +11,7 @@
 #include <memory.h>
 #include <mt/mt_prng.h>
 #include <nw4r/g3d/g3d_resfile.h>
+#include <nw4r/math/math_arithmetic.h>
 #include <nw4r/math/math_triangular.h>
 #include <st/st_class_info.h>
 #include <st/st_melee.h>
@@ -56,8 +57,8 @@ static inline grCruiseMadein* cruiseGround(stDxCruise* stage, int index) {
 }
 
 static inline float stCruiseClamp(float lo, float hi, float value) {
-    float v = __fsel(value - lo, value, lo);
-    return __fsel(v - hi, hi, v);
+    value = nw4r::math::FSelect(value - lo, value, lo);
+    return nw4r::math::FSelect(value - hi, hi, value);
 }
 
 stClassInfoImpl<Stages::DxCruise, stDxCruise> stDxCruise::bss_loc_14;
@@ -484,8 +485,8 @@ void stDxCruise::updateAI(float deltaFrame) {
     Ground* ground = getGround(1);
     if (ground != NULL) {
         CameraController* camera = CameraController::getInstance();
-        Vec3f cornerA;
         Vec3f cornerB;
+        Vec3f cornerA;
         cornerA.m_x = camera->unk158;
         cornerA.m_y = camera->unk160;
         cornerA.m_z = 0.0f;
@@ -493,8 +494,8 @@ void stDxCruise::updateAI(float deltaFrame) {
         cornerB.m_y = camera->unk164;
         cornerB.m_z = 0.0f;
         float frame = ground->getMotionFrame(0);
-        Vec2f zoneMin;
         Vec2f zoneMax;
+        Vec2f zoneMin;
         if (frame > 1800.0f && frame < 2450.0f) {
             float t = stCruiseClamp(0.0f, 1.0f, (frame - 1800.0f) / 400.0f);
             float s = nw4r::math::SinIdx((u16)(16384.0f * t));
@@ -593,7 +594,7 @@ void stDxCruise::Seasaw() {
     switch (m_seesawState) {
         case 0:
             if (m_count == 0) {
-                float dir;
+                int dir;
                 if (angle < 0.0f) {
                     dir = 1;
                 } else {
@@ -622,7 +623,7 @@ void stDxCruise::Seasaw() {
         case 1:
             if (m_settleFrames == 0) {
                 if (m_count == 0) {
-                    float dir;
+                    int dir;
                     if (angle < 0.0f) {
                         dir = 1;
                     } else {
@@ -646,11 +647,12 @@ void stDxCruise::Seasaw() {
             }
             break;
     }
-    m_seesawAngle = m_seesawAngle + m_seesawSpeed;
+    float newAngle = m_seesawAngle + m_seesawSpeed;
+    m_seesawAngle = newAngle;
     Vec3f rot;
     rot.m_x = 0.0f;
     rot.m_y = 0.0f;
-    rot.m_z = m_seesawAngle;
+    rot.m_z = newAngle;
     static_cast<grGimmick*>(getGround(9))->setRot(&rot);
     static_cast<grGimmick*>(getGround(10))->setRot(&rot);
     static_cast<grGimmick*>(getGround(11))->setRot(&rot);
