@@ -33,6 +33,7 @@
 //   0x802DD520    80  __sinit_\hkGenericConstraintData_cpp   [map: hkGenericConstraintDatacpp____sinit_]
 
 #include <havok/hkGenericConstraintData.h>
+#include <havok/hkMath.h>
 
 // Stand-in for a helper in another TU (not yet named).
 extern "C" void fn_80288B40(void* a, void* b, u32 c, u32 d);
@@ -90,9 +91,27 @@ void hkGenericConstraintData::getRuntimeInfo(void* unusedA, hkConstraintRuntimeI
 }
 
 void hkGenericConstraintData::buildJacobian(void* a, void* b) {
-    u32 n = *(u32*)((u8*)a + 0x44);
-    fn_80288B40(a, b, n, 8);
+    fn_80288B40(a, b, *(u32*)((u8*)a + 0x44), 8);
     hatchScheme(&m_scheme, a, b);
+}
+
+// this = R * v (rotation columns are 0x10 apart; the w lane is the constant 0). Same shape as hkSolver's _setMul3.
+void hkVector4::setRotatedDir(const hkRotation& r, const hkVector4& v) {
+    const hkVector4* c = (const hkVector4*)&r;
+    set(c[0].x * v.x + c[1].x * v.y + c[2].x * v.z, c[0].y * v.x + c[1].y * v.y + c[2].y * v.z,
+        c[0].z * v.x + c[1].z * v.y + c[2].z * v.z, 0.0f);
+}
+
+// HYPOTHESIS: the two axis indices come from a lookup table (values unknown); the result is atan2 of two dot products.
+float hkGenericConstraintDataParameters::calcDeltaAngleAroundAxis(int axis, const u8* base) {
+    static const int s_axisTable[] = {1, 2, 0, 1, 2};
+    const u8* e1 = base + s_axisTable[axis + 1] * 0x10;
+    const u8* e2 = base + s_axisTable[axis + 2] * 0x10;
+    float a = *(float*)(e2 + 0x84) * *(float*)(e1 + 0x54) + *(float*)(e2 + 0x80) * *(float*)(e1 + 0x50) +
+              *(float*)(e2 + 0x88) * *(float*)(e1 + 0x58);
+    float b = *(float*)(e1 + 0x84) * *(float*)(e1 + 0x54) + *(float*)(e1 + 0x80) * *(float*)(e1 + 0x50) +
+              *(float*)(e1 + 0x88) * *(float*)(e1 + 0x58);
+    return hkMathTypes::hkMath_atan2fApproximation(a, b);
 }
 
 hkGenericConstraintDataParameters::hkGenericConstraintDataParameters() {

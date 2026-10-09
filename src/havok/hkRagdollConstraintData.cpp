@@ -13,6 +13,9 @@
 //   0x80325F8C    80  __sinit_\hkRagdollConstraintData_cpp   [map: hkRagdollConstraintDatacpp____sinit_]
 #include <havok/hkRagdollConstraintData.h>
 
+// HYPOTHESIS: hkRotation::isOrthonormal (hkRotation.cpp, map fn_80285B30) returns an hkBool, read through its byte.
+extern "C" hkBool fn_80285B30(const hkMatrix3* m, float tolerance);
+
 // Constraint info block copied from the data at 0x10 (0x12A bytes). Helper lives in another TU.
 extern "C" void fn_802DE264(void* begin, u32 size, hkConstraintInfo* info);
 
@@ -32,7 +35,9 @@ const void* hkRagdollConstraintData::getVtablehkRagdollConstraintData() {
 
 hkRagdollConstraintData::~hkRagdollConstraintData() {
     for (int i = 0; i < 3; i++) {
-        ((hkReferencedObject*)m_motors[i])->removeReference();
+        if (m_motors[i]) {
+            ((hkReferencedObject*)m_motors[i])->removeReference();
+        }
     }
 }
 
@@ -105,6 +110,39 @@ void hkRagdollConstraintData::getConstraintFrameB(hkMatrix3* out) const {
     out->elements[10] = t;
     t = m_constraintFrameB.elements[11];
     out->elements[11] = t;
+}
+
+// HYPOTHESIS: validity chain. Each test runs only when the previous one passed; the tolerances are unknown.
+hkBool hkRagdollConstraintData::isValid() const {
+    bool ok = false;
+    if (fn_80285B30(&m_constraintFrameA, 0.0f).m_bool) {
+        ok = true;
+    }
+    bool okB = false;
+    if (ok && fn_80285B30(&m_constraintFrameB, 0.0f).m_bool) {
+        okB = true;
+    }
+    bool okC = false;
+    if (okB && m_unk118 == 0.0f) {
+        okC = true;
+    }
+    bool okD = false;
+    if (okC && m_unk11C >= 0.0f) {
+        okD = true;
+    }
+    bool okE = false;
+    if (okD && m_unk11C < 1.0f) {
+        okE = true;
+    }
+    bool okF = false;
+    if (okE && m_unk12C <= m_unk130) {
+        okF = true;
+    }
+    bool okG = false;
+    if (okF && m_unk104 <= m_unk108) {
+        okG = true;
+    }
+    return okG;
 }
 
 u32 hkRagdollConstraintData::getType() const {

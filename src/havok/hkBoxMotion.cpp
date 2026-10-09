@@ -39,11 +39,23 @@ hkBoxMotion::hkBoxMotion(const hkVector4& position, const hkQuaternion& rotation
 extern "C" void changeBasis__9hkMatrix3FRC10hkRotation(hkMatrix3* self, const hkRotation& basis);
 
 void hkBoxMotion::getInertiaLocal(hkMatrix3& out) const {
-    // Three columns of four floats; the diagonal holds the inertia (1 / inverse inertia).
-    hkVector4* cols = (hkVector4*)&out;
-    cols[0].set(1.0f / m_inertiaAndMassInv.x, 0.0f, 0.0f, 0.0f);
-    cols[1].set(0.0f, 1.0f / m_inertiaAndMassInv.y, 0.0f, 0.0f);
-    cols[2].set(0.0f, 0.0f, 1.0f / m_inertiaAndMassInv.z, 0.0f);
+    // Three diagonal entries (1 / inverse inertia) on zeroed off-diagonal lanes.
+    float* m = matrixElements(out);
+    float ix = 1.0f / m_inertiaAndMassInv.x;
+    float iy = 1.0f / m_inertiaAndMassInv.y;
+    float iz = 1.0f / m_inertiaAndMassInv.z;
+    m[0] = ix;
+    m[1] = 0.0f;
+    m[2] = 0.0f;
+    m[3] = 0.0f;
+    m[4] = 0.0f;
+    m[5] = iy;
+    m[6] = 0.0f;
+    m[7] = 0.0f;
+    m[8] = 0.0f;
+    m[9] = 0.0f;
+    m[10] = iz;
+    m[11] = 0.0f;
 }
 
 void hkBoxMotion::setInertiaLocal(const hkMatrix3& in) {

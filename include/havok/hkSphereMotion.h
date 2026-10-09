@@ -19,6 +19,7 @@ struct hkSphereMotion : hkMotion {
     virtual void setInertiaInvLocal(const hkMatrix3& in);               // 0x24
     virtual void getInertiaInvLocal(hkMatrix3& out) const;              // 0x28
     virtual void getInertiaInvWorld(hkMatrix3& out) const;              // 0x2C
+    virtual void applyPointImpulse(const hkVector4& impulse, const hkVector4& point); // 0x50
     virtual void applyAngularImpulse(const hkVector4& impulse);         // 0x54
     virtual void applyForce(hkReal timestep, const hkVector4& force);   // 0x58 HYPOTHESIS
     virtual void applyForce(hkReal timestep, const hkVector4& force, const hkVector4& point); // 0x5C HYPOTHESIS

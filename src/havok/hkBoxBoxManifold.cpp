@@ -22,8 +22,9 @@ int hkBoxBoxManifold::addPoint(int unk4, int unk8, const Point* key) {
         return -1;
     }
     s8 found = 0;
-    for (int i = count - 1; i >= 0; i--) {
-        if (key->unk0 == m_points[i].unk0 && key->unk1 == m_points[i].unk1) {
+    const Point* p = &m_points[count - 1];
+    for (int i = count - 1; i >= 0; i--, p--) {
+        if (key->unk0 == p->unk0 && key->unk1 == p->unk1) {
             found = 1;
             break;
         }
@@ -31,14 +32,15 @@ int hkBoxBoxManifold::addPoint(int unk4, int unk8, const Point* key) {
     if (found) {
         return -1;
     }
-    if (count >= 8) {
+    if (count < 8) {
+        m_points[count].unk0 = key->unk0;
+        Point* dst = &m_points[count];
+        dst->unk1 = key->unk1;
+        dst->unk2 = key->unk2;
+        m_numPoints++;
+    } else {
         return -1;
     }
-    m_points[count].unk0 = key->unk0;
-    Point* dst = &m_points[count];
-    dst->unk1 = key->unk1;
-    dst->unk2 = key->unk2;
-    m_numPoints++;
     return count;
 }
 
@@ -46,7 +48,8 @@ void hkBoxBoxManifold::removePoint(int index) {
     int last = m_numPoints - 1;
     m_complete = hkBool(false);
     m_points[index].unk0 = m_points[last].unk0;
-    m_points[index].unk1 = m_points[last].unk1;
-    m_points[index].unk2 = m_points[last].unk2;
+    Point* src = &m_points[last];
+    m_points[index].unk1 = src->unk1;
+    m_points[index].unk2 = src->unk2;
     m_numPoints--;
 }

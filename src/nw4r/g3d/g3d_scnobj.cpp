@@ -300,9 +300,9 @@ bool ScnObj::SetBoundingVolume(ScnObjBoundingVolumeType type,
         if (type < BOUNDINGVOLUME_MAX) {
             mAABB[type] = *pAABB;
             return SetScnObjOption(OPTID_ENABLE_CULLING, TRUE);
+        } else {
+            return false;
         }
-
-        return false;
     }
 
     return SetScnObjOption(OPTID_ENABLE_CULLING, FALSE);
@@ -704,3 +704,42 @@ ScnGroup::~ScnGroup() {
 
 } // namespace g3d
 } // namespace nw4r
+
+// Free helpers. The original emits these as global functions; the names are
+// the map symbols and are not swapped by intent: the 0xD8 byte is mCallbackTiming
+// and the 0xDA halfword is mCallbackExecOpMask, as declared in the class.
+void ScnObj_EnableCallbackExecOp(nw4r::g3d::ScnObj* pObj, u32 flag) {
+    if (flag & nw4r::g3d::ScnObj::CALLBACK_TIMING_A) {
+        pObj->mCallbackTiming |= nw4r::g3d::ScnObj::CALLBACK_TIMING_A;
+    }
+
+    if (flag & nw4r::g3d::ScnObj::CALLBACK_TIMING_B) {
+        pObj->mCallbackTiming |= nw4r::g3d::ScnObj::CALLBACK_TIMING_B;
+    }
+
+    if (flag & nw4r::g3d::ScnObj::CALLBACK_TIMING_C) {
+        pObj->mCallbackTiming |= nw4r::g3d::ScnObj::CALLBACK_TIMING_C;
+    }
+}
+
+void ScnObj_DisableCallbackExecOp(nw4r::g3d::ScnObj* pObj, u32 flag) {
+    if (flag & nw4r::g3d::ScnObj::CALLBACK_TIMING_A) {
+        pObj->mCallbackTiming &= ~nw4r::g3d::ScnObj::CALLBACK_TIMING_A;
+    }
+
+    if (flag & nw4r::g3d::ScnObj::CALLBACK_TIMING_B) {
+        pObj->mCallbackTiming &= ~nw4r::g3d::ScnObj::CALLBACK_TIMING_B;
+    }
+
+    if (flag & nw4r::g3d::ScnObj::CALLBACK_TIMING_C) {
+        pObj->mCallbackTiming &= ~nw4r::g3d::ScnObj::CALLBACK_TIMING_C;
+    }
+}
+
+void ScnObj_EnableCallbackTiming(nw4r::g3d::ScnObj* pObj, u32 flag) {
+    pObj->mCallbackExecOpMask |= static_cast<u16>(flag);
+}
+
+void ScnObj_DisableCallbackTiming(nw4r::g3d::ScnObj* pObj, u32 flag) {
+    pObj->mCallbackExecOpMask &= ~static_cast<u16>(flag);
+}

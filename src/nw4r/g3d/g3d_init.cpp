@@ -5,6 +5,9 @@
 #include <revolution/OS.h>
 #include <revolution/VI.h>
 
+// Global wrapper in the original; defined in g3d_state.cpp.
+void G3DState_Invalidate(u32 flag);
+
 namespace {
 
 NW4R_LIB_VERSION(G3D, "Jun  8 2007", "11:16:25", "0x4199_60831");
@@ -57,7 +60,7 @@ void G3dInit(bool enableLockedCache) {
 }
 
 void G3dReset() {
-    G3DState::Invalidate();
+    G3DState_Invalidate(G3DState::INVALIDATE_ALL);
 }
 
 } // namespace g3d

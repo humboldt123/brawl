@@ -68,6 +68,22 @@ int hkCylinderShape::getType() const {
     return HK_SHAPE_CYLINDER;
 }
 
+// Statistics collector slots used by calcStatistics (vtable offsets 0x0C and 0x20).
+struct hkStatisticsCollectorIface {
+    virtual void unk00();
+    virtual void addObject(const char* name, int count, const void* object); // 0x0C
+    virtual void unk10();
+    virtual void unk14();
+    virtual void unk18();
+    virtual void unk1C();
+    virtual void unk20();                                                    // 0x20
+};
+
+void hkCylinderShape::calcStatistics(hkStatisticsCollector* collector) const {
+    ((hkStatisticsCollectorIface*)collector)->addObject("Cylinder", 1, this);
+    ((hkStatisticsCollectorIface*)collector)->unk20();
+}
+
 // Not yet decompiled in this unit:
 //   0x802D2714   132  minValueRoundedUpTo1   [map: hkCylinderShape__minValueRoundedUpTo1]
 //   0x802D2798     4  assertRoundUpThreshold   [map: hkCylinderShape__assertRoundUpThreshold]

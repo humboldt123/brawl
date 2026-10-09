@@ -80,7 +80,7 @@ public:
     void GXSetTevKColorSel(GXTevStageID stage, GXTevKColorSel sel);
     void GXSetTevKAlphaSel(GXTevStageID stage, GXTevKAlphaSel sel);
     void GXSetTevOrder(GXTevStageID stage, GXTexCoordID coord, GXTexMapID map,
-                       GXChannelID channel);
+                       GXChannelID channel) __attribute__((never_inline));
     bool GXGetTevColorIn(GXTevStageID stage, GXTevColorArg* pA,
                          GXTevColorArg* pB, GXTevColorArg* pC,
                          GXTevColorArg* pD) const;

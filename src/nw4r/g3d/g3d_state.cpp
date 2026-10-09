@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <cstring>
 
+// Global wrapper in the original (symbol G3DState_Invalidate__FUl); defined at end of this file.
+void G3DState_Invalidate(u32 flag);
+
 namespace nw4r {
 namespace g3d {
 namespace detail {
@@ -1922,54 +1925,7 @@ const GXRenderModeObj* GetRenderModeObj() {
 }
 
 void Invalidate(u32 flag) {
-    if (flag & INVALIDATE_TEX) {
-        sTex.Invalidate();
-        sTexCoordScale.Invalidate();
-    }
-
-    if (flag & INVALIDATE_TLUT) {
-        sTlut.Invalidate();
-    }
-
-    if (flag & INVALIDATE_TEV) {
-        sTexCoordScale.Invalidate();
-        sTev.Invalidate();
-    }
-
-    if (flag & INVALIDATE_GENMODE) {
-        sGenMode2.Invalidate();
-    }
-
-    if (flag & INVALIDATE_SHP) {
-        sShp.Invalidate();
-    }
-
-    if (flag & INVALIDATE_CURRMTX) {
-        sCurrMtx.Invalidate();
-    }
-
-    if (flag & INVALIDATE_TEXMTX) {
-        // @bug Missing PreTexMtxState::Invalidate
-        sPostTexMtx.Invalidate();
-    }
-
-    if (flag & INVALIDATE_MISC) {
-        sMisc.Invalidate();
-    }
-
-    if (flag & INVALIDATE_FOG) {
-        sFogState.Invalidate();
-    }
-
-    if (flag & INVALIDATE_LIGHT) {
-        sLightState.Invalidate();
-    }
-
-    if (flag & INVALIDATE_POSMTX) {
-        sPosNrmArrayState.Invalidate();
-    }
-
-    sSyncGX.Invalidate();
+    G3DState_Invalidate(flag);
 }
 
 /******************************************************************************
@@ -2045,3 +2001,55 @@ void IndMtxOpStd::operator()(IndTexMtxInfo* pInfo) {
 } // namespace G3DState
 } // namespace g3d
 } // namespace nw4r
+
+void G3DState_Invalidate(u32 flag) {
+    using namespace nw4r::g3d::G3DState;
+    if (flag & INVALIDATE_TEX) {
+        sTex.Invalidate();
+        sTexCoordScale.Invalidate();
+    }
+
+    if (flag & INVALIDATE_TLUT) {
+        sTlut.Invalidate();
+    }
+
+    if (flag & INVALIDATE_TEV) {
+        sTexCoordScale.Invalidate();
+        sTev.Invalidate();
+    }
+
+    if (flag & INVALIDATE_GENMODE) {
+        sGenMode2.Invalidate();
+    }
+
+    if (flag & INVALIDATE_SHP) {
+        sShp.Invalidate();
+    }
+
+    if (flag & INVALIDATE_CURRMTX) {
+        sCurrMtx.Invalidate();
+    }
+
+    if (flag & INVALIDATE_TEXMTX) {
+        // @bug Missing PreTexMtxState::Invalidate
+        sPostTexMtx.Invalidate();
+    }
+
+    if (flag & INVALIDATE_MISC) {
+        sMisc.Invalidate();
+    }
+
+    if (flag & INVALIDATE_FOG) {
+        sFogState.Invalidate();
+    }
+
+    if (flag & INVALIDATE_LIGHT) {
+        sLightState.Invalidate();
+    }
+
+    if (flag & INVALIDATE_POSMTX) {
+        sPosNrmArrayState.Invalidate();
+    }
+
+    sSyncGX.Invalidate();
+}

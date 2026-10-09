@@ -141,6 +141,23 @@ hkVector4* hkConvexTranslateShape::getCollisionSpheres(hkVector4* out) const {
     return out;
 }
 
+// Statistics collector slots used by calcStatistics (vtable offsets 0x0C, 0x14 and 0x20).
+struct hkStatisticsCollectorIface {
+    virtual void unk00();
+    virtual void addObject(const char* name, int count, const void* object); // 0x0C
+    virtual void unk10();
+    virtual void addChildObject(const char* name, int count, const void* object); // 0x14
+    virtual void unk18();
+    virtual void unk1C();
+    virtual void unk20();                                                    // 0x20
+};
+
+void hkConvexTranslateShape::calcStatistics(hkStatisticsCollector* collector) const {
+    ((hkStatisticsCollectorIface*)collector)->addObject("CvxTranslate", 1, this);
+    ((hkStatisticsCollectorIface*)collector)->addChildObject("Child", 1, m_childShape.m_childShape);
+    ((hkStatisticsCollectorIface*)collector)->unk20();
+}
+
 // Not yet decompiled in this unit:
 //   0x802D0AD4   192  __dt   [map: hkConvexTranslateShape____dt]
 //   0x802D0BE4   300  getAabb   [map: hkConvexTranslateShape__getAabb]

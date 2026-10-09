@@ -50,10 +50,9 @@ void hkBallSocketChainData::getConstraintInfo(hkConstraintInfo* info) const {
     info->unk0C = 0;
     info->unk08 = 0x18;
     s32 n = m_chain.m_size;
-    s32 n1 = n + 1;
     info->unk0C = 3 * n;
-    info->unk08 = 4 * n1 + 0x28;
-    info->unk04 = 16 * n1 + 0x90 * n + 0x90 * n;
+    info->unk08 = 4 * (n + 1) + 0x28;
+    info->unk04 = 16 * (n + 1) + 0x90 * n;
 }
 
 void hkBallSocketChainData::getRuntimeInfo(const hkBool* hasChain, hkConstraintRuntimeInfo* out) const {

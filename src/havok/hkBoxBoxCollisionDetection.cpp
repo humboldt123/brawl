@@ -40,6 +40,17 @@
 //   0x803087F8    20  mod3   [map: hkBoxBoxUtils__mod3]
 
 #include <havok/hkBoxBoxManifold.h>
+#include <havok/hkBoxBoxUtils.h>
+
+void hkBoxBoxUtils::cmpAllGT3(const hkVector4& a, const hkVector4& b, int& out) {
+    out = (a.x > b.x || a.y > b.x || a.z > b.x) ? 1 : 0;
+}
+
+void hkBoxBoxUtils::selectIfGT3(hkVector4& dst, const hkVector4& src, const hkVector4& cond, const hkVector4& threshold) {
+    dst.x = (cond.x > threshold.x) ? src.x : dst.x;
+    dst.y = (cond.y > threshold.x) ? src.x : dst.y;
+    dst.z = (cond.z > threshold.x) ? src.x : dst.z;
+}
 
 int hkBoxBoxManifold::getNumPoints() const {
     return m_numPoints;

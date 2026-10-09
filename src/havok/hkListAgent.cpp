@@ -18,6 +18,20 @@
 
 #include <havok/hkListAgent.h>
 
+hkListAgent* hkListAgent::createListAAgent(void* a, void* b, void* c, int d) {
+    hkListAgent* agent = (hkListAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkListAgent), 0x1d);
+    agent->m_memSizeAndFlags = sizeof(hkListAgent);
+    new (agent) hkListAgentVariant(b, a, c, d);
+    return agent;
+}
+
+hkListAgent* hkListAgent::createListBAgent(void* a, void* b, void* c, int d) {
+    hkListAgent* agent = (hkListAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkListAgent), 0x1d);
+    agent->m_memSizeAndFlags = sizeof(hkListAgent);
+    new (agent) hkListAgent(a, b, c, d);
+    return agent;
+}
+
 // Stand-ins for the member functions of the embedded object at 0x10 (other unit, not recovered yet).
 extern "C" void fn_802FC824(void* self, void* arg);
 extern "C" void fn_802FC988(void* self, float t0, float t1, void* arg);
@@ -40,10 +54,11 @@ void hkListAgent::cleanup() {
 
 void hkListAgent::updateShapeCollectionFilter(void* a, void* b, void* d) {
     FilterArgs args;
+    u32 first = *(u32*)b;
     args.a = a;
-    args.bValue = *(u32*)b;
     args.b = b;
     args.d = d;
+    args.bValue = first;
     args.unk8 = unk8;
     fn_802FEA54(m_subObject, &args);
 }

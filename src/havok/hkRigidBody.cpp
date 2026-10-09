@@ -93,3 +93,9 @@ void hkRigidBody::setMotionType(u8 motionType, u8 a, u8 b) {
 void hkRigidBody::setMass(hkReal mass) {
     getMotion()->setMass(mass);
 }
+
+void hkRigidBody::setCenterOfMassLocal(const hkVector4& com) {
+    getMotion()->setCenterOfMassInLocal(com);
+    hkVector4 info;
+    updateCachedShapeInfo(m_collidable.m_shape, &info);
+}

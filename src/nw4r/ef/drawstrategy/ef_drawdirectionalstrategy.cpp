@@ -330,10 +330,10 @@ void DrawDirectionalStrategy::DrawDirectionalBillboard(const DrawInfo& rInfo,
                          posMtx._22 * posMtx._22);
 
     // Particles whose stored axis is flagged (x > 1) are reset, youngest first.
-    Particle* pIt = GetYoungestParticle(pManager);
-    while (pIt != NULL && pIt->mPrevAxis.x > 1.0f) {
-        pIt->mPrevAxis = mZeroVec;
-        pIt = GetElderParticle(pManager, pIt);
+    Particle* pYoung = GetYoungestParticle(pManager);
+    while (pYoung != NULL && pYoung->mPrevAxis.x > 1.0f) {
+        pYoung->mPrevAxis = mZeroVec;
+        pYoung = GetElderParticle(pManager, pYoung);
     }
 
     f32 px = rSetting.pivotX / 100.0f;
@@ -347,7 +347,7 @@ void DrawDirectionalStrategy::DrawDirectionalBillboard(const DrawInfo& rInfo,
 
     bool first = true;
 
-    for (pIt = pGetFirstFunc(pManager); pIt != NULL;
+    for (Particle* pIt = pGetFirstFunc(pManager); pIt != NULL;
          pIt = pGetNextFunc(pManager, pIt)) {
 
         f32 sx = pIt->Draw_GetSizeX();

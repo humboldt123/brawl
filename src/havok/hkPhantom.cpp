@@ -79,14 +79,14 @@ void hkPhantom::addPhantomOverlapListener(hkPhantomOverlapListener* listener) {
 }
 
 void hkPhantom::removePhantomOverlapListener(hkPhantomOverlapListener* listener) {
-    int idx = -1;
-    int count = m_overlapListeners.m_size;
-    for (int i = 0; i < count; i++) {
-        if (((hkPhantomOverlapListener**)m_overlapListeners.m_data)[i] == listener) {
-            idx = i;
-            break;
+    int idx;
+    for (idx = 0; idx < m_overlapListeners.m_size; idx++) {
+        if (((hkPhantomOverlapListener**)m_overlapListeners.m_data)[idx] == listener) {
+            goto found; // MATCH-ONLY: the not-found index is set on fallthrough
         }
     }
+    idx = -1;
+found:
     m_overlapListeners.m_size = m_overlapListeners.m_size - 1;
     for (int j = idx; j < m_overlapListeners.m_size; j++) {
         ((hkPhantomOverlapListener**)m_overlapListeners.m_data)[j] =

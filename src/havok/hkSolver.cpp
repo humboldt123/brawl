@@ -88,6 +88,7 @@
 //   0x8029E8B0   232  applyVelField   [map: hkSolver__applyVelField]
 //   0x8029E998     4  
 
+#pragma fp_contract on
 #include <havok/hkSolver.h>
 #include <havok/hkJacobianSchema.h>
 #include <havok/hkJacobianHeaderSchema.h>
@@ -258,6 +259,13 @@ void hkVector8::setSub8(const hkVector8& a, const hkVector8& b) {
     m_v[5] = a.m_v[5] - b.m_v[5];
     m_v[6] = a.m_v[6] - b.m_v[6];
     m_v[7] = a.m_v[7] - b.m_v[7];
+}
+
+// Column-major product: this = m.col0 * v.x + m.col1 * v.y + m.col2 * v.z (columns are 0x10 apart).
+void hkVector4::_setMul3(const hkRotation& m, const hkVector4& v) {
+    const hkVector4* c = (const hkVector4*)&m;
+    set(c[0].x * v.x + c[1].x * v.y + c[2].x * v.z, c[0].y * v.x + c[1].y * v.y + c[2].y * v.z,
+        c[0].z * v.x + c[1].z * v.y + c[2].z * v.z, 0.0f);
 }
 
 void hkSolver::applyVelField(hkVector4* vel, u8* rec) {

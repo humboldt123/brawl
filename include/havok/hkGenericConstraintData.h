@@ -53,4 +53,7 @@ struct hkGenericConstraintData : hkConstraintData {
 // Parameter block for the generic constraint solver (empty constructor).
 struct hkGenericConstraintDataParameters {
     hkGenericConstraintDataParameters();
+
+    // Angle between two 0x10-byte records selected by a table lookup on the axis index (HYPOTHESIS: layout and table).
+    static float calcDeltaAngleAroundAxis(int axis, const u8* base);
 };

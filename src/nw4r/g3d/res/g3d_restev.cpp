@@ -292,10 +292,10 @@ void ResTev::GXSetTevColorOp(GXTevStageID stage, GXTevOp op, GXTevBias bias,
 }
 
 void ResTev::SetNumTevStages(u8 num) {
-    if (num != 0 && num <= GX_MAX_TEVSTAGE) {
+    if (num >= 1 && num <= GX_MAX_TEVSTAGE) {
         ResTevData& r = ref();
 
-        if (num < r.nStages) {
+        if (r.nStages > num) {
             for (u32 i = num; i < r.nStages; i++) {
                 GXSetTevOrder(static_cast<GXTevStageID>(i), GX_TEXCOORD_NULL,
                               GX_TEXMAP_NULL, GX_COLOR_NULL);

@@ -42,6 +42,32 @@ void hkBvAgent::cleanup() {
     delete this;
 }
 
+// Argument block handed to the children: the first word comes from the object that a points to, the
+// second and third words are copied from a, the last is a itself.
+struct hkBvFilterArgs {
+    void* first;   // 0x00
+    void* second;  // 0x04
+    u32 third;     // 0x08
+    void* owner;   // 0x0C
+};
+
+#pragma dont_inline on
+void hkBvAgent::updateShapeCollectionFilter(void* a, void* b, void* c) {
+    hkBvFilterArgs args;
+    args.third = *(u32*)((char*)a + 8);
+    void* inner = *(void**)a;
+    args.second = *(void**)((char*)a + 4);
+    args.owner = a;
+    args.first = *(void**)((char*)inner + 0xc);
+    m_childA->updateShapeCollectionFilter(&args, b, c);
+    if (m_childB != 0) {
+        args.second = *(void**)((char*)args.owner + 4);
+        args.first = *(void**)((char*)inner + 0x14);
+        m_childB->updateShapeCollectionFilter(&args, b, c);
+    }
+}
+
+#pragma dont_inline reset
 void hkBvAgent::invalidateTim(void* arg) {
     m_childA->invalidateTim(arg);
     if (m_childB != 0) {

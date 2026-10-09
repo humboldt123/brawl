@@ -576,8 +576,9 @@ template <typename Value>
 void hkPointerMultiMap<Value>::insert(void* key, const Value& value) {
     int next = m_indexMap.m_impl.getWithDefault((hkUlong)key, (hkUlong)-1);
     int idx = getFreeIndex();
-    m_elements[idx].m_value = value;
-    m_elements[idx].m_next = next;
+    Entry& e = m_elements[idx];
+    e.m_value = value;
+    e.m_next = next;
     m_indexMap.m_impl.insert((hkUlong)key, idx);
 }
 
@@ -609,7 +610,7 @@ int hkPointerMultiMap<Value>::getFreeIndex() {
         m_freeList = m_elements[idx].m_next;
     } else {
         idx = m_elements.m_size;
-        if (idx == m_elements.getCapacity()) {
+        if (m_elements.getSize() == m_elements.getCapacity()) {
             hkArrayUtil::_reserveMore(&m_elements, sizeof(Entry));
         }
         m_elements.m_size++;

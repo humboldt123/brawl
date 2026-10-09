@@ -42,9 +42,43 @@
 //   0x802C0534    92  __dt   [map: hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_____dt]
 
 #include <havok/hkMultiSphereAgent.h>
+#include <havok/hkCollisionDispatcher.h>
+#include <havok/hkShapeType.h>
+
+// Stand-ins for the query functions of the symmetric multi-sphere agents (not written yet).
+extern "C" void fn_802BD2C0();
+extern "C" void fn_802BD350();
+extern "C" void fn_802BD398();
+extern "C" void fn_802BCCE0();
+extern "C" void fn_802BBC8C();
+extern "C" void fn_802BC4A8();
+
+void hkMultiSphereAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
+    hkAgentFuncs listB;
+    listB.create = (hkAgentFunc)createListBAgent;
+    listB.staticGetPenetrations = (hkAgentFunc)fn_802BD2C0;
+    listB.staticGetClosestPoints = (hkAgentFunc)fn_802BD350;
+    listB.staticLinearCast = (hkAgentFunc)fn_802BD398;
+    listB.symmetricA = 1;
+    listB.symmetricB = 1;
+    dispatcher->registerCollisionAgent(&listB, -1, HK_SHAPE_MULTI_SPHERE);
+
+    hkAgentFuncs listA;
+    listA.create = (hkAgentFunc)createListAAgent;
+    listA.staticGetPenetrations = (hkAgentFunc)fn_802BCCE0;
+    listA.staticGetClosestPoints = (hkAgentFunc)fn_802BBC8C;
+    listA.staticLinearCast = (hkAgentFunc)fn_802BC4A8;
+    listA.symmetricA = 0;
+    listA.symmetricB = 1;
+    dispatcher->registerCollisionAgent(&listA, HK_SHAPE_MULTI_SPHERE, -1);
+}
 
 hkMultiSphereAgent* hkMultiSphereAgent::createListAAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr) {
-    return new hkMultiSphereAgent(unk0, unk1, unk2, contactMgr);
+    hkReferencedObject* mem = (hkReferencedObject*)hkMemory::getInstance().allocateChunk(0x38, 0x1d);
+    mem->m_memSizeAndFlags = 0x38;
+    hkMultiSphereAgent* agent = (hkMultiSphereAgent*)mem;
+    new (agent) hkMultiSphereAgent(unk0, unk1, unk2, contactMgr);
+    return agent;
 }
 
 hkMultiSphereAgent* hkMultiSphereAgent::createListBAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr) {
@@ -52,8 +86,8 @@ hkMultiSphereAgent* hkMultiSphereAgent::createListBAgent(void* unk0, void* unk1,
 }
 
 void hkMultiSphereAgent::cleanup() {
-    for (int i = 0; i < m_count; i++) {
-        m_entries[i].agent->cleanup();
+    for (int i = 0; i < m_entries.m_size; i++) {
+        m_entries.begin()[i].agent->cleanup();
     }
     delete this;
 }

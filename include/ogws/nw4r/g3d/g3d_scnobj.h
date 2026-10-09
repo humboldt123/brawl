@@ -5,6 +5,17 @@
 #include <nw4r/g3d/g3d_obj.h>
 #include <nw4r/math.h>
 
+// Free helpers defined in g3d_scnobj.cpp (symbol names from the original map).
+namespace nw4r {
+namespace g3d {
+class ScnObj;
+}
+}
+void ScnObj_EnableCallbackExecOp(nw4r::g3d::ScnObj* pObj, u32 flag);
+void ScnObj_DisableCallbackExecOp(nw4r::g3d::ScnObj* pObj, u32 flag);
+void ScnObj_EnableCallbackTiming(nw4r::g3d::ScnObj* pObj, u32 flag);
+void ScnObj_DisableCallbackTiming(nw4r::g3d::ScnObj* pObj, u32 flag);
+
 namespace nw4r {
 namespace g3d {
 
@@ -200,6 +211,10 @@ protected:
     math::AABB mAABB[BOUNDINGVOLUME_MAX]; // at 0x9C
 
 private:
+    friend void ::ScnObj_EnableCallbackExecOp(ScnObj* pObj, u32 flag);
+    friend void ::ScnObj_DisableCallbackExecOp(ScnObj* pObj, u32 flag);
+    friend void ::ScnObj_EnableCallbackTiming(ScnObj* pObj, u32 flag);
+    friend void ::ScnObj_DisableCallbackTiming(ScnObj* pObj, u32 flag);
     u32 mScnObjFlags;               // at 0xCC
     u8 mPriorityDrawOpa;            // at 0xD0
     u8 mPriorityDrawXlu;            // at 0xD1

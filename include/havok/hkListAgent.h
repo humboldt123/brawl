@@ -10,6 +10,7 @@
 // forward to.
 struct hkListAgent : hkCollisionAgent {
     HK_DECLARE_REF_ALLOCATOR(0x1d)
+    static void* operator new(unsigned long, void* where) { return where; } // placement new for the factories
 
     int unkC;             // 0x0C copied into the sub-object's filter call by cleanup (HYPOTHESIS)
     u8 m_subObject[0x10]; // 0x10 embedded object that invalidateTim/warpTime/cleanup forward to
@@ -25,7 +26,20 @@ struct hkListAgent : hkCollisionAgent {
     virtual void invalidateTim(void* arg);                                                  // 0x28 HYPOTHESIS
     virtual void warpTime(float t0, float t1, void* arg);                                   // 0x2C HYPOTHESIS
 
+    // Constructor (map name hkListAgent____ct, not written yet). Sets the vptr of hkListAgent itself.
+    hkListAgent(void* a, void* b, void* c, int unk8Value);
+
+    // Factories: createListAAgent swaps the first two pair arguments and uses the variant vtable.
+    static hkListAgent* createListAAgent(void* a, void* b, void* c, int d);
+    static hkListAgent* createListBAgent(void* a, void* b, void* c, int d);
+
     static void staticGetClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target);
     static void staticGetPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target);
     static void staticLinearCast(void* a, void* b, void* c, hkPenetrationTarget* target, void* d);
+};
+
+// HYPOTHESIS: agent variant created by createListAAgent (vtable lbl_80486A30). The class adds no members; the
+// constructor is the base constructor followed by the vptr store.
+struct hkListAgentVariant : hkListAgent {
+    hkListAgentVariant(void* a, void* b, void* c, int unk8Value) : hkListAgent(a, b, c, unk8Value) {}
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <havok/hkCollisionAgent.h>
+#include <havok/hkArray.h>
 
 struct hkCollisionDispatcher;
 
@@ -14,14 +15,16 @@ struct hkMultiSphereAgentEntry {
 struct hkMultiSphereAgent : hkCollisionAgent {
     HK_DECLARE_REF_ALLOCATOR(0x1d)
 
-    hkMultiSphereAgentEntry* m_entries; // 0x0C
-    int m_count;                        // 0x10 number of valid entries
-    u8 unk14[0x38 - 0x14];              // 0x14 not identified yet
+    hkArray<hkMultiSphereAgentEntry> m_entries; // 0x0C (data, count in m_size, capacity and flags)
+    u8 unk18[0x38 - 0x18];                      // 0x18 not identified yet
 
     // The constructor (fn_802BAEB8) is not recovered yet.
     hkMultiSphereAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr);
+    static void* operator new(unsigned long, void* p) { return p; }
     virtual ~hkMultiSphereAgent() {}
 
+    // Registers the two list agents (multi-sphere against all shape types, both orders).
+    static void registerAgent(hkCollisionDispatcher* dispatcher);
     static hkMultiSphereAgent* createListAAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr);
     static hkMultiSphereAgent* createListBAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr);
 

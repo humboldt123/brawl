@@ -21,6 +21,10 @@ struct hkRigidBody : hkEntity {
     void setDeactivator(hkEntityDeactivator* deactivator);
     void setMotionType(u8 motionType, u8 a, u8 b);
     void setMass(hkReal mass);
+    void setCenterOfMassLocal(const hkVector4& com);
+    // HYPOTHESIS: computes the shape bounds and a normalized direction into out (0x10 bytes).
+    // Out of line at 0x802E23CC (hkRigidBody__updateCachedShapeInfo), not written yet.
+    void updateCachedShapeInfo(hkShape* shape, hkVector4* out);
     void setPosition(const hkVector4& position);
     void setPositionAndRotation(const hkVector4& position, const hkQuaternion& rotation);
     void setTransform(const hkTransform& transform);

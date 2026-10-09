@@ -93,6 +93,7 @@ void hkBvTreeStreamAgent::linearCast(void* a, void* b, void* c, void* d, void* e
     fn_802A78F8(a, b, c, d, e);
 }
 
+#pragma dont_inline on
 hkBvTreeStreamAgent::hkBvTreeStreamAgent(void* unused0, void* unused1, const int* src, int unk8Value)
     : hkCollisionAgent(unk8Value), m_list(&m_inlineEntry, 0, 1) {
     unkC = *src;
@@ -106,8 +107,8 @@ hkBvTreeStreamAgent::hkBvTreeStreamAgent(void* unused0, void* unused1, const int
     unk10[4] = 0.0f;
     fn_802FCB14(&m_list);
 }
+#pragma dont_inline reset
 
-#pragma dont_inline on
 hkBvTreeStreamAgent* hkBvTreeStreamAgent::createBvTreeShapeAgent(void* a, void* b, const int* c, int d) {
     hkBvTreeStreamAgent* agent = (hkBvTreeStreamAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkBvTreeStreamAgent), 0x1d);
     agent->m_memSizeAndFlags = sizeof(hkBvTreeStreamAgent);
@@ -122,7 +123,6 @@ hkBvTreeStreamAgent* hkBvTreeStreamAgent::createShapeBvAgent(void* a, void* b, c
     return agent;
 }
 
-#pragma dont_inline reset
 
 // Registers the agent for BV tree x convex pairs in both orders.
 void hkBvTreeStreamAgent::registerAgent(void* dispatcher) {

@@ -1,5 +1,5 @@
 // Havok translation unit hkSphereMotion.o (main.dol 0x802E5AE0-0x802E60EC).
-// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+// Functions in address order (method names from the Havok TU map):
 //   0x802E5AE0    32  finishLoadedObjecthkSphereMotion   [map: hkSphereMotion__finishLoadedObjecthkSphereMotion]
 //   0x802E5B00    20  cleanupLoadedObjecthkSphereMotion   [map: hkSphereMotion__cleanupLoadedObjecthkSphereMotion]
 //   0x802E5B14    60  getVtablehkSphereMotion   [map: hkSphereMotion__getVtablehkSphereMotion]
@@ -16,11 +16,31 @@
 //   0x802E602C   112  applyTorque   [map: hkSphereMotion__applyTorque]
 //   0x802E609C    80  __sinit_\hkSphereMotion_cpp   [map: hkSphereMotioncpp____sinit_]
 #pragma fp_contract on
+#include <new>
 #include <havok/hkSphereMotion.h>
+#include <havok/hkRegistry.h>
 
 // hkMatrix3 is only forward-declared in these headers (see hkBoxMotion.cpp); elements are the 12 floats of three columns.
 static float* matrixElements(hkMatrix3& m) { return (float*)&m; }
 static const float* matrixElements(const hkMatrix3& m) { return (const float*)&m; }
+
+static hkMotionTypeInfo s_hkSphereMotionTypeInfo("hkSphereMotion", hkSphereMotion::finishLoadedObjecthkSphereMotion,
+                                                 hkSphereMotion::cleanupLoadedObjecthkSphereMotion,
+                                                 hkSphereMotion::getVtablehkSphereMotion());
+
+void hkSphereMotion::finishLoadedObjecthkSphereMotion(void* p) {
+    new (p) hkSphereMotion(hkFinishLoadedObjectFlag());
+}
+
+void hkSphereMotion::cleanupLoadedObjecthkSphereMotion(void* p) {
+    ((hkSphereMotion*)p)->~hkSphereMotion();
+}
+
+const void* hkSphereMotion::getVtablehkSphereMotion() {
+    hkVector4 buf[16]; // 0x100 bytes of 16-byte-aligned storage for the placed object
+    new (buf) hkSphereMotion(hkFinishLoadedObjectFlag());
+    return *(const void**)buf;
+}
 
 // Inertia is the reciprocal of the isotropic inverse inertia (m_inertiaAndMassInv.x).
 void hkSphereMotion::getInertiaLocal(hkMatrix3& out) const {
@@ -40,8 +60,22 @@ void hkSphereMotion::getInertiaLocal(hkMatrix3& out) const {
     m[10] = inertia;
 }
 
+// Same body as getInertiaLocal (the world and local inertia of an isotropic sphere are equal).
 void hkSphereMotion::getInertiaWorld(hkMatrix3& out) const {
-    getInertiaLocal(out);
+    float inertia = 1.0f / m_inertiaAndMassInv.x;
+    float* m = matrixElements(out);
+    m[1] = 0.0f;
+    m[2] = 0.0f;
+    m[3] = 0.0f;
+    m[4] = 0.0f;
+    m[6] = 0.0f;
+    m[7] = 0.0f;
+    m[8] = 0.0f;
+    m[9] = 0.0f;
+    m[11] = 0.0f;
+    m[0] = inertia;
+    m[5] = inertia;
+    m[10] = inertia;
 }
 
 // The inverse inertia is the reciprocal of the largest diagonal entry (zero when that entry is not positive).
@@ -98,6 +132,22 @@ void hkSphereMotion::getInertiaInvWorld(hkMatrix3& out) const {
     getInertiaInvLocal(out);
 }
 
+// The torque about the center of mass (point - centerOfMass) x impulse is applied to the angular velocity.
+void hkSphereMotion::applyPointImpulse(const hkVector4& impulse, const hkVector4& point) {
+    hkVector4 r;
+    r.setSub4(point, m_motionState.m_sweptTransform.m_centerOfMass1);
+    hkVector4 torque;
+    torque.setCross(r, impulse);
+    m_linearVelocity.x = m_linearVelocity.x + m_inertiaAndMassInv.w * impulse.x;
+    m_linearVelocity.y = m_linearVelocity.y + m_inertiaAndMassInv.w * impulse.y;
+    m_linearVelocity.z = m_linearVelocity.z + m_inertiaAndMassInv.w * impulse.z;
+    m_linearVelocity.w = m_linearVelocity.w + m_inertiaAndMassInv.w * impulse.w;
+    m_angularVelocity.x = m_angularVelocity.x + m_inertiaAndMassInv.x * torque.x;
+    m_angularVelocity.y = m_angularVelocity.y + m_inertiaAndMassInv.y * torque.y;
+    m_angularVelocity.z = m_angularVelocity.z + m_inertiaAndMassInv.z * torque.z;
+    m_angularVelocity.w = m_angularVelocity.w + m_inertiaAndMassInv.w * torque.w;
+}
+
 void hkSphereMotion::applyAngularImpulse(const hkVector4& impulse) {
     m_angularVelocity.x = m_angularVelocity.x + m_inertiaAndMassInv.x * impulse.x;
     m_angularVelocity.y = m_angularVelocity.y + m_inertiaAndMassInv.y * impulse.y;
@@ -114,14 +164,14 @@ void hkSphereMotion::applyForce(hkReal timestep, const hkVector4& force) {
     m_linearVelocity.w = m_linearVelocity.w + m_inertiaAndMassInv.w * impulse.w;
 }
 
+void hkSphereMotion::applyForce(hkReal timestep, const hkVector4& force, const hkVector4& point) {
+    hkVector4 impulse;
+    impulse.setMul4(force, timestep);
+    applyPointImpulse(impulse, point);
+}
+
 void hkSphereMotion::applyTorque(hkReal timestep, const hkVector4& torque) {
     hkVector4 impulse;
     impulse.setMul4(torque, timestep);
     applyAngularImpulse(impulse);
 }
-
-// Not yet decompiled in this unit (they need applyPointImpulse, which is still missing, so the class is
-// abstract and the loaded-object helpers, the vtable getter and the static init are not written yet):
-//   0x802E5AE0  finishLoadedObjecthkSphereMotion, 0x802E5B00 cleanupLoadedObjecthkSphereMotion,
-//   0x802E5B14  getVtablehkSphereMotion, 0x802E5D7C applyPointImpulse, 0x802E5FBC applyForce (point),
-//   0x802E609C  __sinit.

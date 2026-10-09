@@ -1,5 +1,8 @@
 #include <nw4r/g3d.h>
 
+// Global wrapper in the original (symbol G3DState_Invalidate__FUl); defined in g3d_state.cpp.
+void G3DState_Invalidate(u32 flag);
+
 namespace nw4r {
 namespace g3d {
 
@@ -48,7 +51,7 @@ void ScnProc::G3dProc(u32 task, u32 param, void* pInfo) {
 
     case G3DPROC_DRAW_OPA: {
         if (mpDrawProc != NULL) {
-            G3DState::Invalidate();
+            G3DState_Invalidate(G3DState::INVALIDATE_ALL);
             mpDrawProc(this, true);
         }
         break;
@@ -56,7 +59,7 @@ void ScnProc::G3dProc(u32 task, u32 param, void* pInfo) {
 
     case G3DPROC_DRAW_XLU: {
         if (mpDrawProc != NULL) {
-            G3DState::Invalidate();
+            G3DState_Invalidate(G3DState::INVALIDATE_ALL);
             mpDrawProc(this, false);
         }
         break;
