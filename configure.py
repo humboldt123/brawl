@@ -5515,7 +5515,15 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_dxgarden/st_dxgarden.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgarden/gr_dxgarden.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgarden/gr_dxgarden_bg.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgarden/gr_dxgarden_cranky.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgarden/gr_dxgarden_krap.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgarden/gr_dxgarden_lamp.cpp"),
+            Object(NonMatching, "mo_stage/st_dxgarden/gr_dxgarden_suimen.cpp"),
+        ],
     },
     {
         "lib": "st_dxgreens",
