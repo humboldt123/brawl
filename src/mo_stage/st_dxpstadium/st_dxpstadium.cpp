@@ -927,18 +927,21 @@ void stDxPStadium::updateVisionRect() {
 // the fight, scaled and shifted so that only the rectangle around the fighter is visible.
 void stDxPStadium::updateVisionScreen() {
     if (m_visionActive) {
-        Vec2f sum((m_visionLeft + m_visionRight), (m_visionTop + m_visionBottom));
+        Vec2f sum;
+        sum.m_x = m_visionLeft + m_visionRight;
+        sum.m_y = m_visionTop + m_visionBottom;
         float width = m_visionRight - m_visionLeft;
         Vec2f center = sum * 0.5f;
         float height = m_visionBottom - m_visionTop;
         nw4r::g3d::ResMdl resMdl = getGround(0)->m_sceneModels[0]->m_resMdl;
         nw4r::g3d::ResMat resMat = resMdl.GetResMat("MDummy");
-        nw4r::g3d::ResTexSrt texSrt(reinterpret_cast<u8*>(resMat.ptr()) + 0x1A4);
+        nw4r::g3d::ResTexSrt texSrt(NULL);
         nw4r::g3d::ResTexObj texObj(reinterpret_cast<u8*>(resMat.ptr()) + 0x3C);
         GXTexObj* screenTex = texObj.GetTexObj(GX_TEXMAP0);
         if (gfCopyEFBMgr::getInstance()->isValid(0) == true) {
             *screenTex = *gfCopyEFBMgr::getInstance()->getCopyEFBTex(0);
         }
+        texSrt = nw4r::g3d::ResTexSrt(reinterpret_cast<u8*>(resMat.ptr()) + 0x1A4);
         texSrt.SetMapMode(0, 0, -1, -1);
         nw4r::g3d::ResTexSrtData* srt = texSrt.ptr();
         srt->m_range.m_x = width;
