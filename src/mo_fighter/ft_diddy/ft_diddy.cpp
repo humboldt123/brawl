@@ -31,7 +31,9 @@ ftKineticEnergyController::~ftKineticEnergyController() { }
 template soArrayVector<s32, 8>::~soArrayVector();
 #endif
 soStatusModuleImpl::~soStatusModuleImpl() { }
+#pragma dont_inline on
 ftVirtualNodeMatrixPool::~ftVirtualNodeMatrixPool() { }
+#pragma dont_inline off
 
 // ftManager::setParamPattern selects the shared parameter-table variation.
 extern int g_soValueVariation;
