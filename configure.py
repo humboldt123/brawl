@@ -4953,6 +4953,7 @@ config.libs = [
             Object(Matching, "mo_melee/sora_melee/wn/wn_robot_beam_status_uniq_process.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/ft/ft_robot_transactor.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_robot_beam.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/wn/wn_wolf_blaster_bullet.cpp"),
         ],
     },
     {
