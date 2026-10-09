@@ -39,9 +39,6 @@ soInsideEventManageModuleBuilder<ftGameWatchInsideEventManageModuleBuildConfig, 
 extern "C" void fn_27_1FF0C(u8* p);
 extern "C" void fn_27_1FFCC(u8* p);
 
-// Value variation global read by soValueAccesser::getValueVariation.
-extern int g_soValueVariation;
-int soValueAccesser::getValueVariation() { return g_soValueVariation; }
 
 // Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
 extern "C" {
