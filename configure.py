@@ -5490,7 +5490,15 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_donkey/st_donkey.cpp"),
+            Object(NonMatching, "mo_stage/st_donkey/gr_donkey.cpp"),
+            Object(NonMatching, "mo_stage/st_donkey/gr_donkey_kong.cpp"),
+            Object(NonMatching, "mo_stage/st_donkey/gr_donkey_jack.cpp"),
+            Object(NonMatching, "mo_stage/st_donkey/gr_donkey_ladder.cpp"),
+            Object(NonMatching, "mo_stage/st_donkey/gr_donkey_fireball.cpp"),
+            Object(NonMatching, "mo_stage/st_donkey/gr_donkey_item.cpp"),
+        ],
     },
     {
         "lib": "st_dxbigblue",

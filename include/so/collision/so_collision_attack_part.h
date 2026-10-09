@@ -319,6 +319,30 @@ struct soCollisionAttackData {
         m_region = region;
         m_shapeType = shapeType;
     }
+
+#ifdef YK_STAGE_FULL
+    // MATCH-ONLY: the stage RELs copy the attack data (inside the attack part arrays) word by word.
+    soCollisionAttackData& operator=(const soCollisionAttackData& other) {
+        union PositionWords { u32 words[3]; };
+        m_power = other.m_power;
+        *(PositionWords*)&m_offsetPos = *(const PositionWords*)&other.m_offsetPos;
+        m_size = other.m_size;
+        m_vector = other.m_vector;
+        m_reactionEffect = other.m_reactionEffect;
+        m_reactionFix = other.m_reactionFix;
+        m_reactionAdd = other.m_reactionAdd;
+        m_slipChance = other.m_slipChance;
+        m_hitStopFrame = other.m_hitStopFrame;
+        m_hitStopDelay = other.m_hitStopDelay;
+        u32* flags = (u32*)((u8*)this + 0x30);
+        const u32* otherFlags = (const u32*)((const u8*)&other + 0x30);
+        flags[0] = otherFlags[0];
+        flags[1] = otherFlags[1];
+        flags[2] = otherFlags[2];
+        flags[3] = otherFlags[3];
+        return *this;
+    }
+#endif
 };
 static_assert(sizeof(soCollisionAttackData) == 64, "Class is wrong size!");
 
@@ -352,7 +376,11 @@ class soCollisionAttackPart {
     soCollisionAttackData m_attackData;
     soArrayVector<clTarget, 7> m_clTargetArrayVector;
     int m_groupIndex;
+#ifdef YK_STAGE_FULL
+    int _0x8c; // MATCH-ONLY: copied as a word
+#else
     char _0x8c[4];
+#endif
 
 public:
 #ifdef YK_STAGE_INLINE // emitted inline in the stage RELs (status and group index stay uninitialized)
