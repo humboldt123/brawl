@@ -137,9 +137,9 @@ void hkPointerMapBase<T>::reserve(int numElements) {
 
 template <typename T>
 void hkPointerMapBase<T>::resizeTable(int newCapacity) {
-    T* oldElem = m_elem;
     int oldFlag = m_numElems & DONT_DEALLOCATE_FLAG;
     int oldCap = m_hashMod + 1;
+    T* oldElem = m_elem;
     m_elem = (T*)hkMemory::getInstance().allocateChunk(newCapacity * sizeof(T) * 2, 0x15);
     hkString::memSet(m_elem, 0, newCapacity * sizeof(T));
     m_numElems = 0;

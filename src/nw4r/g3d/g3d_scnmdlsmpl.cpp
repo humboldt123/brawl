@@ -678,7 +678,7 @@ void ScnMdlSimple::UpdateFrame() {
     }
 }
 
-void ScnMdlSimple::EnableScnMdlCallbackTiming(Timing timing) {
+void ScnMdlSimple::EnableScnMdlCallbackTiming(u32 timing) {
     if (timing & CALLBACK_TIMING_A) {
         mCwcbTiming |= CALLBACK_TIMING_A;
     }

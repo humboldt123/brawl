@@ -44,8 +44,9 @@ void hkBaseSystem::initSingletons() {
         }
     }
     while (pending.m_size != 0) {
+        hkSingletonInitNode* n;
         for (int i = pending.m_size - 1; i >= 0; i--) {
-            hkSingletonInitNode* n = pending[i];
+            n = pending[i];
             void* inst = n->m_create();
             if (inst != 0) {
                 *n->m_instance = inst;
@@ -313,7 +314,7 @@ void hkDefaultError::enableAll() {
 
 void hkDefaultError::setEnabled(int id, hkBool enabled) {
     if (enabled) {
-        m_disabled.remove(id);
+        m_disabled.remove((unsigned long)id);
     } else {
         m_disabled.insert(id, 1);
     }

@@ -10,15 +10,6 @@ u32 CalcWorldMtx_Basic(math::MTX34* pW, math::VEC3* pS, const math::MTX34* pW1,
                        const ChrAnmResult* pResult) {
 
     u32 flag = pResult->flags;
-    u32 newAttr = attr;
-
-    if (flag & ChrAnmResult::FLAG_SCALE_ONE) {
-        newAttr = detail::WorldMtxAttr::AnmScaleOne(newAttr);
-        pS->x = pS->y = pS->z = 1.0f;
-    } else {
-        newAttr = detail::WorldMtxAttr::AnmNotScaleOne(newAttr);
-        *pS = pResult->s;
-    }
 
     if ((flag & ChrAnmResult::FLAG_MTX_IDENT) ||
         (flag & ChrAnmResult::FLAG_ROT_TRANS_ZERO)) {
@@ -44,6 +35,15 @@ u32 CalcWorldMtx_Basic(math::MTX34* pW, math::VEC3* pS, const math::MTX34* pW1,
     } else {
         math::MTX34Scale(pW, pW1, pS1);
         math::MTX34Mult(pW, pW, &pResult->rt);
+    }
+
+    u32 newAttr;
+    if (flag & ChrAnmResult::FLAG_SCALE_ONE) {
+        newAttr = detail::WorldMtxAttr::AnmScaleOne(attr);
+        pS->x = pS->y = pS->z = 1.0f;
+    } else {
+        newAttr = detail::WorldMtxAttr::AnmNotScaleOne(attr);
+        *pS = pResult->s;
     }
 
     if (flag & ChrAnmResult::FLAG_SCALE_UNIFORM) {

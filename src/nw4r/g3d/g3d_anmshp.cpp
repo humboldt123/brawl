@@ -410,7 +410,7 @@ f32 AnmObjShpBlend::GetWeight(int idx) const {
  * AnmObjShpRes
  *
  ******************************************************************************/
-AnmObjShpRes* AnmObjShpRes::Construct(MEMAllocator* pAllocator, u32* pSize,
+AnmObjShpRes* AnmObjShpRes::Construct(MEMAllocator* pAllocator, int* pSize,
                                       ResAnmShp shp, ResMdl mdl, bool cache) {
     if (!shp.IsValid() || !mdl.IsValid()) {
         return NULL;

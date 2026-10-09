@@ -42,8 +42,10 @@ ScnMdlExpand* ScnMdlExpand::Construct(MEMAllocator* pAllocator, u32* pSize,
     return NULL;
 }
 
-ScnMdlExpand::ScnMdlExpand(MEMAllocator* pAllocator, ScnObj** ppObj,
-                           u32 capacity, ScnMdl* pScnMdl, u32* pNodeID)
+// HYPOTHESIS: the constructor and SetNodeID are inlined into their callers in
+// the original (no standalone symbols exist for them).
+inline ScnMdlExpand::ScnMdlExpand(MEMAllocator* pAllocator, ScnObj** ppObj,
+                                  u32 capacity, ScnMdl* pScnMdl, u32* pNodeID)
     : ScnGroup(pAllocator, ppObj, capacity),
       mpScnMdl(pScnMdl),
       mpNodeID(pNodeID) {
@@ -55,7 +57,7 @@ ScnMdlExpand::ScnMdlExpand(MEMAllocator* pAllocator, ScnObj** ppObj,
     mpScnMdl->G3dProc(G3DPROC_ATTACH_PARENT, 0, this);
 }
 
-bool ScnMdlExpand::SetNodeID(u32 idx, u32 nodeID) {
+inline bool ScnMdlExpand::SetNodeID(u32 idx, u32 nodeID) {
     if (nodeID < mpScnMdl->GetResMdl().GetResNodeNumEntries() &&
         idx < Size()) {
         mpNodeID[idx] = nodeID;
@@ -136,11 +138,11 @@ ScnObj* ScnMdlExpand::Remove(u32 idx) {
 bool ScnMdlExpand::Remove(ScnObj* pObj) {
     ScnObj** ppObj = std::find(Begin(), End(), pObj);
 
-    if (ppObj != End()) {
-        return Remove(std::distance(Begin(), ppObj)) != NULL;
+    if (ppObj == End()) {
+        return false;
     }
 
-    return false;
+    return Remove(std::distance(Begin(), ppObj)) != NULL;
 }
 
 void ScnMdlExpand::G3dProc(u32 task, u32 param, void* pInfo) {

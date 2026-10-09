@@ -122,7 +122,7 @@ public:
  ******************************************************************************/
 class AnmObjVisRes : public AnmObjVis, protected FrameCtrl {
 public:
-    static AnmObjVisRes* Construct(MEMAllocator* pAllocator, u32* pSize,
+    static AnmObjVisRes* Construct(MEMAllocator* pAllocator, int* pSize,
                                    ResAnmVis vis, ResMdl mdl);
 
     AnmObjVisRes(MEMAllocator* pAllocator, ResAnmVis vis, u16* pBindingBuf,

@@ -126,7 +126,7 @@ public:
  ******************************************************************************/
 class AnmObjTexPatRes : public AnmObjTexPat, protected FrameCtrl {
 public:
-    static AnmObjTexPatRes* Construct(MEMAllocator* pAllocator, u32* pSize,
+    static AnmObjTexPatRes* Construct(MEMAllocator* pAllocator, int* pSize,
                                       ResAnmTexPat pat, ResMdl mdl, bool cache);
 
     AnmObjTexPatRes(MEMAllocator* pAllocator, ResAnmTexPat pat,

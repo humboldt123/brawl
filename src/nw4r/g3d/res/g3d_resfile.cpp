@@ -471,22 +471,23 @@ void ResFile::Release() {
     }
 }
 
-void ResFile::Init() {
+void ResFile::Init(void* arg) {
+    ResFile* pFile = static_cast<ResFile*>(arg);
     u32 i;
 
-    u32 mdlNum = GetResMdlNumEntries();
+    u32 mdlNum = pFile->GetResMdlNumEntries();
     for (i = 0; i < mdlNum; i++) {
-        GetResMdl(i).Init();
+        pFile->GetResMdl(i).Init();
     }
 
-    u32 texNum = GetResTexNumEntries();
+    u32 texNum = pFile->GetResTexNumEntries();
     for (i = 0; i < texNum; i++) {
-        GetResTex(i).Init();
+        pFile->GetResTex(i).Init();
     }
 
-    u32 plttNum = GetResPlttNumEntries();
+    u32 plttNum = pFile->GetResPlttNumEntries();
     for (i = 0; i < plttNum; i++) {
-        GetResPltt(i).Init();
+        pFile->GetResPltt(i).Init();
     }
 }
 
