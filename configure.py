@@ -5255,7 +5255,9 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_dxpstadium/st_dxpstadium.cpp"),
+        ],
     },
     {
         "lib": "st_dxrcruise",
