@@ -33,11 +33,6 @@ nw4r::g3d::ResAnmShp fn_8018DFFC(nw4r::g3d::ResFile*, const char*);
 
 // Name lookups share the declarations used by muObject; BrawlHeaders lacks
 // the corresponding ResFile overloads.
-nw4r::g3d::ResAnmChr ResFile_GetResAnmChrByName(nw4r::g3d::ResFile*, const char*);
-nw4r::g3d::ResAnmVis ResFile_GetResAnmVisByName(nw4r::g3d::ResFile*, const char*);
-nw4r::g3d::ResAnmClr ResFile_GetResAnmClrByName(nw4r::g3d::ResFile*, const char*);
-nw4r::g3d::ResAnmTexPat ResFile_GetResAnmTexPatByName(nw4r::g3d::ResFile*, const char*);
-nw4r::g3d::ResAnmTexSrt ResFile_GetResAnmTexSrtByName(nw4r::g3d::ResFile*, const char*);
 
 using namespace nw4r::g3d;
 
@@ -179,7 +174,7 @@ gfModelAnimation::gfModelAnimation(ResFile* resFile, ResMdl* resMdl, bool doBind
     m_anmObjShpRes = NULL;
 
     {
-        ResAnmChr anim = ResFile_GetResAnmChrByName(resFile, animName);
+        ResAnmChr anim = resFile->GetResAnmChr(animName);
         if (anim.IsValid()) {
             m_anmObjChrRes = AnmObjChrRes::Construct(allocator, &instanceSize, anim, *resMdl, false);
             if (doBind) {
@@ -188,7 +183,7 @@ gfModelAnimation::gfModelAnimation(ResFile* resFile, ResMdl* resMdl, bool doBind
         }
     }
     {
-        ResAnmVis anim = ResFile_GetResAnmVisByName(resFile, animName);
+        ResAnmVis anim = resFile->GetResAnmVis(animName);
         if (anim.IsValid()) {
             m_anmObjVisRes = AnmObjVisRes::Construct(allocator, &instanceSize, anim, *resMdl);
             if (doBind) {
@@ -197,7 +192,7 @@ gfModelAnimation::gfModelAnimation(ResFile* resFile, ResMdl* resMdl, bool doBind
         }
     }
     {
-        ResAnmTexPat anim = ResFile_GetResAnmTexPatByName(resFile, animName);
+        ResAnmTexPat anim = resFile->GetResAnmTexPat(animName);
         if (anim.IsValid()) {
             m_anmObjTexPatRes = AnmObjTexPatRes::Construct(allocator, &instanceSize, anim, *resMdl, false);
             if (doBind) {
@@ -206,7 +201,7 @@ gfModelAnimation::gfModelAnimation(ResFile* resFile, ResMdl* resMdl, bool doBind
         }
     }
     {
-        ResAnmTexSrt anim = ResFile_GetResAnmTexSrtByName(resFile, animName);
+        ResAnmTexSrt anim = resFile->GetResAnmTexSrt(animName);
         if (anim.IsValid()) {
             m_anmObjTexSrtRes = AnmObjTexSrtRes::Construct(allocator, &instanceSize, anim, *resMdl, false);
             if (doBind) {
@@ -215,7 +210,7 @@ gfModelAnimation::gfModelAnimation(ResFile* resFile, ResMdl* resMdl, bool doBind
         }
     }
     {
-        ResAnmClr anim = ResFile_GetResAnmClrByName(resFile, animName);
+        ResAnmClr anim = resFile->GetResAnmClr(animName);
         if (anim.IsValid()) {
             m_anmObjMatClrRes = AnmObjMatClrRes::Construct(allocator, &instanceSize, anim, *resMdl, false);
             if (doBind) {
