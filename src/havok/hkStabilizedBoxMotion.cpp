@@ -1,7 +1,27 @@
 // Havok translation unit hkStabilizedBoxMotion.o (main.dol 0x802E60EC-0x802E61F0).
-// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x802E60EC    32  finishLoadedObjecthkStabilizedBoxMotion   [map: hkStabilizedBoxMotion__finishLoadedObjecthkStabilizedBoxMotion]
-//   0x802E610C    20  cleanupLoadedObjecthkStabilizedBoxMotion   [map: hkStabilizedBoxMotion__cleanupLoadedObjecthkStabilizedBoxMotion]
-//   0x802E6120    60  getVtablehkStabilizedBoxMotion   [map: hkStabilizedBoxMotion__getVtablehkStabilizedBoxMotion]
-//   0x802E615C    68  __ct   [map: hkStabilizedBoxMotion____ct]
-//   0x802E61A0    80  __sinit_\hkStabilizedBoxMotion_cpp   [map: hkStabilizedBoxMotioncpp____sinit_]
+#include <new>
+#include <havok/hkStabilizedBoxMotion.h>
+#include <havok/hkRegistry.h>
+
+static hkMotionTypeInfo s_hkStabilizedBoxMotionTypeInfo("hkStabilizedBoxMotion", hkStabilizedBoxMotion::finishLoadedObjecthkStabilizedBoxMotion,
+                                                   hkStabilizedBoxMotion::cleanupLoadedObjecthkStabilizedBoxMotion,
+                                                   hkStabilizedBoxMotion::getVtablehkStabilizedBoxMotion());
+
+void hkStabilizedBoxMotion::finishLoadedObjecthkStabilizedBoxMotion(void* p) {
+    new (p) hkStabilizedBoxMotion(hkFinishLoadedObjectFlag());
+}
+
+void hkStabilizedBoxMotion::cleanupLoadedObjecthkStabilizedBoxMotion(void* p) {
+    ((hkStabilizedBoxMotion*)p)->~hkStabilizedBoxMotion();
+}
+
+const void* hkStabilizedBoxMotion::getVtablehkStabilizedBoxMotion() {
+    hkVector4 buf[16]; // 0x100 bytes of 16-byte-aligned storage for the placed object
+    new (buf) hkStabilizedBoxMotion(hkFinishLoadedObjectFlag());
+    return *(const void**)buf;
+}
+
+hkStabilizedBoxMotion::hkStabilizedBoxMotion(const hkVector4& position, const hkQuaternion& rotation)
+    : hkBoxMotion(position, rotation) {
+    m_type = MOTION_STABILIZED_BOX_INERTIA;
+}

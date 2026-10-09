@@ -11,7 +11,7 @@ struct hkCollisionAgent : hkReferencedObject {
     hkCollisionAgent() {
         unk8 = 0;
     }
-    virtual ~hkCollisionAgent();
+    virtual ~hkCollisionAgent() {}
 
     virtual void invalidateTim();
     virtual void warpTime();

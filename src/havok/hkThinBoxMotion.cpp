@@ -1,7 +1,27 @@
 // Havok translation unit hkThinBoxMotion.o (main.dol 0x802E4724-0x802E4828).
-// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
-//   0x802E4724    32  finishLoadedObjecthkThinBoxMotion   [map: hkThinBoxMotion__finishLoadedObjecthkThinBoxMotion]
-//   0x802E4744    20  cleanupLoadedObjecthkThinBoxMotion   [map: hkThinBoxMotion__cleanupLoadedObjecthkThinBoxMotion]
-//   0x802E4758    60  getVtablehkThinBoxMotion   [map: hkThinBoxMotion__getVtablehkThinBoxMotion]
-//   0x802E4794    68  __ct   [map: hkThinBoxMotion____ct]
-//   0x802E47D8    80  __sinit_\hkThinBoxMotion_cpp   [map: hkThinBoxMotioncpp____sinit_]
+#include <new>
+#include <havok/hkThinBoxMotion.h>
+#include <havok/hkRegistry.h>
+
+static hkMotionTypeInfo s_hkThinBoxMotionTypeInfo("hkThinBoxMotion", hkThinBoxMotion::finishLoadedObjecthkThinBoxMotion,
+                                                   hkThinBoxMotion::cleanupLoadedObjecthkThinBoxMotion,
+                                                   hkThinBoxMotion::getVtablehkThinBoxMotion());
+
+void hkThinBoxMotion::finishLoadedObjecthkThinBoxMotion(void* p) {
+    new (p) hkThinBoxMotion(hkFinishLoadedObjectFlag());
+}
+
+void hkThinBoxMotion::cleanupLoadedObjecthkThinBoxMotion(void* p) {
+    ((hkThinBoxMotion*)p)->~hkThinBoxMotion();
+}
+
+const void* hkThinBoxMotion::getVtablehkThinBoxMotion() {
+    hkVector4 buf[16]; // 0x100 bytes of 16-byte-aligned storage for the placed object
+    new (buf) hkThinBoxMotion(hkFinishLoadedObjectFlag());
+    return *(const void**)buf;
+}
+
+hkThinBoxMotion::hkThinBoxMotion(const hkVector4& position, const hkQuaternion& rotation)
+    : hkBoxMotion(position, rotation) {
+    m_type = MOTION_THIN_BOX_INERTIA;
+}

@@ -21,6 +21,11 @@ struct hkBool {
 typedef int hkResult;
 enum { HK_SUCCESS = 0, HK_FAILURE = 1 };
 
+// Passed to the load-time ("finish loaded object") constructors; read and written as a 32-bit word.
+struct hkFinishLoadedObjectFlag {
+    int m_finishing; // 0x00
+};
+
 struct hkStatisticsCollector;
 
 struct hkBaseObject {

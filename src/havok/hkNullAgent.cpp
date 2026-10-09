@@ -18,11 +18,11 @@
 
 hkNullAgent::hkNullAgent() {}
 
+static hkNullAgent s_nullAgent;
+
 void hkNullAgent::staticGetClosestPoints() {}
 void hkNullAgent::staticGetPenetrations() {}
 void hkNullAgent::staticLinearCast() {}
-
-static hkNullAgent s_nullAgent;
 
 hkNullAgent* hkNullAgent::createNullAgent() {
     return &s_nullAgent;

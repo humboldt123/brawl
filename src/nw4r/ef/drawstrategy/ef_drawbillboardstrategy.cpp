@@ -167,7 +167,21 @@ inline void DrawBillboardStrategy::DispParticle_Normal(
         d1.y = vx_rs_cr_sx + vx_rs_sr_sy + vy_rc_sr_sx - vy_rc_cr_sy;
         d1.z = 0.0f;
     } else {
-        // todo
+        // rot.z == 0: the rotation is the identity (cr = 1, sr = 0)
+        f32 exp0 = px - sx * px;
+        f32 exp1 = py - sy * py;
+
+        p0.x = vx_rc * exp0 + vy_rs * exp1 + pos.x;
+        p0.y = vx_rs * exp0 - vy_rc * exp1 + pos.y;
+        p0.z = pos.z;
+
+        d0.x = vx_rc * sx - vy_rs * sy;
+        d0.y = vx_rs * sx + vy_rc * sy;
+        d0.z = 0.0f;
+
+        d1.x = vx_rc * sx + vy_rs * sy;
+        d1.y = vx_rs * sx - vy_rc * sy;
+        d1.z = 0.0f;
     }
 
     DispPolygon(p0, d0, d1, flags);

@@ -10,3 +10,25 @@
 //   0x80286F98   332  warpToPosition   [map: hkSweptTransformUtil__warpToPosition]
 //   0x802870E4    20  warpToRotation   [map: hkSweptTransformUtil__warpToRotation]
 //   0x802870F8   252  setCentreOfRotationLocal   [map: hkSweptTransformUtil__setCentreOfRotationLocal]
+#include <havok/hkSweptTransformUtil.h>
+
+// The swept transform's two centre-of-mass samples keep their time in the w lane.
+void hkSweptTransformUtil::setTimeInformation(hkMotionState& ms, hkReal t0, hkReal t1) {
+    ms.m_sweptTransform.m_centerOfMass0.w = t0;
+    ms.m_sweptTransform.m_centerOfMass1.w = t1;
+}
+
+// Tail-calls warpTo; warpTo itself is not decompiled in this unit yet (see header).
+void hkSweptTransformUtil::warpToRotation(hkMotionState& ms, const hkMotionState& src) {
+    warpTo();
+}
+
+// Not yet decompiled in this unit:
+//   0x80285DA4   876  lerp2   [map: hkSweptTransformUtil__lerp2]
+//   0x80286110   880  lerp2Ha   [map: hkSweptTransformUtil__lerp2Ha]
+//   0x80286480   960  backStepMotionState   [map: hkSweptTransformUtil__backStepMotionState]
+//   0x80286840   980  freezeMotionState   [map: hkSweptTransformUtil__freezeMotionState]
+//   0x80286C20   340  warpTo   [map: hkSweptTransformUtil__warpTo]
+//   0x80286D74   548  warpTo   [map: hkSweptTransformUtil__warpTo1]
+//   0x80286F98   332  warpToPosition   [map: hkSweptTransformUtil__warpToPosition]
+//   0x802870F8   252  setCentreOfRotationLocal   [map: hkSweptTransformUtil__setCentreOfRotationLocal]

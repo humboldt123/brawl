@@ -14,24 +14,27 @@ void hkRotation::set(const hkQuaternion& q) {
     hkReal x2 = x + x;
     hkReal y2 = y + y;
     hkReal z2 = z + z;
-    hkReal xy = x2 * y;
+    hkReal yy = y2 * y;
+    hkReal zz = z2 * z;
+    hkReal xx = x2 * x;
+    hkReal xy = y2 * x;
     hkReal zw = z2 * w;
-    hkReal xz = x2 * z;
+    hkReal xz = z2 * x;
     hkReal yw = y2 * w;
-    hkReal yz = y2 * z;
+    hkReal yz = z2 * y;
     hkReal xw = x2 * w;
 
-    m_col0.x = 1.0f - (y2 * y + z2 * z);
+    m_col0.x = 1.0f - (yy + zz);
     m_col0.y = xy + zw;
     m_col0.z = xz - yw;
     m_col0.w = 0.0f;
     m_col1.x = xy - zw;
-    m_col1.y = 1.0f - (x2 * x + z2 * z);
+    m_col1.y = 1.0f - (xx + zz);
     m_col1.z = yz + xw;
     m_col1.w = 0.0f;
     m_col2.x = xz + yw;
     m_col2.y = yz - xw;
-    m_col2.z = 1.0f - (x2 * x + y2 * y);
+    m_col2.z = 1.0f - (xx + yy);
     m_col2.w = 0.0f;
 }
 

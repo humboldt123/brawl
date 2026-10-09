@@ -4,6 +4,7 @@
 //   0x802856E4   552  quaternionFromRotatation   [map: hkQuadReal__quaternionFromRotatation]
 //   0x8028590C     4  set   [map: hkQuaternion__set]
 //   0x80285910   312  setFlippedRotation   [map: hkQuaternion__setFlippedRotation]
+#pragma fp_contract on
 #include <havok/hkQuaternion.h>
 #include <havok/hkRotation.h>
 #include <math.h>
@@ -25,12 +26,10 @@ static hkReal hkInfinity() {
 void hkQuaternion::setAxisAngle(const hkVector4& axis, hkReal angle) {
     hkReal half = 0.5f * angle;
     hkReal s = (hkReal)sin(half);
-    hkReal ax = s * axis.x;
-    hkReal ay = s * axis.y;
-    hkReal az = s * axis.z;
-    m_vec.x = ax;
-    m_vec.y = ay;
-    m_vec.z = az;
+    m_vec.x = s * axis.x;
+    m_vec.y = s * axis.y;
+    m_vec.z = s * axis.z;
+    m_vec.w = s * axis.w;
     m_vec.w = (hkReal)cos(half);
 }
 
@@ -38,7 +37,7 @@ void hkQuaternion::setAxisAngle(const hkVector4& axis, hkReal angle) {
 static hkReal hkRsqrtApprox(hkReal x) {
     if (0.0f < x) {
         hkReal r = (hkReal)__frsqrte(x);
-        return r * 0.5f * -(r * x * r - 3.0f);
+        return (0.5f * r) * -(r * (x * r) - 3.0f);
     }
     return hkInfinity();
 }
@@ -48,11 +47,18 @@ void hkQuadReal::quaternionFromRotatation(hkQuaternion* out, const hkRotation& r
     const hkReal* m = &rot.m_col0.x;
     hkVector4 tmpVec;
     hkReal* tmp = &tmpVec.x;
-    hkReal trace = m[10] + m[0] + m[5];
+    hkReal trace = (m[0] + m[5]) + m[10];
     hkReal f1;
     hkReal f2;
 
-    if (trace <= 0.0f) {
+    if (0.0f < trace) {
+        f1 = hkRsqrtApprox(trace + 1.0f);
+        f2 = 0.5f / (1.0f / f1);
+        tmp[1] = f2 * (m[8] - m[2]);
+        tmp[0] = f2 * (m[6] - m[9]);
+        tmp[2] = f2 * (m[1] - m[4]);
+        tmp[3] = (1.0f / f1) * 0.5f;
+    } else {
         const int next[3] = {1, 2, 0};
         int big = (m[0] < m[5]) ? 1 : 0;
         int i;
@@ -71,13 +77,6 @@ void hkQuadReal::quaternionFromRotatation(hkQuaternion* out, const hkRotation& r
         tmp[3] = f2 * (m[i * 4 + j] - m[j * 4 + i]);
         tmp[i] = f2 * (m[big * 4 + i] + m[i * 4 + big]);
         tmp[j] = f2 * (m[big * 4 + j] + m[j * 4 + big]);
-    } else {
-        f1 = hkRsqrtApprox(trace + 1.0f);
-        f2 = 0.5f / (1.0f / f1);
-        tmp[1] = f2 * (m[8] - m[2]);
-        tmp[0] = f2 * (m[6] - m[9]);
-        tmp[2] = f2 * (m[1] - m[4]);
-        tmp[3] = (1.0f / f1) * 0.5f;
     }
     out->m_vec.x = tmp[0];
     out->m_vec.y = tmp[1];
@@ -95,36 +94,37 @@ void hkQuaternion::setFlippedRotation(const hkQuaternion& q) {
     hkVector4 tmpVec;
     hkReal* tmp = &tmpVec.x;
     hkReal fVar1;
-    int iMin;
-    int iOther;
-    bool bVar5 = fabs(in[0]) <= fabs(in[1]);
-
-    fVar1 = (hkReal)fabs(in[0]);
-    if (!bVar5) {
-        fVar1 = (hkReal)fabs(in[1]);
+    int bVar5 = 1;
+    int iMin = 0;
+    int iOther = 2;
+    hkReal a0 = (hkReal)fabs(in[0]);
+    hkReal a1 = (hkReal)fabs(in[1]);
+    fVar1 = a0;
+    if (a1 < a0) {
+        fVar1 = a1;
+        bVar5 = 0;
+        iMin = 1;
     }
-    iMin = !bVar5;
-    iOther = 2;
-    if (fabs(in[2]) < fVar1) {
+    hkReal a2 = (hkReal)fabs(in[2]);
+    if (a2 < fVar1) {
         iMin = 2;
         iOther = !bVar5;
     }
     fVar1 = 0.0f;
     tmp[iMin] = 0.0f;
+    tmpVec.w = 0.0f;
     hkReal fVar2 = in[bVar5];
     tmp[bVar5] = in[iOther];
     tmp[iOther] = -fVar2;
-    fVar2 = tmp[2] * tmp[2] + tmp[0] * tmp[0] + tmp[1] * tmp[1];
+    fVar2 = tmp[1] * tmp[1] + tmp[0] * tmp[0] + tmp[2] * tmp[2];
     if (fVar2 != 0.0f) {
-        if (0.0f < fVar2) {
-            fVar1 = (hkReal)__frsqrte(fVar2);
-            fVar1 = fVar1 * 0.5f * -(fVar1 * fVar2 * fVar1 - 3.0f);
-        } else {
+        if (fVar2 <= 0.0f) {
             fVar1 = hkInfinity();
+        } else {
+            fVar1 = (hkReal)__frsqrte(fVar2);
+            fVar1 = (0.5f * fVar1) * -(fVar1 * (fVar2 * fVar1) - 3.0f);
         }
     }
-    m_vec.x = tmp[0] * fVar1;
-    m_vec.y = tmp[1] * fVar1;
-    m_vec.z = tmp[2] * fVar1;
-    m_vec.w = 0.0f;
+    tmpVec.set(tmp[0] * fVar1, tmp[1] * fVar1, tmp[2] * fVar1, 0.0f);
+    m_vec = tmpVec;
 }

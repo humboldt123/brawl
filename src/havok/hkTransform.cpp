@@ -3,6 +3,7 @@
 //   0x802871F4   128  get4x4ColumnMajor   [map: hkTransform__get4x4ColumnMajor]
 //   0x80287274   128  set4x4ColumnMajor   [map: hkTransform__set4x4ColumnMajor]
 //   0x802872F4   244  setInverse   [map: hkTransform__setInverse]
+#pragma fp_contract on
 #include <havok/hkTransform.h>
 
 // Column-major 4x4: m[col * 4 + row], with the w entries 0 and the translation column last.
@@ -45,23 +46,20 @@ void hkTransform::set4x4ColumnMajor(const hkReal* m) {
 }
 
 // Inverse of a rigid transform: rotation transposed, translation -(R^T t).
-// The original transposes through hkMatrix3::setTranspose (fn_80282C78); the transpose is written out here.
-void hkTransform::setInverse(const hkTransform& t) {
-    const hkRotation& src = t.m_rotation;
-    m_rotation.m_col0.x = src.m_col0.x;
-    m_rotation.m_col0.y = src.m_col1.x;
-    m_rotation.m_col0.z = src.m_col2.x;
-    m_rotation.m_col0.w = 0.0f;
-    m_rotation.m_col1.x = src.m_col0.y;
-    m_rotation.m_col1.y = src.m_col1.y;
-    m_rotation.m_col1.z = src.m_col2.y;
-    m_rotation.m_col1.w = 0.0f;
-    m_rotation.m_col2.x = src.m_col0.z;
-    m_rotation.m_col2.y = src.m_col1.z;
-    m_rotation.m_col2.z = src.m_col2.z;
-    m_rotation.m_col2.w = 0.0f;
+// hkMatrix3 is declared in its own header, which the hkRotation.h here shadows, so only its transpose entry point is declared locally.
+struct hkMatrix3 {
+    void setTranspose(const hkMatrix3& other);
+};
 
+void hkTransform::setInverse(const hkTransform& t) {
+    reinterpret_cast<hkMatrix3&>(m_rotation).setTranspose(reinterpret_cast<const hkMatrix3&>(t.m_rotation));
+
+    // translation = this rotation applied to -t.translation (inlined rotated-direction product).
     hkVector4 negTranslation;
     negTranslation.set(-t.m_translation.x, -t.m_translation.y, -t.m_translation.z, -t.m_translation.w);
-    m_translation.setRotatedDir(m_rotation, negTranslation);
+    const hkRotation& r = m_rotation;
+    m_translation.x = negTranslation.z * r.m_col2.x + (negTranslation.x * r.m_col0.x + negTranslation.y * r.m_col1.x);
+    m_translation.y = negTranslation.z * r.m_col2.y + (negTranslation.x * r.m_col0.y + negTranslation.y * r.m_col1.y);
+    m_translation.z = negTranslation.z * r.m_col2.z + (negTranslation.x * r.m_col0.z + negTranslation.y * r.m_col1.z);
+    m_translation.w = 0.0f;
 }

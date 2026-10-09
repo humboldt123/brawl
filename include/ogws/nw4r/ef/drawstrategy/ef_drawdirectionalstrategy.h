@@ -16,6 +16,14 @@ public:
 
     virtual CalcAheadFunc
     GetCalcAheadFunc(ParticleManager* pManager); // at 0x18
+
+private:
+    void DrawDirectional(const DrawInfo& rInfo, ParticleManager* pManager);
+
+    void DrawDirectionalBillboard(const DrawInfo& rInfo,
+                                  ParticleManager* pManager);
+
+    void InitGraphics(const DrawInfo& rInfo, ParticleManager* pManager);
 };
 
 } // namespace ef
