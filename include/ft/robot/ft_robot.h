@@ -26,8 +26,6 @@ typedef ftRobotArticleManageModuleBuilder ftRobotGenerateArticleManageModuleBuil
 
 class ftRobotBuildConfig : public ftCommonBuildConfig {
 public:
-    // R.O.B.'s character status table and corresponding ACMD lists have 12 entries.
-    enum { UniqueStatusCount = 12 };
     typedef ftRobotInsideEventManageModuleBuildConfig InsideEventManageModuleBuildConfig;
     typedef ftRobotHeapModuleBuildConfig HeapModuleBuildConfig;
     typedef ftRobotParamCustomizeModuleBuildConfig ParamCustomizeModuleBuildConfig;
