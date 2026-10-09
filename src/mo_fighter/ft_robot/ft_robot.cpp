@@ -154,43 +154,43 @@ ftRobotUnk8::ftRobotUnk8(int a, int b) : unk0(a), unk4(b) { }
 s32 ftRobotArticleMediator::getMediateNum() { return 4; }
 void ftRobotArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
 
-#pragma dont_inline on
 void ftRobotArticleMediator::deactivate() {
     for (s32 i = 0; i < 1; ++i) {
         wnRobotGyro* weapon = static_cast<ftRobotArticlePool<wnRobotGyro, 1, ftRobotBeamPool> &>(m_pools).getSub().getInstanceAt(i);
-        if (!ftRobotDeactivateArticle(static_cast<soArticle*>(weapon))) {
+        if (!ftRobotDeactivateArticle(&static_cast<soArticle&>(*weapon))) {
             return;
         }
     }
     for (s32 i = 0; i < 2; ++i) {
         wnRobotBeam* weapon = static_cast<ftRobotArticlePool<wnRobotBeam, 2, ftRobotGyroHolderPool> &>(m_pools).getSub().getInstanceAt(i);
-        if (!ftRobotDeactivateArticle(static_cast<soArticle*>(weapon))) {
+        if (!ftRobotDeactivateArticle(&static_cast<soArticle&>(*weapon))) {
             return;
         }
     }
     for (s32 i = 0; i < 1; ++i) {
         wnRobotGyroHolder* weapon = static_cast<ftRobotArticlePool<wnRobotGyroHolder, 1, ftRobotFinalBeamPool> &>(m_pools).getSub().getInstanceAt(i);
-        if (!ftRobotDeactivateArticle(static_cast<soArticle*>(weapon))) {
+        if (!ftRobotDeactivateArticle(&static_cast<soArticle&>(*weapon))) {
             return;
         }
     }
     for (s32 i = 0; i < 1; ++i) {
         wnRobotFinalBeam* weapon = static_cast<ftRobotArticlePool<wnRobotFinalBeam, 1, soInstancePoolRoot> &>(m_pools).getSub().getInstanceAt(i);
-        if (!ftRobotDeactivateArticle(static_cast<soArticle*>(weapon))) {
+        if (!ftRobotDeactivateArticle(&static_cast<soArticle&>(*weapon))) {
             return;
         }
     }
 }
-#pragma dont_inline off
 
 // The mediator walks a list of 17 article slots (only the first four are used by R.O.B.; the original code has one
 // switch case per slot). Every case builds a two-byte empty tag on the stack, which is why each case owns its own slot
 // of the frame (HYPOTHESIS: the tag is the per-slot type-list marker of the generic mediator template).
 struct ftRobotArticleSlotTag {
-    u8 m_pad0;
-    u8 m_pad1;
+    // MATCH-ONLY: preserve the native per-case marker stores, which MWCC would
+    // otherwise eliminate when the empty marker's lifetime stays inside a case.
+    volatile u8 m_pad0;
+    volatile u8 m_pad1;
     ftRobotArticleSlotTag() : m_pad0(0), m_pad1(0) { }
-    ~ftRobotArticleSlotTag() { } // MATCH-ONLY: a non-trivial destructor keeps the otherwise dead tag stores
+    ~ftRobotArticleSlotTag() { }
 };
 
 #define FT_ROBOT_UNUSED_SLOT(n, value) \
@@ -226,17 +226,20 @@ struct ftRobotArticleActiveCounter {
     s32 m_activeNum;
     s32 m_inactiveNum;
     ftRobotArticleActiveCounter() : m_isActive(ftRobotIsActiveArticle), m_activeNum(0), m_inactiveNum(0) { }
+    void operator()(soArticle* article) {
+        if (m_isActive(article) == true) {
+            ++m_activeNum;
+        } else {
+            ++m_inactiveNum;
+        }
+    }
 };
 
 template <class W, int N>
 static s32 ftRobotCountActiveArticles(ftRobotArticleSubPool<W, N>& pool) {
     ftRobotArticleActiveCounter counter;
     for (s32 i = 0; i < N; ++i) {
-        if (counter.m_isActive(pool.getInstanceAt(i)) == true) {
-            ++counter.m_activeNum;
-        } else {
-            ++counter.m_inactiveNum;
-        }
+        counter(&static_cast<soArticle&>(*pool.getInstanceAt(i)));
     }
     return counter.m_activeNum;
 }
@@ -530,16 +533,6 @@ bool ftRobot::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, int inde
     return result;
 }
 
-// The SDK keeps soArticle::getArticleId private. This view describes its observed
-// PPC virtual slot rather than assuming every article is a Weapon (the null
-// article is a valid input too). Replace it when the SDK interface is complete.
-static s32 ftRobotGetArticleId(soArticle* article) {
-    typedef s32 (*GetArticleId)(soArticle*);
-    void** table = *reinterpret_cast<void***>(article);
-    GetArticleId getter = reinterpret_cast<GetArticleId>(table[0x20 / sizeof(void*)]);
-    return getter(article);
-}
-
 static soArticle* ftRobotGetNullArticle() {
     return reinterpret_cast<soArticle*>(g_ftRobotNullArticleStorage);
 }
@@ -552,15 +545,9 @@ bool ftRobotArticleActivator<wnRobotBeam>::activate(wnRobotBeam* weapon, soModul
 template <class W, int N>
 static soArticle* ftRobotGenerateFromPool(ftRobotArticleSubPool<W, N>& pool, soModuleAccesser* acc) {
     soArticleDeactivateChecker checker;
-    W* weapon = NULL;
-    // The original checks the newest pool slot first (Beam index 1 before 0).
-    for (s32 i = N - 1; i >= 0; --i) {
-        W* candidate = pool.getInstanceAt(i);
-        if (checker(static_cast<soArticle*>(candidate)) == true) {
-            weapon = candidate;
-            break;
-        }
-    }
+    // Stop at the first inactive article; otherwise the checker retains the
+    // oldest active candidate. Beam visits slot 1 before slot 0.
+    W* weapon = pool.find(checker);
     if (weapon == NULL) {
         weapon = static_cast<W*>(checker.getCandidate());
         if (weapon == NULL) {
@@ -599,7 +586,7 @@ soArticle* ftRobotArticleMediator::generate(s32 articleId, soModuleAccesser* acc
 
 // Shooting only type-checks the article; the unused slots accept anything.
 bool ftRobotArticleMediator::shoot(soModuleAccesser*, soArticle* article) {
-    switch (ftRobotGetArticleId(article)) {
+    switch (article->getArticleId()) {
     case 0: { ftRobotArticleSlotTag tag; (void)dynamic_cast<wnRobotGyro&>(*article); return true; }
     case 1: { ftRobotArticleSlotTag tag; (void)dynamic_cast<wnRobotBeam&>(*article); return true; }
     case 2: { ftRobotArticleSlotTag tag; (void)dynamic_cast<wnRobotGyroHolder&>(*article); return true; }

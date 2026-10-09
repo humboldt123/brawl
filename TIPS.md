@@ -57,6 +57,8 @@ The same assembly can come from very different C++ (`add r3,r3,r4` could be `x +
 
 - **A float move appears in the wrong place among constructor arguments:** verify the float's position in the prototype, not just its register type. Moving a float among pointer arguments preserves the PowerPC argument register assignments but changes MWCC's save/move order and mangling. Restore the builder and callee prototypes together, update forwarded calls and symbols, and check already-exact callers. Model scale is second in `soModelModuleBuilder` and follows node setup in `soModelModuleImpl`; this matched Marth and Kirby's builders while retaining the variable-model constructor. Seen: `include/ft/builder/ft_module_builders.h`, `include/so/model/so_model_module_impl.h`. **HIGH**
 
+- **A pointer-to-base conversion adds a null check inside a bounded embedded-object traversal:** a pointer cast must preserve null, while a reference cast expresses a known valid object. When the pool bounds and embedded holder prove validity, pass `&static_cast<Base&>(*object)`; keep the pointer cast on paths that can return null. This removed extra branches and matched R.O.B.’s article deactivation loop. Seen: `src/mo_fighter/ft_robot/ft_robot.cpp`, `include/ft/robot/ft_robot_article_pools.h`. **MED**
+
 ## 5. Integers and bools
 - The source type decides extension: `u8` gives `clrlwi r,r,24`, `s8` gives `extsb`, `s16` gives `extsh`, `bool` gives `clrlwi 24`. Many "mysterious" extra instructions are a wrong type (often `s8` that should be `int`, or `u8` that should be `s32`). **HIGH**
 - **Bitfield reads as `lwz` plus `rlwinm`:** read through a raw `*(u32*)((u8*)p + off)` and shift/mask, not through a declared signed bitfield (`so_damage_module_impl.cpp`). **MED**
