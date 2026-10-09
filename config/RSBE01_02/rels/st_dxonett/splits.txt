@@ -11,6 +11,34 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_dxonett/st_dxonett.cpp:
+	.text       start:0x00000070 end:0x00001684
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000058
+	.data       start:0x00000000 end:0x00000548
+	.bss        start:0x00000008 end:0x00000018
+
+mo_stage/st_dxonett/gr_dxonett.cpp:
+	.text       start:0x00001684 end:0x000026D8
+	.rodata     start:0x00000058 end:0x00000080
+	.data       start:0x00000548 end:0x00000C70
+
+mo_stage/st_dxonett/gr_dxonett_ashiba.cpp:
+	.text       start:0x000026D8 end:0x00002CAC
+	.rodata     start:0x00000080 end:0x000000A8
+	.data       start:0x00000C70 end:0x00000EA0
+
+mo_stage/st_dxonett/gr_dxonett_car.cpp:
+	.text       start:0x00002CAC end:0x00007B50
+	.rodata     start:0x000000A8 end:0x000000E8
+	.data       start:0x00000EA0 end:0x00002500
+	.bss        start:0x00000018 end:0x00000128
+
+mo_stage/st_dxonett/gr_dxonett_kanban.cpp:
+	.text       start:0x00007B50 end:0x000089F0
+	.rodata     start:0x000000E8 end:0x00000108
+	.data       start:0x00002500 end:0x00002788
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x000089F0 end:0x00008A8C
 	.data       start:0x00002788 end:0x00002795
