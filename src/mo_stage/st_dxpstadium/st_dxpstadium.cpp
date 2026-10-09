@@ -591,13 +591,13 @@ void stDxPStadium::update(float deltaFrame) {
             m_pickOrder[1] = 1;
             m_pickOrder[2] = 2;
             m_pickOrder[3] = 3;
-            int i;
-            for (i = 0; i < 32; i++) {
-                u32 a = randi(4);
+            u32 a, b;
+            for (int i = 0; i < 32; i++) {
+                a = randi(4);
                 if (a >= 3) {
                     a = 3;
                 }
-                u32 b = randi(4);
+                b = randi(4);
                 if (b >= 3) {
                     b = 3;
                 }
@@ -851,8 +851,9 @@ void stDxPStadium::updateVisionRect() {
         cornerB = m_visionPosB;
         Vec2f screenA;
         Vec2f screenB;
-        gfCameraManager::getManager()->m_cameras[0].calcProjection3Dto2D(&cornerA, &screenA);
-        gfCameraManager::getManager()->m_cameras[0].calcProjection3Dto2D(&cornerB, &screenB);
+        gfCamera* camera = &gfCameraManager::getManager()->m_cameras[0];
+        camera->calcProjection3Dto2D(&cornerA, &screenA);
+        camera->calcProjection3Dto2D(&cornerB, &screenB);
         screenA.m_x = screenA.m_x * (1.0f / 640.0f);
         screenA.m_y = 1.0f - (1.0f / 480.0f) * screenA.m_y;
         screenB.m_x = screenB.m_x * (1.0f / 640.0f);
