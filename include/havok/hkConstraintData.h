@@ -28,7 +28,8 @@ struct hkConstraintData : hkReferencedObject {
     u32 m_userData; // 0x08
 
     hkConstraintData();
-    virtual ~hkConstraintData();
+    hkConstraintData(hkFinishLoadedObjectFlag flag) {} // finish-loading ctor: the base ctors set refcount
+    virtual ~hkConstraintData() {} // empty in the target (no base dtor call in the derived dtors)
 
     virtual void unk04();
     virtual void unk05();

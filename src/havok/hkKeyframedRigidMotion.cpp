@@ -25,3 +25,128 @@
 //   0x802E5900     4  setStepPosition   [map: hkKeyframedRigidMotion__setStepPosition]
 //   0x802E5904   156  setStoredMotion   [map: hkKeyframedRigidMotion__setStoredMotion]
 //   0x802E59A0   136  __sinit_\hkKeyframedRigidMotion_cpp   [map: hkKeyframedRigidMotioncpp____sinit_]
+#include <new>
+#include <havok/hkKeyframedRigidMotion.h>
+#include <havok/hkRegistry.h>
+
+static hkMotionTypeInfo s_hkKeyframedRigidMotionTypeInfo("hkKeyframedRigidMotion",
+    hkKeyframedRigidMotion::finishLoadedObjecthkKeyframedRigidMotion,
+    hkKeyframedRigidMotion::cleanupLoadedObjecthkKeyframedRigidMotion,
+    hkKeyframedRigidMotion::getVtablehkKeyframedRigidMotion());
+
+static hkMotionTypeInfo s_hkMaxSizeMotionTypeInfo("hkMaxSizeMotion",
+    hkKeyframedRigidMotion::finishLoadedObjecthkMaxSizeMotion,
+    hkKeyframedRigidMotion::cleanupLoadedObjecthkMaxSizeMotion,
+    hkKeyframedRigidMotion::getVtablehkMaxSizeMotion());
+
+void hkKeyframedRigidMotion::finishLoadedObjecthkKeyframedRigidMotion(void* p) {
+    new (p) hkKeyframedRigidMotion(hkFinishLoadedObjectFlag());
+}
+
+void hkKeyframedRigidMotion::cleanupLoadedObjecthkKeyframedRigidMotion(void* p) {
+    ((hkKeyframedRigidMotion*)p)->~hkKeyframedRigidMotion();
+}
+
+const void* hkKeyframedRigidMotion::getVtablehkKeyframedRigidMotion() {
+    hkVector4 buf[17]; // 0x110 bytes of 16-byte-aligned storage for the placed object
+    new (buf) hkKeyframedRigidMotion(hkFinishLoadedObjectFlag());
+    return *(const void**)buf;
+}
+
+void hkKeyframedRigidMotion::finishLoadedObjecthkMaxSizeMotion(void* p) {
+    new (p) hkMaxSizeMotion(hkFinishLoadedObjectFlag());
+}
+
+void hkKeyframedRigidMotion::cleanupLoadedObjecthkMaxSizeMotion(void* p) {
+    ((hkMaxSizeMotion*)p)->~hkMaxSizeMotion();
+}
+
+const void* hkKeyframedRigidMotion::getVtablehkMaxSizeMotion() {
+    hkVector4 buf[17]; // 0x110 bytes of 16-byte-aligned storage for the placed object
+    new (buf) hkMaxSizeMotion(hkFinishLoadedObjectFlag());
+    return *(const void**)buf;
+}
+
+hkKeyframedRigidMotion::hkKeyframedRigidMotion(const hkVector4& position, const hkQuaternion& rotation)
+    : hkMotion(position, rotation) {
+    savedMotion = 0;
+    savedQualityTypeIndex = 0;
+    m_inertiaAndMassInv.setZero4();
+    m_type = MOTION_KEYFRAMED;
+}
+
+hkKeyframedRigidMotion::~hkKeyframedRigidMotion() {
+    if (savedMotion) {
+        savedMotion->removeReference();
+    }
+}
+
+void hkKeyframedRigidMotion::setMass(hkReal mass) {}
+
+void hkKeyframedRigidMotion::setMassInv(hkReal massInv) {}
+
+// Writes the 12 floats of a three-column matrix as zero (columns x, y, z, w in order).
+// MATCH-ONLY: the original also leaves a zeroed stack vector behind (stored after the columns).
+static void setZeroMatrixColumns(hkVector4* cols) {
+    for (int i = 0; i < 3; i++) {
+        cols[i].x = 0.0f;
+        cols[i].y = 0.0f;
+        cols[i].z = 0.0f;
+        cols[i].w = 0.0f;
+    }
+    hkVector4 zero;
+    zero.w = 0.0f;
+    zero.z = 0.0f;
+    zero.y = 0.0f;
+    zero.x = 0.0f;
+}
+
+// Inertia is not tracked for keyframed bodies: the matrices are returned as zero.
+void hkKeyframedRigidMotion::getInertiaLocal(hkMatrix3& out) const {
+    hkVector4* cols = (hkVector4*)&out;
+    setZeroMatrixColumns(cols);
+}
+
+void hkKeyframedRigidMotion::getInertiaWorld(hkMatrix3& out) const {
+    hkVector4* cols = (hkVector4*)&out;
+    setZeroMatrixColumns(cols);
+}
+
+void hkKeyframedRigidMotion::setInertiaLocal(const hkMatrix3& in) {}
+
+void hkKeyframedRigidMotion::setInertiaInvLocal(const hkMatrix3& in) {}
+
+void hkKeyframedRigidMotion::getInertiaInvLocal(hkMatrix3& out) const {
+    hkVector4* cols = (hkVector4*)&out;
+    setZeroMatrixColumns(cols);
+}
+
+void hkKeyframedRigidMotion::getInertiaInvWorld(hkMatrix3& out) const {
+    hkVector4* cols = (hkVector4*)&out;
+    setZeroMatrixColumns(cols);
+}
+
+void hkKeyframedRigidMotion::applyLinearImpulse(const hkVector4& impulse) {}
+
+void hkKeyframedRigidMotion::applyPointImpulse(const hkVector4& impulse, const hkVector4& point) {}
+
+void hkKeyframedRigidMotion::applyAngularImpulse(const hkVector4& impulse) {}
+
+void hkKeyframedRigidMotion::applyForce(hkReal timestep, const hkVector4& force) {}
+
+void hkKeyframedRigidMotion::applyForce(hkReal timestep, const hkVector4& force, const hkVector4& point) {}
+
+void hkKeyframedRigidMotion::applyTorque(hkReal timestep, const hkVector4& torque) {}
+
+void hkKeyframedRigidMotion::setStepPosition(hkReal stepPosition) {}
+
+// Replaces the stored motion: the new one gains a reference, the old one loses one.
+void hkKeyframedRigidMotion::setStoredMotion(hkMaxSizeMotion* motion) {
+    if (motion) {
+        motion->addReference();
+    }
+    if (savedMotion) {
+        savedMotion->removeReference();
+    }
+    savedMotion = motion;
+}

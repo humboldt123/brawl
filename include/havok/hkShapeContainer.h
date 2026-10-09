@@ -2,6 +2,7 @@
 
 #include <havok/hkBase.h>
 #include <havok/hkWorldCinfo.h>
+#include <havok/hkShape.h>
 
 struct hkShape;
 
@@ -21,6 +22,13 @@ struct hkSingleShapeContainer : hkShapeContainer {
     hkShape* m_childShape; // 0x04
 
     hkSingleShapeContainer(hkFinishLoadedObjectFlag flag) {} // finish-loading ctor: only the vtable is written
+    virtual ~hkSingleShapeContainer() { if (m_childShape) m_childShape->removeReference(); }
+
+    // Single child keys: one key (0), the child, and no next key. Defined in hkBvShape.cpp.
+    virtual int getFirstKey() const;     // 0x10
+    virtual int getNextKey(int key) const; // 0x14
+    int getNumChildShapes() const;
+    hkShape* getChildShape() const;
 
     static void finishLoadedObjecthkSingleShapeContainer(void* p);
     static void cleanupLoadedObjecthkSingleShapeContainer(void* p);

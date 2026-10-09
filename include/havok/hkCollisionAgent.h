@@ -11,6 +11,10 @@ struct hkCollisionAgent : hkReferencedObject {
     hkCollisionAgent() {
         unk8 = 0;
     }
+    // Used by derived agents that take the per-pair value in their constructor (hkPhantomAgent).
+    explicit hkCollisionAgent(int unk8Value) {
+        unk8 = unk8Value;
+    }
     virtual ~hkCollisionAgent() {}
 
     virtual void invalidateTim();
@@ -18,4 +22,12 @@ struct hkCollisionAgent : hkReferencedObject {
     virtual void removePoint();
     virtual void commitPotential();
     virtual void createZombie();
+};
+
+// Contact manager that agents store in their 0x08 word (passed as the last argument of the create functions).
+// Only the virtual slots used by the sphere agents are declared; names are HYPOTHESIS until the class is recovered.
+struct hkContactMgr : hkReferencedObject {
+    virtual void unk10(); // 0x10 HYPOTHESIS
+    virtual void unk14(); // 0x14 HYPOTHESIS
+    virtual void unk18(); // 0x18 HYPOTHESIS: called by hkSphereSphereAgent::cleanup on the 0x08 object
 };

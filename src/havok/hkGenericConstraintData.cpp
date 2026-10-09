@@ -31,3 +31,76 @@
 //   0x802DD510     8  isValid   [map: hkGenericConstraintData__isValid]
 //   0x802DD518     8  getType   [map: hkGenericConstraintData__getType]
 //   0x802DD520    80  __sinit_\hkGenericConstraintData_cpp   [map: hkGenericConstraintDatacpp____sinit_]
+
+#include <havok/hkGenericConstraintData.h>
+
+// Stand-in for a helper in another TU (not yet named).
+extern "C" void fn_80288B40(void* a, void* b, u32 c, u32 d);
+
+#pragma fp_contract on
+
+void hkGenericConstraintData::finishLoadedObjecthkGenericConstraintData(void* p) {
+    hkFinishLoadedObjectFlag flag;
+    flag.m_finishing = 1;
+    ::new (p) hkGenericConstraintData(flag);
+}
+
+void hkGenericConstraintData::cleanupLoadedObjecthkGenericConstraintData(void* p) {
+    ((hkBaseObject*)p)->~hkBaseObject();
+}
+
+const void* hkGenericConstraintData::getVtablehkGenericConstraintData() {
+    hkFinishLoadedObjectFlag flag;
+    flag.m_finishing = 0;
+    char buf[0x58] __attribute__((aligned(16)));
+    hkGenericConstraintData* p = ::new (buf) hkGenericConstraintData(flag);
+    return *(const void**)p;
+}
+
+hkGenericConstraintData::hkGenericConstraintData(hkFinishLoadedObjectFlag flag) : hkConstraintData(flag) {
+    m_bridgeAtom.init(m_bridgeAtom.m_constraintData);
+    m_bridgeAtom.init(this);
+}
+
+// Releases the motors (reference counted), then the member arrays are destroyed in reverse order.
+hkGenericConstraintData::~hkGenericConstraintData() {
+    hkReferencedObject** motors = (hkReferencedObject**)m_scheme.m_motors.m_data;
+    for (int i = 0; i < m_scheme.m_motors.m_size; i++) {
+        motors[i]->removeReference();
+    }
+}
+
+void hkGenericConstraintData::getConstraintInfo(hkConstraintInfo* info) {
+    info->unk10 = &m_bridgeAtom;
+    info->unk14 = (u32)((u8*)&m_scheme - (u8*)&m_bridgeAtom);
+    info->unk00 = 0;
+    info->unk04 = 0;
+    info->unk08 = 0;
+    info->unk0C = 0;
+    info->unk00 = m_scheme.m_info[0];
+    info->unk04 = m_scheme.m_info[1];
+    info->unk08 = m_scheme.m_info[2];
+    info->unk0C = m_scheme.m_info[3];
+}
+
+void hkGenericConstraintData::getRuntimeInfo(void* unusedA, hkConstraintRuntimeInfo* out) {
+    u32 n = m_scheme.m_info[3];
+    out->unk04 = n;
+    out->unk00 = n * 8;
+}
+
+void hkGenericConstraintData::buildJacobian(void* a, void* b) {
+    fn_80288B40(a, b, *(u32*)((u8*)a + 0x44), 8);
+    hatchScheme(&m_scheme, a, b);
+}
+
+hkGenericConstraintDataParameters::hkGenericConstraintDataParameters() {
+}
+
+hkBool hkGenericConstraintData::isValid() const {
+    return hkBool(true);
+}
+
+u32 hkGenericConstraintData::getType() const {
+    return 10;
+}

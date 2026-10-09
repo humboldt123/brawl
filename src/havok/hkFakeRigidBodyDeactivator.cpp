@@ -10,3 +10,45 @@
 //   0x802E2220     8  shouldDeactivateHighFrequency   [map: hkFakeRigidBodyDeactivator__shouldDeactivateHighFrequency]
 //   0x802E2228     8  shouldDeactivateLowFrequency   [map: hkFakeRigidBodyDeactivator__shouldDeactivateLowFrequency]
 //   0x802E2230   148  __sinit_\hkFakeRigidBodyDeactivator_cpp   [map: hkFakeRigidBodyDeactivatorcpp____sinit_]
+#include <new>
+#include <havok/hkFakeRigidBodyDeactivator.h>
+#include <havok/hkVector4.h>
+
+static hkRigidBodyDeactivatorTypeInfo s_hkFakeRigidBodyDeactivatorTypeInfo("hkFakeRigidBodyDeactivator",
+    hkFakeRigidBodyDeactivator::finishLoadedObjecthkFakeRigidBodyDeactivator,
+    hkFakeRigidBodyDeactivator::cleanupLoadedObjecthkFakeRigidBodyDeactivator,
+    hkFakeRigidBodyDeactivator::getVtablehkFakeRigidBodyDeactivator());
+
+static hkFakeRigidBodyDeactivator s_hkFakeRigidBodyDeactivator;
+
+void hkFakeRigidBodyDeactivator::finishLoadedObjecthkFakeRigidBodyDeactivator(void* p) {
+    new (p) hkFakeRigidBodyDeactivator(hkFinishLoadedObjectFlag());
+}
+
+hkEntityDeactivator::~hkEntityDeactivator() {}
+
+hkRigidBodyDeactivator::~hkRigidBodyDeactivator() {}
+
+void hkFakeRigidBodyDeactivator::cleanupLoadedObjecthkFakeRigidBodyDeactivator(void* p) {
+    ((hkFakeRigidBodyDeactivator*)p)->~hkFakeRigidBodyDeactivator();
+}
+
+hkFakeRigidBodyDeactivator::~hkFakeRigidBodyDeactivator() {}
+
+const void* hkFakeRigidBodyDeactivator::getVtablehkFakeRigidBodyDeactivator() {
+    hkVector4 buf[1]; // placed object storage (16-byte aligned)
+    new (buf) hkFakeRigidBodyDeactivator(hkFinishLoadedObjectFlag());
+    return *(const void**)buf;
+}
+
+int hkFakeRigidBodyDeactivator::getRigidBodyDeactivatorType() const {
+    return DEACTIVATOR_NEVER;
+}
+
+hkBool hkFakeRigidBodyDeactivator::shouldDeactivateHighFrequency() const {
+    return hkBool(false);
+}
+
+hkBool hkFakeRigidBodyDeactivator::shouldDeactivateLowFrequency() const {
+    return hkBool(false);
+}

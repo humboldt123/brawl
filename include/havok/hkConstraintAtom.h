@@ -53,6 +53,8 @@ struct hkMassChangerModifierConstraintAtom : hkModifierConstraintAtom {
     float m_factorA; // 0x0C
     float m_factorB; // 0x10
 
+    int numSolverResults() const;
+
     void collisionResponseBeginCallback(void* contact, hkModifierMotion* motionA, void* unused, hkModifierMotion* motionB);
     void collisionResponseEndCallback();
 };
@@ -61,6 +63,8 @@ struct hkMassChangerModifierConstraintAtom : hkModifierConstraintAtom {
 struct hkSoftContactModifierConstraintAtom : hkModifierConstraintAtom {
     float m_tau;             // 0x0C
     float m_maxAcceleration; // 0x10
+
+    int numSolverResults() const;
 
     void collisionResponseBeginCallback(void* unusedA, void* unusedB, void* unusedC, const hkVector4* srcA,
                                         void* unusedD, const hkVector4* srcB);

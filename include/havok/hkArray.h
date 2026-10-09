@@ -1,5 +1,6 @@
 #pragma once
 
+#include <havok/hkBase.h>
 #include <havok/hkThreadMemory.h>
 
 // Untyped part of hkArray<T>: data pointer, element count, and capacity with flag bits.
@@ -45,6 +46,11 @@ struct hkArray : hkArrayBase {
         m_data = ptr;
         m_size = size;
         m_capacityAndFlags = capacity | DONT_DEALLOCATE_FLAG;
+    }
+    // Load-time constructor: the members already hold the packfile data, nothing is written.
+    hkArray(hkFinishLoadedObjectFlag) {}
+    T* begin() const {
+        return (T*)m_data;
     }
     // The flag test lives in its own inline function: this keeps the capacity load from being
     // shared with the size computation, as in the original code (hkVersionUtil, hkVersionRegistry).

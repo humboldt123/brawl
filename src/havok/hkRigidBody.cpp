@@ -1,5 +1,5 @@
 // Havok translation unit hkRigidBody.o (main.dol 0x802E22C4-0x802E3604).
-// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+// Functions in address order (method names from the Havok TU map):
 //   0x802E22C4    76  finishLoadedObjecthkRigidBody   [map: hkRigidBody__finishLoadedObjecthkRigidBody]
 //   0x802E2310    20  cleanupLoadedObjecthkRigidBody   [map: hkRigidBody__cleanupLoadedObjecthkRigidBody]
 //   0x802E2324    84  getVtablehkRigidBody   [map: hkRigidBody__getVtablehkRigidBody]
@@ -22,3 +22,51 @@
 //   0x802E3560    68  setTransform   [map: hkRigidBody__setTransform]
 //   0x802E35A4    16  setMass   [map: hkRigidBody__setMass]
 //   0x802E35B4    80  __sinit_\hkRigidBody_cpp   [map: hkRigidBodycpp____sinit_]
+
+#include <new>
+#include <havok/hkRigidBody.h>
+
+void hkRigidBody::finishLoadedObjecthkRigidBody(void* p) {
+    hkFinishLoadedObjectFlag flag;
+    flag.m_finishing = 1;
+    new (p) hkRigidBody(flag);
+}
+
+void hkRigidBody::cleanupLoadedObjecthkRigidBody(void* p) {
+    ((hkRigidBody*)p)->~hkRigidBody();
+}
+
+const void* hkRigidBody::getVtablehkRigidBody() {
+    hkFinishLoadedObjectFlag flag;
+    flag.m_finishing = 0;
+    hkVector4 buf[31]; // 0x1F0 bytes of 16-byte-aligned storage for the placed object
+    new (buf) hkRigidBody(flag);
+    return *(const void**)buf;
+}
+
+hkMotionState* hkRigidBody::getMotionState() {
+    return &getMotion()->m_motionState;
+}
+
+void hkRigidBody::setDeactivator(hkEntityDeactivator* deactivator) {
+    hkEntity::setDeactivator(deactivator);
+}
+
+void hkRigidBody::setPosition(const hkVector4& position) {
+    getMotion()->setPosition(position);
+    updateBroadphaseAndResetCollisionInformationOfWarpedBody();
+}
+
+void hkRigidBody::setPositionAndRotation(const hkVector4& position, const hkQuaternion& rotation) {
+    getMotion()->setPositionAndRotation(position, rotation);
+    updateBroadphaseAndResetCollisionInformationOfWarpedBody();
+}
+
+void hkRigidBody::setTransform(const hkTransform& transform) {
+    getMotion()->setTransform(transform);
+    updateBroadphaseAndResetCollisionInformationOfWarpedBody();
+}
+
+void hkRigidBody::setMass(hkReal mass) {
+    getMotion()->setMass(mass);
+}

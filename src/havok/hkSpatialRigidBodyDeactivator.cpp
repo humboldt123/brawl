@@ -9,3 +9,21 @@
 //   0x802E3958   312  shouldDeactivateHighFrequency   [map: hkSpatialRigidBodyDeactivator__shouldDeactivateHighFrequency]
 //   0x802E3A90   312  shouldDeactivateLowFrequency   [map: hkSpatialRigidBodyDeactivator__shouldDeactivateLowFrequency]
 //   0x802E3BC8    80  __sinit_\hkSpatialRigidBodyDeactivator_cpp   [map: hkSpatialRigidBodyDeactivatorcpp____sinit_]
+#include <havok/hkSpatialRigidBodyDeactivator.h>
+
+// The finish, getVtable and static-init functions (0x802E37E0, 0x802E3870, 0x802E3BC8) and the constructor
+// (0x802E38AC) need a concrete instance. They wait for the two high/low frequency functions, see below.
+
+void hkSpatialRigidBodyDeactivator::cleanupLoadedObjecthkSpatialRigidBodyDeactivator(void* p) {
+    ((hkSpatialRigidBodyDeactivator*)p)->~hkSpatialRigidBodyDeactivator();
+}
+
+hkSpatialRigidBodyDeactivator::~hkSpatialRigidBodyDeactivator() {}
+
+int hkSpatialRigidBodyDeactivator::getRigidBodyDeactivatorType() const {
+    return DEACTIVATOR_SPATIAL;
+}
+
+// Not yet decompiled in this unit:
+//   0x802E3958  shouldDeactivateHighFrequency: the argument type (fields read at +0x100..+0x150) is not known.
+//   0x802E3A90  shouldDeactivateLowFrequency: same.
