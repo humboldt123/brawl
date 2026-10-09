@@ -11,6 +11,37 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_mariopast/st_mariopast.cpp:
+	.text       start:0x00000070 end:0x00001F28
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000010
+	.data       start:0x00000000 end:0x00000530
+	.bss        start:0x00000008 end:0x00000018
+
+mo_stage/st_mariopast/gr_mariopast.cpp:
+	.text       start:0x00001F28 end:0x0000302C
+	.rodata     start:0x00000010 end:0x00000040
+	.data       start:0x00000530 end:0x00000DD8
+
+mo_stage/st_mariopast/gr_mariopast_blockpos.cpp:
+	.text       start:0x0000302C end:0x000078E8
+	.ctors      start:0x00000004 end:0x00000008
+	.rodata     start:0x00000040 end:0x00000048
+	.data       start:0x00000DD8 end:0x000018B0
+	.bss        start:0x00000018 end:0x00000048
+
+mo_stage/st_mariopast/gr_mariopast_blockpos_lite.cpp:
+	.text       start:0x000078E8 end:0x0000C28C
+	.ctors      start:0x00000008 end:0x0000000C
+	.rodata     start:0x00000048 end:0x000000A8
+	.data       start:0x000018B0 end:0x00003218
+	.bss        start:0x00000048 end:0x00000070
+
+mo_stage/st_mariopast/gr_mariopast_lift.cpp:
+	.text       start:0x0000C28C end:0x0000C758
+	.rodata     start:0x000000A8 end:0x000000B0
+	.data       start:0x00003218 end:0x00003440
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x0000C758 end:0x0000C7F4
 	.data       start:0x00003440 end:0x0000344D
