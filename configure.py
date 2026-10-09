@@ -488,11 +488,11 @@ config.libs = [
         "cflags": cflags_sib_nw,
         "host": False,
         "objects": [
-            Object(NonMatching, "nw4r/ut/ut_binaryFileFormat.cpp"),
+            Object(Matching, "nw4r/ut/ut_binaryFileFormat.cpp"),
             Object(NonMatching, "nw4r/ut/ut_CharStrmReader.cpp"),
             Object(NonMatching, "nw4r/ut/ut_Font.cpp"),
             Object(NonMatching, "nw4r/ut/ut_ResFont.cpp"),
-            Object(NonMatching, "nw4r/lyt/lyt_resourceAccessor.cpp"),
+            Object(Matching, "nw4r/lyt/lyt_resourceAccessor.cpp"),
         ],
     },
     {
@@ -855,6 +855,7 @@ config.libs = [
             Object(Matching, "havok/hkString.cpp"),
             Object(Matching, "havok/hkMultiThreadLock.cpp"),
             Object(Matching, "havok/hkAabbClass.cpp"),
+            Object(NonMatching, "havok/hkMatrix3.cpp", extra_cflags=["-fp_contract on"]),
             Object(Matching, "havok/hkMotionStateClass.cpp"),
             Object(Matching, "havok/hkSweptTransformClass.cpp"),
             Object(Matching, "havok/hkCdBodyClass.cpp", extra_cflags=["-Cpp_exceptions on"]),
