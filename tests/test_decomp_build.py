@@ -205,7 +205,7 @@ if 'report' in sys.argv:
         data["units"].append({"name":"main/unavailable", "base_path":"build/V/absent.o", "target_path":"build/V/orig2.o"})
         p.write_text(json.dumps(data));(self.root/"build/V/orig2.o").write_text("original")
         program=self.root/"tools/objdiff";text=program.read_text()
-        text=text.replace("'fuzzy_match_percent':100", "'fuzzy_match_percent':100 if Path(unit['base_path']).is_file() else 0")
+        text=text.replace("'fuzzy_match_percent':100", "'fuzzy_match_percent':100 if unit.get('base_path') and Path(unit['base_path']).is_file() else 0")
         text=text.replace("'virtual_address':'4096'", "'virtual_address':'4100' if unit['name']=='main/unavailable' else '4096'")
         program.write_text(text)
         state=build.run(self.args());argv=state["commands"][3]["argv"]
@@ -214,6 +214,10 @@ if 'report' in sys.argv:
         self.assertFalse(any(str(self.root) in token for token in argv[4:]))
         self.assertNotIn("all_source",argv)
         self.assertEqual(state["unavailable_base_units"],["main/unavailable"])
+        invocation=build.load_json(self.base/"baseline/report-project/objdiff.json")
+        self.assertNotIn("base_path",invocation["units"][1])
+        self.assertIn("target_path",invocation["units"][1])
+        self.assertIn("base_path",build.load_json(self.base/"baseline/objdiff.json")["units"][1])
         self.assertIsNone(state["report_inputs"][str(self.root/"build/V/absent.o")])
 
     def test_supplied_fingerprint_always_checked_even_if_marked_clean(self):
@@ -282,6 +286,11 @@ if 'report' in sys.argv:
         build.run(self.args());(self.base/"baseline/objdiff.json").write_text("{}")
         with self.assertRaises(build.ValidationError):build.evidence(self.base/"baseline")
 
+    def test_report_invocation_evidence_tampering_rejected(self):
+        build.run(self.args())
+        (self.base/"baseline/report-project/objdiff.json").write_text("{}")
+        with self.assertRaises(build.ValidationError):build.evidence(self.base/"baseline")
+
     def test_source_provenance_tampering_rejected(self):
         build.run(self.args());p=self.base/"baseline/validation.json";state=build.load_json(p)
         state["source"]["inputs"]["files"]["src/a.cpp"]="fake";build.write_json(p,state)
@@ -336,7 +345,7 @@ if 'report' in sys.argv:
         if not unavailable:(self.root/"build/V/b.o").write_text("compiled2")
         p=self.root/"tools/objdiff";text=p.read_text()
         text=text.replace("'virtual_address':'4096'","'virtual_address':'4096' if unit['name']=='main/example' else '4100'")
-        text=text.replace("'fuzzy_match_percent':100","'fuzzy_match_percent':100 if Path(unit['base_path']).is_file() else 0")
+        text=text.replace("'fuzzy_match_percent':100","'fuzzy_match_percent':100 if unit.get('base_path') and Path(unit['base_path']).is_file() else 0")
         p.write_text(text)
 
     def test_ordered_config_change_regenerates(self):

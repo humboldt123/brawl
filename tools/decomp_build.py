@@ -289,6 +289,9 @@ def evidence(path: Path) -> tuple[dict, dict]:
         raise ValidationError("Source provenance fingerprint is inconsistent")
     if digest(path / "objdiff.json") != manifest.get("report_config_sha256"):
         raise ValidationError("Report configuration evidence was modified")
+    invocation = generation.get("config")
+    if invocation and digest(path / invocation) != generation.get("config_sha256"):
+        raise ValidationError("Report invocation configuration was modified")
     if digest(report_path) != manifest.get("report_sha256"):
         raise ValidationError("Baseline/candidate report was modified after validation")
     for record in manifest.get("commands", []):
@@ -527,8 +530,24 @@ def run(args) -> dict:
                 reuse_report(Path(args.baseline).resolve(), output, state)
             else:
                 started = time.time()
-                command([str(tools["nice"]), "-n", "10", str(tools["objdiff"]), "report", "generate", "-p", str(project), "-o", str(output / "report.json")], root, output, state["commands"], "fresh-report")
-                state["report_generation"] = {"kind": "generated", "seconds": time.time() - started}
+                # Objdiff rejects a configured base path that does not exist.
+                # Keep the complete config for provenance, but report unavailable
+                # drafts as target-only units in the invocation config.
+                invocation_project = output / "report-project"
+                invocation_project.mkdir()
+                invocation_config = load_json(output / "objdiff.json")
+                for unit in invocation_config["units"]:
+                    if unit["name"] in state["unavailable_base_units"]:
+                        unit.pop("base_path", None)
+                invocation_path = invocation_project / "objdiff.json"
+                write_json(invocation_path, invocation_config)
+                invocation_digest = digest(invocation_path)
+                command([str(tools["nice"]), "-n", "10", str(tools["objdiff"]), "report", "generate", "-p", str(invocation_project), "-o", str(output / "report.json")], root, output, state["commands"], "fresh-report")
+                if digest(invocation_path) != invocation_digest:
+                    raise ValidationError("Report invocation configuration drift")
+                state["report_generation"] = {"kind": "generated", "seconds": time.time() - started,
+                                              "config": "report-project/objdiff.json",
+                                              "config_sha256": invocation_digest}
             if state["split_config"] != {str(p.relative_to(root)): digest(p) for p in sorted((root / "build" / args.version).glob("config.json"))}:
                 raise ValidationError("Split metadata drift during report generation")
             if generated_config != digest(root / "objdiff.json") or state["report_inputs"] != report_inputs(load_json(output / "objdiff.json"), args.mode == "full"):
