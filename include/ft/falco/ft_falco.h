@@ -45,10 +45,17 @@ public:
 };
 
 class ftFalco : public ftFighterBuilder<ftFalcoBuildConfig> {
-    u8 unkTail[0x1D0E4 - sizeof(ftFighterBuilder<ftFalcoBuildConfig>)];
+    u8 unkTail[0x1D090 - sizeof(ftFighterBuilder<ftFalcoBuildConfig>)];
+public:
+    u8 unk1D090;
+    u8 unk1D091;
+private:
+    u8 unkTail2[0x1D0E4 - 0x1D092];
 public:
     ftFalco(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftFalco();
+    virtual void processUpdate();
 };

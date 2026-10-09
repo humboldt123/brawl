@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -27,6 +28,7 @@ typedef ftOpaqueGenerateArticleManageModuleBuilder<0x4118, Fighter_Captain> ftCa
 
 class ftCaptainBuildConfig : public ftCommonBuildConfig {
 public:
+    enum { UniqueStatusCount = 16 };
     typedef ftCaptainInsideEventManageModuleBuildConfig InsideEventManageModuleBuildConfig;
     typedef ftCaptainHeapModuleBuildConfig HeapModuleBuildConfig;
     typedef ftCaptainParamCustomizeModuleBuildConfig ParamCustomizeModuleBuildConfig;
@@ -41,10 +43,14 @@ public:
 };
 
 class ftCaptain : public ftFighterBuilder<ftCaptainBuildConfig> {
-    u8 unkTail[0xC5C8 - sizeof(ftFighterBuilder<ftCaptainBuildConfig>)];
+    u8 unkTail[0xC5B4 - sizeof(ftFighterBuilder<ftCaptainBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
 public:
     ftCaptain(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftCaptain();
 };
+static_assert(sizeof(ftCaptain) == 0xC5C8, "Class is the wrong size!");
