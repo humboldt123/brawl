@@ -10383,6 +10383,13 @@ mo_melee/sora_melee/wn/wn_robot_beam_status_uniq_process.cpp:
 	.data       start:0x0009D0E0 end:0x0009D158
 	.bss        start:0x00008A80 end:0x00008A90
 
+mo_melee/sora_melee/ft/ft_purin_status_uniq_process_special_n.cpp:
+	.text       start:0x003BE8B4 end:0x003C7CC4
+	.ctors      start:0x00000508 end:0x0000050C
+	.rodata     start:0x00008080 end:0x000080C8
+	.data       start:0x000A29B8 end:0x000A2DB0
+	.bss        start:0x00008BF0 end:0x00008C70
+
 mo_melee/sora_melee/wn/wn_wolf_blaster_bullet.cpp:
 	.text       start:0x003C9C10 end:0x003CBCBC
 	.ctors      start:0x00000510 end:0x00000514

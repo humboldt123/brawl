@@ -6,6 +6,7 @@
 
 class ftPurinStatusUniqProcessSpecialNStart : public soStatusUniqProcess {
 public:
+    void checkStartTurn(soModuleAccesser*) __attribute__((never_inline));
     virtual ~ftPurinStatusUniqProcessSpecialNStart();
     virtual void initStatus(soModuleAccesser*);
     virtual void execStatus(soModuleAccesser*);
@@ -36,6 +37,7 @@ extern ftPurinStatusUniqProcessSpecialNHoldMax g_ftPurinStatusUniqProcessSpecial
 
 class ftPurinStatusUniqProcessSpecialNRoll : public soStatusUniqProcess {
 public:
+    void setKineticRollAir(soModuleAccesser*) __attribute__((never_inline));
     virtual ~ftPurinStatusUniqProcessSpecialNRoll();
     virtual void initStatus(soModuleAccesser*);
     virtual void execStatus(soModuleAccesser*);
@@ -59,6 +61,8 @@ extern ftPurinStatusUniqProcessSpecialNRollAir g_ftPurinStatusUniqProcessSpecial
 
 class ftPurinStatusUniqProcessSpecialNTurn : public soStatusUniqProcess {
 public:
+    void updateKineticTurnGround(soModuleAccesser*) __attribute__((never_inline));
+    void setKineticTurnAir(soModuleAccesser*) __attribute__((never_inline));
     virtual ~ftPurinStatusUniqProcessSpecialNTurn();
     virtual void initStatus(soModuleAccesser*);
     virtual void execStatus(soModuleAccesser*);
@@ -93,5 +97,8 @@ public:
     // HYPOTHESIS: source utility methods are static; both native callers use
     // only the module accesser. Bodies confirm hit response and reversal.
     static bool ftProcHitSpecialNPurin(soModuleAccesser*);
+    static void ftProcHitWallSpecialNPurin(float, soModuleAccesser*, Vec2f*);
+    static void ftSetPowerPurinSpecialN(soModuleAccesser*);
+    static void ftPurinSpecialNInit(soModuleAccesser*);
     static void ftProcDamageTurnPurinSpecialN(soModuleAccesser*);
 };
