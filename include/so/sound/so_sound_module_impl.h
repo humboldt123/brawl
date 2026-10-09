@@ -54,7 +54,9 @@ public:
     virtual void deactivate();
     virtual void activate(Vec3f* pos);
     virtual void setPos(Vec3f* pos, int);
-    virtual int playSE(SndID sndId, bool, int, int);
+    // HYPOTHESIS: bool spelling; both controls are tested against true by the
+    // implementation (pitch scaling and selection of the default sound source).
+    virtual int playSE(SndID sndId, bool, bool, int);
     virtual int playSENo3d(SndID sndId, bool);
     virtual int playSEPos(SndID sndId, Vec3f* pos, bool, int, int);
     virtual int playStatusSE(SndID sndId, bool, int);
@@ -106,7 +108,7 @@ public:
     virtual void deactivate();
     virtual void activate(Vec3f* pos);
     virtual void setPos(Vec3f* pos, int);
-    virtual int playSE(SndID sndId, bool, int, int);
+    virtual int playSE(SndID sndId, bool, bool, int);
     virtual int playSENo3d(SndID sndId, bool);
     virtual int playSEPos(SndID sndId, Vec3f* pos, bool, int, int);
     virtual int playStatusSE(SndID sndId, bool, int);

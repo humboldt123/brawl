@@ -89,10 +89,8 @@ void ftStatusUniqProcessGlide::initStatus(soModuleAccesser* moduleAccesser) {
         motion._14 = 0;
         motion._15 = 0;
         moduleAccesser->getMotionModule().changeMotionRequest(&motion);
-        // MATCH-ONLY: the local steers the load scheduling of the call arguments (2 instructions still differ).
-        float rate = 1.0f;
-        moduleAccesser->getMotionModule().addPartialAnimChr(0.0f, rate, 1, Fighter::Motion::Glide_Wing,
-                                                            param->m_wingBlend, 0, 0);
+        moduleAccesser->getMotionModule().addPartialAnimChr(1, Fighter::Motion::Glide_Wing,
+                                                            param->m_wingBlend, 0, 0.0f, 1.0f, 0);
     }
 }
 

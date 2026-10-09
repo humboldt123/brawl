@@ -22,7 +22,7 @@ void ftYoshiStatusUniqProcessSpecialSLoop::initStatus(soModuleAccesser* acc) {
     }
     stop.m_unk30 = true;
     acc->getVisibilityModule().set(1, 1);
-    acc->getEffectModule().reqCommon(0.0f, 0x23);
+    acc->getEffectModule().reqCommon(0x23, 0.0f);
     acc->getWorkManageModule().setInt(-1, 0x20000008);
 }
 void ftYoshiStatusUniqProcessSpecialSLoop::execStatus(soModuleAccesser* acc) {

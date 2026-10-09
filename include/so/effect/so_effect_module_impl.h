@@ -60,7 +60,9 @@ public:
     virtual void fillScreen(int index, u32, int, int);
     virtual void clearScreen(int index, u32);
     virtual float getDeadEffectRotZ(Vec3f*, bool* out);
-    virtual void reqCommon(float, int index);
+    // HYPOTHESIS: formal order from native callers; index selects the common
+    // effect descriptor and frame is stored in the queued request.
+    virtual void reqCommon(int index, float frame);
     virtual void removeCommon(int);
     virtual void resetCommon();
     virtual bool isEndCommon();
@@ -125,7 +127,9 @@ public:
     virtual void fillScreen(int index, u32, int, int);
     virtual void clearScreen(int index, u32);
     virtual float getDeadEffectRotZ(Vec3f*, bool* out);
-    virtual void reqCommon(float, int index);
+    // HYPOTHESIS: formal order from native callers; index selects the common
+    // effect descriptor and frame is stored in the queued request.
+    virtual void reqCommon(int index, float frame);
     virtual void removeCommon(int);
     virtual void resetCommon();
     virtual bool isEndCommon();
