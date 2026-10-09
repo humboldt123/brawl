@@ -38,6 +38,10 @@ struct stDxPStadiumPlayerBytes {
     u8 state;
 };
 
+static inline void stDxPStadiumSetShort(s16* dst, s16 value) {
+    *dst = value;
+}
+
 static inline void stDxPStadiumSwap(u8& x, u8& y) {
     u8 tmp = x;
     x = y;
@@ -150,17 +154,14 @@ void stDxPStadium::createObj() {
     stadiumVision(this)->m_unk17C = visionValue;
     visionValue = 15.0f;
     stadiumVision(this)->m_unk180 = visionValue;
-    s16 visionShort = -0x55;
-    stadiumVision(this)->m_unk190 = visionShort;
-    visionShort = 0x55;
-    stadiumVision(this)->m_unk192 = visionShort;
-    visionShort = -0x37;
-    stadiumVision(this)->m_unk194 = visionShort;
-    stadiumVision(this)->m_unk196 = visionShort;
-    visionShort = -0xF;
-    stadiumVision(this)->m_unk19A = visionShort;
-    visionShort = -5;
-    stadiumVision(this)->m_unk19C = visionShort;
+    stDxPStadiumSetShort(&stadiumVision(this)->m_unk190, -0x55);
+    stDxPStadiumSetShort(&stadiumVision(this)->m_unk192, 0x55);
+    grStadiumVision* vision = stadiumVision(this);
+    s16 visionShort = -0x37;
+    stDxPStadiumSetShort(&vision->m_unk194, visionShort);
+    stDxPStadiumSetShort(&vision->m_unk196, visionShort);
+    stDxPStadiumSetShort(&stadiumVision(this)->m_unk19A, -0xF);
+    stDxPStadiumSetShort(&stadiumVision(this)->m_unk19C, -5);
     visionValue = 0.5f;
     stadiumVision(this)->m_unk184 = visionValue;
     float visionSource = stadiumVision(this)->m_unk180;
@@ -217,10 +218,17 @@ void stDxPStadium::createObj() {
     stadiumVision(this)->setDisplay(false);
     m_beltData = new (Heaps::StageResource) grGimmickBeltConveyorData();
     if (m_beltData != NULL) {
-        Vec3f beltPos(-52.0f, 0.0f, 0.0f);
-        Vec2f beltAreaPos(0.0f, 0.0f);
-        Vec2f beltAreaRange(41.4f, 10.0f);
-        m_beltData->initialize(&beltPos, 6.0f, false, &beltAreaPos, &beltAreaRange, gfArea::Shape_Rectangle);
+        memset(m_beltData, 0, sizeof(grGimmickBeltConveyorData));
+        m_beltData->m_pos.m_x = -52.0f;
+        m_beltData->m_pos.m_y = 0.0f;
+        m_beltData->m_pos.m_z = 0.0f;
+        m_beltData->m_speed = 6.0f;
+        m_beltData->m_isRight = false;
+        m_beltData->m_areaData.m_offsetPos.m_x = 0.0f;
+        m_beltData->m_areaData.m_offsetPos.m_y = 0.0f;
+        m_beltData->m_areaData.m_range.m_x = 41.4f;
+        m_beltData->m_areaData.m_range.m_y = 10.0f;
+        m_beltData->m_areaData.m_shapeType = gfArea::Shape_Rectangle;
         m_beltTrigger = g_stTriggerMng->createTrigger(Gimmick::Area_BeltConveyor, -1);
         m_beltTrigger->setBeltConveyorTrigger(m_beltData);
         m_beltTrigger->setAreaSleep(true);
