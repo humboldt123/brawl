@@ -41,3 +41,150 @@
 //   0x802AA80C    16  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_19hkBvTreeStreamAgent___updateShapeCollectionFilter]
 //   0x802AA81C   164  __dt   [map: hkSymmetricAgent_19hkBvTreeStreamAgent_____dt]
 //   0x802AA8C0   248  registerAgent   [map: hkMoppBvTreeStreamAgent__registerAgent]
+
+#include <havok/hkBvTreeStreamAgent.h>
+#include <havok/hkShapeType.h>
+
+// Stand-ins for the hkBvTreeAgent static query functions (their own TU, not yet recovered).
+// hkBvTreeAgent static query functions (tail calls from the forwarders, also registered directly).
+extern "C" void fn_802A83F8(void* a, void* b, void* c, void* d); // static getPenetrations
+extern "C" void fn_802A7F30(void* a, void* b, void* c, void* d); // static getClosestPoints
+extern "C" void fn_802A78F8(void* a, void* b, void* c, void* d, void* e); // static linearCast
+// HYPOTHESIS: hkAgent1nMachine helpers (map names hkAgent1nMachine_Create / _Destroy) that work on m_list.
+extern "C" void fn_802FCB14(void* list);
+extern "C" void fn_802FC6AC(void* list, int a, int b);
+extern "C" void fn_802FC824(void* list);
+extern "C" void fn_802FC988(void* list);
+// Dispatcher registration (map name hkCollisionDispatcher registration, not recovered yet).
+extern "C" void fn_802CC0EC(void* dispatcher, void* reg, int typeA, int typeB);
+// hkBvTreeAgent symmetric static functions (their own TU, not yet recovered).
+extern "C" void fn_802A8984(void* a, void* b, void* c, void* d);
+extern "C" void fn_802A8A14(void* a, void* b, void* c, void* d);
+extern "C" void fn_802A8A5C(void* a, void* b, void* c, void* d, void* e);
+
+// HYPOTHESIS: registration record passed to the collision dispatcher (same layout as hkPhantomAgent.cpp).
+typedef void (*hkAgentFunction)();
+struct hkAgentRegistration {
+    hkAgentFunction create;
+    hkAgentFunction staticGetPenetrations;
+    hkAgentFunction staticGetClosestPoints;
+    hkAgentFunction staticLinearCast;
+    bool m_symmetricA;
+    bool m_symmetricB;
+};
+
+hkBvTreeStreamAgent::~hkBvTreeStreamAgent() {}
+
+void hkBvTreeStreamAgent::cleanup() {
+    fn_802FC6AC(&m_list, unkC, unk8);
+    delete this;
+}
+
+// Both forward the list to hkAgent1nMachine (map names hkAgent1nMachine_InvalidateTim / _WarpTime).
+void hkBvTreeStreamAgent::invalidateTim() {
+    fn_802FC824(&m_list);
+}
+
+void hkBvTreeStreamAgent::warpTime() {
+    fn_802FC988(&m_list);
+}
+
+void hkBvTreeStreamAgent::getPenetrations(void* a, void* b, void* c, void* d) {
+    fn_802A83F8(a, b, c, d);
+}
+
+void hkBvTreeStreamAgent::getClosestPoints(void* a, void* b, void* c, void* d) {
+    fn_802A7F30(a, b, c, d);
+}
+
+void hkBvTreeStreamAgent::linearCast(void* a, void* b, void* c, void* d, void* e) {
+    fn_802A78F8(a, b, c, d, e);
+}
+
+hkBvTreeStreamAgent::hkBvTreeStreamAgent(void* unused0, void* unused1, const int* src, int unk8Value)
+    : hkCollisionAgent(unk8Value), m_list(&m_inlineEntry, 0, 1) {
+    unkC = *src;
+    unk10[3] = 0.0f;
+    unk10[2] = 0.0f;
+    unk10[1] = 0.0f;
+    unk10[0] = 0.0f;
+    unk10[7] = 0.0f;
+    unk10[6] = 0.0f;
+    unk10[5] = 0.0f;
+    unk10[4] = 0.0f;
+    fn_802FCB14(&m_list);
+}
+
+#pragma dont_inline on
+hkBvTreeStreamAgent* hkBvTreeStreamAgent::createBvTreeShapeAgent(void* a, void* b, const int* c, int d) {
+    hkBvTreeStreamAgent* agent = (hkBvTreeStreamAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkBvTreeStreamAgent), 0x1d);
+    agent->m_memSizeAndFlags = sizeof(hkBvTreeStreamAgent);
+    new (agent) hkBvTreeStreamAgentVariant(b, a, c, d);
+    return agent;
+}
+
+hkBvTreeStreamAgent* hkBvTreeStreamAgent::createShapeBvAgent(void* a, void* b, const int* c, int d) {
+    hkBvTreeStreamAgent* agent = (hkBvTreeStreamAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkBvTreeStreamAgent), 0x1d);
+    agent->m_memSizeAndFlags = sizeof(hkBvTreeStreamAgent);
+    new (agent) hkBvTreeStreamAgent(a, b, c, d);
+    return agent;
+}
+
+#pragma dont_inline reset
+
+// Registers the agent for BV tree x convex pairs in both orders.
+void hkBvTreeStreamAgent::registerAgent(void* dispatcher) {
+    hkAgentRegistration reg;
+    reg.create = (hkAgentFunction)&hkBvTreeStreamAgent::createBvTreeShapeAgent;
+    reg.staticGetPenetrations = (hkAgentFunction)fn_802A8984;
+    reg.staticGetClosestPoints = (hkAgentFunction)fn_802A8A14;
+    reg.staticLinearCast = (hkAgentFunction)fn_802A8A5C;
+    reg.m_symmetricA = true;
+    reg.m_symmetricB = true;
+    fn_802CC0EC(dispatcher, &reg, HK_SHAPE_BV_TREE, HK_SHAPE_CONVEX);
+    reg.create = (hkAgentFunction)&hkBvTreeStreamAgent::createShapeBvAgent;
+    reg.staticGetPenetrations = (hkAgentFunction)fn_802A83F8;
+    reg.staticGetClosestPoints = (hkAgentFunction)fn_802A7F30;
+    reg.staticLinearCast = (hkAgentFunction)fn_802A78F8;
+    reg.m_symmetricA = false;
+    reg.m_symmetricB = true;
+    fn_802CC0EC(dispatcher, &reg, HK_SHAPE_CONVEX, HK_SHAPE_BV_TREE);
+}
+
+// Registers the agent for BV tree x convex list pairs in both orders.
+void hkBvTreeStreamAgent::registerConvexListAgent(void* dispatcher) {
+    hkAgentRegistration reg;
+    reg.create = (hkAgentFunction)&hkBvTreeStreamAgent::createBvTreeShapeAgent;
+    reg.staticGetPenetrations = (hkAgentFunction)fn_802A8984;
+    reg.staticGetClosestPoints = (hkAgentFunction)fn_802A8A14;
+    reg.staticLinearCast = (hkAgentFunction)fn_802A8A5C;
+    reg.m_symmetricA = true;
+    reg.m_symmetricB = true;
+    fn_802CC0EC(dispatcher, &reg, HK_SHAPE_BV_TREE, HK_SHAPE_CONVEX_LIST);
+    reg.create = (hkAgentFunction)&hkBvTreeStreamAgent::createShapeBvAgent;
+    reg.staticGetPenetrations = (hkAgentFunction)fn_802A83F8;
+    reg.staticGetClosestPoints = (hkAgentFunction)fn_802A7F30;
+    reg.staticLinearCast = (hkAgentFunction)fn_802A78F8;
+    reg.m_symmetricA = false;
+    reg.m_symmetricB = true;
+    fn_802CC0EC(dispatcher, &reg, HK_SHAPE_CONVEX_LIST, HK_SHAPE_BV_TREE);
+}
+
+// Registers the agent for BV tree x multi ray pairs in both orders.
+void hkBvTreeStreamAgent::registerMultiRayAgent(void* dispatcher) {
+    hkAgentRegistration reg;
+    reg.create = (hkAgentFunction)&hkBvTreeStreamAgent::createBvTreeShapeAgent;
+    reg.staticGetPenetrations = (hkAgentFunction)fn_802A8984;
+    reg.staticGetClosestPoints = (hkAgentFunction)fn_802A8A14;
+    reg.staticLinearCast = (hkAgentFunction)fn_802A8A5C;
+    reg.m_symmetricA = true;
+    reg.m_symmetricB = true;
+    fn_802CC0EC(dispatcher, &reg, HK_SHAPE_BV_TREE, HK_SHAPE_MULTI_RAY);
+    reg.create = (hkAgentFunction)&hkBvTreeStreamAgent::createShapeBvAgent;
+    reg.staticGetPenetrations = (hkAgentFunction)fn_802A83F8;
+    reg.staticGetClosestPoints = (hkAgentFunction)fn_802A7F30;
+    reg.staticLinearCast = (hkAgentFunction)fn_802A78F8;
+    reg.m_symmetricA = false;
+    reg.m_symmetricB = true;
+    fn_802CC0EC(dispatcher, &reg, HK_SHAPE_MULTI_RAY, HK_SHAPE_BV_TREE);
+}

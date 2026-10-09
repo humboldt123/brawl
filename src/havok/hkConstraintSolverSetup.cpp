@@ -10,3 +10,33 @@
 //   0x802E09D8    60  internalIsMemoryOkForNewAccumulators   [map: hkConstraintSolverSetup__internalIsMemoryOkForNewAccumulators]
 //   0x802E0A14   880  internalIsMemoryOkForNewJacobianElements   [map: hkConstraintSolverSetup__internalIsMemoryOkForNewJacobianElements]
 //   0x802E0D84   188  subSolve   [map: hkConstraintSolverSetup__subSolve]
+
+#include <havok/hkConstraintSolverSetup.h>
+#include <havok/hkRigidMotionUtil.h>
+#include <havok/hkEntity.h>
+
+void hkConstraintSolverSetup::integrate(void* a, void* b, void* c) {
+    hkRigidMotionUtil::hkRigidMotionUtilApplyAccumulators(this, (u8*)c + 0x80, a, (u32)b, 0xa0, a);
+}
+
+void hkConstraintSolverSetup::oneStepIntegrate(hkEntity** entities, int count, u8* base) {
+    for (int i = 0; i < count; i++) {
+        hkEntity* entity = entities[i];
+        u8* state = base + entity->m_solverData;
+        float* src = (float*)(state + 0x10);
+        float* dst = (float*)(state + 0x40);
+        dst[0] = src[0];
+        dst[1] = src[1];
+        dst[2] = src[2];
+        dst[3] = src[3];
+        dst[4] = src[4];
+        dst[5] = src[5];
+        dst[6] = src[6];
+        dst[7] = src[7];
+        void* record[2];
+        record[0] = (u8*)entity + 0xa0;
+        hkRigidMotionUtil::hkRigidMotionUtilApplyAccumulators(this, entity, record, 1, 0, (u8*)entity + 0xa0);
+    }
+}
+
+void hkConstraintSolverSetup::shutdownSolver() {}

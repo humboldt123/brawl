@@ -29,3 +29,133 @@
 //   0x802A3730   412  processCollision   [map: hkSymmetricAgentLinearCast_9hkBvAgent___processCollision]
 //   0x802A38CC    16  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_9hkBvAgent___updateShapeCollectionFilter]
 //   0x802A39F0    92  __dt   [map: hkSymmetricAgent_9hkBvAgent_____dt]
+
+#include <havok/hkBvAgent.h>
+
+void hkBvAgent::cleanup() {
+    m_childA->cleanup();
+    if (m_childB != 0) {
+        m_childB->cleanup();
+        m_childB = 0;
+    }
+    delete this;
+}
+
+void hkBvAgent::invalidateTim(void* arg) {
+    m_childA->invalidateTim(arg);
+    if (m_childB != 0) {
+        m_childB->invalidateTim(arg);
+    }
+}
+
+void hkBvAgent::warpTime(float t0, float t1, void* arg) {
+    m_childA->warpTime(t0, t1, arg);
+    if (m_childB != 0) {
+        m_childB->warpTime(t0, t1, arg);
+    }
+}
+
+void hkBvAgent::removePoint(void* arg) {
+    if (m_childB != 0) {
+        m_childB->removePoint(arg);
+    }
+}
+
+void hkBvAgent::commitPotential(void* arg) {
+    if (m_childB != 0) {
+        m_childB->commitPotential(arg);
+    }
+}
+
+void hkBvAgent::createZombie(void* arg) {
+    if (m_childB != 0) {
+        m_childB->createZombie(arg);
+    }
+}
+
+hkBvAgent* hkBvAgent::createBvShapeAgent(void* a1, void* a2, void* a3, hkContactMgr* contactMgr) {
+    hkBvAgent* agent = (hkBvAgent*)hkMemory::getInstance().allocateChunk(sizeof(hkBvAgent), 0x1d);
+    agent->m_memSizeAndFlags = sizeof(hkBvAgent);
+    ::new (agent) hkBvAgent(a1, a2, a3, contactMgr);
+    return agent;
+}
+
+hkBvAgent* hkBvAgent::createShapeBvAgent(void* a1, void* a2, void* a3, hkContactMgr* contactMgr) {
+    hkBvAgent* agent = new hkSymmetricBvAgent(a2, a1, a3, contactMgr);
+    return agent;
+}
+
+// Sub-agents and the penetration target are passed around as in the original. The wrappers
+// reorder the pair (a, b) and forward the target inside a hkSymmetricTarget.
+template <class T>
+void hkSymmetricAgentLinearCast<T>::getPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target) {
+    hkSymmetricTarget wrapped(target);
+    T::getPenetrations(b, a, c, &wrapped);
+}
+
+template <class T>
+void hkSymmetricAgentLinearCast<T>::staticGetPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target) {
+    hkSymmetricTarget wrapped(target);
+    T::staticGetPenetrations(b, a, c, &wrapped);
+}
+
+template <class T>
+void hkSymmetricAgentLinearCast<T>::getClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target) {
+    hkSymmetricTarget wrapped(target);
+    T::getClosestPoints(b, a, c, &wrapped);
+}
+
+template <class T>
+void hkSymmetricAgentLinearCast<T>::staticGetClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target) {
+    hkSymmetricTarget wrapped(target);
+    T::staticGetClosestPoints(b, a, c, &wrapped);
+}
+
+template <class T>
+void hkSymmetricAgentLinearCast<T>::updateShapeCollectionFilter(void* a, void* b, void* c) {
+    T::updateShapeCollectionFilter(b, a, c);
+}
+
+template struct hkSymmetricAgentLinearCast<hkBvAgent>;
+
+namespace {
+typedef void (*AgentFunc)();
+
+// Layout of the table handed to the dispatcher (stack copy in registerAgent).
+struct AgentFuncs {
+    AgentFunc create;                 // 0x00
+    AgentFunc staticGetPenetrations;  // 0x04
+    AgentFunc staticGetClosestPoints; // 0x08
+    AgentFunc staticLinearCast;       // 0x0C
+    bool symmetricA;                  // 0x10 HYPOTHESIS
+    bool symmetricB;                  // 0x11 HYPOTHESIS
+};
+} // namespace
+
+// Stand-in for the dispatcher registration function (not recovered yet; takes the dispatcher as first argument).
+extern "C" void fn_802CC0EC(void* dispatcher, AgentFuncs* funcs, int typeA, int typeB);
+// Stand-ins for the linear cast statics of the symmetric and plain BV agents (not written yet).
+extern "C" void fn_802A35D0();
+extern "C" void fn_802A29A4();
+
+// Registers the BV agent for the pair of shape types in both orders: the symmetric variant for
+// (any, 0x16) and the plain variant for (0x16, any).
+void hkBvAgent::registerAgent(void* dispatcher) {
+    AgentFuncs symmetric;
+    symmetric.create = (AgentFunc)createShapeBvAgent;
+    symmetric.staticGetPenetrations = (AgentFunc)hkSymmetricAgentLinearCast<hkBvAgent>::staticGetPenetrations;
+    symmetric.staticGetClosestPoints = (AgentFunc)hkSymmetricAgentLinearCast<hkBvAgent>::staticGetClosestPoints;
+    symmetric.staticLinearCast = (AgentFunc)fn_802A35D0;
+    symmetric.symmetricA = true;
+    symmetric.symmetricB = true;
+    fn_802CC0EC(dispatcher, &symmetric, -1, 0x16);
+
+    AgentFuncs plain;
+    plain.create = (AgentFunc)createBvShapeAgent;
+    plain.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
+    plain.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
+    plain.staticLinearCast = (AgentFunc)fn_802A29A4;
+    plain.symmetricA = false;
+    plain.symmetricB = true;
+    fn_802CC0EC(dispatcher, &plain, 0x16, -1);
+}

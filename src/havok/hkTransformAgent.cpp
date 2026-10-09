@@ -31,3 +31,159 @@
 //   0x802CA914    12  addCdBodyPair   [map: hkFlagCdBodyPairCollector__addCdBodyPair]
 //   0x802CA920   184  addCdPoint   [map: hkClosestCdPointCollector__addCdPoint]
 //   0x802CA9D8   120  addCdPoint   [map: hkSimpleClosestContactCollector__addCdPoint]
+
+#include <havok/hkTransformAgent.h>
+#include <havok/hkShapeType.h>
+#include <havok/hkTransform.h>
+#include <havok/hkFlagCdBodyPairCollector.h>
+#include <havok/hkClosestCdPointCollector.h>
+#include <havok/hkSimpleClosestContactCollector.h>
+#include <havok/hkSymmetricAgentFlipCollectors.h>
+
+// Stand-in for hkCollisionDispatcher::registerCollisionAgent (not recovered yet; takes the dispatcher as this).
+extern "C" void fn_802CC0EC(hkCollisionDispatcher* dispatcher, void* funcs, int typeA, int typeB);
+
+namespace {
+typedef void (*AgentFunc)();
+
+// Layout of the table handed to the dispatcher (stack copy in registerAgent).
+struct AgentFuncs {
+    AgentFunc create;                 // 0x00
+    AgentFunc staticGetPenetrations;  // 0x04
+    AgentFunc staticGetClosestPoints; // 0x08
+    AgentFunc staticLinearCast;       // 0x0C
+    u8 symmetricA;                    // 0x10
+    u8 symmetricB;                    // 0x11
+};
+} // namespace
+
+void hkTransformAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
+    AgentFuncs symmetric;
+    symmetric.create = (AgentFunc)createTransformBAgent;
+    symmetric.staticGetPenetrations = (AgentFunc)hkSymmetricAgentLinearCast_16hkTransformAgent_::staticGetPenetrations;
+    symmetric.staticGetClosestPoints = (AgentFunc)hkSymmetricAgentLinearCast_16hkTransformAgent_::staticGetClosestPoints;
+    symmetric.staticLinearCast = (AgentFunc)hkSymmetricAgentLinearCast_16hkTransformAgent_::staticLinearCast;
+    symmetric.symmetricA = 1;
+    symmetric.symmetricB = 1;
+    fn_802CC0EC(dispatcher, &symmetric, -1, HK_SHAPE_TRANSFORM);
+
+    AgentFuncs plain;
+    plain.create = (AgentFunc)createTransformAAgent;
+    plain.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
+    plain.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
+    plain.staticLinearCast = (AgentFunc)staticLinearCast;
+    plain.symmetricA = 0;
+    plain.symmetricB = 1;
+    fn_802CC0EC(dispatcher, &plain, HK_SHAPE_TRANSFORM, -1);
+}
+
+// Stand-in for the transform composition used by updateShapeCollectionFilter (not recovered yet).
+extern "C" void fn_802873E8(void* out, void* motion, void* shapeTransform);
+
+// HYPOTHESIS: per-body record handed to the child agent. Layout from the stack copy: 0x00 shape field
+// 0x10, 0x04 shape key, 0x08 pointer to the composed transform, 0x0C the body itself.
+struct hkTransformAgentBodyInfo {
+    void* unk00;    // HYPOTHESIS: shape field at 0x10
+    u32 shapeKey;   // 0x04
+    void* transform; // 0x08
+    hkCdBody* body; // 0x0C
+};
+
+void hkTransformAgent::updateShapeCollectionFilter(void* unk0, void* unk1, void* unk2) {
+    hkCdBody* body = (hkCdBody*)unk0;
+    char* shape = (char*)body->m_shape;
+    hkTransform transform;
+    fn_802873E8(&transform, body->m_motion, shape + 0x30);
+    hkTransformAgentBodyInfo info;
+    info.body = body;
+    info.shapeKey = body->m_shapeKey;
+    info.transform = &transform;
+    info.unk00 = *(void**)(shape + 0x10);
+    m_childAgent->updateShapeCollectionFilterChild(&info, unk1, unk2);
+}
+
+void hkTransformAgent::cleanup() {
+    m_childAgent->cleanupChild();
+    delete this;
+}
+
+hkTransformAgent::~hkTransformAgent() {}
+
+void hkTransformAgent::invalidateTim() {
+    m_childAgent->invalidateTimChild();
+}
+
+void hkTransformAgent::warpTime() {
+    m_childAgent->warpTimeChild();
+}
+
+void hkTransformAgent::removePoint() {
+    m_childAgent->removePointChild();
+}
+
+void hkTransformAgent::commitPotential() {
+    m_childAgent->commitPotentialChild();
+}
+
+void hkTransformAgent::createZombie() {
+    m_childAgent->createZombieChild();
+}
+
+hkSymmetricAgent_16hkTransformAgent_::~hkSymmetricAgent_16hkTransformAgent_() {}
+
+hkSymmetricAgentLinearCast_16hkTransformAgent_::~hkSymmetricAgentLinearCast_16hkTransformAgent_() {}
+
+// Symmetric wrappers: the shapes are swapped and the collector is replaced by a flipping collector on the stack.
+void hkSymmetricAgentLinearCast_16hkTransformAgent_::getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3) {
+    hkSymmetricAgentFlipCollector flip(unk3);
+    hkTransformAgent::getPenetrations(unk1, unk0, unk2, &flip);
+}
+
+void hkSymmetricAgentLinearCast_16hkTransformAgent_::staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3) {
+    hkSymmetricAgentFlipCollector flip(unk3);
+    hkTransformAgent::staticGetPenetrations(unk1, unk0, unk2, &flip);
+}
+
+void hkSymmetricAgentLinearCast_16hkTransformAgent_::getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3) {
+    hkSymmetricAgentFlipCastCollector flip(unk3);
+    hkTransformAgent::getClosestPoints(unk1, unk0, unk2, &flip);
+}
+
+void hkSymmetricAgentLinearCast_16hkTransformAgent_::staticGetClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3) {
+    hkSymmetricAgentFlipCastCollector flip(unk3);
+    hkTransformAgent::staticGetClosestPoints(unk1, unk0, unk2, &flip);
+}
+
+void hkSymmetricAgentLinearCast_16hkTransformAgent_::updateShapeCollectionFilter(void* unk0, void* unk1, void* unk2) {
+    hkTransformAgent::updateShapeCollectionFilter(unk1, unk0, unk2);
+}
+
+void hkFlagCdBodyPairCollector::addCdBodyPair(hkCdBody* bodyA, hkCdBody* bodyB) {
+    m_hit = 1;
+}
+
+void hkClosestCdPointCollector::addCdPoint(hkCdPoint* point) {
+    if (m_lastChainA != 0 && !(point->data.f7 < m_point.f7)) {
+        return;
+    }
+    m_point = point->data;
+    hkCdPointChain* last;
+    for (last = point->m_chainA; last->m_next != 0; last = last->m_next) {
+    }
+    m_lastChainA = last;
+    m_idA = point->m_chainA->m_id;
+    for (last = point->m_chainB; last->m_next != 0; last = last->m_next) {
+    }
+    m_lastChainB = last;
+    m_idB = point->m_chainB->m_id;
+    m_dist = point->data.f7;
+}
+
+void hkSimpleClosestContactCollector::addCdPoint(hkCdPoint* point) {
+    if (m_hit && !(point->data.f7 < m_point.f7)) {
+        return;
+    }
+    m_point = point->data;
+    m_hit = hkBool(true);
+    m_dist = point->data.f7;
+}

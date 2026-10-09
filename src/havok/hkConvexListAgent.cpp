@@ -1,5 +1,5 @@
 // Havok translation unit hkConvexListAgent.o (main.dol 0x802AEE5C-0x802B1938).
-// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+// Functions in address order (method names from the Havok TU map):
 //   0x802AEE5C   260  getSupportingVertex   [map: hkConvexListConvexShape__getSupportingVertex]
 //   0x802AEF60   152  convertVertexIdsToVertices   [map: hkConvexListConvexShape__convertVertexIdsToVertices]
 //   0x802AEFF8    24  getFirstVertex   [map: hkConvexListConvexShape__getFirstVertex]
@@ -49,3 +49,187 @@
 //   0x802B1828    16  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_17hkConvexListAgent___updateShapeCollectionFilter]
 //   0x802B1838    92  __dt   [map: hkSymmetricAgent_17hkConvexListAgent_____dt]
 //   0x802B1894   164  __dt   [map: hkSymmetricAgent_11hkListAgent_____dt]
+
+#include <havok/hkConvexListAgent.h>
+#include <havok/hkShapeType.h>
+
+// Dispatcher registration entry point (not recovered yet; takes the dispatcher, a registration record
+// and the two shape type ids). Same routine as hkPhantomAgent and hkSphereSphereAgent use.
+extern "C" void fn_802CC0EC(void* dispatcher, void* reg, int typeA, int typeB);
+// Stand-ins for the symmetric linear-cast agent functions (other classes, other units).
+extern "C" void fn_802B1454();
+extern "C" void fn_802B14E4();
+extern "C" void fn_802B152C();
+// Constructor of hkConvexListAgent (not recovered yet): this, first two pair arguments, pair pointer, flag.
+extern "C" void fn_802AF148(hkConvexListAgent* self, void* a, void* b, void* c, int flag);
+// hkListAgent constructor (hkListAgent.cpp): the fallback object of createConvexListAgent.
+extern "C" void fn_802B87B8(void* self, void* a, void* b, void* c, int flag);
+// Stream-mode and GSK-mode helpers (other units). fn_802FC824/fn_802FC988 act on the 0x30 sub-object.
+extern "C" void fn_802B1A6C(hkConvexListAgent* self);
+extern "C" void fn_802B1B08(hkConvexListAgent* self);
+extern "C" void fn_802FC824(void* subObject);
+extern "C" void fn_802FC988(void* subObject);
+extern "C" void fn_802B29E4(hkConvexListAgent* self);
+extern "C" void fn_802B2A24(hkConvexListAgent* self);
+extern "C" void fn_802B2A68(hkConvexListAgent* self);
+extern "C" void fn_8031830C(void* subObject, int unk8);
+extern "C" void fn_802FC6AC(void* subObject, void* pairData, int unk8);
+extern "C" void fn_802FEA54(void* subObject, void* args);
+extern "C" void fn_802FCB14(void* subObject);
+
+namespace {
+typedef void (*AgentFunc)();
+
+// Head of the 0x30 sub-object: an empty list whose head points at the inline buffer after it.
+struct SubObjectHead {
+    void* head;   // 0x00
+    int count;    // 0x04
+    u32 flags;    // 0x08
+};
+
+// Argument block handed to fn_802FEA54 by updateShapeCollectionFilter (lives on the stack there).
+struct FilterArgs {
+    void* a;      // 0x00
+    void* b;      // 0x04
+    u32 bValue;   // 0x08 first word of b
+    void* d;      // 0x0C
+    int unk8;     // 0x10
+};
+
+// Layout of the table handed to the dispatcher (stack copy in registerAgent).
+struct AgentRegistration {
+    AgentFunc create;                  // 0x00
+    AgentFunc staticGetPenetrations;   // 0x04
+    AgentFunc staticGetClosestPoints;  // 0x08
+    AgentFunc staticLinearCast;        // 0x0C
+    u8 symmetricA;                     // 0x10
+    u8 symmetricB;                     // 0x11
+};
+} // namespace
+
+void hkConvexListAgent::registerAgent(void* dispatcher) {
+    AgentRegistration convexList;
+    convexList.create = (AgentFunc)createListConvexAgent;
+    convexList.staticGetPenetrations = (AgentFunc)fn_802B1454;
+    convexList.staticGetClosestPoints = (AgentFunc)fn_802B14E4;
+    convexList.staticLinearCast = (AgentFunc)fn_802B152C;
+    convexList.symmetricA = 1;
+    convexList.symmetricB = 1;
+    fn_802CC0EC(dispatcher, &convexList, HK_SHAPE_CONVEX_LIST, HK_SHAPE_CONVEX);
+
+    AgentRegistration listConvex;
+    listConvex.create = (AgentFunc)createConvexListAgent;
+    listConvex.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
+    listConvex.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
+    listConvex.staticLinearCast = (AgentFunc)staticLinearCast;
+    listConvex.symmetricA = 0;
+    listConvex.symmetricB = 1;
+    fn_802CC0EC(dispatcher, &listConvex, HK_SHAPE_CONVEX, HK_SHAPE_CONVEX_LIST);
+}
+
+hkCollisionAgent* hkConvexListAgent::createConvexListAgent(void* a, void* b, void* c, int flag) {
+    if (flag != 0) {
+        hkConvexListAgent* agent = (hkConvexListAgent*)hkMemory::getInstance().allocateChunk(sizeof(hkConvexListAgent), 0x1d);
+        agent->m_memSizeAndFlags = sizeof(hkConvexListAgent);
+        if (agent != 0) {
+            fn_802AF148(agent, a, b, c, flag);
+        }
+        return agent;
+    }
+    hkCollisionAgent* agent = (hkCollisionAgent*)hkMemory::getInstance().allocateChunk(0x20, 0x1d);
+    agent->m_memSizeAndFlags = 0x20;
+    if (agent != 0) {
+        fn_802B87B8(agent, a, b, c, flag);
+    }
+    return agent;
+}
+
+hkConvexListAgent::~hkConvexListAgent() {}
+
+void hkConvexListAgent::invalidateTim() {
+    if (m_streamMode != 0) {
+        fn_802B1A6C(this);
+    } else {
+        fn_802FC824(m_subObject);
+    }
+}
+
+void hkConvexListAgent::warpTime() {
+    if (m_streamMode != 0) {
+        fn_802B1B08(this);
+    } else {
+        fn_802FC988(m_subObject);
+    }
+}
+
+void hkConvexListAgent::removePoint() {
+    if (m_streamMode != 0) {
+        fn_802B29E4(this);
+    }
+}
+
+void hkConvexListAgent::commitPotential() {
+    if (m_streamMode != 0) {
+        fn_802B2A24(this);
+    }
+}
+
+void hkConvexListAgent::createZombie() {
+    if (m_streamMode != 0) {
+        fn_802B2A68(this);
+    }
+}
+
+void hkConvexListAgent::updateShapeCollectionFilter(void* a, void* b, void* d) {
+    if (m_streamMode == 0) {
+        FilterArgs args;
+        args.a = a;
+        u32 bValue = *(u32*)b;
+        args.b = b;
+        args.d = d;
+        args.unk8 = unk8;
+        args.bValue = bValue;
+        fn_802FEA54(m_subObject, &args);
+    }
+}
+
+void hkConvexListAgent::switchToStreamMode() {
+    fn_8031830C(m_subObject, unk8);
+    m_streamMode = 0;
+    SubObjectHead* sub = (SubObjectHead*)m_subObject;
+    if (sub != 0) {
+        sub->head = (u8*)sub + 0xC;
+        sub->count = 0;
+        sub->flags = 0x80000001;
+    }
+    fn_802FCB14(m_subObject);
+    m_unk7A = 0x19;
+    m_unk40 = 0.0f; // HYPOTHESIS: constant loaded from lbl_805A3F24 (value not recovered)
+}
+
+void hkConvexListAgent::switchToGskMode() {
+    fn_802FC6AC(m_subObject, m_pairData, unk8);
+    ((SubObjectHead*)m_subObject)->head = 0;
+    m_streamMode = 1;
+}
+
+void hkConvexListAgent::cleanup() {
+    if (m_streamMode != 0) {
+        fn_8031830C(m_subObject, unk8);
+    } else {
+        fn_802FC6AC(m_subObject, m_pairData, unk8);
+    }
+    delete this;
+}
+
+void hkConvexListAgent::getClosestPoints(void* a, void* b, void* c, void* d) {
+    staticGetClosestPoints(a, b, c, d);
+}
+
+void hkConvexListAgent::getPenetrations(void* a, void* b, void* c, void* d) {
+    staticGetPenetrations(a, b, c, d);
+}
+
+void hkConvexListAgent::linearCast(void* a, void* b, void* c, void* d, void* e) {
+    staticLinearCast(a, b, c, d, e);
+}

@@ -35,3 +35,34 @@
 //   0x802F2F58   228  setRotationAroundCentreOfMass   [map: hkRigidBody__setRotationAroundCentreOfMass]
 //   0x802F303C   116  setInverseMul   [map: hkQuaternion__setInverseMul]
 //   0x802F30B0    12  __ct   [map: hkProcessCollisionOutput____ct]
+
+#include <havok/hkSimulation.h>
+
+hkSimulation::hkSimulation(hkWorld* world) {
+    m_world = world;
+    m_unk10 = 0.0f;
+    m_unk14 = 0.0f;
+    m_unk1C = 1.0f;
+    m_unk20 = -1.0f;
+    m_unk24 = 0;
+    m_unk0C = 1;
+}
+
+hkSimulation::~hkSimulation() {}
+
+// Snaps the current time to the step end when it is close enough, then returns the time to advance to.
+hkReal hkSimulation::snapSimulateTimeAndGetTimeToAdvanceTo() {
+    if (0.0f != m_unk1C) {
+        hkReal diff = m_unk1C - m_unk14;
+        if ((hkReal)fabs(diff) < m_unk20) {
+            m_unk1C = m_unk14;
+        }
+    }
+    if (m_unk1C == 0.0f) {
+        return m_unk14;
+    }
+    if (m_unk14 < m_unk1C) {
+        return m_unk14;
+    }
+    return m_unk1C;
+}

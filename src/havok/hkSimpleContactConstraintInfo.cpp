@@ -37,3 +37,107 @@
 //   0x80295088    16  mulInvJacDiag   [map: hkJacobianBuilder__mulInvJacDiag]
 //   0x80295098   108  length3   [map: hkVector4__length3]
 //   0x80295104     4  exitBuilder   [map: hkJacobianBuilder__exitBuilder]
+
+#pragma fp_contract on
+#include <havok/hkSimpleContactConstraintInfo.h>
+#include <havok/hkSimpleContactConstraintAtom.h>
+#include <havok/hkContactPoint.h>
+#include <havok/hkContactPointMaterial.h>
+#include <havok/hkJacobianHeaderSchema.h>
+#include <havok/hkJacobianBuilder.h>
+#include <havok/hkJacobianElement.h>
+#include <havok/hkJacobianSingleContactSchema.h>
+#include <havok/hkJacobianPairContactSchema.h>
+#include <havok/hkJacobian3dFrictionSchema.h>
+#include <havok/hkJacobian2dFrictionSchema.h>
+
+hkContactPoint* hkSimpleContactConstraintAtom::getContactPoints() {
+    return (hkContactPoint*)(((u32)this + 0x37) & ~0xF);
+}
+
+hkContactPointMaterial* hkSimpleContactConstraintAtom::getContactPointProperties() {
+    return (hkContactPointMaterial*)((u8*)getContactPoints() + (m_numContactPoints << 5));
+}
+
+void hkJacobianHeaderSchema::initHeader(u32 a, u32 b, u32 c, u32 d, u32 e) {
+    m_tag = 0x01010018;
+    unk04 = c;
+    unk08 = a;
+    unk0C = b;
+    unk14 = d;
+    unk10 = e;
+}
+
+int hkSimpleContactConstraintInfo::hkGetByteOffset(const void* base, const void* ptr) {
+    return (u8*)ptr - (u8*)base;
+}
+
+void hkJacobianBuilder::initBuilder() {}
+
+void hkJacobianElement::as1Lin2Ang() {}
+
+hkVector4* hkContactPoint::getPosition() {
+    return &m_position;
+}
+
+hkVector4* hkContactPoint::getNormal() {
+    return &m_normal;
+}
+
+void hkJacobianBuilder::exitBuilder() {}
+
+u16 hkContactPointMaterial::getFriction8_8() {
+    return m_friction;
+}
+
+hkReal hkContactPoint::getDistance() {
+    return m_normal.w;
+}
+
+void hkJacobianBuilder::copyJacRegToJac1Reg() {}
+
+void hkJacobianSingleContactSchema::initSingleContact() {
+    m_tag = 0x03090004;
+}
+
+void hkJacobianPairContactSchema::initPairContact(float f) {
+    unk04 = f;
+    m_tag = 0x040C0008;
+}
+
+void hkJacobian3dFrictionSchema::initAngular(float f) {
+    unk18 = f;
+    m_tag = 0x090D001C;
+}
+
+void hkJacobianBuilder::mulInvJacDiag(float s) {
+    m_lastPosition.w = s * m_lastPosition.w;
+}
+
+void hkJacobianBuilder::buildAngularEnd(float a, float b) {
+    unk10.w = a * b;
+}
+
+void hkJacobianBuilder::buildLinearEnd(float a, float b) {
+    m_lastPosition.w = a * b;
+}
+
+void hkJacobianBuilder::addLastPosition(const hkVector4* b, hkVector4* c, hkVector4* d) {
+    c->x += m_lastPosition.x;
+    c->y += m_lastPosition.y;
+    c->z += m_lastPosition.z;
+    c->w += m_lastPosition.w;
+    d->x += b->x;
+    d->y += b->y;
+    d->z += b->z;
+    d->w += b->w;
+}
+
+void hkJacobian2dFrictionSchema::init2dFriction(u32 a, u32 b, float c, float d) {
+    unk08 = d;
+    m_tag = 0x080C0018;
+    unk04 = a;
+    unk0C = c;
+    unk10 = 1.0f;
+    unk14 = b;
+}

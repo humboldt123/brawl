@@ -16,3 +16,52 @@
 //   0x802CC8DC   288  registerContactMgrFactoryWithAll   [map: hkCollisionDispatcher__registerContactMgrFactoryWithAll]
 //   0x802CC9FC   288  calcStatistics   [map: hkCollisionDispatcher__calcStatistics]
 //   0x802CCB1C  1252  initCollisionQualityInfo   [map: hkCollisionDispatcher__initCollisionQualityInfo]
+
+#include <havok/hkCollisionDispatcher.h>
+
+// Null agent: a registration target that never produces contacts (the class is only used in this unit).
+struct hkNullAgent3 {
+    static void* create(void* unk0, u8* flag, void* agent);
+    static void destroy(void* unk0);
+    static void* process(void* unk0, void* unk1, void* agent);
+};
+
+// HYPOTHESIS: the first parameter is unused. Clears the flag byte and returns the agent.
+void* hkNullAgent3::create(void* unk0, u8* flag, void* agent) {
+    *flag = 0;
+    return agent;
+}
+
+void hkNullAgent3::destroy(void* unk0) {}
+
+void* hkNullAgent3::process(void* unk0, void* unk1, void* agent) {
+    return agent;
+}
+
+void hkCollisionDispatcher::setEnableChecks(const hkBool& enable) {
+    m_enableChecks = enable.m_bool;
+}
+
+void hkCollisionDispatcher::disableDebugging() {
+    if (m_buffers[0] != 0) {
+        hkMemory::getInstance().deallocate(m_buffers[0]);
+        hkMemory::getInstance().deallocate(m_buffers[1]);
+        hkMemory::getInstance().deallocate(m_buffers[2]);
+        hkMemory::getInstance().deallocate(m_buffers[3]);
+        m_buffers[0] = 0;
+        m_buffers[1] = 0;
+        m_buffers[2] = 0;
+        m_buffers[3] = 0;
+    }
+}
+
+void hkCollisionDispatcher::registerCollisionAgent(const hkAgentFuncs* funcs, int typeA, int typeB) {
+    m_agentFuncs[m_numAgents] = *funcs;
+    internalRegisterCollisionAgent(m_lookupE94, 1, typeA, typeB, typeA, typeB, m_buffers[2], 0);
+    internalRegisterCollisionAgent(m_lookup190, m_numAgents, typeA, typeB, typeA, typeB, m_buffers[0], 0);
+    if (funcs->symmetricB != 0) {
+        internalRegisterCollisionAgent(m_lookup1294, 1, typeA, typeB, typeA, typeB, m_buffers[3], 0);
+        internalRegisterCollisionAgent(m_lookup590, m_numAgents, typeA, typeB, typeA, typeB, m_buffers[1], 0);
+    }
+    m_numAgents++;
+}

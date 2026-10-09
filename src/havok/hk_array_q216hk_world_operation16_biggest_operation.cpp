@@ -2,3 +2,8 @@
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
 //   0x802F7910  1248  insertAt   [map: hkArray_Q216hkWorldOperation16BiggestOperation___insertAt]
 //   0x802F7DF0    52  swap   [map: hkArray_Q216hkWorldOperation16BiggestOperation___swap]
+
+#include <havok/hkWorldOperationQueue.h>
+
+// Instantiation of the shared hkArray swap template for the operation queue element type.
+template void hkArray<hkWorldOperation::BiggestOperation>::swap(hkArray<hkWorldOperation::BiggestOperation>& other);

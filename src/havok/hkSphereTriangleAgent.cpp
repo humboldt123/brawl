@@ -21,3 +21,91 @@
 //   0x802C8C98   216  addCdPoint   [map: hkSymmetricAgentFlipCollector__addCdPoint]
 //   0x802C8D70   216  addCdPoint   [map: hkSymmetricAgentFlipCastCollector__addCdPoint]
 //   0x802C8E48    84  addCdBodyPair   [map: hkSymmetricAgentFlipBodyCollector__addCdBodyPair]
+
+#include <havok/hkSphereTriangleAgent.h>
+#include <havok/hkShapeType.h>
+
+// Stand-in for hkCollisionDispatcher::registerCollisionAgent (not recovered yet; takes the dispatcher as this).
+extern "C" void fn_802CC0EC(hkCollisionDispatcher* dispatcher, void* funcs, int typeA, int typeB);
+// Stand-in for the sub-object constructor (other unit): copies the triangle data at src into dst.
+extern "C" void fn_80325184(void* src, void* dst);
+// Stand-ins for the symmetric linear cast and the linear cast of other units (staticLinearCast not written yet).
+extern "C" void fn_802C84B4();
+extern "C" void fn_802B7FD0();
+
+namespace {
+typedef void (*AgentFunc)();
+
+// Layout of the table handed to the dispatcher (stack copy in registerAgent).
+struct AgentFuncs {
+    AgentFunc create;                 // 0x00
+    AgentFunc staticGetPenetrations;  // 0x04
+    AgentFunc staticGetClosestPoints; // 0x08
+    AgentFunc staticLinearCast;       // 0x0C
+    u8 unk10;                         // 0x10
+    u8 unk11;                         // 0x11
+};
+} // namespace
+
+void hkSphereTriangleAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
+    AgentFuncs triangle;
+    triangle.create = (AgentFunc)createTriangleSphereAgent;
+    triangle.staticGetPenetrations = (AgentFunc)hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::staticGetPenetrations;
+    triangle.staticGetClosestPoints = (AgentFunc)hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::staticGetClosestPoints;
+    triangle.staticLinearCast = (AgentFunc)fn_802C84B4;
+    triangle.unk10 = 1;
+    triangle.unk11 = 0;
+    fn_802CC0EC(dispatcher, &triangle, HK_SHAPE_TRIANGLE, HK_SHAPE_SPHERE);
+
+    AgentFuncs sphere;
+    sphere.create = (AgentFunc)createSphereTriangleAgent;
+    sphere.staticGetPenetrations = (AgentFunc)staticGetPenetrations;
+    sphere.staticGetClosestPoints = (AgentFunc)staticGetClosestPoints;
+    sphere.staticLinearCast = (AgentFunc)fn_802B7FD0;
+    sphere.unk10 = 0;
+    sphere.unk11 = 0;
+    fn_802CC0EC(dispatcher, &sphere, HK_SHAPE_SPHERE, HK_SHAPE_TRIANGLE);
+}
+
+hkSphereTriangleAgent::hkSphereTriangleAgent(hkContactMgr* contactMgr, void* src) : hkCollisionAgent((int)contactMgr) {
+    unkC = 0xFFFF;
+    fn_80325184((u8*)src + 0x10, unk10);
+}
+
+hkSphereTriangleAgent* hkSphereTriangleAgent::createTriangleSphereAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr) {
+    return new hkSphereTriangleAgent(contactMgr, *(void**)unk0);
+}
+
+hkSphereTriangleAgent* hkSphereTriangleAgent::createSphereTriangleAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr) {
+    return new hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_(contactMgr, *(void**)unk1);
+}
+
+void hkSphereTriangleAgent::cleanup() {
+    if (unkC != 0xFFFF) {
+        ((hkContactMgr*)unk8)->unk18();
+    }
+    delete this;
+}
+
+// Symmetric wrappers: the shapes are swapped and the collector is replaced by a flipping collector on the stack.
+void hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3) {
+    hkSymmetricAgentFlipCollector flip(unk3);
+    hkSphereTriangleAgent::getPenetrations(unk1, unk0, unk2, &flip);
+}
+
+void hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3) {
+    hkSymmetricAgentFlipCollector flip(unk3);
+    hkSphereTriangleAgent::staticGetPenetrations(unk1, unk0, unk2, &flip);
+}
+
+void hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3) {
+    hkSymmetricAgentFlipCastCollector flip(unk3);
+    hkSphereTriangleAgent::getClosestPoints(unk1, unk0, unk2, &flip);
+}
+
+void hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::staticGetClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3) {
+    hkSymmetricAgentFlipCastCollector flip(unk3);
+    hkSphereTriangleAgent::staticGetClosestPoints(unk1, unk0, unk2, &flip);
+}
+
+hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::~hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_() {}
