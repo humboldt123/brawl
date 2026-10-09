@@ -566,9 +566,9 @@ void stOrpheon::update(float deltaFrame) {
     static_cast<grMadein*>(getGround(3))->setRot(&rot);
     static_cast<grMadein*>(getGround(4))->setRot(&rot);
     static_cast<grMadein*>(getGround(5))->setRot(&rot);
+    rot.m_z = m_spinAngle + m_queenRoll;
     rot.m_x = 0.0f;
     rot.m_y = 0.0f;
-    rot.m_z = m_spinAngle + m_queenRoll;
     static_cast<grMadein*>(getGround(2))->setRot(&rot);
 
     Vec3f spline[4];
@@ -660,10 +660,10 @@ void stOrpheon::setJointCliff(bool enable) {
         if (collision != NULL) {
             u16 flags = 0;
             if (!enable) {
-                flags = 0x6000;
+                flags |= 0x6000;
             }
             u16 jointNum = collision->m_jointLen;
-            for (u32 j = 0; j != jointNum; j++) {
+            for (u16 j = 0; j != jointNum; j++) {
                 grCollisionJoint* joint = collision->getJoint(j);
                 if (joint != NULL) {
                     joint->m_0x52 = flags;
