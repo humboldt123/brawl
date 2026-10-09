@@ -11,6 +11,61 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_homerun/st_homerun.cpp:
+	.text       start:0x00000070 end:0x00004360
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x000000E0
+	.data       start:0x00000000 end:0x00000870
+	.bss        start:0x00000008 end:0x00000028
+
+mo_stage/st_homerun/gr_homerun.cpp:
+	.text       start:0x00004360 end:0x000044B0
+	.rodata     start:0x000000E0 end:0x000000E8
+	.data       start:0x00000870 end:0x00000AE8
+
+mo_stage/st_homerun/gr_homerun_bg.cpp:
+	.text       start:0x000044B0 end:0x00004CFC
+	.rodata     start:0x000000E8 end:0x000000F8
+	.data       start:0x00000AE8 end:0x00000DF8
+
+mo_stage/st_homerun/gr_homerun_loop.cpp:
+	.text       start:0x00004CFC end:0x00004DD0
+	.data       start:0x00000DF8 end:0x00001030
+
+mo_stage/st_homerun/gr_homerun_loop_stadium.cpp:
+	.text       start:0x00004DD0 end:0x00005568
+	.rodata     start:0x000000F8 end:0x00000108
+	.data       start:0x00001030 end:0x000013F0
+
+mo_stage/st_homerun/gr_homerun_loop_ground.cpp:
+	.text       start:0x00005568 end:0x00005E30
+	.rodata     start:0x00000108 end:0x00000118
+	.data       start:0x000013F0 end:0x000017D8
+
+mo_stage/st_homerun/gr_homerun_loop_sky.cpp:
+	.text       start:0x00005E30 end:0x0000651C
+	.rodata     start:0x00000118 end:0x00000130
+	.data       start:0x000017D8 end:0x00001A28
+
+mo_stage/st_homerun/gr_homerun_score.cpp:
+	.text       start:0x0000651C end:0x00006C44
+	.rodata     start:0x00000130 end:0x00000158
+	.data       start:0x00001A28 end:0x00001D80
+
+mo_stage/st_homerun/gr_homerun_number.cpp:
+	.text       start:0x00006C44 end:0x000073B8
+	.data       start:0x00001D80 end:0x000020F0
+
+mo_stage/st_homerun/gr_homerun_barrier.cpp:
+	.text       start:0x000073B8 end:0x00007F48
+	.rodata     start:0x00000158 end:0x00000168
+	.data       start:0x000020F0 end:0x00002318
+
+mo_stage/st_homerun/gr_homerun_loop_floor.cpp:
+	.text       start:0x00007F48 end:0x0000857C
+	.rodata     start:0x00000168 end:0x00000180
+	.data       start:0x00002318 end:0x00002570
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x0000857C end:0x00008618
 	.data       start:0x00002570 end:0x0000257D
