@@ -29,7 +29,10 @@ void wnWarioBikeStatusUniqProcessTurnEnd::execFixPos(soModuleAccesser* a) {
         float lr = a->getPostureModule().getLr();
         Vec2f normal;
         Vec2f::copy(normal, ground.getTouchNormal((grCollStatus::TouchMask)8, 0));
-        float angle = 57.29578f * (float)atan2(-(normal.m_x * lr), normal.m_y);
+        // MATCH-ONLY: keep the native Y-then-X loads before atan2.
+        float normalY = normal.m_y;
+        float normalX = normal.m_x;
+        float angle = 57.29578f * (float)atan2(-(normalX * lr), normalY);
         work.setFloat(angle, 0x21000000);
     }
 }
