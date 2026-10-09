@@ -42,7 +42,7 @@ static inline void stDxPStadiumSetShort(s16* dst, s16 value) {
     *dst = value;
 }
 
-static inline void stDxPStadiumParentEffect(u32 handle, Ground* ground, const char* nodeName) {
+static inline void stDxPStadiumParentEffect(const char* nodeName, u32 handle, Ground* ground) {
     g_ecMgr->setParent(handle, ground->m_sceneModels[0], nodeName, false);
 }
 
@@ -328,10 +328,10 @@ void stDxPStadium::updateSpecialStage(float deltaFrame) {
                             static_cast<grMadein*>(getGround(6))->startEntityAutoLoop();
                             static_cast<grMadein*>(getGround(9))->startEntityAutoLoop();
                             static_cast<grMadein*>(getGround(10))->startEntityAutoLoop();
-                            stDxPStadiumParentEffect(m_effectHandles[1], getGround(m_terrain), "PtclPoint");
-                            stDxPStadiumParentEffect(m_effectHandles[2], getGround(m_terrain), "PtclPoint_1");
-                            stDxPStadiumParentEffect(m_effectHandles[3], getGround(m_terrain), "FunsuiAN");
-                            stDxPStadiumParentEffect(m_effectHandles[4], getGround(m_terrain), "FunsuiBN");
+                            stDxPStadiumParentEffect("PtclPoint", m_effectHandles[1], getGround(m_terrain));
+                            stDxPStadiumParentEffect("PtclPoint_1", m_effectHandles[2], getGround(m_terrain));
+                            stDxPStadiumParentEffect("FunsuiAN", m_effectHandles[3], getGround(m_terrain));
+                            stDxPStadiumParentEffect("FunsuiBN", m_effectHandles[4], getGround(m_terrain));
                             void* posData = m_fileData->getData(Data_Type_Model, 0x69, 0xFFFE);
                             if (posData) {
                                 nw4r::g3d::ResFile posFile(posData);
