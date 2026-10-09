@@ -34,7 +34,6 @@ class stDxCruise : public stMelee {
     float m_blockHeight[17];         // 0xD44: height offset of each block
     float m_blockSpeed[17];          // 0xD88: fall speed of each block
     grTenganEvent m_carpetEvent[3];  // 0xDCC: one phase machine per carpet
-    char _fb8[0x18];                 // 0xFB8
     u8 m_carpetFlag[3];              // 0xFD0: HYPOTHESIS: the carpet was landed on
     char _fd3[1];                    // 0xFD3
     float m_unkFD4;                  // 0xFD4
