@@ -43,10 +43,16 @@ public:
 };
 
 class ftLuigi : public ftFighterBuilder<ftLuigiBuildConfig> {
-    u8 unkTail[0xE208 - sizeof(ftFighterBuilder<ftLuigiBuildConfig>)];
+    u8 unkTail[0xE1F4 - sizeof(ftFighterBuilder<ftLuigiBuildConfig>)];
+    // HYPOTHESIS: status table at 0xE1F4 (destroyed before the base in the target destructor); contents unidentified.
+    soArrayContractibleTable<const soStatusData> unkE1F4;
+    u8 unkTail2[0xE208 - 0xE1F4 - sizeof(soArrayContractibleTable<const soStatusData>)];
 public:
     ftLuigi(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftLuigi();
+    virtual void onStart(int startKind);
+    virtual void notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser);
 };
