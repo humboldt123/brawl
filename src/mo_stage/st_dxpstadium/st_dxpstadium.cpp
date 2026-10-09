@@ -42,6 +42,10 @@ static inline void stDxPStadiumSetShort(s16* dst, s16 value) {
     *dst = value;
 }
 
+static inline void stDxPStadiumParentEffect(u32 handle, Ground* ground, const char* nodeName) {
+    g_ecMgr->setParent(handle, ground->m_sceneModels[0], nodeName, false);
+}
+
 static inline void stDxPStadiumSwap(u8& x, u8& y) {
     u8 tmp = x;
     x = y;
@@ -324,10 +328,10 @@ void stDxPStadium::updateSpecialStage(float deltaFrame) {
                             static_cast<grMadein*>(getGround(6))->startEntityAutoLoop();
                             static_cast<grMadein*>(getGround(9))->startEntityAutoLoop();
                             static_cast<grMadein*>(getGround(10))->startEntityAutoLoop();
-                            g_ecMgr->setParent(m_effectHandles[1], getGround(m_terrain)->m_sceneModels[0], "PtclPoint", false);
-                            g_ecMgr->setParent(m_effectHandles[2], getGround(m_terrain)->m_sceneModels[0], "PtclPoint_1", false);
-                            g_ecMgr->setParent(m_effectHandles[3], getGround(m_terrain)->m_sceneModels[0], "FunsuiAN", false);
-                            g_ecMgr->setParent(m_effectHandles[4], getGround(m_terrain)->m_sceneModels[0], "FunsuiBN", false);
+                            stDxPStadiumParentEffect(m_effectHandles[1], getGround(m_terrain), "PtclPoint");
+                            stDxPStadiumParentEffect(m_effectHandles[2], getGround(m_terrain), "PtclPoint_1");
+                            stDxPStadiumParentEffect(m_effectHandles[3], getGround(m_terrain), "FunsuiAN");
+                            stDxPStadiumParentEffect(m_effectHandles[4], getGround(m_terrain), "FunsuiBN");
                             void* posData = m_fileData->getData(Data_Type_Model, 0x69, 0xFFFE);
                             if (posData) {
                                 nw4r::g3d::ResFile posFile(posData);
@@ -691,14 +695,14 @@ void stDxPStadium::updateVisionTerrain(float deltaFrame) {
             terrain = 3;
         }
         switch (terrain) {
+            case 3:
+                screenKind = 4;
+                break;
             case 1:
                 screenKind = 9;
                 break;
             case 2:
                 screenKind = 8;
-                break;
-            case 3:
-                screenKind = 4;
                 break;
             case 4:
                 screenKind = 0xB;
