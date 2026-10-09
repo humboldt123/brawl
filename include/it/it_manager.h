@@ -1,6 +1,6 @@
 #pragma once
 
-// Local shadow of BrawlHeaders' it/it_manager.h: the original plus the Final Smash availability queries the fighter manager uses and isCreatableItem (st_heal).
+// Local shadow of BrawlHeaders' it/it_manager.h: the original plus the two queries the fighter manager uses for Final Smash availability.
 
 #include <StaticAssert.h>
 #include <it/it_archive.h>
@@ -89,7 +89,7 @@ public:
     u32 getItemNum(itKind kind);
     u32 getItemNum(itKind kind, int variation, int taskId, int);
     BaseItem* getItemFromInstanceId(int instanceId);
-    bool isCreatableItem(itKind kind, int variation); // Added locally: sora_melee 0x2A5B84
+    bool isCreatableItem(itKind kind, int variation); // Added locally: sora_melee 0x2A5B84 (st_heal)
     void removeItem(BaseItem*);
     void removeItem1(int taskId); // HYPOTHESIS: removes the item with this task id (R.O.B.'s gyro on deactivation)
     bool preloadAssist(itKind, int variation = 0); // custom parameter
