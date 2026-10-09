@@ -14,3 +14,32 @@
 //   0x802A9760   412  processCollision   [map: hkSymmetricAgentLinearCast_11hkMoppAgent___processCollision]
 //   0x802A98FC    16  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_11hkMoppAgent___updateShapeCollectionFilter]
 //   0x802A990C   164  __dt   [map: hkSymmetricAgent_11hkMoppAgent_____dt]
+
+#include <havok/hkMoppAgent.h>
+#include <havok/hkCollisionDispatcher.h>
+
+hkMoppAgent::hkMoppAgent(hkContactMgr* contactMgr) : hkBvTreeAgent(contactMgr) {}
+
+void hkSymmetricAgentLinearCast_11hkMoppAgent::getPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricFlagTarget wrap((hkPenetrationTarget*)target);
+    hkMoppAgent::getPenetrations(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_11hkMoppAgent::staticGetPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricFlagTarget wrap((hkPenetrationTarget*)target);
+    hkMoppAgent::staticGetPenetrations(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_11hkMoppAgent::getClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricClosestTarget wrap((hkPenetrationTarget*)target);
+    hkMoppAgent::getClosestPoints(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_11hkMoppAgent::staticGetClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricClosestTarget wrap((hkPenetrationTarget*)target);
+    hkMoppAgent::staticGetClosestPoints(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_11hkMoppAgent::updateShapeCollectionFilter(void* a, void* b, void* c) {
+    hkMoppAgent::updateShapeCollectionFilter(b, a, c);
+}

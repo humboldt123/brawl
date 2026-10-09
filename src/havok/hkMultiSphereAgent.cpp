@@ -40,3 +40,20 @@
 //   0x802BFCB0  2176  processCollision   [map: hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent___processCollision]
 //   0x802C0530     4  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent___updateShapeCollectionFilter]
 //   0x802C0534    92  __dt   [map: hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_____dt]
+
+#include <havok/hkMultiSphereAgent.h>
+
+hkMultiSphereAgent* hkMultiSphereAgent::createListAAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr) {
+    return new hkMultiSphereAgent(unk0, unk1, unk2, contactMgr);
+}
+
+hkMultiSphereAgent* hkMultiSphereAgent::createListBAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr) {
+    return new hkSymmetricAgent_18hkMultiSphereAgent_(unk1, unk0, unk2, contactMgr);
+}
+
+void hkMultiSphereAgent::cleanup() {
+    for (int i = 0; i < m_count; i++) {
+        m_entries[i].agent->cleanup();
+    }
+    delete this;
+}

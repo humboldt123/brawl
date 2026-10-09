@@ -1,6 +1,7 @@
 #pragma once
 
 #include <havok/hkConvexShape.h>
+#include <havok/hkMemory.h>
 #include <havok/hkWorldCinfo.h>
 
 // Triangle shape (0x40 bytes): three vertices at 0x10, 0x20 and 0x30. Layout inferred from the accessors
@@ -12,6 +13,7 @@ struct hkTriangleShape : hkConvexShape {
 
     hkTriangleShape(hkFinishLoadedObjectFlag flag) {} // finish-loading ctor: only the vtable is written
     virtual ~hkTriangleShape();
+    HK_DECLARE_REF_ALLOCATOR(0x25)
 
     static void finishLoadedObjecthkTriangleShape(void* p);
     static void cleanupLoadedObjecthkTriangleShape(void* p);

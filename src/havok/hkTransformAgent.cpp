@@ -79,6 +79,7 @@ struct hkTransformAgentBodyInfo {
     hkCdBody* body; // 0x0C
 };
 
+#pragma dont_inline on
 void hkTransformAgent::updateShapeCollectionFilter(void* unk0, void* unk1, void* unk2) {
     hkCdBody* body = (hkCdBody*)unk0;
     char* shape = (char*)body->m_shape;
@@ -91,6 +92,7 @@ void hkTransformAgent::updateShapeCollectionFilter(void* unk0, void* unk1, void*
     info.unk00 = *(void**)(shape + 0x10);
     m_childAgent->updateShapeCollectionFilterChild(&info, unk1, unk2);
 }
+#pragma dont_inline reset
 
 void hkTransformAgent::cleanup() {
     m_childAgent->cleanupChild();
@@ -99,24 +101,24 @@ void hkTransformAgent::cleanup() {
 
 hkTransformAgent::~hkTransformAgent() {}
 
-void hkTransformAgent::invalidateTim() {
-    m_childAgent->invalidateTimChild();
+void hkTransformAgent::invalidateTim(void* arg) {
+    m_childAgent->invalidateTimChild(arg);
 }
 
-void hkTransformAgent::warpTime() {
-    m_childAgent->warpTimeChild();
+void hkTransformAgent::warpTime(float t0, float t1, void* arg) {
+    m_childAgent->warpTimeChild(t0, t1, arg);
 }
 
-void hkTransformAgent::removePoint() {
-    m_childAgent->removePointChild();
+void hkTransformAgent::removePoint(u16 key) {
+    m_childAgent->removePointChild(key);
 }
 
-void hkTransformAgent::commitPotential() {
-    m_childAgent->commitPotentialChild();
+void hkTransformAgent::commitPotential(u16 key) {
+    m_childAgent->commitPotentialChild(key);
 }
 
-void hkTransformAgent::createZombie() {
-    m_childAgent->createZombieChild();
+void hkTransformAgent::createZombie(u16 key) {
+    m_childAgent->createZombieChild(key);
 }
 
 hkSymmetricAgent_16hkTransformAgent_::~hkSymmetricAgent_16hkTransformAgent_() {}

@@ -14,11 +14,11 @@ struct hkTransformChildAgent {
     virtual void unkSlot1C() = 0;
     virtual void cleanupChild() = 0;                                  // 0x20 HYPOTHESIS
     virtual void updateShapeCollectionFilterChild(void* a, void* b, void* c) = 0; // 0x24
-    virtual void invalidateTimChild() = 0;                            // 0x28
-    virtual void warpTimeChild() = 0;                                 // 0x2C
-    virtual void removePointChild() = 0;                              // 0x30
-    virtual void commitPotentialChild() = 0;                          // 0x34
-    virtual void createZombieChild() = 0;                             // 0x38
+    virtual void invalidateTimChild(void* arg) = 0;                                  // 0x28
+    virtual void warpTimeChild(float t0, float t1, void* arg) = 0;                   // 0x2C
+    virtual void removePointChild(u16 key) = 0;                                      // 0x30
+    virtual void commitPotentialChild(u16 key) = 0;                                  // 0x34
+    virtual void createZombieChild(u16 key) = 0;                                     // 0x38
 };
 
 // Transform agent: wraps a child agent (0x0C) and forwards the collision hooks to it. Object size 0x10.
@@ -38,15 +38,16 @@ struct hkTransformAgent : hkCollisionAgent {
     virtual ~hkTransformAgent();
 
     virtual void cleanup();
-    virtual void invalidateTim();
-    virtual void warpTime();
-    virtual void removePoint();
-    virtual void commitPotential();
-    virtual void createZombie();
+    // Overrides of the hkCollisionAgent slots with the base parameter lists.
+    virtual void invalidateTim(void* arg);
+    virtual void warpTime(float t0, float t1, void* arg);
+    virtual void removePoint(u16 key);
+    virtual void commitPotential(u16 key);
+    virtual void createZombie(u16 key);
 
     // Not written yet (see hkTransformAgent.cpp): linear cast, closest points, penetrations, processCollision.
     virtual void processCollision(void* unk0, void* unk1, void* unk2);
-    virtual void linearCast(void* unk0, void* unk1, void* unk2, void* unk3);
+    virtual void linearCast(void* unk0, void* unk1, void* unk2, void* unk3, void* unk4);
     static void staticLinearCast(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
     static void staticGetClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);

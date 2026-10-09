@@ -25,6 +25,7 @@
 
 #include <new>
 #include <havok/hkRigidBody.h>
+#include <havok/hkWorldOperationUtil.h>
 
 void hkRigidBody::finishLoadedObjecthkRigidBody(void* p) {
     hkFinishLoadedObjectFlag flag;
@@ -65,6 +66,28 @@ void hkRigidBody::setPositionAndRotation(const hkVector4& position, const hkQuat
 void hkRigidBody::setTransform(const hkTransform& transform) {
     getMotion()->setTransform(transform);
     updateBroadphaseAndResetCollisionInformationOfWarpedBody();
+}
+
+// While the world is locked the change is queued as an operation (kind 4); otherwise it is applied directly.
+void hkRigidBody::setMotionType(u8 motionType, u8 a, u8 b) {
+    if (m_world != 0 && m_world->m_lockCount != 0) {
+        struct {
+            u8 kind;            // 0x00 HYPOTHESIS: operation kind 4 (motion type change)
+            u8 pad[3];
+            hkRigidBody* body;  // 0x04
+            u8 motionType;      // 0x08
+            u8 a;               // 0x09
+            u8 b;               // 0x0A
+        } op;
+        op.kind = 4;
+        op.body = this;
+        op.motionType = motionType;
+        op.a = a;
+        op.b = b;
+        m_world->queueOperation(&op);
+    } else {
+        hkWorldOperationUtil::setRigidBodyMotionType(this, motionType, a, b);
+    }
 }
 
 void hkRigidBody::setMass(hkReal mass) {

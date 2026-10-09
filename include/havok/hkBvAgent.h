@@ -8,16 +8,13 @@ struct hkCollisionDispatcher;
 // Bounding-volume collision agent. It owns up to two sub-agents: A at 0x0C (always set by the
 // constructor) and B at 0x10 (null after construction, optional).
 //
-// HYPOTHESIS: this class derives from hkReferencedObject rather than hkCollisionAgent. The
-// vtable slots that hkCollisionAgent declares (invalidateTim at 0x10, ...) do not match the
-// slots the sub-agent calls in this unit use (cleanup 0x20, invalidateTim 0x28, warpTime 0x2C,
-// removePoint 0x30, commitPotential 0x34, createZombie 0x38), so the virtual list is spelled out
-// here in that order. Sub-agents are typed as hkBvAgent since all agents share that layout.
-// The slots 0x10..0x24 are a hypothesis: the names come from the map, the order does not.
-struct hkBvAgent : hkReferencedObject {
+// Derives from hkCollisionAgent: the vtable matches the base slot order (checked against the
+// lbl_804867BC vtable). Sub-agents are typed as hkBvAgent since all agents share that layout.
+// The slots 0x10..0x1C are a hypothesis: the names come from the map, the order does not.
+struct hkBvAgent : hkCollisionAgent {
     HK_DECLARE_REF_ALLOCATOR(0x1d)
 
-    hkContactMgr* m_contactMgr; // 0x08 passed to the constructor as its last argument
+    // 0x08 (hkCollisionAgent::unk8) holds the contact manager passed to the constructor as its last argument.
     hkBvAgent* m_childA;        // 0x0C
     hkBvAgent* m_childB;        // 0x10
 
@@ -31,17 +28,18 @@ struct hkBvAgent : hkReferencedObject {
     // Same, with the first two arguments swapped; the object has the hkSymmetricBvAgent vtable.
     static hkBvAgent* createShapeBvAgent(void* a1, void* a2, void* a3, hkContactMgr* contactMgr);
 
-    virtual void processCollision();                                      // 0x10 HYPOTHESIS
-    virtual void getClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target); // 0x14 HYPOTHESIS
-    virtual void linearCast();                                            // 0x18 HYPOTHESIS
-    virtual void getPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target); // 0x1C HYPOTHESIS
-    virtual void cleanup();                                               // 0x20
-    virtual void updateShapeCollectionFilter(void* a, void* b, void* c);  // 0x24 HYPOTHESIS
-    virtual void invalidateTim(void* arg);                                // 0x28
-    virtual void warpTime(float t0, float t1, void* arg);                 // 0x2C
-    virtual void removePoint(void* arg);                                  // 0x30
-    virtual void commitPotential(void* arg);                              // 0x34
-    virtual void createZombie(void* arg);                                 // 0x38
+    // Overrides of the hkCollisionAgent slots, with the base parameter lists.
+    virtual void getPenetrations(void* a, void* b, void* c, void* target);   // 0x10 HYPOTHESIS
+    virtual void getClosestPoints(void* a, void* b, void* c, void* target);  // 0x14 HYPOTHESIS
+    virtual void linearCast(void* a, void* b, void* c, void* target, void* d); // 0x18 HYPOTHESIS
+    virtual void processCollision(void* a, void* b, void* c);                // 0x1C HYPOTHESIS
+    virtual void cleanup();                                                  // 0x20
+    virtual void updateShapeCollectionFilter(void* a, void* b, void* c);     // 0x24 HYPOTHESIS
+    virtual void invalidateTim(void* arg);                                   // 0x28
+    virtual void warpTime(float t0, float t1, void* arg);                    // 0x2C
+    virtual void removePoint(u16 key);                                       // 0x30
+    virtual void commitPotential(u16 key);                                   // 0x34
+    virtual void createZombie(u16 key);                                      // 0x38
 
     static void registerAgent(void* dispatcher);
     static void staticGetPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target);
@@ -53,6 +51,7 @@ struct hkBvAgent : hkReferencedObject {
 struct hkSymmetricBvAgent : hkBvAgent {
     hkSymmetricBvAgent(void* a1, void* a2, void* a3, hkContactMgr* contactMgr)
         : hkBvAgent(a1, a2, a3, contactMgr) {}
+    virtual ~hkSymmetricBvAgent() {}
 };
 
 // HYPOTHESIS: penetration target wrapper built on the stack by hkSymmetricAgentLinearCast. Holds the
@@ -71,9 +70,9 @@ struct hkSymmetricTarget : hkPenetrationTarget {
 // around the target.
 template <class T>
 struct hkSymmetricAgentLinearCast : T {
-    virtual void getPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target);
+    virtual void getPenetrations(void* a, void* b, void* c, void* target);
     static void staticGetPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target);
-    virtual void getClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target);
+    virtual void getClosestPoints(void* a, void* b, void* c, void* target);
     static void staticGetClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target);
     virtual void updateShapeCollectionFilter(void* a, void* b, void* c);
 };

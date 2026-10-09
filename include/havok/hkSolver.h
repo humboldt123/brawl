@@ -15,6 +15,7 @@ struct hkSolver {
     void prefetchVelocityAccumulators();
     void storeDelayedResult();
     void loadFixedRegisters();
+    void applyVelField(hkVector4* vel, u8* rec);
     void applyAngularImpulse(hkReal impulse, hkVector8* jac, hkVelocityAccumulator* a, hkVelocityAccumulator* b, hkReal* sum);
 };
 

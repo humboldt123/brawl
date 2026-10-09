@@ -56,21 +56,21 @@ void hkBvAgent::warpTime(float t0, float t1, void* arg) {
     }
 }
 
-void hkBvAgent::removePoint(void* arg) {
+void hkBvAgent::removePoint(u16 key) {
     if (m_childB != 0) {
-        m_childB->removePoint(arg);
+        m_childB->removePoint(key);
     }
 }
 
-void hkBvAgent::commitPotential(void* arg) {
+void hkBvAgent::commitPotential(u16 key) {
     if (m_childB != 0) {
-        m_childB->commitPotential(arg);
+        m_childB->commitPotential(key);
     }
 }
 
-void hkBvAgent::createZombie(void* arg) {
+void hkBvAgent::createZombie(u16 key) {
     if (m_childB != 0) {
-        m_childB->createZombie(arg);
+        m_childB->createZombie(key);
     }
 }
 
@@ -89,8 +89,8 @@ hkBvAgent* hkBvAgent::createShapeBvAgent(void* a1, void* a2, void* a3, hkContact
 // Sub-agents and the penetration target are passed around as in the original. The wrappers
 // reorder the pair (a, b) and forward the target inside a hkSymmetricTarget.
 template <class T>
-void hkSymmetricAgentLinearCast<T>::getPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target) {
-    hkSymmetricTarget wrapped(target);
+void hkSymmetricAgentLinearCast<T>::getPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricTarget wrapped((hkPenetrationTarget*)target);
     T::getPenetrations(b, a, c, &wrapped);
 }
 
@@ -101,8 +101,8 @@ void hkSymmetricAgentLinearCast<T>::staticGetPenetrations(void* a, void* b, void
 }
 
 template <class T>
-void hkSymmetricAgentLinearCast<T>::getClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target) {
-    hkSymmetricTarget wrapped(target);
+void hkSymmetricAgentLinearCast<T>::getClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricTarget wrapped((hkPenetrationTarget*)target);
     T::getClosestPoints(b, a, c, &wrapped);
 }
 

@@ -8,3 +8,7 @@
 //   0x802FB45C     4  createZombie   [map: hkBoxBoxAgent3__createZombie]
 //   0x802FB460     4  destroy   [map: hkBoxBoxAgent3__destroy]
 //   0x802FB464  1072  process   [map: hkBoxBoxAgent3__process]
+
+#include <havok/hkBoxBoxAgent3.h>
+
+void hkBoxBoxAgent3::createZombie(u16 key) {}

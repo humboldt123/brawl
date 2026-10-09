@@ -13,6 +13,8 @@ struct hkQuaternion {
     // Builds the quaternion from a rotation matrix (calls hkQuadReal::quaternionFromRotatation).
     void set(const hkRotation& r);
     void setFlippedRotation(const hkQuaternion& q);
+    // Scales to unit length; defined in src/havok/hkFootPlacementIkSolver.cpp.
+    void normalize();
 };
 
 // Helper class from the Havok TU map (hkQuadReal__quaternionFromRotatation).

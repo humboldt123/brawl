@@ -1,6 +1,7 @@
 #pragma once
 
 #include <havok/hkConvexShape.h>
+#include <havok/hkMemory.h>
 #include <havok/hkWorldCinfo.h>
 
 // Cylinder shape (0x60 bytes). Layout from hkCylinderShapeClass.cpp: cylinder radius at 0x10, height-field
@@ -15,6 +16,7 @@ struct hkCylinderShape : hkConvexShape {
 
     hkCylinderShape(hkFinishLoadedObjectFlag flag); // finish-loading ctor (body not recovered yet)
     virtual ~hkCylinderShape();
+    HK_DECLARE_REF_ALLOCATOR(0x25)
 
     static void finishLoadedObjecthkCylinderShape(void* p);
     static void cleanupLoadedObjecthkCylinderShape(void* p);

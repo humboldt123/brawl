@@ -7,12 +7,10 @@
 #include <havok/hkBoxBoxManifold.h>
 
 hkBoxBoxManifold::hkBoxBoxManifold() {
-    u16* p = &m_points[0].unk2;
-    s32 n = 8;
-    do {
-        *p = 0;
-        p += 2;
-    } while (--n != 0);
+    m_points[0].unk2 = 0;
+    for (Point* p = &m_points[1]; p < &m_points[8]; p++) {
+        p->unk2 = 0;
+    }
     m_numPoints = 0;
     unk20 = 0;
     m_complete = hkBool(false);
@@ -23,10 +21,10 @@ int hkBoxBoxManifold::addPoint(int unk4, int unk8, const Point* key) {
     if (count > 8) {
         return -1;
     }
-    hkBool found(false);
+    s8 found = 0;
     for (int i = count - 1; i >= 0; i--) {
         if (key->unk0 == m_points[i].unk0 && key->unk1 == m_points[i].unk1) {
-            found = hkBool(true);
+            found = 1;
             break;
         }
     }
@@ -37,8 +35,9 @@ int hkBoxBoxManifold::addPoint(int unk4, int unk8, const Point* key) {
         return -1;
     }
     m_points[count].unk0 = key->unk0;
-    m_points[count].unk1 = key->unk1;
-    m_points[count].unk2 = key->unk2;
+    Point* dst = &m_points[count];
+    dst->unk1 = key->unk1;
+    dst->unk2 = key->unk2;
     m_numPoints++;
     return count;
 }
@@ -46,10 +45,8 @@ int hkBoxBoxManifold::addPoint(int unk4, int unk8, const Point* key) {
 void hkBoxBoxManifold::removePoint(int index) {
     int last = m_numPoints - 1;
     m_complete = hkBool(false);
-    Point* dst = &m_points[index];
-    Point* src = &m_points[last];
-    dst->unk0 = src->unk0;
-    dst->unk1 = src->unk1;
-    dst->unk2 = src->unk2;
+    m_points[index].unk0 = m_points[last].unk0;
+    m_points[index].unk1 = m_points[last].unk1;
+    m_points[index].unk2 = m_points[last].unk2;
     m_numPoints--;
 }

@@ -29,9 +29,8 @@
 
 #include <new>
 #include <havok/hkEntity.h>
+#include <havok/hkWorldOperationUtil.h>
 
-extern "C" void fn_802FAC88(hkWorld* world, hkSimulationIsland* island);
-extern "C" void fn_802FABFC(hkWorld* world, hkSimulationIsland* island);
 
 void hkEntity::finishLoadedObjecthkEntity(void* p) {
     hkFinishLoadedObjectFlag flag;
@@ -118,21 +117,21 @@ u32 hkEntity::isActive() const {
 
 void hkEntity::activate() {
     bool wantActivate = false;
-    if ((s8)getActivationState() == 0) {
-        if (getMotion()->m_type != hkMotion::MOTION_FIXED) {
-            if (m_world != 0) {
-                wantActivate = true;
-            }
-        }
+    bool notFixed = false;
+    if ((s8)(u8)getActivationState() == 0) {
+        notFixed = getMotion()->m_type != hkMotion::MOTION_FIXED;
+    }
+    if (notFixed && m_world != 0) {
+        wantActivate = true;
     }
     if (wantActivate) {
-        fn_802FAC88(m_world, m_simulationIsland);
+        hkWorldOperationUtil::markIslandActive(m_world, m_simulationIsland);
     }
 }
 
 void hkEntity::deactivate() {
-    if ((s8)getActivationState() != 0) {
-        fn_802FABFC(m_world, m_simulationIsland);
+    if ((s8)(u8)getActivationState() != 0) {
+        hkWorldOperationUtil::markIslandInactive(m_world, m_simulationIsland);
     }
 }
 

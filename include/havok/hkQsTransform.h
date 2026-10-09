@@ -8,6 +8,10 @@ struct hkQsTransform {
     hkQuaternion m_rotation; // 0x10
     hkVector4 m_scale;       // 0x20
 
+    // Non-inline accessors, defined in src/havok/hkFootPlacementIkSolver.cpp (asm: returns this / this+0x10).
+    hkVector4& getTranslation();
+    hkQuaternion& getRotation();
+
     void get4x4ColumnMajor(hkReal* m) const;
     void set4x4ColumnMajor(const hkReal* m);
     void setInverse(const hkQsTransform& t);

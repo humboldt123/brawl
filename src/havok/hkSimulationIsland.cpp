@@ -17,6 +17,7 @@
 
 #include <havok/hkSimulationIsland.h>
 #include <havok/hkEntity.h>
+#include <havok/hkWorldOperationUtil.h>
 
 // Adds an entity to the island: the entity keeps the island pointer and its index in the island array.
 void hkSimulationIsland::internalAddEntity(hkEntity* entity) {
@@ -58,6 +59,33 @@ void hkSimulationIsland::removeAction(hkAction* action) {
     // HYPOTHESIS: bit fields 0xC0 and 0x30 of 0x26, set as in internalRemoveEntity.
     m_flags26 = (m_flags26 & ~0xC0) | 0x40;
     m_flags26 = (m_flags26 & ~0x30) | 0x10;
+}
+
+// Forwards to the world operation with the world taken from the constraint's owner (world at +0x08 of the
+// owner pointer stored at +0x14). HYPOTHESIS: field meanings of the constraint record.
+void hkSimulationIsland::addConstraintToCriticalLockedIsland(hkConstraintInstance* constraint) {
+    hkWorld* world = *(hkWorld**)(*(u8**)((u8*)constraint + 0x14) + 0x08);
+    hkWorldOperationUtil::addConstraintToCriticalLockedIsland(world, constraint);
+}
+
+void hkSimulationIsland::removeConstraintFromCriticalLockedIsland(hkConstraintInstance* constraint) {
+    hkWorld* world = *(hkWorld**)(*(u8**)((u8*)constraint + 0x14) + 0x08);
+    hkWorldOperationUtil::removeConstraintFromCriticalLockedIsland(world, constraint);
+}
+
+// Merges the constraint info of another island into this one: the first word takes the larger of the two
+// first words, then the larger of that and the other island's second word; the remaining three words are summed.
+// HYPOTHESIS: field meanings of hkConstraintInfo.
+void hkSimulationIsland::mergeConstraintInfo(const hkSimulationIsland* other) {
+    int* self = (int*)&m_constraintInfo;
+    const int* o = (const int*)&other->m_constraintInfo;
+    int m = (self[0] > o[0]) ? self[0] : o[0];
+    self[0] = m;
+    int n = (m > o[1]) ? m : o[1];
+    self[0] = n;
+    self[1] += o[1];
+    self[2] += o[2];
+    self[3] += o[3];
 }
 
 // No-op in this build (the target function body is a bare return).

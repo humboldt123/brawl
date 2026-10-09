@@ -15,6 +15,7 @@ struct hkRigidBody : hkEntity {
     virtual hkMotionState* getMotionState();
 
     void setDeactivator(hkEntityDeactivator* deactivator);
+    void setMotionType(u8 motionType, u8 a, u8 b);
     void setMass(hkReal mass);
     void setPosition(const hkVector4& position);
     void setPositionAndRotation(const hkVector4& position, const hkQuaternion& rotation);

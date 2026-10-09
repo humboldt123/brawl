@@ -41,20 +41,19 @@ const void* hkCylinderShape::getVtablehkCylinderShape() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
     char buf[0x60] __attribute__((aligned(16)));
-    hkCylinderShape* p = ::new (buf) hkCylinderShape(flag);
-    return *(const void**)p;
+    ::new (buf) hkCylinderShape(flag);
+    return *(const void**)buf;
 }
 
 hkReal hkCylinderShape::getCylinderRadius() const {
     return m_cylRadius;
 }
 
+#pragma scheduling off
 void hkCylinderShape::getFirstVertex(hkVector4& out) const {
-    out.x = m_vertexB.x;
-    out.y = m_vertexB.y;
-    out.z = m_vertexB.z;
-    out.w = m_vertexB.w;
+    out = m_vertexB;
 }
+#pragma scheduling reset
 
 int hkCylinderShape::getNumVertices() const {
     return -1;

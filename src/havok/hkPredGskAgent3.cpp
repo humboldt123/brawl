@@ -16,3 +16,12 @@
 //   0x80301100  1656  hkGskManifold_init   [map: hkPredGskAgent3__hkGskManifold_init]
 //   0x80301778     8  getTolerance   [map: hkCollisionInput__getTolerance]
 //   0x80301780  2400  hkGskAgentUtil_processCollisionNoTim   [map: hkAgent3Input__hkGskAgentUtil_processCollisionNoTim]
+
+#include <havok/hkGskManifold.h>
+
+u32 hkGskManifold::getTotalSizeInBytes() const {
+    u8 a = m_countA;
+    u8 b = m_countB;
+    u8 c = m_countC;
+    return (c << 3) + ((a + b) << 1) + 4;
+}

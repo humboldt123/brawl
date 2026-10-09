@@ -6,3 +6,15 @@
 //   0x802C216C   412  processCollision   [map: hkSymmetricAgentLinearCast_22hkShapeCollectionAgent___processCollision]
 //   0x802C2308    16  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_22hkShapeCollectionAgent___updateShapeCollectionFilter]
 //   0x802C2318   160  __dt   [map: hkSymmetricAgent_22hkShapeCollectionAgent_____dt]
+
+#include <havok/hkShapeCollectionAgent.h>
+#include <havok/hkBvAgent.h>
+
+// Symmetric wrapper of hkShapeCollectionAgent (map name hkSymmetricAgentLinearCast_22hkShapeCollectionAgent___
+// updateShapeCollectionFilter): swap the bodies and forward to the plain agent.
+template <class T>
+void hkSymmetricAgentLinearCast<T>::updateShapeCollectionFilter(void* a, void* b, void* c) {
+    T::updateShapeCollectionFilter(b, a, c);
+}
+
+template void hkSymmetricAgentLinearCast<hkShapeCollectionAgent>::updateShapeCollectionFilter(void*, void*, void*);

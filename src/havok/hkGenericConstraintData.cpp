@@ -53,20 +53,20 @@ const void* hkGenericConstraintData::getVtablehkGenericConstraintData() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
     char buf[0x58] __attribute__((aligned(16)));
-    hkGenericConstraintData* p = ::new (buf) hkGenericConstraintData(flag);
-    return *(const void**)p;
+    ::new (buf) hkGenericConstraintData(flag);
+    return *(const void**)buf;
 }
 
-hkGenericConstraintData::hkGenericConstraintData(hkFinishLoadedObjectFlag flag) : hkConstraintData(flag) {
+hkGenericConstraintData::hkGenericConstraintData(hkFinishLoadedObjectFlag flag)
+    : hkConstraintData(flag), m_scheme(flag) {
     m_bridgeAtom.init(m_bridgeAtom.m_constraintData);
     m_bridgeAtom.init(this);
 }
 
 // Releases the motors (reference counted), then the member arrays are destroyed in reverse order.
 hkGenericConstraintData::~hkGenericConstraintData() {
-    hkReferencedObject** motors = (hkReferencedObject**)m_scheme.m_motors.m_data;
     for (int i = 0; i < m_scheme.m_motors.m_size; i++) {
-        motors[i]->removeReference();
+        ((hkReferencedObject**)m_scheme.m_motors.m_data)[i]->removeReference();
     }
 }
 
@@ -90,7 +90,8 @@ void hkGenericConstraintData::getRuntimeInfo(void* unusedA, hkConstraintRuntimeI
 }
 
 void hkGenericConstraintData::buildJacobian(void* a, void* b) {
-    fn_80288B40(a, b, *(u32*)((u8*)a + 0x44), 8);
+    u32 n = *(u32*)((u8*)a + 0x44);
+    fn_80288B40(a, b, n, 8);
     hatchScheme(&m_scheme, a, b);
 }
 

@@ -46,12 +46,14 @@ int hkTriangleShape::getType() const {
     return HK_SHAPE_TRIANGLE;
 }
 
+#pragma scheduling off
 void hkTriangleShape::getFirstVertex(hkVector4& out) const {
     out.x = m_vertexA.x;
     out.y = m_vertexA.y;
     out.z = m_vertexA.z;
     out.w = m_vertexA.w;
 }
+#pragma scheduling reset
 
 int hkTriangleShape::getNumVertices() const {
     return 3;

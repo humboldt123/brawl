@@ -1,6 +1,7 @@
 #pragma once
 
 #include <havok/hkConvexShape.h>
+#include <havok/hkMemory.h>
 #include <havok/hkWorldCinfo.h>
 
 // Capsule shape (0x30 bytes): segment endpoints vertexA (0x10) and vertexB (0x20), radius from the convex base.
@@ -17,6 +18,7 @@ struct hkCapsuleShape : hkConvexShape {
 
     hkCapsuleShape(hkFinishLoadedObjectFlag flag) {} // finish-loading ctor: only the vtable is written
     virtual ~hkCapsuleShape();
+    HK_DECLARE_REF_ALLOCATOR(0x25)
 
     static void finishLoadedObjecthkCapsuleShape(void* p);
     static void cleanupLoadedObjecthkCapsuleShape(void* p);

@@ -18,6 +18,10 @@ struct hkGenericConstraintDataScheme {
     hkArray<int> m_commands;                    // 0x1C
     hkArray<hkConstraintModifier*> m_modifiers; // 0x28
     hkArray<hkConstraintMotor*> m_motors;       // 0x34
+
+    // Finish-loading form: the member arrays are not default-constructed (the loader owns them).
+    hkGenericConstraintDataScheme(hkFinishLoadedObjectFlag flag)
+        : m_data(flag), m_commands(flag), m_modifiers(flag), m_motors(flag) {}
 };
 
 // Generic constraint data (0x58 bytes, hkGenericConstraintDataClass.cpp). The bridge atom sits at 0x0C and

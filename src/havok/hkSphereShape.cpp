@@ -91,12 +91,14 @@ void hkSphereShape::getCollisionSpheresInfo(hkCollisionSpheresInfo* out) const {
     out->m_flag = 1;
 }
 
+#pragma scheduling off
 hkVector4* hkSphereShape::getCollisionSpheres(hkVector4* out) const {
     hkVector4 sphere;
     sphere.set(0.0f, 0.0f, 0.0f, m_radius);
     *out = sphere;
     return out;
 }
+#pragma scheduling reset
 
 // Not yet decompiled in this unit:
 //   0x802D6004   920  castRay   [map: hkSphereShape__castRay]

@@ -21,6 +21,32 @@
 // Stand-ins for the member functions of the embedded object at 0x10 (other unit, not recovered yet).
 extern "C" void fn_802FC824(void* self, void* arg);
 extern "C" void fn_802FC988(void* self, float t0, float t1, void* arg);
+extern "C" void fn_802FC6AC(void* subObject, int pairData, int unk8);
+extern "C" void fn_802FEA54(void* subObject, void* args);
+
+// Argument block handed to fn_802FEA54 by updateShapeCollectionFilter (lives on the stack there).
+struct FilterArgs {
+    void* a;      // 0x00
+    void* b;      // 0x04
+    u32 bValue;   // 0x08 first word of b
+    void* d;      // 0x0C
+    int unk8;     // 0x10
+};
+
+void hkListAgent::cleanup() {
+    fn_802FC6AC(m_subObject, unkC, unk8);
+    delete this;
+}
+
+void hkListAgent::updateShapeCollectionFilter(void* a, void* b, void* d) {
+    FilterArgs args;
+    args.a = a;
+    args.bValue = *(u32*)b;
+    args.b = b;
+    args.d = d;
+    args.unk8 = unk8;
+    fn_802FEA54(m_subObject, &args);
+}
 
 void hkListAgent::invalidateTim(void* arg) {
     fn_802FC824((char*)this + 0x10, arg);
@@ -30,14 +56,14 @@ void hkListAgent::warpTime(float t0, float t1, void* arg) {
     fn_802FC988((char*)this + 0x10, t0, t1, arg);
 }
 
-void hkListAgent::getClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target) {
-    staticGetClosestPoints(a, b, c, target);
+void hkListAgent::getClosestPoints(void* a, void* b, void* c, void* target) {
+    staticGetClosestPoints(a, b, c, (hkPenetrationTarget*)target);
 }
 
-void hkListAgent::getPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target) {
-    staticGetPenetrations(a, b, c, target);
+void hkListAgent::getPenetrations(void* a, void* b, void* c, void* target) {
+    staticGetPenetrations(a, b, c, (hkPenetrationTarget*)target);
 }
 
-void hkListAgent::linearCast(void* a, void* b, void* c, hkPenetrationTarget* target, void* d) {
-    staticLinearCast(a, b, c, target, d);
+void hkListAgent::linearCast(void* a, void* b, void* c, void* target, void* d) {
+    staticLinearCast(a, b, c, (hkPenetrationTarget*)target, d);
 }

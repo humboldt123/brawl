@@ -23,3 +23,43 @@
 //   0x802B6E9C  2552  processCollision   [map: hkSymmetricAgentLinearCast_18hkHeightFieldAgent___processCollision]
 //   0x802B7894     4  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_18hkHeightFieldAgent___updateShapeCollectionFilter]
 //   0x802B7898   156  __dt   [map: hkSymmetricAgent_18hkHeightFieldAgent_____dt]
+
+#pragma fp_contract on
+#include <havok/hkHeightFieldAgent.h>
+#include <havok/hkBvTreeAgent.h>
+
+#pragma dont_inline on
+void hkHeightFieldAgent::getPenetrations(void* a, void* b, void* c, void* target) {
+    staticGetPenetrations(a, b, c, target);
+}
+
+void hkHeightFieldAgent::getClosestPoints(void* a, void* b, void* c, void* target) {
+    staticGetClosestPoints(a, b, c, target);
+}
+
+void hkHeightFieldAgent::linearCast(void* a, void* b, void* c, void* target, void* d) {
+    staticLinearCast(a, b, c, target, d);
+}
+#pragma dont_inline reset
+
+void hkSymmetricAgentLinearCast_18hkHeightFieldAgent::getPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricFlagTarget wrap((hkPenetrationTarget*)target);
+    hkHeightFieldAgent::getPenetrations(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_18hkHeightFieldAgent::staticGetPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricFlagTarget wrap((hkPenetrationTarget*)target);
+    hkHeightFieldAgent::staticGetPenetrations(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_18hkHeightFieldAgent::getClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricClosestTarget wrap((hkPenetrationTarget*)target);
+    hkHeightFieldAgent::getClosestPoints(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_18hkHeightFieldAgent::staticGetClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricClosestTarget wrap((hkPenetrationTarget*)target);
+    hkHeightFieldAgent::staticGetClosestPoints(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_18hkHeightFieldAgent::updateShapeCollectionFilter(void* a, void* b, void* c) {}

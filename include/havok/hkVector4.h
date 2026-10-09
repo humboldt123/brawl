@@ -39,8 +39,21 @@ struct hkVector4 {
         set(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x, 0.0f);
     }
     void mul4(hkReal s) { setMul4(*this, s); }
-    void add4(const hkVector4& a) { setAdd4(*this, a); }
-    void sub4(const hkVector4& a) { setSub4(*this, a); }
+    void add4(const hkVector4& a) {
+        x += a.x;
+        y += a.y;
+        z += a.z;
+        w += a.w;
+    }
+    void sub4(const hkVector4& a) {
+        x -= a.x;
+        y -= a.y;
+        z -= a.z;
+        w -= a.w;
+    }
+    // Component access by index (x, y, z, w).
+    hkReal& operator[](int i) { return (&x)[i]; }
+    hkReal getSimdAt(int i) const { return (&x)[i]; }
     hkReal dot3(const hkVector4& a) const { return x * a.x + y * a.y + z * a.z; }
     hkReal lengthSquared3() const { return dot3(*this); }
     hkReal lengthSquared4() const { return dot3(*this) + w * w; }

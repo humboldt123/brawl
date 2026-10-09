@@ -19,3 +19,9 @@
 //   0x8031B0F4  2312  handlePenetration   [map: hkGsk__handlePenetration]
 //   0x8031B9FC   932  reduceDimensionExtended   [map: hkGsk__reduceDimensionExtended]
 //   0x8031BDA0  2860  hkGskRecalcContactInternal   [map: hkGsk__hkGskRecalcContactInternal]
+
+#include <havok/hkGsk.h>
+
+void hkGsk::setFeatureChange(int value) {
+    unk14 = value;
+}

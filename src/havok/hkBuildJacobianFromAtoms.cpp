@@ -27,3 +27,81 @@
 //   0x8028C680  2340  buildJacobianFromPulleyAtom   [map: hkPulleyConstraintAtom__buildJacobianFromPulleyAtom]
 //   0x8028CFA4     8  numSolverResults   [map: hkPulleyConstraintAtom__numSolverResults]
 //   0x8028CFAC   472  buildJacobianFromSoftContactModifier   [map: hkSoftContactModifierConstraintAtom__buildJacobianFromSoftContactModifier]
+
+#include <havok/hkConstraintAtom.h>
+
+// Local declarations for the atom classes that are not in a header yet (owned by this unit).
+// HYPOTHESIS: byte fields are unidentified; only the numSolverResults accessors are recovered here.
+struct hkLinSoftConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hkLinLimitConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hkLinFrictionConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hkLinMotorConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hk2dAngConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hkAngConstraintAtom : hkConstraintAtom {
+    u8 unk02;
+    u8 unk03; // 0x03
+    int numSolverResults() const;
+};
+struct hkAngLimitConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hkConeLimitConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hkTwistLimitConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hkAngFrictionConstraintAtom : hkConstraintAtom {
+    u8 unk02[2];
+    u8 unk04; // 0x04
+    int numSolverResults() const;
+};
+struct hkAngMotorConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hkRagdollMotorConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+struct hkPulleyConstraintAtom : hkConstraintAtom { int numSolverResults() const; };
+
+int hkLinSoftConstraintAtom::numSolverResults() const {
+    return 1;
+}
+
+int hkLinLimitConstraintAtom::numSolverResults() const {
+    return 1;
+}
+
+int hkLinFrictionConstraintAtom::numSolverResults() const {
+    return 1;
+}
+
+int hkLinMotorConstraintAtom::numSolverResults() const {
+    return 1;
+}
+
+int hk2dAngConstraintAtom::numSolverResults() const {
+    return 2;
+}
+
+int hkAngConstraintAtom::numSolverResults() const {
+    return unk03;
+}
+
+int hkAngLimitConstraintAtom::numSolverResults() const {
+    return 1;
+}
+
+int hkConeLimitConstraintAtom::numSolverResults() const {
+    return 1;
+}
+
+int hkTwistLimitConstraintAtom::numSolverResults() const {
+    return 1;
+}
+
+int hkAngFrictionConstraintAtom::numSolverResults() const {
+    return unk04;
+}
+
+int hkAngMotorConstraintAtom::numSolverResults() const {
+    return 1;
+}
+
+int hkRagdollMotorConstraintAtom::numSolverResults() const {
+    return 3;
+}
+
+int hkPulleyConstraintAtom::numSolverResults() const {
+    return 1;
+}

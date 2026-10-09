@@ -38,3 +38,17 @@
 //   0x80307F1C  2256  tryToAddPointFaceB   [map: hkBoxBoxCollisionDetection__tryToAddPointFaceB]
 //   0x803087EC    12  getAttemptToFindAllEdges   [map: hkBoxBoxAgent__getAttemptToFindAllEdges]
 //   0x803087F8    20  mod3   [map: hkBoxBoxUtils__mod3]
+
+#include <havok/hkBoxBoxManifold.h>
+
+int hkBoxBoxManifold::getNumPoints() const {
+    return m_numPoints;
+}
+
+void hkBoxBoxManifold::setComplete(const hkBool& complete) {
+    m_complete = complete;
+}
+
+hkBool hkBoxBoxManifold::isComplete() const {
+    return m_complete;
+}

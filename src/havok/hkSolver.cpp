@@ -192,6 +192,11 @@ u8* hkJacobianBallSocketChainSchema::getEnd(u8* base) const {
     return base + t * 0x30 + m_numChains * 0x90 + (m_numChains + 1) * 0x10;
 }
 
+u8* hkJacobianPoweredChainSchema::getEnd(u8* base) const {
+    u32 t = (m_numChains << 2) - m_numChains;
+    return base + t * 0x30 + t * 0x20 + m_numChains * 0x3C0 + (m_numChains + 1) * 0x20 + m_numChains * 0x20;
+}
+
 u8* hkJacobianStiffSpringChainSchema::getEnd(u8* base) const {
     u8* end = base + m_numChains * 0x30 + m_numChains * 0xC + (m_numChains + 1) * 4;
     return (u8*)(((u32)end + 0xF) & ~0xF);
@@ -253,6 +258,49 @@ void hkVector8::setSub8(const hkVector8& a, const hkVector8& b) {
     m_v[5] = a.m_v[5] - b.m_v[5];
     m_v[6] = a.m_v[6] - b.m_v[6];
     m_v[7] = a.m_v[7] - b.m_v[7];
+}
+
+void hkSolver::applyVelField(hkVector4* vel, u8* rec) {
+    float zero = 0.0f;
+    for (;;) {
+        switch (rec[0]) {
+            case 0:
+                do {
+                    hkVector8* z = (hkVector8*)(rec + 0x40);
+                    z->m_v[3] = zero;
+                    z->m_v[2] = zero;
+                    z->m_v[1] = zero;
+                    z->m_v[0] = zero;
+                    z->m_v[7] = zero;
+                    z->m_v[6] = zero;
+                    z->m_v[5] = zero;
+                    z->m_v[4] = zero;
+                    hkVector4* acc = (hkVector4*)(rec + 0x10);
+                    acc->add4(*vel);
+                    rec += 0x80;
+                } while (rec[0] == 0);
+                break;
+            case 1: {
+                hkVector8* z = (hkVector8*)(rec + 0x40);
+                z->m_v[3] = zero;
+                z->m_v[2] = zero;
+                z->m_v[1] = zero;
+                z->m_v[0] = zero;
+                z->m_v[7] = zero;
+                z->m_v[6] = zero;
+                z->m_v[5] = zero;
+                z->m_v[4] = zero;
+                rec += 0x80;
+                break;
+            }
+            case 2:
+                return;
+            default:
+                // MATCH-ONLY: the original stores through a null pointer on an invalid record type (HK_ASSERT) and loops.
+                *(u32*)0 = 0;
+                break;
+        }
+    }
 }
 
 void hkSolver::applyAngularImpulse(hkReal impulse, hkVector8* jac, hkVelocityAccumulator* a, hkVelocityAccumulator* b, hkReal* sum) {

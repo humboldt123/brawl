@@ -27,8 +27,9 @@ struct hkBvTreeStreamAgent : hkCollisionAgent {
     virtual ~hkBvTreeStreamAgent();
 
     virtual void cleanup();
-    virtual void invalidateTim();
-    virtual void warpTime();
+    virtual void updateShapeCollectionFilter(void* a, void* b, void* c); // 0x24
+    virtual void invalidateTim(void* arg);
+    virtual void warpTime(float t0, float t1, void* arg);
 
     static hkBvTreeStreamAgent* createBvTreeShapeAgent(void* a, void* b, const int* c, int d);
     static hkBvTreeStreamAgent* createShapeBvAgent(void* a, void* b, const int* c, int d);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <havok/hkConvexShape.h>
+#include <havok/hkMemory.h>
 #include <havok/hkWorldCinfo.h>
 
 // Box shape (0x20 bytes). Layout from hkBoxShapeClass.cpp: the half extents vector at 0x10.
@@ -11,6 +12,7 @@ struct hkBoxShape : hkConvexShape {
 
     hkBoxShape(hkFinishLoadedObjectFlag flag) {} // finish-loading ctor: only the vtable is written
     virtual ~hkBoxShape();
+    HK_DECLARE_REF_ALLOCATOR(0x25)
 
     static void finishLoadedObjecthkBoxShape(void* p);
     static void cleanupLoadedObjecthkBoxShape(void* p);

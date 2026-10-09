@@ -1,16 +1,31 @@
 #pragma once
 
+#include <havok/hkArray.h>
+#include <havok/hkConstraintAtom.h>
 #include <havok/hkConstraintData.h>
+#include <havok/hkMemory.h>
 
-// Ball-and-socket chain constraint data. Field layout is partly recovered from getConstraintInfo/getRuntimeInfo:
-// the chain atom count is an int at 0x1C. Other fields are not yet identified.
+// Element of the chain array (32 bytes; the dtor deallocates capacity * 0x20 bytes).
+struct hkBallSocketChainElement {
+    u8 unk00[0x20];
+};
+
+// Ball-and-socket chain constraint data. The array at 0x18 is the chain: its m_size (0x1C) is the chain
+// length read by getConstraintInfo/getRuntimeInfo, its capacity word sits at 0x20.
+// HYPOTHESIS: the bridge atom at 0x0C is the same bridge layout as hkGenericConstraintData.
 struct hkBallSocketChainData : hkConstraintData {
-    u8 m_unk0C[0x10];   // 0x0C
-    s32 m_chainLength;  // 0x1C
-    u8 m_unk20[0x10];   // 0x20 (not yet identified)
+    hkBridgeConstraintAtom m_bridgeAtom;      // 0x0C
+    hkArray<hkBallSocketChainElement> m_chain; // 0x18
+    u8 m_unk24[0x1C];                         // 0x24 (not yet identified)
+
+    HK_DECLARE_REF_ALLOCATOR(0x2A)
 
     hkBallSocketChainData();
+    hkBallSocketChainData(hkFinishLoadedObjectFlag flag) __attribute__((never_inline));
     virtual ~hkBallSocketChainData();
+
+    static void finishLoadedObjecthkBallSocketChainData(void* p);
+    static const void* getVtablehkBallSocketChainData();
 
     u32 getType() const;
     void getConstraintInfo(hkConstraintInfo* info) const;

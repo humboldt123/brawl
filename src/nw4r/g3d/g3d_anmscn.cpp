@@ -302,8 +302,8 @@ bool AnmScnRes::GetLightSet(LightSet set, u32 refNumber) {
     }
 
     u32 numLight = lightSet.GetNumLight();
-    u32 specIdx = 7;
     u32 i = 0;
+    u32 specIdx = 7;
 
     for (; i < numLight; i++) {
         if (lightSet.GetLightID(i) != ResLightSetData::INVALID_ID) {

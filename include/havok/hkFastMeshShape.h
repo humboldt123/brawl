@@ -1,12 +1,14 @@
 #pragma once
 
 #include <havok/hkMeshShape.h>
+#include <havok/hkMemory.h>
 
 // Mesh shape with a fast child lookup (0x50 bytes, same layout as hkMeshShape). The second vtable (for the
 // container interface at 0x0C) is written by the constructor.
 struct hkFastMeshShape : hkMeshShape {
     hkFastMeshShape(const hkFinishLoadedObjectFlag& flag) : hkMeshShape(flag) {} // finish-loading ctor
     virtual ~hkFastMeshShape();
+    HK_DECLARE_REF_ALLOCATOR(0x25)
 
     static void finishLoadedObjecthkFastMeshShape(void* p);
     static void cleanupLoadedObjecthkFastMeshShape(void* p);

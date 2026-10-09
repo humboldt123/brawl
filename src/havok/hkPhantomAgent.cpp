@@ -99,8 +99,8 @@ hkPhantomAgent::~hkPhantomAgent() {}
 
 void hkPhantomAgent::processCollision(void* a, void* b, void* c) {}
 
-void hkPhantomAgent::getPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target) {
-    target->forwardPenetrations(a, b, c);
+void hkPhantomAgent::getPenetrations(void* a, void* b, void* c, void* target) {
+    static_cast<hkPenetrationTarget*>(target)->forwardPenetrations(a, b, c);
 }
 
 void hkPhantomAgent::staticGetPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target) {

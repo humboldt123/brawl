@@ -4,6 +4,9 @@
 
 #include <algorithm>
 
+// G3DState_Invalidate is a global wrapper in the original (symbols.txt G3DState_Invalidate__FUl).
+void G3DState_Invalidate(u32 flag);
+
 namespace nw4r {
 namespace g3d {
 
@@ -306,7 +309,7 @@ void ScnRoot::DrawOpa() {
         mpCollection->DrawOpa(NULL);
     }
 
-    G3DState::Invalidate(G3DState::INVALIDATE_TEV);
+    G3DState_Invalidate(G3DState::INVALIDATE_TEV);
 }
 
 void ScnRoot::DrawXlu() {
@@ -318,7 +321,7 @@ void ScnRoot::DrawXlu() {
         mpCollection->DrawXlu(NULL);
     }
 
-    G3DState::Invalidate(G3DState::INVALIDATE_TEV);
+    G3DState_Invalidate(G3DState::INVALIDATE_TEV);
 }
 
 void ScnRoot::DrawOpaAndXlu() {
@@ -332,7 +335,7 @@ void ScnRoot::DrawOpaAndXlu() {
         mpCollection->DrawXlu(NULL);
     }
 
-    G3DState::Invalidate(G3DState::INVALIDATE_TEV);
+    G3DState_Invalidate(G3DState::INVALIDATE_TEV);
 }
 
 void ScnRoot::ForceDrawMode(bool force, ResMdlDrawMode mode) {

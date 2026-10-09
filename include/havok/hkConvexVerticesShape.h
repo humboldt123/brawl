@@ -1,6 +1,7 @@
 #pragma once
 
 #include <havok/hkConvexShape.h>
+#include <havok/hkMemory.h>
 #include <havok/hkArray.h>
 #include <havok/hkShapeContainer.h>
 #include <havok/hkWorldCinfo.h>
@@ -20,8 +21,9 @@ struct hkConvexVerticesShape : hkConvexShape {
     int m_numVertices;                                               // 0x3C
     hkArray<hkVector4> m_planeEquations;                             // 0x40
 
-    hkConvexVerticesShape(hkFinishLoadedObjectFlag flag) {} // finish-loading ctor: only the vtable is written
+    hkConvexVerticesShape(hkFinishLoadedObjectFlag flag) : m_rotatedVertices(flag), m_planeEquations(flag) {} // finish-loading ctor
     virtual ~hkConvexVerticesShape();
+    HK_DECLARE_REF_ALLOCATOR(0x25)
 
     static void finishLoadedObjecthkConvexVerticesShape(void* p);
     static void cleanupLoadedObjecthkConvexVerticesShape(void* p);

@@ -53,6 +53,8 @@
 #include <havok/hkConvexListAgent.h>
 #include <havok/hkCollisionDispatcher.h>
 #include <havok/hkShapeType.h>
+#include <havok/hkBvAgent.h>
+#include <havok/hkListAgent.h>
 
 // Dispatcher registration entry point (not recovered yet; takes the dispatcher, a registration record
 // and the two shape type ids). Same routine as hkPhantomAgent and hkSphereSphereAgent use.
@@ -133,7 +135,7 @@ hkCollisionAgent* hkConvexListAgent::createConvexListAgent(void* a, void* b, voi
 
 hkConvexListAgent::~hkConvexListAgent() {}
 
-void hkConvexListAgent::invalidateTim() {
+void hkConvexListAgent::invalidateTim(void* arg) {
     if (m_streamMode != 0) {
         fn_802B1A6C(this);
     } else {
@@ -141,7 +143,7 @@ void hkConvexListAgent::invalidateTim() {
     }
 }
 
-void hkConvexListAgent::warpTime() {
+void hkConvexListAgent::warpTime(float t0, float t1, void* arg) {
     if (m_streamMode != 0) {
         fn_802B1B08(this);
     } else {
@@ -149,36 +151,37 @@ void hkConvexListAgent::warpTime() {
     }
 }
 
-void hkConvexListAgent::removePoint() {
+void hkConvexListAgent::removePoint(u16 key) {
     if (m_streamMode != 0) {
         fn_802B29E4(this);
     }
 }
 
-void hkConvexListAgent::commitPotential() {
+void hkConvexListAgent::commitPotential(u16 key) {
     if (m_streamMode != 0) {
         fn_802B2A24(this);
     }
 }
 
-void hkConvexListAgent::createZombie() {
+void hkConvexListAgent::createZombie(u16 key) {
     if (m_streamMode != 0) {
         fn_802B2A68(this);
     }
 }
 
+#pragma dont_inline on
 void hkConvexListAgent::updateShapeCollectionFilter(void* a, void* b, void* d) {
     if (m_streamMode == 0) {
         FilterArgs args;
         args.a = a;
-        u32 bValue = *(u32*)b;
+        args.bValue = *(u32*)b;
         args.b = b;
         args.d = d;
         args.unk8 = unk8;
-        args.bValue = bValue;
         fn_802FEA54(m_subObject, &args);
     }
 }
+#pragma dont_inline reset
 
 void hkConvexListAgent::switchToStreamMode() {
     fn_8031830C(m_subObject, unk8);
@@ -220,3 +223,13 @@ void hkConvexListAgent::getPenetrations(void* a, void* b, void* c, void* d) {
 void hkConvexListAgent::linearCast(void* a, void* b, void* c, void* d, void* e) {
     staticLinearCast(a, b, c, d, e);
 }
+
+// Symmetric wrapper of hkListAgent and of this agent (map names hkSymmetricAgentLinearCast_11hkListAgent___
+// and hkSymmetricAgentLinearCast_17hkConvexListAgent___updateShapeCollectionFilter): swap the bodies, forward.
+template <class T>
+void hkSymmetricAgentLinearCast<T>::updateShapeCollectionFilter(void* a, void* b, void* c) {
+    T::updateShapeCollectionFilter(b, a, c);
+}
+
+template void hkSymmetricAgentLinearCast<hkListAgent>::updateShapeCollectionFilter(void*, void*, void*);
+template void hkSymmetricAgentLinearCast<hkConvexListAgent>::updateShapeCollectionFilter(void*, void*, void*);

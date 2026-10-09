@@ -34,13 +34,15 @@ void hkWorldOperationUtil::splitSimulationIslands(hkWorld* world) {
 // Islands whose state changes are queued in the world's dirty list (hkWorld::m_unk40, an hkArray of islands).
 void hkWorldOperationUtil::markIslandInactive(hkWorld* world, hkSimulationIsland* island) {
     // Activity state (top two bits of the byte at 0x27) cleared; see hkEntity::getActivationState.
-    u32 state = *((u8*)island + 0x27);
+    int state = *((u8*)island + 0x27);
     state &= ~0xC0;
     *((u8*)island + 0x27) = (u8)state;
     if (*(u16*)((u8*)island + 0x22) == 0xFFFF) {
-        hkArray<hkSimulationIsland*>& dirty = *(hkArray<hkSimulationIsland*>*)&world->m_unk40;
-        *(u16*)((u8*)island + 0x22) = (u16)dirty.m_size;
-        dirty.pushBack(island);
+        *(u16*)((u8*)island + 0x22) = (u16)world->m_unk40.m_size;
+        if (world->m_unk40.m_size == (world->m_unk40.m_capacityAndFlags & hkArrayBase::CAPACITY_MASK)) {
+            hkArrayUtil::_reserveMore(&world->m_unk40, 4);
+        }
+        ((hkSimulationIsland**)world->m_unk40.m_data)[world->m_unk40.m_size++] = island;
     }
 }
 

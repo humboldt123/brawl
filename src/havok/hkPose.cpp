@@ -8,18 +8,10 @@
 //   0x8032EF34   252  writeAccessPoseModelSpace   [map: hkPose__writeAccessPoseModelSpace]
 //   0x8032F030   120  setToReferencePose   [map: hkPose__setToReferencePose]
 #include <havok/hkPose.h>
+#include <havok/hkSkeleton.h>
 #include <havok/hkString.h>
 
-// HYPOTHESIS: hkSkeleton fields used here (layout from src/havok/hkSkeletonClass.cpp). Move to
-// include/havok/hkSkeleton.h once that header exists.
-struct hkSkeleton {
-    const char* m_name;             // 0x00
-    s16* m_parentIndices;           // 0x04 (hkSimpleArray<hkInt16> data)
-    int m_parentIndicesSize;        // 0x08
-    void* m_bones;                  // 0x0C
-    int m_numBones;                 // 0x10
-    hkQsTransform* m_referencePose; // 0x14
-};
+#include <havok/hkSkeleton.h>
 
 // MATCH-ONLY: the original copies the twelve floats field by field (lfs/stfs), not as one struct.
 static void copyQsTransform(hkQsTransform& dst, const hkQsTransform& src) {

@@ -22,11 +22,22 @@
 #include <havok/hkThreadMemory.h>
 
 hkAabbPhantom::hkAabbPhantom(hkFinishLoadedObjectFlag flag) : hkPhantom(flag) {
+    // Empty arrays with the "do not deallocate" flag set (the default state of an hkArray).
+    m_overlapListeners.m_data = 0;
+    m_overlapListeners.m_size = 0;
+    m_overlapListeners.m_capacityAndFlags = hkArrayBase::DONT_DEALLOCATE_FLAG;
+    m_phantomListeners.m_data = 0;
+    m_phantomListeners.m_size = 0;
+    m_phantomListeners.m_capacityAndFlags = hkArrayBase::DONT_DEALLOCATE_FLAG;
+    m_overlappingCollidables.m_data = 0;
+    m_overlappingCollidables.m_size = 0;
+    m_overlappingCollidables.m_capacityAndFlags = hkArrayBase::DONT_DEALLOCATE_FLAG;
 }
 
 // Calls the deleting destructor through the vtable with flag -1 (object is not freed).
-void hkAabbPhantom::cleanupLoadedObject() {
-    ((void (**)(hkAabbPhantom*, int))(*(void**)this))[2](this, -1);
+void hkAabbPhantom::cleanupLoadedObjecthkAabbPhantom(void* p) {
+    void (*dtor)(void*, int) = (*(void (***)(void*, int))p)[2];
+    dtor(p, -1);
 }
 
 hkAabbPhantom::~hkAabbPhantom() {

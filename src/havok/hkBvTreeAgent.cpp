@@ -37,3 +37,94 @@
 //   0x802A8D58    16  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_13hkBvTreeAgent___updateShapeCollectionFilter]
 //   0x802A8D68   160  __dt   [map: hkSymmetricAgent_13hkBvTreeAgent_____dt]
 //   0x802A8E08    20  __sinit_\hkBvTreeAgent_cpp   [map: hkBvTreeAgentcpp____sinit_]
+
+#pragma fp_contract on
+#include <havok/hkBvTreeAgent.h>
+#include <havok/hkCollisionDispatcher.h>
+
+hkBvTreeAgent::hkBvTreeAgent(hkContactMgr* contactMgr) : hkCollisionAgent((int)contactMgr) {
+    unk30[0] = 0.0f;
+    unk30[1] = 0.0f;
+    unk30[2] = 0.0f;
+    unk30[3] = 0.0f;
+    unk20[0] = 0.0f;
+    unk20[1] = 0.0f;
+    unk20[2] = 0.0f;
+    unk20[3] = 0.0f;
+}
+
+void hkBvTreeAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
+    hkAgentFuncs funcs;
+    funcs.create = (hkAgentFunc)createBvTreeShapeAgent;
+    funcs.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_13hkBvTreeAgent::staticGetPenetrations;
+    funcs.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_13hkBvTreeAgent::staticGetClosestPoints;
+    funcs.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast_13hkBvTreeAgent::staticLinearCast;
+    funcs.symmetricA = 1;
+    funcs.symmetricB = 1;
+    dispatcher->registerCollisionAgent(&funcs, 3, -1);
+
+    funcs.create = (hkAgentFunc)createShapeBvAgent;
+    funcs.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
+    funcs.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
+    funcs.staticLinearCast = (hkAgentFunc)staticLinearCast;
+    funcs.symmetricA = 0;
+    funcs.symmetricB = 1;
+    dispatcher->registerCollisionAgent(&funcs, -1, 3);
+
+    funcs.create = (hkAgentFunc)createBvBvAgent;
+    dispatcher->registerCollisionAgent(&funcs, 3, 3);
+}
+
+hkBvTreeAgent* hkBvTreeAgent::createBvTreeShapeAgent(void* a, void* b, void* c, hkContactMgr* contactMgr) {
+    hkBvTreeAgent* agent = (hkBvTreeAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkBvTreeAgent), 0x1d);
+    agent->m_memSizeAndFlags = sizeof(hkBvTreeAgent);
+    new (agent) hkSymmetricAgentLinearCast_13hkBvTreeAgent(contactMgr);
+    return agent;
+}
+
+hkBvTreeAgent* hkBvTreeAgent::createShapeBvAgent(void* a, void* b, void* c, hkContactMgr* contactMgr) {
+    hkBvTreeAgent* agent = (hkBvTreeAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkBvTreeAgent), 0x1d);
+    agent->m_memSizeAndFlags = sizeof(hkBvTreeAgent);
+    new (agent) hkBvTreeAgent(contactMgr);
+    return agent;
+}
+
+hkBvTreeAgent* hkBvTreeAgent::createBvBvAgent(void* a, void* b, void* c, hkContactMgr* contactMgr) {
+    // HYPOTHESIS: the sort key is the float at 0xA0 of each body's motion (not identified yet).
+    float keyA = *(float*)((u8*)((hkCdBody*)a)->m_motion + 0xA0);
+    float keyB = *(float*)((u8*)((hkCdBody*)b)->m_motion + 0xA0);
+    if (keyA < keyB) {
+        hkBvTreeAgent* agent = (hkBvTreeAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkBvTreeAgent), 0x1d);
+        agent->m_memSizeAndFlags = sizeof(hkBvTreeAgent);
+        new (agent) hkBvTreeAgent(contactMgr);
+        return agent;
+    }
+    hkBvTreeAgent* agent = (hkBvTreeAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkBvTreeAgent), 0x1d);
+    agent->m_memSizeAndFlags = sizeof(hkBvTreeAgent);
+    new (agent) hkSymmetricAgentLinearCast_13hkBvTreeAgent(contactMgr);
+    return agent;
+}
+
+void hkSymmetricAgentLinearCast_13hkBvTreeAgent::getPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricFlagTarget wrap((hkPenetrationTarget*)target);
+    hkBvTreeAgent::getPenetrations(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_13hkBvTreeAgent::staticGetPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricFlagTarget wrap((hkPenetrationTarget*)target);
+    hkBvTreeAgent::staticGetPenetrations(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_13hkBvTreeAgent::getClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricClosestTarget wrap((hkPenetrationTarget*)target);
+    hkBvTreeAgent::getClosestPoints(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_13hkBvTreeAgent::staticGetClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricClosestTarget wrap((hkPenetrationTarget*)target);
+    hkBvTreeAgent::staticGetClosestPoints(b, a, c, &wrap);
+}
+
+void hkSymmetricAgentLinearCast_13hkBvTreeAgent::updateShapeCollectionFilter(void* a, void* b, void* c) {
+    hkBvTreeAgent::updateShapeCollectionFilter(b, a, c);
+}

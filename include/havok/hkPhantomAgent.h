@@ -54,7 +54,7 @@ struct hkPhantomAgent : hkCollisionAgent {
 
     virtual void cleanup();
     virtual void processCollision(void* a, void* b, void* c);
-    virtual void getPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target);
+    virtual void getPenetrations(void* a, void* b, void* c, void* target);
     virtual void getClosestPoints(void* a, void* b, void* c, void* target);
     virtual void linearCast(void* a, void* b, void* c, void* target, void* d);
 };

@@ -15,6 +15,13 @@ struct hkRagdollConstraintData : hkConstraintData {
     hkMatrix3 m_constraintFrameB; // 0x60
     u8 m_unk90[0x50];           // 0x90
     hkConstraintMotor* m_motors[3]; // 0xE0
+    u8 m_unkEC[0x54];           // 0xEC (object size 0x140, from the vtable getter's stack buffer)
+
+    // Finish-loading ctor: only the base (vtable and reference count) is set up.
+    hkRagdollConstraintData(hkFinishLoadedObjectFlag flag) : hkConstraintData(flag) {}
+
+    static void finishLoadedObjecthkRagdollConstraintData(void* p);
+    static const void* getVtablehkRagdollConstraintData();
 
     virtual ~hkRagdollConstraintData();
 

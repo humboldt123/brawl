@@ -86,14 +86,22 @@ void hkKeyframedRigidMotion::setMass(hkReal mass) {}
 void hkKeyframedRigidMotion::setMassInv(hkReal massInv) {}
 
 // Writes the 12 floats of a three-column matrix as zero (columns x, y, z, w in order).
-// MATCH-ONLY: the original also leaves a zeroed stack vector behind (stored after the columns).
-static void setZeroMatrixColumns(hkVector4* cols) {
-    for (int i = 0; i < 3; i++) {
-        cols[i].x = 0.0f;
-        cols[i].y = 0.0f;
-        cols[i].z = 0.0f;
-        cols[i].w = 0.0f;
-    }
+// Inertia is not tracked for keyframed bodies: the matrices are returned as zero.
+void hkKeyframedRigidMotion::getInertiaLocal(hkMatrix3& out) const {
+    hkVector4* cols = (hkVector4*)&out;
+    cols[0].x = 0.0f;
+    cols[0].y = 0.0f;
+    cols[0].z = 0.0f;
+    cols[0].w = 0.0f;
+    cols[1].x = 0.0f;
+    cols[1].y = 0.0f;
+    cols[1].z = 0.0f;
+    cols[1].w = 0.0f;
+    cols[2].x = 0.0f;
+    cols[2].y = 0.0f;
+    cols[2].z = 0.0f;
+    cols[2].w = 0.0f;
+    // MATCH-ONLY: the original also leaves a zeroed stack vector behind (stored after the columns).
     hkVector4 zero;
     zero.w = 0.0f;
     zero.z = 0.0f;
@@ -101,15 +109,26 @@ static void setZeroMatrixColumns(hkVector4* cols) {
     zero.x = 0.0f;
 }
 
-// Inertia is not tracked for keyframed bodies: the matrices are returned as zero.
-void hkKeyframedRigidMotion::getInertiaLocal(hkMatrix3& out) const {
-    hkVector4* cols = (hkVector4*)&out;
-    setZeroMatrixColumns(cols);
-}
-
 void hkKeyframedRigidMotion::getInertiaWorld(hkMatrix3& out) const {
     hkVector4* cols = (hkVector4*)&out;
-    setZeroMatrixColumns(cols);
+    cols[0].x = 0.0f;
+    cols[0].y = 0.0f;
+    cols[0].z = 0.0f;
+    cols[0].w = 0.0f;
+    cols[1].x = 0.0f;
+    cols[1].y = 0.0f;
+    cols[1].z = 0.0f;
+    cols[1].w = 0.0f;
+    cols[2].x = 0.0f;
+    cols[2].y = 0.0f;
+    cols[2].z = 0.0f;
+    cols[2].w = 0.0f;
+    // MATCH-ONLY: the original also leaves a zeroed stack vector behind (stored after the columns).
+    hkVector4 zero;
+    zero.w = 0.0f;
+    zero.z = 0.0f;
+    zero.y = 0.0f;
+    zero.x = 0.0f;
 }
 
 void hkKeyframedRigidMotion::setInertiaLocal(const hkMatrix3& in) {}
@@ -118,12 +137,46 @@ void hkKeyframedRigidMotion::setInertiaInvLocal(const hkMatrix3& in) {}
 
 void hkKeyframedRigidMotion::getInertiaInvLocal(hkMatrix3& out) const {
     hkVector4* cols = (hkVector4*)&out;
-    setZeroMatrixColumns(cols);
+    cols[0].x = 0.0f;
+    cols[0].y = 0.0f;
+    cols[0].z = 0.0f;
+    cols[0].w = 0.0f;
+    cols[1].x = 0.0f;
+    cols[1].y = 0.0f;
+    cols[1].z = 0.0f;
+    cols[1].w = 0.0f;
+    cols[2].x = 0.0f;
+    cols[2].y = 0.0f;
+    cols[2].z = 0.0f;
+    cols[2].w = 0.0f;
+    // MATCH-ONLY: the original also leaves a zeroed stack vector behind (stored after the columns).
+    hkVector4 zero;
+    zero.w = 0.0f;
+    zero.z = 0.0f;
+    zero.y = 0.0f;
+    zero.x = 0.0f;
 }
 
 void hkKeyframedRigidMotion::getInertiaInvWorld(hkMatrix3& out) const {
     hkVector4* cols = (hkVector4*)&out;
-    setZeroMatrixColumns(cols);
+    cols[0].x = 0.0f;
+    cols[0].y = 0.0f;
+    cols[0].z = 0.0f;
+    cols[0].w = 0.0f;
+    cols[1].x = 0.0f;
+    cols[1].y = 0.0f;
+    cols[1].z = 0.0f;
+    cols[1].w = 0.0f;
+    cols[2].x = 0.0f;
+    cols[2].y = 0.0f;
+    cols[2].z = 0.0f;
+    cols[2].w = 0.0f;
+    // MATCH-ONLY: the original also leaves a zeroed stack vector behind (stored after the columns).
+    hkVector4 zero;
+    zero.w = 0.0f;
+    zero.z = 0.0f;
+    zero.y = 0.0f;
+    zero.x = 0.0f;
 }
 
 void hkKeyframedRigidMotion::applyLinearImpulse(const hkVector4& impulse) {}

@@ -9,12 +9,14 @@ NW4R_UT_RTTI_DEF_DERIVED(DvdLockedFileStream, DvdFileStream);
 
 bool DvdLockedFileStream::sInitialized = false;
 OSMutex DvdLockedFileStream::sMutex;
+OSThreadQueue DvdLockedFileStream::sThreadQueue;
 
 void DvdLockedFileStream::InitMutex_() {
     BOOL enabled = OSDisableInterrupts();
 
     if (!sInitialized) {
         OSInitMutex(&sMutex);
+        OSInitThreadQueue(&sThreadQueue);
         sInitialized = true;
     }
 
@@ -22,12 +24,12 @@ void DvdLockedFileStream::InitMutex_() {
 }
 
 DvdLockedFileStream::DvdLockedFileStream(s32 entrynum)
-    : DvdFileStream(entrynum) {
+    : DvdFileStream(entrynum), mCancelFlag(false) {
     InitMutex_();
 }
 
 DvdLockedFileStream::DvdLockedFileStream(const DVDFileInfo* pInfo, bool close)
-    : DvdFileStream(pInfo, close) {
+    : DvdFileStream(pInfo, close), mCancelFlag(false) {
     InitMutex_();
 }
 

@@ -17,3 +17,23 @@
 //   0x80315738    20  checkForChangesAndUpdateCache   [map: hkGsk__checkForChangesAndUpdateCache]
 //   0x8031574C    48  hkDeallocateStack<9hkVector4>   [map: hkVector4__hkDeallocateStack_9hkVector4_]
 //   0x8031577C     4  __ct   [map: hk4dGskVertexCollidePointsInput____ct]
+
+#include <havok/hkGsk.h>
+#include <havok/hk4dGskVertexCollidePointsInput.h>
+#include <havok/hk4dGskVertexCollidePointsOutput.h>
+
+hkGsk::hkGsk() {
+    unk10 = 0;
+}
+
+hk4dGskVertexCollidePointsOutput::hk4dGskVertexCollidePointsOutput() {
+    unk0 = 0.0f;
+}
+
+void hkGsk::checkForChangesAndUpdateCache(void* arg) {
+    if (unk14 != 0) {
+        exitAndExportCacheImpl(arg);
+    }
+}
+
+hk4dGskVertexCollidePointsInput::hk4dGskVertexCollidePointsInput() {}

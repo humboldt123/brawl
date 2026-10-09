@@ -136,8 +136,8 @@ void hkJacobianBuilder::addLastPosition(const hkVector4* b, hkVector4* c, hkVect
 void hkJacobian2dFrictionSchema::init2dFriction(u32 a, u32 b, float c, float d) {
     unk08 = d;
     m_tag = 0x080C0018;
-    unk04 = a;
     unk0C = c;
+    unk04 = a;
     unk10 = 1.0f;
     unk14 = b;
 }

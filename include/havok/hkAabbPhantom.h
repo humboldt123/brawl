@@ -11,7 +11,7 @@ struct hkAabbPhantom : hkPhantom {
     hkAabbPhantom(hkFinishLoadedObjectFlag flag);
     virtual ~hkAabbPhantom();
 
-    void cleanupLoadedObject();
+    static void cleanupLoadedObjecthkAabbPhantom(void* p);
     static void* getVtable();
     virtual int getType() const;
     virtual void calcAabb(hkAabb* out) const;

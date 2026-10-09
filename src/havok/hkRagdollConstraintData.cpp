@@ -16,9 +16,29 @@
 // Constraint info block copied from the data at 0x10 (0x12A bytes). Helper lives in another TU.
 extern "C" void fn_802DE264(void* begin, u32 size, hkConstraintInfo* info);
 
+void hkRagdollConstraintData::finishLoadedObjecthkRagdollConstraintData(void* p) {
+    hkFinishLoadedObjectFlag flag;
+    flag.m_finishing = 1;
+    ::new (p) hkRagdollConstraintData(flag);
+}
+
+const void* hkRagdollConstraintData::getVtablehkRagdollConstraintData() {
+    hkFinishLoadedObjectFlag flag;
+    flag.m_finishing = 0;
+    char buf[0x140] __attribute__((aligned(16)));
+    ::new (buf) hkRagdollConstraintData(flag);
+    return *(const void**)buf;
+}
+
+hkRagdollConstraintData::~hkRagdollConstraintData() {
+    for (int i = 0; i < 3; i++) {
+        ((hkReferencedObject*)m_motors[i])->removeReference();
+    }
+}
+
 // Virtual destructor call with the delete flag.
 void cleanupLoadedObjecthkRagdollConstraintData(hkRagdollConstraintData* self) {
-    delete self;
+    ((hkBaseObject*)self)->~hkBaseObject();
 }
 
 void hkRagdollConstraintData::getConstraintInfo(hkConstraintInfo* info) {
@@ -32,37 +52,59 @@ void hkRagdollConstraintData::getRuntimeInfo(void* unusedA, hkConstraintRuntimeI
 }
 
 void hkRagdollConstraintData::getConstraintFrameA(hkMatrix3* out) const {
-    float* dst = out->elements;
-    const float* src = m_constraintFrameA.elements;
-    dst[0] = src[0];
-    dst[1] = src[1];
-    dst[2] = src[2];
-    dst[3] = src[3];
-    dst[4] = src[4];
-    dst[5] = src[5];
-    dst[6] = src[6];
-    dst[7] = src[7];
-    dst[8] = src[8];
-    dst[9] = src[9];
-    dst[10] = src[10];
-    dst[11] = src[11];
+    float t;
+    t = m_constraintFrameA.elements[0];
+    out->elements[0] = t;
+    t = m_constraintFrameA.elements[1];
+    out->elements[1] = t;
+    t = m_constraintFrameA.elements[2];
+    out->elements[2] = t;
+    t = m_constraintFrameA.elements[3];
+    out->elements[3] = t;
+    t = m_constraintFrameA.elements[4];
+    out->elements[4] = t;
+    t = m_constraintFrameA.elements[5];
+    out->elements[5] = t;
+    t = m_constraintFrameA.elements[6];
+    out->elements[6] = t;
+    t = m_constraintFrameA.elements[7];
+    out->elements[7] = t;
+    t = m_constraintFrameA.elements[8];
+    out->elements[8] = t;
+    t = m_constraintFrameA.elements[9];
+    out->elements[9] = t;
+    t = m_constraintFrameA.elements[10];
+    out->elements[10] = t;
+    t = m_constraintFrameA.elements[11];
+    out->elements[11] = t;
 }
 
 void hkRagdollConstraintData::getConstraintFrameB(hkMatrix3* out) const {
-    float* dst = out->elements;
-    const float* src = m_constraintFrameB.elements;
-    dst[0] = src[0];
-    dst[1] = src[1];
-    dst[2] = src[2];
-    dst[3] = src[3];
-    dst[4] = src[4];
-    dst[5] = src[5];
-    dst[6] = src[6];
-    dst[7] = src[7];
-    dst[8] = src[8];
-    dst[9] = src[9];
-    dst[10] = src[10];
-    dst[11] = src[11];
+    float t;
+    t = m_constraintFrameB.elements[0];
+    out->elements[0] = t;
+    t = m_constraintFrameB.elements[1];
+    out->elements[1] = t;
+    t = m_constraintFrameB.elements[2];
+    out->elements[2] = t;
+    t = m_constraintFrameB.elements[3];
+    out->elements[3] = t;
+    t = m_constraintFrameB.elements[4];
+    out->elements[4] = t;
+    t = m_constraintFrameB.elements[5];
+    out->elements[5] = t;
+    t = m_constraintFrameB.elements[6];
+    out->elements[6] = t;
+    t = m_constraintFrameB.elements[7];
+    out->elements[7] = t;
+    t = m_constraintFrameB.elements[8];
+    out->elements[8] = t;
+    t = m_constraintFrameB.elements[9];
+    out->elements[9] = t;
+    t = m_constraintFrameB.elements[10];
+    out->elements[10] = t;
+    t = m_constraintFrameB.elements[11];
+    out->elements[11] = t;
 }
 
 u32 hkRagdollConstraintData::getType() const {

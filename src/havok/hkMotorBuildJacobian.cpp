@@ -12,13 +12,12 @@ void hkMotorBuildJacobian::hk1dLinearVelocityMotorCommitJacobian(const hkVector4
     float vy = v->y;
     sch[2] = unk08 * vy;
     sch[3] = unk0C * vy;
-    float k = 0.0f; // HYPOTHESIS: constant value
-    float vz = v->z;
     sch[4] = unk04;
-    sch[1] = k;
+    sch[1] = 0.0f; // HYPOTHESIS: constant value
     sch[5] = unk10;
     sch[6] = unk14;
     *(u32*)sch = 0x0609001C;
+    float vz = v->z;
     ((float*)elem)[3] = unk00 * vz;
     c->m_elem = elem + 0x30;
     c->m_schema = (u8*)sch + 0x1c;

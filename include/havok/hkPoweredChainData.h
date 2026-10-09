@@ -16,4 +16,6 @@ struct hkPoweredChainData : hkConstraintData {
     void getConstraintInfo(hkConstraintInfo* info) const;
     void getRuntimeInfo(void* unusedA, hkConstraintRuntimeInfo* out) const;
     void* getConstraintFlags(void* base) const;
+    void* getMotorRuntimeQuaternions(void* base) const;
+    void* getSolverResults(void* results) const;
 };

@@ -11,8 +11,30 @@
 //   0x802DA6BC   940  buildJacobian   [map: hkBallSocketChainData__buildJacobian]
 #include <havok/hkBallSocketChainData.h>
 
+void hkBallSocketChainData::finishLoadedObjecthkBallSocketChainData(void* p) {
+    hkFinishLoadedObjectFlag flag;
+    flag.m_finishing = 1;
+    ::new (p) hkBallSocketChainData(flag);
+}
+
+const void* hkBallSocketChainData::getVtablehkBallSocketChainData() {
+    hkFinishLoadedObjectFlag flag;
+    flag.m_finishing = 0;
+    char buf[0x40] __attribute__((aligned(16)));
+    ::new (buf) hkBallSocketChainData(flag);
+    return *(const void**)buf;
+}
+
+hkBallSocketChainData::hkBallSocketChainData(hkFinishLoadedObjectFlag flag) : hkConstraintData(flag), m_chain(flag) {
+    m_bridgeAtom.init(m_bridgeAtom.m_constraintData);
+    m_bridgeAtom.init(this);
+}
+
+hkBallSocketChainData::~hkBallSocketChainData() {
+}
+
 void cleanupLoadedObjecthkBallSocketChainData(hkBallSocketChainData* self) {
-    delete self;
+    ((hkBaseObject*)self)->~hkBaseObject();
 }
 
 u32 hkBallSocketChainData::getType() const {
@@ -21,23 +43,25 @@ u32 hkBallSocketChainData::getType() const {
 
 // Chain info block: six words. HYPOTHESIS: unk10 points at the chain header block (this + 0xC, 0xC bytes long).
 void hkBallSocketChainData::getConstraintInfo(hkConstraintInfo* info) const {
-    s32 n = m_chainLength;
+    info->unk10 = (void*)&m_bridgeAtom;
+    info->unk14 = (u32)((u8*)&m_chain - (u8*)&m_bridgeAtom);
     info->unk00 = 0;
     info->unk04 = 0;
-    info->unk08 = 0x18;
     info->unk0C = 0;
-    info->unk10 = (u8*)this + 0xC;
-    info->unk14 = 0xC;
+    info->unk08 = 0x18;
+    s32 n = m_chain.m_size;
+    s32 n1 = n + 1;
     info->unk0C = 3 * n;
-    info->unk08 = 4 * (n + 1) + 0x28;
-    info->unk04 = 16 * (n + 1) + 0x120 * n;
+    info->unk08 = 4 * n1 + 0x28;
+    info->unk04 = 16 * n1 + 0x90 * n + 0x90 * n;
 }
 
 void hkBallSocketChainData::getRuntimeInfo(const hkBool* hasChain, hkConstraintRuntimeInfo* out) const {
     if (hasChain->m_bool != 0) {
-        s32 n = m_chainLength;
-        out->unk04 = 3 * n;
-        out->unk00 = 24 * n;
+        s32 n = m_chain.m_size;
+        s32 t = 3 * n;
+        out->unk04 = t;
+        out->unk00 = t << 3;
     } else {
         out->unk04 = 0;
         out->unk00 = 0;

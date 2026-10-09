@@ -36,18 +36,18 @@ struct hkConvexListAgent : hkCollisionAgent {
     static void staticGetPenetrations(void* a, void* b, void* c, void* d);
     static void staticLinearCast(void* a, void* b, void* c, void* d, void* e);
 
-    virtual void invalidateTim();
-    virtual void warpTime();
-    virtual void removePoint();
-    virtual void commitPotential();
-    virtual void createZombie();
-    // HYPOTHESIS: non-virtual until the vtable is checked.
-    void updateShapeCollectionFilter(void* a, void* b, void* d);
+    // Overrides of the hkCollisionAgent slots (vtable 0x28..0x38 of lbl_80486AE8), base parameter lists.
+    virtual void invalidateTim(void* arg);
+    virtual void warpTime(float t0, float t1, void* arg);
+    virtual void removePoint(u16 key);
+    virtual void commitPotential(u16 key);
+    virtual void createZombie(u16 key);
+    virtual void updateShapeCollectionFilter(void* a, void* b, void* d);
     void switchToStreamMode();
     void switchToGskMode();
 
     virtual void cleanup();
-    virtual void processCollision(); // HYPOTHESIS: slot order follows hkPhantomAgent
+    virtual void processCollision(void* a, void* b, void* c); // HYPOTHESIS: slot order follows hkPhantomAgent
     virtual void getClosestPoints(void* a, void* b, void* c, void* d);
     virtual void getPenetrations(void* a, void* b, void* c, void* d);
     virtual void linearCast(void* a, void* b, void* c, void* d, void* e);

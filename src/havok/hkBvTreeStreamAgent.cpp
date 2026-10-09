@@ -45,6 +45,7 @@
 #include <havok/hkBvTreeStreamAgent.h>
 #include <havok/hkCollisionDispatcher.h>
 #include <havok/hkShapeType.h>
+#include <havok/hkBvAgent.h>
 
 // Stand-ins for the hkBvTreeAgent static query functions (their own TU, not yet recovered).
 // hkBvTreeAgent static query functions (tail calls from the forwarders, also registered directly).
@@ -72,11 +73,11 @@ void hkBvTreeStreamAgent::cleanup() {
 }
 
 // Both forward the list to hkAgent1nMachine (map names hkAgent1nMachine_InvalidateTim / _WarpTime).
-void hkBvTreeStreamAgent::invalidateTim() {
+void hkBvTreeStreamAgent::invalidateTim(void* arg) {
     fn_802FC824(&m_list);
 }
 
-void hkBvTreeStreamAgent::warpTime() {
+void hkBvTreeStreamAgent::warpTime(float t0, float t1, void* arg) {
     fn_802FC988(&m_list);
 }
 
@@ -179,3 +180,12 @@ void hkBvTreeStreamAgent::registerMultiRayAgent(void* dispatcher) {
     reg.symmetricB = true;
     ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&reg, HK_SHAPE_MULTI_RAY, HK_SHAPE_BV_TREE);
 }
+
+// Symmetric wrapper of hkBvTreeStreamAgent (map name hkSymmetricAgentLinearCast_19hkBvTreeStreamAgent___
+// updateShapeCollectionFilter): swap the bodies and forward to the plain agent.
+template <class T>
+void hkSymmetricAgentLinearCast<T>::updateShapeCollectionFilter(void* a, void* b, void* c) {
+    T::updateShapeCollectionFilter(b, a, c);
+}
+
+template void hkSymmetricAgentLinearCast<hkBvTreeStreamAgent>::updateShapeCollectionFilter(void*, void*, void*);

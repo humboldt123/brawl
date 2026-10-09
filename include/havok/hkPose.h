@@ -4,7 +4,7 @@
 #include <havok/hkArray.h>
 #include <havok/hkQsTransform.h>
 
-struct hkSkeleton; // layout used by this TU is declared in src/havok/hkPose.cpp (no header yet)
+struct hkSkeleton; // layout in include/havok/hkSkeleton.h (included by src/havok/hkPose.cpp)
 
 // Pose of a skeleton: local (bone-relative) and model (skeleton-root) transforms plus per-bone
 // dirty flags. Layout from the hkPose TU; the names are HYPOTHESIS (no reflection class exists).

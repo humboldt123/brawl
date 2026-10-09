@@ -48,6 +48,8 @@ private:
 
     static bool sInitialized;
     static OSMutex sMutex;
+    // HYPOTHESIS: name; Brawl's newer NW4R initialises an 8-byte thread queue next to the mutex.
+    static OSThreadQueue sThreadQueue;
 };
 
 } // namespace ut

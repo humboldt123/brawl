@@ -49,6 +49,48 @@ hkConstrainedSystemFilter::~hkConstrainedSystemFilter() {
 
 void hkConstrainedSystemFilter::constraintRemovedCallback(const void* constraint) {}
 
+// Child filters are called through their primary vtable: slot 0x54 for isCollisionEnabled1, 0x58 for 2, 0x5C for 3.
+typedef hkBool (*ChildCollisionEnabledFn)(const void* self, const void* a, const void* b);
+
+hkBool hkConstrainedSystemFilter::isCollisionEnabled1(const void* a, const void* b) const {
+    hkBool enabled = true;
+    hkCollisionFilter* child = m_childFilter;
+    if (child != 0) {
+        hkBool childResult = ((ChildCollisionEnabledFn)((void* const*)*(void* const*)child)[0x54 / 4])(child, a, b);
+        if (childResult) {
+        } else {
+            enabled = false;
+        }
+    }
+    return enabled;
+}
+
+hkBool hkConstrainedSystemFilter::isCollisionEnabled2(const void* a, const void* b) const {
+    hkBool enabled = true;
+    hkCollisionFilter* child = m_childFilter;
+    if (child != 0) {
+        hkBool childResult = ((ChildCollisionEnabledFn)((void* const*)*(void* const*)child)[0x58 / 4])(child, a, b);
+        if (childResult) {
+        } else {
+            enabled = false;
+        }
+    }
+    return enabled;
+}
+
+hkBool hkConstrainedSystemFilter::isCollisionEnabled3(const void* a, const void* b) const {
+    hkBool enabled = true;
+    hkCollisionFilter* child = m_childFilter;
+    if (child != 0) {
+        hkBool childResult = ((ChildCollisionEnabledFn)((void* const*)*(void* const*)child)[0x5C / 4])(child, a, b);
+        if (childResult) {
+        } else {
+            enabled = false;
+        }
+    }
+    return enabled;
+}
+
 static hkTypeInfo hkConstrainedSystemFilterTypeInfo = {
     "hkConstrainedSystemFilter",
     hkConstrainedSystemFilter::finishLoadedObjecthkConstrainedSystemFilter,

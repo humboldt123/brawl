@@ -50,7 +50,7 @@ void hkPoweredChainData::getConstraintInfo(hkConstraintInfo* info) const {
     info->unk08 = 0x18;
     s32 n = m_chainLength;
     s32 n1 = n + 1;
-    s32 sizeA = (n1 << 5) + (n << 5);
+    s32 sizeA = n1 * 0x20 + n * 0x20;
     s32 sizeB = (n1 << 2) + n * 0x4C;
     info->unk0C = n * 6;
     info->unk08 = sizeB + 0x30;
@@ -63,9 +63,22 @@ void hkPoweredChainData::getRuntimeInfo(void* unusedA, hkConstraintRuntimeInfo* 
     s32 n = m_chainLength;
     s32 a = n * 6;
     out->unk04 = a;
-    out->unk00 = (n << 4) + (((n + 3) & ~3) + (a << 3));
+    s32 n16 = n << 4;
+    s32 b = (n + 3) & ~3;
+    out->unk00 = n16 + (b + (a << 3));
 }
 
 void* hkPoweredChainData::getConstraintFlags(void* base) const {
-    return (u8*)base + m_chainLength * 48;
+    return (u8*)base + ((m_chainLength * 6) << 3);
+}
+
+void* hkPoweredChainData::getMotorRuntimeQuaternions(void* base) const {
+    s32 n = m_chainLength;
+    s32 a = n * 6;
+    return (((n + 3) & ~3)) + ((u8*)base + (a << 3));
+}
+
+// HYPOTHESIS: returns its argument unchanged (the target is a bare `mr r3, r4`).
+void* hkPoweredChainData::getSolverResults(void* results) const {
+    return results;
 }
