@@ -100,6 +100,8 @@ public:
     u16 GetNumEmitter() const;
     Emitter* GetEmitter(u16 idx);
 
+    u32 ForeachEmitter(ForEachFunc pFunc, ForEachParam param,
+                       bool ignoreLifeStatus);
     u32 ForeachParticleManager(ForEachFunc pFunc, ForEachParam param,
                                bool ignoreLifeStatus);
     u32 ForeachEmitterFrom(ForEachFunc pFunc, ForEachParam param,

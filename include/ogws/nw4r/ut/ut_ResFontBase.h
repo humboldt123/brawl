@@ -105,11 +105,33 @@ public:
 
 protected:
     void SetResourceBuffer(void* pBuffer, FontInformation* pInfo);
+    void* RemoveResourceBuffer();
 
 private:
-    u16 GetGlyphIndex(u16 ch) const;
+    u16 GetGlyphIndex(u16 ch) const {
+        u16 index;
 
-    u16 FindGlyphIndex(u16 ch) const;
+        if (ch != unk18) {
+            unk18 = ch;
+            index = GLYPH_INDEX_NOT_FOUND;
+
+            for (const FontCodeMap* pIt = mFontInfo->pMap; pIt != NULL;
+                 pIt = pIt->pNext) {
+
+                if (pIt->ccodeBegin <= ch && ch <= pIt->ccodeEnd) {
+                    index = FindGlyphIndex(pIt, ch);
+                    break;
+                }
+            }
+
+            unk1A = index;
+        } else {
+            index = unk1A;
+        }
+
+        return index != GLYPH_INDEX_NOT_FOUND ? index : mFontInfo->alterCharIndex;
+    }
+
     u16 FindGlyphIndex(const FontCodeMap* pMap, u16 ch) const;
 
     const CharWidths& GetCharWidthsFromIndex(u16 index) const;
@@ -121,6 +143,8 @@ private:
 private:
     void* mResource;            // at 0x10
     FontInformation* mFontInfo; // at 0x14
+    mutable u16 unk18;          // at 0x18 (cached last glyph lookup char)
+    mutable u16 unk1A;          // at 0x1A (cached glyph index)
 };
 
 } // namespace detail

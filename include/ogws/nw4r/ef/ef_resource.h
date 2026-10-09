@@ -64,7 +64,9 @@ public:
     TextureData* _FindTexture(const char* pName,
                               TextureProject* pTexProject) const;
 
-    u32 RelocateCommand();
+    u32 RelocateCommand(EffectProject* pEffProject, TextureProject* pTexProject,
+                        EffectProject* pEffProjectSub,
+                        TextureProject* pTexProjectSub);
 
     bool RemoveEffectProject(EffectProject* pEffProject);
     bool RemoveTextureProject(TextureProject* pTexProject);

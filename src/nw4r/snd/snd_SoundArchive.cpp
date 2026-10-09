@@ -48,7 +48,9 @@ u32 SoundArchive::ConvertLabelStringToPlayerId(const char* pLabel) const {
 }
 
 u32 SoundArchive::ConvertLabelStringToGroupId(const char* pLabel) const {
-    return mFileReader->ConvertLabelStringToGroupId(pLabel);
+    // HYPOTHESIS: the target looks up the sound string tree (field at 0x34,
+    // written as mStringTreeSound by SetStringChunk) for group labels.
+    return mFileReader->ConvertLabelStringToSoundId(pLabel);
 }
 
 u32 SoundArchive::GetSoundUserParam(u32 id) const {

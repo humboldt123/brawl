@@ -61,8 +61,10 @@ public:
                       detail::ExternalSoundPlayer* pPlayer, bool hold,
                       const StartInfo* pStartInfo); // at 0x28
 
+    // HYPOTHESIS: the target forwards to SoundArchive::ConvertLabelStringToGroupId
+    // (same sound string tree lookup, see SoundArchive.cpp).
     virtual u32 detail_ConvertLabelStringToSoundId(const char* pLabel) {
-        return mSoundArchive->ConvertLabelStringToSoundId(pLabel);
+        return mSoundArchive->ConvertLabelStringToGroupId(pLabel);
     } // at 0x2C
 
     bool IsAvailable() const;

@@ -54,6 +54,10 @@ public:
     u32 RetireEmitterAll(u32 groupID);
     u32 RetireParticleAll(u32 groupID);
 
+    // HYPOTHESIS: parameter names; the first float is stored to mProcessCameraNear.
+    void SetProcessCamera(const math::VEC3& rPos, const math::MTX34& rMtx,
+                          f32 nearZ, f32 farZ);
+
     void Calc(u32 groupID, bool onlyBillboard);
     void Draw(const DrawInfo& rInfo, u32 groupID);
 

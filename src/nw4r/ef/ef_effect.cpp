@@ -312,6 +312,20 @@ Emitter* Effect::GetEmitter(u16 idx) {
  * For-each implementation
  *
  ******************************************************************************/
+u32 Effect::ForeachEmitter(ForEachFunc pFunc, ForEachParam param,
+                           bool ignoreLifeStatus) {
+    u32 calls = 0;
+
+    NW4R_UT_LIST_FOREACH_SAFE (Emitter, it, mActivityList.mActiveList, {
+        if (ignoreLifeStatus || it->mLifeStatus == NW4R_EF_LS_ACTIVE) {
+            pFunc(it, param);
+            calls++;
+        }
+    });
+
+    return calls;
+}
+
 u32 Effect::ForeachParticleManager(ForEachFunc pFunc, ForEachParam param,
                                    bool ignoreLifeStatus) {
     u32 calls = 0;

@@ -11,7 +11,7 @@ static math::MTX34 CalcLocalTransform(f32 px, f32 py, f32 sx, f32 sy,
 
 static math::MTX34 CalcRotate(Particle* pParticle, u8 axis);
 
-static u8 free_tex0_u8[] = {0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01};
+DrawFreeStrategy::DrawFreeStrategy() {}
 
 static void DrawQuad(const math::MTX34& rMtx, const math::_VEC3* pPosArray,
                      bool texCoord) {
@@ -52,7 +52,34 @@ static void DrawQuad(const math::MTX34& rMtx, const math::_VEC3* pPosArray,
     GXEnd();
 }
 
-DrawFreeStrategy::DrawFreeStrategy() {}
+inline void DrawFreeStrategy::InitGraphics(const DrawInfo& rInfo,
+                                    ParticleManager* pManager) {
+    // MATCH-ONLY: function-local table; a file-scope name would show up as a named reloc.
+    static u8 texcoord[] = {0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01};
+
+    const EmitterDrawSetting& rSetting =
+        *pManager->mResource->GetEmitterDrawSetting();
+
+    InitTexture(rSetting);
+    InitTev(rSetting, rInfo);
+    InitColor(pManager, rSetting, rInfo);
+
+    GXEnableTexOffsets(GX_TEXCOORD0, TRUE, TRUE);
+
+    GXSetArray(GX_VA_TEX0, texcoord, 2);
+
+    GXClearVtxDesc();
+    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
+
+    if (mNumTexmap > 0) {
+        GXSetVtxDesc(GX_VA_TEX0, GX_INDEX8);
+    }
+
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
+
+    GXSetCurrentMtx(GX_PNMTX0);
+}
 
 void DrawFreeStrategy::Draw(const DrawInfo& rInfo, ParticleManager* pManager) {
     InitGraphics(rInfo, pManager);
@@ -125,33 +152,6 @@ void DrawFreeStrategy::Draw(const DrawInfo& rInfo, ParticleManager* pManager) {
             DrawQuad(locMtx, px, mNumTexmap > 0);
         }
     }
-}
-
-void DrawFreeStrategy::InitGraphics(const DrawInfo& rInfo,
-                                    ParticleManager* pManager) {
-
-    const EmitterDrawSetting& rSetting =
-        *pManager->mResource->GetEmitterDrawSetting();
-
-    InitTexture(rSetting);
-    InitTev(rSetting, rInfo);
-    InitColor(pManager, rSetting, rInfo);
-
-    GXEnableTexOffsets(GX_TEXCOORD0, TRUE, TRUE);
-
-    GXSetArray(GX_VA_TEX0, free_tex0_u8, 2);
-
-    GXClearVtxDesc();
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-
-    if (mNumTexmap > 0) {
-        GXSetVtxDesc(GX_VA_TEX0, GX_INDEX8);
-    }
-
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_U8, 0);
-
-    GXSetCurrentMtx(GX_PNMTX0);
 }
 
 static math::MTX34 CalcLocalTransform(f32 px, f32 py, f32 sx, f32 sy,

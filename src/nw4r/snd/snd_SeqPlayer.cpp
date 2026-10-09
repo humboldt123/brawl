@@ -37,7 +37,7 @@ SeqPlayer::SeqPlayer() {
 }
 
 SeqPlayer::~SeqPlayer() {
-    SeqPlayer::Stop();
+    FinishPlayer();
 }
 
 void SeqPlayer::InitParam(int voices, NoteOnCallback* pCallback) {
@@ -73,7 +73,7 @@ SeqPlayer::SetupResult SeqPlayer::Setup(SeqTrackAllocator* pAllocator,
                                         NoteOnCallback* pCallback) {
     SoundThread::AutoLock lock;
 
-    SeqPlayer::Stop();
+    FinishPlayer();
     InitParam(voices, pCallback);
     {
         ut::AutoInterruptLock lock;
@@ -216,7 +216,7 @@ void SeqPlayer::InvalidateData(const void* pStart, const void* pEnd) {
 
             const u8* pBase = pTrack->GetParserTrackParam().baseAddr;
             if (pStart <= pBase && pBase <= pEnd) {
-                SeqPlayer::Stop();
+                FinishPlayer();
                 break;
             }
         }

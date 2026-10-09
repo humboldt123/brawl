@@ -4,13 +4,21 @@ namespace nw4r {
 namespace ut {
 namespace detail {
 
-ResFontBase::ResFontBase() : mResource(NULL), mFontInfo(NULL) {}
+ResFontBase::ResFontBase()
+    : mResource(NULL), mFontInfo(NULL), unk18(0), unk1A(GLYPH_INDEX_NOT_FOUND) {}
 
 ResFontBase::~ResFontBase() {}
 
 void ResFontBase::SetResourceBuffer(void* pBuffer, FontInformation* pInfo) {
     mResource = pBuffer;
     mFontInfo = pInfo;
+}
+
+void* ResFontBase::RemoveResourceBuffer() {
+    void* pBuffer = mResource;
+    mResource = NULL;
+    mFontInfo = NULL;
+    return pBuffer;
 }
 
 int ResFontBase::GetWidth() const {
@@ -66,10 +74,30 @@ void ResFontBase::SetDefaultCharWidths(const CharWidths& rWidths) {
 }
 
 bool ResFontBase::SetAlternateChar(u16 ch) {
-    u16 index = FindGlyphIndex(ch);
+    if (ch != unk18) {
+        unk18 = ch;
 
-    if (index != GLYPH_INDEX_NOT_FOUND) {
-        mFontInfo->alterCharIndex = index;
+        for (const FontCodeMap* pIt = mFontInfo->pMap; pIt != NULL;
+             pIt = pIt->pNext) {
+
+            if (pIt->ccodeBegin <= ch && ch <= pIt->ccodeEnd) {
+                u16 index = FindGlyphIndex(pIt, ch);
+                unk1A = index;
+
+                if (index != GLYPH_INDEX_NOT_FOUND) {
+                    mFontInfo->alterCharIndex = index;
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        unk1A = GLYPH_INDEX_NOT_FOUND;
+    }
+
+    if (unk1A != GLYPH_INDEX_NOT_FOUND) {
+        mFontInfo->alterCharIndex = unk1A;
         return true;
     }
 
@@ -94,23 +122,6 @@ void ResFontBase::GetGlyph(Glyph* pGlyph, u16 ch) const {
 
 FontEncoding ResFontBase::GetEncoding() const {
     return static_cast<FontEncoding>(mFontInfo->encoding);
-}
-
-u16 ResFontBase::GetGlyphIndex(u16 ch) const {
-    u16 index = FindGlyphIndex(ch);
-    return index != GLYPH_INDEX_NOT_FOUND ? index : mFontInfo->alterCharIndex;
-}
-
-u16 ResFontBase::FindGlyphIndex(u16 ch) const {
-    for (const FontCodeMap* pIt = mFontInfo->pMap; pIt != NULL;
-         pIt = pIt->pNext) {
-
-        if (pIt->ccodeBegin <= ch && ch <= pIt->ccodeEnd) {
-            return FindGlyphIndex(pIt, ch);
-        }
-    }
-
-    return GLYPH_INDEX_NOT_FOUND;
 }
 
 u16 ResFontBase::FindGlyphIndex(const FontCodeMap* pMap, u16 ch) const {

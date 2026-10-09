@@ -106,8 +106,9 @@ static EmitterResource* breffSearchName(EffectProject* pEffProject,
     u8* pData = pPtr;
     NameTable* pNameTable = reinterpret_cast<NameTable*>(pPtr);
 
-    pData += sizeof(NameTable);
+    int nameLen = std::strlen(pEffName);
 
+    pData += sizeof(NameTable);
     for (int i = 0; i < pNameTable->numEntry; i++) {
         int len = (pData[0] << 8) + pData[1];
         pData += sizeof(u16);
@@ -122,7 +123,8 @@ static EmitterResource* breffSearchName(EffectProject* pEffProject,
         // Skip size
         pData += sizeof(u32);
 
-        if (std::strcmp(pEffName, pName) == 0) {
+        if (nameLen + 1 == len && pEffName[nameLen - 1] == pName[len - 2] &&
+            std::strcmp(pEffName, pName) == 0) {
             return reinterpret_cast<EmitterResource*>(
                 reinterpret_cast<u8*>(pNameTable) + offset);
         }
@@ -211,8 +213,9 @@ static TextureData* breftSearchName(TextureProject* pTexProject,
     u8* pData = pPtr;
     NameTable* pNameTable = reinterpret_cast<NameTable*>(pPtr);
 
-    pData += sizeof(NameTable);
+    int nameLen = std::strlen(pTexName);
 
+    pData += sizeof(NameTable);
     for (int i = 0; i < pNameTable->numEntry; i++) {
         int len = (pData[0] << 8) + pData[1];
         pData += sizeof(u16);
@@ -227,7 +230,8 @@ static TextureData* breftSearchName(TextureProject* pTexProject,
         // Skip size
         pData += sizeof(u32);
 
-        if (std::strcmp(pTexName, pName) == 0) {
+        if (nameLen + 1 == len && pTexName[nameLen - 1] == pName[len - 2] &&
+            std::strcmp(pTexName, pName) == 0) {
             return reinterpret_cast<TextureData*>(
                 reinterpret_cast<u8*>(pNameTable) + offset);
         }
@@ -469,12 +473,30 @@ u32 Resource::relocateCurveChild(u8* pCmdList) {
     return error;
 }
 
-u32 Resource::RelocateCommand() {
+// HYPOTHESIS: the second project pair is a fallback searched after the first.
+u32 Resource::RelocateCommand(EffectProject* pEffProject,
+                              TextureProject* pTexProject,
+                              EffectProject* pEffProjectSub,
+                              TextureProject* pTexProjectSub) {
     u32 error = 0;
 
-    for (u32 idx = 0; idx < NumEmitter(NULL); idx++) {
-        EmitterResource* pResource = _GetEmitterIndexOf(idx, NULL);
-        if (pResource == NULL) {
+    u32 numEmitter;
+    if (pEffProject != NULL) {
+        numEmitter = breffNumEmitter(pEffProject);
+    } else if (pEffProjectSub != NULL) {
+        numEmitter = breffNumEmitter(pEffProjectSub);
+    } else {
+        numEmitter = mNumEmitter;
+    }
+
+    for (u32 idx = 0; idx < numEmitter; idx++) {
+        EmitterResource* pResource;
+        if (pEffProject != NULL && idx < breffNumEmitter(pEffProject)) {
+            pResource = breffIndexOf(pEffProject, idx);
+        } else if (pEffProjectSub != NULL &&
+                   idx < breffNumEmitter(pEffProjectSub)) {
+            pResource = breffIndexOf(pEffProjectSub, idx);
+        } else {
             continue;
         }
 
@@ -487,7 +509,18 @@ u32 Resource::RelocateCommand() {
             u16 size = *reinterpret_cast<u16*>(pPtr);
             pPtr += sizeof(u16);
 
-            ppWork[i] = _FindTexture(reinterpret_cast<char*>(pPtr), NULL);
+            TextureData* pTexData = NULL;
+            if (pPtr[0] != 0) {
+                if (pTexProject != NULL) {
+                    pTexData = breftSearchName(pTexProject,
+                                               reinterpret_cast<char*>(pPtr));
+                }
+                if (pTexData == NULL && pTexProjectSub != NULL) {
+                    pTexData = breftSearchName(
+                        pTexProjectSub, reinterpret_cast<char*>(pPtr));
+                }
+            }
+            ppWork[i] = pTexData;
 
             if (pPtr[0] != 0 && ppWork[i] == NULL) {
                 error++;

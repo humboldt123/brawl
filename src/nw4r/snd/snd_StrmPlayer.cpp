@@ -466,7 +466,10 @@ void StrmPlayer::Update() {
         return;
     }
 
-    if (mLoadWaitFlag && mStrmDataLoadTaskList.IsEmpty()) {
+    // HYPOTHESIS: the disk-error check is inferred from the target asm order
+    // (flag, list empty, disk error); the exact Brawl condition is not confirmed.
+    if (mLoadWaitFlag && mStrmDataLoadTaskList.IsEmpty() &&
+        !AxManager::GetInstance().IsDiskError()) {
         mLoadWaitFlag = false;
         UpdatePauseStatus();
     }

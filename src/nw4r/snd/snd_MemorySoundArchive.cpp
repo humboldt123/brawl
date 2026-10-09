@@ -8,7 +8,8 @@ namespace snd {
 
 class MemorySoundArchive::MemoryFileStream : public ut::FileStream {
 public:
-    MemoryFileStream(const void* pBuffer, u32 size);
+    MemoryFileStream(const void* pBuffer, u32 size)
+        : mData(pBuffer), mSize(size), mOffset(0) {}
 
     virtual void Close();                      // at 0x10
     virtual s32 Read(void* pDst, u32 size);    // at 0x14
@@ -123,10 +124,6 @@ const void* MemorySoundArchive::detail_GetWaveDataFileAddress(u32 id) const {
                                          itemInfo.waveDataOffset);
 }
 
-MemorySoundArchive::MemoryFileStream::MemoryFileStream(const void* pBuffer,
-                                                       u32 size)
-    : mData(pBuffer), mSize(size), mOffset(0) {}
-
 ut::FileStream* MemorySoundArchive::OpenStream(void* pBuffer, int size,
                                                u32 offset, u32 length) const {
     if (mData == NULL) {
@@ -186,10 +183,6 @@ void MemorySoundArchive::MemoryFileStream::Seek(s32 offset, u32 origin) {
     case SEEK_ORIGIN_END: {
         mOffset = mSize - offset;
         break;
-    }
-
-    default: {
-        return;
     }
     }
 }

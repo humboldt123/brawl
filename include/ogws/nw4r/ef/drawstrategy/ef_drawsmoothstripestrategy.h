@@ -52,6 +52,22 @@ public:
 
     virtual CalcAheadFunc
     GetCalcAheadFunc(ParticleManager* pManager); // at 0x18
+
+    u16 GetDrawOrder(const EmitterDrawSetting& rSetting) const;
+    u8 GetStripeTexmapType(const EmitterDrawSetting& rSetting) const;
+
+    static void CalcAhead_Particle_Stripe(math::VEC3* pAxisY,
+                                          AheadContextStripe* pContext,
+                                          Particle* pParticle);
+    static void CalcAhead_ParticleBoth_Stripe(math::VEC3* pAxisY,
+                                              AheadContextStripe* pContext,
+                                              Particle* pParticle);
+    static void CalcAhead_ParticleBoth_Ring(math::VEC3* pAxisY,
+                                            AheadContextStripe* pContext,
+                                            Particle* pParticle);
+    static void CalcAhead_ParticleBoth_Origin(math::VEC3* pAxisY,
+                                              AheadContextStripe* pContext,
+                                              Particle* pParticle);
 };
 
 } // namespace ef

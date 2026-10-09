@@ -144,28 +144,21 @@ void Pane::SetVtxColor(u32 idx, ut::Color color) {
 
 u8 Pane::GetColorElement(u32 idx) const {
     switch (idx) {
-    case ANIMTARGET_PANE_COLOR_ALPHA: {
+    case ANIMTARGET_PANE_COLOR_ALPHA:
         return mAlpha;
     }
 
-    default: {
-        return GetVtxColorElement(idx);
-    }
-    }
+    return GetVtxColorElement(idx);
 }
 
 void Pane::SetColorElement(u32 idx, u8 value) {
     switch (idx) {
-    case ANIMTARGET_PANE_COLOR_ALPHA: {
+    case ANIMTARGET_PANE_COLOR_ALPHA:
         mAlpha = value;
-        break;
+        return;
     }
 
-    default: {
-        SetVtxColorElement(idx, value);
-        break;
-    }
-    }
+    SetVtxColorElement(idx, value);
 }
 
 u8 Pane::GetVtxColorElement(u32 idx) const {

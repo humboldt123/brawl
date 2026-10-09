@@ -32,6 +32,8 @@ The same assembly can come from very different C++ (`add r3,r3,r4` could be `x +
 - **A struct copy is `lwz/stw`, a field copy is `lfs/stfs`:** to get word copies, use a union of floats and `u32` pairs (`include/so/templates/so_controller_impl.h`). Tag it `// MATCH-ONLY:`. **HIGH**
 - **`sqrt`/`rsqrt`:** Brawl code calls `rsqrtf(x)` (declared in `mt_common.h`), with a guard against tiny values; see `ft_status_uniq_process_glide.cpp`. **MED-HIGH**
 - `volatile` hacks (`NtSend::task() volatile`) are a last resort. **MED**
+- **`fmuls` + `fadds` where the original has `fmadds`:** the unit needs `fp_contract on` (`extra_cflags=["-fp_contract on"]` or `#pragma fp_contract on`). Havok math is built this way. Seen: `src/havok/hkVector4.cpp` (0 to 4 of 5 exact), `hkMatrix3`. **HIGH**
+- **`isnan` compares `r3` with 1:** this MSL's `__fpclassifyf` returns `FP_NAN` = 1. nw4r's billboard code guards `VEC3Normalize` this way. Seen: `src/nw4r/g3d/g3d_calcview.cpp`. **MED**
 
 ## 4. Classes and the C++ runtime
 - **A constructor reloads zero where the original copies another zero argument:** verify the formal parameter type and whether its mangled name was reconstructed. Marth's slope call became exact with a boolean axis selector: the callee stores a byte, both update paths test zero/nonzero, and all 48 audited callers pass 0 or 1. The reference map supplied no parameter types; the earlier integer signature was scaffolding. Narrow unsigned types also reproduce the copy, so keep the boolean interpretation labeled as a hypothesis. Seen: `include/so/slope/so_slope_module_impl.h`, `include/ft/builder/ft_module_builders.h`. **MED**
@@ -93,6 +95,8 @@ Things that moved registers, roughly in the order worth trying:
 - Jump tables for `switch` live in `.rodata` in RELs and are named `jumptable_XXXX` in `symbols.txt`; keep the split configuration identical to verified output. **MED**
 
 ## 8. Process
+- **Ported library code scores 0% although the code is right:** the target still calls the function `fn_XXXXXXXX` (or a data object `lbl_XXXXXXXX`), so name-based pairing fails. Pair target and our functions by size and position, and our relocations against the target's at identical offsets, then rename in `symbols.txt` only when the code is identical and no game source still uses the old `fn_` name. The nw4r port (PR 81) gained about 1000 exact functions from renames alone. **HIGH**
+- **An extra 64-byte weak `__dt__Base` right after a constructor:** an inline virtual base destructor in a shared header that the original emitted elsewhere. It shifts positional pairing of `fn_` targets. Seen: `include/havok/hkBase.h` (hkReferencedObject), `ef_drawstrategyimpl.h`. **MED**
 - **After adding a shadow header** (a local `include/...` file that overrides a BrawlHeaders one), Ninja does NOT rebuild objects that were compiled against the old header: it only tracks the path each file resolved before. Symptom: the link fails with `Failed to find symbol <name> in any module` for a name you just changed (for example a method that became `const`). Fix: delete the objects that depend on the old header (`ninja -t deps` lists them) or do a clean build, then rebuild. Seen when `ftManager::getSlotNo` became `const` (PR #20). **HIGH**
 - Prefer real member calls over `extern "C" fn_xxxx`. Name the symbol in `symbols.txt` (mangled) and call it normally. If you find the real name, rename.
 - Never rename a REL function to a name that exists elsewhere in the symbols (it breaks the `.rel` hash).

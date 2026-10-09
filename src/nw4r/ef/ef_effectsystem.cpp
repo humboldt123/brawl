@@ -159,6 +159,15 @@ u32 EffectSystem::RetireParticleAll(u32 groupID) {
     return num;
 }
 
+void EffectSystem::SetProcessCamera(const math::VEC3& rPos,
+                                    const math::MTX34& rMtx, f32 nearZ,
+                                    f32 farZ) {
+    mProcessCameraPos = rPos;
+    math::MTX34Copy(&mProcessCameraMtx, &rMtx);
+    mProcessCameraNear = nearZ;
+    mProcessCameraFar = farZ;
+}
+
 void EffectSystem::Calc(u32 groupID, bool onlyBillboard) {
     void* pArray[NW4R_EF_MAX_EFFECT];
 

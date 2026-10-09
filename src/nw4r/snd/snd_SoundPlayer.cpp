@@ -99,6 +99,10 @@ void SoundPlayer::detail_RemovePriorityList(detail::BasicSound* pSound) {
 }
 
 void SoundPlayer::detail_SortPriorityList() {
+    if (mPriorityList.GetSize() < 2) {
+        return;
+    }
+
     ut::detail::AutoLock<OSMutex> lock(mMutex);
 
     detail::BasicSoundPlayerPrioList

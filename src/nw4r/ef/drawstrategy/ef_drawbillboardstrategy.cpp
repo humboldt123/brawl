@@ -35,10 +35,10 @@ void DrawBillboardStrategy::Draw(const DrawInfo& rInfo,
 void DrawBillboardStrategy::DrawNormalBillboard(const DrawInfo& rInfo,
                                                 ParticleManager* pManager) {
 
-    InitGraphics(rInfo, pManager);
-
     const EmitterDrawSetting& rSetting =
         *pManager->mResource->GetEmitterDrawSetting();
+
+    InitGraphics(rInfo, pManager);
 
     int flags = mNumTexmap > 0 ? 1 : 0;
     const math::MTX34& rInfoMtx = *rInfo.GetViewMtx();
