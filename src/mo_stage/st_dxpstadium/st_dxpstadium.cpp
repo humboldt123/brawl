@@ -67,6 +67,18 @@ static inline void stDxPStadiumVec3Scale(register Vec3f* pOut, register const Ve
     // clang-format on
 }
 
+// MATCH-ONLY: the original computes max(a, b) with a paired-single subtract and select.
+static inline float stDxPStadiumPsMax(register float a, register float b) {
+    register float diff, result;
+    // clang-format off
+    asm {
+        ps_sub diff, a, b
+        ps_sel result, diff, a, b
+    }
+    // clang-format on
+    return result;
+}
+
 // The big screen is ground 0 and always a grStadiumVision.
 static inline grStadiumVision* stadiumVision(stDxPStadium* stage) {
     return static_cast<grStadiumVision*>(stage->getGround(0));
@@ -878,8 +890,8 @@ void stDxPStadium::updateVisionRect() {
         }
         float width = screenB.m_x - screenA.m_x;
         float height = screenB.m_y - screenA.m_y;
-        width = __fsel(width - 0.08f, width, 0.08f);
-        height = __fsel(height - 0.08f, height, 0.08f);
+        width = stDxPStadiumPsMax(width, 0.08f);
+        height = stDxPStadiumPsMax(height, 0.08f);
         float aspect = 1.0f;
         if (g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen) {
             aspect = 4.0f / 3.0f;
