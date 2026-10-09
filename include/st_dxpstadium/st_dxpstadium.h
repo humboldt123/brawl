@@ -29,7 +29,7 @@ public:
     virtual void preload() { }
 };
 
-// Pokemon Stadium 2: the stage turns into one of four terrains - fire, grass, rock, water - in a shuffled order. A
+// Pokemon Stadium (returning Melee stage): the stage turns into one of four terrains - fire, grass, rock, water - in a shuffled order. A
 // scheduler event (m_eventPick) starts the transformation (m_eventTransform), which is a small phase machine that
 // shakes the stage, scales the old terrain away and the new one in. The big screen (grStadiumVision, ground 0) shows
 // the terrain names and sometimes zooms in on one of the fighters.
