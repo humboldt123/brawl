@@ -559,6 +559,14 @@ void stDxCruise::updateAI(float deltaFrame) {
             zoneMax.m_y = cornerB.m_y;
             zoneMax.m_x = cornerA.m_x + (0.2f + 0.1f * s) * (cornerB.m_x - cornerA.m_x);
             m_dangerZone[1] = g_aiMgr->setDangerZone(&zoneMin, &zoneMax, m_dangerZone[1], false, false);
+        } else if (frame >= 5200.0f && frame < 7000.0f) {
+            float t = stCruiseClamp(0.0f, 1.0f, (frame - 5200.0f) / 100.0f);
+            float s = nw4r::math::SinIdx((u16)(16384.0f * t));
+            zoneMin.m_x = cornerA.m_x;
+            zoneMin.m_y = cornerA.m_y;
+            zoneMax.m_y = cornerB.m_y;
+            zoneMax.m_x = cornerA.m_x + (0.2f + 0.1f * s) * (cornerB.m_x - cornerA.m_x);
+            m_dangerZone[1] = g_aiMgr->setDangerZone(&zoneMin, &zoneMax, m_dangerZone[1], false, false);
         } else if (m_dangerZone[1] != -1) {
             g_aiMgr->delDangerZone(m_dangerZone[1]);
             m_dangerZone[1] = -1;
