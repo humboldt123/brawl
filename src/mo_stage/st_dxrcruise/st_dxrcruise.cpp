@@ -50,6 +50,7 @@ extern "C" bool fn_27_2397E4(Stage* stage, int entryId, Vec3f* pos);
 class grCruiseMadein : public grMadein {
 public:
     float getLandWeight() { return m_304; }
+    bool isLandWeightAtLeast(float weight) { return m_304 >= weight; }
 };
 
 static inline grCruiseMadein* cruiseGround(stDxCruise* stage, int index) {
@@ -236,7 +237,7 @@ void stDxCruise::update(float deltaFrame) {
     for (int i = 0; i < 17; i++) {
         switch (m_blockEvent[i].getPhase()) {
             case 0:
-                if (cruiseGround(this, i + 14)->getLandWeight() >= 30.0f) {
+                if (cruiseGround(this, i + 14)->isLandWeightAtLeast(30.0f) == true) {
                     m_blockEvent[i].setPhase(1);
                     m_blockEvent[i].m_manualFramesLeft = 0.0f;
                 }
@@ -256,11 +257,13 @@ void stDxCruise::update(float deltaFrame) {
                     m_blockSpeed[i] = -2.0f;
                 }
                 m_blockHeight[i] += deltaFrame * m_blockSpeed[i];
-                Vec3f pos = static_cast<grGimmick*>(getGround(i + 14))->getPos();
+                int block = i + 14;
+                Vec3f pos;
+                pos = static_cast<grGimmick*>(getGround(block))->getPos();
                 if (pos.m_y <= 2.0f * *reinterpret_cast<float*>(reinterpret_cast<u8*>(CameraController::getInstance()) + 0x154)) {
                     m_blockEvent[i].setPhase(3);
-                    static_cast<grMadein*>(getGround(i + 14))->endEntity();
-                    getGround(i + 14)->setEnableCollisionStatus(false);
+                    static_cast<grMadein*>(getGround(block))->endEntity();
+                    getGround(block)->setEnableCollisionStatus(false);
                 }
                 break;
             }
@@ -271,31 +274,35 @@ void stDxCruise::update(float deltaFrame) {
                     m_blockEvent[i].setPhase(4);
                 }
                 break;
-            case 4:
-                static_cast<grMadein*>(getGround(i + 14))->startEntity();
-                getGround(i + 14)->setEnableCollisionStatus(true);
+            case 4: {
+                int block = i + 14;
+                static_cast<grMadein*>(getGround(block))->startEntity();
+                getGround(block)->setEnableCollisionStatus(true);
                 m_blockEvent[i].setPhase(5);
+            }
                 // FALL-THROUGH
-            case 5:
+            case 5: {
+                int block = i + 14;
                 m_blockHeight[i] = 0.0f;
                 m_blockEvent[i].m_manualFramesLeft += deltaFrame;
                 if (m_blockEvent[i].m_manualFramesLeft - 10.0f * (float)(int)(m_blockEvent[i].m_manualFramesLeft / 10.0f) < 3.0f) {
-                    getGround(i + 14)->setVisibility(0);
+                    getGround(block)->setVisibility(0);
                 } else {
-                    getGround(i + 14)->setVisibility(1);
+                    getGround(block)->setVisibility(1);
                 }
                 if (m_blockEvent[i].m_manualFramesLeft > 120.0f) {
-                    getGround(i + 14)->setVisibility(1);
+                    getGround(block)->setVisibility(1);
                     m_blockEvent[i].setPhase(0);
                 }
                 break;
+            }
         }
     }
     // The carpets: they fly away when landed on, flicker and come back after a while.
     for (int i = 0; i < 3; i++) {
         switch (m_carpetEvent[i].getPhase()) {
             case 0:
-                if (cruiseGround(this, i + 6)->getLandWeight() >= 1.0f) {
+                if (cruiseGround(this, i + 6)->isLandWeightAtLeast(1.0f) == true) {
                     fn_27_279228(getGround(i + 2), false);
                     m_carpetEvent[i].setPhase(1);
                 } else {
@@ -307,7 +314,7 @@ void stDxCruise::update(float deltaFrame) {
                     m_carpetEvent[i].setPhase(2);
                     m_carpetEvent[i].m_manualFramesLeft = 0.0f;
                 }
-                if (cruiseGround(this, i + 6)->getLandWeight() >= 1.0f) {
+                if (cruiseGround(this, i + 6)->isLandWeightAtLeast(1.0f) == true) {
                     fn_27_279228(getGround(i + 2), false);
                     m_carpetFlag[i] = 1;
                     m_carpetEvent[i].m_manualFramesLeft = 0.0f;
@@ -322,7 +329,7 @@ void stDxCruise::update(float deltaFrame) {
                 break;
             case 2:
                 if (static_cast<grMadein*>(getGround(i + 2))->isEndEntity() == false) {
-                    if (cruiseGround(this, i + 6)->getLandWeight() >= 1.0f) {
+                    if (cruiseGround(this, i + 6)->isLandWeightAtLeast(1.0f) == true) {
                         getGround(i + 6)->setVisibility(1);
                         m_carpetEvent[i].setPhase(1);
                         break;
@@ -375,7 +382,7 @@ void stDxCruise::update(float deltaFrame) {
     static_cast<grGimmick*>(getGround(11))->setPos(&pos);
     static_cast<grGimmick*>(getGround(12))->setPos(&pos);
     // Fighters standing on the seesaw tip it towards the heavier side.
-    if (cruiseGround(this, 11)->getLandWeight() >= 1.0f) {
+    if (cruiseGround(this, 11)->isLandWeightAtLeast(1.0f) == true) {
         int instance = 0;
         int entryId = g_ftManager->getEntryIdFromTaskId(cruiseGround(this, 11)->getLanderTaskId(), &instance);
         Vec3f fighterPos;
@@ -391,7 +398,7 @@ void stDxCruise::update(float deltaFrame) {
             }
         }
     }
-    if (cruiseGround(this, 10)->getLandWeight() >= 1.0f) {
+    if (cruiseGround(this, 10)->isLandWeightAtLeast(1.0f) == true) {
         int instance = 0;
         int entryId = g_ftManager->getEntryIdFromTaskId(cruiseGround(this, 10)->getLanderTaskId(), &instance);
         Vec3f fighterPos;
