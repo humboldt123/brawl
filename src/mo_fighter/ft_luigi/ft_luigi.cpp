@@ -26,6 +26,13 @@ ftLuigi::ftLuigi(s32 entryId,
     // TODO
 }
 
+// FIXME: Test code present only to emit the shared builder functions; delete once ftLuigi is done
+void testBuilder() {
+    soInsideEventManageModuleBuilder<ftLuigiInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
+    soResourceIdAccesserImpl idAccImpl(0, 1, 2);
+}
+soInsideEventManageModuleBuilder<ftLuigiInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
+
 // Virtual destructor, defined here as in ftMarth.
 ftLuigi::~ftLuigi() { }
 
