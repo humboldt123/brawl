@@ -131,6 +131,7 @@ void stDxCruise::createObj() {
     addGround(grMadein::create(6, "", "chikuwa", Heaps::StageInstance));
     addGround(grMadein::create(6, "", "chikuwa", Heaps::StageInstance));
     addGround(grMadein::create(6, "", "chikuwa", Heaps::StageInstance));
+    addGround(grMadein::create(6, "", "chikuwa", Heaps::StageInstance));
     addGround(grMadein::create(13, "", "chikuwa", Heaps::StageInstance));
     Ground* ground;
     for (u32 i = 0, groundNum = getGroundNum(); i != groundNum; i++) {
