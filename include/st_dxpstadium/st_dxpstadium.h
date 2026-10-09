@@ -43,10 +43,10 @@ class stDxPStadium : public stMelee {
     u8 m_terrain;                    // 0x5E0: ground index of the current terrain (1 fire, 2 grass, 4 rock, 7 water; 0 none)
     float m_terrainScale;            // 0x5E4: scale of the terrain model while it grows / shrinks
     float m_unk5E8;                  // 0x5E8: HYPOTHESIS: path position of the water spray nodes
-    int m_unk5EC;                    // 0x5EC: effect handle, -1 when unused
-    int m_effectHandles[5];          // 0x5F0: terrain effects (fire, rock, water spray x4)
-    int m_unk604;                    // 0x604: effect handle, -1 when unused
-    int m_unk608;                    // 0x608: effect handle, -1 when unused
+    u32 m_unk5EC;                    // 0x5EC: effect handle, -1 when unused
+    u32 m_effectHandles[5];          // 0x5F0: terrain effects (fire, rock, water spray x4)
+    u32 m_unk604;                    // 0x604: effect handle, -1 when unused
+    u32 m_unk608;                    // 0x608: effect handle, -1 when unused
     s32 m_pickIndex;                 // 0x60C: next entry of m_pickOrder
     u8 m_pickOrder[4];               // 0x610: shuffled terrain order, each cycle shows every terrain once
     u8 m_unk614;                     // 0x614

@@ -173,7 +173,10 @@ void stDxPStadium::createObj() {
     m_visionActive = false;
     getGround(0)->setNodeVisibility(false, 0, "Dummy", false, false);
     stadiumVision(this)->setDisplay(false);
-    m_beltData = new (Heaps::StageResource) grGimmickBeltConveyorData(Vec3f(-52.0f, 0.0f, 0.0f), 6.0f, false, Vec2f(0.0f, 0.0f), Vec2f(41.4f, 10.0f), gfArea::Shape_Rectangle);
+    Vec3f beltPos(-52.0f, 0.0f, 0.0f);
+    Vec2f beltAreaPos(0.0f, 0.0f);
+    Vec2f beltAreaRange(41.4f, 10.0f);
+    m_beltData = new (Heaps::StageResource) grGimmickBeltConveyorData(&beltPos, 6.0f, false, &beltAreaPos, &beltAreaRange, gfArea::Shape_Rectangle);
     if (m_beltData != NULL) {
         m_beltTrigger = g_stTriggerMng->createTrigger(Gimmick::Area_BeltConveyor, -1);
         m_beltTrigger->setBeltConveyorTrigger(m_beltData);
@@ -780,11 +783,10 @@ void stDxPStadium::updateVisionRect() {
         Vec3f cornerB(subject->m_range.m_right * m_visionZoom, subject->m_range.m_up * m_visionZoom, 0.0f);
         cornerA += subject->m_pos;
         cornerB += subject->m_pos;
-        float smooth = 1.0f / 4.0f;
-        Vec3f deltaA = cornerA - m_visionPosA;
-        m_visionPosA += deltaA * smooth;
-        Vec3f deltaB = cornerB - m_visionPosB;
-        m_visionPosB += deltaB * smooth;
+        Vec3f deltaA = (cornerA - m_visionPosA) / 4.0f;
+        m_visionPosA += deltaA;
+        Vec3f deltaB = (cornerB - m_visionPosB) / 4.0f;
+        m_visionPosB += deltaB;
         cornerA = m_visionPosA;
         cornerB = m_visionPosB;
         Vec2f screenA;
