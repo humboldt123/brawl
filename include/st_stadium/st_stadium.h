@@ -28,8 +28,8 @@ public:
     virtual void preload() { }
 };
 
-// Pokemon Stadium (1): the stage turns into an electric, ice, ground or flying field in a shuffled order. It shares the
-// transformation skeleton and the big-screen code with Pokemon Stadium 2 (st_dxpstadium); here each terrain also brings
+// Pokemon Stadium 2: the stage turns into an electric, ice, ground or flying field in a shuffled order. It shares the
+// transformation skeleton and the big-screen code with the returning Pokemon Stadium (st_dxpstadium); here each terrain also brings
 // a few Pokemon (Jibacoil, Elekible, Yukikaburi, ...) that grow in one after the other and play their motions.
 class stStadium : public stMelee {
     u8 m_unk1D8;                     // 0x1D8
