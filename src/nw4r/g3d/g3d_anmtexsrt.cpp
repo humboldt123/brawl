@@ -318,7 +318,7 @@ const TexSrtAnmResult* AnmObjTexSrtOverride::GetResult(TexSrtAnmResult* pResult,
  *
  ******************************************************************************/
 AnmObjTexSrtRes* AnmObjTexSrtRes::Construct(MEMAllocator* pAllocator,
-                                            u32* pSize, ResAnmTexSrt srt,
+                                            int* pSize, ResAnmTexSrt srt,
                                             ResMdl mdl, bool cache) {
     if (!srt.IsValid() || !mdl.IsValid()) {
         return NULL;

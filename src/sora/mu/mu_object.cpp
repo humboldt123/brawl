@@ -21,11 +21,6 @@ extern char lbl_8059DF20[7];
 extern "C" int sprintf(char* str, const char* fmt, ...);
 
 // ResFile name lookups that are not declared in the BrawlHeaders ResFile class.
-nw4r::g3d::ResAnmChr ResFile_GetResAnmChrByName(nw4r::g3d::ResFile* file, const char* name);
-nw4r::g3d::ResAnmVis ResFile_GetResAnmVisByName(nw4r::g3d::ResFile* file, const char* name);
-nw4r::g3d::ResAnmClr ResFile_GetResAnmClrByName(nw4r::g3d::ResFile* file, const char* name);
-nw4r::g3d::ResAnmTexPat ResFile_GetResAnmTexPatByName(nw4r::g3d::ResFile* file, const char* name);
-nw4r::g3d::ResAnmTexSrt ResFile_GetResAnmTexSrtByName(nw4r::g3d::ResFile* file, const char* name);
 
 void ResNode_SetRotate(nw4r::g3d::ResNode* node, float x, float y, float z);
 void ResNode_SetScale(nw4r::g3d::ResNode* node, float x, float y, float z);
@@ -51,9 +46,6 @@ void fn_801B0A28();
 gfModelAnimation* __ct__16gfModelAnimationFd(void* self, nw4r::g3d::ResFile* file, nw4r::g3d::ResMdl* mdl, bool doBind, int animIndex, Heaps::HeapType heap);
 gfModelAnimation* __ct1__16gfModelAnimationFd(void* self, nw4r::g3d::ResFile* file, nw4r::g3d::ResMdl* mdl, bool doBind, const char* animName, Heaps::HeapType heap);
 }
-void ResFile_Bind(nw4r::g3d::ResFile* self, nw4r::g3d::ResFile file);
-nw4r::g3d::ResMdl ResFile_GetResMdlByName(nw4r::g3d::ResFile* file, const char* name);
-nw4r::g3d::ResMdl ResFile_GetResMdlByIndex(nw4r::g3d::ResFile* file, int index);
 nw4r::g3d::ScnMdl* ScnMdl_Construct(MEMAllocator* allocator, u32* size, nw4r::g3d::ResMdl mdl, u32 bufferOption, int nView, void (*callback)());
 
 extern "C" {
@@ -254,11 +246,11 @@ MuObject::MuObject(nw4r::g3d::ResFile* modelSource, const char* modelNode, int d
     m_heapType = heapType;
     m_resFile = *modelSource;
     if (textureSource != NULL) {
-        ResFile_Bind(&m_resFile, *textureSource);
+        m_resFile.Bind(*textureSource);
     } else {
-        ResFile_Bind(&m_resFile, m_resFile);
+        m_resFile.Bind(m_resFile);
     }
-    m_resMdl = ResFile_GetResMdlByName(&m_resFile, modelNode);
+    m_resMdl = m_resFile.GetResMdl(modelNode);
     u32 flags;
     if (isByName) {
         flags = getScnMdlBufferFlags(&m_resFile) | 0x10b;
@@ -297,11 +289,11 @@ MuObject::MuObject(nw4r::g3d::ResFile* modelSource, int node, int drawPriority, 
     m_heapType = heapType;
     m_resFile = *modelSource;
     if (textureSource != NULL) {
-        ResFile_Bind(&m_resFile, *textureSource);
+        m_resFile.Bind(*textureSource);
     } else {
-        ResFile_Bind(&m_resFile, m_resFile);
+        m_resFile.Bind(m_resFile);
     }
-    m_resMdl = ResFile_GetResMdlByIndex(&m_resFile, node);
+    m_resMdl = m_resFile.GetResMdl(node);
     u32 flags;
     if (isByIndex) {
         flags = getScnMdlBufferFlags(&m_resFile) | 0x10b;
@@ -413,8 +405,8 @@ void MuObject::initFromFile(const char* path, int drawPriority, int node, nw4r::
         gfHeapManager::dumpAll();
     }
     nw4r::g3d::ResFile::Init(&m_resFile);
-    ResFile_Bind(&m_resFile, textureSource != NULL ? *textureSource : m_resFile);
-    m_resMdl = ResFile_GetResMdlByIndex(&m_resFile, node);
+    m_resFile.Bind(textureSource != NULL ? *textureSource : m_resFile);
+    m_resMdl = m_resFile.GetResMdl(node);
     u32 flags = getScnMdlBufferFlags(&m_resFile);
     u32 size;
     nw4r::g3d::ScnMdl* scnMdl = ScnMdl_Construct(allocator, &size, m_resMdl, flags | 0x10b, 1, fn_801B0A28);
@@ -616,14 +608,14 @@ static inline void bindNodeAnimImpl(MuObject* self, nw4r::g3d::ResAnmChr anim) {
 }
 
 void MuObject::changeNodeAnimN(const char* animName) {
-    nw4r::g3d::ResAnmChr anim = ResFile_GetResAnmChrByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmChr anim = m_resFile.GetResAnmChr(animName);
     if (anim.IsValid()) {
         bindNodeAnimImpl(this, anim);
     }
 }
 
 bool MuObject::changeNodeAnimNIf(const char* animName) {
-    nw4r::g3d::ResAnmChr anim = ResFile_GetResAnmChrByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmChr anim = m_resFile.GetResAnmChr(animName);
     if (!anim.IsValid()) {
         return false;
     }
@@ -650,14 +642,14 @@ static inline void bindVisAnimImpl(MuObject* self, nw4r::g3d::ResAnmVis anim) {
 }
 
 void MuObject::changeVisAnimN(const char* animName) {
-    nw4r::g3d::ResAnmVis anim = ResFile_GetResAnmVisByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmVis anim = m_resFile.GetResAnmVis(animName);
     if (anim.IsValid()) {
         bindVisAnimImpl(this, anim);
     }
 }
 
 bool MuObject::changeVisAnimNIf(const char* animName) {
-    nw4r::g3d::ResAnmVis anim = ResFile_GetResAnmVisByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmVis anim = m_resFile.GetResAnmVis(animName);
     if (!anim.IsValid()) {
         return false;
     }
@@ -746,14 +738,14 @@ static inline void bindTexPatAnimImpl(MuObject* self, nw4r::g3d::ResAnmTexPat an
 }
 
 void MuObject::changeTexPatAnimN(const char* animName) {
-    nw4r::g3d::ResAnmTexPat anim = ResFile_GetResAnmTexPatByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmTexPat anim = m_resFile.GetResAnmTexPat(animName);
     if (anim.IsValid()) {
         bindTexPatAnimImpl(this, anim);
     }
 }
 
 bool MuObject::changeTexPatAnimNIf(const char* animName) {
-    nw4r::g3d::ResAnmTexPat anim = ResFile_GetResAnmTexPatByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmTexPat anim = m_resFile.GetResAnmTexPat(animName);
     if (!anim.IsValid()) {
         return false;
     }
@@ -776,14 +768,14 @@ static inline void bindTexSrtAnimImpl(MuObject* self, nw4r::g3d::ResAnmTexSrt an
 }
 
 void MuObject::changeTexSrtAnimN(const char* animName) {
-    nw4r::g3d::ResAnmTexSrt anim = ResFile_GetResAnmTexSrtByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmTexSrt anim = m_resFile.GetResAnmTexSrt(animName);
     if (anim.IsValid()) {
         bindTexSrtAnimImpl(this, anim);
     }
 }
 
 bool MuObject::changeTexSrtAnimNIf(const char* animName) {
-    nw4r::g3d::ResAnmTexSrt anim = ResFile_GetResAnmTexSrtByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmTexSrt anim = m_resFile.GetResAnmTexSrt(animName);
     if (!anim.IsValid()) {
         return false;
     }
@@ -806,14 +798,14 @@ static inline void bindClrAnimImpl(MuObject* self, nw4r::g3d::ResAnmClr anim) {
 }
 
 void MuObject::changeClrAnimN(const char* animName) {
-    nw4r::g3d::ResAnmClr anim = ResFile_GetResAnmClrByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmClr anim = m_resFile.GetResAnmClr(animName);
     if (anim.IsValid()) {
         bindClrAnimImpl(this, anim);
     }
 }
 
 bool MuObject::changeClrAnimNIf(const char* animName) {
-    nw4r::g3d::ResAnmClr anim = ResFile_GetResAnmClrByName(&m_resFile, animName);
+    nw4r::g3d::ResAnmClr anim = m_resFile.GetResAnmClr(animName);
     if (!anim.IsValid()) {
         return false;
     }
@@ -836,31 +828,31 @@ u16 MuObject::getNodeAnimLength() {
 
 void MuObject::changeAnimN(const char* animName) {
     {
-        nw4r::g3d::ResAnmChr anim = ResFile_GetResAnmChrByName(&m_resFile, animName);
+        nw4r::g3d::ResAnmChr anim = m_resFile.GetResAnmChr(animName);
         if (anim.IsValid()) {
             bindNodeAnimImpl(this, anim);
         }
     }
     {
-        nw4r::g3d::ResAnmVis anim = ResFile_GetResAnmVisByName(&m_resFile, animName);
+        nw4r::g3d::ResAnmVis anim = m_resFile.GetResAnmVis(animName);
         if (anim.IsValid()) {
             bindVisAnimImpl(this, anim);
         }
     }
     {
-        nw4r::g3d::ResAnmTexPat anim = ResFile_GetResAnmTexPatByName(&m_resFile, animName);
+        nw4r::g3d::ResAnmTexPat anim = m_resFile.GetResAnmTexPat(animName);
         if (anim.IsValid()) {
             bindTexPatAnimImpl(this, anim);
         }
     }
     {
-        nw4r::g3d::ResAnmTexSrt anim = ResFile_GetResAnmTexSrtByName(&m_resFile, animName);
+        nw4r::g3d::ResAnmTexSrt anim = m_resFile.GetResAnmTexSrt(animName);
         if (anim.IsValid()) {
             bindTexSrtAnimImpl(this, anim);
         }
     }
     {
-        nw4r::g3d::ResAnmClr anim = ResFile_GetResAnmClrByName(&m_resFile, animName);
+        nw4r::g3d::ResAnmClr anim = m_resFile.GetResAnmClr(animName);
         if (anim.IsValid()) {
             bindClrAnimImpl(this, anim);
         }
@@ -1494,7 +1486,7 @@ void MuObject::setAnimName(MuAnimNameData* data, bool force) {
         bool valid = true;
         if (m_animNameData->m_flags & 1) {
             if (changed || m_modelAnim->m_anmObjChrRes == NULL) {
-                nw4r::g3d::ResAnmChr anim = ResFile_GetResAnmChrByName(&m_resFile, name);
+                nw4r::g3d::ResAnmChr anim = m_resFile.GetResAnmChr(name);
                 if (!anim.IsValid()) {
                     valid = false;
                 } else {
@@ -1512,7 +1504,7 @@ void MuObject::setAnimName(MuAnimNameData* data, bool force) {
         bool valid = true;
         if (m_animNameData->m_flags & 2) {
             if (changed || m_modelAnim->m_anmObjVisRes == NULL) {
-                nw4r::g3d::ResAnmVis anim = ResFile_GetResAnmVisByName(&m_resFile, name);
+                nw4r::g3d::ResAnmVis anim = m_resFile.GetResAnmVis(name);
                 if (!anim.IsValid()) {
                     valid = false;
                 } else {
@@ -1530,7 +1522,7 @@ void MuObject::setAnimName(MuAnimNameData* data, bool force) {
         bool valid = true;
         if (m_animNameData->m_flags & 4) {
             if (changed || m_modelAnim->m_anmObjTexPatRes == NULL) {
-                nw4r::g3d::ResAnmTexPat anim = ResFile_GetResAnmTexPatByName(&m_resFile, name);
+                nw4r::g3d::ResAnmTexPat anim = m_resFile.GetResAnmTexPat(name);
                 if (!anim.IsValid()) {
                     valid = false;
                 } else {
@@ -1548,7 +1540,7 @@ void MuObject::setAnimName(MuAnimNameData* data, bool force) {
         bool valid = true;
         if (m_animNameData->m_flags & 8) {
             if (changed || m_modelAnim->m_anmObjTexSrtRes == NULL) {
-                nw4r::g3d::ResAnmTexSrt anim = ResFile_GetResAnmTexSrtByName(&m_resFile, name);
+                nw4r::g3d::ResAnmTexSrt anim = m_resFile.GetResAnmTexSrt(name);
                 if (!anim.IsValid()) {
                     valid = false;
                 } else {
@@ -1566,7 +1558,7 @@ void MuObject::setAnimName(MuAnimNameData* data, bool force) {
         bool valid = true;
         if (m_animNameData->m_flags & 16) {
             if (changed || m_modelAnim->m_anmObjMatClrRes == NULL) {
-                nw4r::g3d::ResAnmClr anim = ResFile_GetResAnmClrByName(&m_resFile, name);
+                nw4r::g3d::ResAnmClr anim = m_resFile.GetResAnmClr(name);
                 if (!anim.IsValid()) {
                     valid = false;
                 } else {

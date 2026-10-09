@@ -67,31 +67,26 @@ static int isBasicPointerType(int type) {
     return (u32)r;
 }
 
-static int isPointerType(const hkClassMember& m) {
+int isPointerType(const hkClassMember& m) {
     int r = 0;
-    if (isBasicPointerType(m.m_type) || (m.m_type == 0x13 && isBasicPointerType(m.m_subtype))) {
+    if (isBasicPointerType(m.m_type) || ((int)m.m_type == 0x13 && isBasicPointerType(m.m_subtype))) {
         r = 1;
     }
     return r;
 }
 
-static int getLayoutAlignment(const hkClassMember& m, int type, int ptrAlign) {
+int getLayoutAlignment(const hkClassMember& m, int type, int ptrAlign) {
     int align = -1;
-    if (type == 0x17) {
-        return -1;
-    }
-    if (type < 0x17) {
-        if (type == 0x13) {
-            return getLayoutAlignment(m, m.m_subtype, ptrAlign);
-        }
-        if (type > 0x12) {
-            return ptrAlign;
-        }
-        if (type < 0) {
-            return -1;
-        }
-    } else {
-        if (type == 0x19) {
+    if (type != 0x17) {
+        if (type < 0x17) {
+            if (type == 0x13) {
+                align = getLayoutAlignment(m, m.m_subtype, ptrAlign);
+            } else if (type > 0x13) {
+                align = ptrAlign;
+            } else if (type >= 0) {
+                align = m.getAlignment();
+            }
+        } else if (type == 0x19) {
             align = 1;
             const hkClass* k = m.getStructClass();
             for (int i = 0; i < k->getNumMembers(); i++) {
@@ -101,29 +96,26 @@ static int getLayoutAlignment(const hkClassMember& m, int type, int ptrAlign) {
                     align = a;
                 }
             }
-            return align;
-        }
-        if (type > 0x18) {
+        } else if (type > 0x19) {
             if (type < 0x1E) {
-                return ptrAlign;
+                align = ptrAlign;
             }
-            return -1;
+        } else {
+            align = m.getAlignment();
         }
     }
-    return m.getAlignment();
+    return align;
 }
 
-static void retargetClassInplace(hkClass* klass, const hkStructureLayout::LayoutRules& rules,
+void retargetClassInplace(hkClass* klass, const hkStructureLayout::LayoutRules& rules,
                                  hkPointerMapBase<hkUlong>& done) {
     done.insert((hkUlong)klass, 0);
     int numMembers = klass->getNumMembers();
     for (int i = 0; i < numMembers; i++) {
         hkClassMember& m = (hkClassMember&)klass->getMember(i);
         bool recurse = false;
-        if (m.m_class != 0) {
-            if (!hkPointerMapHasKey(done, (hkUlong)m.getStructClass())) {
-                recurse = true;
-            }
+        if (m.m_class != 0 && !hkPointerMapHasKey(done, (hkUlong)m.getStructClass())) {
+            recurse = true;
         }
         if (recurse) {
             retargetClassInplace((hkClass*)m.getStructClass(), rules, done);

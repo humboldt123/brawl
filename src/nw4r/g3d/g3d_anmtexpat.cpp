@@ -317,7 +317,7 @@ const TexPatAnmResult* AnmObjTexPatOverride::GetResult(TexPatAnmResult* pResult,
  *
  ******************************************************************************/
 AnmObjTexPatRes* AnmObjTexPatRes::Construct(MEMAllocator* pAllocator,
-                                            u32* pSize, ResAnmTexPat pat,
+                                            int* pSize, ResAnmTexPat pat,
                                             ResMdl mdl, bool cache) {
     if (!pat.IsValid() || !mdl.IsValid()) {
         return NULL;

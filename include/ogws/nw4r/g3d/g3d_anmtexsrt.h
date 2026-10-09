@@ -128,7 +128,7 @@ public:
  ******************************************************************************/
 class AnmObjTexSrtRes : public AnmObjTexSrt, protected FrameCtrl {
 public:
-    static AnmObjTexSrtRes* Construct(MEMAllocator* pAllocator, u32* pSize,
+    static AnmObjTexSrtRes* Construct(MEMAllocator* pAllocator, int* pSize,
                                       ResAnmTexSrt srt, ResMdl mdl, bool cache);
 
     AnmObjTexSrtRes(MEMAllocator* pAllocator, ResAnmTexSrt srt,

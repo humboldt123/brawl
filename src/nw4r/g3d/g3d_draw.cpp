@@ -232,9 +232,16 @@ void SetupDraw1Mat1ShpSwap(Draw1Mat1ShpSwap* pSwap,
         pSwap->tev = ResTev(NULL);
     }
 
-    pSwap->vtxPosTable = pReplacement->vtxPosTable;
-    pSwap->vtxNrmTable = pReplacement->vtxNrmTable;
-    pSwap->vtxClrTable = pReplacement->vtxClrTable;
+    // HYPOTHESIS: bit 0 of unk0 disables the replacement vertex tables.
+    if (pReplacement->unk0 & 1) {
+        pSwap->vtxPosTable = NULL;
+        pSwap->vtxNrmTable = NULL;
+        pSwap->vtxClrTable = NULL;
+    } else {
+        pSwap->vtxPosTable = pReplacement->vtxPosTable;
+        pSwap->vtxNrmTable = pReplacement->vtxNrmTable;
+        pSwap->vtxClrTable = pReplacement->vtxClrTable;
+    }
 }
 
 inline bool FrontToBack(const detail::workmem::MdlZ& rLhs,

@@ -4,6 +4,9 @@
 #include <revolution/BASE.h>
 #include <revolution/GX.h>
 
+// Global wrapper in the original (symbol G3DState_Invalidate__FUl); defined in g3d_state.cpp.
+void G3DState_Invalidate(u32 flag);
+
 namespace nw4r {
 namespace g3d {
 
@@ -171,7 +174,7 @@ void Draw1Mat1ShpDirectly(ResMat mat, ResShp shp, const math::MTX34* pViewPos,
 
         if (ctrl & DRAW1MAT1SHP_CTRL_CULL_FRONT) {
             fifo::GDSetCullMode(GX_CULL_FRONT);
-            G3DState::Invalidate(G3DState::INVALIDATE_SHP);
+            G3DState_Invalidate(G3DState::INVALIDATE_SHP);
         }
 
         G3DState::LoadResShpPrimitive(shp, pViewPos, pViewNrm);

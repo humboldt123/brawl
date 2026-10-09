@@ -314,7 +314,7 @@ const ClrAnmResult* AnmObjMatClrOverride::GetResult(ClrAnmResult* pResult,
  *
  ******************************************************************************/
 AnmObjMatClrRes* AnmObjMatClrRes::Construct(MEMAllocator* pAllocator,
-                                            u32* pSize, ResAnmClr clr,
+                                            int* pSize, ResAnmClr clr,
                                             ResMdl mdl, bool cache) {
     if (!clr.IsValid() || !mdl.IsValid()) {
         return NULL;

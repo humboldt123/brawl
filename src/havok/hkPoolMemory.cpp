@@ -265,18 +265,21 @@ bool hkPoolMemory::isAllocateChunkByRowSupported() {
 
 void hkPoolMemory::preAllocateRuntimeBlock(int nbytes, int cl) {
     int i = m_numRuntimeBlocks++;
-    m_blocks[i].m_free = 1;
-    m_blocks[i].m_size = nbytes;
-    m_blocks[i].m_ptr = allocateChunk(nbytes, cl);
-    m_blocks[i].m_class = cl;
-    m_blocks[i].m_provided = 0;
+    RuntimeBlock* b = &m_blocks[i];
+    b->m_free = 1;
+    b->m_size = nbytes;
+    b->m_ptr = allocateChunk(nbytes, cl);
+    b->m_class = cl;
+    b->m_provided = 0;
 }
 
 void hkPoolMemory::freeRuntimeBlocks() {
+    RuntimeBlock* b = &m_blocks[0];
     for (int i = 0; i < m_numRuntimeBlocks; i++) {
-        if (!m_blocks[i].m_provided) {
-            deallocateChunk(m_blocks[i].m_ptr, m_blocks[i].m_size, m_blocks[i].m_class);
+        if (!b->m_provided) {
+            deallocateChunk(b->m_ptr, b->m_size, b->m_class);
         }
+        b++;
     }
     m_numRuntimeBlocks = 0;
 }
@@ -287,8 +290,8 @@ void* hkPoolMemory::allocateRuntimeBlock(int nbytes, int cl) {
     }
     int numBlocks = m_numRuntimeBlocks;
     RuntimeBlock* best = 0;
-    for (int i = 0; i < numBlocks; i++) {
-        RuntimeBlock* b = &m_blocks[i];
+    RuntimeBlock* b = &m_blocks[0];
+    for (int i = 0; i < numBlocks; i++, b++) {
         bool fits = false;
         if (b->m_free == 1 && nbytes <= b->m_size) {
             fits = true;
@@ -305,12 +308,14 @@ void* hkPoolMemory::allocateRuntimeBlock(int nbytes, int cl) {
             alloc *= 2;
         }
         if (numBlocks < 0x80) {
-            char buf[0x200];
-            hkBool isString(true);
-            hkOstream os(buf, 0x200, isString);
-            os << "No block of size " << nbytes
-               << " currently available. Allocating new block from system memory.";
-            hkError::getInstance().message(1, 0xAF55ADDE, buf, "hkPoolMemory.cpp", 779);
+            {
+                char buf[0x200];
+                hkBool isString(true);
+                hkOstream os(buf, 0x200, isString);
+                os << "No block of size " << nbytes
+                   << " currently available. Allocating new block from system memory.";
+                hkError::getInstance().message(1, 0xAF55ADDE, buf, "hkPoolMemory.cpp", 779);
+            }
             int i = m_numRuntimeBlocks++;
             m_blocks[i].m_free = 0;
             m_blocks[i].m_size = alloc - 0x40;
@@ -319,12 +324,14 @@ void* hkPoolMemory::allocateRuntimeBlock(int nbytes, int cl) {
             m_blocks[i].m_provided = 0;
             return m_blocks[i].m_ptr;
         }
-        char buf[0x200];
-        hkBool isString(true);
-        hkOstream os(buf, 0x200, isString);
-        os << "No block of size " << nbytes
-           << " currently available and out of big block memory slots. Allocating unmanaged system memory.";
-        hkError::getInstance().message(1, 0xAF55ADDE, buf, "hkPoolMemory.cpp", 792);
+        {
+            char buf[0x200];
+            hkBool isString(true);
+            hkOstream os(buf, 0x200, isString);
+            os << "No block of size " << nbytes
+               << " currently available and out of big block memory slots. Allocating unmanaged system memory.";
+            hkError::getInstance().message(1, 0xAF55ADDE, buf, "hkPoolMemory.cpp", 792);
+        }
         return allocateChunk(nbytes, cl);
     }
     best->m_free = 0;
@@ -344,19 +351,22 @@ void hkPoolMemory::deallocateRuntimeBlock(void* p, int nbytes, int cl) {
             return;
         }
     }
-    char buf[0x200];
-    hkBool isString(true);
-    hkOstream os(buf, 0x200, isString);
-    os << "Deallocating unmanaged big block.";
-    hkError::getInstance().message(1, 0xAF55ADDF, buf, "hkPoolMemory.cpp", 820);
+    {
+        char buf[0x200];
+        hkBool isString(true);
+        hkOstream os(buf, 0x200, isString);
+        os << "Deallocating unmanaged big block.";
+        hkError::getInstance().message(1, 0xAF55ADDF, buf, "hkPoolMemory.cpp", 820);
+    }
     deallocateChunk(p, nbytes, cl);
 }
 
 void hkPoolMemory::provideRuntimeBlock(void* p, int nbytes, int cl) {
     int i = m_numRuntimeBlocks++;
-    m_blocks[i].m_free = 1;
-    m_blocks[i].m_size = nbytes;
-    m_blocks[i].m_ptr = p;
-    m_blocks[i].m_class = cl;
-    m_blocks[i].m_provided = 1;
+    RuntimeBlock* b = &m_blocks[i];
+    b->m_free = 1;
+    b->m_size = nbytes;
+    b->m_ptr = p;
+    b->m_class = cl;
+    b->m_provided = 1;
 }

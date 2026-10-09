@@ -315,7 +315,7 @@ bool AnmObjVisOR::GetResult(u32 idx) {
  * AnmObjVisRes
  *
  ******************************************************************************/
-AnmObjVisRes* AnmObjVisRes::Construct(MEMAllocator* pAllocator, u32* pSize,
+AnmObjVisRes* AnmObjVisRes::Construct(MEMAllocator* pAllocator, int* pSize,
                                       ResAnmVis vis, ResMdl mdl) {
     if (!vis.IsValid() || !mdl.IsValid()) {
         return NULL;

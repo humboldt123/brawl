@@ -4,19 +4,16 @@
 
 void hkMatrix3::transpose() {
     float* m = elements;
-    float value9;
-    float value8;
-    float value4;
 
-    value4 = m[4];
+    float value4 = m[4];
     m[4] = m[1];
     m[1] = value4;
 
-    value8 = m[8];
+    float value8 = m[8];
     m[8] = m[2];
     m[2] = value8;
 
-    value9 = m[9];
+    float value9 = m[9];
     m[9] = m[6];
     m[6] = value9;
 }
@@ -96,28 +93,18 @@ void hkMatrix3::setTranspose(const hkMatrix3& other) {
     const float* src = other.elements;
     float* dst = elements;
 
-    const float m0 = src[0];
-    const float m1 = src[1];
-    const float m2 = src[2];
-    const float m4 = src[4];
-    const float m5 = src[5];
-    const float m6 = src[6];
-    const float m8 = src[8];
-    const float m9 = src[9];
-    const float m10 = src[10];
-
-    dst[0] = m0;
-    dst[1] = m4;
-    dst[2] = m8;
+    dst[0] = src[0];
+    dst[5] = src[5];
+    dst[10] = src[10];
     dst[3] = 0.0f;
-    dst[4] = m1;
-    dst[5] = m5;
-    dst[6] = m9;
     dst[7] = 0.0f;
-    dst[8] = m2;
-    dst[9] = m6;
-    dst[10] = m10;
     dst[11] = 0.0f;
+    dst[1] = src[4];
+    dst[4] = src[1];
+    dst[2] = src[8];
+    dst[8] = src[2];
+    dst[6] = src[9];
+    dst[9] = src[6];
 }
 
 void hkMatrix3::setMul(const hkMatrix3& lhs, const hkMatrix3& rhs) {
@@ -191,31 +178,18 @@ void hkMatrix3::setMul(float scalar, const hkMatrix3& other) {
     const float* src = other.elements;
     float* dst = elements;
 
-    const float m0 = src[0];
-    const float m1 = src[1];
-    const float m2 = src[2];
-    const float m3 = src[3];
-    const float m4 = src[4];
-    const float m5 = src[5];
-    const float m6 = src[6];
-    const float m7 = src[7];
-    const float m8 = src[8];
-    const float m9 = src[9];
-    const float m10 = src[10];
-    const float m11 = src[11];
-
-    dst[0] = scalar * m0;
-    dst[1] = scalar * m1;
-    dst[2] = scalar * m2;
-    dst[3] = scalar * m3;
-    dst[4] = scalar * m4;
-    dst[5] = scalar * m5;
-    dst[6] = scalar * m6;
-    dst[7] = scalar * m7;
-    dst[8] = scalar * m8;
-    dst[9] = scalar * m9;
-    dst[10] = scalar * m10;
-    dst[11] = scalar * m11;
+    dst[0] = scalar * src[0];
+    dst[1] = scalar * src[1];
+    dst[2] = scalar * src[2];
+    dst[3] = scalar * src[3];
+    dst[4] = scalar * src[4];
+    dst[5] = scalar * src[5];
+    dst[6] = scalar * src[6];
+    dst[7] = scalar * src[7];
+    dst[8] = scalar * src[8];
+    dst[9] = scalar * src[9];
+    dst[10] = scalar * src[10];
+    dst[11] = scalar * src[11];
 }
 
 void hkMatrix3::setMulInverse(const hkMatrix3& lhs, const hkMatrix3& rhs) {

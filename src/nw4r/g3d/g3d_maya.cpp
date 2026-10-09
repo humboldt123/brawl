@@ -329,15 +329,6 @@ u32 CalcWorldMtx_Maya_SSC_Apply(math::MTX34* pW, math::VEC3* pS,
                                 const math::MTX34* pW1, const math::VEC3* pS1,
                                 u32 attr, const ChrAnmResult* pResult) {
     u32 flag = pResult->flags;
-    u32 newAttr = attr;
-
-    if (flag & ChrAnmResult::FLAG_SCALE_ONE) {
-        newAttr = detail::WorldMtxAttr::AnmScaleOne(newAttr);
-        pS->x = pS->y = pS->z = 1.0f;
-    } else {
-        newAttr = detail::WorldMtxAttr::AnmNotScaleOne(newAttr);
-        *pS = pResult->s;
-    }
 
     if ((flag & ChrAnmResult::FLAG_MTX_IDENT) ||
         (flag & ChrAnmResult::FLAG_ROT_TRANS_ZERO)) {
@@ -365,6 +356,15 @@ u32 CalcWorldMtx_Maya_SSC_Apply(math::MTX34* pW, math::VEC3* pS,
         pW->_23 *= pS1->z;
 
         math::MTX34Mult(pW, pW1, pW);
+    }
+
+    u32 newAttr;
+    if (flag & ChrAnmResult::FLAG_SCALE_ONE) {
+        newAttr = detail::WorldMtxAttr::AnmScaleOne(attr);
+        pS->x = pS->y = pS->z = 1.0f;
+    } else {
+        newAttr = detail::WorldMtxAttr::AnmNotScaleOne(attr);
+        *pS = pResult->s;
     }
 
     if (flag & ChrAnmResult::FLAG_SCALE_UNIFORM) {

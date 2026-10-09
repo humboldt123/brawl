@@ -302,13 +302,11 @@ bool AnmScnRes::GetLightSet(LightSet set, u32 refNumber) {
     }
 
     u32 numLight = lightSet.GetNumLight();
-    u32 specIdx = 7;
     u32 i = 0;
+    u32 specIdx = 7;
 
     for (; i < numLight; i++) {
-        if (lightSet.GetLightID(i) == ResLightSetData::INVALID_ID) {
-            set.SelectLightObj(i, -1);
-        } else {
+        if (lightSet.GetLightID(i) != ResLightSetData::INVALID_ID) {
             ResAnmLight light = mRes.GetResAnmLight(lightSet.GetLightID(i));
             set.SelectLightObj(i, light.GetRefNumber());
 
@@ -316,6 +314,8 @@ bool AnmScnRes::GetLightSet(LightSet set, u32 refNumber) {
                 set.SelectLightObj(specIdx, light.GetSpecularLightIdx());
                 specIdx--;
             }
+        } else {
+            set.SelectLightObj(i, -1);
         }
     }
 
@@ -323,11 +323,11 @@ bool AnmScnRes::GetLightSet(LightSet set, u32 refNumber) {
         set.SelectLightObj(i, -1);
     }
 
-    if (!lightSet.HasAmbLight()) {
-        set.SelectAmbLightObj(-1);
-    } else {
+    if (lightSet.HasAmbLight()) {
         ResAnmAmbLight amb = mRes.GetResAnmAmbLight(lightSet.GetAmbLightID());
         set.SelectAmbLightObj(amb.GetRefNumber());
+    } else {
+        set.SelectAmbLightObj(-1);
     }
 
     return true;
@@ -357,23 +357,13 @@ void AnmScnRes::GetLight(LightObj* pDiff, LightObj* pSpec, u32 refNumber) {
 
     const LightAnmResult* pResult = GetLightResult(&buf, refNumber);
 
-    if (!(pResult->flags & LightAnmResult::FLAG_LIGHT_ENABLE)) {
-        if (pDiff != NULL) {
-            pDiff->Disable();
-        }
-
-        if (pSpec != NULL) {
-            pSpec->Disable();
-        }
-    } else {
+    if (pResult->flags & LightAnmResult::FLAG_LIGHT_ENABLE) {
         if (pDiff != NULL) {
             MakeDiffuseLightObj(pDiff, pResult);
         }
 
         if (pSpec != NULL) {
-            if (!(pResult->flags & LightAnmResult::FLAG_SPECULAR_ENABLE)) {
-                pSpec->Disable();
-            } else {
+            if (pResult->flags & LightAnmResult::FLAG_SPECULAR_ENABLE) {
                 math::VEC3 dir = pResult->aim - pResult->pos;
                 math::VEC3Normalize(&dir, &dir);
 
@@ -393,7 +383,17 @@ void AnmScnRes::GetLight(LightObj* pDiff, LightObj* pSpec, u32 refNumber) {
                 }
 
                 pSpec->Enable();
+            } else {
+                pSpec->Disable();
             }
+        }
+    } else {
+        if (pDiff != NULL) {
+            pDiff->Disable();
+        }
+
+        if (pSpec != NULL) {
+            pSpec->Disable();
         }
     }
 }
