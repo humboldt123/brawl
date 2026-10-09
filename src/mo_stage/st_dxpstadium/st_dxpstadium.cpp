@@ -44,6 +44,21 @@ static inline void stDxPStadiumSwap(u8& x, u8& y) {
     y = tmp;
 }
 
+// MATCH-ONLY: the original scales vectors with paired singles (inline asm in the shared vector code).
+static inline void stDxPStadiumVec3Scale(register Vec3f* pOut, register const Vec3f* v, register float c) {
+    register float fr0, fr1;
+    // clang-format off
+    asm {
+        psq_l    fr0, Vec3f.m_x(v), 0, 0
+        psq_l    fr1, Vec3f.m_z(v), 1, 0
+        ps_muls0 fr0, fr0, c
+        ps_muls0 fr1, fr1, c
+        psq_st   fr0, Vec3f.m_x(pOut), 0, 0
+        psq_st   fr1, Vec3f.m_z(pOut), 1, 0
+    }
+    // clang-format on
+}
+
 // The big screen is ground 0 and always a grStadiumVision.
 static inline grStadiumVision* stadiumVision(stDxPStadium* stage) {
     return static_cast<grStadiumVision*>(stage->getGround(0));
@@ -128,19 +143,32 @@ void stDxPStadium::createObj() {
     createCollision(m_fileData, 3, getGround(4));
     createCollision(m_fileData, 4, getGround(7));
     createCollision(m_fileData, 5, getGround(9));
-    stadiumVision(this)->m_unk174 = 0.45f;
-    stadiumVision(this)->m_unk178 = 0.45f;
-    stadiumVision(this)->m_unk17C = 18.0f;
-    stadiumVision(this)->m_unk180 = 15.0f;
-    stadiumVision(this)->m_unk190 = -0x55;
-    stadiumVision(this)->m_unk192 = 0x55;
-    stadiumVision(this)->m_unk194 = -0x37;
-    stadiumVision(this)->m_unk196 = -0x37;
-    stadiumVision(this)->m_unk19A = -0xF;
-    stadiumVision(this)->m_unk19C = -5;
-    stadiumVision(this)->m_unk184 = 0.5f;
-    stadiumVision(this)->m_unk188 = 4.5f * stadiumVision(this)->m_unk180;
-    stadiumVision(this)->m_unk18C = 1.6f * stadiumVision(this)->m_unk174;
+    float visionValue = 0.45f;
+    stadiumVision(this)->m_unk174 = visionValue;
+    stadiumVision(this)->m_unk178 = visionValue;
+    visionValue = 18.0f;
+    stadiumVision(this)->m_unk17C = visionValue;
+    visionValue = 15.0f;
+    stadiumVision(this)->m_unk180 = visionValue;
+    s16 visionShort = -0x55;
+    stadiumVision(this)->m_unk190 = visionShort;
+    visionShort = 0x55;
+    stadiumVision(this)->m_unk192 = visionShort;
+    visionShort = -0x37;
+    stadiumVision(this)->m_unk194 = visionShort;
+    stadiumVision(this)->m_unk196 = visionShort;
+    visionShort = -0xF;
+    stadiumVision(this)->m_unk19A = visionShort;
+    visionShort = -5;
+    stadiumVision(this)->m_unk19C = visionShort;
+    visionValue = 0.5f;
+    stadiumVision(this)->m_unk184 = visionValue;
+    float visionSource = stadiumVision(this)->m_unk180;
+    visionValue = 4.5f * visionSource;
+    stadiumVision(this)->m_unk188 = visionValue;
+    visionSource = stadiumVision(this)->m_unk174;
+    visionValue = 1.6f * visionSource;
+    stadiumVision(this)->m_unk18C = visionValue;
     for (u32 i = 1; i < getGroundNum(); i++) {
         static_cast<grMadein*>(getGround(i))->initializeEntity();
     }
@@ -187,11 +215,12 @@ void stDxPStadium::createObj() {
     m_visionActive = false;
     getGround(0)->setNodeVisibility(false, 0, "Dummy", false, false);
     stadiumVision(this)->setDisplay(false);
-    Vec3f beltPos(-52.0f, 0.0f, 0.0f);
-    Vec2f beltAreaPos(0.0f, 0.0f);
-    Vec2f beltAreaRange(41.4f, 10.0f);
-    m_beltData = new (Heaps::StageResource) grGimmickBeltConveyorData(&beltPos, 6.0f, false, &beltAreaPos, &beltAreaRange, gfArea::Shape_Rectangle);
+    m_beltData = new (Heaps::StageResource) grGimmickBeltConveyorData();
     if (m_beltData != NULL) {
+        Vec3f beltPos(-52.0f, 0.0f, 0.0f);
+        Vec2f beltAreaPos(0.0f, 0.0f);
+        Vec2f beltAreaRange(41.4f, 10.0f);
+        m_beltData->initialize(&beltPos, 6.0f, false, &beltAreaPos, &beltAreaRange, gfArea::Shape_Rectangle);
         m_beltTrigger = g_stTriggerMng->createTrigger(Gimmick::Area_BeltConveyor, -1);
         m_beltTrigger->setBeltConveyorTrigger(m_beltData);
         m_beltTrigger->setAreaSleep(true);
@@ -762,11 +791,11 @@ void stDxPStadium::setVision(u8 kind) {
 // Puts one of the fighters in play on the big screen (round robin).
 void stDxPStadium::startPlayerVision() {
     Vec3f pos;
-    int players[4] = {0, 0, 0, 0};
     stadiumVision(this)->setDisplay(false);
     getGround(0)->setNodeVisibility(true, 0, "Dummy", false, false);
-    int* next = players;
     int count = 0;
+    int players[4] = {count, count, count, count};
+    int* next = players;
     for (int i = 0; i < 4; i++) {
         if (getPlayerPosition(i, &pos) == true) {
             *next++ = i;
@@ -795,12 +824,19 @@ void stDxPStadium::updateVisionRect() {
         m_visionZoom += (m_visionZoomTarget - m_visionZoom) / 10.0f;
         Vec3f cornerA(subject->m_range.m_left * m_visionZoom, subject->m_range.m_down * m_visionZoom, 0.0f);
         Vec3f cornerB(subject->m_range.m_right * m_visionZoom, subject->m_range.m_up * m_visionZoom, 0.0f);
-        cornerA += subject->m_pos;
-        cornerB += subject->m_pos;
-        Vec3f deltaA = (cornerA - m_visionPosA) / 4.0f;
-        m_visionPosA += deltaA;
-        Vec3f deltaB = (cornerB - m_visionPosB) / 4.0f;
-        m_visionPosB += deltaB;
+        Vec3fAdd(&cornerA, &cornerA, &subject->m_pos);
+        Vec3fAdd(&cornerB, &cornerB, &subject->m_pos);
+        float quarter = 4.0f;
+        Vec3f deltaA;
+        Vec3f scaledA;
+        Vec3fSub(&deltaA, &cornerA, &m_visionPosA);
+        stDxPStadiumVec3Scale(&scaledA, &deltaA, 1.0f / quarter);
+        Vec3fAdd(&m_visionPosA, &m_visionPosA, &scaledA);
+        Vec3f deltaB;
+        Vec3f scaledB;
+        Vec3fSub(&deltaB, &cornerB, &m_visionPosB);
+        stDxPStadiumVec3Scale(&scaledB, &deltaB, 1.0f / quarter);
+        Vec3fAdd(&m_visionPosB, &m_visionPosB, &scaledB);
         cornerA = m_visionPosA;
         cornerB = m_visionPosB;
         Vec2f screenA;
@@ -882,21 +918,22 @@ void stDxPStadium::updateVisionScreen() {
     if (m_visionActive) {
         Vec2f sum((m_visionLeft + m_visionRight), (m_visionTop + m_visionBottom));
         float width = m_visionRight - m_visionLeft;
-        float height = m_visionBottom - m_visionTop;
         Vec2f center = sum * 0.5f;
+        float height = m_visionBottom - m_visionTop;
         nw4r::g3d::ResMdl resMdl = getGround(0)->m_sceneModels[0]->m_resMdl;
         nw4r::g3d::ResMat resMat = resMdl.GetResMat("MDummy");
+        nw4r::g3d::ResTexSrt texSrt(reinterpret_cast<u8*>(resMat.ptr()) + 0x1A4);
         nw4r::g3d::ResTexObj texObj(reinterpret_cast<u8*>(resMat.ptr()) + 0x3C);
         GXTexObj* screenTex = texObj.GetTexObj(GX_TEXMAP0);
         if (gfCopyEFBMgr::getInstance()->isValid(0) == true) {
             *screenTex = *gfCopyEFBMgr::getInstance()->getCopyEFBTex(0);
         }
-        nw4r::g3d::ResTexSrt texSrt(reinterpret_cast<u8*>(resMat.ptr()) + 0x1A4);
         texSrt.SetMapMode(0, 0, -1, -1);
-        texSrt->m_range.m_x = width;
-        texSrt->m_range.m_y = height;
-        texSrt->m_pos.m_x = -(center.m_x - 0.5f * width) / width;
-        texSrt->m_pos.m_y = -(center.m_y - 0.5f * height) / height;
+        nw4r::g3d::ResTexSrtData* srt = texSrt.ptr();
+        srt->m_range.m_x = width;
+        srt->m_range.m_y = height;
+        srt->m_pos.m_x = -(center.m_x - 0.5f * width) / width;
+        srt->m_pos.m_y = -(center.m_y - 0.5f * height) / height;
         texSrt->m_flags = (texSrt->m_flags & ~0xF) | 5;
         updateVisionRect();
     }
