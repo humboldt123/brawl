@@ -1,4 +1,5 @@
 #include <ft/builder/ft_dol_array_list.h>
+#include <so/so_value_accesser.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/lucario/ft_lucario.h>
 #include <ft/lucario/ft_lucario_extend_param_accesser.h>
@@ -72,6 +73,49 @@ int fn_118_CF8C() { return 0; }
 int fn_118_D074() { return 0; }
 int fn_118_D15C() { return 0; }
 int fn_118_D244() { return 0; }
+
+}
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
+
+// soModuleAccesser::set_visible: looks up the visibility node for the id through the visibility module and forwards the flag.
+// HYPOTHESIS: field meanings of the visibility module (0x64 node source, 0x88 apply target).
+extern "C" {
+
+void fn_118_99DC(u8* acc, u32 id, u32 visible) {
+    u8* mod = *(u8**)(acc + 0xD8);
+    u8* obj = *(u8**)(mod + 0x64);
+    u8* sub = *(u8**)(mod + 0x88);
+    void* node = ((void* (*)(u8*, u32))((void**)*(void**)obj)[6])(obj, id);
+    if (node != 0) {
+        ((void (*)(u8*, void*, u32))((void**)*(void**)sub)[34])(sub, node, visible);
+    }
+}
+
+}
+
+// Effect suspend / resume for the four aura visibility ids (map: ftLucario__effect_suspend / effect_resume).
+extern "C" {
+
+void fn_118_98F4(u8* p) {
+    u8* acc = *(u8**)(p + 0x60);
+    fn_118_99DC(acc, 0x10000047, 0);
+    fn_118_99DC(acc, 0x10000048, 0);
+    fn_118_99DC(acc, 0x10000043, 0);
+    fn_118_99DC(acc, 0x10000044, 0);
+}
+
+void fn_118_9968(u8* p) {
+    u8* acc = *(u8**)(p + 0x60);
+    fn_118_99DC(acc, 0x10000047, 1);
+    fn_118_99DC(acc, 0x10000048, 1);
+    fn_118_99DC(acc, 0x10000043, 1);
+    fn_118_99DC(acc, 0x10000044, 1);
+}
 
 }
 

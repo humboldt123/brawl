@@ -29,6 +29,17 @@ void testBuilder() {
 }
 soInsideEventManageModuleBuilder<ftIkeInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
 
+// Resource-id accesser teardown is an empty out-of-line definition (same as ft_marth.cpp).
+#pragma dont_inline on
+soResourceIdAccesser::~soResourceIdAccesser() { }
+#pragma dont_inline off
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
+
 // Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
 extern "C" {
 
@@ -70,6 +81,21 @@ int fn_119_C26C() { return 0; }
 int fn_119_C354() { return 0; }
 int fn_119_C43C() { return 0; }
 int fn_119_C524() { return 0; }
+
+}
+
+// Status-change override: entering status 0x126 first sends the final-finish event (fn_119_8FFC, defined elsewhere), then forwards to Fighter.
+extern "C" void fn_119_8FFC(Fighter* p, soModuleAccesser* moduleAccesser);
+extern "C" {
+
+void fn_119_8F90(Fighter* p, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) {
+    switch (statusKind) {
+    case 0x126:
+        fn_119_8FFC(p, moduleAccesser);
+        break;
+    }
+    p->Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
+}
 
 }
 
