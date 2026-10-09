@@ -3,6 +3,7 @@
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
+#include <ft/ft_owner.h>
 #include <ft/robot/ft_robot.h>
 #include <ft/robot/ft_robot_extend_param_accesser.h>
 #include <ft/robot/ft_robot_link_event.h>
@@ -621,31 +622,15 @@ soStatusModuleImpl::~soStatusModuleImpl() { }
 soResourceIdAccesser::~soResourceIdAccesser() { }
 #pragma dont_inline off
 
-// Shared owner/weapon methods are absent from the SDK declarations. These ABI
-// declarations preserve the observed PPC arguments until their classes are complete.
-extern "C" s32 ftRobotOwnerGetTeam(ftOwner* owner);
-extern "C" void ftRobotActivateGyro(wnRobotGyro* weapon, s32 founderTaskId,
-                                   u32 resourceId, s32 team, const Vec3f* position,
-                                   float lr, float power);
-
-// The original Fighter owner getter uses slot 0x2EC of the primary vtable
-// at +0x3C; the SDK declaration currently places getOwner at +0x2F0.
-static ftOwner* ftRobotGetFounderOwner(Fighter* fighter) {
-    typedef ftOwner* (*GetOwner)(Fighter*);
-    void** table = *reinterpret_cast<void***>(reinterpret_cast<u8*>(fighter) + 0x3C);
-    GetOwner getter = reinterpret_cast<GetOwner>(table[0x2EC / sizeof(void*)]);
-    return getter(fighter);
-}
-
 bool ftRobotArticleActivator<wnRobotGyro>::activate(wnRobotGyro* weapon, soModuleAccesser* acc) {
     Fighter& founder = dynamic_cast<Fighter&>(*acc->m_stageObject);
+    const soModuleEnumeration* modules = acc->m_enumerationStart;
+    soPostureModule& posture = *modules->m_postureModule;
+    soResourceModule& resources = *modules->m_resourceModule;
     s32 founderTaskId = founder.m_taskId;
-    float power = acc->getWorkManageModule().getFloat(0x11000014);
-    float lr = acc->getPostureModule().getLr();
-    Vec3f position(0.0f, 0.0f, 0.0f);
-    s32 team = ftRobotOwnerGetTeam(ftRobotGetFounderOwner(&founder));
-    u32 resourceId = acc->getResourceModule().getResourceIdAccesser()->getMdlResId();
-    ftRobotActivateGyro(weapon, founderTaskId, resourceId, team, &position, lr, power);
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlResId(),
+                     founder.getOwner()->getTeam(), Vec3f(0.0f, 0.0f, 0.0f),
+                     posture.getLr(), modules->m_workManageModule->getFloat(0x11000014));
     return true;
 }
 
@@ -666,29 +651,18 @@ public:
     virtual void reserved0C();
     virtual ftRobotTeamAbiView* getTeam(); // +0x10
 };
-static s32 ftRobotGetModuleTeam(soModuleAccesser* acc) {
-    ftRobotTeamModuleAbiView* module =
-        reinterpret_cast<ftRobotTeamModuleAbiView*>(acc->m_enumerationStart->m_teamModule);
-    return module->getTeam()->getTeam();
-}
-extern "C" u32 ftRobotOwnerGetFighterColor(ftOwner* owner);
-extern "C" void ftRobotActivateGyroHolder(wnRobotGyroHolder* weapon, s32 founderTaskId,
-                                         u32 resourceId, s32 team, const Vec3f* position,
-                                         SituationKind situation, float lr);
-extern "C" void ftRobotActivateFinalBeam(wnRobotFinalBeam* weapon, s32 founderTaskId,
-                                        u32 resourceId, s32 team, const Vec3f* position,
-                                        s32 count, s32 selection, float lr);
-
 bool ftRobotArticleActivator<wnRobotGyroHolder>::activate(wnRobotGyroHolder* weapon, soModuleAccesser* acc) {
     Fighter& founder = dynamic_cast<Fighter&>(*acc->m_stageObject);
-    (void)ftRobotOwnerGetFighterColor(ftRobotGetFounderOwner(&founder));
+    (void)founder.getOwner()->getFighterColor();
+    const soModuleEnumeration* modules = acc->m_enumerationStart;
+    soPostureModule& posture = *modules->m_postureModule;
+    void* teamModule = modules->m_teamModule;
+    soResourceModule& resources = *modules->m_resourceModule;
     s32 founderTaskId = acc->m_stageObject->m_taskId;
-    SituationKind situation = acc->getSituationModule().getKind();
-    Vec3f position(0.0f, 0.0f, 0.0f);
-    float lr = acc->getPostureModule().getLr();
-    s32 team = ftRobotGetModuleTeam(acc);
-    u32 resourceId = acc->getResourceModule().getResourceIdAccesser()->getMdlResId();
-    ftRobotActivateGyroHolder(weapon, founderTaskId, resourceId, team, &position, situation, lr);
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlResId(),
+                     reinterpret_cast<ftRobotTeamModuleAbiView*>(teamModule)->getTeam()->getTeam(),
+                     posture.getLr(), Vec3f(0.0f, 0.0f, 0.0f),
+                     modules->m_situationModule->getKind());
     return true;
 }
 
@@ -702,20 +676,27 @@ bool ftRobotArticleActivator<wnRobotFinalBeam>::activate(wnRobotFinalBeam* weapo
             acc->getControllerModule().setRumble(2, 0, false, 8);
         }
     }
+    const soModuleEnumeration* modules = acc->m_enumerationStart;
+    void* teamModule = modules->m_teamModule;
+    soResourceModule& resources = *modules->m_resourceModule;
     s32 founderTaskId = acc->m_stageObject->m_taskId;
     s32 count = soValueAccesser::getConstantInt(acc, 0x5DCB, 0);
-    s32 team = ftRobotGetModuleTeam(acc);
-    u32 resourceId = acc->getResourceModule().getResourceIdAccesser()->getEtcResId();
-    ftRobotActivateFinalBeam(weapon, founderTaskId, resourceId, team, &position, count, selection, lr);
+    s32 team = reinterpret_cast<ftRobotTeamModuleAbiView*>(teamModule)->getTeam()->getTeam();
+    u32 resourceId = resources.getResourceIdAccesser()->getEtcResId();
+    weapon->activate(founderTaskId, resourceId, team, &position, lr, count, selection);
     return true;
 }
 
+// MATCH-ONLY: the native singleton addresses its guard, instance and destructor
+// registration separately rather than pooling them into one BSS base.
+#pragma pool_data off
 #pragma dont_inline on
 ftRobotTransactor* ftRobotTransactor::getInstance() {
     static ftRobotTransactor instance;
     return &instance;
 }
 #pragma dont_inline off
+#pragma pool_data reset
 
 // Link event payload for the Final Smash articles: a kind and a result byte the receiver may set (HYPOTHESIS).
 struct ftRobotFinalLinkEvent : soLinkEventArgs {
@@ -729,7 +710,8 @@ struct ftRobotFinalLinkEvent : soLinkEventArgs {
 void ftRobot::updateFinal(soModuleAccesser* acc) {
     const soModuleEnumeration* modules = acc->m_enumerationStart;
     soGenerateArticleManageModule& articles = *static_cast<soGenerateArticleManageModule*>(modules->m_generateArticleManageModule);
-    modules->m_damageModule->setReactionMul(soValueAccesser::getConstantFloat(acc, 0xfd4, 0));
+    soDamageModule& damage = *modules->m_damageModule;
+    damage.setReactionMul(soValueAccesser::getConstantFloat(acc, 0xfd4, 0));
     acc->getCollisionHitModule().setWhole(2, 0);
     if (acc->getWorkManageModule().isFlag(0x12000043) && acc->getWorkManageModule().getInt(0x10000042) > 0) {
         acc->getWorkManageModule().subInt(1, 0x10000042);

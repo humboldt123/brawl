@@ -50,6 +50,8 @@ public:
     void setOperationCpu(bool isCpu);
     void setStartLr(float lr);
     void setTeam(int team);
+    s32 getTeam();
+    u8 getFighterColor();
     void setPointTeam(int pointTeam);
     int setDeadCount(int deadCount);
     void setStockCount(int stockCount);
