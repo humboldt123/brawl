@@ -138,7 +138,7 @@ __dt__150soLineHierarchy<49soTypeList<14soIntToType<8>,18soTypeListNullType>,11s
 __dt__73soModelModuleBuilder<49soModelModuleBuildConfig<8,3,17soModelModuleImpl>>Fv = .text:0x00005484; // type:function size:0x78
 fn_119_54FC = .text:0x000054FC; // type:function size:0x5C
 __dt__114soResourceModuleBuilder<87soResourceModuleBuildConfigDynamic<0,24ftResourceIdAccesserImpl,20soResourceModuleImpl>>Fv = .text:0x00005558; // type:function size:0x78
-fn_119_55D0 = .text:0x000055D0; // type:function size:0x40
+__dt__20soResourceIdAccesserFv = .text:0x000055D0; // type:function size:0x40
 __dt__96soParamCustomizeModuleBuilder<63soParamCustomizeModuleBuildConfig<26ftParamCustomizeModuleImpl>>Fv = .text:0x00005610; // type:function size:0x5C
 __dt__66soHeapModuleBuilder<43soHeapModuleBuildConfig<16soHeapModuleImpl>>Fv = .text:0x0000566C; // type:function size:0x5C
 __dt__180soInsideEventManageModuleBuilder<110soInsideEventManageModuleBuildConfig<32,40,4,4,4,4,4,4,5,4,4,4,4,4,1,1,0,2,1,30ftInsideEventManageModuleTypes>,30ftInsideEventManageModuleTypes>Fv = .text:0x000056C8; // type:function size:0x144
@@ -316,7 +316,7 @@ at__33soAnimCmdAddressPackArraySeparateFl = .text:0x00009B50; // type:function s
 atSub__33soAnimCmdAddressPackArraySeparateCFl = .text:0x00009BA4; // type:function size:0x12C
 at__33soAnimCmdAddressPackArraySeparateCFl = .text:0x00009CD0; // type:function size:0x34
 getParamFloat__41ftExtendParamAccesserEx<3999,47,23999,10>FP16soModuleAccesserll = .text:0x00009D04; // type:function size:0x58
-fn_119_9D5C = .text:0x00009D5C; // type:function size:0xC
+getValueVariation__15soValueAccesserFv = .text:0x00009D5C; // type:function size:0xC
 getParamInt__41ftExtendParamAccesserEx<3999,47,23999,10>FP16soModuleAccesserll = .text:0x00009D68; // type:function size:0x5C
 __dt__21ftKineticMediatorImplFv = .text:0x00009DC4; // type:function size:0x60
 fn_119_9E24 = .text:0x00009E24; // type:function size:0x2AC
