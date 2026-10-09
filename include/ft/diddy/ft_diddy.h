@@ -1,6 +1,8 @@
 #pragma once
 
 #include <ft/ft_fighter_builder.h>
+#include <ft/ft_common_data_accesser.h>
+#include <ft/diddy/ft_diddy_link_event.h>
 #include <sr/sr_common.h>
 #include <types.h>
 
@@ -69,10 +71,16 @@ public:
 };
 
 class ftDiddy : public ftFighterBuilder<ftDiddyBuildConfig> {
-    u8 unkTail[0x26884 - sizeof(ftFighterBuilder<ftDiddyBuildConfig>)];
+    u8 unkTail[0x26870 - sizeof(ftFighterBuilder<ftDiddyBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
 public:
     ftDiddy(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftDiddy();
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventOnDamage(soDamage* damage, bool isDamage, soModuleAccesser* moduleAccesser);
 };
+static_assert(sizeof(ftDiddy) == 0x26884, "Class is the wrong size!");

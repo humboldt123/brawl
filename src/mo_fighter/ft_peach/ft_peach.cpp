@@ -1,7 +1,10 @@
+#define FT_MARTH_PHOTO_CALLBACK_NOINLINE // MATCH-ONLY: out-of-line photo base teardown and +0x186F0 photo thunks (shared shadow macro)
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/peach/ft_peach.h>
 #include <ft/peach/ft_peach_extend_param_accesser.h>
+#include <ft/peach/ft_peach_status_uniq_process_final.h>
+#include <gf/gf_task_scheduler.h>
 
 #define FT_BC ftPeachBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
@@ -25,6 +28,52 @@ ftPeach::ftPeach(s32 entryId,
 void ftPeach::endFinalRequest() {
     Fighter::endFinal(true, true, false);
     soPhotoCallBack::removeCallBack();
+}
+
+ftPeach::~ftPeach() { }
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
+
+void ftPeach::onEndFinal() {
+    g_ftPeachStatusUniqProcessFinal.destroyInfo(m_moduleAccesser);
+}
+
+void ftPeach::onDeactivate() {
+    Fighter::endFinal(true, true, false);
+    soPhotoCallBack::removeCallBack();
+}
+
+// Final Smash blossom windows: the fighter keeps their task ids in work slots.
+void ftPeach::photoMoved() {
+    int taskId = m_moduleAccesser->getWorkManageModule().getInt(0x10000041);
+    if (taskId != 0) {
+        IfPeachFinalTask* window = dynamic_cast<IfPeachFinalTask*>(gfTaskScheduler::getInstance()->getTaskById(gfTask::Category_Info, taskId));
+        if (window != NULL) {
+            window->setVisibilityWhole(false);
+        }
+    }
+    int effectId = m_moduleAccesser->getWorkManageModule().getInt(0x10000042);
+    if (effectId != 0) {
+        m_moduleAccesser->getEffectModule().setVisible(effectId, false);
+    }
+}
+
+void ftPeach::photoExit() {
+    int taskId = m_moduleAccesser->getWorkManageModule().getInt(0x10000041);
+    if (taskId != 0) {
+        IfPeachFinalTask* window = dynamic_cast<IfPeachFinalTask*>(gfTaskScheduler::getInstance()->getTaskById(gfTask::Category_Info, taskId));
+        if (window != NULL) {
+            window->setVisibilityWhole(true);
+        }
+    }
+    int effectId = m_moduleAccesser->getWorkManageModule().getInt(0x10000042);
+    if (effectId != 0) {
+        m_moduleAccesser->getEffectModule().setVisible(effectId, true);
+    }
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftPeach is done

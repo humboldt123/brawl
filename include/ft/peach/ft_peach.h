@@ -54,13 +54,19 @@ public:
 
 class ftPeach : public ftFighterBuilder<ftPeachBuildConfig>, public soPhotoCallBack {
     // The photo callback starts at +0x186F0 in the native fighter.
-    u8 unkTail[0x18710 - sizeof(ftFighterBuilder<ftPeachBuildConfig>) - sizeof(soPhotoCallBack)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    u8 unkTail[0x18710 - sizeof(ftFighterBuilder<ftPeachBuildConfig>) - sizeof(soPhotoCallBack) - sizeof(soArrayContractibleTable<const soStatusData>)];
 public:
     ftPeach(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftPeach();
     void endFinalRequest();
+    virtual void onEndFinal();
+    virtual void onDeactivate();
+    virtual void photoMoved();
+    virtual void photoExit();
 };
 static_assert(sizeof(ftFighterBuilder<ftPeachBuildConfig>) == 0x186F0, "ftPeach photo callback offset mismatch");
 static_assert(sizeof(ftPeach) == 0x18710, "ftPeach size mismatch");

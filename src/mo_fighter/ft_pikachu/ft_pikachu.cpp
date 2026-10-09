@@ -2,6 +2,14 @@
 #include <ft/ft_class_info_impl.h>
 #include <ft/pikachu/ft_pikachu.h>
 #include <ft/pikachu/ft_pikachu_extend_param_accesser.h>
+#include <so/so_value_accesser.h>
+#include <ft/ft_common_data_accesser.h>
+
+// ftManager::setParamPattern selects the shared parameter-table variation (same accessor as ft_marth.cpp).
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
 
 #define FT_BC ftPikachuBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
@@ -95,5 +103,46 @@ int fn_98_DA2C() { return 0x0; }
 int fn_98_DCC8() { return 0x0; }
 int fn_98_DF64() { return 0x0; }
 int fn_98_E200() { return 0x0; }
+
+// soArticleMediatorImpl<...wnPikachuThunderJolt...>::setAutoRecycle: stores the flag at this+0x22A2C.
+void fn_98_B5A4(u8* p, u8 flag) { *(u8*)(p + 0x22A2C) = flag; }
+
+// ftPikachu::notify_thunder_reflect / adjust_camera_subject: forward this+0x60 to the thunder-hit process handlers.
+extern "C" int fn_98_11344(void* p);
+extern "C" int fn_98_11B40(void* p);
+int fn_98_98B0(u8* p) { return fn_98_11344(*(void**)(p + 0x60)); }
+int fn_98_98B8(u8* p) { return fn_98_11B40(*(void**)(p + 0x60)); }
+
+// ftPikachu::getExtendParam: the extend-param block pointer stored at the end of the fighter, offset 0x7C.
+void* fn_98_9530(u8* p) { return *(u8**)(p + 0x2AE44) + 0x7C; }
+
+// soInstancePoolSub::getInstanceAt for the wnPikachu* instance holders: instance slots by index, null past the last one.
+void* fn_98_B62C(u8* p, int index) {
+    if (index == 2) return p + 0x3FA4;
+    if (index == 1) return p + 0x1FDC;
+    if (index == 0) return p + 0x14;
+    return 0;
+}
+void* fn_98_B664(u8* p, int index) {
+    if (index == 0) return p + 0xC;
+    return 0;
+}
+void* fn_98_B67C(u8* p, int index) {
+    if (index == 1) return p + 0xA610;
+    if (index == 0) return p + 0x10;
+    return 0;
+}
+void* fn_98_B6A8(u8* p, int index) {
+    if (index == 2) return p + 0x3F44;
+    if (index == 1) return p + 0x1FAC;
+    if (index == 0) return p + 0x14;
+    return 0;
+}
+
+// soKineticMediatorImpl::addSpeed:forwards to the transactor with the pools at this+4.
+void fn_98_CCE0(u8* p, void* speed, soModuleAccesser* acc) { ftKineticTransactor::addSpeed(speed, p + 4, acc); }
+
+// ftPikachu::getThunderParam:the common fighter data entry for Pikachu, field at 0x88.
+void* fn_98_9540() { return *(void**)((u8*)g_ftCommonDataAccesser.getData(Fighter_Pikachu) + 0x88); }
 
 }
