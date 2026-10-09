@@ -791,8 +791,8 @@ void stDxPStadium::updateVisionRect() {
         cornerB = m_visionPosB;
         Vec2f screenA;
         Vec2f screenB;
-        gfCameraManager::getManager()->calcProjection3Dto2D(&cornerA, &screenA);
-        gfCameraManager::getManager()->calcProjection3Dto2D(&cornerB, &screenB);
+        gfCameraManager::getManager()->m_cameras[0].calcProjection3Dto2D(&cornerA, &screenA);
+        gfCameraManager::getManager()->m_cameras[0].calcProjection3Dto2D(&cornerB, &screenB);
         screenA.m_x = screenA.m_x * (1.0f / 640.0f);
         screenA.m_y = 1.0f - (1.0f / 480.0f) * screenA.m_y;
         screenB.m_x = screenB.m_x * (1.0f / 640.0f);
