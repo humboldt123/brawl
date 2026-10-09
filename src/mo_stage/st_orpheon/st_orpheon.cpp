@@ -528,8 +528,8 @@ void stOrpheon::eventCall(float deltaFrame) {
             if (choice == m_lastChoice) {
                 m_repeatCount++;
                 if ((s8)m_repeatCount >= 2) {
-                    m_repeatCount = 0;
                     choice = !choice;
+                    m_repeatCount = 0;
                 }
             } else {
                 m_repeatCount = 0;

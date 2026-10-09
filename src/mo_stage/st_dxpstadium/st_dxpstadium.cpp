@@ -42,7 +42,7 @@ static inline void stDxPStadiumSetShort(s16* dst, s16 value) {
     *dst = value;
 }
 
-static inline void stDxPStadiumParentEffect(u32 handle, Ground* ground, const char* nodeName) {
+static inline void stDxPStadiumParentEffect(const char* nodeName, u32 handle, Ground* ground) {
     g_ecMgr->setParent(handle, ground->m_sceneModels[0], nodeName, false);
 }
 
@@ -328,10 +328,10 @@ void stDxPStadium::updateSpecialStage(float deltaFrame) {
                             static_cast<grMadein*>(getGround(6))->startEntityAutoLoop();
                             static_cast<grMadein*>(getGround(9))->startEntityAutoLoop();
                             static_cast<grMadein*>(getGround(10))->startEntityAutoLoop();
-                            stDxPStadiumParentEffect(m_effectHandles[1], getGround(m_terrain), "PtclPoint");
-                            stDxPStadiumParentEffect(m_effectHandles[2], getGround(m_terrain), "PtclPoint_1");
-                            stDxPStadiumParentEffect(m_effectHandles[3], getGround(m_terrain), "FunsuiAN");
-                            stDxPStadiumParentEffect(m_effectHandles[4], getGround(m_terrain), "FunsuiBN");
+                            stDxPStadiumParentEffect("PtclPoint", m_effectHandles[1], getGround(m_terrain));
+                            stDxPStadiumParentEffect("PtclPoint_1", m_effectHandles[2], getGround(m_terrain));
+                            stDxPStadiumParentEffect("FunsuiAN", m_effectHandles[3], getGround(m_terrain));
+                            stDxPStadiumParentEffect("FunsuiBN", m_effectHandles[4], getGround(m_terrain));
                             void* posData = m_fileData->getData(Data_Type_Model, 0x69, 0xFFFE);
                             if (posData) {
                                 nw4r::g3d::ResFile posFile(posData);
@@ -629,16 +629,17 @@ void stDxPStadium::update(float deltaFrame) {
                 }
                 // FALL-THROUGH
             case 0: {
-                u32 choice = randi(2);
-                if (choice >= 1) {
-                    choice = 1;
+                u32 rnd = randi(2);
+                if (rnd >= 1) {
+                    rnd = 1;
                 }
+                int choice = rnd;
                 m_visionCount += 1;
                 m_eventVision.set(600.0f, 1200.0f);
                 if (m_visionCount >= 7) {
                     m_visionCount = 0;
-                    m_eventVision.set(300.0f, 300.0f);
                     choice = 2;
+                    m_eventVision.set(300.0f, 300.0f);
                 }
                 m_eventVision.end();
                 m_visionActive = false;
@@ -807,9 +808,9 @@ void stDxPStadium::startPlayerVision() {
     Vec3f pos;
     stadiumVision(this)->setDisplay(false);
     getGround(0)->setNodeVisibility(true, 0, "Dummy", false, false);
+    int* next;
     int count = 0;
     int players[4] = {count, count, count, count};
-    int* next;
     next = players;
     for (int i = 0; i < 4; i++) {
         if (getPlayerPosition(i, &pos) == true) {
@@ -821,7 +822,9 @@ void stDxPStadium::startPlayerVision() {
         m_visionNext = 0;
     }
     m_visionActive = true;
-    m_visionPlayer = players[m_visionNext++];
+    int index = m_visionNext;
+    m_visionNext = index + 1;
+    m_visionPlayer = players[index];
     stDxPStadiumPlayerBytes* player = reinterpret_cast<stDxPStadiumPlayerBytes*>(&g_GameGlobal->m_modeMelee->m_playersInitData[m_visionPlayer]);
     stDxPStadiumMeleeFlags* flags = reinterpret_cast<stDxPStadiumMeleeFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0xF);
     if (player->kind == Character_Jigglypuff && player->state == 3) {
