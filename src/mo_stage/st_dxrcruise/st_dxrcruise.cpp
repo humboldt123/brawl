@@ -57,6 +57,10 @@ static inline grCruiseMadein* cruiseGround(stDxCruise* stage, int index) {
     return static_cast<grCruiseMadein*>(stage->getGround(index));
 }
 
+static inline float stCruiseJitter(float base, float amplitude, float scale) {
+    return base + (amplitude - scale * randf());
+}
+
 static inline float stCruiseClamp(float lo, float hi, float value) {
     value = nw4r::math::FSelect(value - lo, value, lo);
     return nw4r::math::FSelect(value - hi, hi, value);
@@ -249,7 +253,7 @@ void stDxCruise::update(float deltaFrame) {
                     m_blockEvent[i].m_manualFramesLeft = 0.0f;
                     m_blockSpeed[i] = 0.0f;
                 }
-                m_blockHeight[i] = -0.25f + (0.5f - 1.0f * randf());
+                m_blockHeight[i] = stCruiseJitter(-0.25f, 0.5f, 1.0f);
                 break;
             case 2: {
                 m_blockSpeed[i] -= 0.03f;
@@ -285,7 +289,7 @@ void stDxCruise::update(float deltaFrame) {
                 int block = i + 14;
                 m_blockHeight[i] = 0.0f;
                 m_blockEvent[i].m_manualFramesLeft += deltaFrame;
-                if (m_blockEvent[i].m_manualFramesLeft - 10.0f * (float)(int)(m_blockEvent[i].m_manualFramesLeft / 10.0f) < 3.0f) {
+                if (m_blockEvent[i].m_manualFramesLeft - (float)((int)(m_blockEvent[i].m_manualFramesLeft / 10.0f) * 10) < 3.0f) {
                     getGround(block)->setVisibility(0);
                 } else {
                     getGround(block)->setVisibility(1);
@@ -329,42 +333,49 @@ void stDxCruise::update(float deltaFrame) {
                 break;
             case 2:
                 if (static_cast<grMadein*>(getGround(i + 2))->isEndEntity() == false) {
-                    if (cruiseGround(this, i + 6)->isLandWeightAtLeast(1.0f) == true) {
-                        getGround(i + 6)->setVisibility(1);
+                    int carpet = i + 6;
+                    if (cruiseGround(this, carpet)->isLandWeightAtLeast(1.0f) == true) {
+                        getGround(carpet)->setVisibility(1);
                         m_carpetEvent[i].setPhase(1);
                         break;
                     }
                 }
-                m_carpetEvent[i].m_manualFramesLeft += deltaFrame;
-                if (m_carpetEvent[i].m_manualFramesLeft - 10.0f * (float)(int)(m_carpetEvent[i].m_manualFramesLeft / 10.0f) < 4.0f) {
-                    getGround(i + 6)->setVisibility(0);
-                } else {
-                    getGround(i + 6)->setVisibility(1);
-                }
-                if (m_carpetEvent[i].m_manualFramesLeft > 120.0f) {
-                    getGround(i + 6)->setVisibility(1);
-                    static_cast<grMadein*>(getGround(i + 6))->endEntity();
-                    getGround(i + 6)->setEnableCollisionStatus(false);
-                    m_carpetEvent[i].setPhase(3);
-                    m_carpetEvent[i].m_manualFramesLeft = 0.0f;
+                {
+                    int carpet = i + 6;
+                    m_carpetEvent[i].m_manualFramesLeft += deltaFrame;
+                    if (m_carpetEvent[i].m_manualFramesLeft - (float)((int)(m_carpetEvent[i].m_manualFramesLeft / 10.0f) * 10) < 4.0f) {
+                        getGround(carpet)->setVisibility(0);
+                    } else {
+                        getGround(carpet)->setVisibility(1);
+                    }
+                    if (m_carpetEvent[i].m_manualFramesLeft > 120.0f) {
+                        getGround(carpet)->setVisibility(1);
+                        static_cast<grMadein*>(getGround(carpet))->endEntity();
+                        getGround(carpet)->setEnableCollisionStatus(false);
+                        m_carpetEvent[i].setPhase(3);
+                        m_carpetEvent[i].m_manualFramesLeft = 0.0f;
+                    }
                 }
                 break;
             case 3:
                 m_carpetEvent[i].m_manualFramesLeft += deltaFrame;
                 if (m_carpetEvent[i].m_manualFramesLeft > 200.0f) {
-                    static_cast<grMadein*>(getGround(i + 2))->endEntity();
-                    static_cast<grMadein*>(getGround(i + 2))->startEntity();
-                    fn_27_279228(getGround(i + 2), true);
+                    int route = i + 2;
+                    static_cast<grMadein*>(getGround(route))->endEntity();
+                    static_cast<grMadein*>(getGround(route))->startEntity();
+                    fn_27_279228(getGround(route), true);
                     m_carpetEvent[i].setPhase(4);
                     m_carpetEvent[i].m_manualFramesLeft = 0.0f;
                     m_carpetFlag[i] = 0;
                 }
                 break;
-            case 4:
-                getGround(i + 6)->setEnableCollisionStatus(true);
-                static_cast<grMadein*>(getGround(i + 6))->startEntityAutoLoop();
+            case 4: {
+                int carpet = i + 6;
+                getGround(carpet)->setEnableCollisionStatus(true);
+                static_cast<grMadein*>(getGround(carpet))->startEntityAutoLoop();
                 m_carpetEvent[i].setPhase(0);
                 break;
+            }
         }
     }
     Vec3f pos;
