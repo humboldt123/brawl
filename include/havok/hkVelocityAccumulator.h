@@ -12,4 +12,5 @@ struct hkVelocityAccumulator {
     hkVector4 unk40; // 0x40
 
     hkVector4* getSumLinearVel();
+    hkVector4* getSumAngularVel(); // defined in src/havok/hkRigidMotionUtil.cpp (returns this + 0x50)
 };

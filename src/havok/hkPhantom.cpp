@@ -45,7 +45,7 @@ void hkPhantom::firePhantomRemoved() {
     }
     for (int i = m_phantomListeners.m_size - 1; i >= 0; i--) {
         if (((hkPhantomListener**)m_phantomListeners.m_data)[i] == 0) {
-            m_phantomListeners.m_size = m_phantomListeners.m_size - 1;
+            m_phantomListeners.m_size--;
             for (int j = i; j < m_phantomListeners.m_size; j++) {
                 m_phantomListeners[j] = m_phantomListeners[j + 1];
             }
@@ -62,7 +62,7 @@ void hkPhantom::firePhantomAdded() {
     }
     for (int i = m_phantomListeners.m_size - 1; i >= 0; i--) {
         if (((hkPhantomListener**)m_phantomListeners.m_data)[i] == 0) {
-            m_phantomListeners.m_size = m_phantomListeners.m_size - 1;
+            m_phantomListeners.m_size--;
             for (int j = i; j < m_phantomListeners.m_size; j++) {
                 m_phantomListeners[j] = m_phantomListeners[j + 1];
             }
@@ -80,16 +80,17 @@ void hkPhantom::addPhantomOverlapListener(hkPhantomOverlapListener* listener) {
 
 void hkPhantom::removePhantomOverlapListener(hkPhantomOverlapListener* listener) {
     int idx = -1;
-    for (int i = 0; i < m_overlapListeners.getSize(); i++) {
-        if (m_overlapListeners[i] == listener) {
+    int count = m_overlapListeners.m_size;
+    for (int i = 0; i < count; i++) {
+        if (((hkPhantomOverlapListener**)m_overlapListeners.m_data)[i] == listener) {
             idx = i;
             break;
         }
     }
-    int newSize = m_overlapListeners.m_size - 1;
-    m_overlapListeners.m_size = newSize;
-    for (int j = idx; j < newSize; j++) {
-        m_overlapListeners[j] = m_overlapListeners[j + 1];
+    m_overlapListeners.m_size = m_overlapListeners.m_size - 1;
+    for (int j = idx; j < m_overlapListeners.m_size; j++) {
+        ((hkPhantomOverlapListener**)m_overlapListeners.m_data)[j] =
+            ((hkPhantomOverlapListener**)m_overlapListeners.m_data)[j + 1];
     }
 }
 
@@ -162,8 +163,8 @@ void hkPhantomBroadPhaseListener::addCollisionPair(hkBroadPhaseHandlePair* pair)
         ownerOfCollidable(collidableA)->addOverlappingCollidable(collidableB);
     }
     if (pair->m_b->m_type == HK_BROAD_PHASE_PHANTOM_ID) {
-        hkCollidable* collidableA = collidableOfHandle(pair->m_a);
         hkCollidable* collidableB = collidableOfHandle(pair->m_b);
+        hkCollidable* collidableA = collidableOfHandle(pair->m_a);
         ownerOfCollidable(collidableB)->addOverlappingCollidable(collidableA);
     }
 }
@@ -175,8 +176,8 @@ void hkPhantomBroadPhaseListener::removeCollisionPair(hkBroadPhaseHandlePair* pa
         ownerOfCollidable(collidableA)->removeOverlappingCollidable(collidableB);
     }
     if (pair->m_b->m_type == HK_BROAD_PHASE_PHANTOM_ID) {
-        hkCollidable* collidableA = collidableOfHandle(pair->m_a);
         hkCollidable* collidableB = collidableOfHandle(pair->m_b);
+        hkCollidable* collidableA = collidableOfHandle(pair->m_a);
         ownerOfCollidable(collidableB)->removeOverlappingCollidable(collidableA);
     }
 }

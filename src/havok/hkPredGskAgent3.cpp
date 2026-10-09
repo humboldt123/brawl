@@ -17,11 +17,65 @@
 //   0x80301778     8  getTolerance   [map: hkCollisionInput__getTolerance]
 //   0x80301780  2400  hkGskAgentUtil_processCollisionNoTim   [map: hkAgent3Input__hkGskAgentUtil_processCollisionNoTim]
 
-#include <havok/hkGskManifold.h>
+#include <havok/hkPredGskAgent3.h>
+#include <havok/hkGskManifoldUtil.h>
+
+
+void* hkPredGskAgent3::cleanup(hkGskManifold* dst, hkPredGskAgent3* agent, void* arg) {
+    hkGskManifold* manifold = &agent->m_manifold;
+    hkGskManifoldUtil::hkGskManifold_cleanup(manifold, arg);
+    dst->m_countC = manifold->m_countC;
+    u8 a = manifold->m_countA;
+    u8 b = manifold->m_countB;
+    u8 c = manifold->m_countC;
+    u32 size = ((a + b) << 1) + (c << 3);
+    return (u8*)agent + ((size + 0x1f) & ~0xf);
+}
+
+void hkPredGskAgent3::destroy(void* ctx, hkPredGskAgent3* agent, void* arg) {
+    hkGskManifoldUtil::hkGskManifold_cleanup(&agent->m_manifold, arg);
+}
+
+void hkPredGskAgent3::removePoint(void* ctx, hkPredGskAgent3* agent, u16 key) {
+    hkGskManifold* manifold = &agent->m_manifold;
+    u8* p = (u8*)manifold;
+    for (int i = 0; i < manifold->m_countC; i++) {
+        if (key == *(u16*)(p + 6)) {
+            hkGskManifoldUtil::hkGskManifold_removePoint(manifold, i);
+            return;
+        }
+        p += 8;
+    }
+}
+
+void hkPredGskAgent3::commitPotential(void* ctx, hkPredGskAgent3* agent, u16 key) {
+    hkGskManifold* manifold = &agent->m_manifold;
+    u8* p = (u8*)manifold;
+    for (int i = 0; i < manifold->m_countC; i++) {
+        if (*(u16*)(p + 6) == 0xFFFF) {
+            *(u16*)((u8*)manifold + i * 8 + 6) = key;
+            return;
+        }
+        p += 8;
+    }
+}
+
+void hkPredGskAgent3::createZombie(void* ctx, hkPredGskAgent3* agent, u16 key) {
+    hkGskManifold* manifold = &agent->m_manifold;
+    hkGskManifoldEntry* entry = manifold->getEntries();
+    for (int i = 0; i < manifold->m_countC; i++) {
+        if (entry->key == key) {
+            entry->unk0 = 0;
+            entry->unk1 = 0;
+            return;
+        }
+        entry++;
+    }
+}
 
 u32 hkGskManifold::getTotalSizeInBytes() const {
     u8 a = m_countA;
     u8 b = m_countB;
     u8 c = m_countC;
-    return (c << 3) + ((a + b) << 1) + 4;
+    return ((a + b) << 1) + (c << 3) + 4;
 }

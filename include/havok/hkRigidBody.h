@@ -13,6 +13,10 @@ struct hkRigidBody : hkEntity {
     static const void* getVtablehkRigidBody();
 
     virtual hkMotionState* getMotionState();
+    // Accessors into the body's motion block (out of line in src/havok/hkSimulation.cpp).
+    hkMotion* getRigidMotion();
+    hkTransform& getTransform();
+    hkVector4& getCenterOfMassInWorld();
 
     void setDeactivator(hkEntityDeactivator* deactivator);
     void setMotionType(u8 motionType, u8 a, u8 b);

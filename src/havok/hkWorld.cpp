@@ -177,3 +177,49 @@ int hkWorld::getMemUsageForIntegration() {
     }
     return result;
 }
+
+
+// Null contact manager and its factory. Declared locally (no header yet; the real base is hkContactMgr in
+// hkCollisionAgent.h, not included here). Every manager method is a no-op returning a fixed value; the factory
+// hands out the manager embedded at +0x08.
+struct hkNullContactMgr {
+    void cleanup();
+    bool reserveContactPoints();
+    void processToi();
+    void removeToi();
+    bool addToi();
+    void processContact();
+    void removeContactPoint();
+    bool addContactPoint();
+};
+
+struct hkNullContactMgrFactory {
+    u8 m_unk00[0x08]; // 0x00 (not recovered)
+    hkNullContactMgr* createContactMgr();
+};
+
+hkNullContactMgr* hkNullContactMgrFactory::createContactMgr() {
+    return (hkNullContactMgr*)((u8*)this + 0x08);
+}
+
+void hkNullContactMgr::cleanup() {}
+
+bool hkNullContactMgr::reserveContactPoints() {
+    return false;
+}
+
+void hkNullContactMgr::processToi() {}
+
+void hkNullContactMgr::removeToi() {}
+
+bool hkNullContactMgr::addToi() {
+    return true;
+}
+
+void hkNullContactMgr::processContact() {}
+
+void hkNullContactMgr::removeContactPoint() {}
+
+bool hkNullContactMgr::addContactPoint() {
+    return false;
+}

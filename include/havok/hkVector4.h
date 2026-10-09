@@ -51,6 +51,20 @@ struct hkVector4 {
         z -= a.z;
         w -= a.w;
     }
+    // Added from asm-verified callers (hkCollideCapsuleUtil, hkRigidMotionUtil, hkBoxBoxCollisionDetection).
+    void setAll(hkReal v) { set(v, v, v, v); }
+    // Bit mask of the lanes that are negative: x -> 8, y -> 4, z -> 2, w -> 1.
+    int compareLessThanZero4() const {
+        return (x < 0.0f ? 8 : 0) | (y < 0.0f ? 4 : 0) | (z < 0.0f ? 2 : 0) | (w < 0.0f ? 1 : 0);
+    }
+    // Lane-wise reciprocal (out of line: defined in src/havok/hkRigidMotionUtil.cpp).
+    void setReciprocal4(const hkVector4& a);
+    // Lane-wise product in place: this *= a (out of line: defined in src/havok/hkRigidMotionUtil.cpp).
+    void mul4(const hkVector4& a);
+    // Lane-wise product: this = a * b.
+    void setMul4(const hkVector4& a, const hkVector4& b) {
+        set(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+    }
     // Component access by index (x, y, z, w).
     hkReal& operator[](int i) { return (&x)[i]; }
     hkReal getSimdAt(int i) const { return (&x)[i]; }
@@ -69,4 +83,7 @@ struct hkVector4 {
     void setTransformedInversePos(const hkTransform& t, const hkVector4& v);
     void setRotatedDir(const hkRotation& r, const hkVector4& v);
     void setRotatedInverseDir(const hkRotation& r, const hkVector4& v);
+    // Column-major product: this = m.col0 * v.x + m.col1 * v.y + m.col2 * v.z (w lane from a constant).
+    // Declared only; the definition belongs to the unit that owns hkSolver's _setMul3 (not in this header).
+    void _setMul3(const hkRotation& m, const hkVector4& v);
 } __attribute__((aligned(16)));

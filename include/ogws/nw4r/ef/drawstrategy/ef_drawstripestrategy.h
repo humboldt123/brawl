@@ -37,6 +37,8 @@ public:
     GetCalcAheadFunc(ParticleManager* pManager); // at 0x18
 
     u8 GetStripeTexmapType(const EmitterDrawSetting& rSetting) const;
+    math::VEC3 GetInitialPrevAxis(const EmitterDrawSetting& rSetting,
+                                  const AheadContextStripe& rContext);
 
     void DrawStripe(AheadContextStripe* pContext, int param,
                     const math::VEC3& rAxisA, const math::VEC3& rAxisB);

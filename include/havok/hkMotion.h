@@ -73,4 +73,5 @@ struct hkMotion : hkReferencedObject {
 
     hkReal getMass() const;
     void setDeactivationClass(u16 deactivationClass);
+    void setDeactivationCounter(u16 deactivationCounter); // defined in src/havok/hkRigidMotionUtil.cpp
 };

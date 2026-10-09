@@ -1,6 +1,11 @@
 // nw4r ef_drawsmoothstripestrategy.cpp (main.dol 0x8017E24C-0x80182760). Partially reconstructed.
 #include <nw4r/ef.h>
 
+// HYPOTHESIS: constant tables in .bss (lbl_804A4408 is 0x18 bytes, lbl_804A4420
+// is 0xC bytes). Their values are set at run time, so they are only declared.
+extern nw4r::math::VEC3 lbl_804A4408[2];
+extern nw4r::math::VEC3 lbl_804A4420;
+
 namespace nw4r {
 namespace ef {
 
@@ -14,6 +19,53 @@ u16 DrawSmoothStripeStrategy::GetDrawOrder(
 u8 DrawSmoothStripeStrategy::GetStripeTexmapType(
     const EmitterDrawSetting& rSetting) const {
     return rSetting.typeOption2 & 0xC0;
+}
+
+math::VEC3 DrawSmoothStripeStrategy::GetInitialPrevAxis(
+    const EmitterDrawSetting& rSetting, const AheadContextStripe& rContext) {
+
+    math::VEC3 axis;
+
+    switch (rSetting.typeOption2 & 0x38) {
+    case 0x08: {
+        math::VEC3TransformNormal(&axis, &rContext.mCommon.mEmitterMtx,
+                                  &lbl_804A4408[0]);
+        math::VEC3TransformNormal(&axis,
+                                  &rContext.mCommon.mParticleManagerMtxInv,
+                                  &axis);
+        break;
+    }
+
+    case 0x00:
+    default: {
+        axis = rContext.mCommon.mEmitterAxisY;
+        return axis;
+    }
+
+    case 0x10: {
+        math::VEC3TransformNormal(&axis, &rContext.mCommon.mEmitterMtx,
+                                  &lbl_804A4420);
+        math::VEC3TransformNormal(&axis,
+                                  &rContext.mCommon.mParticleManagerMtxInv,
+                                  &axis);
+        break;
+    }
+
+    case 0x18: {
+        math::VEC3 unit(1.0f, 1.0f, 1.0f);
+        math::VEC3TransformNormal(&axis, &rContext.mCommon.mEmitterMtx, &unit);
+        math::VEC3TransformNormal(&axis,
+                                  &rContext.mCommon.mParticleManagerMtxInv,
+                                  &axis);
+        break;
+    }
+    }
+
+    if (!Normalize(&axis)) {
+        axis = rContext.mCommon.mEmitterAxisY;
+    }
+
+    return axis;
 }
 
 void DrawSmoothStripeStrategy::CalcAhead_Particle_Stripe(
@@ -126,16 +178,14 @@ void DrawSmoothStripeStrategy::CalcAhead_ParticleBoth_Stripe(
 void DrawSmoothStripeStrategy::CalcAhead_ParticleBoth_Ring(
     math::VEC3* pAxisY, AheadContextStripe* pContext, Particle* pParticle) {
 
-    ParticleManager* pManager = pContext->mCommon.mParticleManager;
-
-    Particle* pElder = GetElderDrawParticle(pManager, pParticle);
+    Particle* pElder = GetElderDrawParticle(pContext->mCommon.mParticleManager, pParticle);
     if (pElder == NULL) {
-        pElder = GetYoungestDrawParticle(pManager);
+        pElder = GetYoungestDrawParticle(pContext->mCommon.mParticleManager);
     }
 
-    Particle* pYounger = GetYoungerDrawParticle(pManager, pParticle);
+    Particle* pYounger = GetYoungerDrawParticle(pContext->mCommon.mParticleManager, pParticle);
     if (pYounger == NULL) {
-        pYounger = GetOldestDrawParticle(pManager);
+        pYounger = GetOldestDrawParticle(pContext->mCommon.mParticleManager);
     }
 
     math::VEC3 elderPos;
@@ -164,10 +214,8 @@ void DrawSmoothStripeStrategy::CalcAhead_ParticleBoth_Ring(
 void DrawSmoothStripeStrategy::CalcAhead_ParticleBoth_Origin(
     math::VEC3* pAxisY, AheadContextStripe* pContext, Particle* pParticle) {
 
-    ParticleManager* pManager = pContext->mCommon.mParticleManager;
-
-    Particle* pElder = GetElderDrawParticle(pManager, pParticle);
-    Particle* pYounger = GetYoungerDrawParticle(pManager, pParticle);
+    Particle* pElder = GetElderDrawParticle(pContext->mCommon.mParticleManager, pParticle);
+    Particle* pYounger = GetYoungerDrawParticle(pContext->mCommon.mParticleManager, pParticle);
 
     math::VEC3 elderPos(0.0f, 0.0f, 0.0f);
 

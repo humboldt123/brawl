@@ -11,4 +11,6 @@ struct hkContactPoint {
     hkVector4* getPosition();
     hkVector4* getNormal();
     hkReal getDistance();
+    // Added by the hkCollideCapsuleUtil unit: writes the w component of the normal (the contact distance).
+    void setDistance(hkReal distance);
 };

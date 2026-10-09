@@ -109,27 +109,22 @@ protected:
 
 private:
     u16 GetGlyphIndex(u16 ch) const {
-        u16 index;
-
         if (ch != unk18) {
             unk18 = ch;
-            index = GLYPH_INDEX_NOT_FOUND;
 
             for (const FontCodeMap* pIt = mFontInfo->pMap; pIt != NULL;
                  pIt = pIt->pNext) {
 
                 if (pIt->ccodeBegin <= ch && ch <= pIt->ccodeEnd) {
-                    index = FindGlyphIndex(pIt, ch);
-                    break;
+                    unk1A = FindGlyphIndex(pIt, ch);
+                    return unk1A;
                 }
             }
 
-            unk1A = index;
-        } else {
-            index = unk1A;
+            unk1A = GLYPH_INDEX_NOT_FOUND;
         }
 
-        return index != GLYPH_INDEX_NOT_FOUND ? index : mFontInfo->alterCharIndex;
+        return unk1A;
     }
 
     u16 FindGlyphIndex(const FontCodeMap* pMap, u16 ch) const;

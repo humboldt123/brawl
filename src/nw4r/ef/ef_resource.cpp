@@ -478,6 +478,7 @@ u32 Resource::RelocateCommand(EffectProject* pEffProject,
                               TextureProject* pTexProject,
                               EffectProject* pEffProjectSub,
                               TextureProject* pTexProjectSub) {
+    EmitterResource* pResource;
     u32 error = 0;
 
     u32 numEmitter;
@@ -490,27 +491,32 @@ u32 Resource::RelocateCommand(EffectProject* pEffProject,
     }
 
     for (u32 idx = 0; idx < numEmitter; idx++) {
-        EmitterResource* pResource;
         if (pEffProject != NULL && idx < breffNumEmitter(pEffProject)) {
             pResource = breffIndexOf(pEffProject, idx);
-        } else if (pEffProjectSub != NULL &&
-                   idx < breffNumEmitter(pEffProjectSub)) {
-            pResource = breffIndexOf(pEffProjectSub, idx);
+        } else if (pEffProjectSub != NULL) {
+            if (idx < breffNumEmitter(pEffProjectSub)) {
+                pResource = breffIndexOf(pEffProjectSub, idx);
+            } else {
+                pResource = NULL;
+            }
         } else {
+            pResource = NULL;
+        }
+        if (pResource == NULL) {
             continue;
         }
 
         ParticleParameterDesc* pPtclDesc =
             pResource->GetParticleParameterDesc();
-        TextureData** ppWork = pPtclDesc->mTexture;
         u8* pPtr = pPtclDesc->textureNames;
+        TextureData** ppWork = pPtclDesc->mTexture;
 
         for (int i = 0; i < TEX_LAYER_MAX; i++) {
             u16 size = *reinterpret_cast<u16*>(pPtr);
             pPtr += sizeof(u16);
 
             TextureData* pTexData = NULL;
-            if (pPtr[0] != 0) {
+            if (pPtr[0]) {
                 if (pTexProject != NULL) {
                     pTexData = breftSearchName(pTexProject,
                                                reinterpret_cast<char*>(pPtr));

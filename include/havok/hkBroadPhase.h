@@ -2,9 +2,11 @@
 
 #include <havok/hkBase.h>
 #include <havok/hkCollidable.h>
+#include <havok/hkMemory.h>
 
 // Broad-phase base class. Only the reference-counted base is recovered so far.
 struct hkBroadPhase : hkReferencedObject {
+    HK_DECLARE_REF_ALLOCATOR(0x1f)
 };
 
 // Pair of typed broad-phase handles reported by the broad phase (8 bytes).

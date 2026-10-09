@@ -1,6 +1,11 @@
 // nw4r ef_drawstripestrategy.cpp (main.dol 0x8017B400-0x8017E24C). Partially reconstructed.
 #include <nw4r/ef.h>
 
+// HYPOTHESIS: constant tables in .bss (lbl_804A4408 is 0x18 bytes, lbl_804A4420
+// is 0xC bytes). Their values are set at run time, so they are only declared.
+extern nw4r::math::VEC3 lbl_804A4408[2];
+extern nw4r::math::VEC3 lbl_804A4420;
+
 namespace nw4r {
 namespace ef {
 
@@ -9,6 +14,53 @@ DrawStripeStrategy::DrawStripeStrategy() {}
 u8 DrawStripeStrategy::GetStripeTexmapType(
     const EmitterDrawSetting& rSetting) const {
     return rSetting.typeOption2 & 0xC0;
+}
+
+math::VEC3 DrawStripeStrategy::GetInitialPrevAxis(
+    const EmitterDrawSetting& rSetting, const AheadContextStripe& rContext) {
+
+    math::VEC3 axis;
+
+    switch (rSetting.typeOption2 & 0x38) {
+    case 0x08: {
+        math::VEC3TransformNormal(&axis, &rContext.mCommon.mEmitterMtx,
+                                  &lbl_804A4408[0]);
+        math::VEC3TransformNormal(&axis,
+                                  &rContext.mCommon.mParticleManagerMtxInv,
+                                  &axis);
+        break;
+    }
+
+    case 0x00:
+    default: {
+        axis = rContext.mCommon.mEmitterAxisY;
+        return axis;
+    }
+
+    case 0x10: {
+        math::VEC3TransformNormal(&axis, &rContext.mCommon.mEmitterMtx,
+                                  &lbl_804A4420);
+        math::VEC3TransformNormal(&axis,
+                                  &rContext.mCommon.mParticleManagerMtxInv,
+                                  &axis);
+        break;
+    }
+
+    case 0x18: {
+        math::VEC3 unit(1.0f, 1.0f, 1.0f);
+        math::VEC3TransformNormal(&axis, &rContext.mCommon.mEmitterMtx, &unit);
+        math::VEC3TransformNormal(&axis,
+                                  &rContext.mCommon.mParticleManagerMtxInv,
+                                  &axis);
+        break;
+    }
+    }
+
+    if (!Normalize(&axis)) {
+        axis = rContext.mCommon.mEmitterAxisY;
+    }
+
+    return axis;
 }
 
 void DrawStripeStrategy::CalcAhead_Particle_Stripe(
@@ -121,16 +173,14 @@ void DrawStripeStrategy::CalcAhead_ParticleBoth_Stripe(
 void DrawStripeStrategy::CalcAhead_ParticleBoth_Ring(
     math::VEC3* pAxisY, AheadContextStripe* pContext, Particle* pParticle) {
 
-    ParticleManager* pManager = pContext->mCommon.mParticleManager;
-
-    Particle* pElder = GetElderDrawParticle(pManager, pParticle);
+    Particle* pElder = GetElderDrawParticle(pContext->mCommon.mParticleManager, pParticle);
     if (pElder == NULL) {
-        pElder = GetYoungestDrawParticle(pManager);
+        pElder = GetYoungestDrawParticle(pContext->mCommon.mParticleManager);
     }
 
-    Particle* pYounger = GetYoungerDrawParticle(pManager, pParticle);
+    Particle* pYounger = GetYoungerDrawParticle(pContext->mCommon.mParticleManager, pParticle);
     if (pYounger == NULL) {
-        pYounger = GetOldestDrawParticle(pManager);
+        pYounger = GetOldestDrawParticle(pContext->mCommon.mParticleManager);
     }
 
     math::VEC3 elderPos;
@@ -159,10 +209,8 @@ void DrawStripeStrategy::CalcAhead_ParticleBoth_Ring(
 void DrawStripeStrategy::CalcAhead_ParticleBoth_Origin(
     math::VEC3* pAxisY, AheadContextStripe* pContext, Particle* pParticle) {
 
-    ParticleManager* pManager = pContext->mCommon.mParticleManager;
-
-    Particle* pElder = GetElderDrawParticle(pManager, pParticle);
-    Particle* pYounger = GetYoungerDrawParticle(pManager, pParticle);
+    Particle* pElder = GetElderDrawParticle(pContext->mCommon.mParticleManager, pParticle);
+    Particle* pYounger = GetYoungerDrawParticle(pContext->mCommon.mParticleManager, pParticle);
 
     math::VEC3 elderPos(0.0f, 0.0f, 0.0f);
 
@@ -190,6 +238,9 @@ void DrawStripeStrategy::CalcAhead_ParticleBoth_Origin(
     }
 }
 
+// MATCH-ONLY: the original calls the header helpers (GetEmitterDrawSetting,
+// GetNumDrawParticle, GXEnd) out of line inside DrawStripe.
+#pragma dont_inline on
 void DrawStripeStrategy::DrawStripe(AheadContextStripe* pContext, int param,
                                     const math::VEC3& rAxisA,
                                     const math::VEC3& rAxisB) {
@@ -208,6 +259,8 @@ void DrawStripeStrategy::DrawStripe(AheadContextStripe* pContext, int param,
 
     int count = GetNumDrawParticle(pManager);
 
+    f32 pivot = rSetting.pivotX * 0.01f;
+
     u8 assist = rSetting.typeOption2 & 7;
     bool isCross = (assist == EmitterDrawSetting::ASSIST_ST_CROSS);
     bool isBillboard = (assist == EmitterDrawSetting::ASSIST_ST_BILLBOARD);
@@ -216,18 +269,17 @@ void DrawStripeStrategy::DrawStripe(AheadContextStripe* pContext, int param,
         count++;
     }
 
-    f32 pivot = rSetting.pivotX * 0.01f;
-
     GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, count * 2);
 
     f32 step = 1.0f;
-    if (GetStripeTexmapType(rSetting) != 0x40) {
+    int texmapType = GetStripeTexmapType(rSetting);
+    if (texmapType != 0x40) {
         step = 1.0f / (f32)(count - 1);
     }
 
     int index;
     int inc;
-    if (drawOrder == 0) {
+    if ((rSetting.mFlags & EmitterDrawSetting::FLAG_DRAW_ORDER) == 0) {
         index = 0;
         inc = 1;
     } else {
@@ -266,6 +318,8 @@ void DrawStripeStrategy::DrawStripe(AheadContextStripe* pContext, int param,
 
     GXEnd();
 }
+
+#pragma dont_inline reset
 
 } // namespace ef
 } // namespace nw4r

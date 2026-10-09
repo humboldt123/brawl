@@ -18,3 +18,49 @@
 //   0x803249DC  1020  calcBarycentricCoordinates   [map: hkCollideTriangleUtil__calcBarycentricCoordinates]
 //   0x80324DD8   604  closestLineSegLineSeg   [map: hkCollideTriangleUtil__closestLineSegLineSeg]
 //   0x80325034   336  closestPointLineSeg   [map: hkCollideTriangleUtil__closestPointLineSeg]
+
+
+#include <havok/hkCollideTriangleUtil.h>
+#include <havok/hkContactPoint.h>
+
+#pragma fp_contract on
+
+// Lookup table of the modulo-3 successor/predecessor (other unit, referenced by its symbol).
+extern "C" const s8 lbl_805A47DC[];
+
+// hkContactPoint::setDistance: writes the w component of the normal (the contact distance).
+void hkContactPoint::setDistance(hkReal distance) {
+    m_normal.w = distance;
+}
+
+// The table holds the predecessors at [0..2] and the successors at [2..4].
+int hkCollideTriangleUtil::getNextModulo3(int i) {
+    return lbl_805A47DC[i + 2];
+}
+
+int hkCollideTriangleUtil::getPrevModulo3(int i) {
+    return lbl_805A47DC[i];
+}
+
+// Closest point on the segment a..b to p. The parameter is the projection of (p - a) on (b - a).
+int hkCollideTriangleUtil::closestPointLineSeg(const hkVector4& p, const hkVector4& a, const hkVector4& b, hkVector4& out) {
+    hkVector4 ab;
+    ab.setSub4(b, a);
+    hkVector4 ap;
+    ap.setSub4(p, a);
+    hkReal dot = ab.dot3(ap);
+    if (dot <= 0.0f) {
+        out = a;
+        return 8;
+    }
+    hkReal lenSq = ab.lengthSquared3();
+    if (dot >= lenSq) {
+        out = b;
+        return 4;
+    }
+    hkReal t = dot / lenSq;
+    hkVector4 step;
+    step.setMul4(ab, t);
+    out.setAdd4(a, step);
+    return 0;
+}

@@ -19,12 +19,12 @@ extern "C" void fn_802B7FD0();
 
 void hkSphereSphereAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
     hkAgentFuncs funcs;
+    funcs.symmetricA = 0;
+    funcs.symmetricB = 0;
     funcs.create = (hkAgentFunc)createSphereSphereAgent;
     funcs.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
     funcs.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
     funcs.staticLinearCast = (hkAgentFunc)fn_802B7FD0;
-    funcs.symmetricA = 0;
-    funcs.symmetricB = 0;
     dispatcher->registerCollisionAgent(&funcs, HK_SHAPE_SPHERE, HK_SHAPE_SPHERE);
 }
 
@@ -32,10 +32,18 @@ hkSphereSphereAgent* hkSphereSphereAgent::createSphereSphereAgent(void* unk0, vo
     return new hkSphereSphereAgent(contactMgr);
 }
 
+// MATCH-ONLY: the release slot (0x18 of the contact manager) takes the 16-bit slot value as its argument.
+// Same local view as hkCapsuleCapsuleAgent.cpp; hkContactMgr in hkCollisionAgent.h declares unk18() without one.
+struct hkContactMgrKeyedSphere : hkReferencedObject {
+    virtual void unk10();
+    virtual void unk14();
+    virtual void unk18(u16 key);
+};
+
 void hkSphereSphereAgent::cleanup() {
     u16 slot = unkC;
     if (slot != 0xFFFF) {
-        ((hkContactMgr*)unk8)->unk18();
+        ((hkContactMgrKeyedSphere*)unk8)->unk18(slot);
         unkC = 0xFFFF;
     }
     delete this;

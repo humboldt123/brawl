@@ -35,7 +35,7 @@ void hkConstraintSolverSetup::oneStepIntegrate(hkEntity** entities, int count, u
         dst[7] = src[7];
         void* record[2];
         record[0] = (u8*)entity + 0xa0;
-        hkRigidMotionUtil::hkRigidMotionUtilApplyAccumulators(this, entity, record, 1, 0, (u8*)entity + 0xa0);
+        hkRigidMotionUtil::hkRigidMotionUtilApplyAccumulators(this, state, record, 1, 0, (u8*)entity + 0xa0);
     }
 }
 

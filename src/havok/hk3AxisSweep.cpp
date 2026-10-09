@@ -61,10 +61,45 @@ void hk3AxisSweep::endOverlap(const hkBpNode* a, const hkBpNode* b, hkArray<hkBr
     pair.m_b = b->m_handle;
 }
 
+// Index of the first entry equal to value, or -1.
+static int findCheckMarkerEntry(const hkArray<u16>& list, u16 value) {
+    for (int i = 0; i < list.m_size; i++) {
+        if (((u16*)list.m_data)[i] == value) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void hk3AxisSweep::beginOverlapCheckMarker(const hkBpNode* a, u32 value, const hkBpNode* b, hkArray<hkBroadPhaseHandlePair>& pairs) {
+    if (((u32)b->m_handle & 1) == 0) {
+        beginOverlap(a, b, pairs);
+    } else {
+        u16 key = (u16)value;
+        hkBpCheckMarker* marker = (hkBpCheckMarker*)((u8*)this + ((u32)b->m_handle & ~1));
+        hkArray<u16>& list = marker->m_list;
+        if (list.m_size == (list.m_capacityAndFlags & 0x3FFFFFFF)) {
+            hkArrayUtil::_reserveMore(&list, sizeof(u16));
+        }
+        ((u16*)list.m_data)[list.m_size++] = key;
+    }
+}
+
+void hk3AxisSweep::endOverlapCheckMarker(const hkBpNode* a, u32 value, const hkBpNode* b, hkArray<hkBroadPhaseHandlePair>& pairs) {
+    if (((u32)b->m_handle & 1) == 0) {
+        endOverlap(a, b, pairs);
+    } else {
+        hkBpCheckMarker* marker = (hkBpCheckMarker*)((u8*)this + ((u32)b->m_handle & ~1));
+        int index = findCheckMarkerEntry(marker->m_list, (u16)value);
+        marker->m_list.m_size--;
+        ((u16*)marker->m_list.m_data)[index] = ((u16*)marker->m_list.m_data)[marker->m_list.m_size];
+    }
+}
+
 hk3AxisSweep::hkBpAxis::hkBpAxis() {
-    unk00 = 0;
-    unk04 = 0;
-    unk08 = 0x80000000;
+    m_data = 0;
+    m_size = 0;
+    m_capacityAndFlags = DONT_DEALLOCATE_FLAG;
 }
 
 const hk3AxisSweep::hkBpEndPoint* hk3AxisSweep::hkBpAxis::find(const hkBpEndPoint* begin, const hkBpEndPoint* end, u16 value) const {
@@ -83,6 +118,33 @@ const hk3AxisSweep::hkBpEndPoint* hk3AxisSweep::hkBpAxis::find(const hkBpEndPoin
         lo++;
     }
     return lo;
+}
+
+void hk3AxisSweep::hkBpAxis::insert(hkBpNode* node, int id, u16 minKey, u16 maxKey, u16& minIndex, u16& maxIndex) {
+    int newSize = m_size + 2;
+    if ((m_capacityAndFlags & CAPACITY_MASK) < newSize) {
+        int newCap = newSize;
+        if (newSize < (m_capacityAndFlags & CAPACITY_MASK) * 2) {
+            newCap = (m_capacityAndFlags & CAPACITY_MASK) * 2;
+        }
+        hkArrayUtil::_reserve(this, newCap, sizeof(hkBpEndPoint));
+    }
+    m_size = newSize;
+    hkBpEndPoint* p = begin() + (newSize - 3);
+    while (maxKey <= p->m_value) {
+        p[2] = *p;
+        p--;
+    }
+    p[2].m_value = maxKey;
+    p[2].unk02 = id;
+    maxIndex = (p - begin()) + 2;
+    while (minKey < p->m_value) {
+        p[1] = *p;
+        p--;
+    }
+    p[1].m_value = minKey;
+    p[1].unk02 = id;
+    minIndex = (p - begin()) + 1;
 }
 
 int hk3AxisSweep::getNumObjects() const {
@@ -111,3 +173,22 @@ void hk3AxisSweep::getAllAabbs(hkArray<hkAabb>& aabbs) const {
         }
     }
 }
+
+#pragma dont_inline on
+void hk3AxisSweep::getAabbFromNode(const hkBpNode* node, hkAabb& aabb) const {
+    const hkBpEndPoint* xEnds = (const hkBpEndPoint*)m_axes[0].m_data;
+    const hkBpEndPoint* yEnds = (const hkBpEndPoint*)m_axes[1].m_data;
+    const hkBpEndPoint* zEnds = (const hkBpEndPoint*)m_axes[2].m_data;
+    float invX = 1.0f / m_scale[0];
+    float invY = 1.0f / m_scale[1];
+    float invZ = 1.0f / m_scale[2];
+    aabb.m_min.x = (float)xEnds[node->m_index[4]].m_value * invX - m_offset[0];
+    aabb.m_min.y = (float)yEnds[node->m_index[0]].m_value * invY - m_offset[1];
+    aabb.m_min.z = (float)zEnds[node->m_index[1]].m_value * invZ - m_offset[2];
+    aabb.m_min.w = 0.0f - unk4C;
+    aabb.m_max.x = (float)xEnds[node->m_index[5]].m_value * invX - m_offset[0];
+    aabb.m_max.y = (float)yEnds[node->m_index[2]].m_value * invY - m_offset[1];
+    aabb.m_max.z = (float)zEnds[node->m_index[3]].m_value * invZ - m_offset[2];
+    aabb.m_max.w = 0.0f - unk4C;
+}
+#pragma dont_inline reset

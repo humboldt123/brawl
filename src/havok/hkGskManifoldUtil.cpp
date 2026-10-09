@@ -11,4 +11,18 @@
 //   0x80316ED8  1352  hkGskManifold_convertFacePoint   [map: hkGskManifoldWork__hkGskManifold_convertFacePoint]
 //   0x80317420   548  hkGskManifold_doesPointExistAndResort   [map: hkGskManifoldUtil__hkGskManifold_doesPointExistAndResort]
 //   0x80317644  3272  hkGskManifold_addPoint   [map: hkGskManifoldUtil__hkGskManifold_addPoint]
-//   0x8031830C   148  hkGskManifold_cleanup   [map: hkGskManifoldUtil__hkGskManifold_cleanup]
+
+#include <havok/hkGskManifoldUtil.h>
+
+void hkGskManifoldUtil::hkGskManifold_cleanup(hkGskManifold* manifold, void* arg) {
+    u8* p = (u8*)manifold;
+    for (int i = 0; i < manifold->m_countC; i++) {
+        if (*(u16*)(p + 6) != 0xFFFF) {
+            ((hkGskPointRemover*)arg)->removePoint(*(u16*)(p + 6));
+        }
+        p += 8;
+    }
+    manifold->m_countC = 0;
+    manifold->m_countA = 0;
+    manifold->m_countB = 0;
+}

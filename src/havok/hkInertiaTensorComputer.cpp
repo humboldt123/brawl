@@ -1,5 +1,5 @@
 // Havok translation unit hkInertiaTensorComputer.o (main.dol 0x8032C42C-0x8032D42C).
-// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+// Partly decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
 //   0x8032C42C   120  __ct   [map: hkMassProperties____ct]
 //   0x8032C4A4   100  __as   [map: hkMatrix3____as]
 //   0x8032C508  1336  computeCapsuleVolumeMassProperties   [map: hkInertiaTensorComputer__computeCapsuleVolumeMassProperties]
@@ -16,3 +16,24 @@
 //   0x8032CFCC   776  combineMassProperties   [map: hkInertiaTensorComputer__combineMassProperties]
 //   0x8032D2D4   172  shiftInertiaToCom   [map: hkInertiaTensorComputer__shiftInertiaToCom]
 //   0x8032D380   172  shiftInertiaFromCom   [map: hkInertiaTensorComputer__shiftInertiaFromCom]
+#include <havok/hkTransform.h>
+
+// Tail-calls the rotation setter with this as the rotation.
+void hkTransform::setRotation(const hkQuaternion& q) {
+    m_rotation.set(q);
+}
+
+void hkTransform::setTranslation(const hkVector4& t) {
+    m_translation = t;
+}
+
+void hkTransform::setIdentity() {
+    m_rotation.m_col0.set(1.0f, 0.0f, 0.0f, 0.0f);
+    m_rotation.m_col1.set(0.0f, 1.0f, 0.0f, 0.0f);
+    m_rotation.m_col2.set(0.0f, 0.0f, 1.0f, 0.0f);
+    m_translation.setZero4();
+}
+
+hkVector4& hkTransform::getTranslation() {
+    return m_translation;
+}

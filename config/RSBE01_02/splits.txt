@@ -553,17 +553,17 @@ nw4r/lyt/lyt_pane.cpp:
 	.ctors      start:0x804065A8 end:0x804065AC
 
 nw4r/lyt/lyt_group.cpp:
-	.text       start:0x80183634 end:0x80183AF4
+	.text       start:0x80183634 end:0x80183958
 
 nw4r/lyt/lyt_layout.cpp:
-	.text       start:0x80183AF4 end:0x801845C8
+	.text       start:0x80183958 end:0x801845C8
 
 nw4r/lyt/lyt_picture.cpp:
-	.text       start:0x801845C8 end:0x80184BA4
+	.text       start:0x801845C8 end:0x80184AF0
 	.ctors      start:0x804065AC end:0x804065B0
 
 nw4r/lyt/lyt_textBox.cpp:
-	.text       start:0x80184BA4 end:0x801856C8
+	.text       start:0x80184AF0 end:0x801856C8
 	.ctors      start:0x804065B0 end:0x804065B4
 
 nw4r/lyt/lyt_window.cpp:
@@ -571,20 +571,20 @@ nw4r/lyt/lyt_window.cpp:
 	.ctors      start:0x804065B4 end:0x804065B8
 
 nw4r/lyt/lyt_bounding.cpp:
-	.text       start:0x80187D00 end:0x801880B0
+	.text       start:0x80187D00 end:0x80187DAC
 	.ctors      start:0x804065B8 end:0x804065BC
 
 nw4r/lyt/lyt_material.cpp:
-	.text       start:0x801880B0 end:0x8018AD5C
+	.text       start:0x80187DAC end:0x8018AD5C
 
 nw4r/lyt/lyt_texMap.cpp:
 	.text       start:0x8018AD5C end:0x8018B05C
 
 nw4r/lyt/lyt_drawInfo.cpp:
-	.text       start:0x8018B05C end:0x8018B3B4
+	.text       start:0x8018B05C end:0x8018B110
 
 nw4r/lyt/lyt_animation.cpp:
-	.text       start:0x8018B3B4 end:0x8018BCB0
+	.text       start:0x8018B110 end:0x8018BCB0
 
 nw4r/lyt/lyt_resourceAccessor.cpp:
 	.text       start:0x8018BCB0 end:0x8018BD08

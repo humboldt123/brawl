@@ -113,11 +113,19 @@ int ResFontBase::GetCharWidth(u16 ch) const {
 }
 
 CharWidths ResFontBase::GetCharWidths(u16 ch) const {
-    return GetCharWidthsFromIndex(GetGlyphIndex(ch));
+    u16 index = GetGlyphIndex(ch);
+    if (index == GLYPH_INDEX_NOT_FOUND) {
+        index = mFontInfo->alterCharIndex;
+    }
+    return GetCharWidthsFromIndex(index);
 }
 
 void ResFontBase::GetGlyph(Glyph* pGlyph, u16 ch) const {
-    GetGlyphFromIndex(pGlyph, GetGlyphIndex(ch));
+    u16 index = GetGlyphIndex(ch);
+    if (index == GLYPH_INDEX_NOT_FOUND) {
+        index = mFontInfo->alterCharIndex;
+    }
+    GetGlyphFromIndex(pGlyph, index);
 }
 
 FontEncoding ResFontBase::GetEncoding() const {

@@ -55,6 +55,8 @@ public:
 
     u16 GetDrawOrder(const EmitterDrawSetting& rSetting) const;
     u8 GetStripeTexmapType(const EmitterDrawSetting& rSetting) const;
+    math::VEC3 GetInitialPrevAxis(const EmitterDrawSetting& rSetting,
+                                  const AheadContextStripe& rContext);
 
     static void CalcAhead_Particle_Stripe(math::VEC3* pAxisY,
                                           AheadContextStripe* pContext,

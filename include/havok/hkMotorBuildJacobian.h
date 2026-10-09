@@ -19,5 +19,6 @@ struct hkMotorBuildJacobian {
     float unk10; // 0x10
     float unk14; // 0x14
 
+    void hkCalcMotorData(const u8* in, float* out);
     void hk1dLinearVelocityMotorCommitJacobian(const hkVector4* v, hkMotorJacobianCursor* c);
 };

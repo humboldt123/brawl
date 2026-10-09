@@ -12,3 +12,24 @@
 //   0x80302AA8   216  convertCylinderCacheToCapsuleCache   [map: hkGskCache__convertCylinderCacheToCapsuleCache]
 //   0x80302B80   180  restoreOriginalShapesInCdBodies   [map: hkCdBody__restoreOriginalShapesInCdBodies]
 //   0x80302C34    68  __as   [map: hkGskCache____as]
+
+#include <havok/hkPredGskCylinderAgent3.h>
+#include <havok/hkGskManifoldUtil.h>
+#include <havok/hkGskCache.h>
+
+void hkGskManifold::resetGskManifold(hkGskManifold* manifold, hkGskManifold* dst, void* arg) {
+    hkGskManifoldUtil::hkGskManifold_cleanup(manifold, arg);
+    dst->m_countC = manifold->m_countC;
+    *(u32*)manifold = 0;
+}
+
+void hkGskCache::operator=(const hkGskCache& other) {
+    unk0 = other.unk0;
+    unk2 = other.unk2;
+    unk4 = other.unk4;
+    unk6 = other.unk6;
+    unk8 = other.unk8;
+    unk9 = other.unk9;
+    unkA = other.unkA;
+    unkB = other.unkB;
+}

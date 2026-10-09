@@ -37,6 +37,7 @@
 //   0x802F30B0    12  __ct   [map: hkProcessCollisionOutput____ct]
 
 #include <havok/hkSimulation.h>
+#include <havok/hkRigidBody.h>
 
 hkSimulation::hkSimulation(hkWorld* world) {
     m_world = world;
@@ -65,4 +66,21 @@ hkReal hkSimulation::snapSimulateTimeAndGetTimeToAdvanceTo() {
         return m_unk14;
     }
     return m_unk1C;
+}
+
+// Accessors (8 bytes each), emitted as out-of-line functions in this TU.
+hkLinkedCollidable* hkEntity::getLinkedCollidable() {
+    return &m_collidable;
+}
+
+hkMotion* hkRigidBody::getRigidMotion() {
+    return getMotion();
+}
+
+hkTransform& hkRigidBody::getTransform() {
+    return *(hkTransform*)((u8*)this + 0xB0);
+}
+
+hkVector4& hkRigidBody::getCenterOfMassInWorld() {
+    return *(hkVector4*)((u8*)this + 0x100);
 }

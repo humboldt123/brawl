@@ -43,6 +43,7 @@ struct hkEntity : hkWorldObject {
     static const void* getVtablehkEntity();
 
     hkMotion* getMotion() { return (hkMotion*)m_motion; }
+    hkLinkedCollidable* getLinkedCollidable(); // out of line in src/havok/hkSimulation.cpp (fn_802F2E3C)
 
     virtual hkMotionState* getMotionState();
 
