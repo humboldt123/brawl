@@ -127,7 +127,7 @@ void ftStatusUniqProcessDamage::initStatus(soModuleAccesser* moduleAccesser) {
         float c82 = soValueAccesser::getConstantFloat(moduleAccesser, 0xc82, 0);
         controller->startClatter(rumble, c82, c83, 0, -1, 0, false);
         moduleAccesser->getControllerModule().setRumble(0x1a, 0, true, -1);
-        moduleAccesser->getEffectModule().reqCommon(0.0f, 0x1d);
+        moduleAccesser->getEffectModule().reqCommon(0x1d, 0.0f);
         break;
     }
     case 0x5d: {
@@ -147,7 +147,7 @@ void ftStatusUniqProcessDamage::initStatus(soModuleAccesser* moduleAccesser) {
         float c6 = soValueAccesser::getConstantFloat(moduleAccesser, 0xcf6, 0);
         float c5 = soValueAccesser::getConstantFloat(moduleAccesser, 0xcf5, 0);
         controller->startClatter(rumble, c5, c6, 0, 1, 0, false);
-        moduleAccesser->getEffectModule().reqCommon(0.0f, 0x1e);
+        moduleAccesser->getEffectModule().reqCommon(0x1e, 0.0f);
         break;
     }
     case 0x5f: {

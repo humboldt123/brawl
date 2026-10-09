@@ -79,7 +79,7 @@ void ftRobotStatusUniqProcessSpecialBurnerStart::execStatus(soModuleAccesser* mo
 
 void ftRobotStatusUniqProcessSpecialBurnerStart::execFixPos(soModuleAccesser* moduleAccesser) {
     if (moduleAccesser->getWorkManageModule().isFlag(0x22000017)) {
-        moduleAccesser->getMotionModule().addPartialAnimChr(0.0f, 1.0f, 2, 0x1d8, 0x60, 1, 0);
+        moduleAccesser->getMotionModule().addPartialAnimChr(2, 0x1d8, 0x60, 1, 0.0f, 1.0f, 0);
         moduleAccesser->getWorkManageModule().offFlag(0x22000017);
         moduleAccesser->getWorkManageModule().onFlag(0x12000040);
     }

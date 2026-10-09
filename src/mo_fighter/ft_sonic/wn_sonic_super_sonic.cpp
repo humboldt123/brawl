@@ -75,7 +75,7 @@ void wnSonicSuperSonic::processUpdate() {
         threshold -= soValueAccesser::getConstantInt(acc, 0x5DC0, 0);
         if (work.getInt(0x20000000) <= threshold) {
             m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
-            m_moduleAccesser->getEffectModule().reqCommon(0.0f, 0);
+            m_moduleAccesser->getEffectModule().reqCommon(0, 0.0f);
         }
     }
 }

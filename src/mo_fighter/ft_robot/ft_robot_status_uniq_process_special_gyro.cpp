@@ -76,9 +76,7 @@ void ftRobotStatusUniqProcessSpecialGyro::execStatus(soModuleAccesser* moduleAcc
     }
 }
 
-// BaseItem controls the gyro throw uses that the item header does not declare yet (the original calls them directly
-// through relocations / the item's secondary vtable at +0x3c; HYPOTHESIS: the last one launches the item with a speed
-// scaled by lr).
+// HYPOTHESIS: this unnamed item launch routine applies facing, velocity and scale.
 extern "C" void fn_27_28E108(BaseItem* item, float lr, Vec3f* speed, float scale);
 
 // MATCH-ONLY: the original scales the launch speed in place with paired singles (inline asm in the shared vector code).
@@ -94,18 +92,6 @@ static inline void ftRobotScaleVec3f(register Vec3f* v, register float c) {
         psq_st   fr1, Vec3f.m_z(v), 1, 0
     }
     // clang-format on
-}
-
-static void ftRobotGyroItemSlot(BaseItem* item, u32 offset) {
-    typedef void (*Fn)(BaseItem*);
-    void** table = *reinterpret_cast<void***>(reinterpret_cast<u8*>(item) + 0x3c);
-    reinterpret_cast<Fn>(table[offset / sizeof(void*)])(item);
-}
-
-static void ftRobotGyroItemSlotCharge(BaseItem* item, u32 offset, int arg, float charge) {
-    typedef void (*Fn)(BaseItem*, int, float);
-    void** table = *reinterpret_cast<void***>(reinterpret_cast<u8*>(item) + 0x3c);
-    reinterpret_cast<Fn>(table[offset / sizeof(void*)])(item, arg, charge);
 }
 
 // Throwing the gyro: creates the gyro item at the hand node, scaled with the fighter, and launches it with a speed
@@ -130,8 +116,8 @@ void ftRobotStatusUniqProcessSpecialGyro::execFixPos(soModuleAccesser* moduleAcc
                 speed.m_x = soValueAccesser::getConstantFloat(moduleAccesser, 0xfd0, 0) + charge * soValueAccesser::getConstantFloat(moduleAccesser, 0xfd1, 0);
                 ftRobotScaleVec3f(&speed, lr);
                 gyro->setOwnerScale(moduleAccesser->getPostureModule().getScale());
-                ftRobotGyroItemSlot(gyro, 0xb4);
-                ftRobotGyroItemSlotCharge(gyro, 0x260, 0, charge);
+                gyro->updateNodeSRT();
+                gyro->action(0, charge);
                 fn_27_28E108(gyro, lr, &speed, 1.0f);
             }
             moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x11000014);
@@ -149,13 +135,14 @@ void ftRobotStatusUniqProcessSpecialGyro::exitStatus(soModuleAccesser* moduleAcc
     case 0x20:
         // Leaving for a plain ground/air status keeps the ready glow while the gyro is fully charged.
         if (moduleAccesser->getWorkManageModule().getFloat(0x11000014) >= soValueAccesser::getConstantFloat(moduleAccesser, 0xfcf, 0)) {
-            moduleAccesser->getEffectModule().reqCommon(0.0f, 0x1a);
+            moduleAccesser->getEffectModule().reqCommon(0x1a, 0.0f);
         }
         break;
     case 0x11b:
     case 0x11c:
     case 0x11d:
-        return;
+        // MATCH-ONLY: retain the native branch around article cleanup.
+        goto done;
     default:
         moduleAccesser->getEffectModule().removeCommon(0x1a);
         moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x11000014);
@@ -166,6 +153,7 @@ void ftRobotStatusUniqProcessSpecialGyro::exitStatus(soModuleAccesser* moduleAcc
     getArticles(moduleAccesser).removeExist(*reinterpret_cast<int*>(data + 0x90), 0);
     data = reinterpret_cast<u8*>(g_ftCommonDataAccesser.getData(Fighter_Robot));
     getArticles(moduleAccesser).removeExist(*reinterpret_cast<int*>(data + 0xa0), 0);
+done:;
 }
 
 ftRobotStatusUniqProcessSpecialGyro g_ftRobotStatusUniqProcessSpecialGyro;

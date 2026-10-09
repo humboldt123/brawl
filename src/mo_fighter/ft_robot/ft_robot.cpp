@@ -507,7 +507,7 @@ void ftRobot::notifyEventChangeSituation(SituationKind kind, SituationKind prevK
     }
     if (acc->getWorkManageModule().isFlag(0x12000040) && kind == 0) {
         m_moduleAccesser->getMotionModule().removePartialAnimChr(2);
-        acc->getMotionModule().addPartialAnimChr(0.0f, 1.0f, 2, 0x1d9, 0x60, 0, 0);
+        acc->getMotionModule().addPartialAnimChr(2, 0x1d9, 0x60, 0, 0.0f, 1.0f, 0);
         acc->getWorkManageModule().offFlag(0x12000040);
         acc->getWorkManageModule().onFlag(0x12000041);
     }
@@ -706,7 +706,7 @@ void ftRobot::updateFinal(soModuleAccesser* acc) {
         int cueFrames = soValueAccesser::getConstantInt(acc, 0x5dca, 0);
         if (timerWork.getInt(0x10000042) <= cueFrames && !acc->getWorkManageModule().isFlag(0x12000046)) {
             acc->getWorkManageModule().onFlag(0x12000046);
-            acc->getEffectModule().reqCommon(0.0f, 0x25);
+            acc->getEffectModule().reqCommon(0x25, 0.0f);
         }
         if (acc->getWorkManageModule().getInt(0x10000042) == 0) {
             acc->getWorkManageModule().offFlag(0x12000042);

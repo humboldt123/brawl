@@ -53,6 +53,8 @@ The same assembly can come from very different C++ (`add r3,r3,r4` could be `x +
 
 - **A pointer-to-base conversion adds a null check inside a bounded embedded-object traversal:** a pointer cast must preserve null, while a reference cast expresses a known valid object. When the pool bounds and embedded holder prove validity, pass `&static_cast<Base&>(*object)`; keep the pointer cast on paths that can return null. This removed extra branches and matched R.O.B.’s article deactivation loop. Seen: `src/mo_fighter/ft_robot/ft_robot.cpp`, `include/ft/robot/ft_robot_article_pools.h`. **MED**
 
+- **A virtual call loads floats before its integer arguments, while the original does the reverse:** audit the callee and every caller, then test formal argument order with an external shadow-header probe and a member-function-pointer signature check. Separate GPR/FPR assignment can hide a wrong prototype even when register values are correct. Correcting `soMotionModule::addPartialAnimChr` and `soEffectModule::reqCommon` removed old argument temporaries and matched glide startup, R.O.B. startup/Gyro exit, and Yoshi Egg Roll startup. Slot identity and exact source parameter types still require independent evidence. Seen: `include/so/{motion,effect}/*`, corresponding status units. **MED**
+
 ## 5. Integers and bools
 - The source type decides extension: `u8` gives `clrlwi r,r,24`, `s8` gives `extsb`, `s16` gives `extsh`, `bool` gives `clrlwi 24`. Many "mysterious" extra instructions are a wrong type (often `s8` that should be `int`, or `u8` that should be `s32`). **HIGH**
 - **Bitfield reads as `lwz` plus `rlwinm`:** read through a raw `*(u32*)((u8*)p + off)` and shift/mask, not through a declared signed bitfield (`so_damage_module_impl.cpp`). **MED**

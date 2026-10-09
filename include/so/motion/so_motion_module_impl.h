@@ -68,8 +68,10 @@ public:
     virtual float get2ndFrame();
     virtual int get2ndKind();
     virtual bool is2ndEnd();
-    // HYPOTHESIS: (frame, rate, part set kind, motion kind, blend frames?, ?, ?); glide uses (0.0, 1.0, 1, Glide_Wing, param, 0, 0).
-    virtual void addPartialAnimChr(float frame, float rate, int partKind, int kind, int, int, int);
+    // HYPOTHESIS: formal argument order from native caller scheduling; the
+    // implementation uses the four integer arguments for part, motion, model
+    // node set and loop control, and stores the final control as one byte.
+    virtual void addPartialAnimChr(int partKind, int kind, int nodeSet, int loop, float frame, float rate, int sync);
     virtual void removePartialAnimChr(int);
     virtual void compRemovePartialAnimChr(int);
     virtual void detachPartialAnimChr(u32, bool);
@@ -236,8 +238,10 @@ public:
     virtual float get2ndFrame();
     virtual int get2ndKind();
     virtual bool is2ndEnd();
-    // HYPOTHESIS: (frame, rate, part set kind, motion kind, blend frames?, ?, ?); glide uses (0.0, 1.0, 1, Glide_Wing, param, 0, 0).
-    virtual void addPartialAnimChr(float frame, float rate, int partKind, int kind, int, int, int);
+    // HYPOTHESIS: formal argument order from native caller scheduling; the
+    // implementation uses the four integer arguments for part, motion, model
+    // node set and loop control, and stores the final control as one byte.
+    virtual void addPartialAnimChr(int partKind, int kind, int nodeSet, int loop, float frame, float rate, int sync);
     virtual void removePartialAnimChr(int);
     virtual void compRemovePartialAnimChr(int);
     virtual void detachPartialAnimChr(u32, bool);
