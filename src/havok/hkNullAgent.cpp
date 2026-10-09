@@ -1,5 +1,5 @@
 // Havok translation unit hkNullAgent.o (main.dol 0x802C0590-0x802C068C).
-// Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
+// Functions in address order (method names from the Havok TU map):
 //   0x802C0590    32  __ct   [map: hkNullAgent____ct]
 //   0x802C05B0     4  staticGetClosestPoints   [map: hkNullAgent__staticGetClosestPoints]
 //   0x802C05B4     4  staticGetPenetrations   [map: hkNullAgent__staticGetPenetrations]
@@ -13,3 +13,29 @@
 //   0x802C05E4     4  getPenetrations   [map: hkNullAgent__getPenetrations]
 //   0x802C05E8    92  __dt   [map: hkNullAgent____dt]
 //   0x802C0644    72  __sinit_\hkNullAgent_cpp   [map: hkNullAgentcpp____sinit_]
+
+#include <havok/hkNullAgent.h>
+
+hkNullAgent::hkNullAgent() {}
+
+void hkNullAgent::staticGetClosestPoints() {}
+void hkNullAgent::staticGetPenetrations() {}
+void hkNullAgent::staticLinearCast() {}
+
+static hkNullAgent s_nullAgent;
+
+hkNullAgent* hkNullAgent::createNullAgent() {
+    return &s_nullAgent;
+}
+
+hkNullAgent* hkNullAgent::getNullAgent() {
+    return &s_nullAgent;
+}
+
+void hkNullAgent::cleanup() {}
+void hkNullAgent::processCollision() {}
+void hkNullAgent::linearCast() {}
+void hkNullAgent::getClosestPoints() {}
+void hkNullAgent::getPenetrations() {}
+
+hkNullAgent::~hkNullAgent() {}
