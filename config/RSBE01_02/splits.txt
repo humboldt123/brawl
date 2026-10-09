@@ -236,6 +236,45 @@ sora/mv/mv_THPRead.cpp:
 	.text       start:0x8007E0EC end:0x8007E3A4
 	.sbss       start:0x805A0200 end:0x805A0204
 
+sora/ph/ph_container.cpp:
+	.text       start:0x800800D8 end:0x80080B40
+
+sora/ph/ph_2ndary_container.cpp:
+	.text       start:0x80080B40 end:0x80081CE8
+
+sora/ph/ph_2ndary_constraint.cpp:
+	.text       start:0x80081CE8 end:0x80082438
+
+sora/ph/ph_2ndary_world.cpp:
+	.text       start:0x80082438 end:0x8008AC5C
+
+sora/ph/ph_2ndary_controller.cpp:
+	.text       start:0x8008AC5C end:0x80095FC4
+
+sora/ph/ph_shape.cpp:
+	.text       start:0x80095FC4 end:0x800962E0
+
+sora/ph/ph_capsule_shape.cpp:
+	.text       start:0x800962E0 end:0x80096690
+
+sora/ph/ph_ik_solver.cpp:
+	.text       start:0x80096690 end:0x800966EC
+
+sora/ph/ph_ik_controller.cpp:
+	.text       start:0x800966EC end:0x800985D8
+
+sora/ph/ph_ik_two_joint_solver.cpp:
+	.text       start:0x800985D8 end:0x80099978
+
+sora/ph/ph_actor.cpp:
+	.text       start:0x80099978 end:0x8009A048
+
+sora/ph/ph_world.cpp:
+	.text       start:0x8009A048 end:0x8009A104
+
+sora/ph/ph_Interface.cpp:
+	.text       start:0x8009A104 end:0x8009BA40
+
 sora/cm/cm_controller_default.cpp:
 	.text       start:0x8009F560 end:0x8009F564
 	.data       start:0x80454CC0 end:0x80454CD0
