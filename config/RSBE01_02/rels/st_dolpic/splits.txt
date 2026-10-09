@@ -11,6 +11,48 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_dolpic/st_dolpic.cpp:
+	.text       start:0x00000070 end:0x000044B4
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x000000D0
+	.data       start:0x00000000 end:0x00000C88
+	.bss        start:0x00000008 end:0x00000018
+
+mo_stage/st_dolpic/gr_dolpic.cpp:
+	.text       start:0x000044B4 end:0x00004894
+	.rodata     start:0x000000D0 end:0x000000E0
+	.data       start:0x00000C88 end:0x00000F08
+
+mo_stage/st_dolpic/gr_dolpic_bg.cpp:
+	.text       start:0x00004894 end:0x0000532C
+	.rodata     start:0x000000E0 end:0x000000F8
+	.data       start:0x00000F08 end:0x000018C0
+
+mo_stage/st_dolpic/gr_dolpic_kamome.cpp:
+	.text       start:0x0000532C end:0x000056F0
+	.rodata     start:0x000000F8 end:0x00000110
+	.data       start:0x000018C0 end:0x00001AE0
+
+mo_stage/st_dolpic/gr_dolpic_ashiba.cpp:
+	.text       start:0x000056F0 end:0x000061D8
+	.rodata     start:0x00000110 end:0x00000130
+	.data       start:0x00001AE0 end:0x00001D08
+
+mo_stage/st_dolpic/gr_dolpic_bell.cpp:
+	.text       start:0x000061D8 end:0x00006810
+	.rodata     start:0x00000130 end:0x00000148
+	.data       start:0x00001D08 end:0x00001FB0
+
+mo_stage/st_dolpic/gr_dolpic_shine.cpp:
+	.text       start:0x00006810 end:0x00006D58
+	.rodata     start:0x00000148 end:0x00000158
+	.data       start:0x00001FB0 end:0x00002228
+
+mo_stage/st_dolpic/gr_dolpic_water.cpp:
+	.text       start:0x00006D58 end:0x00007088
+	.rodata     start:0x00000158 end:0x0000015C
+	.data       start:0x00002228 end:0x00002440
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x00007088 end:0x00007124
 	.data       start:0x00002440 end:0x0000244D

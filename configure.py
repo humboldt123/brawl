@@ -5483,7 +5483,16 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_dolpic/st_dolpic.cpp"),
+            Object(NonMatching, "mo_stage/st_dolpic/gr_dolpic.cpp"),
+            Object(NonMatching, "mo_stage/st_dolpic/gr_dolpic_bg.cpp"),
+            Object(NonMatching, "mo_stage/st_dolpic/gr_dolpic_kamome.cpp"),
+            Object(NonMatching, "mo_stage/st_dolpic/gr_dolpic_ashiba.cpp"),
+            Object(NonMatching, "mo_stage/st_dolpic/gr_dolpic_bell.cpp"),
+            Object(NonMatching, "mo_stage/st_dolpic/gr_dolpic_shine.cpp"),
+            Object(NonMatching, "mo_stage/st_dolpic/gr_dolpic_water.cpp"),
+        ],
     },
     {
         "lib": "st_donkey",
