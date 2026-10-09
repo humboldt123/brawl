@@ -1,3 +1,5 @@
+// Adapted from the CC0 OGWS decompilation (kiwi515/ogws, 27fa94a).
+// Native Brawl interfaces and emitted ranges are verified separately.
 #include <nw4r/math.h>
 
 namespace nw4r {
@@ -16,7 +18,12 @@ struct ArcTanSample {
     f32 atan_delta; // at 0x4
 };
 
-extern SinCosSample sSinCosTbl[];
+} // namespace
+
+// Shared with the native paired Euler-rotation implementation.
+extern const SinCosSample sSinCosTbl[];
+
+namespace {
 extern ArcTanSample sArcTanTbl[];
 
 f32 AtanFIdx_(f32 x) {
@@ -64,24 +71,41 @@ f32 CosFIdx(f32 fidx) {
     return cos;
 }
 
-void SinCosFIdx(f32* pSin, f32* pCos, f32 fidx) {
-    f32 abs_fidx = FAbs(fidx);
-
-    while (abs_fidx > 65536.0f) {
-        abs_fidx -= 65536.0f;
-    }
-
-    u16 whole = F32ToU16(abs_fidx);
-    f32 frac = abs_fidx - U16ToF32(whole);
-
-    f32 sin = sSinCosTbl[whole & 255].sin_val +
-              frac * sSinCosTbl[whole & 255].sin_delta;
-
-    f32 cos = sSinCosTbl[whole & 255].cos_val +
-              frac * sSinCosTbl[whole & 255].cos_delta;
-
-    *pSin = (fidx < 0.0f) ? -sin : sin;
-    *pCos = cos;
+// The native routine interpolates sine and cosine together in paired lanes.
+// pSin temporarily stores the quantized index before receiving the result.
+void SinCosFIdx(register f32* pSin, register f32* pCos, register f32 fidx) {
+    register f32 absolute = FAbs(fidx);
+    register const SinCosSample* table = sSinCosTbl;
+    register f32 wrap = 65536.0f;
+    register u32 index;
+    register f32 integral, samples, zero;
+    ASM (
+        psq_st absolute, 0(pSin), 1, 3
+        fcmpu cr0, absolute, wrap
+        ble wrapped
+    wrap_again:
+        fsubs absolute, absolute, wrap
+        fcmpu cr0, absolute, wrap
+        bgt wrap_again
+        psq_st absolute, 0(pSin), 1, 3
+    wrapped:
+        lhz index, 0(pSin)
+        fsubs zero, wrap, wrap
+        rlwinm index, index, 4, 20, 27
+        add table, table, index
+        psq_l integral, 0(pSin), 1, 3
+        psq_l samples, 0(table), 0, 0
+        fcmpu cr0, fidx, zero
+        fsubs integral, absolute, integral
+        psq_l absolute, 8(table), 0, 0
+        ps_madds0 absolute, absolute, integral, samples
+        ps_merge10 integral, absolute, absolute
+        psq_st integral, 0(pCos), 1, 0
+        bge positive_sine
+        ps_neg absolute, absolute
+    positive_sine:
+        psq_st absolute, 0(pSin), 1, 0
+    )
 }
 
 f32 AtanFIdx(f32 x) {
@@ -169,9 +193,7 @@ f32 Atan2FIdx(f32 y, f32 x) {
     }
 }
 
-namespace {
-
-SinCosSample sSinCosTbl[] = {
+const SinCosSample sSinCosTbl[] = {
     // clang-format off
     { 0.000000000f,  1.000000000f,  0.024541000f, -0.000301000f},
     { 0.024541000f,  0.999698997f,  0.024526000f, -0.000903000f},
@@ -432,6 +454,8 @@ SinCosSample sSinCosTbl[] = {
     {-0.000000000f,  1.000000000f,  0.024541000f, -0.000301000f}
     // clang-format on
 };
+
+namespace {
 
 ArcTanSample sArcTanTbl[] = {
     // clang-format off

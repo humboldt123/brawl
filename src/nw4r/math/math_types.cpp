@@ -1,3 +1,5 @@
+// Adapted from the CC0 OGWS decompilation (kiwi515/ogws, 27fa94a).
+// Native Brawl interfaces and emitted ranges are verified separately.
 #include <nw4r/math.h>
 
 #define FSEL_MAX(_fx, _fy)                                                     \
@@ -15,7 +17,7 @@
 namespace nw4r {
 namespace math {
 
-VEC3* VEC3Maximize(VEC3* pOut, const VEC3* pA, const VEC3* pB) {
+VEC2* VEC2Maximize(VEC2* pOut, const VEC2* pA, const VEC2* pB) {
     register f32 fx, fy;
     register f32 dt, work;
 
@@ -25,13 +27,10 @@ VEC3* VEC3Maximize(VEC3* pOut, const VEC3* pA, const VEC3* pB) {
     FSEL_MAX(pA->y, pB->y);
     pOut->y = work;
 
-    FSEL_MAX(pA->z, pB->z);
-    pOut->z = work;
-
     return pOut;
 }
 
-VEC3* VEC3Minimize(VEC3* pOut, const VEC3* pA, const VEC3* pB) {
+VEC2* VEC2Minimize(VEC2* pOut, const VEC2* pA, const VEC2* pB) {
     register f32 fx, fy;
     register f32 dt, work;
 
@@ -41,9 +40,25 @@ VEC3* VEC3Minimize(VEC3* pOut, const VEC3* pA, const VEC3* pB) {
     FSEL_MIN(pA->y, pB->y);
     pOut->y = work;
 
-    FSEL_MIN(pA->z, pB->z);
-    pOut->z = work;
+    return pOut;
+}
 
+// Normalize both lanes with the same reciprocal-square-root estimate.
+VEC2* VEC2Normalize(register VEC2* pOut, register const VEC2* pIn) {
+    register f32 half = 0.5f, three = 3.0f;
+    register f32 v, squared, sum, estimate, work;
+    ASM (
+        psq_l v, 0(pIn), 0, 0
+        ps_mul squared, v, v
+        ps_sum0 sum, squared, squared, squared
+        frsqrte estimate, sum
+        fmuls work, estimate, estimate
+        fmuls half, estimate, half
+        fnmsubs work, work, sum, three
+        fmuls estimate, work, half
+        ps_muls0 v, v, estimate
+        psq_st v, 0(pOut), 0, 0
+    )
     return pOut;
 }
 
@@ -87,8 +102,6 @@ MTX33* MTX34ToMTX33(register MTX33* pOut, register const MTX34* pIn) {
     return pOut;
 }
 
-#define nofralloc
-#undef PURE_ASM
 
 asm u32 MTX34InvTranspose(register MTX33* pOut, register const MTX34* pIn){
     // clang-format off
@@ -118,7 +131,7 @@ asm u32 MTX34InvTranspose(register MTX33* pOut, register const MTX34* pIn){
 
     ps_msub f13, f3, f8, f13 // (e*i - h*f, f*g - i*d)
     ps_msub f12, f5, f6, f12 // (h*c - b*i, i*a - c*g)
-    
+
     // TODO(kiwi) Stop being lazy and finish documentation
     ps_mul  f10, f3, f4
     ps_mul  f9, f0, f5
@@ -197,14 +210,14 @@ MTX34* MTX34Scale(register MTX34* pOut, register const MTX34* pIn,
         psq_l row1b, MTX34._12(pIn), 0, 0
         psq_l row2a, MTX34._20(pIn), 0, 0
         psq_l row2b, MTX34._22(pIn), 0, 0
-        
+
         ps_mul row0a, row0a, xy
         ps_mul row0b, row0b, z
         ps_mul row1a, row1a, xy
         ps_mul row1b, row1b, z
         ps_mul row2a, row2a, xy
         ps_mul row2b, row2b, z
-    
+
         psq_st row0a, MTX34._00(pOut), 0, 0
         psq_st row0b, MTX34._02(pOut), 0, 0
         psq_st row1a, MTX34._10(pOut), 0, 0
@@ -259,7 +272,7 @@ MTX34* MTX34Trans(register MTX34* pOut, register const MTX34* pIn,
         ps_madd work1, row1b, z, work0      // (_12*z + _10*x, _13 + _11*y)
         ps_sum0 work2, work1, work2, work1
         psq_st  work2, MTX34._13(pOut), 1, 0
-        
+
         ps_mul  work0, row2a, xy            // (_20*x, _21*y)
         ps_madd work1, row2b, z, work0      // (_22*z + _20*x, _23 + _21*y)
         ps_sum0 work2, work1, work2, work1
@@ -274,6 +287,8 @@ MTX34* MTX34RotAxisFIdx(MTX34* pMtx, const VEC3* pAxis, f32 fidx) {
     return pMtx;
 }
 
+// The native routine evaluates this Euler formula with paired fused operations.
+// This scalar draft still needs the native rounding and instruction scheduling.
 MTX34* MTX34RotXYZFIdx(MTX34* pMtx, f32 fx, f32 fy, f32 fz) {
     f32 sx, cx;
     SinCosFIdx(&sx, &cx, fx);
@@ -303,6 +318,26 @@ MTX34* MTX34RotXYZFIdx(MTX34* pMtx, f32 fx, f32 fy, f32 fz) {
     pMtx->_23 = 0.0f;
 
     return pMtx;
+}
+
+// Copy the linear 3x3 portion; the caller retains the translation column.
+MTX34* MTX33ToMTX34(register MTX34* pOut, register const MTX33* pIn) {
+    register f32 row0, row1, row2, z0, z1, z2;
+    ASM (
+        psq_l row0, MTX33._00(pIn), 0, 0
+        psq_l row1, MTX33._10(pIn), 0, 0
+        psq_l row2, MTX33._20(pIn), 0, 0
+        lfs z0, MTX33._02(pIn)
+        lfs z1, MTX33._12(pIn)
+        lfs z2, MTX33._22(pIn)
+        psq_st row0, MTX34._00(pOut), 0, 0
+        psq_st row1, MTX34._10(pOut), 0, 0
+        psq_st row2, MTX34._20(pOut), 0, 0
+        stfs z0, MTX34._02(pOut)
+        stfs z1, MTX34._12(pOut)
+        stfs z2, MTX34._22(pOut)
+    )
+    return pOut;
 }
 
 VEC3* VEC3TransformNormal(VEC3* pOut, const MTX34* pMtx, const VEC3* pVec) {
@@ -366,6 +401,24 @@ MTX44* MTX44Copy(register MTX44* pDst, register const MTX44* pSrc) {
     )
 
     return pDst;
+}
+
+// This native overload reads a fourth matrix row and divides by homogeneous W.
+// The historical map label calling it an MTX34 transform is inconsistent with those accesses.
+VEC3* VEC3TransformCoord(VEC3* pOut, const MTX44* pMtx, const VEC3* pVec) {
+    register f32 invW = 1.0f / (pMtx->_33 + (pMtx->_32 * pVec->z
+                         + (pMtx->_30 * pVec->x + pMtx->_31 * pVec->y)));
+    VEC3 transformed;
+    transformed.x = pMtx->_03 + (pMtx->_02 * pVec->z
+                    + (pMtx->_00 * pVec->x + pMtx->_01 * pVec->y));
+    transformed.y = pMtx->_13 + (pMtx->_12 * pVec->z
+                    + (pMtx->_10 * pVec->x + pMtx->_11 * pVec->y));
+    transformed.z = pMtx->_23 + (pMtx->_22 * pVec->z
+                    + (pMtx->_20 * pVec->x + pMtx->_21 * pVec->y));
+    pOut->x = invW * transformed.x;
+    pOut->y = invW * transformed.y;
+    pOut->z = invW * transformed.z;
+    return pOut;
 }
 
 } // namespace math

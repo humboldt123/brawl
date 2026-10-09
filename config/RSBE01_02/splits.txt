@@ -485,15 +485,22 @@ nw4r/ut/ut_TextWriterBase.cpp:
 
 nw4r/math/math_arithmetic.cpp:
 	.text       start:0x80162188 end:0x801622C4
+	.data       start:0x80464828 end:0x80465138
+	.sdata2     start:0x805A2BF0 end:0x805A2C10
 
 nw4r/math/math_triangular.cpp:
-	.text       start:0x801622C4 end:0x80162774
+	.text       start:0x801622C4 end:0x801626E8
+	.rodata     start:0x804097C8 end:0x8040A7D8
+	.data       start:0x80465138 end:0x80465240
+	.sdata2     start:0x805A2C10 end:0x805A2C38
 
 nw4r/math/math_types.cpp:
-	.text       start:0x80162774 end:0x80162D3C
+	.text       start:0x801626E8 end:0x80162D3C
+	.sdata2     start:0x805A2C38 end:0x805A2C58
 
 nw4r/math/math_geometry.cpp:
 	.text       start:0x80162D3C end:0x801638D0
+	.sdata2     start:0x805A2C58 end:0x805A2C68
 
 nw4r/ef/ef_draworder.cpp:
 	.text       start:0x801638D0 end:0x801639DC
