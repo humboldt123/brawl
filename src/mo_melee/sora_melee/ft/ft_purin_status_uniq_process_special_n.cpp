@@ -332,9 +332,9 @@ void ftPurinStatusUniqProcessSpecialNHoldMax::execStatus(soModuleAccesser* acc) 
     float charge = acc->getWorkManageModule().getFloat(0x21000005);
     float increment = acc->getConstantFloatKirby(0xfba) * 0.017453292f;
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
-    float phaseStep = charge * increment;
-    phaseStep *= direction;
-    angle += phaseStep;
+    const float phaseStep = charge * increment;
+    const float directedStep = phaseStep * direction;
+    angle += directedStep;
     // The phase is stored in radians, while model-node rotation uses degrees.
     while (angle < 0.0f) {
         angle += 6.2831855f;

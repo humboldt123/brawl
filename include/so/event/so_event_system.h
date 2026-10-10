@@ -1,4 +1,4 @@
-// Shadows BrawlHeaders (a submodule): identical except for the MATCH-ONLY switch in soEventUnitWithWorkArea.
+// Shadows BrawlHeaders: retain fighter REL imports and correct empty event-unit storage.
 #pragma once
 
 #include <StaticAssert.h>
@@ -66,15 +66,15 @@ public:
     s16 m_eventID;
 };
 
+// Zero-capacity event units have no registration or polymorphic storage.
+// The shared weapon builder places its three disabled units at consecutive
+// byte addresses and their constructors only return.
 template <typename T>
-class soEventUnitNull : public soEventUnitWrapper<T> {
+class soEventUnitNull {
 public:
-    virtual bool isNull() const {
-        return true;
-    }
-
-    soEventUnitNull(s16 mgrId, s16 p2) : soEventUnitWrapper<T>(mgrId, p2) { }
+    soEventUnitNull(s16, s16) { }
 };
+static_assert(sizeof(soEventUnitNull<void>) == 1, "Disabled event unit extent");
 
 template <typename T>
 class soEventUnitImpl : public soEventUnitWrapper<T> {
