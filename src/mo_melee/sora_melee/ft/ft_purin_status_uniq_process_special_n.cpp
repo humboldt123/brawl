@@ -180,7 +180,7 @@ void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
     acc->getWorkManageModule().addFloat(acc->getConstantFloatKirby(0xfb9), 0x21000005);
     soWorkManageModule& work = acc->getWorkManageModule();
     float maximum = acc->getConstantFloatKirby(0xfb8);
-    if (maximum <= work.getFloat(0x21000005)) {
+    if (work.getFloat(0x21000005) >= maximum) {
         acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfb8), 0x21000005);
         acc->getWorkManageModule().onFlag(0x22000010);
         if (acc->getStageObject().soGetSubKind() == 5) {
@@ -1240,7 +1240,9 @@ void ftPurinStatusUniqProcessSpecialNTurn::execStatus(soModuleAccesser* acc) {
     acc->getModelModule().setNodeScale(scaleKind == 5 ? 0x196 : 3, &scale);
     float angle = acc->getWorkManageModule().getFloat(0x21000006);
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
-    angle += (acc->getConstantFloatKirby(0xfac) * 0.2f) * direction;
+    const float phaseStep = acc->getConstantFloatKirby(0xfac) * 0.2f;
+    const float directedStep = phaseStep * direction;
+    angle += directedStep;
     while (angle < 0.0f) {
         angle += 6.2831855f;
     }
@@ -1268,7 +1270,8 @@ void ftPurinStatusUniqProcessSpecialNTurn::execStatus(soModuleAccesser* acc) {
             Vec2f currentSpeed;
             Vec2f::copy(currentSpeed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
             stop.offConsiderGroundFriction();
-            stop.resetEnergy(0, &Vec2f(currentSpeed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+            Vec3f resetRotation(0.0f, 0.0f, 0.0f);
+            stop.resetEnergy(0, &Vec2f(currentSpeed.m_x, 0.0f), &resetRotation, acc);
             stop.m_accel = Vec2f(0.0f, 0.0f);
             stop.m_speedTarget = Vec2f(0.0f, 0.0f);
             stop.m_brake = Vec2f(0.0f, 0.0f);
@@ -1279,10 +1282,12 @@ void ftPurinStatusUniqProcessSpecialNTurn::execStatus(soModuleAccesser* acc) {
         updateKineticTurnGround(acc);
         Vec2f speed;
         Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-        if (speed.m_x <= acc->getConstantFloatKirby(0xfad)) {
-            acc->getGroundModule().setCorrect(soGroundShapeImpl::Correct_Ground_Cliff_Stop, 0);
-        } else {
+        // Stay on ordinary ground while above the turning-speed threshold;
+        // otherwise stop at cliffs, including an unordered speed comparison.
+        if (speed.m_x > acc->getConstantFloatKirby(0xfad)) {
             acc->getGroundModule().setCorrect(soGroundShapeImpl::Correct_Ground, 0);
+        } else {
+            acc->getGroundModule().setCorrect(soGroundShapeImpl::Correct_Ground_Cliff_Stop, 0);
         }
     } else if (situation != previous) {
         setKineticTurnAir(acc);
