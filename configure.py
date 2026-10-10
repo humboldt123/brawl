@@ -5539,7 +5539,13 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_dxonett/st_dxonett.cpp"),
+            Object(NonMatching, "mo_stage/st_dxonett/gr_dxonett.cpp"),
+            Object(NonMatching, "mo_stage/st_dxonett/gr_dxonett_ashiba.cpp"),
+            Object(NonMatching, "mo_stage/st_dxonett/gr_dxonett_car.cpp"),
+            Object(NonMatching, "mo_stage/st_dxonett/gr_dxonett_kanban.cpp"),
+        ],
     },
     {
         "lib": "st_dxpstadium",
