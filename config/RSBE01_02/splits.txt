@@ -2718,7 +2718,232 @@ DWC/dwclogin.c:
 	.text       start:0x80338600 end:0x8033949C
 
 DWC/dwcmain.c:
-	.text       start:0x8033949C end:0x80339B30
+	.text       start:0x8033949C end:0x8033C0D4
+	.data       start:0x80489E48 end:0x8048AA60
+	.bss        start:0x80533730 end:0x805338B0
+	.sdata      start:0x8059F088 end:0x8059F0B0
+	.sbss       start:0x805A0F88 end:0x805A0F90
+
+DWC/dwcmatch.c:
+	.text       start:0x8033C0D4 end:0x8034E160
+	.rodata     start:0x804156E0 end:0x804156F8
+	.data       start:0x8048AA60 end:0x8048CEE8
+	.bss        start:0x805338B0 end:0x80534008
+	.sdata      start:0x8059F0B0 end:0x8059F1B0
+	.sbss       start:0x805A0F90 end:0x805A0FB0
+
+DWC/dwctransport.c:
+	.text       start:0x8034E160 end:0x8034F020
+	.data       start:0x8048CEE8 end:0x8048D240
+	.sdata      start:0x8059F1B0 end:0x8059F1B8
+	.sbss       start:0x805A0FB0 end:0x805A0FB8
+
+DWC/dwcutil.c:
+	.text       start:0x8034F020 end:0x80352040
+	.data       start:0x8048D240 end:0x8048D400
+	.bss        start:0x80534008 end:0x80534030
+	.sdata      start:0x8059F1B8 end:0x8059F1C8
+	.sbss       start:0x805A0FB8 end:0x805A0FD0
+
+DWC/dwc_auth_interface.c:
+	.text       start:0x80352040 end:0x8035423C
+	.data       start:0x8048D400 end:0x8048DC08
+	.bss        start:0x80534030 end:0x805344B0
+	.sdata      start:0x8059F1C8 end:0x8059F2F8
+	.sbss       start:0x805A0FD0 end:0x805A0FE0
+
+DWC/dwc_stats_http.c:
+	.text       start:0x8035423C end:0x803556C8
+	.rodata     start:0x804156F8 end:0x80415720
+	.data       start:0x8048DC08 end:0x8048DDD0
+	.sdata      start:0x8059F2F8 end:0x8059F320
+	.sbss       start:0x805A0FE0 end:0x805A0FE8
+
+DWC/dwc_nd.c:
+	.text       start:0x803556C8 end:0x80358890
+	.rodata     start:0x80415720 end:0x80415790
+	.data       start:0x8048DDD0 end:0x8048E680
+	.bss        start:0x805344B0 end:0x80534618
+	.sdata      start:0x8059F320 end:0x8059F588
+	.sbss       start:0x805A0FE8 end:0x805A1038
+
+SBS/sbs_client.c:
+	.text       start:0x80358890 end:0x8035A460
+	.rodata     start:0x80415790 end:0x80415D40
+	.data       start:0x8048E680 end:0x8048E7B8
+	.bss        start:0x80534618 end:0x80534638
+	.sdata2     start:0x805A4978 end:0x805A4980
+
+GameSpy/common/darray.c:
+	.text       start:0x8035A460 end:0x8035B34C
+
+GameSpy/common/md5c.c:
+	.text       start:0x8035B34C end:0x8035C26C
+	.data       start:0x8048E7B8 end:0x8048E7F8
+	.sdata      start:0x8059F588 end:0x8059F590
+
+GameSpy/common/gsPlatform.c:
+	.text       start:0x8035C26C end:0x8035E02C
+	.data       start:0x8048E7F8 end:0x8048E870
+	.bss        start:0x80534638 end:0x80534808
+	.sdata      start:0x8059F590 end:0x8059F5A0
+	.sbss       start:0x805A1038 end:0x805A1048
+	.sdata2     start:0x805A4980 end:0x805A4990
+
+GameSpy/common/gsAvailable.c:
+	.text       start:0x8035E02C end:0x8035E380
+	.data       start:0x8048E870 end:0x8048E898
+	.bss        start:0x80534808 end:0x805348E0
+	.sdata      start:0x8059F5A0 end:0x8059F5A8
+
+GameSpy/common/gsCore.c:
+	.text       start:0x8035E380 end:0x8035EA70
+	.bss        start:0x805348E0 end:0x805349A8
+
+GameSpy/common/gsLargeInt.c:
+	.text       start:0x8035EA70 end:0x803621B8
+	.rodata     start:0x80415D40 end:0x80415D50
+	.bss        start:0x805349A8 end:0x80534A40
+
+GameSpy/common/gsSoapXml.c:
+	.text       start:0x803621B8 end:0x80367C28
+	.data       start:0x8048E898 end:0x8048EA30
+	.sdata      start:0x8059F5A8 end:0x8059F600
+
+GameSpy/gp/gp.c:
+	.text       start:0x80367C28 end:0x803733BC
+	.data       start:0x8048EA30 end:0x8048FBB8
+	.sdata      start:0x8059F600 end:0x8059F980
+	.sdata2     start:0x805A4990 end:0x805A4998
+
+GameSpy/gt2/gt2.c:
+	.text       start:0x803733BC end:0x80378BB4
+	.data       start:0x8048FBB8 end:0x8048FBE0
+	.bss        start:0x80534A40 end:0x80535A80
+	.sdata      start:0x8059F980 end:0x8059F9A8
+	.sbss       start:0x805A1050 end:0x805A1058
+
+GameSpy/qr2/qr2.c:
+	.text       start:0x80378BB4 end:0x8037B354
+	.data       start:0x8048FBE0 end:0x80490110
+	.bss        start:0x80535A80 end:0x80535BE0
+	.sdata      start:0x8059F9A8 end:0x8059F9D8
+	.sbss       start:0x805A1058 end:0x805A1060
+	.sdata2     start:0x805A4998 end:0x805A49A0
+
+GameSpy/qr2/qr2regkeys.c:
+	.text       start:0x8037B354 end:0x8037B37C
+
+GameSpy/ghttp/ghttp.c:
+	.text       start:0x8037B37C end:0x803822D8
+	.rodata     start:0x80415D50 end:0x80415D80
+	.data       start:0x804905E8 end:0x804909A0
+	.sdata      start:0x8059FA40 end:0x8059FAF0
+	.sbss       start:0x805A1060 end:0x805A1098
+	.sdata2     start:0x805A49A0 end:0x805A49A8
+
+GameSpy/gstats/gstats.c:
+	.text       start:0x803822D8 end:0x80385558
+	.data       start:0x804909A0 end:0x80490BF8
+	.bss        start:0x80535DE0 end:0x80535FE0
+	.sdata      start:0x8059FAF0 end:0x8059FB58
+	.sbss       start:0x805A1098 end:0x805A10D0
+	.sdata2     start:0x805A49A8 end:0x805A49B0
+
+GameSpy/natneg/natneg.c:
+	.text       start:0x80385558 end:0x80387608
+	.data       start:0x80490BF8 end:0x80490D18
+	.bss        start:0x80535FE0 end:0x80536500
+	.sdata      start:0x8059FB58 end:0x8059FB82
+	.sbss       start:0x805A10D0 end:0x805A1120
+
+GameSpy/serverbrowsing/sb.c:
+	.text       start:0x80387608 end:0x8038D394
+	.data       start:0x80490D18 end:0x80490DA0
+	.sdata      start:0x8059FB88 end:0x8059FBD8
+	.sbss       start:0x805A1120 end:0x805A1138
+	.sdata2     start:0x805A49B0 end:0x805A49C8
+
+GameSpy/sake/sake.c:
+	.text       start:0x8038D394 end:0x8038E3F0
+	.data       start:0x80490DA0 end:0x80491128
+	.bss        start:0x80536500 end:0x80536580
+	.sdata      start:0x8059FBD8 end:0x8059FC28
+
+RVL_SDK/net/ncdsystem.c:
+	.text       start:0x8038E3F0 end:0x8038EC6C
+	.data       start:0x80491298 end:0x80491340
+	.bss        start:0x80536580 end:0x805365E0
+	.sdata      start:0x8059FC28 end:0x8059FC30
+	.sbss       start:0x805A1138 end:0x805A1140
+
+RVL_SDK/net/net_time.c:
+	.text       start:0x8038EC6C end:0x8038ED50
+	.sbss       start:0x805A1140 end:0x805A1148
+
+RVL_SDK/net/net_util.c:
+	.text       start:0x8038ED50 end:0x8038F430
+	.rodata     start:0x80415D80 end:0x80415DE0
+	.data       start:0x80491340 end:0x80491360
+	.sdata      start:0x8059FC30 end:0x8059FC38
+
+RVL_SDK/net/crypto.c:
+	.text       start:0x8038F430 end:0x80390014
+	.rodata     start:0x80415DE0 end:0x80416800
+	.data       start:0x80491398 end:0x80491528
+	.sdata      start:0x8059FC38 end:0x8059FC50
+	.sdata2     start:0x805A49C8 end:0x805A49D0
+
+RVL_SDK/nhttp/nhttp.c:
+	.text       start:0x80390014 end:0x80397610
+	.rodata     start:0x80416800 end:0x80416918
+	.data       start:0x80491528 end:0x80491A78
+	.bss        start:0x805365E0 end:0x805372C0
+	.sdata      start:0x8059FC50 end:0x8059FCC0
+	.sbss       start:0x805A1148 end:0x805A1158
+
+RVL_SDK/nwc24/nwc24.c:
+	.text       start:0x80397610 end:0x803A5E40
+	.rodata     start:0x80416918 end:0x80416950
+	.data       start:0x80491A78 end:0x80492490
+	.bss        start:0x805372C0 end:0x80537680
+	.sdata      start:0x8059FCC0 end:0x8059FE10
+	.sbss       start:0x805A1158 end:0x805A11E0
+
+RVL_SDK/so/so.c:
+	.text       start:0x803A5E40 end:0x803A88D4
+	.data       start:0x804924D8 end:0x804926C8
+	.bss        start:0x80537680 end:0x805376C0
+	.sdata      start:0x8059FE10 end:0x8059FE20
+	.sbss       start:0x805A11E0 end:0x805A11F8
+
+RVL_SDK/ssl/ssl.c:
+	.text       start:0x803A88D4 end:0x803A962C
+	.data       start:0x80492710 end:0x80492720
+	.bss        start:0x805376C0 end:0x8053A6E0
+	.sdata      start:0x8059FE20 end:0x8059FE28
+	.sbss       start:0x805A11F8 end:0x805A1200
+
+FAT/fat.c:
+	.text       start:0x803A962C end:0x803C8090
+	.rodata     start:0x80416950 end:0x8041AC68
+	.data       start:0x80492720 end:0x804927E0
+	.bss        start:0x8053A6E0 end:0x80563798
+	.sdata      start:0x8059FE28 end:0x8059FE98
+	.sbss       start:0x805A1200 end:0x805A1228
+	.sdata2     start:0x805A49D0 end:0x805A49E8
+
+FAT/fat_nand.c:
+	.text       start:0x803C8090 end:0x803CB004
+	.rodata     start:0x8041AC68 end:0x8041AC88
+	.bss        start:0x80563798 end:0x80563940
+
+FAT/sd_host.c:
+	.text       start:0x803CB004 end:0x803CCAC0
+	.data       start:0x804927E0 end:0x80492F50
+	.bss        start:0x80563940 end:0x805639C0
+	.sdata      start:0x8059FE98 end:0x8059FEA0
+	.sbss       start:0x805A1230 end:0x805A1250
 
 Runtime.PPCEABI.H/__va_arg.c:
 	.text       start:0x803F065C end:0x803F0724
