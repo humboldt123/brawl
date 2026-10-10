@@ -1516,6 +1516,7 @@ config.libs = [
         "cflags": cflags_rel,
         "host": False,
         "objects": [
+            Object(NonMatching, "mo_fighter/ft_snake/ft_snake.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_snake/ft_snake_status_uniq_process_final_common.cpp"),
             Object(NonMatching, "mo_fighter/ft_snake/ft_snake_status_uniq_process_final_entry.cpp"),
             Object(NonMatching, "mo_fighter/ft_snake/ft_snake_status_uniq_process_final_set.cpp"),

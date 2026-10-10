@@ -279,3 +279,8 @@ void fn_92_CBB4(u8* p, float a0) { return ((Fighter*)(p - 0xF4))->Fighter::notif
 void fn_92_CBBC(u8* p, float a0, float a1, soModuleAccesser* a2) { return ((Fighter*)(p - 0x100))->Fighter::notifyEventTurn(a0, a1, a2); }
 
 }
+
+// Fighter event thunks: adjust `this` back to the Fighter base, then tail-call the Fighter method.
+extern "C" {
+bool fn_92_CAA4(u8* self, acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3) { return ((Fighter*)(self - 0x48))->Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3); }
+} // extern "C"

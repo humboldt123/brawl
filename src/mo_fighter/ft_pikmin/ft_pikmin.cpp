@@ -370,3 +370,9 @@ void fn_113_BF8C(float* a, float* b, float* out) {
 }
 
 }
+
+// Fighter event thunks: adjust `this` back to the Fighter base, then tail-call the Fighter method.
+extern "C" {
+void fn_113_100A8(u8* self, itParam::SizeKind sizeKind, BaseItem* item, u32 nodeIndex, u32 index, bool unk5) { ((Fighter*)(self - 0xD0))->Fighter::notifyHaveItem(sizeKind, item, nodeIndex, index, unk5); }
+bool fn_113_FFA0(u8* self, acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3) { return ((Fighter*)(self - 0x48))->Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3); }
+} // extern "C"
