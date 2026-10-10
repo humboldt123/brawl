@@ -1,7 +1,9 @@
 #pragma force_active off
-#include <so/so_array.h>
-class soArticle;
+#include <so/article/so_article_array.h>
 #include <new>
+
+soArrayVector<soArticle*, 2>::soArrayVector(s32) :
+    m_topIndex(0), m_lastIndex(0), m_size(0), m_isFull(false) { }
 
 typedef soArticle* VelaElm;
 typedef soArrayVector<VelaElm, 2> VelaVec;

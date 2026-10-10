@@ -26,6 +26,7 @@ struct soLogAttackInfo {
 
 class soArticle : public soNullable, public soEventPresenter<soArticleEventObserver> {
 public:
+    bool setDeactivateDescendant();
     // TODO
     virtual ~soArticle();
     virtual void remove() = 0;

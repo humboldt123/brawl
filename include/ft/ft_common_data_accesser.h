@@ -70,8 +70,11 @@ struct ftCommonData {
     ftCommonParamIndefinite commonIndefiniteParams[2];
 };
 
+struct wnSimpleData;
+
 class ftCommonDataAccesser {
 public:
+    wnSimpleData* getSimpleData(ftKind kind, bool* resourceGroup) const;
     u32 getFinalResId(ftKind kind) const;
     ftData* getData(ftKind kind) const;
     ftParam* getParam(ftKind kind) const;

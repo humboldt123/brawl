@@ -5,7 +5,6 @@
 class soArticle;
 class soModuleAccesser;
 class soArticleMediator;
-class ftRobotSelectedArticleMediator;
 class soArticleEventObserver;
 struct soLogAttackInfo;
 template<class T> class soArray;
@@ -51,7 +50,7 @@ class soGenerateArticleManageModuleImpl : public soGenerateArticleManageModule {
     u8 m_unreconstructed[0x38];
 public:
     soGenerateArticleManageModuleImpl(soModuleAccesser*, soArray<soArticle*>*,
-        ftRobotSelectedArticleMediator*, soArray<soArticleEventObserver>*);
+        soArticleMediator*, soArray<soArticleEventObserver>*);
     virtual ~soGenerateArticleManageModuleImpl();
 };
 static_assert(sizeof(soGenerateArticleManageModuleImpl) == 0x3c, "Article module layout is wrong!");

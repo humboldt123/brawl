@@ -5,10 +5,6 @@
 #include <wn/weapon.h>
 #include <ft/ft_common_data_accesser.h>
 
-// Shared soArticle::setDeactivateDescendant entry point, declared under a local
-// name until the SDK exposes it. It receives the soArticle base pointer.
-extern "C" bool ftRobotDeactivateArticle(soArticle* article);
-
 #include <ft/robot/ft_robot_article_info.h>
 // Robot-specific declaration of the shared weapon-data lookup entry point.
 // Its full SDK template type is not reconstructed yet.
@@ -22,18 +18,7 @@ public:
 static_assert(sizeof(ftRobotArticleKindInfo) == 8, "Article kind descriptor is wrong!");
 static_assert(sizeof(ftRobotArticleConstructionInfo) == 8, "Article construction descriptor is wrong!");
 
-// Shared checker preserves the inactive/oldest-active selection policy.
-class soArticleDeactivateChecker {
-    soArticle* m_candidate;
-public:
-    soArticleDeactivateChecker();
-    ~soArticleDeactivateChecker();
-    bool operator()(soArticle* article);
-    soArticle* getCandidate() const { return m_candidate; }
-};
-static_assert(sizeof(soArticleDeactivateChecker) == 4, "Article checker is wrong!");
-// The shared null article has a 0x24-byte implementation; only its address is used.
-extern u8 g_ftRobotNullArticleStorage[0x24];
+#include <so/article/so_article_mediator.h>
 
 // Weapon implementation storage is still opaque. Sizes follow adjacent holder
 // offsets in the article builder; each destructor is an existing REL entry point.
@@ -220,28 +205,6 @@ typedef ftRobotArticleHierarchy<wnRobotBeam, 2, ftRobotGyroHolderPool> ftRobotBe
 typedef ftRobotArticleHierarchy<wnRobotGyro, 1, ftRobotBeamPool> ftRobotGyroPool;
 static_assert(sizeof(ftRobotGyroPool) == 0x9eb4, "Article pools layout is wrong!");
 
-class soArticleGenerator {
-public:
-    virtual ~soArticleGenerator() { }
-    virtual soArticle* generate(s32 articleId, soModuleAccesser* acc) = 0;
-};
-class soArticleOperator {
-public:
-    virtual ~soArticleOperator() { }
-    virtual bool shoot(soModuleAccesser* acc, soArticle* article) = 0;
-};
-class soArticleMediator : public soArticleGenerator, public soArticleOperator {
-public:
-    soArticleMediator(soModuleAccesser*) { }
-    virtual ~soArticleMediator();
-    virtual void deactivate() = 0;
-    virtual bool isGeneratable(soModuleAccesser* acc, s32 articleId) = 0;
-    virtual s32 getActiveNum(soModuleAccesser* acc, s32 articleId) = 0;
-    virtual s32 getGenerateMaxNum(s32 articleId) = 0;
-    virtual s32 getMediateNum() = 0;
-    virtual void setAutoRecycle(bool enabled) = 0;
-};
-
 class ftRobotArticleMediator : public soArticleMediator {
     ftRobotGyroPool m_pools;
     u8 m_autoRecycle;
@@ -264,6 +227,7 @@ class ftRobotSelectedArticleMediator {
 public:
     ftRobotSelectedArticleMediator(soModuleAccesser* acc) : m_mediator(acc) { }
     ~ftRobotSelectedArticleMediator();
+    soArticleMediator* getMediator() { return &m_mediator; }
 };
 static_assert(sizeof(ftRobotSelectedArticleMediator) == 0x9ec0, "Article mediator layout is wrong!");
 
