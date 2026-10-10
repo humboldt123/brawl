@@ -100,8 +100,17 @@ public:
 static_assert(sizeof(ftPurin) == 0x9A5C, "Class is the wrong size!");
 
 
+// The owned status-change queue uses sora_melee's destructor.
+#ifndef FT_REL_LINK_EXTERN
+template <> soArrayVector<s32, 8>::~soArrayVector();
+#endif
+
 #define FT_BC ftPurinBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+ftPurinExtendParamAccesser g_ftPurinExtendParamAccesser;
+
+ftClassInfoImpl<Fighter_Jigglypuff, ftPurin> g_ftClassInfoPurin;
 
 ftPurin::ftPurin(s32 entryId,
                  Heaps::HeapType instHeap,
@@ -216,12 +225,6 @@ void ftPurin::notifyEventOnDamage(soDamage* damage, bool flag, soModuleAccesser*
     }
     Fighter::notifyEventOnDamage(damage, flag, acc);
 }
-
-
-ftPurinExtendParamAccesser g_ftPurinExtendParamAccesser;
-
-ftClassInfoImpl<Fighter_Jigglypuff, ftPurin> g_ftClassInfoPurin;
-
 
 // The costume accessory uses the shared simple weapon, with one pooled instance.
 

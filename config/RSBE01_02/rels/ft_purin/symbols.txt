@@ -178,8 +178,7 @@ __ct__33soAnimCmdAddressPackArraySeparateFP31soArrayFixed<PC13acAnimCmdConv>P31s
 __ct__20soAnimCmdInterpreterFsP44soArrayVector<25acCmdInterpreterStackData,8>iifPCUc = .text:0x00007590; // type:function size:0x190
 getInstance__51soSingletonHolder<30soArrayNull<PC13acAnimCmdConv>>Fv = .text:0x00007720; // type:function size:0x70
 pushRange<PC13acAnimCmdConv>__14soArrayUtilityFP26soArray<PC13acAnimCmdConv>PCPC13acAnimCmdConvl_v = .text:0x00007790; // type:function size:0x7C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,288,288,0,1,0,8>>Fi = .text:0x0000780C; // type:function size:0x38
-fn_124_7844 = .text:0x00007844; // type:function size:0x4
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,288,288,0,1,0,8>>Fi = .text:0x0000780C; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,288,288,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x00007848; // type:function size:0xB0
 onStart__7ftPurinFi = .text:0x000078F8; // type:function size:0xE8
 notifyEventChangeSituation__7ftPurinF13SituationKind13SituationKindP16soModuleAccesser = .text:0x000079E0; // type:function size:0x94
@@ -402,7 +401,7 @@ getInstanceAt__167soInstancePoolSub<45soInstancePoolInfo<21soKineticEnergyJostle
 forEachHolderModuleAccesser<56soKineticUpdateEnergyHolderHelper<19ftKineticTransactor>>__167soInstancePoolSub<45soInstancePoolInfo<21soKineticEnergyJostle,1>,98soKineticEnergyHolder<21soKineticEnergyJostle,18soTypeListNullType,28soKineticEnergyInitInfo<7,4>>>F56soKineticUpdateEnergyHolderHelper<19ftKineticTransactor>P16soModuleAccesser_i = .text:0x0000B078; // type:function size:0x90
 forEachHolderModuleAccesser<56soKineticUpdateEnergyHolderHelper<19ftKineticTransactor>>__46soInstancePoolSubNull<21soKineticEnergyJostle>F56soKineticUpdateEnergyHolderHelper<19ftKineticTransactor>P16soModuleAccesser_i = .text:0x0000B108; // type:function size:0x8
 __ct__56soKineticUpdateEnergyHolderHelper<19ftKineticTransactor>FRC56soKineticUpdateEnergyHolderHelper<19ftKineticTransactor> = .text:0x0000B110; // type:function size:0xC
-fn_124_B11C = .text:0x0000B11C; // type:function size:0x64
+__sinit_\ft_purin_cpp = .text:0x0000B11C; // type:function size:0x64
 __ct__26ftPurinExtendParamAccesserFv = .text:0x0000B180; // type:function size:0x48
 __ct__28ftClassInfoImpl<37,7ftPurin>Fv = .text:0x0000B1C8; // type:function size:0x58
 __dt__28ftClassInfoImpl<37,7ftPurin>Fv = .text:0x0000B220; // type:function size:0x84
