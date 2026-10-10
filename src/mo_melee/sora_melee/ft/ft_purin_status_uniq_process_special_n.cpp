@@ -26,8 +26,11 @@ void ftPurinStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
         // A tiny facing-dependent seed preserves direction while charging.
         float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
-        stop.resetEnergy(0x16, &Vec2f(seed, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
-        stop.m_speedTarget = Vec2f(seed, 0.0f);
+        Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
+        Vec2f initialSpeed = Vec2f(seed, 0.0f);
+        stop.resetEnergy(0x16, &initialSpeed, &groundResetRotation, acc);
+        Vec2f targetSpeed = Vec2f(seed, 0.0f);
+        stop.m_speedTarget = targetSpeed;
         stop.onConsiderGroundFriction();
         stop.enable();
         acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
@@ -37,9 +40,11 @@ void ftPurinStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
         Vec2f speed;
         Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-        stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+        Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
+        stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &airResetRotation, acc);
         stop.enable();
-        gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+        Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
+        gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &gravityResetRotation, acc);
         gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
         gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
         gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
@@ -60,8 +65,11 @@ void ftPurinStatusUniqProcessSpecialNStart::execStatus(soModuleAccesser* acc) {
         if (situation == Situation_Ground) {
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
             float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
-            stop.resetEnergy(0x16, &Vec2f(seed, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
-            stop.m_speedTarget = Vec2f(seed, 0.0f);
+            Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
+            Vec2f initialSpeed = Vec2f(seed, 0.0f);
+            stop.resetEnergy(0x16, &initialSpeed, &groundResetRotation, acc);
+            Vec2f targetSpeed = Vec2f(seed, 0.0f);
+            stop.m_speedTarget = targetSpeed;
             stop.onConsiderGroundFriction();
             stop.enable();
             acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
@@ -71,9 +79,11 @@ void ftPurinStatusUniqProcessSpecialNStart::execStatus(soModuleAccesser* acc) {
             ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
             Vec2f speed;
             Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-            stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+            Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
+            stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &airResetRotation, acc);
             stop.enable();
-            gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+            Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
+            gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &gravityResetRotation, acc);
             gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
             gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
             gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
@@ -120,8 +130,11 @@ void ftPurinStatusUniqProcessSpecialNHold::initStatus(soModuleAccesser* acc) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
         // A tiny facing-dependent seed preserves direction while charging.
         float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
-        stop.resetEnergy(0x16, &Vec2f(seed, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
-        stop.m_speedTarget = Vec2f(seed, 0.0f);
+        Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
+        Vec2f initialSpeed = Vec2f(seed, 0.0f);
+        stop.resetEnergy(0x16, &initialSpeed, &groundResetRotation, acc);
+        Vec2f targetSpeed = Vec2f(seed, 0.0f);
+        stop.m_speedTarget = targetSpeed;
         stop.onConsiderGroundFriction();
         stop.enable();
         acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
@@ -131,9 +144,11 @@ void ftPurinStatusUniqProcessSpecialNHold::initStatus(soModuleAccesser* acc) {
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
         Vec2f speed;
         Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-        stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+        Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
+        stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &airResetRotation, acc);
         stop.enable();
-        gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+        Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
+        gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &gravityResetRotation, acc);
         gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
         gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
         gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
@@ -205,8 +220,11 @@ void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
         if (situation == Situation_Ground) {
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
             float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
-            stop.resetEnergy(0x16, &Vec2f(seed, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
-            stop.m_speedTarget = Vec2f(seed, 0.0f);
+            Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
+            Vec2f initialSpeed = Vec2f(seed, 0.0f);
+            stop.resetEnergy(0x16, &initialSpeed, &groundResetRotation, acc);
+            Vec2f targetSpeed = Vec2f(seed, 0.0f);
+            stop.m_speedTarget = targetSpeed;
             stop.onConsiderGroundFriction();
             stop.enable();
             acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
@@ -216,9 +234,11 @@ void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
             ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
             Vec2f speed;
             Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-            stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+            Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
+            stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &airResetRotation, acc);
             stop.enable();
-            gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+            Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
+            gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &gravityResetRotation, acc);
             gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
             gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
             gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
@@ -251,8 +271,11 @@ void ftPurinStatusUniqProcessSpecialNHoldMax::initStatus(soModuleAccesser* acc) 
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
         // A tiny facing-dependent seed preserves direction while charging.
         float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
-        stop.resetEnergy(0x16, &Vec2f(seed, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
-        stop.m_speedTarget = Vec2f(seed, 0.0f);
+        Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
+        Vec2f initialSpeed = Vec2f(seed, 0.0f);
+        stop.resetEnergy(0x16, &initialSpeed, &groundResetRotation, acc);
+        Vec2f targetSpeed = Vec2f(seed, 0.0f);
+        stop.m_speedTarget = targetSpeed;
         stop.onConsiderGroundFriction();
         stop.enable();
         acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
@@ -262,9 +285,11 @@ void ftPurinStatusUniqProcessSpecialNHoldMax::initStatus(soModuleAccesser* acc) 
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
         Vec2f speed;
         Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-        stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+        Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
+        stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &airResetRotation, acc);
         stop.enable();
-        gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+        Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
+        gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &gravityResetRotation, acc);
         gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
         gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
         gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
@@ -336,8 +361,11 @@ void ftPurinStatusUniqProcessSpecialNHoldMax::execStatus(soModuleAccesser* acc) 
         if (situation == Situation_Ground) {
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
             float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
-            stop.resetEnergy(0x16, &Vec2f(seed, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
-            stop.m_speedTarget = Vec2f(seed, 0.0f);
+            Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
+            Vec2f initialSpeed = Vec2f(seed, 0.0f);
+            stop.resetEnergy(0x16, &initialSpeed, &groundResetRotation, acc);
+            Vec2f targetSpeed = Vec2f(seed, 0.0f);
+            stop.m_speedTarget = targetSpeed;
             stop.onConsiderGroundFriction();
             stop.enable();
             acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
@@ -347,9 +375,11 @@ void ftPurinStatusUniqProcessSpecialNHoldMax::execStatus(soModuleAccesser* acc) 
             ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
             Vec2f speed;
             Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-            stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+            Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
+            stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &airResetRotation, acc);
             stop.enable();
-            gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+            Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
+            gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &gravityResetRotation, acc);
             gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
             gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
             gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
