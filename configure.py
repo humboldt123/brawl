@@ -5953,7 +5953,19 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_village/st_village.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village_stage.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village_ashiba.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village_guest.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village_guest_totakeke.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village_path_move.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village_live_deco.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village_balloon.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village_clock.cpp"),
+            Object(NonMatching, "mo_stage/st_village/gr_village_sky.cpp"),
+        ],
     },
 ]
 
