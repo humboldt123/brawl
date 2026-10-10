@@ -11,6 +11,85 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_earth/st_earth.cpp:
+	.text       start:0x00000070 end:0x00002BF4
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000070
+	.data       start:0x00000000 end:0x000005A0
+	.bss        start:0x00000008 end:0x00000018
+
+mo_stage/st_earth/gr_earth.cpp:
+	.text       start:0x00002BF4 end:0x00002D34
+	.rodata     start:0x00000070 end:0x00000078
+	.data       start:0x000005A0 end:0x00000818
+
+mo_stage/st_earth/gr_earth_branch.cpp:
+	.text       start:0x00002D34 end:0x000038BC
+	.rodata     start:0x00000078 end:0x000000A8
+	.data       start:0x00000818 end:0x00000B48
+
+mo_stage/st_earth/gr_earth_chappy.cpp:
+	.text       start:0x000038BC end:0x000058A4
+	.ctors      start:0x00000004 end:0x00000008
+	.rodata     start:0x000000A8 end:0x00000138
+	.data       start:0x00000B48 end:0x00000EF8
+	.bss        start:0x00000018 end:0x00000028
+
+mo_stage/st_earth/gr_earth_leaf.cpp:
+	.text       start:0x000058A4 end:0x00006860
+	.ctors      start:0x00000008 end:0x0000000C
+	.rodata     start:0x00000138 end:0x00000178
+	.data       start:0x00000EF8 end:0x00001258
+	.bss        start:0x00000028 end:0x00000038
+
+mo_stage/st_earth/gr_earth_mainbg.cpp:
+	.text       start:0x00006860 end:0x00006968
+	.data       start:0x00001258 end:0x00001468
+
+mo_stage/st_earth/gr_earth_oniyon.cpp:
+	.text       start:0x00006968 end:0x0000F0C8
+	.ctors      start:0x0000000C end:0x00000010
+	.rodata     start:0x00000178 end:0x000001C8
+	.data       start:0x00001468 end:0x00002CD0
+	.bss        start:0x00000038 end:0x00000170
+
+mo_stage/st_earth/gr_earth_pellet.cpp:
+	.text       start:0x0000F0C8 end:0x0000FB5C
+	.ctors      start:0x00000010 end:0x00000014
+	.rodata     start:0x000001C8 end:0x000001E0
+	.data       start:0x00002CD0 end:0x00002F08
+	.bss        start:0x00000170 end:0x00000180
+
+mo_stage/st_earth/gr_earth_pelletflower.cpp:
+	.text       start:0x0000FB5C end:0x000113C8
+	.rodata     start:0x000001E0 end:0x00000220
+	.data       start:0x00002F08 end:0x00003440
+	.bss        start:0x00000180 end:0x0000018C
+
+mo_stage/st_earth/gr_earth_river.cpp:
+	.text       start:0x000113C8 end:0x00012008
+	.rodata     start:0x00000220 end:0x00000270
+	.data       start:0x00003440 end:0x00003680
+
+mo_stage/st_earth/gr_earth_sun.cpp:
+	.text       start:0x00012008 end:0x000128C4
+	.rodata     start:0x00000270 end:0x00000288
+	.data       start:0x00003680 end:0x000038D8
+
+mo_stage/st_earth/gr_earth_stump.cpp:
+	.text       start:0x000128C4 end:0x00012ED8
+	.rodata     start:0x00000288 end:0x000002A0
+	.data       start:0x000038D8 end:0x00003B30
+
+mo_stage/st_earth/gr_earth_rain.cpp:
+	.text       start:0x00012ED8 end:0x00013640
+	.rodata     start:0x000002A0 end:0x000002B0
+	.data       start:0x00003B30 end:0x00003D80
+
+mo_stage/st_earth/gr_earth_hanemizu.cpp:
+	.text       start:0x00013640 end:0x000139C4
+	.data       start:0x00003D80 end:0x00003FE0
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x000139C4 end:0x00013A60
 	.data       start:0x00003FE0 end:0x00003FED
