@@ -5804,7 +5804,15 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_metalgear/st_metalgear.cpp"),
+            Object(NonMatching, "mo_stage/st_metalgear/gr_metalgear.cpp"),
+            Object(NonMatching, "mo_stage/st_metalgear/gr_metalgear_metalgear.cpp"),
+            Object(NonMatching, "mo_stage/st_metalgear/gr_metalgear_main_bg.cpp"),
+            Object(NonMatching, "mo_stage/st_metalgear/gr_metalgear_wall.cpp"),
+            Object(NonMatching, "mo_stage/st_metalgear/gr_metalgear_search.cpp"),
+            Object(NonMatching, "mo_stage/st_metalgear/gr_metalgear_attack.cpp"),
+        ],
     },
     {
         "lib": "st_newpork",
