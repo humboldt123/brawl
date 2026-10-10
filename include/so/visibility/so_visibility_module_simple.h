@@ -29,6 +29,7 @@ class soVisibilityModuleSimple : public soVisibilityModule, public soAnimCmdEven
     soModuleAccesser* m_moduleAccesser;
 
 public:
+    virtual ~soVisibilityModuleSimple();
     virtual void activate();
     virtual void setData(soVisibilityData*);
     virtual void set(u32, int);

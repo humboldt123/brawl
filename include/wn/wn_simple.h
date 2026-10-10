@@ -1,6 +1,6 @@
 #pragma once
 
-#include <wn/weapon.h>
+#include <wn/wn_simple_builder.h>
 #include <ft/ft_entry.h>
 
 struct wnSimpleData;
@@ -18,10 +18,11 @@ struct wnSimpleConstructionInfo {
 };
 static_assert(sizeof(wnSimpleConstructionInfo) == 8, "Simple article construction descriptor");
 
-// The shared weapon's module builder and animation data remain unreconstructed.
-// Size follows the next member in Puff's article mediator and its teardown.
-class wnSimple : public Weapon {
-    u8 m_unreconstructed[0x16c8 - sizeof(Weapon)];
+// The shared builder owns its modules; the simple article adds its own
+// command table and address pack. Construction remains imported.
+class wnSimple : public wnWeaponBuilder<wnSimpleModuleAccesserBuildConfig> {
+    soArrayContractibleTable<const acAnimCmdConv*> m_table;
+    soAnimCmdAddressPackArraySeparate m_pack;
 public:
     wnSimple(s32 articleId, const wnSimpleConstructionInfo& info, wnSimpleData* data, bool unk);
     virtual ~wnSimple();

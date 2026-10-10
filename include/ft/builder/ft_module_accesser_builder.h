@@ -157,6 +157,9 @@ public:
     soShakeModuleBuilder<typename BC::ShakeModuleBuildConfig> m_shakeModuleBuilder;                        // +0x3D14
     soSoundModuleBuilder<typename BC::SoundModuleBuildConfig> m_soundModuleBuilder;                        // +0x3DAC
     soLinkModuleBuilder<typename BC::LinkModuleBuildConfig> m_linkModuleBuilder;                           // +0x3E1C
+    // HYPOTHESIS: disabled selection type; the empty slot precedes visibility,
+    // outside the link implementation and the visibility module builder.
+    struct EmptyVisibilitySelection { } m_visibilitySelection;
     soVisibilityModuleBuilder<typename BC::VisibilityModuleBuildConfig> m_visibilityModuleBuilder;                                                             // +0x3FE8
     soControllerModuleBuilder<typename BC::ControllerModuleBuildConfig> m_controllerModuleBuilder;         // +0x4018
     soCameraModuleBuilder<typename BC::CameraModuleBuildConfig> m_cameraModuleBuilder;                     // +0x473C
