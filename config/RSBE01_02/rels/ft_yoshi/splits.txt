@@ -11,6 +11,13 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_fighter/ft_yoshi/ft_yoshi.cpp:
+	.text       start:0x00000070 end:0x0000F0BC
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000028
+	.data       start:0x00000000 end:0x00007B28
+	.bss        start:0x00000008 end:0x00000338
+
 mo_fighter/ft_yoshi/ft_yoshi_status_uniq_process_guard_func.cpp:
 	.text       start:0x0000F0BC end:0x0000F214
 	.ctors      start:0x00000004 end:0x00000008

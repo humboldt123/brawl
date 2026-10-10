@@ -11,6 +11,13 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_fighter/ft_sonic/ft_sonic.cpp:
+	.text       start:0x00000070 end:0x0000F0B0
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000020
+	.data       start:0x00000000 end:0x000064B8
+	.bss        start:0x00000008 end:0x000002F8
+
 mo_fighter/ft_sonic/ft_sonic_status_uniq_process_special_s_dash.cpp:
 	.text       start:0x0000F0B0 end:0x00010020
 	.ctors      start:0x00000004 end:0x00000008
