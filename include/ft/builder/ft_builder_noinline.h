@@ -29,8 +29,14 @@ soKineticModuleImpl::~soKineticModuleImpl() { }
 #ifdef FT_MARTH_RUNTIME_HELPERS
 #pragma dont_inline on
 #endif
+#ifdef FT_TEAM_TYPED_INTERFACE
+#pragma dont_inline off
+ftTeamIndirect::~ftTeamIndirect() { }
+#pragma dont_inline on
+#else
 ftTeam::~ftTeam() { }
 ftTeamIndirect::~ftTeamIndirect() { }
+#endif
 ftSound3dGeneratorAccesserImpl::~ftSound3dGeneratorAccesserImpl() { } // MATCH-ONLY: out of line in the REL
 soTransitionInfo::~soTransitionInfo() { } // MATCH-ONLY: out of line in the REL
 soNullable::soNullable(bool isNull) { m_isNull = isNull; } // MATCH-ONLY: out of line in the REL
