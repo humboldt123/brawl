@@ -5615,7 +5615,17 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_famicom/st_famicom.cpp"),
+            Object(NonMatching, "mo_stage/st_famicom/gr_famicom.cpp"),
+            Object(NonMatching, "mo_stage/st_famicom/gr_famicom_yuka.cpp"),
+            Object(NonMatching, "mo_stage/st_famicom/gr_famicom_pow.cpp"),
+            Object(NonMatching, "mo_stage/st_famicom/gr_famicom_enemy.cpp"),
+            Object(NonMatching, "mo_stage/st_famicom/gr_famicom_kame.cpp"),
+            Object(NonMatching, "mo_stage/st_famicom/gr_famicom_kani.cpp"),
+            Object(NonMatching, "mo_stage/st_famicom/gr_famicom_ball.cpp"),
+            Object(NonMatching, "mo_stage/st_famicom/gr_famicom_bg.cpp"),
+        ],
     },
     {
         "lib": "st_final",
