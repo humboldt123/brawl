@@ -20,7 +20,7 @@ fn_93_1E9C = .text:0x00001E9C; // type:function size:0xB8
 __dt__66soHeapModuleBuilder<43soHeapModuleBuildConfig<16soHeapModuleImpl>>Fv = .text:0x00001F54; // type:function size:0x5C
 __dt__77soPostureModuleBuilder<51soPostureModuleBuildConfig<1,19soPostureModuleImpl>>Fv = .text:0x00001FB0; // type:function size:0x74
 __dt__81soSituationModuleBuilder<53soSituationModuleBuildConfig<21soSituationModuleImpl>>Fv = .text:0x00002024; // type:function size:0x5C
-__ct__66soTeamModuleBuilder<43soTeamModuleBuildConfig<16soTeamModuleImpl>>FlP16soModuleAccesser = .text:0x00002080; // type:function size:0xC4
+__ct__74soTeamModuleBuilder<51soTeamModuleBuildConfig<6ftTeam,16soTeamModuleImpl>>FlP16soModuleAccesser = .text:0x00002080; // type:function size:0xC4
 fn_93_2144 = .text:0x00002144; // type:function size:0x5C
 fn_93_21A0 = .text:0x000021A0; // type:function size:0x40
 fn_93_21E0 = .text:0x000021E0; // type:function size:0x60
@@ -52,7 +52,7 @@ __dt__242soMotionModuleBuilder<216soMotionModuleBuildConfig<484,18soMotionModule
 __ct__77soPostureModuleBuilder<51soPostureModuleBuildConfig<1,19soPostureModuleImpl>>FP16soModuleAccesserP31soEventObserverRegistrationDesc = .text:0x000030A8; // type:function size:0x70
 __ct__74soGroundModuleBuilder<49soGroundModuleBuildConfig<1,18soGroundModuleImpl>>FP16soModuleAccesserP24soGroundConditionChecker = .text:0x00003118; // type:function size:0x64
 __dt__74soGroundModuleBuilder<49soGroundModuleBuildConfig<1,18soGroundModuleImpl>>Fv = .text:0x0000317C; // type:function size:0x6C
-__dt__66soTeamModuleBuilder<43soTeamModuleBuildConfig<16soTeamModuleImpl>>Fv = .text:0x000031E8; // type:function size:0x78
+__dt__74soTeamModuleBuilder<51soTeamModuleBuildConfig<6ftTeam,16soTeamModuleImpl>>Fv = .text:0x000031E8; // type:function size:0x78
 __ct__111soCollisionAttackModuleBuilder<77soCollisionAttackModuleBuildConfig<0,5,2,27soCollisionAttackModuleImpl,5,1,1>>FP16soModuleAccesseriUcP31soEventObserverRegistrationDesc = .text:0x00003260; // type:function size:0xC4
 __dt__111soCollisionAttackModuleBuilder<77soCollisionAttackModuleBuildConfig<0,5,2,27soCollisionAttackModuleImpl,5,1,1>>Fv = .text:0x00003324; // type:function size:0x84
 __ct__104soCollisionHitModuleBuilder<73soCollisionHitModuleBuildConfig<0,20,1,24soCollisionHitModuleImpl,1023,1>>FP16soModuleAccesseriUcP31soEventObserverRegistrationDesc = .text:0x000033A8; // type:function size:0xC4

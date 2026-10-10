@@ -15,10 +15,11 @@
 
 #include <ft/fighter.h>
 
-template <typename T>
+template <typename Team, typename Module>
 class soTeamModuleBuildConfig {
 public:
-    typedef T ModuleType;
+    typedef Team TeamType;
+    typedef Module ModuleType;
 };
 
 extern char g_soTeamModuleNullArg[];

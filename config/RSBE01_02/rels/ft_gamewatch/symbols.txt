@@ -189,7 +189,7 @@ __dt__156soCollisionShieldModuleBuilder<121soCollisionShieldModuleBuildConfigGro
 __dt__152soCollisionShieldModuleBuilder<117soCollisionShieldModuleBuildConfigGroups<2,1,1,37soCollisionShieldEventPresenterShield,27soCollisionShieldModuleImpl>>Fv = .text:0x00007D28; // type:function size:0x90
 __dt__104soCollisionHitModuleBuilder<73soCollisionHitModuleBuildConfig<0,20,1,24soCollisionHitModuleImpl,1023,1>>Fv = .text:0x00007DB8; // type:function size:0x84
 __dt__111soCollisionAttackModuleBuilder<77soCollisionAttackModuleBuildConfig<0,5,2,27soCollisionAttackModuleImpl,5,1,1>>Fv = .text:0x00007E3C; // type:function size:0x84
-__dt__66soTeamModuleBuilder<43soTeamModuleBuildConfig<16soTeamModuleImpl>>Fv = .text:0x00007EC0; // type:function size:0x78
+__dt__74soTeamModuleBuilder<51soTeamModuleBuildConfig<6ftTeam,16soTeamModuleImpl>>Fv = .text:0x00007EC0; // type:function size:0x78
 fn_107_7F38 = .text:0x00007F38; // type:function size:0x60
 fn_107_7F98 = .text:0x00007F98; // type:function size:0x5C
 __dt__242soMotionModuleBuilder<216soMotionModuleBuildConfig<514,18soMotionModuleImpl,2,1,82soTransitionModuleBuildConfig<49soTypeList<14soIntToType<8>,18soTypeListNullType>>,73soMotionAnimObjCacheModuleBuildConfig<5,30soMotionAnimObjCacheModuleImpl>>>Fv = .text:0x00007FF4; // type:function size:0xB4
@@ -206,7 +206,7 @@ __dt__114soResourceModuleBuilder<87soResourceModuleBuildConfigDynamic<0,24ftReso
 __dt__96soParamCustomizeModuleBuilder<63soParamCustomizeModuleBuildConfig<26ftParamCustomizeModuleImpl>>Fv = .text:0x000084A8; // type:function size:0x5C
 __dt__180soInsideEventManageModuleBuilder<110soInsideEventManageModuleBuildConfig<32,40,4,4,4,4,4,4,5,4,4,4,4,4,1,1,0,2,1,30ftInsideEventManageModuleTypes>,30ftInsideEventManageModuleTypes>Fv = .text:0x00008504; // type:function size:0x144
 __ct__10soNullableFb = .text:0x00008648; // type:function size:0x14
-__ct__66soTeamModuleBuilder<43soTeamModuleBuildConfig<16soTeamModuleImpl>>FlP16soModuleAccesser = .text:0x0000865C; // type:function size:0xC4
+__ct__74soTeamModuleBuilder<51soTeamModuleBuildConfig<6ftTeam,16soTeamModuleImpl>>FlP16soModuleAccesser = .text:0x0000865C; // type:function size:0xC4
 fn_107_8720 = .text:0x00008720; // type:function size:0x8
 __ct__180soInsideEventManageModuleBuilder<110soInsideEventManageModuleBuildConfig<32,40,4,4,4,4,4,4,5,4,4,4,4,4,1,1,0,2,1,30ftInsideEventManageModuleTypes>,30ftInsideEventManageModuleTypes>Fv = .text:0x00008728; // type:function size:0x354
 __ct__114soResourceModuleBuilder<87soResourceModuleBuildConfigDynamic<0,24ftResourceIdAccesserImpl,20soResourceModuleImpl>>FUlUlUcP16soModuleAccesser = .text:0x00008A7C; // type:function size:0x68
