@@ -53,15 +53,14 @@ void wnRobotBeam::activate(float lr, float angle, s32 founderTaskId, u32 resourc
     }
     float radians = shotAngle * 0.017453292f;
     wnKineticEnergyNormal& normal = dynamic_cast<wnKineticEnergyNormal&>(*m_moduleAccesser->getKineticModule().getEnergy(0));
-    float vy = speed * (float)sin(radians);
-    normal.m_speed = Vec2f(lr * (speed * (float)cos(radians)), vy);
+    normal.m_speed = Vec2f(lr * (speed * (float)cos(radians)), speed * (float)sin(radians));
     // Point the model along the new velocity.
     Vec3f rot = m_moduleAccesser->getPostureModule().getRot(0);
     Vec2f velocity;
     Vec2f::copy(velocity, normal.getSpeed());
     velocity.normalize();
-    float vertical = velocity.m_y;
     float forward = velocity.m_x * m_moduleAccesser->getPostureModule().getLr();
+    float vertical = velocity.m_y;
     rot.m_x = -(float)atan2(vertical, forward) * 57.29578f;
     m_moduleAccesser->getPostureModule().setRot(&rot, 0);
     // Begin flight immediately, bypassing ordinary transition restrictions.
