@@ -145,29 +145,10 @@ FT_DOL_POLY_BEGIN(ftGlowModuleImpl, 0x180);
 FT_DOL_POLY_END;
 
 // ---- team / area modules ----------------------------------------------------------------------------------
-#ifdef FT_TEAM_TYPED_INTERFACE
 #include <ft/ft_team.h>
-#else
-class ftTeam {
-public:
-    ftTeam(int entryId); // sora_melee
-    virtual void unkKeyFunction(); // keeps the vtable out of the REL (the constructor in sora_melee sets it)
-    virtual ~ftTeam(); // MATCH-ONLY: out of line in the RELs (ft_builder_noinline.h)
-    u8 m_unk04[0x10];
-};
-
-class ftTeamIndirect : public ftTeam {
-public:
-    ftTeamIndirect(int entryId) : ftTeam(entryId), m_unk14(-1) { }
-    virtual void unkKeyFunction2(); // sora_melee
-    virtual ~ftTeamIndirect(); // MATCH-ONLY: out of line in the RELs (ft_builder_noinline.h)
-    int m_unk14;
-};
-
-#endif
 
 FT_DOL_POLY_BEGIN(soTeamModuleImpl, 0x44);
-    soTeamModuleImpl(ftTeam* a, ftTeam* b, ftTeamIndirect* c, soModuleAccesser* acc, void* nullTeam);
+    soTeamModuleImpl(soTeam* a, soTeam* b, soTeam* c, soModuleAccesser* acc, void* nullTeam);
 FT_DOL_POLY_END;
 
 #include <ft/ft_area_module_impl.h>

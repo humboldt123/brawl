@@ -34,7 +34,9 @@ soKineticModuleImpl::~soKineticModuleImpl() { }
 ftTeamIndirect::~ftTeamIndirect() { }
 #pragma dont_inline on
 #else
+#pragma dont_inline off
 ftTeam::~ftTeam() { }
+#pragma dont_inline on
 ftTeamIndirect::~ftTeamIndirect() { }
 #endif
 ftSound3dGeneratorAccesserImpl::~ftSound3dGeneratorAccesserImpl() { } // MATCH-ONLY: out of line in the REL
