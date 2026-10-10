@@ -3,6 +3,7 @@
 #define FT_MARTH_RUNTIME_HELPERS
 #define MT_VEC3F_CTOR_NOINLINE
 #define WN_WEAPON_ANIMCMD_LONG
+#define FT_TEAM_TYPED_INTERFACE
 #include <so/so_instance_manager.h>
 class soAnimCmdControlUnit;
 // MATCH-ONLY: the native control-unit manager retains its empty base teardown
@@ -126,6 +127,12 @@ static_assert(sizeof(ftPurin) == 0x9A5C, "Class is the wrong size!");
 #ifndef FT_REL_LINK_EXTERN
 template <> soArrayVector<s32, 8>::~soArrayVector();
 #endif
+
+// The matrix pool owns the shared base teardown retained by the REL.
+#pragma dont_inline on
+ftVirtualNodeMatrixPool::~ftVirtualNodeMatrixPool() { }
+soTeam::~soTeam() { }
+#pragma dont_inline off
 
 #define FT_BC ftPurinBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
