@@ -138,7 +138,7 @@ ftRobotArticleHolder<wnRobotBeam>::ftRobotArticleHolder(soModuleAccesser* acc) :
 
 ftRobotArticleManageModuleBuilder::ftRobotArticleManageModuleBuilder(soModuleAccesser* acc) :
     m_articles(0), m_observers(4, 0), m_mediator(acc),
-    m_module(acc, &m_articles, &m_mediator, &m_observers) { }
+    m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
 
 // Emit the indexed accessors used by article deactivation.
 #pragma dont_inline on
@@ -157,25 +157,25 @@ void ftRobotArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enab
 void ftRobotArticleMediator::deactivate() {
     for (s32 i = 0; i < 1; ++i) {
         wnRobotGyro* weapon = static_cast<ftRobotArticlePool<wnRobotGyro, 1, ftRobotBeamPool> &>(m_pools).getSub().getInstanceAt(i);
-        if (!ftRobotDeactivateArticle(&static_cast<soArticle&>(*weapon))) {
+        if (!static_cast<soArticle&>(*weapon).setDeactivateDescendant()) {
             return;
         }
     }
     for (s32 i = 0; i < 2; ++i) {
         wnRobotBeam* weapon = static_cast<ftRobotArticlePool<wnRobotBeam, 2, ftRobotGyroHolderPool> &>(m_pools).getSub().getInstanceAt(i);
-        if (!ftRobotDeactivateArticle(&static_cast<soArticle&>(*weapon))) {
+        if (!static_cast<soArticle&>(*weapon).setDeactivateDescendant()) {
             return;
         }
     }
     for (s32 i = 0; i < 1; ++i) {
         wnRobotGyroHolder* weapon = static_cast<ftRobotArticlePool<wnRobotGyroHolder, 1, ftRobotFinalBeamPool> &>(m_pools).getSub().getInstanceAt(i);
-        if (!ftRobotDeactivateArticle(&static_cast<soArticle&>(*weapon))) {
+        if (!static_cast<soArticle&>(*weapon).setDeactivateDescendant()) {
             return;
         }
     }
     for (s32 i = 0; i < 1; ++i) {
         wnRobotFinalBeam* weapon = static_cast<ftRobotArticlePool<wnRobotFinalBeam, 1, soInstancePoolRoot> &>(m_pools).getSub().getInstanceAt(i);
-        if (!ftRobotDeactivateArticle(&static_cast<soArticle&>(*weapon))) {
+        if (!static_cast<soArticle&>(*weapon).setDeactivateDescendant()) {
             return;
         }
     }

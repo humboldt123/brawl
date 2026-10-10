@@ -52,7 +52,13 @@ public:
     virtual soKind soGetKind();
     virtual int soGetSubKind();
     virtual bool isObserv(char unk1);
+#ifdef WN_WEAPON_ANIMCMD_LONG
+    // Match StageObject's long-index virtual in fighter translation units.
+    // An int declaration adds a new slot and shifts subsequent Weapon methods.
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
+#else
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, int unk3);
+#endif
     virtual void notifyEventLink(soLinkEventArgs *eventInfo, soModuleAccesser* moduleAccesser, StageObject*, int unk4);
 
     virtual void remove();
