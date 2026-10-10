@@ -11,6 +11,41 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_dxgarden/st_dxgarden.cpp:
+	.text       start:0x00000070 end:0x00000E10
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000028
+	.data       start:0x00000000 end:0x00000528
+	.bss        start:0x00000008 end:0x00000018
+
+mo_stage/st_dxgarden/gr_dxgarden.cpp:
+	.text       start:0x00000E10 end:0x00001038
+	.rodata     start:0x00000028 end:0x00000030
+	.data       start:0x00000528 end:0x000007A0
+
+mo_stage/st_dxgarden/gr_dxgarden_bg.cpp:
+	.text       start:0x00001038 end:0x00001140
+	.data       start:0x000007A0 end:0x000009B0
+
+mo_stage/st_dxgarden/gr_dxgarden_cranky.cpp:
+	.text       start:0x00001140 end:0x0000190C
+	.rodata     start:0x00000030 end:0x00000048
+	.data       start:0x000009B0 end:0x00000BC8
+
+mo_stage/st_dxgarden/gr_dxgarden_krap.cpp:
+	.text       start:0x0000190C end:0x0000605C
+	.rodata     start:0x00000048 end:0x00000098
+	.data       start:0x00000BC8 end:0x00001B70
+	.bss        start:0x00000018 end:0x00000128
+
+mo_stage/st_dxgarden/gr_dxgarden_lamp.cpp:
+	.text       start:0x0000605C end:0x00006284
+	.data       start:0x00001B70 end:0x00001D90
+
+mo_stage/st_dxgarden/gr_dxgarden_suimen.cpp:
+	.text       start:0x00006284 end:0x000065E8
+	.data       start:0x00001D90 end:0x00002098
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x000065E8 end:0x00006684
 	.data       start:0x00002098 end:0x000020A5

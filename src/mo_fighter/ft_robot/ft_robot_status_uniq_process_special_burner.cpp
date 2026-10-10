@@ -15,7 +15,7 @@
 
 void ftRobotStatusUniqProcessSpecialBurner::initStatus(soModuleAccesser* moduleAccesser) {
     ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
-    // Keep the upward speed the fighter already has, but no more than the entry speed limit.
+    // Cap the positive horizontal speed carried into the burner.
     Vec2f speed;
     Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
     if (speed.m_x > soValueAccesser::getConstantFloat(moduleAccesser, 0xfc2, 0)) {
@@ -99,15 +99,14 @@ void ftRobotStatusUniqProcessSpecialBurner::controlBurner(soModuleAccesser* modu
         gravity.m_gravity = lift - soValueAccesser::getConstantFloat(moduleAccesser, 0xfc9, 0);
         if (consumeFuel) {
             float rate = 1.0f;
-            if (!(soValueAccesser::getConstantFloat(moduleAccesser, 0xfcd, 0) == 0.0f)) {
+            if (soValueAccesser::getConstantFloat(moduleAccesser, 0xfcd, 0)) {
                 rate *= soValueAccesser::getConstantFloat(moduleAccesser, 0xfce, 0);
             }
             moduleAccesser->getWorkManageModule().addFloat(-rate, 0x11000015);
         }
         moduleAccesser->getWorkManageModule().onFlag(0x22000015);
         if (!moduleAccesser->getWorkManageModule().isFlag(0x22000016)) {
-            bool noPan = false;
-            int sound = moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0x1775), noPan, noPan, 0);
+            int sound = moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0x1775), false, false, 0);
             moduleAccesser->getWorkManageModule().setInt(sound, 0x20000003);
             moduleAccesser->getWorkManageModule().onFlag(0x22000016);
         }

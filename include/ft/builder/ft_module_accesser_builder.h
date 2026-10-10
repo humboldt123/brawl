@@ -74,8 +74,6 @@ public:
 
 class ftCommonBuildConfig {
 public:
-    // Existing default is Marth's count; other fighters override it as audited.
-    enum { UniqueStatusCount = 15 };
     typedef soGroundModuleBuildConfig<1, soGroundModuleImpl> GroundModuleBuildConfig;
     typedef soPostureModuleBuildConfig<1, soPostureModuleImpl> PostureModuleBuildConfig;
     typedef soCollisionAttackModuleBuildConfig<soCollision::Category_Fighter, 5, 2, soCollisionAttackModuleImpl, 5, true, true>
@@ -303,23 +301,27 @@ public:
 template <typename BC>
 class ftModuleAccesserBuilder : public soModuleAccesserBuilder<BC> {
 public:
+    typedef typename BC::StatusModuleBuildConfig StatusConfig;
+    // Character entries follow the common status table in the configured capacity.
+    enum { CommonStatusCount = StatusConfig::DataCount,
+           UniqueStatusCount = StatusConfig::StatusKindCap - CommonStatusCount };
     soArrayContractibleTable<const soStatusData> unkTable;
     ftAnimCmdModuleSubBuilder<typename BC::AnimCmdModuleSubBuildConfig> unkAnimCmdModuleSubBuilder;
 
     ftModuleAccesserBuilder(const ftFighterBuildData& fbd, StageObject* owner) :
         soModuleAccesserBuilder<BC>(fbd, owner),
-        unkTable(*(const soStatusData**)(((u8**)&fbd)[3] + 0x18), BC::UniqueStatusCount), // HYPOTHESIS: fbd + 0xC is the ftData pointer
+        unkTable(*(const soStatusData**)(((u8**)&fbd)[3] + 0x18), UniqueStatusCount), // HYPOTHESIS: fbd + 0xC is the ftData pointer
         unkAnimCmdModuleSubBuilder(&this->m_moduleAccsr, fbd) {
         // MATCH-ONLY: the unit is named through the member (not an accessor) and every query result is held in a
         // local first, so MWCC forms the unit address after the queries as the original does.
         const acAnimCmdConv* const* cmds00 = (const acAnimCmdConv* const*)fbd.getAnimCmdData(0, 0);
-        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(0), cmds00, 0x112);
+        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(0), cmds00, CommonStatusCount);
         const acAnimCmdConv* const* cmds01 = (const acAnimCmdConv* const*)fbd.getAnimCmdData(0, 1);
-        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(1), cmds01, 0x112);
+        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(1), cmds01, CommonStatusCount);
         const acAnimCmdConv* const* cmds0F = *(const acAnimCmdConv* const**)(((u8**)&fbd)[3] + 0x24);
-        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(0), cmds0F, BC::UniqueStatusCount);
+        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(0), cmds0F, UniqueStatusCount);
         const acAnimCmdConv* const* cmds1F = *(const acAnimCmdConv* const**)(((u8**)&fbd)[3] + 0x28);
-        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(1), cmds1F, BC::UniqueStatusCount);
+        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(1), cmds1F, UniqueStatusCount);
         unkAnimCmdModuleSubBuilder.m_unit0.setupDisguiseList(0, (soAnimCmdDisguiseListEntry*)fbd.getAnimCmdDisguiseList(false, 0));
         unkAnimCmdModuleSubBuilder.m_unit0.setupDisguiseList(1, (soAnimCmdDisguiseListEntry*)fbd.getAnimCmdDisguiseList(false, 1));
         this->m_moduleAccsr.getStatusModule().connectStatusDataList(&unkTable);

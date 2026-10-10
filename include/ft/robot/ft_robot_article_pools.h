@@ -176,6 +176,15 @@ public:
         }
         return m_next.getInstanceAt(index);
     }
+    // HYPOTHESIS: source name of the native newest-first predicate traversal.
+    template <class Predicate>
+    W* find(Predicate& predicate) {
+        W* candidate = m_holder.getInstance();
+        if (predicate(&static_cast<soArticle&>(*candidate)) == true) {
+            return candidate;
+        }
+        return m_next.find(predicate);
+    }
 };
 
 template <class W>
@@ -184,6 +193,8 @@ class ftRobotArticleSubPool<W, 0> {
 public:
     ftRobotArticleSubPool(soModuleAccesser*) : m_terminal(0) { }
     W* getInstanceAt(s32) { return NULL; }
+    template <class Predicate>
+    W* find(Predicate&) { return NULL; }
 };
 
 template <class W, int N, class Base>
