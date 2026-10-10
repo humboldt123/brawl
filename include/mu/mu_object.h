@@ -96,6 +96,14 @@ public:
     const char* getTexSrtAnimName();
     const char* getClrAnimName();
 
+    // vro, we GENUINELY took these from upstream (doldecomp/brawl)
+    // that is to say they WERE bools, their names would imply bools, right?
+    // like you'd thing isXFinished, etc. etc. etc. like, its giving bool
+    // but upstream says INT. now, i don't rly know who or what to trust
+    // but we'll tentatively mark int, trusting in the wisdom of upstream BUT
+    // i have my doubts. so i'm leaving this comment. it could very well be bool
+    // if so, i mean we can just change it back. :smile: 
+    // - vish (10/9/26)
     int isNodeAnimFinished();
     int isVisAnimFinished();
     int isClrAnimFinished();
