@@ -9,7 +9,7 @@ struct wnSonicSuperSonicModuleAccesserBuildConfig;
 // installs its modules within this object; their detailed fields remain opaque.
 template <>
 class wnWeaponBuilder<wnSonicSuperSonicModuleAccesserBuildConfig> : public Weapon {
-    u8 unkD0[0x2C04];
+    u8 unkCC[0x2CD4 - sizeof(Weapon)];
 public:
     virtual ~wnWeaponBuilder();
     virtual void deactivateDescendantForce();
