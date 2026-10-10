@@ -186,9 +186,9 @@ bool ftRobotTransactor::activeArticle1(wnRobotBeam* weapon, soModuleAccesser* ac
         local.m_z = acc->getConstantFloatKirby(0xfa7);
         muzzle = acc->getModelModule().getNodeGlobalPosition(boneId, &local, false, false);
     }
-    bool lowCharge = false;
+    bool fullCharge = false;
     if (acc->getWorkManageModule().getFloat(0x11000013) >= acc->getConstantFloatKirby(0xfa6)) {
-        lowCharge = true;
+        fullCharge = true;
     }
     soWorkManageModule& work = acc->getWorkManageModule();
     soTeamModule& teamModule = acc->getTeamModule();
@@ -196,7 +196,7 @@ bool ftRobotTransactor::activeArticle1(wnRobotBeam* weapon, soModuleAccesser* ac
     s32 variant = work.getInt(0x10000044);
     float angle = work.getFloat(0x21000004);
     s32 team = teamModule.getTeam()->getNo();
-    weapon->activate(lr, angle, founderTaskId, resourceId, team, &muzzle, lowCharge, variant);
+    weapon->activate(lr, angle, founderTaskId, resourceId, team, &muzzle, fullCharge, variant);
     return false;
 }
 
