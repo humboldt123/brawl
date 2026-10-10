@@ -5796,7 +5796,13 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_mariopast/st_mariopast.cpp"),
+            Object(NonMatching, "mo_stage/st_mariopast/gr_mariopast.cpp"),
+            Object(NonMatching, "mo_stage/st_mariopast/gr_mariopast_blockpos.cpp"),
+            Object(NonMatching, "mo_stage/st_mariopast/gr_mariopast_blockpos_lite.cpp"),
+            Object(NonMatching, "mo_stage/st_mariopast/gr_mariopast_lift.cpp"),
+        ],
     },
     {
         "lib": "st_metalgear",
