@@ -5912,7 +5912,15 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_pictchat/st_pictchat.cpp"),
+            Object(NonMatching, "mo_stage/st_pictchat/gr_pictchat.cpp"),
+            Object(NonMatching, "mo_stage/st_pictchat/gr_pictchat_pict.cpp"),
+            Object(NonMatching, "mo_stage/st_pictchat/gr_pictchat_ladder.cpp"),
+            Object(NonMatching, "mo_stage/st_pictchat/gr_pictchat_spring.cpp"),
+            Object(NonMatching, "mo_stage/st_pictchat/gr_pictchat_sidebar.cpp"),
+            Object(NonMatching, "mo_stage/st_pictchat/gr_pictchat_attack.cpp"),
+        ],
     },
     {
         "lib": "st_pirates",
