@@ -15,6 +15,35 @@ public:
         Level_FlyRoll = 0x4, // HYPOTHESIS: set by setupDamageFlyRollStatus
     };
 
+#ifdef YK_STAGE_FULL
+    // MATCH-ONLY: the stage RELs copy soDamage with the word/half/byte layout of so/templates/so_damage.h (their array
+    // instantiations are compiled against it), and emit an empty destructor that the soArrayVector destructor calls per element.
+    float unk0, unk4, unk8, unkc;
+    struct { u32 unk0, unk4, unk8; } unk10;
+    u32 unk1c;
+    struct { u32 unk0, unk4, unk8; } unk20;
+    u16 unk2c, unk2e;
+    u8 unk30, unk31, unk32, unk33, unk34, unk35, unk36, unk37, unk38, unk39, unk3a;
+    u32 unk3c;
+    struct { u32 unk0, unk4, unk8; } unk40;
+    float unk4c;
+    u32 unk50, unk54, unk58, unk5c;
+    float unk60, unk64, unk68;
+    u32 unk6c, unk70, unk74, unk78;
+    float unk7c;
+    struct { u32 unk0, unk4, unk8; } unk80;
+    struct { u32 unk0, unk4; } unk8c;
+    float unk94;
+    u32 unk98;
+    u8 unk9c;
+    soDamage() {
+        unk60 = 0.0f;
+        unk64 = 0.0f;
+        unk68 = 0.0f;
+        unk74 = unk74 & ~0x1F; // HYPOTHESIS: five flag bits of the word at 0x74 are cleared
+    }
+    ~soDamage() { }
+#else
     float m_damage;
     float m_damageAdd;
     float m_powerMax;
@@ -28,6 +57,7 @@ public:
     int m_attackerTeamOwnerId;
     bool m_isFlinchFlag; // +0x9c, HYPOTHESIS name: onDamage returns early when 0
     char _157[3];
+#endif
 };
 static_assert(sizeof(soDamage) == 160, "Class is wrong size!"); // size 160
 

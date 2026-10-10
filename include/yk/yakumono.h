@@ -15,13 +15,21 @@ struct ykDataGroup {
     u32 m_hitGroupIndex;
     soSet<soCollisionHitData::Simple>* m_hitDataSimpleSet;
     soSet<soCollisionHitData>* m_hitDataSet;
+
+#ifdef YK_DATA_INLINE_CTOR // defined by the units whose RELs construct these inline (the members are cleared)
+    ykDataGroup() : m_hitGroupIndex(0), m_hitDataSimpleSet(NULL), m_hitDataSet(NULL) { }
+#endif
 };
 
 struct ykData {
     int m_dataGroupNum;
     ykDataGroup* m_dataGroups;
 
+#ifdef YK_DATA_INLINE_CTOR
+    ykData() : m_dataGroupNum(0), m_dataGroups(NULL) { }
+#else
     ykData();
+#endif
     inline ykData(int numDataGroups, ykDataGroup* dataGroups) {
         m_dataGroupNum = numDataGroups;
         m_dataGroups = dataGroups;
@@ -53,7 +61,7 @@ public:
     void setLr(float lr);
     void setSituationKind(SituationKind situationKind);
     void setCollisionHitOpponentCategory(int unk1, bool unk2);
-    void setCollisionHitSelfCatagory(soCollision::Category);
+    void setCollisionHitSelfCatagory(int category); // HYPOTHESIS: a soCollision::Category (the symbol takes an int)
     void setReactionFrame(int reactionFrame);
     void setTeamOwnerId(int teamOwnerId);
     void setTeam(int teamId);
@@ -63,15 +71,26 @@ public:
     virtual void processPreCollision();
     virtual void renderDebug();
     virtual ~Yakumono();
+#ifdef YK_STAGE_FULL
+    virtual void updatePosture(bool) { }
+    virtual soKind soGetKind() { return StageObject_Yakumono; }
+    virtual int soGetSubKind() { return -1; }
+#else
     virtual void updatePosture(bool);
     virtual soKind soGetKind();
     virtual int soGetSubKind();
+#endif
     virtual void updateNodeSRT();
 
     virtual float getAttackPosX(int index);
     virtual float getHitPosX(int index);
+#ifdef YK_STAGE_FULL
+    virtual void initAttackPosXWork(int unk1, int unk2) { }
+    virtual void initHitPosXWork(int unk1, int unk2) { }
+#else
     virtual void initAttackPosXWork(int unk1, int unk2);
     virtual void initHitPosXWork(int unk1, int unk2);
+#endif
     virtual void presentEventGimmick(soGimmickEventArgs* eventInfo, int sendID);
 
     virtual void notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);

@@ -5589,7 +5589,12 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_dxyorster/st_dxyorster.cpp"),
+            Object(NonMatching, "mo_stage/st_dxyorster/gr_dxyorster.cpp"),
+            Object(NonMatching, "mo_stage/st_dxyorster/gr_dxyorster_block.cpp"),
+            Object(NonMatching, "mo_stage/st_dxyorster/gr_dxyorster_blockpos.cpp"),
+        ],
     },
     {
         "lib": "st_dxzebes",

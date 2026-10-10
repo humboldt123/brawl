@@ -8,13 +8,21 @@
 class soCollisionHitGroup {
 public:
     int m_index;
+#ifdef YK_STAGE_FULL
+    short unk4; // MATCH-ONLY: the stage RELs' array instantiations copy these as a half / a float instead of bytes
+#else
     char _4[2];
+#endif
     short m_partSize;
     float m_posX;
     float m_scale;
     SituationKind m_situationKind;
     float m_lr;
+#ifdef YK_STAGE_FULL
+    float unk18;
+#else
     char _24[4];
+#endif
     int m_whole;
     int m_global;
     int m_xluFrameGlobal;
@@ -33,7 +41,9 @@ public:
     bool m_50;
     u8 m_51;
     u8 m_globalOffset;
+#ifndef YK_STAGE_FULL // (tail padding is not copied there)
     char _53[3];
+#endif
 
     // NOTE: shadows the BrawlHeaders copy to add getCenterPos.
     Vec3f getCenterPos(soCollision* collision, u16 index);

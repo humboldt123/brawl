@@ -11,6 +11,9 @@
 #include <so/event/so_gimmick_event_presenter.h>
 #include <so/link/so_link_event_presenter.h>
 #include <so/so_null.h>
+#ifdef YK_STAGE_FULL
+#include <ip/ip_null.h>
+#endif
 #include <types.h>
 
 class StageObject : public gfTask, private soActivatable, public soAnimCmdEventObserver, public soLinkEventObserver {
@@ -56,7 +59,7 @@ public:
     virtual void processCatch();
     virtual void processHit();
     virtual void processFixCamera();
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(YK_STAGE_FULL)
     virtual void processGameProc() { }
 #else
     virtual void processGameProc();
@@ -70,27 +73,42 @@ public:
     // TODO: Verify params?
     virtual void updatePosture(bool);
     virtual void processFixPositionPreAnimCmd();
+#ifdef YK_STAGE_FULL
+    virtual Input* getInput() {
+        static IpNull sNullInput;
+        return &sNullInput;
+    }
+#else
     virtual Input* getInput();
+#endif
     virtual float getCollisionLr(soModuleAccesser*);
     virtual soKind soGetKind();
     virtual int soGetSubKind();
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(YK_STAGE_FULL)
     virtual bool isActive() { return *(bool*)((u8*)this + 0x44); }
 #else
     virtual bool isActive();
 #endif
+#ifdef YK_STAGE_FULL
+    virtual bool checkTransitionStatus(u32) { return true; }
+#else
     virtual bool checkTransitionStatus(u32);
+#endif
     virtual void updateNodeSRT();
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(YK_STAGE_FULL)
     virtual void adjustParentGroundCollision(int unk1, float* unk2) { }
 #else
     virtual void adjustParentGroundCollision(int unk1, float* unk2);
 #endif
+#ifdef YK_STAGE_FULL
+    virtual bool isTreadPassive() { return false; }
+#else
     virtual bool isTreadPassive();
+#endif
     virtual void notifyLostGround(soModuleAccesser*);
 
     virtual bool isObserv(char unk1);
-#ifdef FT_FIGHTER_ANIMCMD_LONG
+#if defined(FT_FIGHTER_ANIMCMD_LONG) || defined(YK_STAGE_FULL)
     // HYPOTHESIS: the fighter override serves this slot and soAnimCmdEventObserver's (long) with one function (thunk at -0x48).
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
 #else
