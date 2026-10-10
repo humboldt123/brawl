@@ -1529,6 +1529,7 @@ config.libs = [
         "cflags": cflags_rel,
         "host": False,
         "objects": [
+            Object(NonMatching, "mo_fighter/ft_sonic/ft_sonic.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_sonic/ft_sonic_status_uniq_process_special_s_dash.cpp", extra_cflags=["-O2,s"]),
             Object(Matching, "mo_fighter/ft_sonic/ft_sonic_status_uniq_process_special_lw_hold.cpp", extra_cflags=["-O2,s"]),
             Object(Matching, "mo_fighter/ft_sonic/ft_sonic_status_uniq_process_final_end.cpp", extra_cflags=["-O2,s"]),
@@ -1553,6 +1554,7 @@ config.libs = [
         "cflags": cflags_fighter,
         "host": False,
         "objects": [
+            Object(NonMatching, "mo_fighter/ft_wario/ft_wario.cpp"),
             Object(Matching, "mo_fighter/ft_wario/ft_wario_status_uniq_process_special_s_drive.cpp"),
             Object(NonMatching, "mo_fighter/ft_wario/ft_wario_status_uniq_process_special_s.cpp"),
             Object(Matching, "mo_fighter/ft_wario/ft_wario_status_uniq_process_special_s_common.cpp"),
@@ -1587,7 +1589,7 @@ config.libs = [
         "host": False,
         "objects": [
             Object(Matching, "mo_fighter/ft_wolf/ft_wolf_status_uniq_process_reflector.cpp"),
-            Object(Matching, "mo_fighter/ft_wolf/ft_wolf.cpp"),
+            Object(NonMatching, "mo_fighter/ft_wolf/ft_wolf.cpp"),
         ],
     },
     {
@@ -1596,6 +1598,7 @@ config.libs = [
         "cflags": cflags_fighter,
         "host": False,
         "objects": [
+            Object(NonMatching, "mo_fighter/ft_yoshi/ft_yoshi.cpp"),
             Object(NonMatching, "mo_fighter/ft_yoshi/wn_yoshi_star.cpp"),
             Object(NonMatching, "mo_fighter/ft_yoshi/ft_yoshi_status_uniq_process_special_s_utility.cpp"),
             Object(NonMatching, "mo_fighter/ft_yoshi/ft_yoshi_status_uniq_process_special_s_start.cpp"),
