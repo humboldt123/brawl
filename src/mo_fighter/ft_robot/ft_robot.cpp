@@ -322,8 +322,11 @@ static soGenerateArticleManageModule& ftRobotGetArticleModule(soModuleAccesser* 
 }
 
 void ftRobot::onDeactivate() {
+    itManager* items;
     int taskId = m_moduleAccesser->getStageObject().m_taskId;
-    itManager::getInstance()->removeItem1(taskId);
+    items = itManager::getInstance();
+    // Remove every item created by this fighter, including its launched Gyro.
+    items->removeItem1(taskId);
 }
 
 void ftRobot::onStart(int param) {

@@ -79,6 +79,7 @@ The same assembly can come from very different C++ (`add r3,r3,r4` could be `x +
 ## 6. Control flow and registers
 Things that moved registers, roughly in the order worth trying:
 1. **Reorder local declarations** (declaration order sets virtual register order). Fixed `hkArrayUtil::_reduce`. **HIGH**
+   A receiver pointer declared before an owner-ID snapshot can also keep that snapshot loaded before a singleton lookup. R.O.B.'s item cleanup matches with a predeclared `itManager*`, then the task-ID read, then `getInstance()` and `removeItem1(taskId)`; the chained receiver expression deferred the read. Seen: `src/mo_fighter/ft_robot/ft_robot.cpp`. **MED**
 2. **Reference temporaries**, the decomp-permuter's output style: `__typeof__(expr)& tmp0 = expr;`. Fixed several Havok functions. **HIGH**
 3. **Remove or collapse a temporary** into its single use. **HIGH**
 4. **Pre-declare unused temporaries** in the order the original used them (`float y, x;` before computing sin and cos). **MED**

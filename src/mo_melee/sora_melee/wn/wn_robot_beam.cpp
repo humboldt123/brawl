@@ -73,7 +73,8 @@ bool wnRobotBeam::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* moduleAcc
     if (Weapon::notifyEventAnimCmd(cmd, moduleAccesser, index)) {
         return true;
     }
-    if (!isObserv(cmd->getGroup())) {
+    s8 group = cmd->getGroup();
+    if (!isObserv(group)) {
         return false;
     }
     if (cmd->getType() > -1 && cmd->getType() < 11) {
@@ -87,7 +88,7 @@ bool wnRobotBeam::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* moduleAcc
             Vec2f::copy(surface, moduleAccesser->getGroundModule().getTouchNormal(static_cast<grCollStatus::TouchMask>(0xff), 0));
             float lr = moduleAccesser->getPostureModule().getLr();
             float incidence = vec2fAngle(&velocity, &surface);
-            if (incidence - 1.5707964f > m_param->ricochetAngle * 0.017453292f) {
+            if (m_param->ricochetAngle * 0.017453292f < incidence - 1.5707964f) {
                 deactivate(false);
                 return true;
             }
