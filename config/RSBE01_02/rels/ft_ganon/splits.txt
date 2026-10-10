@@ -18,6 +18,18 @@ mo_fighter/ft_ganon/ft_ganon.cpp:
 	.data       start:0x00000000 end:0x00007420
 	.bss        start:0x00000008 end:0x000002E0
 
+mo_fighter/ft_ganon/ft_ganon_status_uniq_process_special_hi_cling.cpp:
+	.text       start:0x0000C2F4 end:0x0000C46C
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_ganon/ft_ganon_status_uniq_process_special_hi_throw.cpp:
+	.text       start:0x0000C46C end:0x0000C610
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_ganon/ft_ganon_status_uniq_process_special_s.cpp:
+	.text       start:0x0000C610 end:0x0000D344
+	.ctors      start:0x0000000C end:0x00000010
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x00011F6C end:0x00012008
 	.data       start:0x00007420 end:0x0000742F

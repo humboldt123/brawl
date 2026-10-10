@@ -78,3 +78,8 @@ void fn_111_A5EC() {}
 void fn_111_AE98() {}
 
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+u8* fn_111_BB28(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+} // extern "C"

@@ -18,6 +18,62 @@ mo_fighter/ft_gamewatch/ft_gamewatch.cpp:
 	.data       start:0x00000000 end:0x0000BCA8
 	.bss        start:0x00000008 end:0x00000480
 
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_special_s.cpp:
+	.text       start:0x00011AE0 end:0x00011E94
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_special_hi_start.cpp:
+	.text       start:0x00011E94 end:0x000121B8
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_special_hi_fall.cpp:
+	.text       start:0x000121B8 end:0x00012340
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_special_lw.cpp:
+	.text       start:0x00012340 end:0x00012618
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_special_lw_catch.cpp:
+	.text       start:0x00012618 end:0x00012724
+	.ctors      start:0x00000014 end:0x00000018
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_special_lw_shoot.cpp:
+	.text       start:0x00012724 end:0x00012908
+	.ctors      start:0x00000018 end:0x0000001C
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_start.cpp:
+	.text       start:0x00012908 end:0x00012B2C
+	.ctors      start:0x0000001C end:0x00000020
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_walk.cpp:
+	.text       start:0x00012B2C end:0x00012DA8
+	.ctors      start:0x00000020 end:0x00000024
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_dash.cpp:
+	.text       start:0x00012DA8 end:0x00012F38
+	.ctors      start:0x00000024 end:0x00000028
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_run.cpp:
+	.text       start:0x00012F38 end:0x00013214
+	.ctors      start:0x00000028 end:0x0000002C
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_run_brake.cpp:
+	.text       start:0x00013214 end:0x00013564
+	.ctors      start:0x0000002C end:0x00000030
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_turn.cpp:
+	.text       start:0x00013564 end:0x00013974
+	.ctors      start:0x00000030 end:0x00000034
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_turn_run.cpp:
+	.text       start:0x00013974 end:0x00013C9C
+	.ctors      start:0x00000034 end:0x00000038
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_landing.cpp:
+	.text       start:0x00013C9C end:0x00013FB4
+	.ctors      start:0x00000038 end:0x0000003C
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x00021D7C end:0x00021E18
 	.data       start:0x0000BCA8 end:0x0000BCB7

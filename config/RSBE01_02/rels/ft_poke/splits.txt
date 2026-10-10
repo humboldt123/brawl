@@ -18,6 +18,14 @@ mo_fighter/ft_poke/ft_poke_lizardon.cpp:
 	.data       start:0x00000000 end:0x0000C638
 	.bss        start:0x00000008 end:0x0000068C
 
+mo_fighter/ft_poke/ft_pokelizardon_status_uniq_process_crush_rock.cpp:
+	.text       start:0x0000DD40 end:0x0000DF88
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_poke/ft_pokezenigame_status_uniq_process_special_s.cpp:
+	.text       start:0x0001AFE0 end:0x0001B63C
+	.ctors      start:0x00000010 end:0x00000014
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x00026738 end:0x000267D4
 	.data       start:0x0000C638 end:0x0000C647

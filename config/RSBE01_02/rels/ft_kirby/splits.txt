@@ -18,6 +18,42 @@ mo_fighter/ft_kirby/ft_kirby.cpp:
 	.data       start:0x00000000 end:0x0000EAD8
 	.bss        start:0x00000008 end:0x00001344
 
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_final_cutter.cpp:
+	.text       start:0x000136CC end:0x00013EF0
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_hammer.cpp:
+	.text       start:0x00013F20 end:0x00014374
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_special_n.cpp:
+	.text       start:0x00015BD8 end:0x00016160
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_special_n_drink_item.cpp:
+	.text       start:0x00016160 end:0x000168C8
+	.ctors      start:0x00000014 end:0x00000018
+
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_special_n_spit.cpp:
+	.text       start:0x000168C8 end:0x00016BE0
+	.ctors      start:0x00000018 end:0x0000001C
+
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_special_n_eat.cpp:
+	.text       start:0x00016BE0 end:0x00017830
+	.ctors      start:0x0000001C end:0x00000020
+
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_special_n_swallow.cpp:
+	.text       start:0x00017830 end:0x00017B10
+	.ctors      start:0x00000020 end:0x00000024
+
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_special_n_drink.cpp:
+	.text       start:0x00017B10 end:0x00018020
+	.ctors      start:0x00000024 end:0x00000028
+
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_final.cpp:
+	.text       start:0x00018020 end:0x0001C244
+	.ctors      start:0x00000028 end:0x0000002C
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x0002F8A0 end:0x0002F93C
 	.data       start:0x0000EAD8 end:0x0000EAE7

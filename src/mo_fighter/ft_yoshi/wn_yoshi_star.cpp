@@ -76,3 +76,10 @@ bool wnYoshiStar::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* a, int in
     if (cmd->getType() > -1) cmd->getType();
     return false;
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+int fn_95_172AC(u8* p) { return *(int*)(p + 0xC0); }
+int fn_95_172B4(u8* p) { return *(int*)(p + 0x28); }
+int fn_95_17414(u8* p) { return *(int*)(p + 0xb8); }
+} // extern "C"

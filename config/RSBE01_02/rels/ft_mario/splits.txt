@@ -18,6 +18,18 @@ mo_fighter/ft_mario/ft_mario.cpp:
 	.data       start:0x00000000 end:0x0000A068
 	.bss        start:0x00000008 end:0x00000410
 
+mo_fighter/ft_mario/ft_mario_status_uniq_process_special_n.cpp:
+	.text       start:0x0000E0D0 end:0x0000E1B0
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_mario/ft_mario_status_uniq_process_special_lw_shoot.cpp:
+	.text       start:0x0000E1B0 end:0x0000E3C4
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_mario/ft_mario_status_uniq_process_special_s.cpp:
+	.text       start:0x0000E3C4 end:0x0000E8B4
+	.ctors      start:0x0000000C end:0x00000010
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x000194DC end:0x00019578
 	.data       start:0x0000A068 end:0x0000A077

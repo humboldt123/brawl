@@ -208,3 +208,9 @@ bool wnSnakeNikitaMissile::notifyEventCollisionAttackCheck(u32 flags) {
     }
     return false;
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+int fn_122_24410(u8* p) { return *(int*)(p + 0x60); }
+void* fn_122_245DC(u8* p) { return *(void**)(*(u8**)(p + 0xd8) + 0x70); }
+} // extern "C"

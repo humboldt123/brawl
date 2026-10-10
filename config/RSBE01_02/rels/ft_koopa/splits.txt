@@ -18,6 +18,18 @@ mo_fighter/ft_koopa/ft_koopa.cpp:
 	.data       start:0x00000000 end:0x00008490
 	.bss        start:0x00000008 end:0x00000628
 
+mo_fighter/ft_koopa/ft_koopa_status_uniq_process_special_s.cpp:
+	.text       start:0x0000E1EC end:0x0000F484
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_fighter/ft_koopa/ft_gkoopa_status_uniq_process_breath.cpp:
+	.text       start:0x0001500C end:0x00015A90
+	.ctors      start:0x00000014 end:0x00000018
+
+mo_fighter/ft_koopa/ft_gkoopa_status_uniq_process_special_s.cpp:
+	.text       start:0x0001750C end:0x00018770
+	.ctors      start:0x00000020 end:0x00000024
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x0001C238 end:0x0001C2D4
 	.data       start:0x00008490 end:0x0000849F

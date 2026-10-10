@@ -211,8 +211,7 @@ __ct__33soAnimCmdAddressPackArraySeparateFP31soArrayFixed<PC13acAnimCmdConv>P31s
 __ct__20soAnimCmdInterpreterFsP44soArrayVector<25acCmdInterpreterStackData,8>iifPCUc = .text:0x000088FC; // type:function size:0x190
 getInstance__51soSingletonHolder<30soArrayNull<PC13acAnimCmdConv>>Fv = .text:0x00008A8C; // type:function size:0x70
 pushRange<PC13acAnimCmdConv>__14soArrayUtilityFP26soArray<PC13acAnimCmdConv>PCPC13acAnimCmdConvl_v = .text:0x00008AFC; // type:function size:0x7C
-fn_123_8B78 = .text:0x00008B78; // type:function size:0x38
-fn_123_8BB0 = .text:0x00008BB0; // type:function size:0x4
+fn_123_8B78 = .text:0x00008B78; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,295,295,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x00008BB4; // type:function size:0xB0
 fn_123_8C64 = .text:0x00008C64; // type:function size:0xFC
 fn_123_8D60 = .text:0x00008D60; // type:function size:0x6C

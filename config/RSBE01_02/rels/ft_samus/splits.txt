@@ -18,6 +18,34 @@ mo_fighter/ft_samus/ft_samus.cpp:
 	.data       start:0x00000000 end:0x0000D760
 	.bss        start:0x00000008 end:0x00000488
 
+mo_fighter/ft_samus/ft_samus_status_uniq_process_special_s.cpp:
+	.text       start:0x00010954 end:0x00011170
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_fighter/ft_samus/ft_samus_status_uniq_process_final.cpp:
+	.text       start:0x00011170 end:0x00011C78
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_fighter/ft_samus/ft_szerosuit_status_uniq_process_special_lw.cpp:
+	.text       start:0x00019D68 end:0x0001A084
+	.ctors      start:0x00000018 end:0x0000001C
+
+mo_fighter/ft_samus/ft_szerosuit_status_uniq_process_special_lw_step.cpp:
+	.text       start:0x0001A084 end:0x0001A428
+	.ctors      start:0x0000001C end:0x00000020
+
+mo_fighter/ft_samus/ft_szerosuit_status_uniq_process_special_lw_flip.cpp:
+	.text       start:0x0001A428 end:0x0001A674
+	.ctors      start:0x00000020 end:0x00000024
+
+mo_fighter/ft_samus/ft_szerosuit_status_uniq_process_special_lw_kick.cpp:
+	.text       start:0x0001A674 end:0x0001A960
+	.ctors      start:0x00000024 end:0x00000028
+
+mo_fighter/ft_samus/ft_szerosuit_status_uniq_process_final_samus.cpp:
+	.text       start:0x0001A960 end:0x0001AB4C
+	.ctors      start:0x00000028 end:0x0000002C
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x0002041C end:0x000204B8
 	.data       start:0x0000D760 end:0x0000D76F
