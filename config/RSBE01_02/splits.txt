@@ -209,6 +209,27 @@ sora/ip/ip_network_producer.cpp:
 	.text       start:0x8004AE14 end:0x8004AFB4
 	.sbss       start:0x805A00D8 end:0x805A00E0
 
+sora/ip/ip_replay.cpp:
+	.text       start:0x8004AFB4 end:0x8004C1A4
+	.sdata      start:0x8059C800 end:0x8059C808
+
+sora/gm/gm_global.cpp:
+	.text       start:0x8004C1A4 end:0x8004F294
+	.rodata     start:0x80406938 end:0x80406968
+	.sdata      start:0x8059C808 end:0x8059C810
+	.sbss       start:0x805A00E0 end:0x805A00E8
+	.sdata2     start:0x805A1860 end:0x805A1888
+
+sora/gm/gm_common.cpp:
+	.text       start:0x8004F294 end:0x800568C8
+	.ctors      start:0x8040651C end:0x80406520
+	.rodata     start:0x80406968 end:0x80406E28
+	.data       start:0x8042B858 end:0x8042DC18
+	.bss        start:0x804977E0 end:0x80497800
+	.sdata      start:0x8059C810 end:0x8059CE48
+	.sbss       start:0x805A00E8 end:0x805A00F0
+	.sdata2     start:0x805A1888 end:0x805A18B0
+
 sora/ef/ef_screen_handle.cpp:
 	.text       start:0x8005E5C8 end:0x8005E5E8
 
@@ -1421,6 +1442,44 @@ RVL_SDK/ipc/ipcclt.c:
 	.sdata      start:0x8059ECC8 end:0x8059ECD0
 	.sbss       start:0x805A0BF0 end:0x805A0C00
 
+RVL_SDK/ipc/memory.c:
+	.text       start:0x80213468 end:0x80213994
+	.bss        start:0x804F65E0 end:0x804F6660
+
+RVL_SDK/ipc/ipcProfile.c:
+	.text       start:0x80213994 end:0x80213B58
+	.bss        start:0x804F6660 end:0x804F6760
+	.sbss       start:0x805A0C00 end:0x805A0C08
+
+RVL_SDK/fs/fs.c:
+	.text       start:0x80213B58 end:0x802153F8
+	.data       start:0x8047C5A8 end:0x8047C5D0
+	.sdata      start:0x8059ECD0 end:0x8059ECE0
+	.sbss       start:0x805A0C08 end:0x805A0C20
+
+RVL_SDK/pad/Pad.c:
+	.text       start:0x802153F8 end:0x80216C90
+	.data       start:0x8047C5D0 end:0x8047C628
+	.bss        start:0x804F6760 end:0x804F67E0
+	.sdata      start:0x8059ECE0 end:0x8059ED00
+	.sbss       start:0x805A0C20 end:0x805A0C50
+
+RVL_SDK/wpad/WPAD.c:
+	.text       start:0x80216C90 end:0x8021E47C
+	.rodata     start:0x8040D640 end:0x8040D680
+	.data       start:0x8047C628 end:0x8047C920
+	.bss        start:0x804F67E0 end:0x804F9EE0
+	.sdata      start:0x8059ED00 end:0x8059ED10
+	.sbss       start:0x805A0C50 end:0x805A0C80
+	.sdata2     start:0x805A3980 end:0x805A3988
+
+RVL_SDK/wpad/WPADHIDParser.c:
+	.text       start:0x8021E47C end:0x8022391C
+	.data       start:0x8047C920 end:0x8047CEC0
+	.bss        start:0x804F9F08 end:0x804F9FC0
+	.sbss       start:0x805A0C80 end:0x805A0C98
+	.sdata2     start:0x805A3988 end:0x805A39E8
+
 RVL_SDK/wpad/WPADEncrypt.c:
 	.text       start:0x8022391C end:0x802249C4
 	.data       start:0x8047CEC0 end:0x8047E1E8
@@ -1485,6 +1544,56 @@ RVL_SDK/bte/bta_hh_main.c:
 RVL_SDK/bte/btm_main.c:
 	.text       start:0x8023D864 end:0x8023D8C0
 	.bss        start:0x80529CF8 end:0x8052C4BC
+
+RVL_SDK/bte/btm_pm.c:
+	.text       start:0x8023D8C0 end:0x8023E554
+	.rodata     start:0x8040D990 end:0x8040D9A0
+	.data       start:0x80481188 end:0x804811C8
+	.sdata2     start:0x805A3A90 end:0x805A3A98
+
+RVL_SDK/bte/btm_sco.c:
+	.text       start:0x8023E554 end:0x8023F38C
+	.rodata     start:0x8040D9A0 end:0x8040D9B0
+	.data       start:0x804811C8 end:0x804814C8
+
+RVL_SDK/bte/btm_sec.c:
+	.text       start:0x8023F38C end:0x80242350
+	.data       start:0x804814C8 end:0x80481ED8
+	.sdata2     start:0x805A3A98 end:0x805A3AA0
+
+RVL_SDK/bte/btu_hcif.c:
+	.text       start:0x80242350 end:0x802435AC
+	.data       start:0x80481ED8 end:0x80481F68
+
+RVL_SDK/bte/btu_init.c:
+	.text       start:0x802435AC end:0x80243704
+
+RVL_SDK/bte/gap_api.c:
+	.text       start:0x80243704 end:0x80243764
+	.bss        start:0x8052C4C0 end:0x8052C870
+
+RVL_SDK/bte/gap_conn.c:
+	.text       start:0x80243764 end:0x802442A0
+	.data       start:0x80481F68 end:0x80482038
+	.sdata      start:0x8059EE10 end:0x8059EE18
+
+RVL_SDK/bte/gap_utils.c:
+	.text       start:0x802442A0 end:0x802448BC
+	.data       start:0x80482038 end:0x80482328
+
+RVL_SDK/bte/hcicmds.c:
+	.text       start:0x802448BC end:0x80246FD8
+	.rodata     start:0x8040D9B0 end:0x8040D9C0
+
+RVL_SDK/bte/hidd_conn.c:
+	.text       start:0x80246FD8 end:0x80247544
+	.data       start:0x80482328 end:0x80482378
+	.bss        start:0x8052C870 end:0x8052C9B8
+
+RVL_SDK/bte/hidh_api.c:
+	.text       start:0x80247544 end:0x802482C4
+	.data       start:0x80482378 end:0x80482490
+	.bss        start:0x8052C9B8 end:0x8052CDC0
 
 RVL_SDK/bte/hidh_conn.c:
 	.text       start:0x802482C4 end:0x8024A304
@@ -3171,6 +3280,93 @@ FAT/sd_host.c:
 	.bss        start:0x80563940 end:0x805639C0
 	.sdata      start:0x8059FE98 end:0x8059FEA0
 	.sbss       start:0x805A1230 end:0x805A1250
+
+FAT/pf_clib.c:
+	.text       start:0x803D620C end:0x803D66EC
+
+FAT/pf_str.c:
+	.text       start:0x803D66EC end:0x803D6C50
+
+FAT/pf_volume.c:
+	.text       start:0x803D6C50 end:0x803D781C
+
+FAT/pf_driver.c:
+	.text       start:0x803D781C end:0x803D8EC0
+	.bss        start:0x805639C0 end:0x805644C0
+
+FAT/pf_cache.c:
+	.text       start:0x803D8EC0 end:0x803DAAE8
+
+FAT/pf_dir.c:
+	.text       start:0x803DAAE8 end:0x803DC584
+	.sdata      start:0x8059FEB8 end:0x8059FEC8
+
+FAT/pf_entry.c:
+	.text       start:0x803DC584 end:0x803DF760
+	.data       start:0x80492FD8 end:0x80492FE8
+	.sdata      start:0x8059FEC8 end:0x8059FEE0
+	.sdata2     start:0x805A4AF0 end:0x805A4AF8
+
+FAT/pf_fat.c:
+	.text       start:0x803DF760 end:0x803E3610
+	.rodata     start:0x8041B0E0 end:0x8041B120
+
+FAT/pf_file.c:
+	.text       start:0x803E3610 end:0x803E5F58
+
+FAT/pf_path.c:
+	.text       start:0x803E5F58 end:0x803E8DC0
+	.sdata      start:0x8059FEE0 end:0x8059FF10
+	.sdata2     start:0x805A4AF8 end:0x805A4B00
+
+FAT/pf_sector.c:
+	.text       start:0x803E8DC0 end:0x803E94E8
+
+FAT/pf_volapi.c:
+	.text       start:0x803E94E8 end:0x803EAEAC
+
+FAT/pf_code.c:
+	.text       start:0x803EAEAC end:0x803EB3BC
+	.rodata     start:0x8041B120 end:0x8041F398
+
+FAT/pf_apicmn.c:
+	.text       start:0x803EB3BC end:0x803EBA40
+	.data       start:0x80492FE8 end:0x80493088
+
+FAT/pf_system.c:
+	.text       start:0x803EBA40 end:0x803EBC54
+	.sbss       start:0x805A1260 end:0x805A1268
+
+FAT/fa_api.c:
+	.text       start:0x803EBC54 end:0x803EC27C
+	.data       start:0x80493088 end:0x804930A0
+	.bss        start:0x80597FB0 end:0x80598098
+	.sdata      start:0x8059FF10 end:0x8059FF18
+	.sbss       start:0x805A1268 end:0x805A1278
+
+FAT/pfk.c:
+	.text       start:0x803EC27C end:0x803EC45C
+	.data       start:0x804930A0 end:0x804931C0
+
+FAT/pfd_nand.c:
+	.text       start:0x803EC45C end:0x803EDF84
+	.rodata     start:0x8041F398 end:0x8041F3B8
+	.bss        start:0x80598098 end:0x80599680
+	.sdata      start:0x8059FF18 end:0x8059FF20
+	.sbss       start:0x805A1278 end:0x805A12A0
+
+FAT/pfd_sddrv.c:
+	.text       start:0x803EDF84 end:0x803EEFCC
+	.rodata     start:0x8041F3B8 end:0x8041F3D8
+	.data       start:0x804931C0 end:0x804937B8
+	.bss        start:0x80599680 end:0x805998E0
+	.sbss       start:0x805A12A0 end:0x805A12C8
+
+sora/snd/snd_sound_handle.cpp:
+	.text       start:0x803EEFCC end:0x803F0640
+	.data       start:0x804937B8 end:0x80493D38
+	.sbss       start:0x805A12C8 end:0x805A12D0
+	.sdata2     start:0x805A4B00 end:0x805A4B68
 
 Runtime.PPCEABI.H/__va_arg.c:
 	.text       start:0x803F065C end:0x803F0724
