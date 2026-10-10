@@ -65,6 +65,7 @@ public:
 #include <ut/ut_uncopyable.h>
 
 #include <ft/ft_fighter_builder.h>
+#include <wn/wn_simple_builder.h>
 #include <ft/purin/ft_purin_article.h>
 
 ////////////////////////////////////////
@@ -420,3 +421,5 @@ void ftPurinArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enab
 
 #undef FT_PURIN_UNUSED_SLOTS
 #undef FT_PURIN_UNUSED_SLOT
+
+wnSimple::~wnSimple() { }
