@@ -50,11 +50,11 @@ bool stDxGreens::loading() {
 
 void stDxGreens::createObj() {
     int size;
-    void* data = m_fileData->getData(Data_Type_Model, 0x2711, &size, 0xFFFE);
+    void* data = m_fileData->getData(Data_Type_Misc, 0x2711, &size, 0xFFFE);
     if (data != NULL) {
         m_archiveAppleParam.setFileImage(data, size, Heaps::StageResource);
     }
-    data = m_fileData->getData(Data_Type_Model, 0x2712, &size, 0xFFFE);
+    data = m_fileData->getData(Data_Type_Misc, 0x2712, &size, 0xFFFE);
     if (data != NULL) {
         m_archiveApple.setFileImage(data, size, Heaps::StageResource);
     }

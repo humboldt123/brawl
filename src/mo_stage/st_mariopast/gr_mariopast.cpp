@@ -125,7 +125,7 @@ void grMarioPastBg::update(float deltaFrame) {
     }
     updateCallBack(deltaFrame);
     updateG3dProcCalcWorld();
-    m_isVisibleByClipping = false;
+    m_hasUpdatedG3dCalcWorld = false;
     Vec3f* posGimmick = m_posGimmick;
     if (posGimmick != NULL) {
         if (m_stage == 1) {
