@@ -97,3 +97,9 @@ void fn_102_92F0(soGeneralWorkSimple* p, s32 a0, u32 a1) { p->soGeneralWorkSimpl
 Vec2f fn_102_B100(soKineticEnergyNormal* p) { return p->soKineticEnergyNormal::getSpeed(); }
 
 }
+
+// Fighter event thunks: adjust `this` back to the Fighter base, then tail-call the Fighter method.
+extern "C" {
+void fn_102_C0AC(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) { ((Fighter*)(self - 0x54))->Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4); }
+bool fn_102_C0A4(u8* self, acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3) { return ((Fighter*)(self - 0x48))->Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3); }
+} // extern "C"
