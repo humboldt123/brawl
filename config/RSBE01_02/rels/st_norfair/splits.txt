@@ -11,6 +11,58 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_norfair/st_norfair.cpp:
+	.text       start:0x00000070 end:0x00002C40
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000068
+	.data       start:0x00000000 end:0x00000578
+	.bss        start:0x00000008 end:0x00000028
+
+mo_stage/st_norfair/gr_norfair.cpp:
+	.text       start:0x00002C40 end:0x000033C0
+	.rodata     start:0x00000068 end:0x00000080
+	.data       start:0x00000578 end:0x00000ACC
+
+mo_stage/st_norfair/gr_norfair_bg.cpp:
+	.text       start:0x000033C0 end:0x0000376C
+	.data       start:0x00000ACC end:0x00000DA0
+
+mo_stage/st_norfair/gr_norfair_door.cpp:
+	.text       start:0x0000376C end:0x0000B334
+	.rodata     start:0x00000080 end:0x000000C8
+	.data       start:0x00000DA0 end:0x00002550
+	.bss        start:0x00000028 end:0x00000150
+
+mo_stage/st_norfair/gr_norfair_zone.cpp:
+	.text       start:0x0000B334 end:0x0000C060
+	.rodata     start:0x000000C8 end:0x00000100
+	.data       start:0x00002550 end:0x000027C0
+
+mo_stage/st_norfair/gr_norfair_shutter.cpp:
+	.text       start:0x0000C060 end:0x0000C958
+	.rodata     start:0x00000100 end:0x00000110
+	.data       start:0x000027C0 end:0x00002A10
+
+mo_stage/st_norfair/gr_norfair_ashiba_t.cpp:
+	.text       start:0x0000C958 end:0x0000CF40
+	.rodata     start:0x00000110 end:0x00000138
+	.data       start:0x00002A10 end:0x00002C38
+
+mo_stage/st_norfair/gr_norfair_wall.cpp:
+	.text       start:0x0000CF40 end:0x0000E57C
+	.rodata     start:0x00000138 end:0x00000180
+	.data       start:0x00002C38 end:0x00003150
+
+mo_stage/st_norfair/gr_norfair_wave.cpp:
+	.text       start:0x0000E57C end:0x0000EFD0
+	.rodata     start:0x00000180 end:0x00000198
+	.data       start:0x00003150 end:0x000033D8
+
+mo_stage/st_norfair/gr_norfair_magma.cpp:
+	.text       start:0x0000EFD0 end:0x00010210
+	.rodata     start:0x00000198 end:0x000001C8
+	.data       start:0x000033D8 end:0x00004930
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x00010210 end:0x000102AC
 	.data       start:0x00004930 end:0x0000493D

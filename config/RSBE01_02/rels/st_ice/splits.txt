@@ -11,6 +11,64 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_ice/st_ice.cpp:
+	.text       start:0x00000070 end:0x00002BA4
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000068
+	.data       start:0x00000000 end:0x00000588
+	.bss        start:0x00000008 end:0x00000028
+
+mo_stage/st_ice/gr_ice.cpp:
+	.text       start:0x00002BA4 end:0x00003148
+	.rodata     start:0x00000068 end:0x00000080
+	.data       start:0x00000588 end:0x00000A68
+
+mo_stage/st_ice/gr_ice_bg.cpp:
+	.text       start:0x00003148 end:0x000034A4
+	.data       start:0x00000A68 end:0x00000DB0
+
+mo_stage/st_ice/gr_ice_yama.cpp:
+	.text       start:0x000034A4 end:0x000084E0
+	.rodata     start:0x00000080 end:0x000000D8
+	.data       start:0x00000DB0 end:0x00002278
+	.bss        start:0x00000028 end:0x00000138
+
+mo_stage/st_ice/gr_ice_rot.cpp:
+	.text       start:0x000084E0 end:0x00008CE4
+	.rodata     start:0x000000D8 end:0x000000F8
+	.data       start:0x00002278 end:0x000024D0
+
+mo_stage/st_ice/gr_ice_break.cpp:
+	.text       start:0x00008CE4 end:0x0000CDCC
+	.rodata     start:0x000000F8 end:0x00000158
+	.data       start:0x000024D0 end:0x000030D8
+	.bss        start:0x00000138 end:0x0000015C
+
+mo_stage/st_ice/gr_ice_kumo.cpp:
+	.text       start:0x0000CDCC end:0x0000D308
+	.rodata     start:0x00000158 end:0x00000168
+	.data       start:0x000030D8 end:0x000032F8
+
+mo_stage/st_ice/gr_ice_ice.cpp:
+	.text       start:0x0000D308 end:0x0000DB20
+	.rodata     start:0x00000168 end:0x00000178
+	.data       start:0x000032F8 end:0x00003548
+
+mo_stage/st_ice/gr_ice_turara.cpp:
+	.text       start:0x0000DB20 end:0x0000F0B0
+	.rodata     start:0x00000178 end:0x000001B0
+	.data       start:0x00003548 end:0x00005628
+
+mo_stage/st_ice/gr_ice_fish.cpp:
+	.text       start:0x0000F0B0 end:0x00010058
+	.rodata     start:0x000001B0 end:0x000001F0
+	.data       start:0x00005628 end:0x00005888
+
+mo_stage/st_ice/gr_ice_bear.cpp:
+	.text       start:0x00010058 end:0x0001184C
+	.rodata     start:0x000001F0 end:0x00000278
+	.data       start:0x00005888 end:0x00005AB0
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x0001184C end:0x000118E8
 	.data       start:0x00005AB0 end:0x00005ABD

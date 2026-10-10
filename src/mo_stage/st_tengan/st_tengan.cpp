@@ -728,9 +728,9 @@ bool stTengan::eventSlowUpdate(float deltaFrame) {
         }
 
         if (event == 0 || event == 1) {
-            m_slow = static_cast<char>(gfSlowManager::requestSlow(2) >> 24);
+            m_slow = static_cast<char>(gfSlowManager::requestSlow(2).m_id);
         } else if (event == 2) {
-            m_slow = static_cast<char>(gfSlowManager::requestSlow(4) >> 24);
+            m_slow = static_cast<char>(gfSlowManager::requestSlow(4).m_id);
         }
 
         eventSlow.setPhase(1);

@@ -52,6 +52,19 @@ gfTaskScheduler* g_taskScheduler;
         }                                                         \
     } while (false)
 
+// Inline list accessors (needed for register allocation to match)
+static inline gfTask* getProcessPrev(gfTask* task) {
+    return task->m_prev;
+}
+
+static inline gfTask* getProcessNext(gfTask* task) {
+    return task->m_next;
+}
+
+static inline gfTask* getRenderNext(gfTask* task) {
+    return task->m_0x18;
+}
+
 gfTaskScheduler* gfTaskScheduler::create() {
     return (g_taskScheduler = new (Heaps::SystemFW) gfTaskScheduler);
 }
@@ -90,15 +103,13 @@ void gfTaskScheduler::updateStatusPre() {
     }
 }
 
-// NONMATCHING regswaps
+// NONMATCHING regswap: request loop counter should be r27, not r29
 void gfTaskScheduler::process(bool p1) {
+    UnkTaskRequest* req;
     u32 count;
-    gfTask* r26;
-    gfTask* curr;
-    gfTask* r24;
-    UnkTaskRequest* r31;
-    gfTask** r30;
+    s32 k;
     s32 i;
+    gfTask* task;
     updateStatusPre();
     unk0_1 = 1;
     // loop over ProcessTypes?
@@ -106,14 +117,14 @@ void gfTaskScheduler::process(bool p1) {
         unk0_2 = i;
         // UBFIX: logic depends on shift overflow?
         if (!unk8 || !(1 << i)) {
-            r30 = unk14;
             // loop over task priority levels?
-            for (s32 j = 0; j < unk14Size; j++, r30++) {
-                curr = *r30;
+            gfTask** list = unk14;
+            for (s32 j = 0; j < unk14Size; j++, list++) {
+                gfTask* curr = *list;
                 unk6 = j;
                 while (curr) {
-                    r24 = curr->m_prev;
-                    gfTask* next = curr->m_next;
+                    gfTask* prev = getProcessPrev(curr);
+                    gfTask* next = getProcessNext(curr);
                     unkC = curr;
                     unk10 = next;
                     if (p1) {
@@ -122,12 +133,12 @@ void gfTaskScheduler::process(bool p1) {
                         }
                     } else {
                         if (curr->m_alive && !curr->getFlag1()) {
-                             curr->process(static_cast<gfTask::ProcessType>(i));
+                            curr->process(static_cast<gfTask::ProcessType>(i));
                         }
                     }
                     if (!curr->unk2C_b0) {
-                        if (!r24) {
-                            curr = *r30;
+                        if (!prev) {
+                            curr = *list;
                         } else {
                             curr = unk10;
                         }
@@ -145,16 +156,16 @@ void gfTaskScheduler::process(bool p1) {
     // Process priority change requests?
     count = m_numPendingPrioUpdates;
     if (count) {
-        r31 = m_pendingPrioUpdates;
-        for (i = 0; i < count; r31++, i++) {
-            r26 = getTaskById(r31->m_category, r31->m_taskId);
-            if (r26) {
-                if (!r26->unk2C_b0) {
-                    r31->m_task->unk30 = r31->m_priority;
+        req = m_pendingPrioUpdates;
+        for (k = 0; k < count; req++, k++) {
+            task = getTaskById(req->m_category, req->m_taskId);
+            if (task) {
+                if (!task->unk2C_b0) {
+                    req->m_task->unk30 = req->m_priority;
                 } else {
-                    unlinkProcessList(r26);
-                    r26->unk30 = r31->m_priority;
-                    TASKLIST_APPEND(unk14[r26->unk30], r26, m_prev, m_next);
+                    unlinkProcessList(task);
+                    task->unk30 = req->m_priority;
+                    TASKLIST_APPEND(unk14[task->unk30], task, m_prev, m_next);
                 }
             }
         }
@@ -165,14 +176,12 @@ void gfTaskScheduler::process(bool p1) {
 
 void gfTaskScheduler::renderPre() {
     gfTask* next;
-    gfTask* r3;
     unk0_1 = 2;
-    u8* cursor = reinterpret_cast<u8*>(this);
-    for (s32 i = 0; i < unkF8Size; i++, cursor += sizeof(gfTask*)) {
-        r3 = *reinterpret_cast<gfTask**>(cursor + offsetof(gfTaskScheduler, unkF8));
+    for (s32 i = 0; i < unkF8Size; i++) {
+        gfTask* head = unkF8[i];
         unk6 = i;
-        for (gfTask* task = r3; task; task = next) {
-            next = task->m_0x18;
+        for (gfTask* task = head; task; task = next) {
+            next = getRenderNext(task);
             if (task->m_alive && task->unk2C_b2) {
                 task->renderPre();
             }
@@ -181,33 +190,25 @@ void gfTaskScheduler::renderPre() {
 }
 
 void gfTaskScheduler::render() {
+    gfTask* next;
     unk0_1 = 2;
-    gfTask* r31;
-    gfTask* r3;
-    {
-        u8* cursor = reinterpret_cast<u8*>(this);
-        for (s32 i = 0; i < unkF8Size; i++, cursor += sizeof(gfTask*)) {
-            r3 = *reinterpret_cast<gfTask**>(cursor + offsetof(gfTaskScheduler, unkF8));
-            unk6 = i;
-            for (gfTask* task = r3; task; task = r31) {
-                r31 = task->m_0x18;
-                if (task->m_alive && task->unk2C_b2) {
-                    task->render(gfTask::Render_Opa);
-                }
+    for (s32 i = 0; i < unkF8Size; i++) {
+        gfTask* head = unkF8[i];
+        unk6 = i;
+        for (gfTask* task = head; task; task = next) {
+            next = getRenderNext(task);
+            if (task->m_alive && task->unk2C_b2) {
+                task->render(gfTask::Render_Opa);
             }
         }
     }
-    {
-        s32 i;
-        u8* cursor = reinterpret_cast<u8*>(this);
-        for (i = 0; i < unkF8Size; i++, cursor += sizeof(gfTask*)) {
-            r3 = *reinterpret_cast<gfTask**>(cursor + offsetof(gfTaskScheduler, unkF8));
-            unk6 = i;
-            for (gfTask* task = r3; task; task = r31) {
-                r31 = task->m_0x18;
-                if (task->m_alive && task->unk2C_b2) {
-                    task->render(gfTask::Render_Xlu);
-                }
+    for (s32 i = 0; i < unkF8Size; i++) {
+        gfTask* head = unkF8[i];
+        unk6 = i;
+        for (gfTask* task = head; task; task = next) {
+            next = getRenderNext(task);
+            if (task->m_alive && task->unk2C_b2) {
+                task->render(gfTask::Render_Xlu);
             }
         }
     }
@@ -219,10 +220,9 @@ void gfTaskScheduler::updateStatus() {
     do {
         gfTask* next;
         unk2_b7 = false;
-        u8* cursor = reinterpret_cast<u8*>(this);
-        for (s32 i = 0; i < unk14Size; i++, cursor += sizeof(gfTask*)) {
-            for (gfTask* curr = *reinterpret_cast<gfTask**>(cursor + offsetof(gfTaskScheduler, unk14)); curr; curr = next) {
-                next = curr->m_next;
+        for (s32 i = 0; i < unk14Size; i++) {
+            for (gfTask* curr = unk14[i]; curr; curr = next) {
+                next = getProcessNext(curr);
                 if (curr->m_alive && curr->getStatus() == 2) {
                     curr->setStatus(1);
                 }
@@ -369,7 +369,6 @@ void gfTaskScheduler::setPauseCategory(gfTask::Category ctgry, bool isPaused) {
     }
 }
 
-// NONMATCHING regswaps, instruction order, dead store
 void gfTaskScheduler::changeTaskPriorityRequest(u32 id, u8 priority) {
     gfTask* task = getTask(id);
     if (task) {
