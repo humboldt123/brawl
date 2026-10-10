@@ -7,7 +7,11 @@
 // argument/return widths are verified.
 class soTeam : public soNullable {
 public:
+#ifdef FT_TEAM_TYPED_INTERFACE
     virtual ~soTeam();
+#else
+    virtual ~soTeam() { }
+#endif
     virtual int getNo() const = 0;
     virtual void setNo(int) = 0;
     virtual int getIndirectNo() const = 0;
