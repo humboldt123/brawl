@@ -11,6 +11,44 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_plankton/st_plankton.cpp:
+	.text       start:0x00000070 end:0x00002644
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000090
+	.data       start:0x00000000 end:0x00000648
+	.bss        start:0x00000008 end:0x00000018
+
+mo_stage/st_plankton/gr_plankton_bg.cpp:
+	.text       start:0x00002644 end:0x00002FB8
+	.rodata     start:0x00000090 end:0x000000B0
+	.data       start:0x00000648 end:0x00000B38
+
+mo_stage/st_plankton/gr_plankton_flower.cpp:
+	.text       start:0x00002FB8 end:0x00003834
+	.rodata     start:0x000000B0 end:0x000000D0
+	.data       start:0x00000B38 end:0x00000D60
+
+mo_stage/st_plankton/gr_plankton_ashiba.cpp:
+	.text       start:0x00003834 end:0x0000A658
+	.rodata     start:0x000000D0 end:0x00000138
+	.data       start:0x00000D60 end:0x00002878
+	.bss        start:0x00000018 end:0x00000048
+
+mo_stage/st_plankton/gr_plankton_ashiba_left.cpp:
+	.text       start:0x0000A658 end:0x0000B468
+	.rodata     start:0x00000138 end:0x00000160
+	.data       start:0x00002878 end:0x00002AA8
+
+mo_stage/st_plankton/gr_plankton_hanenbou.cpp:
+	.text       start:0x0000B468 end:0x0000CC00
+	.rodata     start:0x00000160 end:0x000001C0
+	.data       start:0x00002AA8 end:0x00002E58
+
+mo_stage/st_plankton/gr_plankton_hamon.cpp:
+	.text       start:0x0000CC00 end:0x0000D78C
+	.rodata     start:0x000001C0 end:0x000001D0
+	.data       start:0x00002E58 end:0x00003108
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x0000D78C end:0x0000D828
 	.data       start:0x00003108 end:0x00003115
