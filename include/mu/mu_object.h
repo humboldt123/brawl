@@ -96,10 +96,10 @@ public:
     const char* getTexSrtAnimName();
     const char* getClrAnimName();
 
-    bool isNodeAnimFinished();
-    bool isVisAnimFinished();
-    bool isClrAnimFinished();
-    bool isAnimFinished();
+    int isNodeAnimFinished();
+    int isVisAnimFinished();
+    int isClrAnimFinished();
+    int isAnimFinished();
     bool isNodeAnimLoop();
 
     virtual ~MuObject();

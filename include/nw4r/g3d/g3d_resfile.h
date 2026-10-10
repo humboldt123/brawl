@@ -47,6 +47,7 @@ namespace nw4r {
 
             static void Init(void* arg);
             void Bind(ResFile file);
+            void Release();
 
             ResMdl GetResMdl(const char* name) const;
             ResMdl GetResMdl(u32 index) const;
