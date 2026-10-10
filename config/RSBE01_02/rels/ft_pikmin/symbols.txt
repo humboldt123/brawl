@@ -166,7 +166,7 @@ __dt__154soCollisionReflectorModuleBuilder<116soCollisionReflectorModuleBuildCon
 __dt__152soCollisionShieldModuleBuilder<117soCollisionShieldModuleBuildConfigGroups<2,1,1,37soCollisionShieldEventPresenterShield,27soCollisionShieldModuleImpl>>Fv = .text:0x00005A40; // type:function size:0x90
 __dt__104soCollisionHitModuleBuilder<73soCollisionHitModuleBuildConfig<0,20,1,24soCollisionHitModuleImpl,1023,1>>Fv = .text:0x00005AD0; // type:function size:0x84
 __dt__111soCollisionAttackModuleBuilder<77soCollisionAttackModuleBuildConfig<0,5,2,27soCollisionAttackModuleImpl,5,1,1>>Fv = .text:0x00005B54; // type:function size:0x84
-__dt__66soTeamModuleBuilder<43soTeamModuleBuildConfig<16soTeamModuleImpl>>Fv = .text:0x00005BD8; // type:function size:0x78
+__dt__74soTeamModuleBuilder<51soTeamModuleBuildConfig<6ftTeam,16soTeamModuleImpl>>Fv = .text:0x00005BD8; // type:function size:0x78
 fn_113_5C50 = .text:0x00005C50; // type:function size:0x60
 fn_113_5CB0 = .text:0x00005CB0; // type:function size:0x5C
 __dt__242soMotionModuleBuilder<216soMotionModuleBuildConfig<480,18soMotionModuleImpl,2,1,82soTransitionModuleBuildConfig<49soTypeList<14soIntToType<8>,18soTypeListNullType>>,73soMotionAnimObjCacheModuleBuildConfig<5,30soMotionAnimObjCacheModuleImpl>>>Fv = .text:0x00005D0C; // type:function size:0xB4
@@ -216,7 +216,7 @@ __ct__10soNullableFb = .text:0x00007F94; // type:function size:0x14
 fn_113_7FA8 = .text:0x00007FA8; // type:function size:0x8
 fn_113_7FB0 = .text:0x00007FB0; // type:function size:0xC
 fn_113_7FBC = .text:0x00007FBC; // type:function size:0x8
-__ct__66soTeamModuleBuilder<43soTeamModuleBuildConfig<16soTeamModuleImpl>>FlP16soModuleAccesser = .text:0x00007FC4; // type:function size:0xC4
+__ct__74soTeamModuleBuilder<51soTeamModuleBuildConfig<6ftTeam,16soTeamModuleImpl>>FlP16soModuleAccesser = .text:0x00007FC4; // type:function size:0xC4
 fn_113_8088 = .text:0x00008088; // type:function size:0xC
 fn_113_8094 = .text:0x00008094; // type:function size:0x8
 fn_113_809C = .text:0x0000809C; // type:function size:0x8
