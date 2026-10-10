@@ -4,6 +4,7 @@
 #include <ac/ac_anim_cmd_impl.h>
 #include <so/so_module_accesser.h>
 #include <math.h>
+#include <memory.h>
 
 // Angle between two vectors in radians (main dol).
 float vec2fAngle(Vec2f* a, Vec2f* b);
@@ -12,8 +13,8 @@ float vec2fAngle(Vec2f* a, Vec2f* b);
 
 // Starts the beam: it flies along the head tilt (angle, degrees) at the speed of the weak or the strong shot.
 void wnRobotBeam::activate(float lr, float angle, s32 founderTaskId, u32 resourceId, s32 team, const Vec3f* position,
-                           bool lowCharge, s32 variant) {
-    s32 life = lowCharge ? m_param->strongLife : m_param->weakLife;
+                           bool fullCharge, s32 variant) {
+    s32 life = fullCharge ? m_param->strongLife : m_param->weakLife;
     wnActivateDesc desc;
     desc.founderTaskId = founderTaskId;
     desc.resourceId = 0xFFFF;
@@ -24,11 +25,7 @@ void wnRobotBeam::activate(float lr, float angle, s32 founderTaskId, u32 resourc
     desc.unk18 = 0;
     desc.unk1C = 0;
     // MATCH-ONLY: the original copies the position with integer moves.
-    const u32* source = reinterpret_cast<const u32*>(position);
-    u32* target = reinterpret_cast<u32*>(&desc.pos);
-    target[0] = source[0];
-    target[1] = source[1];
-    target[2] = source[2];
+    __memcpy(&desc.pos, position, sizeof(Vec3f));
     desc.lr = lr;
     desc.team = team;
     desc.life = life;
@@ -44,29 +41,30 @@ void wnRobotBeam::activate(float lr, float angle, s32 founderTaskId, u32 resourc
     desc.unk40 = variant;
     Weapon::activate(&desc);
     float speed;
-    if (lowCharge) {
+    if (fullCharge) {
         speed = m_param->strongSpeed;
         m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
     } else {
         speed = m_param->weakSpeed;
     }
-    angle = -angle;
-    if (angle < 0.0f) {
-        angle += 360.0f;
+    float shotAngle = -angle;
+    if (shotAngle < 0.0f) {
+        shotAngle += 360.0f;
     }
-    float radians = angle * 0.017453292f;
+    float radians = shotAngle * 0.017453292f;
     wnKineticEnergyNormal& normal = dynamic_cast<wnKineticEnergyNormal&>(*m_moduleAccesser->getKineticModule().getEnergy(0));
-    float vy = speed * (float)sin(radians);
-    normal.m_speed = Vec2f(lr * (speed * (float)cos(radians)), vy);
+    normal.m_speed = Vec2f(lr * (speed * (float)cos(radians)), speed * (float)sin(radians));
     // Point the model along the new velocity.
     Vec3f rot = m_moduleAccesser->getPostureModule().getRot(0);
     Vec2f velocity;
     Vec2f::copy(velocity, normal.getSpeed());
     velocity.normalize();
     float forward = velocity.m_x * m_moduleAccesser->getPostureModule().getLr();
-    rot.m_x = -(float)atan2(velocity.m_y, forward) * 57.29578f;
+    float vertical = velocity.m_y;
+    rot.m_x = -(float)atan2(vertical, forward) * 57.29578f;
     m_moduleAccesser->getPostureModule().setRot(&rot, 0);
-    m_moduleAccesser->getStatusModule().changeStatusRequest(0, m_moduleAccesser);
+    // Begin flight immediately, bypassing ordinary transition restrictions.
+    m_moduleAccesser->getStatusModule().changeStatusForce(0, m_moduleAccesser);
 }
 
 // Anim cmd type 6 is the wall check: the beam bounces off a surface it meets at a shallow enough angle for as long as
@@ -81,9 +79,9 @@ bool wnRobotBeam::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* moduleAcc
     if (cmd->getType() > -1 && cmd->getType() < 11) {
         if (cmd->getType() == 6) {
             wnKineticEnergyNormal& normal = dynamic_cast<wnKineticEnergyNormal&>(*moduleAccesser->getKineticModule().getEnergy(0));
+            Vec2f velocity;
             Vec2f speed;
             Vec2f::copy(speed, normal.getSpeed());
-            Vec2f velocity;
             Vec2f::copy(velocity, speed);
             Vec2f surface;
             Vec2f::copy(surface, moduleAccesser->getGroundModule().getTouchNormal(static_cast<grCollStatus::TouchMask>(0xff), 0));
@@ -99,14 +97,15 @@ bool wnRobotBeam::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* moduleAcc
             }
             // Reflect the velocity about the surface normal.
             velocity = velocity - surface * 2.0f * (surface.m_x * velocity.m_x + surface.m_y * velocity.m_y);
-            int newSign = velocity.m_x < 0.0f ? -1 : 1;
-            int oldSign = speed.m_x < 0.0f ? -1 : 1;
-            if ((float)newSign * (float)oldSign < 0.0f) {
+            float newSign = velocity.m_x < 0.0f ? -1 : 1;
+            float oldSign = speed.m_x < 0.0f ? -1 : 1;
+            if (newSign * oldSign < 0.0f) {
                 moduleAccesser->getPostureModule().setLr(lr * -1.0f);
                 moduleAccesser->getPostureModule().updateRotYLr();
                 moduleAccesser->getStageObject().updateNodeSRT();
             }
-            normal.m_speed = velocity;
+            // MATCH-ONLY: the native speed assignment materializes an XY pair.
+            normal.m_speed = Vec2f(velocity.m_x, velocity.m_y);
             return true;
         }
     }
@@ -118,7 +117,7 @@ bool wnRobotBeam::notifyEventCollisionAttackCheck(u32 flags) {
         return false;
     }
     if (flags & 4) {
-        if (((u32)unkA4 >> 7) == 1) {
+        if ((((u32)unkA4 >> 7) & 1) == 1) {
             return hop();
         }
         return false;
