@@ -90,52 +90,53 @@ bool fn_91_9D0C(void* self, s8 kind) { return kind == 0xc; }
 
 }
 
-// Work-area accessors of soGeneralWorkSimple, the virtual-node matrix getters and the fighter-builder
-// getters emitted in this unit, under their map addresses (offsets read from the target code).
+// Weak inline methods of library classes that the REL emits as stand-alone functions. Their names exist in
+// sora_melee, so the REL copies cannot be renamed: each shim calls the inline method (as in ft_ike.cpp).
+// Virtual-node matrix pool getters (map order: extend, common, hit).
 extern "C" {
+void* fn_91_A63C(ftVirtualNodeMatrixPoolImpl* p) { return p->ftVirtualNodeMatrixPoolImpl::getExtendMatrix(); }
+void* fn_91_A644(ftVirtualNodeMatrixPoolImpl* p) { return p->ftVirtualNodeMatrixPoolImpl::getCommonMatrix(); }
+void* fn_91_A64C(ftVirtualNodeMatrixPoolImpl* p) { return p->ftVirtualNodeMatrixPoolImpl::getHitMatrix(); }
+}
 
-u8* fn_91_A63C(u8* p) { return p + 0x458; }
-u8* fn_91_A644(u8* p) { return p + 0x3c8; }
-u8* fn_91_A64C(u8* p) { return p + 0x8; }
-int fn_91_A6EC(u8* p) { return *(int*)(p + 0x20); }
-int fn_91_A7C8(u8* p) { return *(int*)(p + 0x18); }
-void fn_91_A840(u8* p, int idx, float v) { ((float*)*(u8**)(p + 0x14))[idx] = v; }
-float fn_91_A850(u8* p, int idx) { return ((float*)*(u8**)(p + 0x14))[idx]; }
-void fn_91_A7F8(u8* p, int idx, float v) { ((float*)*(u8**)(p + 0x14))[idx] *= v; }
-void fn_91_A810(u8* p, int idx, float v) { ((float*)*(u8**)(p + 0x14))[idx] -= v; }
-void fn_91_A828(u8* p, int idx, float v) { ((float*)*(u8**)(p + 0x14))[idx] += v; }
-void fn_91_A900(u8* p, int v, int idx) { ((int*)*(u8**)(p + 0xc))[idx] = v; }
-int fn_91_A868(u8* p, int idx) {
-    int* a = *(int**)(p + 0xc);
-    int t = a[idx];
-    a[idx] = t - 1;
-    return t;
-}
-int fn_91_A880(u8* p, int idx) {
-    int* a = *(int**)(p + 0xc);
-    int t = a[idx];
-    a[idx] = t + 1;
-    return t;
-}
-void fn_91_A898(u8* p, int v, int idx) {
-    if (v == 0) {
+// soGeneralWorkSimple work-area methods, in map order (flags, floats, ints).
+extern "C" {
+u32 fn_91_A6EC(soGeneralWorkSimple* p) { return p->soGeneralWorkSimple::getFlagWorkSize(); }
+bool fn_91_A768(const soGeneralWorkSimple* p, u32 mask, u32 idx) { return p->soGeneralWorkSimple::isFlag(mask, idx); }
+void fn_91_A784(soGeneralWorkSimple* p, u32 mask, u32 idx) { p->soGeneralWorkSimple::offFlag(mask, idx); }
+void fn_91_A79C(soGeneralWorkSimple* p, u32 idx) { p->soGeneralWorkSimple::clearFlag(idx); }
+void fn_91_A7B0(soGeneralWorkSimple* p, u32 mask, u32 idx) { p->soGeneralWorkSimple::onFlag(mask, idx); }
+u32 fn_91_A7C8(soGeneralWorkSimple* p) { return p->soGeneralWorkSimple::getFloatWorkSize(); }
+// MATCH-ONLY: divFloatWork is too large for MWCC to inline here (it emits a tail call to a weak copy that the target
+// does not have), so its body is written out.
+void fn_91_A7D0(soGeneralWorkSimple* p, float v, u32 idx) {
+    if (v == 0.0f) {
         return;
     }
-    int* a = *(int**)(p + 0xc);
-    a[idx] = a[idx] / v;
+    p->m_floatWorks[idx] /= v;
 }
-void fn_91_A8B8(u8* p, int v, int idx) { int* a = *(int**)(p + 0xc); a[idx] = a[idx] * v; }
-void fn_91_A8D0(u8* p, int v, int idx) { int* a = *(int**)(p + 0xc); a[idx] = a[idx] - v; }
-void fn_91_A8E8(u8* p, int v, int idx) { int* a = *(int**)(p + 0xc); a[idx] = a[idx] + v; }
-bool fn_91_A768(u8* p, u32 mask, int idx) { u32* a = *(u32**)(p + 0x1c); return (a[idx] & mask) != 0; }
-void fn_91_A784(u8* p, u32 mask, int idx) { u32* a = *(u32**)(p + 0x1c); a[idx] &= ~mask; }
-void fn_91_A79C(u8* p, int idx) { u32* a = *(u32**)(p + 0x1c); a[idx] = 0; }
-void fn_91_A7B0(u8* p, u32 mask, int idx) { u32* a = *(u32**)(p + 0x1c); a[idx] |= mask; }
-void fn_91_CD00(u8* p) { *(u8*)(p + 0x31) = 0; }
-void fn_91_CD0C(u8* p) { *(u8*)(p + 0x31) = 1; }
-u8* fn_91_BD50(u8* p) { return p + 0x2D634; }
-u8* fn_91_BD70(u8* p) { return p + 0x2D670; }
-u8* fn_91_BD7C(u8* p) { return p + 0x2DB28; }
+void fn_91_A7F8(soGeneralWorkSimple* p, float v, u32 idx) { p->soGeneralWorkSimple::mulFloatWork(v, idx); }
+void fn_91_A810(soGeneralWorkSimple* p, float v, u32 idx) { p->soGeneralWorkSimple::subFloatWork(v, idx); }
+void fn_91_A828(soGeneralWorkSimple* p, float v, u32 idx) { p->soGeneralWorkSimple::addFloatWork(v, idx); }
+void fn_91_A840(soGeneralWorkSimple* p, float v, u32 idx) { p->soGeneralWorkSimple::setFloatWork(v, idx); }
+float fn_91_A850(const soGeneralWorkSimple* p, u32 idx) { return p->soGeneralWorkSimple::getFloatWork(idx); }
+void fn_91_A868(soGeneralWorkSimple* p, u32 idx) { p->soGeneralWorkSimple::decIntWork(idx); }
+void fn_91_A880(soGeneralWorkSimple* p, u32 idx) { p->soGeneralWorkSimple::incIntWork(idx); }
+void fn_91_A898(soGeneralWorkSimple* p, s32 v, u32 idx) { p->soGeneralWorkSimple::divIntWork(v, idx); }
+void fn_91_A8B8(soGeneralWorkSimple* p, s32 v, u32 idx) { p->soGeneralWorkSimple::mulIntWork(v, idx); }
+void fn_91_A8D0(soGeneralWorkSimple* p, s32 v, u32 idx) { p->soGeneralWorkSimple::subIntWork(v, idx); }
+void fn_91_A8E8(soGeneralWorkSimple* p, s32 v, u32 idx) { p->soGeneralWorkSimple::addIntWork(v, idx); }
+void fn_91_A900(soGeneralWorkSimple* p, s32 v, u32 idx) { p->soGeneralWorkSimple::setIntWork(v, idx); }
+}
+
+// Kinetic energy and builder members emitted in this unit.
+extern "C" {
+void fn_91_CD00(soKineticEnergyNormal* p) { p->soKineticEnergyNormal::offConsiderGroundFriction(); }
+void fn_91_CD0C(soKineticEnergyNormal* p) { p->soKineticEnergyNormal::onConsiderGroundFriction(); }
+// ftFighterBuilder<ftMarioBuildConfig> virtual getters (map order: cancel module, hit-test query, matrix pool, gimmick pool).
+void* fn_91_BD50(ftFighterBuilder<ftMarioBuildConfig>* p) { return p->ftFighterBuilder<ftMarioBuildConfig>::getCancelModule(); }
+void* fn_91_BD70(ftFighterBuilder<ftMarioBuildConfig>* p) { return p->ftFighterBuilder<ftMarioBuildConfig>::getVirtualNodeMatrixPool(); }
+void* fn_91_BD7C(ftFighterBuilder<ftMarioBuildConfig>* p) { return p->ftFighterBuilder<ftMarioBuildConfig>::getStatusGimmickUniqProcessPool(); }
 void fn_91_CC18() {}
 void fn_91_D328() {}
 void fn_91_D3AC() {}
@@ -149,15 +150,9 @@ void fn_91_DA04() {}
 
 }
 
-// Float helpers: divide is guarded by a zero test.
+// Zero-fill of a three-float member (Vec3f-sized).
 extern "C" {
 
-void fn_91_A7D0(u8* p, int idx, float v) {
-    if (v == 0.0f) {
-        return;
-    }
-    ((float*)*(u8**)(p + 0x14))[idx] /= v;
-}
 void fn_91_CD18(float* p) {
     p[0] = 0.0f;
     p[1] = 0.0f;
@@ -167,7 +162,7 @@ void fn_91_CD18(float* p) {
 }
 
 // Fighter-builder cancel query, forwarding to the cancel module through its virtual interface.
-extern "C" bool fn_91_BD5C(u8* p) { return ((ftCancelModule*)(p + 0x2D634))->isEnableCancel(); }
+extern "C" bool fn_91_BD5C(ftFighterBuilder<ftMarioBuildConfig>* p) { return p->ftFighterBuilder<ftMarioBuildConfig>::isEnableCancel(); }
 
 // Leaf functions shared with other fighter modules (same module-map names and bodies).
 extern "C" {

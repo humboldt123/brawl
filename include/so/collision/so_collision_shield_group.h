@@ -16,6 +16,8 @@ struct soCollisionShieldData {
     u32 _1c_rest : 22;
 
     float offset(int i) { return ((float*)&m_offset0)[i]; }
+    // The six words are two Vec3f-style triples (start, end).
+    void setOffset(int i, float value) { ((float*)&m_offset0)[i] = value; }
 };
 static_assert(sizeof(soCollisionShieldData) == 0x20, "Class is wrong size!");
 
@@ -31,7 +33,8 @@ static_assert(sizeof(soCollisionReflectorData) == 0x14, "Class is wrong size!");
 struct soCollisionShieldGroupData {
     soSet<soCollisionShieldData> m_shieldDataSet;
     // Four high flag bits are copied by soCollisionShieldGroup::add.
-    u32 _8;
+    u32 m_flags : 4;
+    u32 _8_rest : 28;
 };
 
 static_assert(sizeof(soCollisionShieldGroupData) == 0xC, "Shield group descriptor layout");

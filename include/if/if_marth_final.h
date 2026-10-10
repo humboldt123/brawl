@@ -28,14 +28,14 @@ class IfMarthFinalTask : public gfTask {
 public:
     nw4r::g3d::ResFile m_resource;
     u32 unk44;
-    nw4r::g3d::ScnObj* unk48;
+    nw4r::g3d::ScnObj* m_group; // scene group created by create(); holds the window model
     MuObject* m_objects[1];
     nw4r::g3d::ScnObj* m_sceneObjects[1];
     u8 unk54;
     u8 unk55[0x1b];
     u32 unk70;
     IfMarthFinalObjCallback m_callback;
-    u8 unk88;
+    u8 m_registered; // 1 while the scene group is registered with IfMngr
     u8 unk89[3];
 
     IfMarthFinalTask(void* resourceData);

@@ -9,9 +9,9 @@ ftMarthStatusUniqProcessSpecialNStart g_ftMarthStatusUniqProcessSpecialNStart;
 void ftMarthStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
     Vec2f speed;
     Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-    float speedX = speed.m_x * acc->getConstantFloatKirby(4000);
+    float speedX = speed.m_x * acc->getConstantFloatKirby(ftMarthParam::SpecialN_AirSpeedXRatio);
     float speedY = speed.m_y;
-    float brake = acc->getConstantFloatKirby(4001);
+    float brake = acc->getConstantFloatKirby(ftMarthParam::SpecialN_AirBrakeX);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
     if (acc->getSituationModule().getKind() == 2) {
@@ -24,14 +24,14 @@ void ftMarthStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
         if (speedY < 0.0f) speedY = 0.0f;
         gravity.resetEnergy(0, &Vec2f(0.0f, speedY), &Vec3f(0.0f, 0.0f, 0.0f), acc);
         gravity.enable();
-        acc->getWorkManageModule().setInt(2, 0x20000002);
+        acc->getWorkManageModule().setInt(2, ftMarthWork::SpecialN_Situation);
     } else {
         stop.resetEnergy(0, &Vec2f(speedX, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
         stop.m_accel = Vec2f(0.0f, 0.0f);
         stop.m_brake = Vec2f(brake, 0.0f);
         stop.m_speedTarget = Vec2f(0.0f, 0.0f);
         stop.enable();
-        acc->getWorkManageModule().setInt(0, 0x20000002);
+        acc->getWorkManageModule().setInt(0, ftMarthWork::SpecialN_Situation);
     }
     acc->getKineticModule().getEnergy(2)->disable();
     acc->getKineticModule().getEnergy(0)->disable();
@@ -40,12 +40,12 @@ void ftMarthStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
 void ftMarthStatusUniqProcessSpecialNStart::execStatus(soModuleAccesser* acc) {
     soWorkManageModule& work = acc->getWorkManageModule();
     soSituationModule& situation = acc->getSituationModule();
-    if (situation.getKind() != work.getInt(0x20000002)) {
+    if (situation.getKind() != work.getInt(ftMarthWork::SpecialN_Situation)) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
         Vec2f speed;
     Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-        float brake = acc->getConstantFloatKirby(4001);
+        float brake = acc->getConstantFloatKirby(ftMarthParam::SpecialN_AirBrakeX);
         if (acc->getSituationModule().getKind() == 2) {
             stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
             stop.m_accel = Vec2f(0.0f, 0.0f);
@@ -54,13 +54,13 @@ void ftMarthStatusUniqProcessSpecialNStart::execStatus(soModuleAccesser* acc) {
             stop.enable();
             gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), acc);
             gravity.enable();
-            acc->getWorkManageModule().setInt(2, 0x20000002);
+            acc->getWorkManageModule().setInt(2, ftMarthWork::SpecialN_Situation);
         } else {
             stop.resetEnergy(0, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
             stop.m_speedTarget = Vec2f(0.0f, 0.0f);
             stop.enable();
             gravity.disable();
-            acc->getWorkManageModule().setInt(0, 0x20000002);
+            acc->getWorkManageModule().setInt(0, ftMarthWork::SpecialN_Situation);
         }
     }
 }

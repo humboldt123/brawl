@@ -16,7 +16,10 @@ struct ftData {
     ftVisibilityData* visibilityData;
     u8 unk8[0xC];
     ftStatusData* statusData;
-    u8 unk18[0x14];
+    void* uniqStatusData; // 0x18: character-specific soStatusData table, UniqueStatusCount entries
+    u8 unk1C[8];
+    void* uniqActionEntryScripts; // 0x24: per-status entry anim-cmd table that follows the common one
+    void* uniqActionExitScripts; // 0x28: per-status exit anim-cmd table that follows the common one
     ftPreCheckAnimCmdData* preCheckAnimCmdData;
     void* unk30;
     void* unk34;

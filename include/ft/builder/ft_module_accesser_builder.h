@@ -313,7 +313,7 @@ public:
 
     ftModuleAccesserBuilder(const ftFighterBuildData& fbd, StageObject* owner) :
         soModuleAccesserBuilder<BC>(fbd, owner),
-        unkTable(*(const soStatusData**)(((u8**)&fbd)[3] + 0x18), UniqueStatusCount), // HYPOTHESIS: fbd + 0xC is the ftData pointer
+        unkTable((const soStatusData*)fbd.getFtData()->uniqStatusData, UniqueStatusCount),
         unkAnimCmdModuleSubBuilder(&this->m_moduleAccsr, fbd) {
         // MATCH-ONLY: the unit is named through the member (not an accessor) and every query result is held in a
         // local first, so MWCC forms the unit address after the queries as the original does.
@@ -321,9 +321,9 @@ public:
         soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(0), cmds00, CommonStatusCount);
         const acAnimCmdConv* const* cmds01 = (const acAnimCmdConv* const*)fbd.getAnimCmdData(0, 1);
         soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(1), cmds01, CommonStatusCount);
-        const acAnimCmdConv* const* cmds0F = *(const acAnimCmdConv* const**)(((u8**)&fbd)[3] + 0x24);
+        const acAnimCmdConv* const* cmds0F = (const acAnimCmdConv* const*)fbd.getFtData()->uniqActionEntryScripts;
         soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(0), cmds0F, UniqueStatusCount);
-        const acAnimCmdConv* const* cmds1F = *(const acAnimCmdConv* const**)(((u8**)&fbd)[3] + 0x28);
+        const acAnimCmdConv* const* cmds1F = (const acAnimCmdConv* const*)fbd.getFtData()->uniqActionExitScripts;
         soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(1), cmds1F, UniqueStatusCount);
         unkAnimCmdModuleSubBuilder.m_unit0.setupDisguiseList(0, (soAnimCmdDisguiseListEntry*)fbd.getAnimCmdDisguiseList(false, 0));
         unkAnimCmdModuleSubBuilder.m_unit0.setupDisguiseList(1, (soAnimCmdDisguiseListEntry*)fbd.getAnimCmdDisguiseList(false, 1));

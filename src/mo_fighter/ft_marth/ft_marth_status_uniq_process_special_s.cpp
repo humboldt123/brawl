@@ -17,11 +17,11 @@ void ftMarthStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccess
     float speedX = sumSpeed.m_x;
     float speedY = sumSpeed.m_y;
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
-    case 0x113:
+    case ftMarthStatus::SpecialS:
         // First entry removes downward velocity; otherwise use the configured vertical speed.
         if (moduleAccesser->getSituationModule().getKind() == 2) {
-            speedX *= soValueAccesser::getConstantFloat(moduleAccesser, 0xfa2, 0);
-            float initialSpeedY = speedY < 0.0f ? 0.0f : soValueAccesser::getConstantFloat(moduleAccesser, 0xfa4, 0);
+            speedX *= soValueAccesser::getConstantFloat(moduleAccesser, ftMarthParam::SpecialS_AirSpeedXRatio, 0);
+            float initialSpeedY = speedY < 0.0f ? 0.0f : soValueAccesser::getConstantFloat(moduleAccesser, ftMarthParam::SpecialS_RiseSpeedY, 0);
             stop.resetEnergy(6, &Vec2f(speedX, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
             stop.enable();
             gravity.resetEnergy(0, &Vec2f(0.0f, initialSpeedY), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
@@ -34,9 +34,9 @@ void ftMarthStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccess
             ftKineticEnergyDisableAndClear(1, moduleAccesser);
             ftKineticEnergyDisableAndClear(2, moduleAccesser);
         }
-        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), 0x20000003);
+        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), ftMarthWork::SpecialS_Situation);
         break;
-    case 0x11a:
+    case ftMarthStatus::SpecialS2:
         if (moduleAccesser->getSituationModule().getKind() == 2) {
             stop.resetEnergy(6, &Vec2f(speedX, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
             stop.enable();
@@ -48,9 +48,9 @@ void ftMarthStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccess
             ftKineticEnergyDisableAndClear(1, moduleAccesser);
             ftKineticEnergyDisableAndClear(2, moduleAccesser);
         }
-        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), 0x20000003);
+        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), ftMarthWork::SpecialS_Situation);
         break;
-    case 0x11b:
+    case ftMarthStatus::SpecialS3:
         if (moduleAccesser->getSituationModule().getKind() == 2) {
             stop.resetEnergy(6, &Vec2f(speedX, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
             stop.enable();
@@ -62,9 +62,9 @@ void ftMarthStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccess
             ftKineticEnergyDisableAndClear(3, moduleAccesser);
             ftKineticEnergyDisableAndClear(1, moduleAccesser);
         }
-        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), 0x20000003);
+        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), ftMarthWork::SpecialS_Situation);
         break;
-    case 0x11c:
+    case ftMarthStatus::SpecialS4:
         if (moduleAccesser->getSituationModule().getKind() == 2) {
             stop.resetEnergy(6, &Vec2f(speedX, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
             stop.enable();
@@ -76,7 +76,7 @@ void ftMarthStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccess
             ftKineticEnergyDisableAndClear(3, moduleAccesser);
             ftKineticEnergyDisableAndClear(1, moduleAccesser);
         }
-        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), 0x20000003);
+        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), ftMarthWork::SpecialS_Situation);
         break;
     }
     moduleAccesser->getKineticModule().getEnergy(2)->disable();
@@ -85,16 +85,16 @@ void ftMarthStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccess
 void ftMarthStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccesser) {
     int situation = moduleAccesser->getSituationModule().getKind();
     // Rebuild movement only when Marth changes between ground and air.
-    int previousSituation = moduleAccesser->getWorkManageModule().getInt(0x20000003);
+    int previousSituation = moduleAccesser->getWorkManageModule().getInt(ftMarthWork::SpecialS_Situation);
     Vec2f sumSpeed;
     Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
     if (situation != previousSituation) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
         soKineticEnergyNormal& motion = dynamic_cast<soKineticEnergyNormal&>(*moduleAccesser->getKineticModule().getEnergy(0));
-        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), 0x20000003);
+        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), ftMarthWork::SpecialS_Situation);
         switch (moduleAccesser->getStatusModule().getStatusKind()) {
-        case 0x113:
+        case ftMarthStatus::SpecialS:
             if (moduleAccesser->getSituationModule().getKind() == 2) {
                 stop.resetEnergy(6, &Vec2f(sumSpeed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
                 stop.enable();
@@ -107,7 +107,7 @@ void ftMarthStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccess
                 ftKineticEnergyDisableAndClear(1, moduleAccesser);
             }
             break;
-        case 0x11a:
+        case ftMarthStatus::SpecialS2:
             if (moduleAccesser->getSituationModule().getKind() == 2) {
                 stop.resetEnergy(6, &Vec2f(sumSpeed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
                 stop.enable();
@@ -120,7 +120,7 @@ void ftMarthStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccess
                 ftKineticEnergyDisableAndClear(2, moduleAccesser);
             }
             break;
-        case 0x11b:
+        case ftMarthStatus::SpecialS3:
             if (moduleAccesser->getSituationModule().getKind() == 2) {
                 stop.resetEnergy(6, &Vec2f(sumSpeed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
                 stop.enable();
@@ -133,7 +133,7 @@ void ftMarthStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccess
                 ftKineticEnergyDisableAndClear(1, moduleAccesser);
             }
             break;
-        case 0x11c:
+        case ftMarthStatus::SpecialS4:
             if (moduleAccesser->getSituationModule().getKind() == 2) {
                 stop.resetEnergy(6, &Vec2f(sumSpeed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
                 stop.enable();

@@ -8,8 +8,8 @@ ftMarthStatusUniqProcessSpecialNEnd g_ftMarthStatusUniqProcessSpecialNEnd;
 void ftMarthStatusUniqProcessSpecialNEnd::initStatus(soModuleAccesser*) { }
 void ftMarthStatusUniqProcessSpecialNEnd::execFixPos(soModuleAccesser* acc) {
     soWorkManageModule& work = acc->getWorkManageModule();
-    int power = acc->getConstantIntKirby(24001) +
-                (work.getInt(0x20000000) / 30) * acc->getConstantIntKirby(24002);
+    int power = acc->getConstantIntKirby(ftMarthParam::SpecialN_BaseDamage) +
+                (work.getInt(ftMarthWork::SpecialN_ChargeFrame) / 30) * acc->getConstantIntKirby(ftMarthParam::SpecialN_DamagePerSecond);
     // Each complete thirty-frame charge step raises every active hitbox's power.
     for (int i = 0; i < (s32)acc->getCollisionAttackModule().getPartSize(); i++) {
         if (acc->getCollisionAttackModule().isAttack(i, false)) {

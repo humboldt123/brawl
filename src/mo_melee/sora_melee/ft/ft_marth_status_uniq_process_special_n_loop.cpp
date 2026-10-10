@@ -7,6 +7,6 @@
 ftMarthStatusUniqProcessSpecialNLoop g_ftMarthStatusUniqProcessSpecialNLoop;
 void ftMarthStatusUniqProcessSpecialNLoop::initStatus(soModuleAccesser* acc) {
     soWorkManageModule& work = acc->getWorkManageModule();
-    work.setInt(acc->getConstantIntKirby(24000) * 30, 0x20000001);
+    work.setInt(acc->getConstantIntKirby(ftMarthParam::SpecialN_ChargeTime) * 30, ftMarthWork::SpecialN_ChargeFrameMax);
 }
 void ftMarthStatusUniqProcessSpecialNLoop::exitStatus(soModuleAccesser*, int) { }

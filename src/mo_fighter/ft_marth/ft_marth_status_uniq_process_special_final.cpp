@@ -19,18 +19,18 @@ void ftMarthStatusUniqProcessFinal::initStatus(soModuleAccesser* moduleAccesser)
     ftKineticEnergyDisableAndClear(4, moduleAccesser);
     ftKineticEnergyDisableAndClear(0, moduleAccesser);
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
-    case 0x116:
+    case ftMarthStatus::FinalStart:
         // Six HP-window slots have independent movement and visibility timers.
         for (int i = 0; i < 6; i++) {
-            moduleAccesser->getWorkManageModule().setInt(soValueAccesser::getConstantInt(moduleAccesser, 0x5dc7, 0), 0x2000000a + i);
-            moduleAccesser->getWorkManageModule().setInt(soValueAccesser::getConstantInt(moduleAccesser, 0x5dc6, 0), 0x20000010 + i);
-            moduleAccesser->getWorkManageModule().setFloat(randi(360), 0x21000004 + i);
+            moduleAccesser->getWorkManageModule().setInt(soValueAccesser::getConstantInt(moduleAccesser, ftMarthParam::Final_WindowShowFrames, 0), ftMarthWork::Final_WindowShowTimer + i);
+            moduleAccesser->getWorkManageModule().setInt(soValueAccesser::getConstantInt(moduleAccesser, ftMarthParam::Final_WindowMoveFrames, 0), ftMarthWork::Final_WindowMoveTimer + i);
+            moduleAccesser->getWorkManageModule().setFloat(randi(360), ftMarthWork::Final_WindowAngle + i);
         }
         break;
-    case 0x11e: {
+    case ftMarthStatus::FinalDash: {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
         float lr = moduleAccesser->getPostureModule().getLr();
-        float factor = soValueAccesser::getConstantFloat(moduleAccesser, 0xfbd, 0);
+        float factor = soValueAccesser::getConstantFloat(moduleAccesser, ftMarthParam::Final_SpeedX, 0);
         factor *= lr;
         float speed = factor;
         if (moduleAccesser->getSituationModule().getKind() == 2) {
@@ -41,10 +41,10 @@ void ftMarthStatusUniqProcessFinal::initStatus(soModuleAccesser* moduleAccesser)
         stop.m_brake = Vec2f(0.0f, 0.0f);
         stop.m_speedLimit = Vec2f(-1.0f, 0.0f);
         stop.enable();
-        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), 0x20000003);
+        moduleAccesser->getWorkManageModule().setInt(moduleAccesser->getSituationModule().getKind(), ftMarthWork::Final_Situation);
         break;
     }
-    case 0x120: {
+    case ftMarthStatus::FinalHit: {
         ftMarth* marth = dynamic_cast<ftMarth*>(&moduleAccesser->getStageObject());
         if (marth != NULL) {
             marth->addCallback();
@@ -64,14 +64,14 @@ static void constructWindowOffset(Vec2f* offset, float x, float y) {
 
 void ftMarthStatusUniqProcessFinal::execStatus(soModuleAccesser* moduleAccesser) {
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
-    case 0x11e: {
+    case ftMarthStatus::FinalDash: {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
         float lr = moduleAccesser->getPostureModule().getLr();
-        float factor = soValueAccesser::getConstantFloat(moduleAccesser, 0xfbd, 0);
+        float factor = soValueAccesser::getConstantFloat(moduleAccesser, ftMarthParam::Final_SpeedX, 0);
         factor *= lr;
         float speed = factor;
         // This routine compares against the saved situation without updating that snapshot.
-        if (moduleAccesser->getSituationModule().getKind() != moduleAccesser->getWorkManageModule().getInt(0x20000003)) {
+        if (moduleAccesser->getSituationModule().getKind() != moduleAccesser->getWorkManageModule().getInt(ftMarthWork::Final_Situation)) {
             if (moduleAccesser->getSituationModule().getKind() == 2) {
                 stop.resetEnergy(6, &Vec2f(speed, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
             } else {
@@ -84,9 +84,9 @@ void ftMarthStatusUniqProcessFinal::execStatus(soModuleAccesser* moduleAccesser)
         }
         break;
     }
-    case 0x11f:
+    case ftMarthStatus::FinalUnk:
         break;
-    case 0x120:
+    case ftMarthStatus::FinalHit:
         updateHpWindow(moduleAccesser);
         break;
     }
@@ -94,7 +94,7 @@ void ftMarthStatusUniqProcessFinal::execStatus(soModuleAccesser* moduleAccesser)
 
 void ftMarthStatusUniqProcessFinal::execStop(soModuleAccesser* moduleAccesser) {
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
-    case 0x120:
+    case ftMarthStatus::FinalHit:
         updateHpWindow(moduleAccesser);
         break;
     }
@@ -104,7 +104,7 @@ void ftMarthStatusUniqProcessFinal::execFixPos(soModuleAccesser*) {}
 
 void ftMarthStatusUniqProcessFinal::exitStatus(soModuleAccesser* moduleAccesser, int status) {
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
-    case 0x120: {
+    case ftMarthStatus::FinalHit: {
         ftMarth* marth = dynamic_cast<ftMarth*>(&moduleAccesser->getStageObject());
         if (marth == NULL) return;
         marth->removeCallBack();
@@ -113,14 +113,14 @@ void ftMarthStatusUniqProcessFinal::exitStatus(soModuleAccesser* moduleAccesser,
     }
     // Preserve the window tasks between Final Smash phases; delete them on exit.
     switch (status) {
-    case 0x11e:
-    case 0x11f:
-    case 0x120:
+    case ftMarthStatus::FinalDash:
+    case ftMarthStatus::FinalUnk:
+    case ftMarthStatus::FinalHit:
         return;
     default: {
-        int count = moduleAccesser->getWorkManageModule().getInt(0x20000016);
+        int count = moduleAccesser->getWorkManageModule().getInt(ftMarthWork::Final_WindowCount);
         for (int i = 0; i < count; i++) {
-            gfTask::getTask(moduleAccesser->getWorkManageModule().getInt(0x20000004 + i))->exit();
+            gfTask::getTask(moduleAccesser->getWorkManageModule().getInt(ftMarthWork::Final_WindowTaskId + i))->exit();
         }
         break;
     }
@@ -128,21 +128,21 @@ void ftMarthStatusUniqProcessFinal::exitStatus(soModuleAccesser* moduleAccesser,
 }
 
 void ftMarthStatusUniqProcessFinal::updateHpWindow(soModuleAccesser* moduleAccesser) {
-    int count = moduleAccesser->getWorkManageModule().getInt(0x20000016);
+    int count = moduleAccesser->getWorkManageModule().getInt(ftMarthWork::Final_WindowCount);
     if (count > 0) {
         for (int i = 0; i < count; i++) {
-            if (moduleAccesser->getWorkManageModule().getInt(0x20000010 + i) > 0) {
-                moduleAccesser->getWorkManageModule().subInt(1, 0x20000010 + i);
+            if (moduleAccesser->getWorkManageModule().getInt(ftMarthWork::Final_WindowMoveTimer + i) > 0) {
+                moduleAccesser->getWorkManageModule().subInt(1, ftMarthWork::Final_WindowMoveTimer + i);
                 // MATCH-ONLY: reserve trig temporaries before the angle to retain register order.
                 float y, x;
                 // A fixed per-slot angle produces a repeated linear step while its timer runs.
-                float angle = moduleAccesser->getWorkManageModule().getFloat(0x21000004 + i);
-                float stepSize = soValueAccesser::getConstantFloat(moduleAccesser, 0xfbe, 0);
+                float angle = moduleAccesser->getWorkManageModule().getFloat(ftMarthWork::Final_WindowAngle + i);
+                float stepSize = soValueAccesser::getConstantFloat(moduleAccesser, ftMarthParam::Final_WindowStep, 0);
                 y = sin(angle);
                 x = cos(angle);
                 Vec2f offset;
                 constructWindowOffset(&offset, stepSize * x, stepSize * y);
-                IfMarthFinalTask* window = dynamic_cast<IfMarthFinalTask*>(gfTask::getTask(moduleAccesser->getWorkManageModule().getInt(0x20000004 + i)));
+                IfMarthFinalTask* window = dynamic_cast<IfMarthFinalTask*>(gfTask::getTask(moduleAccesser->getWorkManageModule().getInt(ftMarthWork::Final_WindowTaskId + i)));
                 if (window != NULL && window->isExecutedCallBack() == 1) {
                     Vec3f position = window->getGlobalPos(0);
                     position.m_x += offset.m_x;
@@ -150,10 +150,10 @@ void ftMarthStatusUniqProcessFinal::updateHpWindow(soModuleAccesser* moduleAcces
                     window->setPos(&position, 0);
                 }
             }
-            if (moduleAccesser->getWorkManageModule().getInt(0x2000000a + i) > 0) {
-                moduleAccesser->getWorkManageModule().subInt(1, 0x2000000a + i);
-                if (moduleAccesser->getWorkManageModule().getInt(0x2000000a + i) == 0) {
-                    IfMarthFinalTask* window = dynamic_cast<IfMarthFinalTask*>(gfTask::getTask(moduleAccesser->getWorkManageModule().getInt(0x20000004 + i)));
+            if (moduleAccesser->getWorkManageModule().getInt(ftMarthWork::Final_WindowShowTimer + i) > 0) {
+                moduleAccesser->getWorkManageModule().subInt(1, ftMarthWork::Final_WindowShowTimer + i);
+                if (moduleAccesser->getWorkManageModule().getInt(ftMarthWork::Final_WindowShowTimer + i) == 0) {
+                    IfMarthFinalTask* window = dynamic_cast<IfMarthFinalTask*>(gfTask::getTask(moduleAccesser->getWorkManageModule().getInt(ftMarthWork::Final_WindowTaskId + i)));
                     if (window != NULL) window->dispOff(0);
                 }
             }
