@@ -27,7 +27,8 @@ void ftRobotStatusUniqProcessSpecialGyro::initStatus(soModuleAccesser* moduleAcc
     case 0x115: {
         moduleAccesser->getWorkManageModule().setFloat(soValueAccesser::getConstantFloat(moduleAccesser, 0xfcf, 0), 0x21000004);
         s32 taskId = moduleAccesser->getStageObject().m_taskId;
-        int gyros = itManager::getInstance()->getItemNum(static_cast<itKind>(0x57), 0, taskId, -1);
+        itManager* manager = itManager::getInstance();
+        int gyros = manager->getItemNum(static_cast<itKind>(0x57), 0, taskId, -1);
         if (gyros < soValueAccesser::getConstantInt(moduleAccesser, 0x5dc7, 0)) {
             moduleAccesser->getWorkManageModule().setInt(0x1da, 0x20000001);
             moduleAccesser->getWorkManageModule().setInt(0x1e0, 0x20000002);

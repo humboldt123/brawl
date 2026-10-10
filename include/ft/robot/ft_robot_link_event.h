@@ -7,3 +7,11 @@
 struct ftRobotGyroLinkEvent : soLinkEventArgs {
     ftRobotGyroLinkEvent(int kind) : soLinkEventArgs(kind) { }
 };
+
+// The Diffusion Beam receiver writes its selected status back to the founder.
+// HYPOTHESIS: original type/field spelling; producer and consumer agree on +8.
+struct ftRobotFinalLinkEvent : soLinkEventArgs {
+    s32 result;
+    ftRobotFinalLinkEvent(int kind) : soLinkEventArgs(kind), result(-1) { }
+};
+static_assert(sizeof(ftRobotFinalLinkEvent) == 12, "Final Beam link payload extent");

@@ -1,5 +1,9 @@
+// Use the native Fighter observer override before transitive Fighter includes;
+// this preserves the verified primary vtable slot of getOwner.
+#define FT_MODULE_BUILDER
 #include <ft/ft_owner.h>
 #include <ft/fighter.h>
+#undef FT_MODULE_BUILDER
 #include <ft/ft_resource_id_accesser_impl.h>
 #include <ft/kirby/ft_kirby_copy_ability_id_converter.h>
 #include <ft/robot/ft_robot_transactor.h>
@@ -15,13 +19,7 @@
 //   float 0x21000004  head tilt of the Robo Beam aim (see ftRobotStatusUniqProcessSpecialBeam)
 //   flag  0x12000047  the beam charge does not recover (set while the beam is being shot)
 
-// HYPOTHESIS: soTeam is opaque in the SDK; only its virtual at vtable +0x10 (the team number) is used here.
-class soTeam {
-public:
-    virtual ~soTeam();
-    virtual void reserved0C();
-    virtual int getTeam();
-};
+#include <so/team/so_team.h>
 
 ftRobotTransactor::ftRobotTransactor() { }
 ftRobotTransactor::~ftRobotTransactor() { }
@@ -100,8 +98,11 @@ void ftRobotTransactor::processFixPosition(soModuleAccesser* moduleAccesser) {
             float z = moduleAccesser->getConstantFloatKirby(0xfad);
             float y = moduleAccesser->getConstantFloatKirby(0xfac);
             float x = moduleAccesser->getConstantFloatKirby(0xfab);
+            Vec3f rot;
             Vec3f offset(x, y, z);
-            Vec3f rot(0.0f, 0.0f, 0.0f);
+            rot.m_x = 0.0f;
+            rot.m_y = 0.0f;
+            rot.m_z = 0.0f;
             int lampHandle = moduleAccesser->getEffectModule().reqFollow(static_cast<EfID>(lampKind), moduleAccesser->getConstantIntKirby(0x5dc1), &offset, &rot, 1.0f, false, 0x14, 0, -1);
             moduleAccesser->getWorkManageModule().setInt(lampKind, 0x10000040);
             moduleAccesser->getWorkManageModule().setInt(lampHandle, 0x10000041);
@@ -134,8 +135,8 @@ void ftRobotTransactor::processUpdateEffectTransact(soModuleAccesser* moduleAcce
         float z = moduleAccesser->getConstantFloatKirby(0xfad);
         float y = moduleAccesser->getConstantFloatKirby(0xfac);
         float x = moduleAccesser->getConstantFloatKirby(0xfab);
-        Vec3f rot(0.0f, 0.0f, 0.0f);
         Vec3f offset(x, y, z);
+        Vec3f rot(0.0f, 0.0f, 0.0f);
         int lampHandle = moduleAccesser->getEffectModule().reqFollow(static_cast<EfID>(lampKind), moduleAccesser->getConstantIntKirby(0x5dc1), &offset, &rot, 1.0f, false, 0x14, 0, -1);
         moduleAccesser->getWorkManageModule().setInt(lampKind, 0x10000040);
         moduleAccesser->getWorkManageModule().setInt(lampHandle, 0x10000041);
@@ -194,7 +195,7 @@ bool ftRobotTransactor::activeArticle1(wnRobotBeam* weapon, soModuleAccesser* ac
     s32 founderTaskId = acc->getStageObject().m_taskId;
     s32 variant = work.getInt(0x10000044);
     float angle = work.getFloat(0x21000004);
-    s32 team = teamModule.getTeam()->getTeam();
+    s32 team = teamModule.getTeam()->getNo();
     weapon->activate(lr, angle, founderTaskId, resourceId, team, &muzzle, lowCharge, variant);
     return false;
 }

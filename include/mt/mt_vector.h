@@ -136,7 +136,11 @@ public:
 #endif
         : m_x(xy.m_x), m_y(xy.m_y), m_z(z) { }
 
-    Vec3f& operator=(const Vec3f& orig) {
+    Vec3f& operator=(const Vec3f& orig)
+#ifdef MT_VEC3F_ASSIGN_NOINLINE
+        __attribute__((never_inline)) // MATCH-ONLY: verified R.O.B. article assignment calls.
+#endif
+    {
         m_x = orig.m_x;
         m_y = orig.m_y;
         m_z = orig.m_z;
