@@ -92,10 +92,18 @@ Things that moved registers, roughly in the order worth trying:
 
 - **An article activator saves a position constructor's result, then queries team and resource IDs:** try the position temporary and the real virtual queries in the activation argument list. An inline raw-vtable wrapper can hoist its lookup ahead of the position construction. Audit the current generated vtable before retaining an old workaround: R.O.B.'s `getOwner()` declaration already used the verified slot, and replacing the obsolete wrapper matched both Gyro and Gyro Holder activation. Seen: `src/mo_fighter/ft_robot/ft_robot.cpp`. **HIGH**
 
+<<<<<<< HEAD
 - **Six `snd3DGenerator::__ct/__dt` calls in a row and no `__construct_array`/`__destroy_arr`:** the members are separate fields, not an array (MWCC emits the array helpers for `T m[6]`). Likewise a class whose constructor runs an explicit `setIdentity` loop over `Matrix` storage holds plain `nw4r::math::MTX34` members (no constructor), not `Matrix m[N]`. Seen: `include/st_dolpic/st_dolpic.h`. **HIGH**
 - **`psq_l ..., qr3` after `fctiwz`/`sth`:** that is `nw4r::math::SinIdx((u16)(int)(16384.0f * x))` (`U16ToF32`); `S16ToF32` gives `qr5`. Seen: `src/mo_stage/st_dolpic/st_dolpic.cpp`. **HIGH**
 - **One `fcmpo` followed by several `bge` to different constants:** the source has an if/else ladder whose thresholds are all the same constant; MWCC folds the repeated compares but keeps the branches. Write the ladder out (`if (r < 0.25f) a; else if (r < 0.25f) b; ...`). Seen: `updateSE` in `src/mo_stage/st_dolpic/st_dolpic.cpp`. **MED**
 - **A hidden return temporary at the bottom of the frame:** `Vec3f scale; scale = scaled(v, c);` allocates the returned temporary below `scale`; `Vec3f scale = scaled(v, c);` elides it and the frame shrinks. Seen: `src/mo_stage/st_dolpic/gr_dolpic_water.cpp`. **MED**
+=======
+- **`i++, ptr++` in the `for` header decides which counter is incremented first:** a loop over an array of records that increments the record pointer in the body compiles with the pointer bump before the counter bump; `for (int i = 0; i < n; i++, p++)` puts the counter first like the original did in the Stage Builder's `enableGimmickBlocks`/`disableGimmickBlocks`. Seen: `src/mo_stage/st_stageedit/st_stageedit.cpp`. **MED**
+
+- **A private virtual of a shared header can still be called as a real virtual call:** declare a view class with the same leading layout (`m_next` first, then the slots up to the one you need) and cast to it; a hand-indexed vtable call compiles with different registers (`lwz r5` instead of `lwz r12`). Seen: `stObsTriggerCB::setAreaSleep` in `st_stageedit.cpp`. **MED**
+
+- **Switch statements with jump-table-free targets keep source order of the case blocks:** the compare ladder is numeric but the case bodies sit in source order; a switch over `1, 0` and one over `0, 1` give different layouts. In `stEdit::getFinalTechniqColor` and the camera tweak of `createObj` the bodies follow ascending case values. Seen: `st_stageedit.cpp`. **MED**
+>>>>>>> origin/agent/vela-stage-stageedit
 
 ## 7. Data and sections
 - **An exact source object still shifts the linked data:** verify the original symbol's end against native references before adding padding. Brawl's `ResFont` vtable was configured four bytes too long, including the first float of a neighboring exponential lookup table. Correcting the vtable size and data split restored all hashes. Imported NWLib font headers also had a later `HasGlyph` virtual; removing it restored Brawl's `GetEncoding` slot. Seen: `nw4r/ut/ut_ResFont.cpp`, `include/sibling/nw4r/include/nw4r/ut/Font.h`. **HIGH**
