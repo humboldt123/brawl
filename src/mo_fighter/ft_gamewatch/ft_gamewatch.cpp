@@ -165,3 +165,17 @@ void fn_107_1002C(u8* self, soCollisionAttackModule* attackModule, float power, 
 void fn_107_1003C(u8* self, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorSearch(searchModule, collisionLog, groupIndex, moduleAccesser); }
 void fn_107_10044(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
 } // extern "C"
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void* fn_107_1F34(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_107_3944(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_107_3DC4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_107_4158(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_107_4554(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_107_4898(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_107_48D8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_107_67C0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_107_6800(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_107_6840(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+} // extern "C"

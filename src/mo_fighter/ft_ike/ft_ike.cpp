@@ -133,3 +133,11 @@ void fn_119_C7A4(u8* self, soCollisionLog* collisionLog, soModuleAccesser* modul
 void fn_119_C7AC(u8* self, soDamage* damage, bool unk2, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xE8))->Fighter::notifyEventOnDamage(damage, unk2, moduleAccesser); }
 void fn_119_C794(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
 } // extern "C"
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void* fn_119_1E6C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_119_34B8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_119_34F8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_119_3538(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+} // extern "C"

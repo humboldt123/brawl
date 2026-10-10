@@ -94,3 +94,12 @@ void fn_96_DBFC(u8* p) { fn_96_1C4E8(p + 0x1B72C); }
 #pragma dont_inline off
 
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+u8* fn_96_12CB0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_96_12D60(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_96_12E10(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_96_12EC0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_96_12FA8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+} // extern "C"

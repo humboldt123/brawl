@@ -508,3 +508,15 @@ void fn_110_C994(u8* self, soCollisionSearchModule* searchModule, soCollisionLog
 void fn_110_C99C(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
 void fn_110_C9AC(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
 } // extern "C"
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+u8* fn_110_BFBC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_110_C0A4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_110_C18C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_110_C274(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_110_C35C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_110_C444(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_110_C52C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_110_C614(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+} // extern "C"

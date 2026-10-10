@@ -103,3 +103,15 @@ extern "C" {
 void fn_102_C0AC(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) { ((Fighter*)(self - 0x54))->Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4); }
 bool fn_102_C0A4(u8* self, acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3) { return ((Fighter*)(self - 0x48))->Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3); }
 } // extern "C"
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void* fn_102_1DCC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_102_3B28(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_102_3D4C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_102_3E54(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_102_423C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_102_427C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_102_42BC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_102_5EF0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+} // extern "C"

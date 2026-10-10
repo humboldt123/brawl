@@ -744,3 +744,8 @@ void ftRobot::updateFinal(soModuleAccesser* acc) {
         }
     }
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void fn_120_C48C() {}
+} // extern "C"
