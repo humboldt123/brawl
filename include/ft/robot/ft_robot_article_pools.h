@@ -27,6 +27,10 @@ class wnRobotGyro : public Weapon {
 public:
     wnRobotGyro(s32 articleId, const ftRobotArticleConstructionInfo& info, void* data);
     virtual ~wnRobotGyro();
+    virtual void onDeactivate();
+    virtual void updateNodeSRT();
+    virtual void notifyEventLink(soLinkEventArgs*, soModuleAccesser*, StageObject*, int);
+
     // HYPOTHESIS: source reference spelling; the callee reads all three position components.
     void activate(s32 founderTaskId, u32 resourceId, s32 team, const Vec3f& position, float lr, float power);
 };
@@ -36,6 +40,9 @@ class wnRobotGyroHolder : public Weapon {
 public:
     wnRobotGyroHolder(s32 articleId, const ftRobotArticleConstructionInfo& info, void* data);
     virtual ~wnRobotGyroHolder();
+    virtual void onDeactivate();
+    virtual void notifyEventLink(soLinkEventArgs*, soModuleAccesser*, StageObject*, int);
+
     // HYPOTHESIS: source reference spelling, as for the Gyro activation above.
     void activate(s32 founderTaskId, u32 resourceId, s32 team, float lr, const Vec3f& position,
                   SituationKind situation);
@@ -45,6 +52,10 @@ class wnRobotFinalBeam : public Weapon {
 public:
     wnRobotFinalBeam(s32 articleId, const ftRobotArticleConstructionInfo& info, void* data);
     virtual ~wnRobotFinalBeam();
+    virtual void processUpdate();
+    virtual void processFixPosition();
+    virtual void notifyEventLink(soLinkEventArgs*, soModuleAccesser*, StageObject*, int);
+
     void activate(s32 founderTaskId, u32 resourceId, s32 team, const Vec3f* position, float lr,
                   s32 count, s32 selection);
 };

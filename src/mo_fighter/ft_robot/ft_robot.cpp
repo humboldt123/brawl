@@ -322,8 +322,11 @@ static soGenerateArticleManageModule& ftRobotGetArticleModule(soModuleAccesser* 
 }
 
 void ftRobot::onDeactivate() {
+    itManager* items;
     int taskId = m_moduleAccesser->getStageObject().m_taskId;
-    itManager::getInstance()->removeItem1(taskId);
+    items = itManager::getInstance();
+    // Remove every item created by this fighter, including its launched Gyro.
+    items->removeItem1(taskId);
 }
 
 void ftRobot::onStart(int param) {
@@ -684,12 +687,6 @@ ftRobotTransactor* ftRobotTransactor::getInstance() {
 }
 #pragma dont_inline off
 #pragma pool_data reset
-
-// Link event payload for the Final Smash articles: a kind and a result byte the receiver may set (HYPOTHESIS).
-struct ftRobotFinalLinkEvent : soLinkEventArgs {
-    s32 result;
-    ftRobotFinalLinkEvent(int kind) : soLinkEventArgs(kind), result(-1) { }
-};
 
 // Final Smash (Diffusion Beam) driver, run every frame while flag 0x12000042 is set: R.O.B. is invincible, the beam
 // article is started once the opening animation raises flag 0x12000044, then the volleys follow until the timer
