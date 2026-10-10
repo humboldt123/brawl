@@ -19,6 +19,14 @@ struct wnActivateDesc {
     // native masks used by the Robo Beam).
     union {
         u8 flags;
+        // HYPOTHESIS: source flag grouping selected by the R.O.B. articles.
+        // The written groups occupy bits 7..6, 5..4 and 3, respectively.
+        struct {
+            u8 flagsHighPair : 2;
+            u8 flagsMidPair : 2;
+            u8 flagsBit3 : 1;
+            u8 : 3;
+        };
         struct {
             u8 flagsHigh : 1;
             u8 flagsMidHigh : 3;
