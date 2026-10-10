@@ -267,3 +267,18 @@ extern void* g_soValueVariation;
 void* fn_123_A858() { return g_soValueVariation; }
 
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void* fn_123_1D70(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_1E0C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_396C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_39AC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_3C98(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_4028(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_4424(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_470C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_474C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_50D4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_123_5114(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+} // extern "C"

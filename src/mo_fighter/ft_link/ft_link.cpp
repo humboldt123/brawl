@@ -313,3 +313,8 @@ void fn_93_CBD0(u8* p) { return ((ftLinkVirtualSlots*)(p + 0x19DAC))->slot2(); }
 
 
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void* fn_93_1AD8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+} // extern "C"
