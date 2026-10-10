@@ -315,6 +315,139 @@ sora/mu/mu_msg.cpp:
 	.sdata      start:0x8059DF48 end:0x8059DF60
 	.sdata2     start:0x805A2210 end:0x805A2230
 
+sora/mu/mu_menu_ctrl.cpp:
+	.text       start:0x800B9640 end:0x800BA484
+	.rodata     start:0x80407BF8 end:0x80407C08
+	.sdata      start:0x8059DF60 end:0x8059E0A0
+	.sdata2     start:0x805A2230 end:0x805A2248
+
+sora/mu/mu_clear_get.cpp:
+	.text       start:0x800BA484 end:0x800BEEB8
+	.data       start:0x80456688 end:0x80456D30
+	.sdata      start:0x8059E0A0 end:0x8059E0D8
+	.sdata2     start:0x805A2248 end:0x805A22A8
+
+sora/mu/mu_notice_wnd.cpp:
+	.text       start:0x800BEEB8 end:0x800C001C
+	.rodata     start:0x80407C08 end:0x80407C28
+	.data       start:0x80456D30 end:0x80456DD8
+	.sdata      start:0x8059E0D8 end:0x8059E0F8
+	.sdata2     start:0x805A22A8 end:0x805A22D0
+
+sora/mu/mu_prize_wnd.cpp:
+	.text       start:0x800C001C end:0x800C1B3C
+	.rodata     start:0x80407C28 end:0x804080F8
+	.data       start:0x80456DD8 end:0x80456FE0
+	.sdata      start:0x8059E0F8 end:0x8059E118
+	.sdata2     start:0x805A22D0 end:0x805A2300
+
+sora/mu/mu_recorder.cpp:
+	.text       start:0x800C1B3C end:0x800C7410
+	.rodata     start:0x804080F8 end:0x80408478
+	.data       start:0x80456FE0 end:0x80457158
+	.sdata      start:0x8059E118 end:0x8059E150
+	.sdata2     start:0x805A2300 end:0x805A2310
+
+sora/mu/mu_wifi_interface_task.cpp:
+	.text       start:0x800C7410 end:0x800DA15C
+	.rodata     start:0x80408478 end:0x80408540
+	.data       start:0x80457158 end:0x80459B68
+	.sdata      start:0x8059E150 end:0x8059E180
+	.sbss       start:0x805A02A0 end:0x805A02B0
+	.sdata2     start:0x805A2310 end:0x805A2320
+
+sora/mu/mu_wifi_cnt_wnd.cpp:
+	.text       start:0x800DA15C end:0x800DAA30
+	.rodata     start:0x80408540 end:0x80408550
+	.data       start:0x80459B68 end:0x80459C28
+	.sdata      start:0x8059E180 end:0x8059E198
+	.sdata2     start:0x805A2320 end:0x805A2330
+
+sora/mu/mu_wifi_data_load.cpp:
+	.text       start:0x800DAA30 end:0x800DB360
+	.rodata     start:0x80408550 end:0x80408580
+	.data       start:0x80459C28 end:0x80459CC0
+	.sdata      start:0x8059E198 end:0x8059E1A8
+
+sora/mu/mu_g3d_projection.cpp:
+	.text       start:0x800DB360 end:0x800DB7A8
+	.ctors      start:0x80406540 end:0x80406544
+	.sbss       start:0x805A02B0 end:0x805A02D0
+	.sdata2     start:0x805A2330 end:0x805A2368
+
+sora/if/if_mngr.cpp:
+	.text       start:0x800DB7A8 end:0x800DD528
+	.rodata     start:0x80408580 end:0x804085A8
+	.data       start:0x80459CE0 end:0x80459E68
+	.sdata      start:0x8059E1E8 end:0x8059E218
+
+sora/if/if_center.cpp:
+	.text       start:0x800DD528 end:0x800DF7DC
+	.rodata     start:0x804085A8 end:0x80408708
+	.data       start:0x80459E68 end:0x8045A018
+	.sdata      start:0x8059E218 end:0x8059E238
+	.sdata2     start:0x805A2368 end:0x805A23A8
+
+sora/if/if_player.cpp:
+	.text       start:0x800DF7DC end:0x800E5858
+	.rodata     start:0x80408708 end:0x804088C0
+	.data       start:0x8045A018 end:0x8045A3C8
+	.bss        start:0x8049DEDC end:0x8049E0D0
+	.sdata      start:0x8059E238 end:0x8059E280
+	.sbss       start:0x805A02D8 end:0x805A02E8
+	.sdata2     start:0x805A23A8 end:0x805A2468
+
+sora/if/if_vs_result_task.cpp:
+	.text       start:0x800E5858 end:0x800ED474
+	.rodata     start:0x804088C0 end:0x80408B20
+	.data       start:0x8045A428 end:0x8045AF7C
+	.bss        start:0x8049E0D0 end:0x8049E0F0
+	.sdata      start:0x8059E280 end:0x8059E2F0
+	.sdata2     start:0x805A2468 end:0x805A2510
+
+sora/if/if_simple_result_task.cpp:
+	.text       start:0x800ED474 end:0x800EFBC0
+	.rodata     start:0x80408B20 end:0x80408B98
+	.data       start:0x8045AF88 end:0x8045B6C0
+	.sdata      start:0x8059E2F0 end:0x8059E3A0
+	.sdata2     start:0x805A2510 end:0x805A2590
+
+sora/if/if_photo.cpp:
+	.text       start:0x800EFBC0 end:0x800F1820
+	.rodata     start:0x80408B98 end:0x80408C48
+	.data       start:0x8045B6C0 end:0x8045B848
+	.sdata      start:0x8059E3A0 end:0x8059E3C0
+	.sdata2     start:0x805A2590 end:0x805A25B8
+
+sora/if/if_snap_save.cpp:
+	.text       start:0x800F1820 end:0x800F4C34
+	.rodata     start:0x80408C48 end:0x80408D88
+	.data       start:0x8045B848 end:0x8045B950
+	.sdata      start:0x8059E3C0 end:0x8059E3E0
+	.sdata2     start:0x805A25B8 end:0x805A2610
+
+sora/if/if_smash_appear_task.cpp:
+	.text       start:0x800F4C34 end:0x800F7CCC
+	.rodata     start:0x80408D88 end:0x804090A8
+	.data       start:0x8045B970 end:0x8045BE88
+	.sdata      start:0x8059E3E0 end:0x8059E468
+	.sbss       start:0x805A02E8 end:0x805A02F8
+	.sdata2     start:0x805A2610 end:0x805A2678
+
+sora/if/if_reward_list_task.cpp:
+	.text       start:0x800F7CCC end:0x800FAAC8
+	.rodata     start:0x804090A8 end:0x804090E0
+	.data       start:0x8045BEA8 end:0x8045C040
+	.sdata      start:0x8059E468 end:0x8059E488
+	.sdata2     start:0x805A2678 end:0x805A26B8
+
+sora/if/if_utility.cpp:
+	.text       start:0x800FAAC8 end:0x800FBAE0
+	.data       start:0x8045C158 end:0x8045C580
+	.bss        start:0x8049E550 end:0x8049E560
+	.sdata      start:0x8059E488 end:0x8059E4C8
+	.sdata2     start:0x805A26B8 end:0x805A26E8
+
 sora/if/if_wifipr_task.cpp:
 	.text       start:0x800FD110 end:0x800FD1F8
 	.data       start:0x8045C678 end:0x8045C708
@@ -339,6 +472,27 @@ sora/gr/collision/gr_collision_data.cpp:
 
 sora/gr/collision/gr_collision_handle.cpp:
 	.text       start:0x801122E4 end:0x8011234C
+
+sora/gr/collision/gr_collision_manager.cpp:
+	.text       start:0x8011234C end:0x80112E90
+
+sora/gr/collision/gr_collision_joint.cpp:
+	.text       start:0x80112E90 end:0x80113BD0
+
+sora/gr/collision/gr_collision_line.cpp:
+	.text       start:0x80113BD0 end:0x80116E94
+
+sora/gr/collision/gr_collision_line_work.cpp:
+	.text       start:0x80116E94 end:0x801173C0
+
+sora/gr/collision/gr_collision_body.cpp:
+	.text       start:0x801173C0 end:0x801256E4
+
+sora/gr/collision/gr_collision_body_rhombus.cpp:
+	.text       start:0x801256E4 end:0x80132004
+
+sora/gr/collision/gr_collision_body_circle.cpp:
+	.text       start:0x80132004 end:0x80132B64
 
 sora/gr/collision/gr_collision_shape_rhombus.cpp:
 	.text       start:0x80132B64 end:0x801330B8
@@ -1361,6 +1515,79 @@ RVL_SDK/bte/sdp_discovery.c:
 RVL_SDK/bte/sdp_server.c:
 	.text       start:0x8025A1D4 end:0x8025AEE4
 	.data       start:0x80485140 end:0x80485180
+
+RVL_SDK/bte/sdp_utils.c:
+	.text       start:0x8025AEE4 end:0x8025BF24
+	.rodata     start:0x8040DAE8 end:0x8040DAF8
+	.data       start:0x80485180 end:0x80485278
+
+RVL_SDK/tpl/TPL.c:
+	.text       start:0x8025BF24 end:0x8025C138
+	.data       start:0x80485278 end:0x804852A8
+	.sdata      start:0x8059EE38 end:0x8059EE40
+	.sdata2     start:0x805A3AA8 end:0x805A3AB0
+
+RVL_SDK/thp/THPDec.c:
+	.text       start:0x8025C138 end:0x8025F508
+	.rodata     start:0x8040DAF8 end:0x8040DB88
+	.data       start:0x804852A8 end:0x804852F0
+	.bss        start:0x80532000 end:0x80532150
+	.sdata      start:0x8059EE40 end:0x8059EE48
+	.sbss       start:0x805A0D40 end:0x805A0E68
+	.sdata2     start:0x805A3AB0 end:0x805A3AD0
+
+RVL_SDK/thp/THPAudio.c:
+	.text       start:0x8025F508 end:0x8025F99C
+
+RVL_SDK/exi/exi2_link.c:
+	.text       start:0x8025F99C end:0x8026045C
+	.sdata      start:0x8059EE48 end:0x8059EE50
+	.sbss       start:0x805A0E68 end:0x805A0E80
+
+TMCC_JPEG/tmcc_jpeg_api.c:
+	.text       start:0x8026045C end:0x80260AA4
+	.rodata     start:0x8040DB88 end:0x8040DBE0
+	.sdata      start:0x8059EE50 end:0x8059EE58
+
+TMCC_JPEG/tmcc_jpeg_decoder.c:
+	.text       start:0x80260AA4 end:0x8026927C
+	.rodata     start:0x8040DBE0 end:0x8040DE50
+	.sdata2     start:0x805A3AD0 end:0x805A3AD8
+
+TMCC_JPEG/tmcc_jpeg_encoder.c:
+	.text       start:0x8026927C end:0x8026F4D4
+	.rodata     start:0x8040DE50 end:0x8040E738
+	.sdata2     start:0x805A3AD8 end:0x805A3AE8
+
+HBM/HBMBase.cpp:
+	.text       start:0x8026F4D4 end:0x80278B4C
+	.rodata     start:0x8040E738 end:0x8040E9E8
+	.data       start:0x804852F0 end:0x80485EE0
+	.bss        start:0x80532150 end:0x80532188
+	.sbss       start:0x805A0E80 end:0x805A0E88
+	.sdata2     start:0x805A3AE8 end:0x805A3B68
+
+HBM/HBMAnmController.cpp:
+	.text       start:0x80278B4C end:0x80278D9C
+	.data       start:0x80485EE0 end:0x80485EF0
+	.sdata2     start:0x805A3B68 end:0x805A3B70
+
+HBM/HBMGUIManager.cpp:
+	.text       start:0x80278D9C end:0x8027A1D4
+	.data       start:0x80485EF0 end:0x80486048
+	.sbss       start:0x805A0E88 end:0x805A0E90
+	.sdata2     start:0x805A3B70 end:0x805A3B80
+
+HBM/HBMController.cpp:
+	.text       start:0x8027A1D4 end:0x8027AD1C
+	.bss        start:0x80532188 end:0x80532318
+	.sbss       start:0x805A0E90 end:0x805A0E98
+	.sdata2     start:0x805A3B80 end:0x805A3B90
+
+HBM/HBMRemoteSpk.cpp:
+	.text       start:0x8027AD1C end:0x8027B510
+	.data       start:0x80486048 end:0x80486058
+	.sbss       start:0x805A0E98 end:0x805A0EA0
 
 havok/hkBaseObjectClass.cpp:
 	.text       start:0x8027B510 end:0x8027B568
