@@ -6,6 +6,9 @@
 #include <types.h>
 
 namespace nw4r {
+    namespace math {
+        struct MTX34;
+    }
     namespace g3d {
 
         class ScnObj {
@@ -20,6 +23,8 @@ namespace nw4r {
             virtual ~ScnObj();
 
             char _spacer[216];
+
+            bool GetMtx(ScnObjMtxType type, math::MTX34* pMtx) const;
 
             void SetPriorityDrawOpa(int prio);
 
