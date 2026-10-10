@@ -11,6 +11,146 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_jungle/st_jungle.cpp:
+	.text       start:0x00000070 end:0x00002830
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000048
+	.data       start:0x00000000 end:0x000009C0
+	.bss        start:0x00000008 end:0x00000018
+
+mo_stage/st_jungle/gr_jungle_warning.cpp:
+	.text       start:0x00002830 end:0x000033E0
+	.rodata     start:0x00000048 end:0x00000060
+	.data       start:0x000009C0 end:0x00000EB8
+
+mo_stage/st_jungle/gr_jungle_bg.cpp:
+	.text       start:0x000033E0 end:0x00003B04
+	.rodata     start:0x00000060 end:0x00000070
+	.data       start:0x00000EB8 end:0x00001208
+
+mo_stage/st_jungle/gr_jungle_ashiba.cpp:
+	.text       start:0x00003B04 end:0x00003F70
+	.rodata     start:0x00000070 end:0x00000078
+	.data       start:0x00001208 end:0x00001450
+
+mo_stage/st_jungle/gr_jungle_ashiba01.cpp:
+	.text       start:0x00003F70 end:0x0000B224
+	.rodata     start:0x00000078 end:0x000000A0
+	.data       start:0x00001450 end:0x00002C08
+	.bss        start:0x00000018 end:0x00000140
+
+mo_stage/st_jungle/gr_jungle_ashiba02.cpp:
+	.text       start:0x0000B224 end:0x0000C034
+	.rodata     start:0x000000A0 end:0x000000D0
+	.data       start:0x00002C08 end:0x00002E80
+	.bss        start:0x00000140 end:0x00000150
+
+mo_stage/st_jungle/gr_jungle_ashiba02a.cpp:
+	.text       start:0x0000C034 end:0x0000C6EC
+	.rodata     start:0x000000D0 end:0x000000E0
+	.data       start:0x00002E80 end:0x000030D8
+
+mo_stage/st_jungle/gr_jungle_ashiba03.cpp:
+	.text       start:0x0000C6EC end:0x0000DB54
+	.rodata     start:0x000000E0 end:0x00000110
+	.data       start:0x000030D8 end:0x00004B20
+	.bss        start:0x00000150 end:0x00000160
+
+mo_stage/st_jungle/gr_jungle_ashiba03a.cpp:
+	.text       start:0x0000DB54 end:0x0000E29C
+	.rodata     start:0x00000110 end:0x00000120
+	.data       start:0x00004B20 end:0x00004D78
+
+mo_stage/st_jungle/gr_jungle_ashiba05.cpp:
+	.text       start:0x0000E29C end:0x0000E454
+	.data       start:0x00004D78 end:0x000050F8
+
+mo_stage/st_jungle/gr_jungle_ashiba05a.cpp:
+	.text       start:0x0000E454 end:0x0000F4AC
+	.rodata     start:0x00000120 end:0x00000158
+	.data       start:0x000050F8 end:0x00005370
+	.bss        start:0x00000160 end:0x00000170
+
+mo_stage/st_jungle/gr_jungle_ashiba07.cpp:
+	.text       start:0x0000F4AC end:0x0000F664
+	.data       start:0x00005370 end:0x000056F0
+
+mo_stage/st_jungle/gr_jungle_ashiba07a.cpp:
+	.text       start:0x0000F664 end:0x0000F854
+	.rodata     start:0x00000158 end:0x00000168
+	.data       start:0x000056F0 end:0x00005940
+
+mo_stage/st_jungle/gr_jungle_ashiba07b.cpp:
+	.text       start:0x0000F854 end:0x0000FB28
+	.rodata     start:0x00000168 end:0x00000178
+	.data       start:0x00005940 end:0x00005B90
+
+mo_stage/st_jungle/gr_jungle_ashiba08.cpp:
+	.text       start:0x0000FB28 end:0x000108B4
+	.rodata     start:0x00000178 end:0x000001A8
+	.data       start:0x00005B90 end:0x000075D0
+	.bss        start:0x00000170 end:0x00000180
+
+mo_stage/st_jungle/gr_jungle_ashiba08a.cpp:
+	.text       start:0x000108B4 end:0x00010FB4
+	.rodata     start:0x000001A8 end:0x000001B8
+	.data       start:0x000075D0 end:0x00007828
+
+mo_stage/st_jungle/gr_jungle_ashiba09.cpp:
+	.text       start:0x00010FB4 end:0x00011398
+	.rodata     start:0x000001B8 end:0x000001C0
+	.data       start:0x00007828 end:0x00007BC0
+
+mo_stage/st_jungle/gr_jungle_ashiba10.cpp:
+	.text       start:0x00011398 end:0x00011908
+	.rodata     start:0x000001C0 end:0x000001D0
+	.data       start:0x00007BC0 end:0x00007E40
+
+mo_stage/st_jungle/gr_jungle_ashiba12.cpp:
+	.text       start:0x00011908 end:0x00011AE4
+	.data       start:0x00007E40 end:0x000081C8
+
+mo_stage/st_jungle/gr_jungle_ashiba12a.cpp:
+	.text       start:0x00011AE4 end:0x00011FDC
+	.rodata     start:0x000001D0 end:0x000001E0
+	.data       start:0x000081C8 end:0x00008458
+
+mo_stage/st_jungle/gr_jungle_n.cpp:
+	.text       start:0x00011FDC end:0x00013128
+	.rodata     start:0x000001E0 end:0x00000228
+	.data       start:0x00008458 end:0x00008688
+	.bss        start:0x00000180 end:0x00000190
+
+mo_stage/st_jungle/gr_jungle_nb.cpp:
+	.text       start:0x00013128 end:0x000139D0
+	.rodata     start:0x00000228 end:0x00000238
+	.data       start:0x00008688 end:0x000088A8
+
+mo_stage/st_jungle/gr_jungle_s.cpp:
+	.text       start:0x000139D0 end:0x00014A7C
+	.rodata     start:0x00000238 end:0x00000288
+	.data       start:0x000088A8 end:0x00008AE0
+	.bss        start:0x00000190 end:0x0000019C
+
+mo_stage/st_jungle/gr_jungle_sb.cpp:
+	.text       start:0x00014A7C end:0x00015318
+	.rodata     start:0x00000288 end:0x00000298
+	.data       start:0x00008AE0 end:0x00008D08
+
+mo_stage/st_jungle/gr_jungle_water.cpp:
+	.text       start:0x00015318 end:0x000155F4
+	.data       start:0x00008D08 end:0x00008F20
+
+mo_stage/st_jungle/gr_jungle_ladder.cpp:
+	.text       start:0x000155F4 end:0x00015998
+	.rodata     start:0x00000298 end:0x000002A0
+	.data       start:0x00008F20 end:0x00009298
+
+mo_stage/st_jungle/gr_jungle_attack.cpp:
+	.text       start:0x00015998 end:0x000166A4
+	.rodata     start:0x000002A0 end:0x000002D8
+	.data       start:0x00009298 end:0x00009A00
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x000166A4 end:0x00016740
 	.data       start:0x00009A00 end:0x00009A0D
