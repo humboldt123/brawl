@@ -11,6 +11,54 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_palutena/st_palutena.cpp:
+	.text       start:0x00000070 end:0x00001F78
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000008
+	.data       start:0x00000000 end:0x00000978
+	.bss        start:0x00000008 end:0x00000018
+
+mo_stage/st_palutena/gr_palutena.cpp:
+	.text       start:0x00001F78 end:0x00002194
+	.rodata     start:0x00000008 end:0x00000010
+	.data       start:0x00000978 end:0x00000BF0
+
+mo_stage/st_palutena/gr_palutena_ashiba.cpp:
+	.text       start:0x00002194 end:0x00008CE0
+	.rodata     start:0x00000010 end:0x00000080
+	.data       start:0x00000BF0 end:0x00001F20
+	.bss        start:0x00000018 end:0x00000048
+
+mo_stage/st_palutena/gr_palutena_ashiba_d01.cpp:
+	.text       start:0x00008CE0 end:0x0000922C
+	.rodata     start:0x00000080 end:0x000000B0
+	.data       start:0x00001F20 end:0x00002188
+
+mo_stage/st_palutena/gr_palutena_ashiba_e01.cpp:
+	.text       start:0x0000922C end:0x00009F88
+	.rodata     start:0x000000B0 end:0x000000E8
+	.data       start:0x00002188 end:0x00002388
+
+mo_stage/st_palutena/gr_palutena_kumo.cpp:
+	.text       start:0x00009F88 end:0x0000B10C
+	.rodata     start:0x000000E8 end:0x00000168
+	.data       start:0x00002388 end:0x00002A10
+
+mo_stage/st_palutena/gr_palutena_chain.cpp:
+	.text       start:0x0000B10C end:0x0000C0FC
+	.rodata     start:0x00000168 end:0x000001B8
+	.data       start:0x00002A10 end:0x00002C40
+
+mo_stage/st_palutena/gr_palutena_ashiba_break.cpp:
+	.text       start:0x0000C0FC end:0x0000C978
+	.rodata     start:0x000001B8 end:0x000001C8
+	.data       start:0x00002C40 end:0x00002E70
+
+mo_stage/st_palutena/gr_gimmick_movement.cpp:
+	.text       start:0x0000C978 end:0x0000D088
+	.rodata     start:0x000001C8 end:0x000001DC
+	.data       start:0x00002E70 end:0x00002FF0
+
 mo_stage/mo_stage.cpp:
 	.text       start:0x0000D088 end:0x0000D124
 	.data       start:0x00002FF0 end:0x00002FFD

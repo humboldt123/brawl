@@ -5879,7 +5879,17 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_palutena/st_palutena.cpp"),
+            Object(NonMatching, "mo_stage/st_palutena/gr_palutena.cpp"),
+            Object(NonMatching, "mo_stage/st_palutena/gr_palutena_ashiba.cpp"),
+            Object(NonMatching, "mo_stage/st_palutena/gr_palutena_ashiba_d01.cpp"),
+            Object(NonMatching, "mo_stage/st_palutena/gr_palutena_ashiba_e01.cpp"),
+            Object(NonMatching, "mo_stage/st_palutena/gr_palutena_kumo.cpp"),
+            Object(NonMatching, "mo_stage/st_palutena/gr_palutena_chain.cpp"),
+            Object(NonMatching, "mo_stage/st_palutena/gr_palutena_ashiba_break.cpp"),
+            Object(NonMatching, "mo_stage/st_palutena/gr_gimmick_movement.cpp"),
+        ],
     },
     {
         "lib": "st_pictchat",
