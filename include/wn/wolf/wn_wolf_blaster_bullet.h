@@ -10,7 +10,7 @@ struct wnWolfBlasterBulletModuleAccesserBuildConfig;
 // opaque until the configuration is reconstructed.
 template <>
 class wnWeaponBuilder<wnWolfBlasterBulletModuleAccesserBuildConfig> : public Weapon {
-    u8 unkD0[0x1FF0];
+    u8 unkCC[0x20C0 - sizeof(Weapon)];
     wnKineticEnergyNormal m_normalEnergy;
 public:
     virtual ~wnWeaponBuilder();

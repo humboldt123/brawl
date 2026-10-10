@@ -18,7 +18,10 @@ protected:
     // Its bit meanings are intentionally unresolved.
     u8 unkA4;
 private:
-    char unkA5[0x2B];
+    char unkA5[0x1F];
+    // The constructor copies the two words reached through its kind descriptor.
+    s32 unkC4;
+    s32 unkC8;
 
 public:
     void activate(wnActivateDesc* desc);
@@ -109,4 +112,4 @@ public:
     virtual int getInhaledCount();
     virtual bool isCanEat();
 };
-static_assert(sizeof(Weapon) == 0xD0, "Class is wrong size!");
+static_assert(sizeof(Weapon) == 0xCC, "Class is wrong size!");

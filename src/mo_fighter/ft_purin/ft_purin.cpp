@@ -3,6 +3,28 @@
 #define FT_MARTH_RUNTIME_HELPERS
 #define MT_VEC3F_CTOR_NOINLINE
 #define WN_WEAPON_ANIMCMD_LONG
+#include <so/so_instance_manager.h>
+class soAnimCmdControlUnit;
+// MATCH-ONLY: the native control-unit manager retains its empty base teardown
+// call. Specialize this owner so kinetic managers keep their existing inlining.
+template <>
+class soInstanceManagerFullProperty<soAnimCmdControlUnit> : public soInstanceManager<soAnimCmdControlUnit>,
+                                      public soInstanceManagerPriorityPolicy<soAnimCmdControlUnit>,
+                                      public soInstanceManagerAttributePolicy<soAnimCmdControlUnit> {
+public:
+    // UBFIX: There should have been a virtual dtor in the base class
+    ~soInstanceManagerFullProperty() __attribute__((never_inline)) { }
+    virtual s32 add(soAnimCmdControlUnit& p1, s32 p2) {
+        return add(p1, p2, soAttributeFlag(), -1);
+    }
+
+    virtual s32 add(soAnimCmdControlUnit&, s32, soAttributeFlag, s16) = 0;
+    virtual u32 capacity() = 0;
+    virtual soAnimCmdControlUnit& atIndexFast(s32 index) { return this->at(index); }
+    virtual soInstanceUnitFullProperty<soAnimCmdControlUnit>& atUnitIndexFast(s32 index) = 0;
+    virtual s32 getIndex(s32 index) const = 0;
+};
+
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/ft_common_data_accesser.h>

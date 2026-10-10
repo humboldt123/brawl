@@ -10,7 +10,7 @@ struct wnSonicGimmickJumpModuleAccesserBuildConfig;
 // places the spring's observer immediately after the embedded modules.
 template <>
 class wnWeaponBuilder<wnSonicGimmickJumpModuleAccesserBuildConfig> : public Weapon {
-    u8 unkD0[0x2088];
+    u8 unkCC[0x2158 - sizeof(Weapon)];
 public:
     virtual ~wnWeaponBuilder();
     virtual void deactivateDescendantForce();
