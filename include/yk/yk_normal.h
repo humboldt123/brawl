@@ -94,7 +94,7 @@ class ykNormal<soCollisionAttackModuleBuildConfigNull, soCollisionHitModuleBuild
 
     soCollisionAttackModuleBuildConfigNull m_attackConfig;
     HitConfig m_hitConfig; // the part arrays followed by the hit module (the module is a private member of the config)
-    ykDamageModuleBuilder<P> m_damageBuilder;
+    ykDamageModuleBuilder<G> m_damageBuilder;
 
     // MATCH-ONLY: the hit module sits after the three arrays of the build config
     M* hitModule() {
@@ -121,7 +121,7 @@ class ykNormal<TAttackConfig, soCollisionHitModuleBuildConfig<Cat, P, G, M, Mask
 
     TAttackConfig m_attackConfig;
     HitConfig m_hitConfig;
-    ykDamageModuleBuilder<P> m_damageBuilder;
+    ykDamageModuleBuilder<G> m_damageBuilder;
 
     // MATCH-ONLY: the hit module sits after the three arrays of the build config
     M* hitModule() {
