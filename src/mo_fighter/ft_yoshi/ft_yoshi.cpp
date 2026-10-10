@@ -324,3 +324,19 @@ void fn_95_EFFC(u8* self, soCollisionSearchModule* searchModule, soCollisionLog*
 void fn_95_F004(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
 void fn_95_F014(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
 } // extern "C"
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void* fn_95_3DA4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_95_41DC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_95_4938(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+void* fn_95_4978(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
+u8* fn_95_E660(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_95_E748(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_95_E830(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_95_E918(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_95_EA00(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_95_EAE8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_95_EBD0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_95_ECB8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+} // extern "C"

@@ -168,3 +168,10 @@ void fn_91_CD18(float* p) {
 
 // Fighter-builder cancel query, forwarding to the cancel module through its virtual interface.
 extern "C" bool fn_91_BD5C(u8* p) { return ((ftCancelModule*)(p + 0x2D634))->isEnableCancel(); }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+u8* fn_91_D580(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_91_D668(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+u8* fn_91_D750(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
+} // extern "C"
