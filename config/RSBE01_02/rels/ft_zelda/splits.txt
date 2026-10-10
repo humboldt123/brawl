@@ -18,6 +18,54 @@ mo_fighter/ft_zelda/ft_zelda.cpp:
 	.data       start:0x00000000 end:0x0000D380
 	.bss        start:0x00000008 end:0x00000658
 
+mo_fighter/ft_zelda/ft_zelda_status_uniq_process_special_s.cpp:
+	.text       start:0x0000DFB4 end:0x0000E100
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_zelda/ft_zelda_status_uniq_process_special_hi.cpp:
+	.text       start:0x0000E100 end:0x0000E32C
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_zelda/ft_zelda_status_uniq_process_special_hi2.cpp:
+	.text       start:0x0000E32C end:0x0000EA5C
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_fighter/ft_zelda/ft_zelda_status_uniq_process_special_hi3.cpp:
+	.text       start:0x0000EA5C end:0x0000EEC8
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_fighter/ft_zelda/ft_zelda_status_uniq_process_special_lw.cpp:
+	.text       start:0x0000EEC8 end:0x0000F104
+	.ctors      start:0x00000014 end:0x00000018
+
+mo_fighter/ft_zelda/ft_zelda_status_uniq_process_final.cpp:
+	.text       start:0x0000F104 end:0x0000FA0C
+	.ctors      start:0x00000018 end:0x0000001C
+
+mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_s_start.cpp:
+	.text       start:0x0001DECC end:0x0001E4D0
+	.ctors      start:0x00000030 end:0x00000034
+
+mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_s_loop.cpp:
+	.text       start:0x0001E4D0 end:0x0001EF50
+	.ctors      start:0x00000034 end:0x00000038
+
+mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_start.cpp:
+	.text       start:0x0001EF50 end:0x0001F13C
+	.ctors      start:0x00000038 end:0x0000003C
+
+mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_move.cpp:
+	.text       start:0x0001F13C end:0x0001F9C4
+	.ctors      start:0x0000003C end:0x00000040
+
+mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_end.cpp:
+	.text       start:0x0001F9C4 end:0x0001FD94
+	.ctors      start:0x00000040 end:0x00000044
+
+mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_lw.cpp:
+	.text       start:0x0001FD94 end:0x0001FFD0
+	.ctors      start:0x00000044 end:0x00000048
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x00024D10 end:0x00024DAC
 	.data       start:0x0000D380 end:0x0000D38F

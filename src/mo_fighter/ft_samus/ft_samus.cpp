@@ -53,8 +53,8 @@ void fn_94_9134(ftSamus* self) {
         workManage.offFlag(0x1200003d);
         if (static_cast<u8>(g_ftManager->getFighterCount(self->m_entryId)) > 1) {
             int fighterNo = g_ftManager->getFighterNo(self->m_entryId, self->m_taskId);
-            // HYPOTHESIS: the motion module is set to frame 1.0 before the next fighter is chosen
-            acc->getMotionModule().setFrame(1.0f);
+            // The motion module is set back to frame 0 before the next fighter is chosen.
+            acc->getMotionModule().setFrame(0.0f);
             g_ftManager->toChange(self->m_entryId, static_cast<u8>(fighterNo) == 0, 0, 0);
         }
     }

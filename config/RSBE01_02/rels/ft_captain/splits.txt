@@ -18,6 +18,26 @@ mo_fighter/ft_captain/ft_captain.cpp:
 	.data       start:0x00000000 end:0x00007800
 	.bss        start:0x00000008 end:0x000003CC
 
+mo_fighter/ft_captain/ft_captain_status_uniq_process_falcon_knuckle.cpp:
+	.text       start:0x0000D028 end:0x0000D488
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_captain/ft_captain_status_uniq_process_falcon_kick.cpp:
+	.text       start:0x0000D488 end:0x0000DAF4
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_captain/ft_captain_status_uniq_process_special_hi.cpp:
+	.text       start:0x0000DB04 end:0x0000DC78
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_fighter/ft_captain/ft_captain_status_uniq_process_special_hi_cling.cpp:
+	.text       start:0x0000DC78 end:0x0000DDB0
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_fighter/ft_captain/ft_captain_status_uniq_process_special_hi_throw.cpp:
+	.text       start:0x0000DDB0 end:0x0000DFF0
+	.ctors      start:0x00000014 end:0x00000018
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x0001589C end:0x00015938
 	.data       start:0x00007800 end:0x0000780F

@@ -293,3 +293,10 @@ void grDxGardenKrap::setMotion(u32 animId, bool shouldLoop, bool force, float* f
         *frameCount = modelAnim->getFrameCount();
     }
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void fn_77_2FB8() {}
+u8 fn_77_2FC4(u8* p) { return *(u8*)(p + 0x44); }
+void fn_77_30D0() {}
+} // extern "C"

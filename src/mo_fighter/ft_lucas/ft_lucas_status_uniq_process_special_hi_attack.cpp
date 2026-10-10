@@ -194,3 +194,8 @@ void ftLucasStatusUniqProcessSpecialHiAttack::execFixPosCounter(soModuleAccesser
     }
 
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+float fn_114_1201C(float* v) { return v[0] * v[0] + v[1] * v[1]; }
+} // extern "C"

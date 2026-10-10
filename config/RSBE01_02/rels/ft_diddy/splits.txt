@@ -18,6 +18,50 @@ mo_fighter/ft_diddy/ft_diddy.cpp:
 	.data       start:0x00000000 end:0x0000A958
 	.bss        start:0x00000008 end:0x00000448
 
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_monkey_flip.cpp:
+	.text       start:0x0000DA80 end:0x0000DD7C
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_monkey_flip_stick.cpp:
+	.text       start:0x0000DD7C end:0x0000DE24
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_pop_gun.cpp:
+	.text       start:0x0000DE24 end:0x0000E724
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_banana.cpp:
+	.text       start:0x0000E724 end:0x0000ECB8
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_barrel_jet.cpp:
+	.text       start:0x0000ECB8 end:0x0000F338
+	.ctors      start:0x00000014 end:0x00000018
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_barrel_jet_charge.cpp:
+	.text       start:0x0000F338 end:0x0000F9F0
+	.ctors      start:0x00000018 end:0x0000001C
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_barrel_jet_jump.cpp:
+	.text       start:0x0000F9F0 end:0x0001073C
+	.ctors      start:0x0000001C end:0x00000020
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_barrel_jet_damage.cpp:
+	.text       start:0x0001073C end:0x00010C48
+	.ctors      start:0x00000020 end:0x00000024
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_s_cling.cpp:
+	.text       start:0x00010C48 end:0x00010D50
+	.ctors      start:0x00000024 end:0x00000028
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_s_throw.cpp:
+	.text       start:0x00010D50 end:0x000111D4
+	.ctors      start:0x00000028 end:0x0000002C
+
+mo_fighter/ft_diddy/ft_diddy_status_uniq_process_final.cpp:
+	.text       start:0x00011468 end:0x00013100
+	.ctors      start:0x00000030 end:0x00000034
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x0001B99C end:0x0001BA38
 	.data       start:0x0000A958 end:0x0000A967

@@ -12,3 +12,10 @@ struct grMarioPastBlockPosDummy {
 };
 static grMarioPastBlockPosDummy sDummyA(0xFF, 0);
 static grMarioPastBlockPosDummy sDummyB(0xFF, 1);
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void fn_48_3500() {}
+u8 fn_48_350C(u8* p) { return *(u8*)(p + 0x44); }
+void fn_48_3618() {}
+} // extern "C"

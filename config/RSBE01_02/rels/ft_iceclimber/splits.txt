@@ -18,6 +18,50 @@ mo_fighter/ft_iceclimber/ft_iceclimber.cpp:
 	.data       start:0x00000000 end:0x0000A548
 	.bss        start:0x00000008 end:0x0000050C
 
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_cliff.cpp:
+	.text       start:0x00012FD8 end:0x000130CC
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_special_s.cpp:
+	.text       start:0x000130CC end:0x00013730
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_special_s_partner.cpp:
+	.text       start:0x00013730 end:0x00013E78
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_special_hi.cpp:
+	.text       start:0x00013E78 end:0x00014478
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_special_hi_partner.cpp:
+	.text       start:0x00014478 end:0x00014974
+	.ctors      start:0x00000014 end:0x00000018
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_special_hi_cliff_pull_partner.cpp:
+	.text       start:0x00014974 end:0x00014BE8
+	.ctors      start:0x00000018 end:0x0000001C
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_final.cpp:
+	.text       start:0x00014BE8 end:0x00015050
+	.ctors      start:0x0000001C end:0x00000020
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_final_partner.cpp:
+	.text       start:0x00015050 end:0x000157AC
+	.ctors      start:0x00000020 end:0x00000024
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_special_lw.cpp:
+	.text       start:0x000157AC end:0x00015BC4
+	.ctors      start:0x00000024 end:0x00000028
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_entry.cpp:
+	.text       start:0x00015BC4 end:0x00015E98
+	.ctors      start:0x00000028 end:0x0000002C
+
+mo_fighter/ft_iceclimber/ft_popo_status_uniq_process_rebirth.cpp:
+	.text       start:0x00015E98 end:0x00016184
+	.ctors      start:0x0000002C end:0x00000030
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x000210B0 end:0x0002114C
 	.data       start:0x0000A548 end:0x0000A557

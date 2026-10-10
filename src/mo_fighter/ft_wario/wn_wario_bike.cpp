@@ -405,3 +405,12 @@ void wnWarioBike::notifyEventCollisionAttack(float power, soCollisionLog* log,
     if (pending < frames) pending = frames;
     work.setInt(pending, 0x10000007);
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void* fn_110_102F8(u8* p) { return *(void**)(*(u8**)(p + 0xd8) + 0x70); }
+int fn_110_10304(u8* p) { return *(int*)(p + 0x60); }
+int fn_110_12900(u8* p) { return *(int*)(p + 0xC0); }
+int fn_110_12908(u8* p) { return *(int*)(p + 0x28); }
+int fn_110_12A84(u8* p) { return *(int*)(p + 0xb8); }
+} // extern "C"

@@ -387,3 +387,10 @@ void grDxOnettAttack::setAttack() {
 void grDxOnettAttack::onInflict(soCollisionLog* collisionLog, u32 flags, float power) {
     *m_stateWork = 1;
 }
+
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
+extern "C" {
+void fn_78_4694() {}
+u8 fn_78_46A0(u8* p) { return *(u8*)(p + 0x44); }
+void fn_78_47AC() {}
+} // extern "C"

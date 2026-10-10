@@ -18,6 +18,62 @@ mo_fighter/ft_donkey/ft_donkey.cpp:
 	.data       start:0x00000000 end:0x00007A38
 	.bss        start:0x00000008 end:0x00000394
 
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_special_s.cpp:
+	.text       start:0x0000CBC4 end:0x0000CFC0
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_special_hi.cpp:
+	.text       start:0x0000CFC0 end:0x0000D634
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_special_lw_loop.cpp:
+	.text       start:0x0000D634 end:0x0000D944
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_final.cpp:
+	.text       start:0x0000D944 end:0x0000DB28
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_final_loop.cpp:
+	.text       start:0x0000DB28 end:0x0000F258
+	.ctors      start:0x00000014 end:0x00000018
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_final_end.cpp:
+	.text       start:0x0000F258 end:0x0000F404
+	.ctors      start:0x00000018 end:0x0000001C
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_item_lift.cpp:
+	.text       start:0x0000F404 end:0x0000F5FC
+	.ctors      start:0x0000001C end:0x00000020
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_catch_wait.cpp:
+	.text       start:0x0000F5FC end:0x0000F700
+	.ctors      start:0x00000020 end:0x00000024
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_super_lift_common.cpp:
+	.text       start:0x0000F700 end:0x0000F8F8
+	.ctors      start:0x00000024 end:0x00000028
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_super_lift_walk.cpp:
+	.text       start:0x0000F8F8 end:0x0000FB1C
+	.ctors      start:0x00000028 end:0x0000002C
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_shoulder_common.cpp:
+	.text       start:0x0000FB1C end:0x0000FDCC
+	.ctors      start:0x0000002C end:0x00000030
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_shoulder_start.cpp:
+	.text       start:0x0000FDCC end:0x0000FF1C
+	.ctors      start:0x00000030 end:0x00000034
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_shoulder_walk.cpp:
+	.text       start:0x0000FF1C end:0x00010140
+	.ctors      start:0x00000034 end:0x00000038
+
+mo_fighter/ft_donkey/ft_donkey_status_uniq_process_throw_common.cpp:
+	.text       start:0x00010140 end:0x00010324
+	.ctors      start:0x00000038 end:0x0000003C
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x000154E4 end:0x00015580
 	.data       start:0x00007A38 end:0x00007A47

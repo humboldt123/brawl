@@ -18,6 +18,26 @@ mo_fighter/ft_metaknight/ft_metaknight.cpp:
 	.data       start:0x00000000 end:0x000068A8
 	.bss        start:0x00000008 end:0x0000025C
 
+mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_special_s_rush.cpp:
+	.text       start:0x0000C710 end:0x0000C9B8
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_special_s_end.cpp:
+	.text       start:0x0000C9B8 end:0x0000CC64
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_final_attack_gallery.cpp:
+	.text       start:0x0000CC64 end:0x0000D21C
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_final_end.cpp:
+	.text       start:0x0000D21C end:0x0000D6EC
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_final_hit_wait.cpp:
+	.text       start:0x0000D6EC end:0x0000DD64
+	.ctors      start:0x00000014 end:0x00000018
+
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x000112A4 end:0x00011340
 	.data       start:0x000068A8 end:0x000068B7
