@@ -1,3 +1,4 @@
+#include <math.h>
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/ness/ft_ness.h>
@@ -26,6 +27,12 @@ ftNess::ftNess(s32 entryId,
                                          nwModelInstHeap,
                                          nwMotionInstHeap) {
     // TODO
+}
+
+void ftNess::processUpdate() {
+    Fighter::processUpdate();
+    unk4AE25 = 0;
+    unk4AE24 = 0;
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftNess is done
@@ -99,5 +106,23 @@ void fn_101_D4CC(soGeneralWorkSimple* p, s32 a0, u32 a1) { p->soGeneralWorkSimpl
 void fn_101_D4E4(soGeneralWorkSimple* p, s32 a0, u32 a1) { p->soGeneralWorkSimple::addIntWork(a0, a1); }
 void fn_101_D4FC(soGeneralWorkSimple* p, s32 a0, u32 a1) { p->soGeneralWorkSimple::setIntWork(a0, a1); }
 Vec2f fn_101_FF38(soKineticEnergyNormal* p) { return p->soKineticEnergyNormal::getSpeed(); }
+
+}
+
+// Small helpers of this unit (map names in parentheses).
+extern "C" {
+
+// (ftness__atan2f)
+#pragma scheduling 603 // MATCH-ONLY: the epilogue lwz precedes the frsp
+float fn_101_BD7C(double y, double x) { return (float)atan2(y, x); }
+#pragma scheduling reset
+// (ftness__ABS_f_): __fabs on double, no frsp
+double fn_101_CA34(double x) { return __fabs(x); }
+// (Vec3f____ct1): copies x and y from src, sets z
+void fn_101_C2CC(Vec3f* p, const Vec3f* src, float z) {
+    p->m_x = src->m_x;
+    p->m_y = src->m_y;
+    p->m_z = z;
+}
 
 }

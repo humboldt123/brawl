@@ -51,10 +51,15 @@ public:
 };
 
 class ftNess : public ftFighterBuilder<ftNessBuildConfig> {
-    u8 unkTail[0x4AE28 - sizeof(ftFighterBuilder<ftNessBuildConfig>)];
+    u8 unkTail[0x4AE24 - sizeof(ftFighterBuilder<ftNessBuildConfig>)];
+    u8 unk4AE24; // HYPOTHESIS: flag cleared by processUpdate
+    u8 unk4AE25; // HYPOTHESIS: flag cleared by processUpdate
+    u8 unkTail2[0x4AE28 - 0x4AE26];
 public:
     ftNess(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+
+    virtual void processUpdate();
 };

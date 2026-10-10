@@ -35,8 +35,22 @@ void testBuilder() {
 }
 soInsideEventManageModuleBuilder<ftGameWatchInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
 
+// Module 27 helpers called by onDeactivate (defined elsewhere).
+extern "C" void fn_27_1FF0C(u8* p);
+extern "C" void fn_27_1FFCC(u8* p);
+
+
 // Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
 extern "C" {
+
+// ftGameWatch::getExtendParam: pointer loaded from the object tail, plus 0x7C.
+u8* fn_107_A8C4(u8* p) { return *(u8**)(p + 0x1FDB8) + 0x7C; }
+
+// ftGameWatch::onDeactivate: two sub-object teardown calls on the same member.
+void fn_107_AB10(u8* p) {
+    fn_27_1FF0C(p + 0x1FDBC);
+    fn_27_1FFCC(p + 0x1FDBC);
+}
 
 u8 fn_107_8720(u8* p) { return *(u8*)(p + 0x4); }
 void fn_107_A810() {}

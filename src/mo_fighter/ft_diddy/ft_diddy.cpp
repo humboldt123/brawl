@@ -22,6 +22,58 @@ ftDiddy::ftDiddy(s32 entryId,
     // TODO
 }
 
+// Shared-class destructors and accessors that this module emits itself (same pattern as ft_marth.cpp).
+#pragma dont_inline on
+soResourceIdAccesser::~soResourceIdAccesser() { }
+#pragma dont_inline off
+ftKineticEnergyController::~ftKineticEnergyController() { }
+#ifndef FT_REL_LINK_EXTERN // with FT_REL_LINK_EXTERN the queue destructor is the sora_melee function (ft_dol_instances.h)
+template soArrayVector<s32, 8>::~soArrayVector();
+#endif
+soStatusModuleImpl::~soStatusModuleImpl() { }
+#pragma dont_inline on
+ftVirtualNodeMatrixPool::~ftVirtualNodeMatrixPool() { }
+#pragma dont_inline off
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
+
+ftDiddy::~ftDiddy() { }
+
+void ftDiddy::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) {
+    // Entering the two Peanut/Barrel-held states tells the linked articles about the change.
+    switch (statusKind) {
+    case 0x119: {
+        ftDiddyLinkEvent event(0x838);
+        moduleAccesser->getLinkModule().sendEventNodes(1, event, 0);
+        break;
+    }
+    case 0x11a: {
+        ftDiddyLinkEvent event(0x839);
+        moduleAccesser->getLinkModule().sendEventNodes(1, event, 0);
+        break;
+    }
+    }
+    Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
+}
+
+void ftDiddy::notifyEventOnDamage(soDamage* damage, bool isDamage, soModuleAccesser* moduleAccesser) {
+    if (isDamage) {
+        // Taking a hit outside the two Diddy-specific statuses clears the work flags of the gun and barrel states.
+        if (moduleAccesser->getStatusModule().getStatusKind() != 0x125 &&
+            moduleAccesser->getStatusModule().getStatusKind() != 0x127) {
+            m_moduleAccesser->getWorkManageModule().offFlag(0x1200003d);
+            m_moduleAccesser->getWorkManageModule().setInt(0, 0x10000040);
+        }
+        m_moduleAccesser->getWorkManageModule().offFlag(0x1200003e);
+        m_moduleAccesser->getWorkManageModule().offFlag(0x1200003f);
+    }
+    Fighter::notifyEventOnDamage(damage, isDamage, moduleAccesser);
+}
+
 // FIXME: Test code present only to emit the shared builder functions; delete once ftDiddy is done
 void testBuilder() {
     soInsideEventManageModuleBuilder<ftDiddyInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;

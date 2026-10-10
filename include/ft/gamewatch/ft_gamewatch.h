@@ -51,10 +51,14 @@ public:
 };
 
 class ftGameWatch : public ftFighterBuilder<ftGameWatchBuildConfig> {
-    u8 unkTail[0x1FDE4 - sizeof(ftFighterBuilder<ftGameWatchBuildConfig>)];
+    u8 unkTail[0x1FDA8 - sizeof(ftFighterBuilder<ftGameWatchBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable; // 0x1FDA8, 0x10 bytes
+    u8* unk1FDB8;
+    u8 unk1FDBC[0x28];
 public:
     ftGameWatch(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
 };
+static_assert(sizeof(ftGameWatch) == 0x1FDE4, "Class is the wrong size!");
