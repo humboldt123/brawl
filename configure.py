@@ -5916,7 +5916,15 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_stage/st_plankton/st_plankton.cpp"),
+            Object(NonMatching, "mo_stage/st_plankton/gr_plankton_bg.cpp"),
+            Object(NonMatching, "mo_stage/st_plankton/gr_plankton_flower.cpp"),
+            Object(NonMatching, "mo_stage/st_plankton/gr_plankton_ashiba.cpp"),
+            Object(NonMatching, "mo_stage/st_plankton/gr_plankton_ashiba_left.cpp"),
+            Object(NonMatching, "mo_stage/st_plankton/gr_plankton_hanenbou.cpp"),
+            Object(NonMatching, "mo_stage/st_plankton/gr_plankton_hamon.cpp"),
+        ],
     },
     {
         "lib": "st_stadium",
