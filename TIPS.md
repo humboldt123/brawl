@@ -77,6 +77,7 @@ Things that moved registers, roughly in the order worth trying:
 5. **Add a zero or constant temporary** (`float zero = 0.0f;`) to keep a load order. **MED**
 6. **Named local reference** to break a common subexpression. **MED**
 7. Weaker, seen in Melee: dead reads to keep a value live (`(void) a[i];`), an empty `if (x) {}`, self-assignment, the comma operator `(0, expr)`. All hacks: tag `// MATCH-ONLY:` with the reason. **MED**
+- **Equal-size vector temporaries cycle through the wrong stack slots:** give the kinetic reset vector a named local declared before the earlier deformation vector, then initialize its fields immediately before `resetEnergy`. Declaring it only at the reset call was insufficient. This matched Puff Rollout hit recovery without padding or a new helper. Seen: `ft_purin_status_uniq_process_special_n.cpp`. **HIGH**
 - **Stack frame size is wrong:** `PAD_STACK(n)`-style unused arrays, or expand a hand-inlined helper (Melee `placeholder.h`). Note that initialized padding creates fake `.rodata`. **HIGH** in Melee
 - **Argument evaluation / load order:** an extra reference or temporary of the first-loaded value sometimes moves it (`so_kinetic_energy_normal.cpp`). Some cases never yielded (`fn_106_D4E4`); stop after a few tries and leave a note.
 - **Tail calls:** `return f(x)` at -O4 is `b f`; a virtual tail call ends in `bctr` with no `blr`.

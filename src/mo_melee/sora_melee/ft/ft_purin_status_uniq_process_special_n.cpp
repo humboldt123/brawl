@@ -183,7 +183,7 @@ void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
     while (angle < 0.0f) {
         angle += 6.2831855f;
     }
-    while (6.2831855f < angle) {
+    while (angle > 6.2831855f) {
         angle -= 6.2831855f;
     }
     acc->getWorkManageModule().setFloat(angle, 0x21000006);
@@ -307,12 +307,14 @@ void ftPurinStatusUniqProcessSpecialNHoldMax::execStatus(soModuleAccesser* acc) 
     float charge = acc->getWorkManageModule().getFloat(0x21000005);
     float increment = acc->getConstantFloatKirby(0xfba) * 0.017453292f;
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
-    angle += (charge * increment) * direction;
+    float phaseStep = charge * increment;
+    phaseStep *= direction;
+    angle += phaseStep;
     // The phase is stored in radians, while model-node rotation uses degrees.
     while (angle < 0.0f) {
         angle += 6.2831855f;
     }
-    while (6.2831855f < angle) {
+    while (angle > 6.2831855f) {
         angle -= 6.2831855f;
     }
     acc->getWorkManageModule().setFloat(angle, 0x21000006);
@@ -496,16 +498,18 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
     acc->getWorkManageModule().setFloat(0.0f, 0x21000009);
     Vec3f scale(1.0f, 1.0f, 1.0f);
     int frame = acc->getWorkManageModule().getInt(0x20000002);
-    if (frame < 0 || frame > 3) {
-        scale = Vec3f(1.0f, 1.0f, 1.0f);
-    } else {
-        scale.m_y *= lbl_27_data_A2010[frame];
+    if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
+        scale.m_y *= lbl_27_data_A2010[frame];
         scale.m_z *= lbl_27_data_A2020[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
+    } else {
+        scale.m_x = 1.0f;
+        scale.m_y = 1.0f;
+        scale.m_z = 1.0f;
     }
-    int scaleNode = acc->getStageObject().soGetSubKind() == 5 ? 0x196 : 3;
-    acc->getModelModule().setNodeScale(scaleNode, &scale);
+    int scaleKind = acc->getStageObject().soGetSubKind();
+    acc->getModelModule().setNodeScale(scaleKind == 5 ? 0x196 : 3, &scale);
     float oldAngle = acc->getWorkManageModule().getFloat(0x21000006);
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
     float increment = (acc->getConstantFloatKirby(0xfb6) * 0.2f) * direction;
@@ -520,26 +524,29 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
     while (newAngle < 0.0f) {
         newAngle += 6.2831855f;
     }
-    while (6.2831855f < newAngle) {
+    while (newAngle > 6.2831855f) {
         newAngle -= 6.2831855f;
     }
     acc->getWorkManageModule().setFloat(newAngle, 0x21000006);
     acc->getWorkManageModule().subInt(1, 0x20000000);
     // Finish only after the timed roll crosses the recovery phase of its rotation.
-    if (acc->getWorkManageModule().getInt(0x20000000) < 1 &&
-        1.5707964f < newAngle && newAngle < 4.712389f) {
-        if (increment <= 0.0f) {
-            if (newAngle < 3.1415927f && 3.1415927f < oldAngle) {
+    if (acc->getWorkManageModule().getInt(0x20000000) <= 0 &&
+        newAngle > 1.5707964f && newAngle < 4.712389f) {
+        if (increment > 0.0f) {
+            if (newAngle > 3.1415927f && oldAngle < 3.1415927f) {
                 acc->getWorkManageModule().setInt(0, 0x20000000);
                 acc->getWorkManageModule().onFlag(0x22000015);
             }
-        } else if (3.1415927f < newAngle && oldAngle < 3.1415927f) {
-            acc->getWorkManageModule().setInt(0, 0x20000000);
-            acc->getWorkManageModule().onFlag(0x22000015);
+        } else {
+            if (newAngle < 3.1415927f && oldAngle > 3.1415927f) {
+                acc->getWorkManageModule().setInt(0, 0x20000000);
+                acc->getWorkManageModule().onFlag(0x22000015);
+            }
         }
     }
     float stick = acc->getControllerModule().getStickX();
-    if (acc->getConstantFloatKirby(0xfab) < __fabsf(stick)) {
+    float stickMagnitude = __fabsf(stick);
+    if (stickMagnitude > acc->getConstantFloatKirby(0xfab)) {
         float desiredDirection = stick > 0.0f ? 1.0f : -1.0f;
         if (desiredDirection != acc->getWorkManageModule().getFloat(0x2100000a)) {
             acc->getCollisionAttackModule().clearAll();
@@ -553,7 +560,7 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
         }
     }
     if (situation == Situation_Ground) {
-        if (previous != Situation_Ground) {
+        if (situation != previous) {
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
             dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
             Vec2f speed;
@@ -572,28 +579,32 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
         float minimum = acc->getConstantFloatKirby(0xfbd);
         float charge = work.getFloat(0x21000005) - minimum;
         charge = acc->getConstantFloatKirby(0xfbf) * charge;
-        float horizontal = work.getFloat(0x2100000a) * charge;
+        charge = work.getFloat(0x2100000a) * charge;
+        float horizontal = charge;
         Vec2f normal;
         Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0));
         float slopeSpeed = __fabsf(normal.m_x * horizontal);
         float slopeFactor = acc->getConstantFloatKirby(0xfc1);
+        float slopeCorrection = slopeSpeed * slopeFactor;
         if (normal.m_x > 0.0f) {
-            horizontal += slopeSpeed * slopeFactor;
+            horizontal += slopeCorrection;
         } else {
-            horizontal -= slopeSpeed * slopeFactor;
+            horizontal -= slopeCorrection;
         }
-        if (acc->getConstantFloatKirby(0xfa4) < __fabsf(horizontal)) {
-            if (horizontal >= 0.0f) {
-                horizontal = acc->getConstantFloatKirby(0xfa4);
-            } else {
+        float magnitudeBeforeFirstLimit = __fabsf(horizontal);
+        if (magnitudeBeforeFirstLimit > acc->getConstantFloatKirby(0xfa4)) {
+            if (horizontal < 0.0f) {
                 horizontal = -acc->getConstantFloatKirby(0xfa4);
+            } else {
+                horizontal = acc->getConstantFloatKirby(0xfa4);
             }
         }
-        if (acc->getConstantFloatKirby(0xfa5) < __fabsf(horizontal)) {
-            if (horizontal >= 0.0f) {
-                horizontal = acc->getConstantFloatKirby(0xfa5);
-            } else {
+        float magnitudeBeforeSecondLimit = __fabsf(horizontal);
+        if (magnitudeBeforeSecondLimit > acc->getConstantFloatKirby(0xfa5)) {
+            if (horizontal < 0.0f) {
                 horizontal = -acc->getConstantFloatKirby(0xfa5);
+            } else {
+                horizontal = acc->getConstantFloatKirby(0xfa5);
             }
         }
         acc->getWorkManageModule().setFloat(__fabsf(horizontal), 0x21000007);
@@ -607,16 +618,18 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
         float minimum = acc->getConstantFloatKirby(0xfbd);
         float charge = work.getFloat(0x21000005) - minimum;
         charge = acc->getConstantFloatKirby(0xfbf) * charge;
-        float horizontal = work.getFloat(0x2100000a) * charge;
+        charge = work.getFloat(0x2100000a) * charge;
+        float horizontal = charge;
         float brake;
-        if (horizontal <= 0.0f) {
-            brake = -acc->getConstantFloatKirby(0xfa7);
-        } else {
+        if (horizontal > 0.0f) {
             brake = acc->getConstantFloatKirby(0xfa7);
+        } else {
+            brake = -acc->getConstantFloatKirby(0xfa7);
         }
         horizontal -= brake;
-        if (__fabsf(horizontal) < acc->getConstantFloatKirby(0xfa8)) {
-            float direction = horizontal >= 0.0f ? 1.0f : -1.0f;
+        float horizontalMagnitude = __fabsf(horizontal);
+        if (horizontalMagnitude < acc->getConstantFloatKirby(0xfa8)) {
+            float direction = horizontal < 0.0f ? -1.0f : 1.0f;
             horizontal = direction * acc->getConstantFloatKirby(0xfa8);
         }
         stop.m_speed = Vec2f(horizontal, 0.0f);
@@ -817,16 +830,18 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
     acc->getWorkManageModule().setFloat(0.0f, 0x21000009);
     Vec3f scale(1.0f, 1.0f, 1.0f);
     int frame = acc->getWorkManageModule().getInt(0x20000002);
-    if (frame < 0 || frame > 3) {
-        scale = Vec3f(1.0f, 1.0f, 1.0f);
-    } else {
-        scale.m_y *= lbl_27_data_A2010[frame];
+    if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
+        scale.m_y *= lbl_27_data_A2010[frame];
         scale.m_z *= lbl_27_data_A2020[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
+    } else {
+        scale.m_x = 1.0f;
+        scale.m_y = 1.0f;
+        scale.m_z = 1.0f;
     }
-    int scaleNode = acc->getStageObject().soGetSubKind() == 5 ? 0x196 : 3;
-    acc->getModelModule().setNodeScale(scaleNode, &scale);
+    int scaleKind = acc->getStageObject().soGetSubKind();
+    acc->getModelModule().setNodeScale(scaleKind == 5 ? 0x196 : 3, &scale);
     float oldAngle = acc->getWorkManageModule().getFloat(0x21000006);
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
     float increment = (acc->getConstantFloatKirby(0xfb6) * 0.2f) * direction;
@@ -841,16 +856,16 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
     while (newAngle < 0.0f) {
         newAngle += 6.2831855f;
     }
-    while (6.2831855f < newAngle) {
+    while (newAngle > 6.2831855f) {
         newAngle -= 6.2831855f;
     }
     acc->getWorkManageModule().setFloat(newAngle, 0x21000006);
     acc->getWorkManageModule().subInt(1, 0x20000000);
     // Finish only after the timed roll crosses the recovery phase of its rotation.
-    if (acc->getWorkManageModule().getInt(0x20000000) < 1 &&
-        1.5707964f < newAngle && newAngle < 4.712389f) {
-        if (increment <= 0.0f) {
-            if (newAngle < 3.1415927f && 3.1415927f < oldAngle) {
+    if (acc->getWorkManageModule().getInt(0x20000000) <= 0 &&
+        newAngle > 1.5707964f && newAngle < 4.712389f) {
+        if (increment > 0.0f) {
+            if (newAngle > 3.1415927f && oldAngle < 3.1415927f) {
                 acc->getWorkManageModule().setInt(0, 0x20000000);
                 acc->getCollisionAttackModule().clearAll();
                 if (acc->getStageObject().soGetSubKind() == 5) {
@@ -860,19 +875,22 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
                 }
                 keepRotating = false;
             }
-        } else if (3.1415927f < newAngle && oldAngle < 3.1415927f) {
-            acc->getWorkManageModule().setInt(0, 0x20000000);
-            acc->getCollisionAttackModule().clearAll();
-            if (acc->getStageObject().soGetSubKind() == 5) {
-                acc->getStatusModule().changeStatusRequest(0x18a, acc);
-            } else {
-                acc->getStatusModule().changeStatusRequest(0x11c, acc);
+        } else {
+            if (newAngle < 3.1415927f && oldAngle > 3.1415927f) {
+                acc->getWorkManageModule().setInt(0, 0x20000000);
+                acc->getCollisionAttackModule().clearAll();
+                if (acc->getStageObject().soGetSubKind() == 5) {
+                    acc->getStatusModule().changeStatusRequest(0x18a, acc);
+                } else {
+                    acc->getStatusModule().changeStatusRequest(0x11c, acc);
+                }
+                keepRotating = false;
             }
-            keepRotating = false;
         }
     }
     float stick = acc->getControllerModule().getStickX();
-    if (acc->getConstantFloatKirby(0xfab) < __fabsf(stick)) {
+    float stickMagnitude = __fabsf(stick);
+    if (stickMagnitude > acc->getConstantFloatKirby(0xfab)) {
         float desiredDirection = stick > 0.0f ? 1.0f : -1.0f;
         if (desiredDirection != acc->getWorkManageModule().getFloat(0x2100000a)) {
             acc->getCollisionAttackModule().clearAll();
@@ -886,7 +904,7 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
         }
     }
     if (situation == Situation_Ground) {
-        if (previous != Situation_Ground) {
+        if (situation != previous) {
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
             dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
             Vec2f speed;
@@ -905,28 +923,32 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
         float minimum = acc->getConstantFloatKirby(0xfbd);
         float charge = work.getFloat(0x21000005) - minimum;
         charge = acc->getConstantFloatKirby(0xfbf) * charge;
-        float horizontal = work.getFloat(0x2100000a) * charge;
+        charge = work.getFloat(0x2100000a) * charge;
+        float horizontal = charge;
         Vec2f normal;
         Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0));
         float slopeSpeed = __fabsf(normal.m_x * horizontal);
         float slopeFactor = acc->getConstantFloatKirby(0xfc1);
+        float slopeCorrection = slopeSpeed * slopeFactor;
         if (normal.m_x > 0.0f) {
-            horizontal += slopeSpeed * slopeFactor;
+            horizontal += slopeCorrection;
         } else {
-            horizontal -= slopeSpeed * slopeFactor;
+            horizontal -= slopeCorrection;
         }
-        if (acc->getConstantFloatKirby(0xfa4) < __fabsf(horizontal)) {
-            if (horizontal >= 0.0f) {
-                horizontal = acc->getConstantFloatKirby(0xfa4);
-            } else {
+        float magnitudeBeforeFirstLimit = __fabsf(horizontal);
+        if (magnitudeBeforeFirstLimit > acc->getConstantFloatKirby(0xfa4)) {
+            if (horizontal < 0.0f) {
                 horizontal = -acc->getConstantFloatKirby(0xfa4);
+            } else {
+                horizontal = acc->getConstantFloatKirby(0xfa4);
             }
         }
-        if (acc->getConstantFloatKirby(0xfa5) < __fabsf(horizontal)) {
-            if (horizontal >= 0.0f) {
-                horizontal = acc->getConstantFloatKirby(0xfa5);
-            } else {
+        float magnitudeBeforeSecondLimit = __fabsf(horizontal);
+        if (magnitudeBeforeSecondLimit > acc->getConstantFloatKirby(0xfa5)) {
+            if (horizontal < 0.0f) {
                 horizontal = -acc->getConstantFloatKirby(0xfa5);
+            } else {
+                horizontal = acc->getConstantFloatKirby(0xfa5);
             }
         }
         acc->getWorkManageModule().setFloat(__fabsf(horizontal), 0x21000007);
@@ -940,16 +962,18 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
         float minimum = acc->getConstantFloatKirby(0xfbd);
         float charge = work.getFloat(0x21000005) - minimum;
         charge = acc->getConstantFloatKirby(0xfbf) * charge;
-        float horizontal = work.getFloat(0x2100000a) * charge;
+        charge = work.getFloat(0x2100000a) * charge;
+        float horizontal = charge;
         float brake;
-        if (horizontal <= 0.0f) {
-            brake = -acc->getConstantFloatKirby(0xfa7);
-        } else {
+        if (horizontal > 0.0f) {
             brake = acc->getConstantFloatKirby(0xfa7);
+        } else {
+            brake = -acc->getConstantFloatKirby(0xfa7);
         }
         horizontal -= brake;
-        if (__fabsf(horizontal) < acc->getConstantFloatKirby(0xfa8)) {
-            float direction = horizontal >= 0.0f ? 1.0f : -1.0f;
+        float horizontalMagnitude = __fabsf(horizontal);
+        if (horizontalMagnitude < acc->getConstantFloatKirby(0xfa8)) {
+            float direction = horizontal < 0.0f ? -1.0f : 1.0f;
             horizontal = direction * acc->getConstantFloatKirby(0xfa8);
         }
         stop.m_speed = Vec2f(horizontal, 0.0f);
@@ -1172,28 +1196,30 @@ void ftPurinStatusUniqProcessSpecialNTurn::execStatus(soModuleAccesser* acc) {
     bool keepRotating = true;
     Vec3f scale(1.0f, 1.0f, 1.0f);
     int frame = acc->getWorkManageModule().getInt(0x20000002);
-    if (frame < 0 || frame > 3) {
-        scale = Vec3f(1.0f, 1.0f, 1.0f);
-    } else {
-        scale.m_y *= lbl_27_data_A2010[frame];
+    if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
+        scale.m_y *= lbl_27_data_A2010[frame];
         scale.m_z *= lbl_27_data_A2020[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
+    } else {
+        scale.m_x = 1.0f;
+        scale.m_y = 1.0f;
+        scale.m_z = 1.0f;
     }
-    int scaleNode = acc->getStageObject().soGetSubKind() == 5 ? 0x196 : 3;
-    acc->getModelModule().setNodeScale(scaleNode, &scale);
+    int scaleKind = acc->getStageObject().soGetSubKind();
+    acc->getModelModule().setNodeScale(scaleKind == 5 ? 0x196 : 3, &scale);
     float angle = acc->getWorkManageModule().getFloat(0x21000006);
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
     angle += (acc->getConstantFloatKirby(0xfac) * 0.2f) * direction;
     while (angle < 0.0f) {
         angle += 6.2831855f;
     }
-    while (6.2831855f < angle) {
+    while (angle > 6.2831855f) {
         angle -= 6.2831855f;
     }
     acc->getWorkManageModule().setFloat(angle, 0x21000006);
     acc->getWorkManageModule().subInt(1, 0x20000000);
-    if (acc->getWorkManageModule().getInt(0x20000000) < 1) {
+    if (acc->getWorkManageModule().getInt(0x20000000) <= 0) {
         acc->getWorkManageModule().subInt(0, 0x20000000);
         float lr = acc->getWorkManageModule().getFloat(0x2100000a);
         acc->getWorkManageModule().setFloat(-lr, 0x2100000a);
@@ -1206,7 +1232,7 @@ void ftPurinStatusUniqProcessSpecialNTurn::execStatus(soModuleAccesser* acc) {
         keepRotating = false;
     }
     if (situation == Situation_Ground) {
-        if (previous != Situation_Ground) {
+        if (situation != previous) {
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
             (void)dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
             Vec2f currentSpeed;
@@ -1312,24 +1338,29 @@ void ftPurinStatusUniqProcessSpecialNTurn::execStop(soModuleAccesser* acc) {
 }
 void ftPurinStatusUniqProcessSpecialNTurn::exitStatus(soModuleAccesser*, int) { }
 void ftPurinStatusUniqProcessSpecialNTurn::updateKineticTurnGround(soModuleAccesser* acc) {
+    // MATCH-ONLY: declaration order retains the native floating-point registers.
+    float slope;
+    float friction;
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
     Vec2f speed;
     Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    float nextSpeed = speed.m_x;
     soGroundModule& ground = acc->getGroundModule();
     float frictionFactor = acc->getConstantFloatKirby(0xfc0);
-    float friction = ground.getDownFriction(0) * frictionFactor;
+    float downFriction = ground.getDownFriction(0);
+    friction = downFriction * frictionFactor;
     float acceleration = acc->getWorkManageModule().getFloat(0x21000008);
     Vec2f normal;
     Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0));
-    float slope = __fabsf(normal.m_x);
+    slope = __fabsf(normal.m_x);
     float slopeFactor = acc->getConstantFloatKirby(0xfc1);
-    float correction = (acceleration * slope) * slopeFactor;
+    float correction = acceleration * slope;
+    float slopeCorrection = correction * slopeFactor;
     // Surface slope adjusts the braking acceleration used while reversing.
-    float nextSpeed;
     if (normal.m_x > 0.0f) {
-        nextSpeed = speed.m_x + friction * (acceleration + correction);
+        nextSpeed += friction * (acceleration + slopeCorrection);
     } else {
-        nextSpeed = speed.m_x + friction * (acceleration - correction);
+        nextSpeed += friction * (acceleration - slopeCorrection);
     }
     stop.m_speed = Vec2f(nextSpeed, 0.0f);
     acc->getWorkManageModule().setFloat(nextSpeed, 0x21000010);
@@ -1359,7 +1390,8 @@ void ftPurinStatusUniqProcessSpecialNEnd::initStatus(soModuleAccesser* acc) {
     if (acc->getSituationModule().getKind() == Situation_Ground) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
         float horizontal = speed.m_x * acc->getConstantFloatKirby(0xfb4);
-        stop.resetEnergy(0, &Vec2f(horizontal, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+        Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
+        stop.resetEnergy(0, &Vec2f(horizontal, 0.0f), &groundResetRotation, acc);
         stop.onConsiderGroundFriction();
         stop.enable();
         ftKineticEnergyDisableAndClear(1, acc);
@@ -1368,21 +1400,23 @@ void ftPurinStatusUniqProcessSpecialNEnd::initStatus(soModuleAccesser* acc) {
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
         float horizontal = speed.m_x * acc->getConstantFloatKirby(0xfb4);
         float vertical = speed.m_y * acc->getConstantFloatKirby(0xfb5);
-        stop.resetEnergy(6, &Vec2f(horizontal, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+        Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
+        stop.resetEnergy(6, &Vec2f(horizontal, 0.0f), &airResetRotation, acc);
         stop.enable();
-        gravity.resetEnergy(0, &Vec2f(0.0f, vertical), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+        Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
+        gravity.resetEnergy(0, &Vec2f(0.0f, vertical), &gravityResetRotation, acc);
         gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
         gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
         gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
         gravity.enable();
     }
     Vec3f scale(1.0f, 1.0f, 1.0f);
-    int node = acc->getStageObject().soGetSubKind() == 5 ? 0x196 : 3;
-    acc->getModelModule().setNodeScale(node, &scale);
-    node = acc->getStageObject().soGetSubKind() == 5 ? 0x197 : 4;
-    acc->getModelModule().clearNodeSRT(node);
-    node = acc->getStageObject().soGetSubKind() == 5 ? 0x196 : 3;
-    acc->getModelModule().clearNodeSRT(node);
+    int kind = acc->getStageObject().soGetSubKind();
+    acc->getModelModule().setNodeScale(kind == 5 ? 0x196 : 3, &scale);
+    kind = acc->getStageObject().soGetSubKind();
+    acc->getModelModule().clearNodeSRT(kind == 5 ? 0x197 : 4);
+    kind = acc->getStageObject().soGetSubKind();
+    acc->getModelModule().clearNodeSRT(kind == 5 ? 0x196 : 3);
     acc->getWorkManageModule().setFloat(0.0f, 0x21000009);
     ftKineticEnergyDisableAndClear(2, acc);
     ftKineticEnergyDisableAndClear(0, acc);
@@ -1398,16 +1432,18 @@ void ftPurinStatusUniqProcessSpecialNEnd::execStatus(soModuleAccesser* acc) {
     acc->getWorkManageModule().setFloat(0.0f, 0x21000009);
     Vec3f scale(1.0f, 1.0f, 1.0f);
     int frame = acc->getWorkManageModule().getInt(0x20000002);
-    if (frame < 0 || frame > 3) {
-        scale = Vec3f(1.0f, 1.0f, 1.0f);
-    } else {
-        scale.m_y *= lbl_27_data_A2010[frame];
+    if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
+        scale.m_y *= lbl_27_data_A2010[frame];
         scale.m_z *= lbl_27_data_A2020[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
+    } else {
+        scale.m_x = 1.0f;
+        scale.m_y = 1.0f;
+        scale.m_z = 1.0f;
     }
-    int scaleNode = acc->getStageObject().soGetSubKind() == 5 ? 0x196 : 3;
-    acc->getModelModule().setNodeScale(scaleNode, &scale);
+    int scaleKind = acc->getStageObject().soGetSubKind();
+    acc->getModelModule().setNodeScale(scaleKind == 5 ? 0x196 : 3, &scale);
     if (situation != previous) {
         if (situation == Situation_Ground) {
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
@@ -1465,26 +1501,31 @@ void ftPurinStatusUniqProcessSpecialNHitEnd::initStatus(soModuleAccesser* acc) {
 void ftPurinStatusUniqProcessSpecialNHitEnd::execStatus(soModuleAccesser* acc) {
     SituationKind situation = acc->getSituationModule().getKind();
     acc->getWorkManageModule().getInt(0x20000008);
+    // MATCH-ONLY: this declaration retains the native vector temporary order.
+    Vec3f resetRotation;
     Vec3f scale(1.0f, 1.0f, 1.0f);
     int frame = acc->getWorkManageModule().getInt(0x20000002);
-    if (frame < 0 || frame > 3) {
-        scale = Vec3f(1.0f, 1.0f, 1.0f);
-    } else {
-        scale.m_y *= lbl_27_data_A2010[frame];
+    if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
+        scale.m_y *= lbl_27_data_A2010[frame];
         scale.m_z *= lbl_27_data_A2020[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
+    } else {
+        scale.m_x = 1.0f;
+        scale.m_y = 1.0f;
+        scale.m_z = 1.0f;
     }
-    int scaleNode = acc->getStageObject().soGetSubKind() == 5 ? 0x196 : 3;
-    acc->getModelModule().setNodeScale(scaleNode, &scale);
+    int scaleKind = acc->getStageObject().soGetSubKind();
+    acc->getModelModule().setNodeScale(scaleKind == 5 ? 0x196 : 3, &scale);
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
-    float increment = (acc->getConstantFloatKirby(0xfac) * 0.2f) * direction;
+    float incrementBase = acc->getConstantFloatKirby(0xfac) * 0.2f;
+    float increment = incrementBase * direction;
     float angle = acc->getWorkManageModule().getFloat(0x21000006);
     angle += increment * acc->getConstantFloatKirby(0xfbe);
     while (angle < 0.0f) {
         angle += 6.2831855f;
     }
-    while (6.2831855f < angle) {
+    while (angle > 6.2831855f) {
         angle -= 6.2831855f;
     }
     acc->getWorkManageModule().setFloat(angle, 0x21000006);
@@ -1493,7 +1534,10 @@ void ftPurinStatusUniqProcessSpecialNHitEnd::execStatus(soModuleAccesser* acc) {
     if (speed.m_y <= -acc->getConstantFloatKirby(0xfa1)) {
         if (!acc->getKineticModule().getEnergy(2)->isEnable()) {
             ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*acc->getKineticModule().getEnergy(2));
-            controller.resetEnergy(0, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
+            resetRotation.m_x = 0.0f;
+            resetRotation.m_y = 0.0f;
+            resetRotation.m_z = 0.0f;
+            controller.resetEnergy(0, &Vec2f(speed.m_x, 0.0f), &resetRotation, acc);
             controller.enable();
             ftKineticEnergyDisableAndClear(3, acc);
         }
@@ -1580,8 +1624,9 @@ void ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(float d
     } else {
         position.m_x -= width;
     }
+    position.m_y += __fabsf(up + down) * 0.5f;
     Vec3f rotation(0.0f, 0.0f, wallAngle);
-    Vec3f effectPosition(position.m_x, position.m_y + __fabsf(up + down) * 0.5f, 0.0f);
+    Vec3f effectPosition(position.m_x, position.m_y, 0.0f);
     acc->getEffectModule().req(static_cast<EfID>(9), &effectPosition, &rotation, 1.0f, 0, -1);
     acc->getCameraModule().reqQuake(soCameraModule::Quake_L, acc);
     acc->getControllerModule().setRumble(0x0d, 10, false, -1);
@@ -1589,18 +1634,19 @@ void ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(float d
     Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
     float minimum = acc->getConstantFloatKirby(0xfbd);
     float range = acc->getConstantFloatKirby(0xfb8) - minimum;
-    float threshold = acc->getConstantFloatKirby(0xfbf) * range;
+    float multiplier = acc->getConstantFloatKirby(0xfbf);
+    float threshold = multiplier * range;
     int kind = acc->getStageObject().soGetSubKind();
-    if (__fabsf(speed.m_x) < __fabsf(threshold)) {
+    if (__fabsf(speed.m_x) >= __fabsf(threshold)) {
         if (kind == 5) {
-            acc->getSoundModule().playSE(static_cast<SndID>(0xc29), false, false, 0);
+            acc->getSoundModule().playSE(static_cast<SndID>(0xc2a), false, false, 0);
         } else {
-            acc->getSoundModule().playSE(static_cast<SndID>(0x17a2), false, false, 0);
+            acc->getSoundModule().playSE(static_cast<SndID>(0x17a3), false, false, 0);
         }
     } else if (kind == 5) {
-        acc->getSoundModule().playSE(static_cast<SndID>(0xc2a), false, false, 0);
+        acc->getSoundModule().playSE(static_cast<SndID>(0xc29), false, false, 0);
     } else {
-        acc->getSoundModule().playSE(static_cast<SndID>(0x17a3), false, false, 0);
+        acc->getSoundModule().playSE(static_cast<SndID>(0x17a2), false, false, 0);
     }
 }
 
