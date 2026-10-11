@@ -32,20 +32,6 @@ extern "C" void fn_6_535C(muCollectionViewer* viewer, void* text);
 // scSnapShot::setMotionObj(scene, objects, count) of the module sora_scene
 extern "C" void fn_1_7A94(scSnapShot* scene, MuObject** objects, int count);
 
-// A name of a model or of an animation: it is built by copying and adding to it.
-// HYPOTHESIS: the copies follow from the way the compiler copies a 0x41 byte structure around.
-struct muSnapShotName {
-    char m_str[0x41];
-
-    muSnapShotName() { }
-    muSnapShotName(const char* str) {
-        m_str[0] = 0;
-        strcat(m_str, str);
-    }
-    void addNumber(int number) { sprintf(m_str + strlen(m_str), "%d", number); }
-    void addSeparator() { strcat(m_str, "__"); }
-};
-
 // The text of a notice: the data and how much of it is used.
 struct muSnapShotNotice {
     char m_data[0x200];
@@ -125,19 +111,19 @@ void muSnapShotTask::loadResource() {
 
 void muSnapShotTask::createModel() {
     fn_6_1260(this, "Snap");
-    static muSnapShotName sName("MenSnapPhoto2_TopN");
+    static muCollectionName sName("MenSnapPhoto2_TopN");
     changePicAnim(sName.m_str, 1, m_work);
     fn_1_7A94(getWork()->m_scene, &m_work->m_objs[0], 0x19);
     MuObject* object = m_work->m_objs[24];
     const u8* resData = *reinterpret_cast<u8* const*>(&object->m_resMdl);
     int nameOffset = *reinterpret_cast<const int*>(resData + 0x3C);
     const char* resName = nameOffset != 0 ? reinterpret_cast<const char*>(resData + nameOffset) : NULL;
-    muSnapShotName name0(resName);
-    muSnapShotName name1 = name0;
+    muCollectionName name0(resName);
+    muCollectionName name1 = name0;
     name1.addSeparator();
-    muSnapShotName name2 = name1;
+    muCollectionName name2 = name1;
     name2.addNumber(0);
-    muSnapShotName name3 = name2;
+    muCollectionName name3 = name2;
     object->changeVisAnimNIf(name3.m_str);
     callVirtualFloat(*reinterpret_cast<void**>(reinterpret_cast<u8*>(object->m_modelAnim) + 8), 0x28, 0.0f);
     expandPic(1);
@@ -145,7 +131,7 @@ void muSnapShotTask::createModel() {
 
 void muSnapShotTask::onPreCheckFinished() { }
 
-void muSnapShotTask::getMineLabel(muSnapShotMsgBuf* buf) {
+void muSnapShotTask::getMineLabel(muCollectionMsgBuf* buf) {
     void* data = m_work->m_msgFile[0].m_handle.getBuffer();
     u32 size;
     char* text;
@@ -154,21 +140,21 @@ void muSnapShotTask::getMineLabel(muSnapShotMsgBuf* buf) {
 }
 
 void muSnapShotTask::addObjCore(void* obj) {
-    muSnapShotSceneHolder* holder = *getWork()->m_scene->m_holder;
+    muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
     void* root = holder->m_hasScnRoot ? holder->m_scnRoot : NULL;
     u8* vtbl = *reinterpret_cast<u8**>(root);
     (*reinterpret_cast<void (**)(void*, void*, void*)>(vtbl + 0x34))(root, *reinterpret_cast<void**>(reinterpret_cast<u8*>(root) + 0xE4), obj);
 }
 
 void muSnapShotTask::removeObjCore(void* obj) {
-    muSnapShotSceneHolder* holder = *getWork()->m_scene->m_holder;
+    muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
     void* root = holder->m_hasScnRoot ? holder->m_scnRoot : NULL;
     u8* vtbl = *reinterpret_cast<u8**>(root);
     (*reinterpret_cast<void (**)(void*, void*)>(vtbl + 0x3C))(root, obj);
 }
 
 void* muSnapShotTask::getScnRoot() {
-    muSnapShotSceneHolder* holder = *getWork()->m_scene->m_holder;
+    muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
     if (holder->m_hasScnRoot) {
         return holder->m_scnRoot;
     }
@@ -283,9 +269,9 @@ void muSnapShotTask::onLoadFailed() { }
 
 void muSnapShotTask::erasePreviewCore() { }
 
-void muSnapShotTask::dispPreviewCore() { }
+void muSnapShotTask::dispPreviewCore(void* info) { }
 
-int muSnapShotTask::dispThumbnail() {
+int muSnapShotTask::dispThumbnail(MuObject* object, void* summary) {
     return 0;
 }
 

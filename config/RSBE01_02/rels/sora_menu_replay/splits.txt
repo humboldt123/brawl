@@ -6,6 +6,12 @@ Sections:
 	.data       type:data align:32
 	.bss        type:bss align:8
 
+mo_menu/mu_replay.cpp:
+	.text       start:0x00000000 end:0x000015B8
+	.rodata     start:0x00000000 end:0x00000034
+	.data       start:0x00000000 end:0x000006D0
+	.bss        start:0x00000000 end:0x000001D0
+
 mo_menu/mo_menu.cpp:
 	.text       start:0x000015B8 end:0x00001654
 	.data       start:0x000006D0 end:0x000006DC
