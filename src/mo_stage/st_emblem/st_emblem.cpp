@@ -57,17 +57,6 @@ stEmblem::stEmblem() : stMelee("stEmblem", Stages::Emblem) {
     unk804 = 0.0;
     unk808 = 0.0;
     resetChangeScene();
-
-//    bool m_show_dogfight: 1;
-    s32 ambientSnd;
-    s32 unkSnd728;
-    float rockTimer;
-    float rockFixTime;
-    char padding[0xC];
-    s32 quakeSnd;
-    u8 m_eventType;
-//    StSeUtil::SeSeqInstance<2, 2> m_se_player;
-//    StSeUtil::SeSeqInstance<2, 2> m_se_player2;
 }
 
 stEmblem::~stEmblem() {

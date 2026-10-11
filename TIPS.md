@@ -4,6 +4,15 @@ Compiler quirks and matching tricks that keep costing time. Each entry is "what 
 
 The same assembly can come from very different C++ (`add r3,r3,r4` could be `x + y` or a pointer-offset helper). Matching bytes is not enough: pick the version that fits how the game is structured, name things by evidence, and tag guesses with `// HYPOTHESIS:` and match-only hacks with `// MATCH-ONLY:`.
 
+## Source review before accepting a match
+
+Adapted from [decomp-triage](https://github.com/KakarottoCake/decomp-triage/tree/ccdf17ba8ad68f4615fe0aef3db523dcd7f906bf), reviewed against Brawl main `8310c2ff`. These checks are advisory evidence prompts, not automatic verdicts.
+
+- **Raw offsets and flattened copies:** verify the receiver, member extent, access width and callers. Use existing typed members when they describe the observed accesses; keep unknown names `unkN`. Casting an entire structure to a float array can cross non-float fields and hides its layout. `hkMotion::getMotionStateAndVelocities` is a review example. **HIGH**
+- **Padding and helpers:** distinguish an unused local added to alter the frame from real structure padding. A one-use helper can be a useful abstraction, and an unreferenced symbol can have been dead-stripped. Check source provenance, maps and linked output before deleting it. Neither a helper count nor a regex establishes authenticity. **HIGH**
+- **Bytes, relocations and availability:** compare relocation targets as well as instruction bytes. Identical relocatable call instructions can name different callees. Missing objects are unavailable evidence, not exact functions or cheap dependency leaves. Keep drafted, object-exact and source-linked progress separate; retain the full 127-output gate and original module/address/size regression comparison. **HIGH**
+- **Variant generators require semantic review:** the reviewed generator proposed `x != 0` -> `x == TRUE` for an integer (different at `x = 2`), and reassociated `float a + b + c` despite its integer-only description. Check boolean domains, evaluation order, overflow, aliasing and floating-point rounding before trying a rewrite; a higher percentage does not validate it. **HIGH** (reproduced on the cited revision)
+
 ## 0. Check the build flags before the C++
 - If a whole class of units is off the same way (scheduling, stack frames, extra weak symbols), the compiler flags are the suspect, not the code. Fighters and `sora_enemy` build with `-O2,s`; Havok uses `-RTTI off -use_lmw_stmw on`, some units `-Cpp_exceptions on` or `-inline noauto`; some units `-RTTI off`. Flags are set per unit in `configure.py` (`extra_cflags`). Seen: `cflags_*` in `configure.py`, commit a5cc934 (ft_purin). **HIGH**
 - `-Cpp_exceptions on` makes `.extab/.extabindex` appear; `-RTTI off` removes `__RTTI__` weak data and the dynamic_cast machinery; `-use_lmw_stmw on` gives `lmw/stmw` prologues.
@@ -19,7 +28,7 @@ The same assembly can come from very different C++ (`add r3,r3,r4` could be `x +
 - **A zero-initialized global must live in `.data`:** `#pragma section ".data" ".data"` plus `__declspec(section ".data") s32 X = 0;` (upstream `st_onlinetrainning.cpp`). **MED-HIGH**
 
 ## 2. Inlining
-- A callee that our build inlines but the original calls with `bl`: MWCC inlines by statement count. Padding with dead statements (`if (0) { ... }`) pushes it over the threshold. Seen once with numbers (Melee `ftCo_Guard.c`, 68.76 to 100). **MED**
+- A callee that our build inlines but the original calls with `bl`: verify the callee identity and inlining policy; use the documented `dont_inline` / `never_inline` controls when that boundary is supported. Do not add dead statements merely to exceed the inline threshold. The old dead-statement trick was observed in Melee, not evidence of Brawl source structure. **MED**
 - Template or inline member functions that must exist as separate weak functions: explicit instantiation (`template Elm& Arr::at(s32);`) in a unit split by address range. This is how the `so_array_*` units work. **HIGH**
 - Force a direct (non-virtual) call: qualified name (`p->Base::method()`). **HIGH** (C++ rule)
 - Last resorts: inline `asm {}` with `register` locals, or `nofralloc` asm functions (`mt_matrix.cpp`). Mark with `// MATCH-ONLY:` and a reason.
@@ -34,7 +43,7 @@ The same assembly can come from very different C++ (`add r3,r3,r4` could be `x +
 - **`fcmpu` operands swapped:** try `x != 0.0f` vs `x`, or `0.0f != x`. **HIGH**
 - **A struct copy is `lwz/stw`, a field copy is `lfs/stfs`:** to get word copies, use a union of floats and `u32` pairs (`include/so/templates/so_controller_impl.h`). Tag it `// MATCH-ONLY:`. **HIGH**
 - **`sqrt`/`rsqrt`:** Brawl code calls `rsqrtf(x)` (declared in `mt_common.h`), with a guard against tiny values; see `ft_status_uniq_process_glide.cpp`. **MED-HIGH**
-- `volatile` hacks (`NtSend::task() volatile`) are a last resort. **MED**
+- **Do not add `volatile` merely to pin temporaries or copy order:** it changes observable accesses. Preserve it for hardware, shared-state or other evidenced volatile semantics; for a scalar copy, check typed member assignments and the unit's scheduling policy first. Seen: `src/havok/hkMotion.cpp`. **HIGH** (C++ semantics)
 - **`fmuls` + `fadds` where the original has `fmadds`:** the unit needs `fp_contract on` (`extra_cflags=["-fp_contract on"]` or `#pragma fp_contract on`). Havok math is built this way. Seen: `src/havok/hkVector4.cpp` (0 to 4 of 5 exact), `hkMatrix3`. **HIGH**
 - **`isnan` compares `r3` with 1:** this MSL's `__fpclassifyf` returns `FP_NAN` = 1. nw4r's billboard code guards `VEC3Normalize` this way. Seen: `src/nw4r/g3d/g3d_calcview.cpp`. **MED**
 
@@ -82,13 +91,13 @@ Things that moved registers, roughly in the order worth trying:
    A receiver pointer declared before an owner-ID snapshot can also keep that snapshot loaded before a singleton lookup. R.O.B.'s item cleanup matches with a predeclared `itManager*`, then the task-ID read, then `getInstance()` and `removeItem1(taskId)`; the chained receiver expression deferred the read. Seen: `src/mo_fighter/ft_robot/ft_robot.cpp`. **MED**
 2. **Reference temporaries**, the decomp-permuter's output style: `__typeof__(expr)& tmp0 = expr;`. Fixed several Havok functions. **HIGH**
 3. **Remove or collapse a temporary** into its single use. **HIGH**
-4. **Pre-declare unused temporaries** in the order the original used them (`float y, x;` before computing sin and cos). **MED**
+4. **Declare real temporaries before assigning them** in the observed evaluation order (`float y, x;` before computing sin and cos); do not add values that are never used. **MED**
 5. **Add a zero or constant temporary** (`float zero = 0.0f;`) to keep a load order. **MED**
 6. **Named local reference** to break a common subexpression. **MED**
-7. Weaker, seen in Melee: dead reads to keep a value live (`(void) a[i];`), an empty `if (x) {}`, self-assignment, the comma operator `(0, expr)`. All hacks: tag `// MATCH-ONLY:` with the reason. **MED**
+7. Historical Melee experiments used dead reads, empty conditionals, self-assignment and comma expressions to perturb allocation. Do not transplant these as source reconstruction: recover the real lifetimes and expression order instead. Keep temporary diagnostic experiments outside published source. **MED**
 - **Equal-size vector temporaries cycle through the wrong stack slots:** give the kinetic reset vector a named local declared before the earlier deformation vector, then initialize its fields immediately before `resetEnergy`. Declaring it only at the reset call was insufficient. This matched Puff Rollout hit recovery without padding or a new helper. Seen: `ft_purin_status_uniq_process_special_n.cpp`. **HIGH**
 - **Charge entry has the right calls but cycles three `Vec2f` slots:** name both the ground reset speed and its target-speed copy, and give each zero rotation a named `Vec3f`. This matched Puff’s normal and full-charge entry functions; hoisting only the aerial speed did not. Preserve the reset vector’s construction before its use. Seen: `ft_purin_status_uniq_process_special_n.cpp`. **MED**
-- **Stack frame size is wrong:** `PAD_STACK(n)`-style unused arrays, or expand a hand-inlined helper (Melee `placeholder.h`). Note that initialized padding creates fake `.rodata`. **HIGH** in Melee
+- **Stack frame size is wrong:** first check compiler flags, argument types, inlined callees and real local lifetimes. A temporary padding array can help expose the underlying diff during an external diagnostic experiment; remove it before publishing. A matching frame alone does not justify invented locals. MWCC GC/1.x stack-allocation folklore is unverified for Brawl's GC/3.0a5.2. **HIGH** (review rule; compiler mechanism unverified)
 - **Argument evaluation / load order:** an extra reference or temporary of the first-loaded value sometimes moves it (`so_kinetic_energy_normal.cpp`). Some cases never yielded (`fn_106_D4E4`); stop after a few tries and leave a note.
 - **Tail calls:** `return f(x)` at -O4 is `b f`; a virtual tail call ends in `bctr` with no `blr`.
 - **One- or two-case dispatch on a status kind is a `switch`:** `cmpwi; beq body; b end` (one case) or `cmpwi 0x117; beq; bge end; cmpwi 0x113; beq` (two) is `switch (statusKind) { case ...: ... break; }`, not an if/else chain (`ft_robot_status_uniq_process_special_arm_spin.cpp`). Likewise `cmpwi r3,N; beq .L; b .L` for a single `==` test. **HIGH**

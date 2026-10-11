@@ -2,13 +2,7 @@
 #pragma fp_contract on
 #include <havok/hkMotion.h>
 #include <havok/hkTransform.h>
-
-// Warps and transforms of the swept transform (hkSweptTransformUtil, another TU).
-extern "C" void fn_802870F8(const hkVector4& v, hkMotionState& state);
-extern "C" void fn_80286F98(const hkVector4& v, hkMotionState& state);
-extern "C" void fn_802870E4(const hkQuaternion& q, hkMotionState& state);
-extern "C" void fn_80286C20(const hkVector4& v, const hkQuaternion& q, hkMotionState& state);
-extern "C" void fn_80286D74(const hkTransform& t, hkMotionState& state);
+#include <havok/hkSweptTransformUtil.h>
 
 hkMotion::hkMotion(const hkVector4& position, const hkQuaternion& rotation) {
     // MATCH-ONLY: the zero stores run from w back to x.
@@ -50,23 +44,23 @@ void hkMotion::setMassInv(hkReal massInv) {
 }
 
 void hkMotion::setCenterOfMassInLocal(const hkVector4& com) {
-    fn_802870F8(com, m_motionState);
+    hkSweptTransformUtil::setCentreOfRotationLocal(com, m_motionState);
 }
 
 void hkMotion::setPosition(const hkVector4& position) {
-    fn_80286F98(position, m_motionState);
+    hkSweptTransformUtil::warpToPosition(position, m_motionState);
 }
 
 void hkMotion::setRotation(const hkQuaternion& rotation) {
-    fn_802870E4(rotation, m_motionState);
+    hkSweptTransformUtil::warpToRotation(rotation, m_motionState);
 }
 
 void hkMotion::setPositionAndRotation(const hkVector4& position, const hkQuaternion& rotation) {
-    fn_80286C20(position, rotation, m_motionState);
+    hkSweptTransformUtil::warpTo(position, rotation, m_motionState);
 }
 
 void hkMotion::setTransform(const hkTransform& transform) {
-    fn_80286D74(transform, m_motionState);
+    hkSweptTransformUtil::warpTo(transform, m_motionState);
 }
 
 void hkMotion::setLinearVelocity(const hkVector4& v) {
@@ -86,57 +80,56 @@ void hkMotion::applyLinearImpulse(const hkVector4& impulse) {
     m_linearVelocity.w = massInv * impulse.w + m_linearVelocity.w;
 }
 
-// HYPOTHESIS: out type. MATCH-ONLY: the motion state is copied as 45 individual float words
-// (0x00-0xB0 of hkMotionState), then the two halfword counters, then both velocities.
+// HYPOTHESIS: output type; preserve the observed motion-state and velocity range.
+// MATCH-ONLY: native scalar loads/stores alternate; disable scheduling locally
+// instead of making ordinary motion-state storage volatile.
+#pragma scheduling off
 void hkMotion::getMotionStateAndVelocities(hkMotion* out) const {
-    // MATCH-ONLY: volatile keeps each word copy as a load/store pair in order.
-    const volatile hkReal* s = (const volatile hkReal*)&m_motionState;
-    volatile hkReal* d = (volatile hkReal*)&out->m_motionState;
-    d[0] = s[0];
-    d[1] = s[1];
-    d[2] = s[2];
-    d[3] = s[3];
-    d[4] = s[4];
-    d[5] = s[5];
-    d[6] = s[6];
-    d[7] = s[7];
-    d[8] = s[8];
-    d[9] = s[9];
-    d[10] = s[10];
-    d[11] = s[11];
-    d[12] = s[12];
-    d[13] = s[13];
-    d[14] = s[14];
-    d[15] = s[15];
-    d[16] = s[16];
-    d[17] = s[17];
-    d[18] = s[18];
-    d[19] = s[19];
-    d[20] = s[20];
-    d[21] = s[21];
-    d[22] = s[22];
-    d[23] = s[23];
-    d[24] = s[24];
-    d[25] = s[25];
-    d[26] = s[26];
-    d[27] = s[27];
-    d[28] = s[28];
-    d[29] = s[29];
-    d[30] = s[30];
-    d[31] = s[31];
-    d[32] = s[32];
-    d[33] = s[33];
-    d[34] = s[34];
-    d[35] = s[35];
-    d[36] = s[36];
-    d[37] = s[37];
-    d[38] = s[38];
-    d[39] = s[39];
-    d[40] = s[40];
-    d[41] = s[41];
-    d[42] = s[42];
-    d[43] = s[43];
-    d[44] = s[44];
+    out->m_motionState.m_transform.m_rotation.m_col0.x = m_motionState.m_transform.m_rotation.m_col0.x;
+    out->m_motionState.m_transform.m_rotation.m_col0.y = m_motionState.m_transform.m_rotation.m_col0.y;
+    out->m_motionState.m_transform.m_rotation.m_col0.z = m_motionState.m_transform.m_rotation.m_col0.z;
+    out->m_motionState.m_transform.m_rotation.m_col0.w = m_motionState.m_transform.m_rotation.m_col0.w;
+    out->m_motionState.m_transform.m_rotation.m_col1.x = m_motionState.m_transform.m_rotation.m_col1.x;
+    out->m_motionState.m_transform.m_rotation.m_col1.y = m_motionState.m_transform.m_rotation.m_col1.y;
+    out->m_motionState.m_transform.m_rotation.m_col1.z = m_motionState.m_transform.m_rotation.m_col1.z;
+    out->m_motionState.m_transform.m_rotation.m_col1.w = m_motionState.m_transform.m_rotation.m_col1.w;
+    out->m_motionState.m_transform.m_rotation.m_col2.x = m_motionState.m_transform.m_rotation.m_col2.x;
+    out->m_motionState.m_transform.m_rotation.m_col2.y = m_motionState.m_transform.m_rotation.m_col2.y;
+    out->m_motionState.m_transform.m_rotation.m_col2.z = m_motionState.m_transform.m_rotation.m_col2.z;
+    out->m_motionState.m_transform.m_rotation.m_col2.w = m_motionState.m_transform.m_rotation.m_col2.w;
+    out->m_motionState.m_transform.m_translation.x = m_motionState.m_transform.m_translation.x;
+    out->m_motionState.m_transform.m_translation.y = m_motionState.m_transform.m_translation.y;
+    out->m_motionState.m_transform.m_translation.z = m_motionState.m_transform.m_translation.z;
+    out->m_motionState.m_transform.m_translation.w = m_motionState.m_transform.m_translation.w;
+    out->m_motionState.m_sweptTransform.m_centerOfMass0.x = m_motionState.m_sweptTransform.m_centerOfMass0.x;
+    out->m_motionState.m_sweptTransform.m_centerOfMass0.y = m_motionState.m_sweptTransform.m_centerOfMass0.y;
+    out->m_motionState.m_sweptTransform.m_centerOfMass0.z = m_motionState.m_sweptTransform.m_centerOfMass0.z;
+    out->m_motionState.m_sweptTransform.m_centerOfMass0.w = m_motionState.m_sweptTransform.m_centerOfMass0.w;
+    out->m_motionState.m_sweptTransform.m_centerOfMass1.x = m_motionState.m_sweptTransform.m_centerOfMass1.x;
+    out->m_motionState.m_sweptTransform.m_centerOfMass1.y = m_motionState.m_sweptTransform.m_centerOfMass1.y;
+    out->m_motionState.m_sweptTransform.m_centerOfMass1.z = m_motionState.m_sweptTransform.m_centerOfMass1.z;
+    out->m_motionState.m_sweptTransform.m_centerOfMass1.w = m_motionState.m_sweptTransform.m_centerOfMass1.w;
+    out->m_motionState.m_sweptTransform.m_rotation0.m_vec.x = m_motionState.m_sweptTransform.m_rotation0.m_vec.x;
+    out->m_motionState.m_sweptTransform.m_rotation0.m_vec.y = m_motionState.m_sweptTransform.m_rotation0.m_vec.y;
+    out->m_motionState.m_sweptTransform.m_rotation0.m_vec.z = m_motionState.m_sweptTransform.m_rotation0.m_vec.z;
+    out->m_motionState.m_sweptTransform.m_rotation0.m_vec.w = m_motionState.m_sweptTransform.m_rotation0.m_vec.w;
+    out->m_motionState.m_sweptTransform.m_rotation1.m_vec.x = m_motionState.m_sweptTransform.m_rotation1.m_vec.x;
+    out->m_motionState.m_sweptTransform.m_rotation1.m_vec.y = m_motionState.m_sweptTransform.m_rotation1.m_vec.y;
+    out->m_motionState.m_sweptTransform.m_rotation1.m_vec.z = m_motionState.m_sweptTransform.m_rotation1.m_vec.z;
+    out->m_motionState.m_sweptTransform.m_rotation1.m_vec.w = m_motionState.m_sweptTransform.m_rotation1.m_vec.w;
+    out->m_motionState.m_sweptTransform.m_centerOfMassLocal.x = m_motionState.m_sweptTransform.m_centerOfMassLocal.x;
+    out->m_motionState.m_sweptTransform.m_centerOfMassLocal.y = m_motionState.m_sweptTransform.m_centerOfMassLocal.y;
+    out->m_motionState.m_sweptTransform.m_centerOfMassLocal.z = m_motionState.m_sweptTransform.m_centerOfMassLocal.z;
+    out->m_motionState.m_sweptTransform.m_centerOfMassLocal.w = m_motionState.m_sweptTransform.m_centerOfMassLocal.w;
+    out->m_motionState.m_deltaAngle.x = m_motionState.m_deltaAngle.x;
+    out->m_motionState.m_deltaAngle.y = m_motionState.m_deltaAngle.y;
+    out->m_motionState.m_deltaAngle.z = m_motionState.m_deltaAngle.z;
+    out->m_motionState.m_deltaAngle.w = m_motionState.m_deltaAngle.w;
+    out->m_motionState.m_objectRadius = m_motionState.m_objectRadius;
+    out->m_motionState.m_maxLinearVelocity = m_motionState.m_maxLinearVelocity;
+    out->m_motionState.m_maxAngularVelocity = m_motionState.m_maxAngularVelocity;
+    out->m_motionState.m_linearDamping = m_motionState.m_linearDamping;
+    out->m_motionState.m_angularDamping = m_motionState.m_angularDamping;
     out->m_motionState.m_deactivationClass = m_motionState.m_deactivationClass;
     out->m_motionState.m_deactivationCounter = m_motionState.m_deactivationCounter;
     out->m_linearVelocity.x = m_linearVelocity.x;
@@ -148,6 +141,8 @@ void hkMotion::getMotionStateAndVelocities(hkMotion* out) const {
     out->m_angularVelocity.z = m_angularVelocity.z;
     out->m_angularVelocity.w = m_angularVelocity.w;
 }
+
+#pragma scheduling reset
 
 void hkMotion::setDeactivationClass(u16 deactivationClass) {
     m_motionState.m_deactivationClass = deactivationClass;

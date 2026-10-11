@@ -211,10 +211,6 @@ static inline u32 stEditHangSides(u32 desc, u32 x, u32 y) {
     return 0;
 }
 
-static inline bool stEditBlockNeedsStep(u32 desc) {
-    return ((desc >> 18) & 1) == 0 && ((desc & 7) == 2 || (desc & 7) == 5);
-}
-
 inline bool stEdit::getBlockAt(u32 x, u32 y, u32* desc) {
     if (x < m_width && y < m_height) {
         u32 index = m_cellBlock[x][y];
