@@ -1,5 +1,8 @@
 // Local BrawlHeaders shadow: expose fighter-builder constructors and retain
 // full-word masks in the native ground-contact normal/position queries.
+// getTouchFlag and isAttachable also exchange a word-sized mask: the getter
+// builds bits 0..3 and Luigi forwards it without byte narrowing.
+// HYPOTHESIS: int models that ABI; the original mask typedef is unknown.
 #pragma once
 
 #include <StaticAssert.h>
@@ -86,7 +89,7 @@ public:
     virtual Vec2f getTouchSpeed(grCollStatus::TouchMask, u32 index);
     virtual Vec2f getAttachMovementSpeed(u32 index);
     virtual Vec2f getAttachNormal(u32 index);
-    virtual grCollStatus::TouchMask getTouchFlag(u32 index);
+    virtual int getTouchFlag(u32 index);
     virtual grCollisionLine::MaterialType getTouchMaterialType(grCollStatus::TouchMask, u32 index);
     virtual Vec2f getTouchPos(int touchMask, u32 index);
     virtual bool getTouchAttackData(soCollisionAttackData* outAttackData, int* out2, int* out3, u32 index);
@@ -138,7 +141,7 @@ public:
     virtual void setZ(float Z);
     virtual float getZ();
     virtual bool attachGround(u32 index);
-    virtual bool isAttachable(u8, u32 index);
+    virtual bool isAttachable(int touchMask, u32 index);
     virtual void attach(u8, u32 index);
     virtual bool isAttach(u32 index);
     virtual void detach(u32 index);
@@ -262,7 +265,7 @@ public:
     virtual Vec2f getTouchSpeed(grCollStatus::TouchMask, u32 index);
     virtual Vec2f getAttachMovementSpeed(u32 index);
     virtual Vec2f getAttachNormal(u32 index);
-    virtual grCollStatus::TouchMask getTouchFlag(u32 index);
+    virtual int getTouchFlag(u32 index);
     virtual grCollisionLine::MaterialType getTouchMaterialType(grCollStatus::TouchMask, u32 index);
     virtual Vec2f getTouchPos(int touchMask, u32 index);
     virtual bool getTouchAttackData(soCollisionAttackData* outAttackData, int* out2, int* out3, u32 index);
@@ -314,7 +317,7 @@ public:
     virtual void setZ(float Z);
     virtual float getZ();
     virtual bool attachGround(u32 index);
-    virtual bool isAttachable(u8, u32 index);
+    virtual bool isAttachable(int touchMask, u32 index);
     virtual void attach(u8, u32 index);
     virtual bool isAttach(u32 index);
     virtual void detach(u32 index);

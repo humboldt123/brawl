@@ -1888,7 +1888,7 @@ config.libs = [
             Object(NonMatching, "mo_fighter/ft_luigi/ft_luigi_status_uniq_process_special_lw.cpp"),
             Object(NonMatching, "mo_fighter/ft_luigi/ft_luigi.cpp"),
             Object(NonMatching, "mo_fighter/ft_luigi/ft_luigi_kinetic_transactor.cpp"),
-            Object(NonMatching, "mo_fighter/ft_luigi/ft_luigi_status_special_s_ram.cpp"),
+            Object(Matching, "mo_fighter/ft_luigi/ft_luigi_status_special_s_ram.cpp"),
             Object(Matching, "mo_fighter/ft_luigi/ft_luigi_status_special_s_wall.cpp"),
         ],
     },
