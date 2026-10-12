@@ -27,7 +27,6 @@ extern "C" Vec2f fn_800BA0E0(int direction);
 extern "C" void fn_8003DBA8(Vec2f* vec);
 // GameGlobal::getNameCount() and GameGlobal::getName(number, buffer): the names that were saved
 extern "C" int fn_8004D148(GameGlobal* global);
-extern "C" void fn_8004D6C4(GameGlobal* global, int number, char* buffer);
 // MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
 extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // gfSceneRoot::layerUpdateFrame(layer), gfSceneRoot::removeInfoCamResAnm() and gfSceneRoot::setInfoCamResAnm(animation)
@@ -52,37 +51,6 @@ extern "C" bool SetVisibilityEx__Q44nw4r3g3d6ScnMdl15CopiedVisAccessFb(nw4r::g3d
 // MuObject::getNodeID(name) and MuObject::getNodeAnimLength()
 extern "C" int getNodeID__8MuObjectFPCc(MuObject* object, const char* name);
 extern "C" int getNodeAnimLength__8MuObjectFv(MuObject* object);
-
-// The models of the map: the map (slot 0), the panel (1), the frames (2, 3, 4), the icons of the places (5 ...), the join
-// frame (0x8D), the arrows (0x8E), the cursor (0x8F) and the markers (0x90 ...).
-static const muAdvSelmapModel sModels[] = {
-    {"MenAdvMap0000_TopN", 0, 0, 0x10},
-    {"MenAdvMap0001_TopN", 1, 1, 0x36},
-    {"MenAdvMap0002_TopN", 2, 2, 0x37},
-    {"MenAdvMap0003_TopN", 3, 3, 0x38},
-    {"MenAdvMap0004_TopN", 4, 4, 0x39},
-    {"MenAdvMap0006_TopN", 5, 0x26, 0x11},
-    {"MenAdvMap0007_TopN", 0x27, 0x48, 0x12},
-    {"MenAdvMap0008_TopN", 0x49, 0x6A, 0x13},
-    {"MenAdvMap0009_TopN", 0x6B, 0x8C, 0x14},
-    {"MenAdvMap0010_TopN", 0x8D, 0x8D, 0x3A},
-    {"MenAdvMap0011_TopN", 0x8E, 0x8E, 0x3B},
-    {"MenAdvMap0012_TopN", 0x8F, 0x8F, 0x3C},
-    {"MenAdvMap0013_TopN", 0x90, 0xB1, 0x3D},
-};
-// The models that the other models are attached to: the map and the panel.
-static const muAdvSelmapScnMdl sScnMdls[] = {
-    {0, 0, 0, 0x23},
-    {1, 1, 1, 5},
-};
-
-// The init and main function of each step.
-static const muAdvSelmapTask::StepFunc sStepFuncs[muAdvSelmapTask::Step_Count] = {
-    {muAdvSelmapTask::stepLoadInit, muAdvSelmapTask::stepLoadMain},
-    {muAdvSelmapTask::stepAppearInit, muAdvSelmapTask::stepAppearMain},
-    {muAdvSelmapTask::stepSelectInit, muAdvSelmapTask::stepSelectMain},
-    {muAdvSelmapTask::stepEndInit, muAdvSelmapTask::stepEndMain},
-};
 
 // Whether the menu is finished with what it does for the scene (what it tells the scene is in the result).
 static inline bool isFinished(int result) {
@@ -232,6 +200,14 @@ void muAdvSelmapTask::initProc(const muAdvSelmapTaskParam* param) {
     m_frame = 0;
 }
 
+// The init and main function of each step.
+static const muAdvSelmapTask::StepFunc sStepFuncs[muAdvSelmapTask::Step_Count] = {
+    {muAdvSelmapTask::stepLoadInit, muAdvSelmapTask::stepLoadMain},
+    {muAdvSelmapTask::stepAppearInit, muAdvSelmapTask::stepAppearMain},
+    {muAdvSelmapTask::stepSelectInit, muAdvSelmapTask::stepSelectMain},
+    {muAdvSelmapTask::stepEndInit, muAdvSelmapTask::stepEndMain},
+};
+
 // Makes the texts: the number of fighters and the names of the players.
 void muAdvSelmapTask::initMsg() {
     char name[0x20];
@@ -254,46 +230,10 @@ void muAdvSelmapTask::initMsg() {
     m_msg->setFontType(5, 1);
     m_msg->setFontColor(5, 0xC3, 0xDC, 0xFF, 0xFF);
     if (m_param3 > 0) {
-        fn_8004D6C4(g_GameGlobal, m_param3 - 1, name);
-        char noName[6] = {0x7F, 0x7E, 0x7D, 0x7C, 0x7B, 0};
-        char label2[0x1C];
-        char label1[0x1C];
-        if (GameGlobal::getLanguage() == 0) {
-            sprintf(label1, "1P: ");
-            sprintf(label2, "2P: ");
-        } else {
-            sprintf(label1, "P1: ");
-            sprintf(label2, "P2: ");
-        }
-        if (strcmp(noName, name) == 0) {
-            m_msg->printIndex(4, 0x22, NULL);
-        } else {
-            strcat(label1, name);
-            m_msg->printf(4, label1);
-            strcpy(m_name1, label1);
-        }
+        showPlayerName(0, m_param3, name, 4, 0x22, m_name1);
     }
     if (m_param4 > 0) {
-        fn_8004D6C4(g_GameGlobal, m_param4 - 1, name);
-        char noName[6] = {0x7F, 0x7E, 0x7D, 0x7C, 0x7B, 0};
-        char label2[0x1C];
-        char label1[0x1C];
-        if (GameGlobal::getLanguage() == 0) {
-            sprintf(label1, "1P: ");
-            sprintf(label2, "2P: ");
-        } else {
-            sprintf(label1, "P1: ");
-            sprintf(label2, "P2: ");
-        }
-        if (strcmp(noName, name) == 0) {
-            m_msg->printIndex(5, 0x23, NULL);
-            m_has2P = true;
-        } else {
-            strcat(label2, name);
-            m_msg->printf(5, label2);
-            strcpy(m_name2, label2);
-            m_has2P = true;
-        }
+        showPlayerName(1, m_param4, name, 5, 0x23, m_name2);
     }
     m_msgData = m_archive->getData(0, Data_Type_Misc, 4, 0xFFFE);
 }
@@ -597,12 +537,9 @@ void muAdvSelmapTask::mainProc() {
         if ((pad2.m_buttonsPressedThisFrame.bits & GF_PAD_BUTTON_BIT_B) != 0) {
             if (m_has2P == true) {
                 g_sndSystem->playSE(static_cast<SndID>(0x2052), -1, 0, 0, -1);
-                MuObject* join = m_objects[0x8D];
                 m_result = 0;
                 m_has2P = false;
-                join->changeAnimN("MenAdvMap0010_TopN__0");
-                join->setFrame(0.0f);
-                join->m_modelAnim->setUpdateRate(1.0f);
+                resetJoinFrame();
                 m_msg->printf(5, "");
             } else {
                 g_sndSystem->playSE(static_cast<SndID>(2), -1, 0, 0, -1);
@@ -816,6 +753,29 @@ void muAdvSelmapTask::createExpMdl(const muAdvSelmapScnMdl* models, int count) {
 }
 
 #pragma dont_inline reset
+
+// The models of the map: the map (slot 0), the panel (1), the frames (2, 3, 4), the icons of the places (5 ...), the join
+// frame (0x8D), the arrows (0x8E), the cursor (0x8F) and the markers (0x90 ...).
+static const muAdvSelmapModel sModels[] = {
+    {"MenAdvMap0000_TopN", 0, 0, 0x10},
+    {"MenAdvMap0001_TopN", 1, 1, 0x36},
+    {"MenAdvMap0002_TopN", 2, 2, 0x37},
+    {"MenAdvMap0003_TopN", 3, 3, 0x38},
+    {"MenAdvMap0004_TopN", 4, 4, 0x39},
+    {"MenAdvMap0006_TopN", 5, 0x26, 0x11},
+    {"MenAdvMap0007_TopN", 0x27, 0x48, 0x12},
+    {"MenAdvMap0008_TopN", 0x49, 0x6A, 0x13},
+    {"MenAdvMap0009_TopN", 0x6B, 0x8C, 0x14},
+    {"MenAdvMap0010_TopN", 0x8D, 0x8D, 0x3A},
+    {"MenAdvMap0011_TopN", 0x8E, 0x8E, 0x3B},
+    {"MenAdvMap0012_TopN", 0x8F, 0x8F, 0x3C},
+    {"MenAdvMap0013_TopN", 0x90, 0xB1, 0x3D},
+};
+// The models that the other models are attached to: the map and the panel.
+static const muAdvSelmapScnMdl sScnMdls[] = {
+    {0, 0, 0, 0x23},
+    {1, 1, 1, 5},
+};
 
 // The slot of the model that shows a place: the models are in groups by the kind of the place.
 static inline int getNodeSlot(int kind, int node) {

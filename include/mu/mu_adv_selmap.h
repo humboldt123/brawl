@@ -13,7 +13,15 @@
 #include <mu/mu_resource_loader.h>
 #include <nw4r/g3d/g3d_obj.h>
 #include <nw4r/g3d/g3d_resfile.h>
+#include <gm/gm_global.h>
+#include <stdio.h>
+#include <string.h>
 #include <types.h>
+
+// GameGlobal::getLanguage(): a member function (the shared header declares it static)
+extern "C" int getLanguage__10GameGlobalFv(GameGlobal* global);
+// GameGlobal::getName(number, buffer): the names that were saved
+extern "C" void fn_8004D6C4(GameGlobal* global, int number, char* buffer);
 
 // What the scene gives to the task.
 struct muAdvSelmapTaskParam {
@@ -138,6 +146,45 @@ public:
 
     void initProc(const muAdvSelmapTaskParam* param);
     void initMsg();
+    // Writes the name of a player (the number of the name is given by the scene) with the label of the player ("1P: ", "P2: " ...,
+    // by the language) in the text of the slot, or the text of the message when the name was not set.
+    void showPlayerName(int player, int number, char* name, int slot, int textNo, char* dst) {
+        fn_8004D6C4(g_GameGlobal, number - 1, name);
+        char noName[6] = {0x7F, 0x7E, 0x7D, 0x7C, 0x7B, 0};
+        char label1[0x1C];
+        char label2[0x1C];
+        if (getLanguage__10GameGlobalFv(g_GameGlobal) == 0) {
+            sprintf(label1, "1P: ");
+            sprintf(label2, "2P: ");
+        } else {
+            sprintf(label1, "P1: ");
+            sprintf(label2, "P2: ");
+        }
+        if (strcmp(noName, name) == 0) {
+            m_msg->printIndex(slot, textNo, NULL);
+            if (player == 1) {
+                m_has2P = true;
+            }
+        } else if (player == 0) {
+            strcat(label1, name);
+            m_msg->printf(slot, label1);
+            strcpy(dst, label1);
+        } else {
+            strcat(label2, name);
+            m_msg->printf(slot, label2);
+            strcpy(dst, label2);
+            m_has2P = true;
+        }
+    }
+
+    // Puts the join frame back to its first animation (the second player left).
+    void resetJoinFrame() {
+        MuObject* join = m_objects[0x8D];
+        join->changeAnimN("MenAdvMap0010_TopN__0");
+        join->setFrame(0.0f);
+        join->m_modelAnim->setUpdateRate(1.0f);
+    }
+
     int getNextNode(int player, int node);
     int getScrollLimit();
     bool isScrollUp(gfPadStatus* pad);
