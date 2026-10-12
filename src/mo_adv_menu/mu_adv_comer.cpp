@@ -30,6 +30,16 @@ muAdvComerTask* muAdvComerTask::create() {
 
 #define FACE_PATH(index, number) sprintf(m_facePaths[index], "/menu/adventure/comer_tex/tex_face" number ".brres")
 
+// Whether a file of the window is still loading.
+static inline bool isLoading(muAdvComerTask* task) {
+    return !task->m_fileComer.isReady() ? true : (!task->m_fileFace.isReady() ? true : !task->m_fileMsg.isReady());
+}
+
+// Whether the animations of the model are over.
+static inline bool isAnimEnd(muAdvComerTask* task) {
+    return !task->m_object->isNodeAnimFinished() ? false : task->m_object->isClrAnimFinished();
+}
+
 muAdvComerTask::muAdvComerTask() : gfTask("AdvComer", Category_Menu, 0xF, 8, true) {
     m_resComer = nw4r::g3d::ResFile(static_cast<void*>(NULL));
     m_resFace = nw4r::g3d::ResFile(static_cast<void*>(NULL));
@@ -112,15 +122,7 @@ void muAdvComerTask::processDefault() {
         m_step = Step_Load;
         break;
     case Step_Load: {
-        bool waiting;
-        if (!m_fileComer.isReady()) {
-            waiting = true;
-        } else if (!m_fileFace.isReady()) {
-            waiting = true;
-        } else {
-            waiting = !m_fileMsg.isReady();
-        }
-        if (!waiting) {
+        if (!isLoading(this)) {
             m_step = Step_Create;
         }
         break;
@@ -136,8 +138,7 @@ void muAdvComerTask::processDefault() {
         m_step = Step_AppearWait;
         break;
     case Step_AppearWait: {
-        bool done = m_object->isNodeAnimFinished() && m_object->isClrAnimFinished();
-        if (done == true) {
+        if (isAnimEnd(this) == true) {
             m_step = Step_Show;
         }
         break;
@@ -159,8 +160,7 @@ void muAdvComerTask::processDefault() {
         m_step = Step_LeaveWait;
         break;
     case Step_LeaveWait: {
-        bool done = m_object->isNodeAnimFinished() && m_object->isClrAnimFinished();
-        if (done == true) {
+        if (isAnimEnd(this) == true) {
             m_step = Step_End;
         }
         break;

@@ -33,10 +33,9 @@ extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::H
 extern "C" void fn_8000DB40(gfSceneRoot* root, int layer);
 extern "C" void fn_8000D7B8(gfSceneRoot* root);
 extern "C" void fn_8000D6DC(gfSceneRoot* root, void* resAnmScn);
-// The scene module: the loader of the pack (load(heap, path, archive, size), isLoaded() and freeResource())
+// The scene module: the loader of the pack (load(heap, path, archive, size) and isLoaded())
 extern "C" void fn_1_3D44(scResourceLoader* loader, int heap, const char* path, gfArchive* archive, int size);
 extern "C" bool fn_1_3E50(scResourceLoader* loader);
-extern "C" void fn_1_406C(scResourceLoader* loader);
 // nw4r::g3d::ScnGroup::Construct(allocator, size, capacity)
 extern "C" nw4r::g3d::G3dObj* fn_801AB6CC(MEMAllocator* allocator, u32* size, int capacity);
 // nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model) and PushBack(object, node name)
@@ -123,10 +122,8 @@ muAdvSelmapTask::~muAdvSelmapTask() {
         delete m_archive;
         m_archive = NULL;
     }
-    scResourceLoader* loader = m_loader;
-    if (loader != NULL) {
-        fn_1_406C(loader);
-        delete loader;
+    if (m_loader != NULL) {
+        delete m_loader;
         m_loader = NULL;
     }
     if (m_resFileMap.ptr() != NULL) {
@@ -210,7 +207,7 @@ static const muAdvSelmapTask::StepFunc sStepFuncs[muAdvSelmapTask::Step_Count] =
 
 // Makes the texts: the number of fighters and the names of the players.
 void muAdvSelmapTask::initMsg() {
-    char name[0x20];
+    char name[0x15];
     m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(3, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x100, 0xC);
     m_msg->setMsgData(m_archive->getData(0, Data_Type_Misc, 2, 0xFFFE));
