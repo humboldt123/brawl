@@ -8,6 +8,7 @@
 #include <mu/mu_menu_controller.h>
 #include <mu/mu_msg.h>
 #include <mu/mu_object.h>
+#include <mu/mu_resource_loader.h>
 #include <nw4r/g3d/g3d_resfile.h>
 #include <types.h>
 
@@ -40,29 +41,6 @@ class muAdvResultListDisp : public gfTask {
 public:
     u8 m_unk40[0x228];
     MuObject* m_object;                 // 0x268 the model that the texts are put on
-};
-
-// A resource loader of the scene module that reads a pack of files (it starts with a file handle).
-class scResourceLoader : public gfFileIOHandle {
-public:
-    u32 m_unk04;
-    u32 m_unk08;
-    u32 m_unk0C;
-    u32 m_unk10;
-    u32 m_unk14;
-    u32 m_unk18;
-    u8 m_flagA : 3;                     // 0x1C
-    u8 m_flagB : 5;
-    u8 m_unk1D[3];
-    scResourceLoader() {
-        m_unk04 = 0;
-        m_unk08 = 0;
-        m_unk0C = 0;
-        m_unk10 = 0;
-        m_unk18 = 0;
-        m_unk14 = 0xFF;
-        m_flagA = 0;
-    }
 };
 
 // One coin that falls down the screen: the model it uses, its speed and its spin; the coins are in two lists (the ones

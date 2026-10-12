@@ -62,6 +62,8 @@ public:
     void setUpdateRateFlg(float updateRate, u8 flagFilter);
 
     void changeMaterialTex(int matNode, int texNode, nw4r::g3d::ResFile* textureSource = nullptr);
+    // HYPOTHESIS: the first argument is the name of the material
+    void changeMaterialTex(const char* matName, int texNode, nw4r::g3d::ResFile* textureSource);
     void changeMaterialTex(int matNode, const char* textureName, nw4r::g3d::ResFile* textureSource = nullptr);
     // void anmPlayPolicyOneTime(float, float, float);
 

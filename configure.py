@@ -2418,7 +2418,10 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_adv_menu/mu_adv_selmap.cpp"),
+            Object(NonMatching, "mo_adv_menu/mu_adv_comer.cpp"),
+        ],
     },
     {
         "lib": "sora_adv_menu_telop",
