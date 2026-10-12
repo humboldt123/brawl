@@ -6245,7 +6245,9 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_menu/mu_event.cpp"),
+        ],
     },
     {
         "lib": "sora_menu_fig_get_demo",
