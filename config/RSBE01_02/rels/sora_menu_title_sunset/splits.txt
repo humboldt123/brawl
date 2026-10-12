@@ -6,6 +6,21 @@ Sections:
 	.data       type:data align:32
 	.bss        type:bss align:8
 
+mo_menu/mu_word_of_song.cpp:
+	.text       start:0x00000000 end:0x00000C30
+	.rodata     start:0x00000000 end:0x00000020
+	.data       start:0x00000000 end:0x00000198
+
+mo_menu/mu_fade.cpp:
+	.text       start:0x00000C30 end:0x0000166C
+	.rodata     start:0x00000020 end:0x00000030
+	.data       start:0x00000198 end:0x00000298
+
+mo_menu/mu_title_sunset.cpp:
+	.text       start:0x0000166C end:0x000038E8
+	.rodata     start:0x00000030 end:0x00000070
+	.data       start:0x00000298 end:0x00000B78
+
 mo_menu/mo_menu.cpp:
 	.text       start:0x000038E8 end:0x00003984
 	.data       start:0x00000B78 end:0x00000B84

@@ -6383,7 +6383,11 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_menu/mu_word_of_song.cpp"),
+            Object(NonMatching, "mo_menu/mu_fade.cpp"),
+            Object(NonMatching, "mo_menu/mu_title_sunset.cpp"),
+        ],
     },
     {
         "lib": "sora_menu_tour",
