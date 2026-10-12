@@ -308,6 +308,10 @@ public:
     void resetDamage();
     void addSpeed(Vec3f* speed, bool);
     void setOwnerScale(float scale);
+    // HYPOTHESIS: original formal ordering and pointer qualifiers. The native
+    // entries take a velocity pointer and facing; throwAttack also takes power.
+    void throwAttack(float lr, Vec3f* velocity, float powerMulStatus);
+    void fall(Vec3f* velocity, float lr);
     virtual void processUpdate();
     virtual void processMapCorrection();
     virtual void processFixPosition();
