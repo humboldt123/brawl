@@ -1716,9 +1716,9 @@ config.libs = [
             Object(NonMatching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_special_s.cpp"),
             Object(NonMatching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_special_hi.cpp"),
             Object(NonMatching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_special_lw_loop.cpp"),
-            Object(NonMatching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_final.cpp"),
+            Object(Matching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_final.cpp"),
             Object(NonMatching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_final_loop.cpp"),
-            Object(NonMatching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_final_end.cpp"),
+            Object(Matching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_final_end.cpp"),
             Object(NonMatching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_item_lift.cpp"),
             Object(NonMatching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_catch_wait.cpp"),
             Object(NonMatching, "mo_fighter/ft_donkey/ft_donkey_status_uniq_process_super_lift_common.cpp"),
@@ -2418,7 +2418,10 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_adv_menu/mu_adv_selmap.cpp"),
+            Object(NonMatching, "mo_adv_menu/mu_adv_comer.cpp"),
+        ],
     },
     {
         "lib": "sora_adv_menu_telop",

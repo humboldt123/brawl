@@ -6,6 +6,16 @@ Sections:
 	.data       type:data align:8
 	.bss        type:bss align:8
 
+mo_adv_menu/mu_adv_selmap.cpp:
+	.text       start:0x00000000 end:0x00002E3C
+	.rodata     start:0x00000000 end:0x00000118
+	.data       start:0x00000000 end:0x00000340
+
+mo_adv_menu/mu_adv_comer.cpp:
+	.text       start:0x00002E3C end:0x00003814
+	.rodata     start:0x00000118 end:0x00000120
+	.data       start:0x00000340 end:0x00000D28
+
 mo_adv_menu/mo_adv_menu.cpp:
 	.text       start:0x00003814 end:0x000038B0
 	.data       start:0x00000D28 end:0x00000D38

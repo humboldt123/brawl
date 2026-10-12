@@ -26,10 +26,9 @@ extern "C" muAdvResultListDisp* fn_800F7CCC(muAdvResultListDesc* desc, int heap,
 extern "C" void fn_800FA7B8(muAdvResultListDisp* disp, u32 id, int unk, void* bufA, int sizeA, void* bufB, const char* label);
 extern "C" void fn_800FA6CC(muAdvResultListDisp* disp);
 extern "C" bool fn_800FA740(muAdvResultListDisp* disp);
-// The scene module: the loader of the pack (load(heap, path, archive, size), isLoaded() and freeResource())
+// The scene module: the loader of the pack (load(heap, path, archive, size) and isLoaded()); deleting it frees the resource
 extern "C" void fn_1_3C68(scResourceLoader* loader, int heap, const char* path, gfArchive* archive, int size);
 extern "C" bool scResourceLoaderIsLoaded(scResourceLoader* loader);
-extern "C" void scResourceLoaderFreeResource(scResourceLoader* loader);
 // gfSceneRoot::layerUpdateFrame(layer), gfSceneRoot::removeInfoCamResAnm() and gfSceneRoot::setInfoCamResAnm(animation)
 extern "C" void fn_8000DB40(gfSceneRoot* root, int layer);
 extern "C" void fn_8000D7B8(gfSceneRoot* root);
@@ -167,7 +166,6 @@ muAdvResultTask::~muAdvResultTask() {
         m_archive = NULL;
     }
     if (m_loader != NULL) {
-        scResourceLoaderFreeResource(m_loader);
         delete m_loader;
         m_loader = NULL;
     }
