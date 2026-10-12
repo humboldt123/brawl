@@ -36,6 +36,7 @@ public:
     void calcMatrix();
 
     void changeAnimN(const char* animName);
+    void changeAnimN(int animIndex, u32 unk, bool unk2, bool unk3);
     void changeNodeAnimN(const char* animName);
     void changeClrAnimN(const char* animName);
     void changeVisAnimN(const char* animName);

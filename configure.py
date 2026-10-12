@@ -2434,7 +2434,9 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_adv_menu/mu_adv_selchr_b.cpp"),
+        ],
     },
     {
         "lib": "sora_adv_stage",
