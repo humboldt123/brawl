@@ -91,7 +91,7 @@ public:
     int m_sizeIndex;                            // 0x308
     int m_round;                                // 0x30C
     int m_match;                                // 0x310
-    int m_roundKind;                            // 0x314 10: ..., 11: the final
+    u32 m_roundKind;                            // 0x314 10: ..., 11: the final
     u32 m_taken;                                // 0x318 which fighters have a pad (or are not played by a player)
     u32 m_skipped;                              // 0x31C which fighters are a bye
     int m_pad[4];                               // 0x320 the pad of each fighter (-1: none)

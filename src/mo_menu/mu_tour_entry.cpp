@@ -321,10 +321,10 @@ void muTourEntryTask::setFinalWinner(u32 winner) {
     m_objs[OBJ_ROUND]->changeAnimN(3, 0x11, true, false);
     m_objs[OBJ_ROUND_TEXT]->changeAnimN(3, 0x13, true, false);
     for (u32 i = 0; i < (u32)m_count; i++) {
-        if (i == winner) {
-            m_objs[OBJ_PANEL + i]->changeAnimN(9, 0x11, true, false);
-        } else {
+        if (i != winner) {
             m_objs[OBJ_PANEL + i]->changeAnimN(8, 0x11, true, false);
+        } else {
+            m_objs[OBJ_PANEL + i]->changeAnimN(9, 0x11, true, false);
         }
     }
     for (int i = 0; i < 5; i++) {
