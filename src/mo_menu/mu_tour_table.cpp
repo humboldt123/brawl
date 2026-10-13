@@ -427,19 +427,22 @@ bool muTourTable::calcTablePos() {
 // Starts the walk of the fighters of a match to the node of the match: each walks from the end of its line to the node.
 void muTourTable::entrySet(const int* slots, int count, int frames) {
     m_moving = count;
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < m_moving; i++) {
         int slot = slots[i];
         m_slot[i] = slot;
-        muTourPath* path = &m_paths[slot];
-        int step = path->m_step;
-        u8 first = path->m_line[2 * step];
-        u8 second = path->m_line[2 * step + 1];
+        int step = m_paths[slot].m_step;
+        u8 first = m_paths[slot].m_line[2 * step];
+        u8 second = m_paths[slot].m_line[2 * step + 1];
         if (first == 0) {
             m_from[i] = 0.0f;
         } else {
-            m_from[i] = m_objs[first]->m_trans.m_x;
+            const Vec3f& t = m_objs[first]->m_trans;
+            Vec3f from(t.m_x, t.m_y, t.m_z);
+            m_from[i] = from.m_x;
         }
-        m_to[i] = m_objs[second]->m_trans.m_x;
+        const Vec3f& t2 = m_objs[second]->m_trans;
+        Vec3f to(t2.m_x, t2.m_y, t2.m_z);
+        m_to[i] = to.m_x;
     }
     m_frames = frames;
     m_frame = 0;
