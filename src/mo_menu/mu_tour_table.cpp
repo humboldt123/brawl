@@ -25,6 +25,19 @@ static const char sLineModelB[] = "MenTrnLine0001_TopN";
 static const char sPosY[] = "ypos00";
 static const char sPosT[] = "tpos01";
 
+// MATCH-ONLY: the paired-single negate of a vector (the form of the vector library of the SDK).
+static inline void negateVec(register const Vec3f* src, register Vec3f* dst) {
+    register float t1, t0;
+    asm {
+        psq_l t0, 0(src), 0, 0
+        psq_l t1, 8(src), 1, 0
+        ps_neg t0, t0
+        ps_neg t1, t1
+        psq_st t0, 0(dst), 0, 0
+        psq_st t1, 8(dst), 1, 0
+    }
+}
+
 muTourTable::muTourTable(nw4r::g3d::ResFile* texRes, int priority) {
     for (int i = 0; i < 0x1F; i++) {
         m_resLineB[i] = nw4r::g3d::ResFile(static_cast<void*>(NULL));
@@ -377,7 +390,9 @@ void muTourTable::setName() {
 // Moves the table so the node of a match is at the middle of the screen (the node is round number, match number).
 void muTourTable::moveTable(int round, int node, bool apply) {
     const Vec3f& nodePos = m_nodePos[round][node];
-    m_pos = Vec3f(-nodePos.m_x, -nodePos.m_y, -nodePos.m_z);
+    Vec3f neg;
+    negateVec(&nodePos, &neg);
+    m_pos = neg;
     if (apply) {
         m_objs[0]->setTrans(&m_pos);
     }
