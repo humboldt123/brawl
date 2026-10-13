@@ -246,26 +246,30 @@ void stFamicom::createObjYukaCenter(int index) {
     grFamicomYuka* ground;                                                                                                            \
     stCollisionWork* collWork;                                                                                                        \
     u8 rotFlg;                                                                                                                        \
-    u8 type;                                                                                                                          \
     Vec3f* posWork;                                                                                                                   \
+    u8 type;                                                                                                                          \
     stFamicomYukaToss* tossWork;                                                                                                      \
-    if (index == (LEFT_CASE) + 1) {                                                                                                   \
-        ground = grFamicomYuka::create(RIGHT_SIZE, RIGHT_NODE, RIGHT_NAME);                                                           \
-        collWork = &m_collWork[RIGHT_COLL];                                                                                           \
-        posWork = &m_posYuka[RIGHT_INDEX];                                                                                            \
-        tossWork = &m_yukaToss[RIGHT_INDEX];                                                                                          \
-        rotFlg = 1;                                                                                                                   \
-        type = RIGHT_INDEX;                                                                                                           \
-    } else if (index < (LEFT_CASE) + 1 && index > (LEFT_CASE) - 1) {                                                                  \
+    switch (index) {                                                                                                                  \
+    case (LEFT_CASE):                                                                                                                 \
         ground = grFamicomYuka::create(LEFT_SIZE, LEFT_NODE, LEFT_NAME);                                                              \
         collWork = &m_collWork[LEFT_COLL];                                                                                            \
         posWork = &m_posYuka[LEFT_INDEX];                                                                                             \
         tossWork = &m_yukaToss[LEFT_INDEX];                                                                                           \
         rotFlg = 0;                                                                                                                   \
         type = LEFT_INDEX;                                                                                                            \
-    } else {                                                                                                                          \
+        break;                                                                                                                        \
+    case (LEFT_CASE) + 1:                                                                                                             \
+        ground = grFamicomYuka::create(RIGHT_SIZE, RIGHT_NODE, RIGHT_NAME);                                                           \
+        collWork = &m_collWork[RIGHT_COLL];                                                                                           \
+        posWork = &m_posYuka[RIGHT_INDEX];                                                                                            \
+        tossWork = &m_yukaToss[RIGHT_INDEX];                                                                                          \
+        rotFlg = 1;                                                                                                                   \
+        type = RIGHT_INDEX;                                                                                                           \
+        break;                                                                                                                        \
+    default:                                                                                                                          \
         ground = NULL;                                                                                                                \
         collWork = NULL;                                                                                                              \
+        break;                                                                                                                        \
     }                                                                                                                                 \
     if (ground != NULL) {                                                                                                             \
         addGround(ground);                                                                                                            \
@@ -277,10 +281,13 @@ void stFamicom::createObjYukaCenter(int index) {
         ground->setEnemyDataWork(m_enemyData);                                                                                        \
         ground->setYukaTossData(tossWork);                                                                                            \
         ground->setType(type);                                                                                                        \
-        if (index == (LEFT_CASE) + 1) {                                                                                               \
-            createCollisionSelf(collWork, ground, RIGHT_NODE, RIGHT_NODE, 0x41A);                                                     \
-        } else if (index < (LEFT_CASE) + 1 && index > (LEFT_CASE) - 1) {                                                              \
+        switch (index) {                                                                                                              \
+        case (LEFT_CASE):                                                                                                             \
             createCollisionSelf(collWork, ground, LEFT_NODE, LEFT_NODE, 0x41A);                                                       \
+            break;                                                                                                                    \
+        case (LEFT_CASE) + 1:                                                                                                         \
+            createCollisionSelf(collWork, ground, RIGHT_NODE, RIGHT_NODE, 0x41A);                                                     \
+            break;                                                                                                                    \
         }                                                                                                                             \
         ground->disableCalcCollision();                                                                                               \
     }
@@ -364,16 +371,20 @@ void stFamicom::createObjBall(int index) {
     grFamicomBall* ground;
     u8* state;
     u8* ltoR;
-    if (index == 10) {
-        ground = grFamicomBall::create(5, "stgFamicomGreenBall", "grFamicomBall_B");
-        state = &m_ballKindPrev;
-        ltoR = &m_ballLtoRPrev;
-    } else if (index < 10 && index > 8) {
+    switch (index) {
+    case 9:
         ground = grFamicomBall::create(5, "stgFamicomGreenBall", "grFamicomBall_A");
         state = &m_ballKind;
         ltoR = &m_ballLtoR;
-    } else {
+        break;
+    case 10:
+        ground = grFamicomBall::create(5, "stgFamicomGreenBall", "grFamicomBall_B");
+        state = &m_ballKindPrev;
+        ltoR = &m_ballLtoRPrev;
+        break;
+    default:
         ground = NULL;
+        break;
     }
     if (ground != NULL) {
         addGround(ground);

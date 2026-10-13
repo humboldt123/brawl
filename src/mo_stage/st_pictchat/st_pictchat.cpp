@@ -780,19 +780,27 @@ void grPictchatSpring::setFlgWork(u8* flgWork) {
 
 
 // The wind of the breath (P014): a trigger with the area of the whole picture, put to sleep until the picture is drawn.
+static inline void pictchatSetPos(Vec3f* pos, float x, float y, float z) {
+    pos->m_x = x;
+    pos->m_y = y;
+    pos->m_z = z;
+}
+
+static inline void pictchatSetArea(stGimmickAreaData* area, float offsetX, float offsetY, float rangeX, float rangeY) {
+    area->m_offsetPos.m_x = offsetX;
+    area->m_offsetPos.m_y = offsetY;
+    area->m_range.m_x = rangeX;
+    area->m_range.m_y = rangeY;
+}
+
 void stPictchat::createObjWind() {
     m_windData = new (Heaps::StageInstance) grGimmickWindData;
     if (m_windData != NULL) {
         memset(m_windData, 0, sizeof(grGimmickWindData));
-        m_windData->m_pos.m_x = 0.0f;
-        m_windData->m_pos.m_y = 36.0f;
-        m_windData->m_pos.m_z = 0.0f;
+        pictchatSetPos(&m_windData->m_pos, 0.0f, 36.0f, 0.0f);
         m_windData->m_speed = 0.5f;
         m_windData->m_vector = 200.0f;
-        m_windData->m_areaData.m_offsetPos.m_x = 0.0f;
-        m_windData->m_areaData.m_offsetPos.m_y = 0.0f;
-        m_windData->m_areaData.m_range.m_x = 200.0f;
-        m_windData->m_areaData.m_range.m_y = 80.0f;
+        pictchatSetArea(&m_windData->m_areaData, 0.0f, 0.0f, 200.0f, 80.0f);
         m_triggerWind = g_stTriggerMng->createTrigger(Gimmick::Area_Wind, -1);
         m_triggerWind->setWindTrigger(m_windData);
         grGimmickWindData2nd wind;

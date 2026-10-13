@@ -389,18 +389,19 @@ void stIce::createObjWater(int index) {
         addGround(ground);
         ground->startup(m_fileData, 0, gfSceneRoot::Layer_Ground);
         ground->setStageData(m_stageData);
-        m_waterData = new (Heaps::StageInstance) grGimmickWaterData;
-        if (m_waterData != NULL) {
-            memset(m_waterData, 0, sizeof(grGimmickWaterData));
-            m_waterData->m_swimHeight = 0.0f;
-            m_waterData->m_canDrown = true;
-            m_waterData->m_speed = 1.0f;
-            m_waterData->m_areaData.m_offsetPos.m_x = 0.0f;
-            m_waterData->m_areaData.m_offsetPos.m_y = -25.0f;
-            m_waterData->m_areaData.m_range.m_x = 500.0f;
-            m_waterData->m_areaData.m_range.m_y = 25.0f;
+        grGimmickWaterData* water = new (Heaps::StageInstance) grGimmickWaterData;
+        m_waterData = water;
+        if (water != NULL) {
+            memset(water, 0, sizeof(grGimmickWaterData));
+            water->m_swimHeight = 0.0f;
+            water->m_canDrown = true;
+            water->m_speed = 1.0f;
+            water->m_areaData.m_offsetPos.m_x = 0.0f;
+            water->m_areaData.m_offsetPos.m_y = -25.0f;
+            water->m_areaData.m_range.m_x = 500.0f;
+            water->m_areaData.m_range.m_y = 25.0f;
             m_triggerWater = g_stTriggerMng->createTrigger(Gimmick::Area_Water, -1);
-            m_triggerWater->setWaterTrigger(m_waterData);
+            m_triggerWater->setWaterTrigger(water);
         }
     }
 }

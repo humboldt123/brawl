@@ -166,14 +166,21 @@ void stMarioPast::createObj() {
 
 void stMarioPast::createObjBgLocator(int index) {
     grMarioPastBgLocator* ground = NULL;
-    if (m_stage == 1) {
-        if (index == 0) {
+    switch (m_stage) {
+    case 1:
+        switch (index) {
+        case 0:
             ground = grMarioPastBgLocator::create(2, "StgMarioPast01_Ashiba_locator", "grMarioPastBgLocator");
+            break;
         }
-    } else if (m_stage == 0) {
-        if (index == 0) {
+        break;
+    case 0:
+        switch (index) {
+        case 0:
             ground = grMarioPastBgLocator::create(2, "StgMarioPast00_Ashiba_locator", "grMarioPastBgLocator");
+            break;
         }
+        break;
     }
     if (ground != NULL) {
         addGround(ground);
@@ -187,14 +194,21 @@ void stMarioPast::createObjBgLocator(int index) {
 
 void stMarioPast::createObjBg(int index) {
     grMarioPastBg* ground = NULL;
-    if (m_stage == 1) {
-        if (index == 1) {
+    switch (m_stage) {
+    case 1:
+        switch (index) {
+        case 1:
             ground = grMarioPastBg::create(0, "StgMarioPast01", "grMarioPastMainBg");
+            break;
         }
-    } else if (m_stage == 0) {
-        if (index == 1) {
+        break;
+    case 0:
+        switch (index) {
+        case 1:
             ground = grMarioPastBg::create(0, "StgMarioPast00", "grMarioPastMainBg");
+            break;
         }
+        break;
     }
     if (ground != NULL) {
         addGround(ground);
@@ -207,8 +221,14 @@ void stMarioPast::createObjBg(int index) {
 }
 
 void stMarioPast::createObjLift() {
-    if (m_stage == 1) {
-        for (u8 i = 0; i < 3; i++) {
+    u8 i;
+    switch (m_stage) {
+    case 0:
+        return;
+    default:
+        return;
+    case 1:
+        for (i = 0; i != 3; i++) {
             grMarioPastLift* ground = grMarioPastLift::create(4, "StgMarioPast01Lift", "grMarioPastLiftLeft");
             if (ground == NULL) {
                 return;
@@ -222,7 +242,7 @@ void stMarioPast::createObjLift() {
             ground->setID(i);
             createCollision(m_fileData, 5, ground);
         }
-        for (u8 i = 0; i < 3; i++) {
+        for (i = 0; i != 3; i++) {
             grMarioPastLift* ground = grMarioPastLift::create(4, "StgMarioPast01Lift", "grMarioPastLiftRight");
             if (ground == NULL) {
                 return;
@@ -236,6 +256,7 @@ void stMarioPast::createObjLift() {
             ground->setID(i);
             createCollision(m_fileData, 5, ground);
         }
+        break;
     }
 }
 

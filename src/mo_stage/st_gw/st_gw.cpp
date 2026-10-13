@@ -163,16 +163,16 @@ void stGW::createObjBg(int index) {
 // A scene: the model that has the steps of the sequence of the scene. It gets the work of the stage (the scene, the timer, the
 // event, the tables); the fire scene also gets the collision of the steps.
 void stGW::createObjScene(int index) {
-    grGWScene* ground;
     u8 sceneId;
+    grGWScene* ground;
     switch (index) {
-    case 1:
-        ground = grGWSceneFire::create(0x14, "_FIRE", "grGWSceneFire");
-        sceneId = 0;
-        break;
     case 0x13:
         ground = grGWSceneChef::create(10, "_CHIF", "grGWSceneChef");
         sceneId = 1;
+        break;
+    case 1:
+        ground = grGWSceneFire::create(0x14, "_FIRE", "grGWSceneFire");
+        sceneId = 0;
         break;
     case 0x16:
         ground = grGWSceneLion::create(0x28, "_LION", "grGWSceneLion");
@@ -198,35 +198,37 @@ void stGW::createObjScene(int index) {
         ground->setSceneID(sceneId);
         ground->setFrameWork(&m_sceneTimer);
         ground->setEventWork(&m_event);
-        if (index == 0x16) {
-            static_cast<grGWSceneLion*>(ground)->setPosKeeperLWork(m_posKeeperL);
-            static_cast<grGWSceneLion*>(ground)->setPosKeeperRWork(m_posKeeperR);
-        } else if (index < 0x16) {
-            if (index == 1) {
-                grGWSceneFire* fire = static_cast<grGWSceneFire*>(ground);
-                fire->setPosGimmickWork(m_posGimmick);
-                fire->setCtrlStepWork(&m_ctrlStep);
-                fire->setTblStepAcc(m_tblStep);
-                fire->setStepManhoreWork(&m_stepManhore);
-                fire->setTypeManhoreWork(&m_typeManhore);
-                fire->setPosDiverWork(m_posDiver);
-                fire->setTypeDiverWork(&m_typeDiver);
-                fire->setPosLimitWork(m_limit);
-                grCollision* collision = NULL;
-                stCollisionWork* work = &m_collWork;
-                if (work != NULL && ground != NULL) {
-                    grCollData* collData = new (Heaps::StageInstance) grCollData;
-                    if (collData != NULL) {
-                        initCollDatafromCollWorkStep(collData, work, ground);
-                        collision = grCollision::create(this, collData, ground, 1);
-                        setCollision(collision);
-                        delete collData;
-                    }
+        switch (index) {
+        case 1: {
+            grGWSceneFire* fire = static_cast<grGWSceneFire*>(ground);
+            fire->setPosGimmickWork(m_posGimmick);
+            fire->setCtrlStepWork(&m_ctrlStep);
+            fire->setTblStepAcc(m_tblStep);
+            fire->setStepManhoreWork(&m_stepManhore);
+            fire->setTypeManhoreWork(&m_typeManhore);
+            fire->setPosDiverWork(m_posDiver);
+            fire->setTypeDiverWork(&m_typeDiver);
+            fire->setPosLimitWork(m_limit);
+            grCollision* collision = NULL;
+            if (&m_collWork != NULL && ground != NULL) {
+                grCollData* collData = new (Heaps::StageInstance) grCollData;
+                if (collData != NULL) {
+                    initCollDatafromCollWorkStep(collData, &m_collWork, ground);
+                    collision = grCollision::create(this, collData, ground, 1);
+                    setCollision(collision);
+                    delete collData;
                 }
             }
-        } else if (index == 0x1B) {
+            break;
+        }
+        case 0x16:
+            static_cast<grGWSceneLion*>(ground)->setPosKeeperLWork(m_posKeeperL);
+            static_cast<grGWSceneLion*>(ground)->setPosKeeperRWork(m_posKeeperR);
+            break;
+        case 0x1B:
             static_cast<grGWSceneOil*>(ground)->setDataGuestManWork(&m_dataGuest[0]);
             static_cast<grGWSceneOil*>(ground)->setDataGuestWomanWork(&m_dataGuest[1]);
+            break;
         }
     }
 }
