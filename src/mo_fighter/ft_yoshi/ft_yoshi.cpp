@@ -1,10 +1,13 @@
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/yoshi/ft_yoshi_builder.h>
+#include <ft/yoshi/ft_yoshi_extend_param_accesser.h>
 #include <ft/ft_common_data_accesser.h>
 
 #define FT_BC ftYoshiBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+ftYoshiExtendParamAccesser g_ftYoshiExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_Yoshi, ftYoshi> g_ftClassInfoYoshi;
 
