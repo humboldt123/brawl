@@ -302,22 +302,22 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
 // Shows or hides the whole table: mode 0 shows the lines (all the colors are on), mode 1 hides them.
 void muTourTable::clearTable(int mode) {
     switch (mode) {
-    case 0:
-        for (u32 i = 0; i < 0x5E; i++) {
-            m_objs[i]->setFrameMatCol(0.0f);
-            nw4r::g3d::ScnMdl* mdl = m_objs[i]->m_scnMdl;
-            int priority = m_priority;
-            mdl->SetPriorityDrawOpa(priority);
-            mdl->SetPriorityDrawXlu(priority);
-        }
-        break;
     case 1:
         for (u32 i = 0; i < 0x5E; i++) {
             m_objs[i]->setFrameMatCol(1.0f);
-            nw4r::g3d::ScnMdl* mdl = m_objs[i]->m_scnMdl;
+            MuObject* obj = m_objs[i];
             int priority = m_priority;
-            mdl->SetPriorityDrawOpa(priority);
-            mdl->SetPriorityDrawXlu(priority);
+            obj->m_scnMdl->SetPriorityDrawOpa(priority);
+            obj->m_scnMdl->SetPriorityDrawXlu(priority);
+        }
+        break;
+    case 0:
+        for (u32 i = 0; i < 0x5E; i++) {
+            m_objs[i]->setFrameMatCol(0.0f);
+            MuObject* obj = m_objs[i];
+            int priority = m_priority;
+            obj->m_scnMdl->SetPriorityDrawOpa(priority);
+            obj->m_scnMdl->SetPriorityDrawXlu(priority);
         }
         break;
     }
