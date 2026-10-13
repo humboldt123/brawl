@@ -6420,7 +6420,7 @@ config.libs = [
             Object(NonMatching, "mo_menu/mu_tour_table.cpp"),
             Object(NonMatching, "mo_menu/mu_tour_rule.cpp"),
             Object(NonMatching, "mo_menu/mu_tour_entry.cpp"),
-            Object(NonMatching, "mo_menu/mu_tour_panel_ctrl.cpp"),
+            Object(Matching, "mo_menu/mu_tour_panel_ctrl.cpp"),
         ],
     },
     {
