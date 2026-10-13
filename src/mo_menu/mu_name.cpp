@@ -1371,6 +1371,35 @@ static void detachRemoteModels(muNameTask* task) {
     task->m_scnGroup->Remove(scnObjOf(task->m_scnMdls[2]));
 }
 
+// Shows the cursor and the arrows of the list.
+void muNameTask::updateAll() {
+    dispUpdate(m_cursor, m_scroll);
+    m_objects[Obj_List]->setFrameNode(static_cast<float>(m_cursor));
+    int visible = 0;
+    if (m_cursor + m_scroll > 0) {
+        visible |= 2;
+    }
+    if (m_cursor + m_scroll < m_slotCount - 1) {
+        visible |= 1;
+    }
+    m_objects[Obj_List]->setFrameVisible(static_cast<float>(visible));
+}
+
+// Adds the line of a name that was just made, under the line of the new name.
+void muNameTask::addNameList(int nameNo) {
+    for (int i = m_slotCount - 1; i >= 1; i--) {
+        m_slots[i + 1] = m_slots[i];
+    }
+    m_slots[1].m_nameNo = nameNo;
+    m_slots[1].m_taken = false;
+    m_slotCount++;
+    if (m_slotCount > 5 && m_slots[m_slotCount - 1].m_nameNo != -2) {
+        m_slots[m_slotCount].m_nameNo = -2;
+        m_slots[m_slotCount].m_taken = false;
+        m_slotCount++;
+    }
+}
+
 muNameTask* muNameTask::create(nw4r::g3d::ScnGroup* scnGroup, int kind, nw4r::g3d::ResFile* windowRes, nw4r::g3d::ResFile* keyRes,
                                int padNo, int priority, nw4r::g3d::ScnMdl* parentMdl, const char* parentNode,
                                nw4r::g3d::ResFile* remoteRes, void* msgData, nw4r::g3d::ResFile* wndRes) {
@@ -1539,16 +1568,7 @@ void muNameTask::initProc(nw4r::g3d::ScnGroup* scnGroup, int kind, int padNo, in
     makeNameList();
     g_gfShutdownManager.unk8.add(&m_returnCallback);
     m_step = Step_Appear;
-    dispUpdate(m_cursor, m_scroll);
-    m_objects[Obj_List]->setFrameNode(static_cast<float>(m_cursor));
-    int visible = 0;
-    if (m_cursor + m_scroll > 0) {
-        visible |= 2;
-    }
-    if (m_cursor + m_scroll < m_slotCount - 1) {
-        visible |= 1;
-    }
-    m_objects[Obj_List]->setFrameVisible(static_cast<float>(visible));
+    updateAll();
 }
 
 void muNameTask::createObjResFile(const muNameModel* models, int count, nw4r::g3d::ResFile* resFile, bool suffix, int priority) {
@@ -1648,20 +1668,6 @@ void muNameTask::makeNameList() {
     }
 }
 
-// Shows the cursor and the arrows of the list.
-void muNameTask::updateAll() {
-    dispUpdate(m_cursor, m_scroll);
-    m_objects[Obj_List]->setFrameNode(static_cast<float>(m_cursor));
-    int visible = 0;
-    if (m_cursor + m_scroll > 0) {
-        visible |= 2;
-    }
-    if (m_cursor + m_scroll < m_slotCount - 1) {
-        visible |= 1;
-    }
-    m_objects[Obj_List]->setFrameVisible(static_cast<float>(visible));
-}
-
 // Takes the line of the name with the number out of the list.
 bool muNameTask::deleteNameID(int nameNo) {
     for (int i = 0; i < m_slotCount; i++) {
@@ -1728,21 +1734,6 @@ int muNameTask::getCurNameIndex() {
         return -1;
     }
     return result;
-}
-
-// Adds the line of a name that was just made, under the line of the new name.
-void muNameTask::addNameList(int nameNo) {
-    for (int i = m_slotCount - 1; i >= 1; i--) {
-        m_slots[i + 1] = m_slots[i];
-    }
-    m_slots[1].m_nameNo = nameNo;
-    m_slots[1].m_taken = false;
-    m_slotCount++;
-    if (m_slotCount > 5 && m_slots[m_slotCount - 1].m_nameNo != -2) {
-        m_slots[m_slotCount].m_nameNo = -2;
-        m_slots[m_slotCount].m_taken = false;
-        m_slotCount++;
-    }
 }
 
 // Writes the lines of the list that are on the screen (5 lines, the color depends on whether the name is taken, the cursor is on it
