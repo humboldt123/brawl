@@ -325,34 +325,37 @@ void muTourTable::clearTable(int mode) {
 
 // Lets the fighter go one step on its way (the two lines of the step are colored), and returns true.
 bool muTourTable::winnerSet(int slot) {
-    muTourPath* path = &m_paths[slot];
-    int step = path->m_step;
-    MuObject* lineA = m_objs[path->m_line[2 * step]];
-    lineA->setFrameMatCol((float)path->m_color[2 * step]);
+    int step = m_paths[slot].m_step;
+    MuObject* lineA = m_objs[m_paths[slot].m_line[2 * step]];
+    lineA->setFrameMatCol((float)m_paths[slot].m_color[2 * step]);
     int priority = m_priority + 1;
     lineA->m_scnMdl->SetPriorityDrawOpa(priority);
     lineA->m_scnMdl->SetPriorityDrawXlu(priority);
 
-    MuObject* lineB = m_objs[path->m_line[2 * step + 1]];
-    lineB->setFrameMatCol((float)path->m_color[2 * step + 1]);
-    if (path->m_color[2 * step + 1] == 1) {
-        lineB->m_scnMdl->SetPriorityDrawOpa(m_priority);
-        lineB->m_scnMdl->SetPriorityDrawXlu(m_priority);
+    u8 lineB = m_paths[slot].m_line[2 * step + 1];
+    m_objs[lineB]->setFrameMatCol((float)m_paths[slot].m_color[2 * m_paths[slot].m_step + 1]);
+    if (m_paths[slot].m_color[2 * m_paths[slot].m_step + 1] == 1) {
+        MuObject* o = m_objs[lineB];
+        int p = m_priority;
+        o->m_scnMdl->SetPriorityDrawOpa(p);
+        o->m_scnMdl->SetPriorityDrawXlu(p);
     } else {
         int p = m_priority + 1;
-        lineB->m_scnMdl->SetPriorityDrawOpa(p);
-        lineB->m_scnMdl->SetPriorityDrawXlu(p);
+        MuObject* o = m_objs[lineB];
+        o->m_scnMdl->SetPriorityDrawOpa(p);
+        o->m_scnMdl->SetPriorityDrawXlu(p);
     }
 
-    path->m_step++;
-    if (path->m_line[2 * path->m_step] == path->m_line[2 * path->m_step + 1]) {
-        path->m_step++;
+    m_paths[slot].m_step++;
+    if (m_paths[slot].m_line[2 * m_paths[slot].m_step] == m_paths[slot].m_line[2 * m_paths[slot].m_step + 1]) {
+        m_paths[slot].m_step++;
     }
-    if (m_shape.m_rounds == path->m_step) {
+    if (m_shape.m_rounds == m_paths[slot].m_step) {
         m_objs[m_finalLine]->setFrameMatCol(2.0f);
+        MuObject* last = m_objs[m_finalLine];
         int p = m_priority + 1;
-        m_objs[m_finalLine]->m_scnMdl->SetPriorityDrawOpa(p);
-        m_objs[m_finalLine]->m_scnMdl->SetPriorityDrawXlu(p);
+        last->m_scnMdl->SetPriorityDrawOpa(p);
+        last->m_scnMdl->SetPriorityDrawXlu(p);
     }
     return true;
 }
