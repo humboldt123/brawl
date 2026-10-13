@@ -48,11 +48,12 @@ grPictchatPict::grPictchatPict(const char* taskName) : grPictchat(taskName) {
     m_frame = 0.0f;
     m_frameCount = 0.0f;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
 }
 
 grPictchatPict* grPictchatPict::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
@@ -834,15 +835,16 @@ grPictchatPict013::grPictchatPict013(const char* taskName) : grPictchatPict(task
     m_rot.m_z = 0.0f;
     m_speedX = 0.0f;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->clearAll();
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
-        callback->m_nodeCallbackDatas[0].m_flags |= 2;
-        m_seHandle = -1;
-        m_dangerZone = -1;
+    if (callback == NULL) {
+        return;
     }
+    callback->clearAll();
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    callback->m_nodeCallbackDatas[0].m_flags |= 2;
+    m_seHandle = -1;
+    m_dangerZone = -1;
 }
 
 grPictchatPict013* grPictchatPict013::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

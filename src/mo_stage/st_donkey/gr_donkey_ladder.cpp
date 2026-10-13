@@ -8,11 +8,12 @@ inline grDonkeyLadder::grDonkeyLadder(const char* taskName) : grGimmickLadder(ta
     m_posWork = NULL;
     m_triggerMade = 0;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        setupMelee();
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    setupMelee();
 }
 
 grDonkeyLadder* grDonkeyLadder::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

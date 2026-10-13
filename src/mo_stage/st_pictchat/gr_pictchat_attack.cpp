@@ -22,11 +22,12 @@ grPictchatAttack::grPictchatAttack(const char* taskName) : grPictchat(taskName) 
     m_attackOn = 0;
     m_data = NULL;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
 }
 
 grPictchatAttack::~grPictchatAttack() {

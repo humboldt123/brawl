@@ -25,13 +25,14 @@ grGWFireSpring::grGWFireSpring(const char* taskName) : grGimmickSpring(taskName)
     m_scale.m_y = 0.0f;
     m_scale.m_z = 0.0f;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 4;
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
-        setupMelee();
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 4;
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    setupMelee();
 }
 
 grGWFireSpring* grGWFireSpring::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

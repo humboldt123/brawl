@@ -15,11 +15,12 @@ grPictchatLadder::grPictchatLadder(const char* taskName) : grGimmickLadder(taskN
     m_triggerMade = 0;
     m_startFlag = 0;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        setupMelee();
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    setupMelee();
 }
 
 grPictchatLadder* grPictchatLadder::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

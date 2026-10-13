@@ -101,9 +101,10 @@ grGWOilGuest::grGWOilGuest(const char* taskName) : grGW(taskName), m_snd() {
     m_dataGroup = NULL;
     m_data = NULL;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
 }
 
 grGWOilGuest* grGWOilGuest::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
@@ -386,13 +387,14 @@ inline grGWOilGuestAngerM::grGWOilGuestAngerM(const char* taskName) : grGWOilGue
     m_attackOn = 0;
     m_dangerZone = -1;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->clearAll();
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
-        callback->m_nodeCallbackDatas[0].m_flags |= 4;
+    if (callback == NULL) {
+        return;
     }
+    callback->clearAll();
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    callback->m_nodeCallbackDatas[0].m_flags |= 4;
 }
 
 grGWOilGuestAngerM* grGWOilGuestAngerM::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
@@ -656,14 +658,15 @@ inline grGWOilGuestAngerW::grGWOilGuestAngerW(const char* taskName) : grGWOilGue
     m_dangerZone = -1;
     m_timerTurn = 0.0f;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->clearAll();
-        callback->m_numNodeCallbackData = 2;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
-        callback->m_nodeCallbackDatas[0].m_flags |= 4;
-        callback->m_nodeCallbackDatas[1].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->clearAll();
+    callback->m_numNodeCallbackData = 2;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    callback->m_nodeCallbackDatas[0].m_flags |= 4;
+    callback->m_nodeCallbackDatas[1].m_flags |= 1;
 }
 
 grGWOilGuestAngerW* grGWOilGuestAngerW::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

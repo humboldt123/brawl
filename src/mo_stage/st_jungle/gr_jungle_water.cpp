@@ -12,11 +12,12 @@ inline grJungleWater::grJungleWater(const char* taskName) : grJungle(taskName) {
     m_posWork = NULL;
     m_enableWork = NULL;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas->m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas->m_flags |= 1;
 }
 
 grJungleWater* grJungleWater::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

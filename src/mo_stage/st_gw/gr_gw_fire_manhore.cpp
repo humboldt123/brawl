@@ -13,9 +13,10 @@ inline grGWFireManhore::grGWFireManhore(const char* taskName) : grGW(taskName), 
     m_type = 0x10;
     m_stepLast = 0xFF;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
 }
 
 grGWFireManhore* grGWFireManhore::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

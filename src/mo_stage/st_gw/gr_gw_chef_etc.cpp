@@ -88,15 +88,16 @@ grGWChefEtc::grGWChefEtc(const char* taskName) : grGW(taskName) {
     m_dangerZone[2] = -1;
     m_dangerZone[3] = -1;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->clearAll();
-        callback->m_numNodeCallbackData = 2;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 4;
-        callback->m_nodeCallbackDatas[1].m_flags |= 1;
-        callback->m_nodeCallbackDatas[1].m_flags |= 2;
-        callback->m_nodeCallbackDatas[1].m_flags |= 4;
+    if (callback == NULL) {
+        return;
     }
+    callback->clearAll();
+    callback->m_numNodeCallbackData = 2;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 4;
+    callback->m_nodeCallbackDatas[1].m_flags |= 1;
+    callback->m_nodeCallbackDatas[1].m_flags |= 2;
+    callback->m_nodeCallbackDatas[1].m_flags |= 4;
 }
 
 grGWChefEtc* grGWChefEtc::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

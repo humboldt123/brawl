@@ -36,13 +36,14 @@ grPalutenaChain::grPalutenaChain(const char* taskName) : grPalutena(taskName) {
     memset(m_node, 0, sizeof(u32) * 23);
     m_chainState = 0;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 23;
-        callback->initialize(false, Heaps::StageInstance);
-        for (int i = 0; i < 23; i++) {
-            callback->m_nodeCallbackDatas[i].m_flags |= 1;
-            callback->m_nodeCallbackDatas[i].m_flags |= 2;
-        }
+    if (callback == NULL) {
+        return;
+    }
+    callback->m_numNodeCallbackData = 23;
+    callback->initialize(false, Heaps::StageInstance);
+    for (int i = 0; i < 23; i++) {
+        callback->m_nodeCallbackDatas[i].m_flags |= 1;
+        callback->m_nodeCallbackDatas[i].m_flags |= 2;
     }
 }
 

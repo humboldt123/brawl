@@ -11,11 +11,12 @@ inline grJungleLadder::grJungleLadder(const char* taskName) : grGimmickLadder(ta
     m_posHashigoWork = NULL;
     m_triggerMade = 0;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 2;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[1].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 2;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[1].m_flags |= 1;
 }
 
 grJungleLadder* grJungleLadder::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

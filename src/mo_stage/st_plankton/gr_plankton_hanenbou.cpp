@@ -25,12 +25,13 @@ grPlanktonHanenbou::grPlanktonHanenbou(const char* taskName) : grPlankton(taskNa
     m_endY = 0.0f;
     m_data = NULL;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
-        callback->m_nodeCallbackDatas[0].m_flags |= 2;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    callback->m_nodeCallbackDatas[0].m_flags |= 2;
 }
 
 grPlanktonHanenbou::~grPlanktonHanenbou() {

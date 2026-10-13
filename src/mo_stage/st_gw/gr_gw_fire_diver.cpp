@@ -16,9 +16,10 @@ grGWFireDiver::grGWFireDiver(const char* taskName) : grGW(taskName) {
     m_handIndex = 0;
     m_handDir = 0;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
 }
 
 grGWFireDiver* grGWFireDiver::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

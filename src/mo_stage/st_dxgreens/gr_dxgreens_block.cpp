@@ -13,11 +13,12 @@ grDxGreensBlock::grDxGreensBlock(const char* taskName) : grDxGreens(taskName) {
     m_blockData = NULL;
     m_landed = 0;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
 }
 
 grDxGreensBlock* grDxGreensBlock::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

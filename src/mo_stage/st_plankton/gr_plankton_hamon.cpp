@@ -82,11 +82,12 @@ grPlanktonHamon::grPlanktonHamon(const char* taskName) : grPlankton(taskName) {
     m_color2.b = 0;
     m_color2.a = 0;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
 }
 
 grPlanktonHamon::~grPlanktonHamon() {

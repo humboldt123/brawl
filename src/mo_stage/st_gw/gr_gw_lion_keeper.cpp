@@ -26,9 +26,10 @@ grGWLionKeeper::grGWLionKeeper(const char* taskName) : grGW(taskName), m_snd() {
     m_attackOn = 0;
     m_work = NULL;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
 }
 
 grGWLionKeeper* grGWLionKeeper::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

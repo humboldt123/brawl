@@ -12,9 +12,10 @@ inline grGWStep::grGWStep(const char* taskName) : grGW(taskName) {
     m_tblStep = NULL;
     m_id = 0;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_nodeCallbackDatas[0].m_flags |= 1;
 }
 
 grGWStep* grGWStep::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {

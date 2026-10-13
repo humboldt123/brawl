@@ -13,11 +13,12 @@ inline grJungleSB::grJungleSB(const char* taskName) : grJungle(taskName) {
     m_stateWork = NULL;
     m_motion = 1;
     grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-    if (callback != NULL) {
-        callback->m_numNodeCallbackData = 1;
-        callback->initialize(false, Heaps::StageInstance);
-        callback->m_nodeCallbackDatas->m_flags |= 1;
+    if (callback == NULL) {
+        return;
     }
+    callback->m_numNodeCallbackData = 1;
+    callback->initialize(false, Heaps::StageInstance);
+    callback->m_nodeCallbackDatas->m_flags |= 1;
 }
 
 grJungleSB* grJungleSB::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
