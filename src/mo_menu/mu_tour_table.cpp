@@ -571,18 +571,18 @@ void muTourTable::finalSet(int frames) {
 }
 
 bool muTourTable::finalCalc() {
+    Vec3f pos;
     m_frame++;
     if (m_frame >= m_frames) {
-        Vec3f pos;
         tourGetTrans(m_faceObjs[m_slot[m_winner]], &pos);
         pos.m_x = m_to[m_winner];
         m_faceObjs[m_slot[m_winner]]->setTrans(&pos);
         m_frame = m_frames;
         return true;
     }
-    Vec3f pos;
+    float x = (float)m_frame * (m_to[m_winner] - m_from[m_winner]) / (float)m_frames + m_from[m_winner];
     tourGetTrans(m_faceObjs[m_slot[m_winner]], &pos);
-    pos.m_x = (m_to[m_winner] - m_from[m_winner]) * (float)m_frame / (float)m_frames + m_from[m_winner];
+    pos.m_x = x;
     m_faceObjs[m_slot[m_winner]]->setTrans(&pos);
     return false;
 }
