@@ -112,7 +112,7 @@ public:
 
     void loadResource();
     void setName();
-    void setCtrlFrame(MuObject* object, const gfPadStatus* pad, int padNo, u32 msgIndex);
+    void setCtrlFrame(MuObject* object, const gfPadStatus* pad, u32 padNo, u32 msgIndex);
     void setNextGame(int round, int match, int roundKind, int nextCount, const muTourFighter* nextFighters);
     void setDrawBye();
     void setFinalWinner(u32 winner);

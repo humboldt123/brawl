@@ -218,12 +218,9 @@ void muTourEntryTask::setName() {
 }
 
 // The picture that shows the controller of a pad at a fighter, and the text under it.
-void muTourEntryTask::setCtrlFrame(MuObject* object, const gfPadStatus* pad, int padNo, u32 msgIndex) {
+void muTourEntryTask::setCtrlFrame(MuObject* object, const gfPadStatus* pad, u32 padNo, u32 msgIndex) {
     object->setFrameTex((float)(padNo & 3));
-    if (pad->m_error < 0) {
-        object->setFrameVisible(0.0f);
-        m_msg->printf(msgIndex, "");
-    } else {
+    if (pad->m_error >= 0) {
         switch (pad->m_controllerType) {
         case gfPadType::WII_CLASSIC:
             object->setFrameVisible(1.0f);
@@ -242,6 +239,9 @@ void muTourEntryTask::setCtrlFrame(MuObject* object, const gfPadStatus* pad, int
             m_msg->printIndex(msgIndex, 11);
             break;
         }
+    } else {
+        object->setFrameVisible(0.0f);
+        m_msg->printf(msgIndex, "");
     }
 }
 
