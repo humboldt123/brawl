@@ -465,10 +465,10 @@ bool muTourTable::entryCalc() {
         return true;
     }
     for (u32 i = 0; i < m_moving; i++) {
-        float x = (m_to[i] - m_from[i]) / total * (float)(m_frame * m_frame * m_frame) + m_from[i];
+        float moved = (m_to[i] - m_from[i]) / total * (float)(m_frame * m_frame * m_frame);
         Vec3f pos;
         tourGetTrans(m_faceObjs[m_slot[i]], &pos);
-        pos.m_x = x;
+        pos.m_x = moved + m_from[i];
         m_faceObjs[m_slot[i]]->setTrans(&pos);
     }
     return false;
@@ -532,13 +532,13 @@ bool muTourTable::winnerCalc() {
         return true;
     }
     for (u32 i = 0; i < m_moving; i++) {
-        float value = (m_to[i] - m_from[i]) * (float)m_frame / (float)m_frames + m_from[i];
+        float moved = (float)m_frame * (m_to[i] - m_from[i]) / (float)m_frames;
         Vec3f pos;
         tourGetTrans(m_faceObjs[m_slot[i]], &pos);
         if (i == (u32)m_winner) {
-            pos.m_y = value;
+            pos.m_y = moved + m_from[i];
         } else {
-            pos.m_x = value;
+            pos.m_x = moved + m_from[i];
         }
         m_faceObjs[m_slot[i]]->setTrans(&pos);
     }
@@ -580,9 +580,9 @@ bool muTourTable::finalCalc() {
         m_frame = m_frames;
         return true;
     }
-    float x = (float)m_frame * (m_to[m_winner] - m_from[m_winner]) / (float)m_frames + m_from[m_winner];
+    float moved = (float)m_frame * (m_to[m_winner] - m_from[m_winner]) / (float)m_frames;
     tourGetTrans(m_faceObjs[m_slot[m_winner]], &pos);
-    pos.m_x = x;
+    pos.m_x = moved + m_from[m_winner];
     m_faceObjs[m_slot[m_winner]]->setTrans(&pos);
     return false;
 }
