@@ -414,7 +414,7 @@ bool muTourTable::calcTablePos() {
     Vec3f step = Vec3f(diff.m_x * (1.0f / 3.8f), diff.m_y * (1.0f / 3.8f), diff.m_z * (1.0f / 3.8f));
     Vec3f next = cur + step;
     Vec3f rest = m_pos - next;
-    if (fabsf(rest.m_x) < 0.05f && fabsf(rest.m_y) < 0.05f) {
+    if (static_cast<float>(fabs(rest.m_x)) < 0.05f && static_cast<float>(fabs(rest.m_y)) < 0.05f) {
         cur = m_pos;
         done = true;
     } else {
