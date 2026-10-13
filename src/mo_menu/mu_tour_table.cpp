@@ -19,12 +19,6 @@ extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocat
                                                                                                          int capacity, void* scnMdl);
 extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* expand, void* object, const char* name);
 
-// The names of the nodes of the lines, and of the models of the fighters.
-static const char sLineNode[] = "MenTrnLine0000_TopN";
-static const char sLineModelB[] = "MenTrnLine0001_TopN";
-static const char sPosY[] = "ypos00";
-static const char sPosT[] = "tpos01";
-
 // MATCH-ONLY: the paired-single negate of a vector (the form of the vector library of the SDK).
 static inline void negateVec(register const Vec3f* src, register Vec3f* dst) {
     register float t1, t0;
@@ -141,13 +135,13 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
         int pathNo = 0;
         int passed = 0;
         for (int n = 0; n < m_shape.m_fighters[round]; n++, row++) {
-            PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_objs[line + 1]->m_scnMdl, sLineNode);
+            PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_objs[line + 1]->m_scnMdl, "MenTrnLine0000_TopN");
             if (round == 0) {
                 // The lines of the first round are one below the other.
                 Vec3f pos(0.0f, -6.0f * m_shape.m_scale * (float)n, 0.0f);
                 m_objs[line]->setTrans(&pos);
                 pos = Vec3f(4.5f, 0.0f, 0.0f);
-                m_objs[line]->setPos(&pos, sPosY);
+                m_objs[line]->setPos(&pos, "ypos00");
                 m_paths[n].m_line[0] = n;
                 m_paths[n].m_color[0] = 2;
             } else {
@@ -156,12 +150,12 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
                 Vec3f pos;
                 tourGetTrans(from, &pos);
                 Vec3f end;
-                from->getPos(&end, sPosT);
+                from->getPos(&end, "tpos01");
                 end = Vec3f(end.m_x * (1.0f / 2.0f), end.m_y * (1.0f / 2.0f), end.m_z * (1.0f / 2.0f));
                 pos = pos + end;
                 m_objs[line]->setTrans(&pos);
                 pos = Vec3f(4.5f * row->m_scale, 0.0f, 0.0f);
-                m_objs[line]->setPos(&pos, sPosY);
+                m_objs[line]->setPos(&pos, "ypos00");
                 m_rows[round - 1][n].m_line = row->m_line;
                 m_rows[round - 1][n].m_scale = row->m_scale;
                 m_rows[round - 1][n].m_fighters = row->m_fighters;
@@ -213,7 +207,7 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
 
         // The lines of the second kind join the lines of two matches.
         for (int i = 0; i < m_shape.m_matches[round]; i++) {
-            PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_objs[connector]->m_scnMdl, sLineNode);
+            PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_objs[connector]->m_scnMdl, "MenTrnLine0000_TopN");
             int a = matchPairs[0];
             int b = matchPairs[1];
             Vec3f pos;
@@ -224,7 +218,7 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
             Vec3f diff = m_objs[b]->m_trans - pos;
             m_nodePos[round][i].m_y += diff.m_y * 0.5f;
             Vec3f rel(0.0f, diff.m_y, 0.0f);
-            m_objs[connector]->setPos(&rel, sPosT);
+            m_objs[connector]->setPos(&rel, "tpos01");
             m_pairs[2 * (connector - 0x3F)] = a;
             m_pairs[2 * (connector - 0x3F) + 1] = b;
             matchPairs += 2;
@@ -235,7 +229,7 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
 
     // The line of the winner follows the last line of the second kind.
     Vec3f last;
-    m_objs[connector]->getPos(&last, sPosT);
+    m_objs[connector]->getPos(&last, "tpos01");
     last = Vec3f(last.m_x * 0.5f, last.m_y * 0.5f, last.m_z * 0.5f);
     last = m_objs[line]->m_trans + last;
     m_objs[line]->setTrans(&last);
@@ -291,10 +285,11 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
             m_badgeObjs[i]->setTrans(&pos);
             pos = Vec3f(0.0f, 0.0f, -1.5707964f);
             m_faceObjs[i]->setObjRotate(&pos);
-            m_msg->printf(i, "");
             m_badgeObjs[i]->setFrameVisible(0.0f);
             MuObject* face = m_faceObjs[i];
-            face->changeMaterialTex(face->m_resMdl.GetResMat("lambert87")->m_id, "InfStc.000", m_texRes);
+            const char* blank = "InfStc.000";
+            face->changeMaterialTex(face->m_resMdl.GetResMat("lambert87")->m_id, blank, m_texRes);
+            m_msg->printf(i, "");
         }
     }
 }
@@ -363,11 +358,12 @@ bool muTourTable::winnerSet(int slot) {
 // Puts the names, the badges and the faces of the fighters in the table, one below the other (as the lines of the first round).
 void muTourTable::setName() {
     muTourData* list = reinterpret_cast<muTourData*>(g_GameGlobal->m_tournamentData);
+    const char* material = "lambert87";
     for (int i = 0; i < list->m_count; i++) {
         muTourEntrant* entrant = &list->m_entrants[i];
-        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_plateObjs[entrant->m_slot]->m_scnMdl, sLineNode);
-        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_faceObjs[entrant->m_slot]->m_scnMdl, sLineNode);
-        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_badgeObjs[entrant->m_slot]->m_scnMdl, sLineNode);
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_plateObjs[entrant->m_slot]->m_scnMdl, "MenTrnLine0000_TopN");
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_faceObjs[entrant->m_slot]->m_scnMdl, "MenTrnLine0000_TopN");
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_badgeObjs[entrant->m_slot]->m_scnMdl, "MenTrnLine0000_TopN");
         tourPrintData(m_msg, entrant->m_slot, entrant->m_name, strlen(entrant->m_name));
         if (entrant->m_kind == 2) {
             m_badgeObjs[entrant->m_slot]->setFrameVisible(1.0f);
@@ -384,10 +380,11 @@ void muTourTable::setName() {
             face = (u32)(float)(something * 10 + 1);
             color = entrant->m_color;
         }
-        char name[16];
+        char name[0x40];
         sprintf(name, "InfStc.%03d", face + color);
+        nw4r::g3d::ResFile* texRes = m_texRes;
         MuObject* faceObj = m_faceObjs[entrant->m_slot];
-        faceObj->changeMaterialTex(faceObj->m_resMdl.GetResMat("lambert87")->m_id, name, m_texRes);
+        faceObj->changeMaterialTex(faceObj->m_resMdl.GetResMat(material)->m_id, name, texRes);
         m_paths[entrant->m_slot].m_order = i;
     }
 }
@@ -567,7 +564,7 @@ void muTourTable::finalSet(int frames) {
     Vec3f pos;
     tourGetTrans(m_faceObjs[m_slot[m_winner]], &pos);
     m_from[m_winner] = pos.m_x;
-    m_objs[m_finalLine]->getPos(&pos, sPosY);
+    m_objs[m_finalLine]->getPos(&pos, "ypos00");
     m_to[m_winner] = pos.m_x + m_from[m_winner];
     m_frame = 0;
     m_frames = frames;
@@ -621,7 +618,7 @@ bool muTourTable::isLoadEnd() {
     void* data = m_archive->getData(static_cast<ARCNodeType>(2), 0, &size, 0xFFFE);
     m_resLineA[0] = nw4r::g3d::ResFile(data);
     nw4r::g3d::ResFile::Init(&m_resLineA[0]);
-    m_objs[0] = MuObject::create(&m_resLineA[0], sLineNode, m_priority, NULL, Heaps::MenuInstance);
+    m_objs[0] = MuObject::create(&m_resLineA[0], "MenTrnLine0000_TopN", m_priority, NULL, Heaps::MenuInstance);
     m_objs[0]->changeClrAnimNIf("MenTrnLine0000_TopN__0");
     m_objs[0]->m_modelAnim->setUpdateRate(0.0f);
     for (int i = 1; i < 0x3F; i++) {
@@ -629,7 +626,7 @@ bool muTourTable::isLoadEnd() {
         memcpy(copy, data, size);
         m_resLineA[i] = nw4r::g3d::ResFile(copy);
         nw4r::g3d::ResFile::Init(&m_resLineA[i]);
-        m_objs[i] = MuObject::create(&m_resLineA[i], sLineNode, m_priority, NULL, Heaps::MenuInstance);
+        m_objs[i] = MuObject::create(&m_resLineA[i], "MenTrnLine0000_TopN", m_priority, NULL, Heaps::MenuInstance);
         m_objs[i]->changeClrAnimNIf("MenTrnLine0000_TopN__0");
         m_objs[i]->m_modelAnim->setUpdateRate(0.0f);
     }
@@ -638,7 +635,7 @@ bool muTourTable::isLoadEnd() {
     data = m_archive->getData(static_cast<ARCNodeType>(2), 1, &sizeB, 0xFFFE);
     m_resLineB[0] = nw4r::g3d::ResFile(data);
     nw4r::g3d::ResFile::Init(&m_resLineB[0]);
-    m_objs[0x3F] = MuObject::create(&m_resLineB[0], sLineModelB, m_priority, NULL, Heaps::MenuInstance);
+    m_objs[0x3F] = MuObject::create(&m_resLineB[0], "MenTrnLine0001_TopN", m_priority, NULL, Heaps::MenuInstance);
     m_objs[0x3F]->changeClrAnimNIf("MenTrnLine0001_TopN__0");
     m_objs[0x3F]->m_modelAnim->setUpdateRate(0.0f);
     for (int i = 1; i < 0x1F; i++) {
@@ -646,7 +643,7 @@ bool muTourTable::isLoadEnd() {
         memcpy(copy, data, sizeB);
         m_resLineB[i] = nw4r::g3d::ResFile(copy);
         nw4r::g3d::ResFile::Init(&m_resLineB[i]);
-        m_objs[0x3F + i] = MuObject::create(&m_resLineB[i], sLineModelB, m_priority, NULL, Heaps::MenuInstance);
+        m_objs[0x3F + i] = MuObject::create(&m_resLineB[i], "MenTrnLine0001_TopN", m_priority, NULL, Heaps::MenuInstance);
         m_objs[0x3F + i]->changeClrAnimNIf("MenTrnLine0001_TopN__0");
         m_objs[0x3F + i]->m_modelAnim->setUpdateRate(0.0f);
     }
