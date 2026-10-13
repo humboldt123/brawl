@@ -138,7 +138,8 @@ void stDxGreens::createObjBlock() {
     if (data != NULL) {
         u8 level = getBlockLevel();
         float range = data[1] * data[level + 2];
-        m_dropTimer = data[0] + randf() * range;
+        float rnd = randf();
+                m_dropTimer = data[0] + rnd * range;
     }
 }
 
@@ -154,7 +155,7 @@ void stDxGreens::createObjBlock1(u32 column, u32 row) {
                 ground->setStageData(m_stageData);
                 ground->setBlockDataWork(block);
                 ground->setPosLimitWork(m_limit);
-                if (data[7] > randf()) {
+                if (randf() < data[7]) {
                     block->m_hard = 1;
                 } else {
                     block->m_hard = 0;
@@ -167,17 +168,27 @@ void stDxGreens::createObjBlock1(u32 column, u32 row) {
 }
 
 // The wind of Whispy: an area without size (the ground gives it its size when he blows) and a trigger that starts asleep.
+static inline void setZero(Vec3f* pos) {
+    pos->m_x = 0.0f;
+    pos->m_y = 0.0f;
+    pos->m_z = 0.0f;
+}
+
+static inline void setZero(stGimmickAreaData* area) {
+    area->m_offsetPos.m_x = 0.0f;
+    area->m_offsetPos.m_y = 0.0f;
+    area->m_range.m_x = 0.0f;
+    area->m_range.m_y = 0.0f;
+}
+
 void stDxGreens::createObjWind() {
     m_windData = new (Heaps::StageInstance) grGimmickWindData;
     if (m_windData != NULL) {
         memset(m_windData, 0, sizeof(grGimmickWindData));
-        Vec3f pos(0.0f, 0.0f, 0.0f);
-        Vec2f areaPos(0.0f, 0.0f);
-        Vec2f areaRange(0.0f, 0.0f);
-        m_windData->m_pos = pos;
+        setZero(&m_windData->m_pos);
         m_windData->m_speed = 10.0f;
         m_windData->m_vector = 0.0f;
-        m_windData->m_areaData.set(&areaPos, &areaRange);
+        setZero(&m_windData->m_areaData);
         m_windTrigger = g_stTriggerMng->createTrigger(Gimmick::Area_Wind, -1);
         m_windTrigger->setWindTrigger(m_windData);
         m_windTrigger->setAreaSleep(true);
@@ -217,7 +228,7 @@ void stDxGreens::updateBlockInit(float deltaFrame) {
                     block->m_pos = m_posBlock[column][row];
                     block->m_posTgt = m_posBlock[column][row];
                     block->m_index = row;
-                    if (data[7] > randf()) {
+                    if (randf() < data[7]) {
                         block->m_hard = 1;
                     } else {
                         block->m_hard = 0;
@@ -277,8 +288,9 @@ void stDxGreens::updateBlockDrop(float deltaFrame) {
             float* data = static_cast<float*>(m_stageData);
             if (data != NULL) {
                 u8 level = getBlockLevel();
-                float range = data[1] * (&data[2])[level];
-                m_dropTimer = data[0] + randf() * range;
+                float range = (&data[2])[level] * data[1];
+                float rnd = randf();
+                m_dropTimer = data[0] + rnd * range;
                 u8 column = (u8)(randf() * 6.0f);
                 nw4r::ut::LinkList<SListNode, 0>* list = &m_list[column];
                 if (list->GetSize() != 5) {
@@ -289,25 +301,25 @@ void stDxGreens::updateBlockDrop(float deltaFrame) {
                         }
                     }
                     stDxGreensBlockData* blocks = m_block[column];
-                    u32 slot;
+                    u8 slot;
                     for (slot = 0; slot < 5; slot++) {
-                        if (blocks[slot].m_state != 7) {
+                        if (blocks[slot].m_state == 7) {
                             break;
                         }
                     }
                     if (slot != 5) {
                         stDxGreensBlockData* block = &blocks[slot];
                         u8 row;
-                        if (last == NULL) {
-                            row = 0;
-                        } else {
+                        if (last != NULL) {
                             row = blocks[last->m_index].m_index + 1;
+                        } else {
+                            row = 0;
                         }
                         block->m_pos = m_posBlock[column][0];
                         block->m_posTgt = m_posBlock[column][row];
                         block->m_index = row;
                         block->m_state = 0;
-                        if (data[7] > randf()) {
+                        if (randf() < data[7]) {
                             block->m_hard = 1;
                         } else {
                             block->m_hard = 0;
@@ -324,38 +336,39 @@ void stDxGreens::updateBlockDrop(float deltaFrame) {
 void stDxGreens::updateBlockDamage(float deltaFrame) {
     if (m_blockInit != 1) {
         for (u8 column = 0; column < 6; column++) {
-            int lowest = -1;
-            for (u8 row = 0; row < 5; row++) {
+            s8 lowest = -1;
+            for (u8 row = 0; row != 5; row++) {
                 stDxGreensBlockData* block = &m_block[column][row];
                 if (block->m_state == 5) {
                     if (lowest == -1) {
-                        lowest = (s8)block->m_index;
+                        lowest = block->m_index;
                     }
-                    if ((int)row < lowest) {
-                        lowest = (s8)block->m_index;
+                    if (lowest > row) {
+                        lowest = block->m_index;
                     }
                     clearList(row, &m_list[column]);
                     block->m_state = 7;
                 }
             }
             if (lowest >= 0) {
-                SListNode* node = getListTop(&m_list[column]);
-                for (u32 count = m_list[column].GetSize() & 0xFF; count != 0; count--) {
-                    stDxGreensBlockData* block = &m_block[column][node->m_index];
-                    u8 state = block->m_state;
-                    if (state != 1) {
-                        if (state == 0) {
-                            s8 target = lowest;
-                            if ((int)target < (int)block->m_index) {
-                                block->m_posTgt = m_posBlock[column][target];
-                                block->m_index = target;
-                                lowest = lowest + 1;
-                            }
-                        } else if (state < 3) {
-                            lowest = (s8)(block->m_index + 1);
+                u8 count = m_list[column].GetSize();
+                nw4r::ut::LinkList<SListNode, 0>::Iterator it = m_list[column].GetBeginIter();
+                for (u8 i = 0; i != count; i++, it++) {
+                    stDxGreensBlockData* block = &m_block[column][it->m_index];
+                    switch (block->m_state) {
+                    case 2:
+                        lowest = block->m_index + 1;
+                        break;
+                    case 0:
+                        if (block->m_index > lowest) {
+                            block->m_posTgt = m_posBlock[column][lowest];
+                            block->m_index = lowest;
+                            lowest++;
                         }
+                        break;
+                    case 1:
+                        break;
                     }
-                    node = static_cast<SListNode*>(node->GetNext());
                 }
             }
         }
@@ -365,39 +378,38 @@ void stDxGreens::updateBlockDamage(float deltaFrame) {
 // The blocks that lie at rest close the ledges of the platforms they touch: the outer ones (column 0 and 5) on the outside,
 // the others towards the middle.
 void stDxGreens::updateJoint(float deltaFrame) {
-    if (m_joint[0] == NULL || m_joint[1] == NULL || m_joint[2] == NULL) {
-        grCollision* collision = getCollision(0);
-        if (collision != NULL) {
-            m_joint[0] = collision->getJoint(0);
-            m_joint[1] = collision->getJoint(1);
-            m_joint[2] = collision->getJoint(2);
-        }
-    } else {
+    if (m_joint[0] != NULL && m_joint[1] != NULL && m_joint[2] != NULL) {
         u16 flags0 = 0;
         u16 flags1 = 0;
         u16 flags2 = 0;
         for (u8 column = 0; column < 6; column++) {
             u8 row = 0;
             while (row != 5) {
-                stDxGreensBlockData* block = &m_block[column][row];
-                if (block->m_state == 2) {
-                    if (column == 3) {
-                        if (block->m_index < 2) {
+                if (m_block[column][row].m_state != 2) {
+                    row++;
+                    continue;
+                }
+                switch (column) {
+                    case 0:
+                        if (m_block[column][row].m_index == 0) {
+                            flags0 |= 0x4000;
+                        }
+                        break;
+                    case 1:
+                        if (m_block[column][row].m_index <= 1) {
+                            flags1 |= 0x2000;
+                        }
+                        break;
+                    case 3:
+                        if (m_block[column][row].m_index <= 1) {
                             flags1 |= 0x4000;
                         }
-                    } else if (column < 3) {
-                        if (column != 1) {
-                            if (column == 0) {
-                                if (block->m_index == 0) {
-                                    flags0 = 0x4000;
-                                }
-                            } else if (block->m_index < 2) {
-                                flags1 |= 0x2000;
-                            }
+                        break;
+                    case 5:
+                        if (m_block[column][row].m_index == 0) {
+                            flags2 |= 0x2000;
                         }
-                    } else if (column == 5 && block->m_index == 0) {
-                        flags2 = 0x2000;
-                    }
+                        break;
                 }
                 row++;
             }
@@ -405,6 +417,13 @@ void stDxGreens::updateJoint(float deltaFrame) {
         m_joint[0]->m_0x52 = flags0;
         m_joint[1]->m_0x52 = flags1;
         m_joint[2]->m_0x52 = flags2;
+    } else {
+        grCollision* collision = getCollision(0);
+        if (collision != NULL) {
+            m_joint[0] = collision->getJoint(0);
+            m_joint[1] = collision->getJoint(1);
+            m_joint[2] = collision->getJoint(2);
+        }
     }
 }
 
@@ -439,36 +458,28 @@ void stDxGreens::clearList(u8 index, nw4r::ut::LinkList<SListNode, 0>* list) {
     SListNode* node = getList(index, list);
     if (node != NULL) {
         list->Erase(node);
-        if (node != NULL) {
-            delete node;
-        }
+        delete node;
     }
 }
 
 void stDxGreens::clearListAll(nw4r::ut::LinkList<SListNode, 0>* list) {
-    for (u32 count = list->GetSize(), i = 0; i != count; i++) {
+    for (u32 i = 0, count = list->GetSize(); i != count; i++) {
         SListNode* node = &list->GetFront();
-        list->Erase(node);
-        if (node != NULL) {
-            delete node;
-        }
+        list->Erase(list->GetBeginIter());
+        delete node;
     }
 }
 
 stDxGreens::SListNode* stDxGreens::getList(u8 index, nw4r::ut::LinkList<SListNode, 0>* list) {
     u32 count = list->GetSize();
     SListNode* node = &list->GetFront();
-    while (true) {
-        if (count == 0) {
-            return NULL;
-        }
+    for (u32 i = 0; i != count; i++) {
         if (index == node->m_index) {
-            break;
+            return node;
         }
         node = static_cast<SListNode*>(node->GetNext());
-        count--;
     }
-    return node;
+    return NULL;
 }
 
 stDxGreens::SListNode* stDxGreens::getListTop(nw4r::ut::LinkList<SListNode, 0>* list) {
@@ -480,18 +491,13 @@ stDxGreens::SListNode* stDxGreens::getListEnd(nw4r::ut::LinkList<SListNode, 0>* 
     u32 position = 0;
     u32 count = list->GetSize();
     u32 last = count - 1;
-    while (true) {
-        if (count == 0) {
-            return NULL;
-        }
+    for (; position != count; position++) {
         if (position == last) {
-            break;
+            return node;
         }
         node = static_cast<SListNode*>(node->GetNext());
-        position++;
-        count--;
     }
-    return node;
+    return NULL;
 }
 
 bool stDxGreens::isBamperVector() {
