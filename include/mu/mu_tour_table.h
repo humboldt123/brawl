@@ -110,11 +110,11 @@ public:
     int m_moving;                           // 0xB90 how many fighters walk now
     muTourPath m_paths[0x20];               // 0xB94
     int m_slot[4];                          // 0xF14 the fighters that walk now
-    int m_frame;                            // 0xF24 the frame of the walk
+    u32 m_frame;                            // 0xF24 the frame of the walk
     int m_winner;                           // 0xF28 which of the walking fighters wins the match
     float m_from[4];                        // 0xF2C where each walking fighter starts
     float m_to[4];                          // 0xF3C where each walking fighter ends
-    int m_frames;                           // 0xF4C how many frames the walk takes
+    u32 m_frames;                           // 0xF4C how many frames the walk takes
     MuObject* m_plateObjs[0x20];            // 0xF50 the name plate of each fighter
     MuObject* m_faceObjs[0x20];             // 0xFD0 the face of each fighter
     MuObject* m_badgeObjs[0x20];            // 0x1050 the badge of each fighter

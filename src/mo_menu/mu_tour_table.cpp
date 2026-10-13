@@ -153,7 +153,8 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
             } else {
                 // The line starts where the line of the former round ends, and goes up or down to the middle.
                 MuObject* from = m_objs[0x3F + row->m_line];
-                Vec3f pos = from->m_trans;
+                Vec3f pos;
+                tourGetTrans(from, &pos);
                 Vec3f end;
                 from->getPos(&end, sPosT);
                 end = Vec3f(end.m_x * (1.0f / 2.0f), end.m_y * (1.0f / 2.0f), end.m_z * (1.0f / 2.0f));
@@ -215,7 +216,8 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
             PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_objs[connector]->m_scnMdl, sLineNode);
             int a = matchPairs[0];
             int b = matchPairs[1];
-            Vec3f pos = m_objs[a]->m_trans;
+            Vec3f pos;
+            tourGetTrans(m_objs[a], &pos);
             pos.m_x += 4.5f;
             m_objs[connector]->setTrans(&pos);
             m_nodePos[round][i] = pos;
@@ -451,9 +453,11 @@ void muTourTable::entrySet(const int* slots, int count, int frames) {
 // Moves the fighters on, and returns true when the walk is over.
 bool muTourTable::entryCalc() {
     m_frame++;
-    if (m_frame >= (u32)m_frames) {
+    float total = (float)(m_frames * m_frames * m_frames);
+    if (m_frame >= m_frames) {
         for (u32 i = 0; i < m_moving; i++) {
-            Vec3f pos = m_faceObjs[m_slot[i]]->m_trans;
+            Vec3f pos;
+            tourGetTrans(m_faceObjs[m_slot[i]], &pos);
             pos.m_x = m_to[i];
             m_faceObjs[m_slot[i]]->setTrans(&pos);
         }
@@ -461,8 +465,10 @@ bool muTourTable::entryCalc() {
         return true;
     }
     for (u32 i = 0; i < m_moving; i++) {
-        Vec3f pos = m_faceObjs[m_slot[i]]->m_trans;
-        pos.m_x = (m_to[i] - m_from[i]) / (float)(m_frames * m_frames * m_frames) * (float)(m_frame * m_frame * m_frame) + m_from[i];
+        float x = (m_to[i] - m_from[i]) / total * (float)(m_frame * m_frame * m_frame) + m_from[i];
+        Vec3f pos;
+        tourGetTrans(m_faceObjs[m_slot[i]], &pos);
+        pos.m_x = x;
         m_faceObjs[m_slot[i]]->setTrans(&pos);
     }
     return false;
@@ -471,7 +477,8 @@ bool muTourTable::entryCalc() {
 // Puts the fighters at the end of their walk at once.
 void muTourTable::entryEnd() {
     for (u32 i = 0; i < m_moving; i++) {
-        Vec3f pos = m_faceObjs[m_slot[i]]->m_trans;
+        Vec3f pos;
+        tourGetTrans(m_faceObjs[m_slot[i]], &pos);
         pos.m_x = m_to[i];
         m_faceObjs[m_slot[i]]->setTrans(&pos);
     }
@@ -482,14 +489,15 @@ void muTourTable::entryEnd() {
 void muTourTable::winnerSetIcon(int winner, int frames) {
     for (u32 i = 0; i < m_moving; i++) {
         MuObject* face = m_faceObjs[m_slot[i]];
-        Vec3f pos = face->m_trans;
+        Vec3f pos;
+        tourGetTrans(face, &pos);
         if ((u32)winner == (u32)m_paths[m_slot[i]].m_order) {
             m_winner = i;
             m_from[i] = pos.m_y;
             winnerSet(m_slot[i]);
             const muTourPath& path = m_paths[m_slot[i]];
             u8 line = path.m_line[2 * path.m_step];
-            pos = m_objs[line]->m_trans;
+            tourGetTrans(m_objs[line], &pos);
             m_to[i] = pos.m_y;
         } else {
             m_from[i] = pos.m_x;
@@ -497,7 +505,7 @@ void muTourTable::winnerSetIcon(int winner, int frames) {
             if (line == 0) {
                 m_to[i] = 0.0f;
             } else {
-                pos = m_objs[line]->m_trans;
+                tourGetTrans(m_objs[line], &pos);
                 m_to[i] = pos.m_x;
             }
         }
@@ -509,9 +517,10 @@ void muTourTable::winnerSetIcon(int winner, int frames) {
 // Moves the winner (up or down, the other fighters to the side), and returns true when it is over.
 bool muTourTable::winnerCalc() {
     m_frame++;
-    if (m_frame >= (u32)m_frames) {
+    if (m_frame >= m_frames) {
         for (u32 i = 0; i < m_moving; i++) {
-            Vec3f pos = m_faceObjs[m_slot[i]]->m_trans;
+            Vec3f pos;
+            tourGetTrans(m_faceObjs[m_slot[i]], &pos);
             if (i == (u32)m_winner) {
                 pos.m_y = m_to[i];
             } else {
@@ -524,7 +533,8 @@ bool muTourTable::winnerCalc() {
     }
     for (u32 i = 0; i < m_moving; i++) {
         float value = (m_to[i] - m_from[i]) * (float)m_frame / (float)m_frames + m_from[i];
-        Vec3f pos = m_faceObjs[m_slot[i]]->m_trans;
+        Vec3f pos;
+        tourGetTrans(m_faceObjs[m_slot[i]], &pos);
         if (i == (u32)m_winner) {
             pos.m_y = value;
         } else {
@@ -537,7 +547,8 @@ bool muTourTable::winnerCalc() {
 
 void muTourTable::winnerEnd() {
     for (u32 i = 0; i < m_moving; i++) {
-        Vec3f pos = m_faceObjs[m_slot[i]]->m_trans;
+        Vec3f pos;
+        tourGetTrans(m_faceObjs[m_slot[i]], &pos);
         if (i == (u32)m_winner) {
             pos.m_y = m_to[i];
         } else {
@@ -550,7 +561,8 @@ void muTourTable::winnerEnd() {
 
 // Starts the walk of the winner of the tournament to the last line.
 void muTourTable::finalSet(int frames) {
-    Vec3f pos = m_faceObjs[m_slot[m_winner]]->m_trans;
+    Vec3f pos;
+    tourGetTrans(m_faceObjs[m_slot[m_winner]], &pos);
     m_from[m_winner] = pos.m_x;
     m_objs[m_finalLine]->getPos(&pos, sPosY);
     m_to[m_winner] = pos.m_x + m_from[m_winner];
@@ -560,21 +572,24 @@ void muTourTable::finalSet(int frames) {
 
 bool muTourTable::finalCalc() {
     m_frame++;
-    if (m_frame >= (u32)m_frames) {
-        Vec3f pos = m_faceObjs[m_slot[m_winner]]->m_trans;
+    if (m_frame >= m_frames) {
+        Vec3f pos;
+        tourGetTrans(m_faceObjs[m_slot[m_winner]], &pos);
         pos.m_x = m_to[m_winner];
         m_faceObjs[m_slot[m_winner]]->setTrans(&pos);
         m_frame = m_frames;
         return true;
     }
-    Vec3f pos = m_faceObjs[m_slot[m_winner]]->m_trans;
+    Vec3f pos;
+    tourGetTrans(m_faceObjs[m_slot[m_winner]], &pos);
     pos.m_x = (m_to[m_winner] - m_from[m_winner]) * (float)m_frame / (float)m_frames + m_from[m_winner];
     m_faceObjs[m_slot[m_winner]]->setTrans(&pos);
     return false;
 }
 
 void muTourTable::finalEnd() {
-    Vec3f pos = m_faceObjs[m_slot[m_winner]]->m_trans;
+    Vec3f pos;
+    tourGetTrans(m_faceObjs[m_slot[m_winner]], &pos);
     pos.m_x = m_to[m_winner];
     m_faceObjs[m_slot[m_winner]]->setTrans(&pos);
     m_frame = m_frames;

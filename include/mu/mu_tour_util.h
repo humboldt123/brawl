@@ -35,3 +35,10 @@ extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* d
 static inline void tourPrintData(MuMsg* msg, u32 msgIndex, const void* data, int length) {
     printData__5MuMsgFUlPCvi(msg, msgIndex, data, length);
 }
+
+// Copies the position of an object of the menu (the fields one by one).
+static inline void tourGetTrans(const MuObject* obj, Vec3f* out) {
+    out->m_x = obj->m_trans.m_x;
+    out->m_y = obj->m_trans.m_y;
+    out->m_z = obj->m_trans.m_z;
+}
