@@ -131,30 +131,30 @@ void grKartWarning::setMotion(u32 animId, bool loop, bool force, float* frameCou
     modelAnim->unbindMatColAnim(sceneMdl);
     m_motion = animId;
 
-    if (animId == 0) {
-        bool result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > 0);
+    if (animId < 1) {
+        bool result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > animId);
         if (result) {
-            grKartSetChrAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grKartSetChrAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
-        result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
+        result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > animId);
         if (result) {
-            grKartSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grKartSetVisibilityAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
-        result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > 0);
+        result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > animId);
         if (result) {
-            grKartSetTexPatAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grKartSetTexPatAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
-        result = (modelAnim->m_resFile.GetResAnmTexSrtNumEntries() > 0);
+        result = (modelAnim->m_resFile.GetResAnmTexSrtNumEntries() > animId);
         if (result) {
-            grKartSetTexSrtAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grKartSetTexSrtAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
-        result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > 0);
+        result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > animId);
         if (result) {
-            grKartSetColorAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grKartSetColorAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
         gfModelAnimation::bind(sceneMdl, modelAnim);

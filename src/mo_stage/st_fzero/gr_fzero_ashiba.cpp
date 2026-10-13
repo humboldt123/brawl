@@ -232,14 +232,14 @@ void grFzeroAshiba::setMotion(u32 animId, bool shouldLoop, bool force, float* fr
         return;
     }
 
-    bool result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > animId);
-    if (result) {
-        grFzeroSetChrAnim2(animId, model, modelAnim, Heaps::StageInstance);
-    }
-
-    result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > animId);
+    bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > animId);
     if (result) {
         grFzeroSetVisibilityAnim2(animId, model, modelAnim, Heaps::StageInstance);
+    }
+
+    result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > animId);
+    if (result) {
+        grFzeroSetChrAnim2(animId, model, modelAnim, Heaps::StageInstance);
     }
 
     result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > animId);

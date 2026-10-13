@@ -75,7 +75,7 @@ void grJungleAshiba03A::setMotion(u32 animId, bool loop, bool force, float* fram
                     modelAnim->unbindTexSrtAnim(sceneMdl);
                     modelAnim->unbindMatColAnim(sceneMdl);
                     m_motion = animId;
-                    if (animId == 0) {
+                    if (animId < 2) {
                         GR_JUNGLE_BIND_ANIMS(animId, model, modelAnim)
                         gfModelAnimation::bind(sceneMdl, modelAnim);
                         modelAnim->setFrame(0.0);

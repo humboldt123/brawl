@@ -121,28 +121,28 @@ void grGW::setMotion(u32 animId, bool loop, bool force, float* frameCount) {
     modelAnim->unbindTexSrtAnim(sceneMdl);
     modelAnim->unbindMatColAnim(sceneMdl);
     m_motion = animId;
-    if (animId != 0) {
+    if (animId >= 1) {
         return;
     }
-    bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
+    bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > animId);
     if (result) {
-        grGWSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
+        grGWSetVisibilityAnim2(animId, model, modelAnim, Heaps::StageInstance);
     }
-    result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > 0);
+    result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > animId);
     if (result) {
-        grGWSetChrAnim2(0, model, modelAnim, Heaps::StageInstance);
+        grGWSetChrAnim2(animId, model, modelAnim, Heaps::StageInstance);
     }
-    result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > 0);
+    result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > animId);
     if (result) {
-        grGWSetTexPatAnim2(0, model, modelAnim, Heaps::StageInstance);
+        grGWSetTexPatAnim2(animId, model, modelAnim, Heaps::StageInstance);
     }
-    result = (modelAnim->m_resFile.GetResAnmTexSrtNumEntries() > 0);
+    result = (modelAnim->m_resFile.GetResAnmTexSrtNumEntries() > animId);
     if (result) {
-        grGWSetTexSrtAnim2(0, model, modelAnim, Heaps::StageInstance);
+        grGWSetTexSrtAnim2(animId, model, modelAnim, Heaps::StageInstance);
     }
-    result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > 0);
+    result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > animId);
     if (result) {
-        grGWSetColorAnim2(0, model, modelAnim, Heaps::StageInstance);
+        grGWSetColorAnim2(animId, model, modelAnim, Heaps::StageInstance);
     }
     gfModelAnimation::bind(sceneMdl, modelAnim);
     modelAnim->setFrame(0.0);

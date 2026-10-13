@@ -569,7 +569,7 @@ void grMetalgearWall::setMotion(u32 animId, bool loop, bool force, float* frameC
     modelAnim->unbindMatColAnim(sceneMdl);
     m_motion = animId;
 
-    if (animId != 0) {
+    if (animId >= 1) {
         return;
     }
 

@@ -188,7 +188,7 @@ void grMetalgearMainBg::setMotion(u32 animId, bool loop, bool force, float* fram
     modelAnim->unbindVisibleAnim(sceneMdl);
     m_motion = animId;
 
-    if (animId != 0) {
+    if (animId >= 1) {
         return;
     }
 

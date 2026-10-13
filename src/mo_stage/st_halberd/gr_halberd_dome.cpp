@@ -285,7 +285,7 @@ void grHalberdDome::setMotion(u32 animId, bool shouldLoop, bool force, float* fr
     modelAnim->unbindMatColAnim(sceneMdl);
     m_motion = animId;
 
-    if (animId != 0) {
+    if (animId >= 1) {
         return;
     }
 

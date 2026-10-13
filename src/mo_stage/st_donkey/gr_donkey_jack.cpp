@@ -300,7 +300,7 @@ void grDonkeyJack::setMotion(u32 animId, bool shouldLoop, bool force, float* fra
     modelAnim->unbindMatColAnim(sceneMdl);
     m_motion = animId;
 
-    if (animId != 0) {
+    if (animId >= 1) {
         return;
     }
 

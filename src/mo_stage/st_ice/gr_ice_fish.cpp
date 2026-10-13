@@ -258,30 +258,30 @@ void grIceFish::setMotion(u32 animId, bool loop, bool force, float* frameCount) 
     modelAnim->unbindMatColAnim(sceneMdl);
     m_motion = animId;
 
-    if (animId == 0) {
-        bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
+    if (animId < 1) {
+        bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > animId);
         if (result) {
-            grIceSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grIceSetVisibilityAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
-        result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > 0);
+        result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > animId);
         if (result) {
-            grIceSetChrAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grIceSetChrAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
-        result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > 0);
+        result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > animId);
         if (result) {
-            grIceSetTexPatAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grIceSetTexPatAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
-        result = (modelAnim->m_resFile.GetResAnmTexSrtNumEntries() > 0);
+        result = (modelAnim->m_resFile.GetResAnmTexSrtNumEntries() > animId);
         if (result) {
-            grIceSetTexSrtAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grIceSetTexSrtAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
-        result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > 0);
+        result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > animId);
         if (result) {
-            grIceSetColorAnim2(0, model, modelAnim, Heaps::StageInstance);
+            grIceSetColorAnim2(animId, model, modelAnim, Heaps::StageInstance);
         }
 
         gfModelAnimation::bind(sceneMdl, modelAnim);
