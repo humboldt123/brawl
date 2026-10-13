@@ -6,6 +6,45 @@ Sections:
 	.data       type:data align:32
 	.bss        type:bss align:8
 
+mo_menu/mu_strap.cpp:
+	.text       start:0x00000000 end:0x000006E8
+	.rodata     start:0x00000000 end:0x00000008
+	.data       start:0x00000000 end:0x00000230
+
+mo_menu/mu_controller_operator.cpp:
+	.text       start:0x000006E8 end:0x00000AC0
+	.rodata     start:0x00000008 end:0x00000018
+	.data       start:0x00000230 end:0x00000340
+
+mo_menu/mu_esrb.cpp:
+	.text       start:0x00000AC0 end:0x00001178
+	.rodata     start:0x00000018 end:0x00000028
+	.data       start:0x00000340 end:0x00000478
+
+mo_menu/mu_now_loading.cpp:
+	.text       start:0x00001178 end:0x00001444
+	.rodata     start:0x00000028 end:0x00000030
+	.data       start:0x00000478 end:0x00000558
+
+mo_menu/mu_opening_movie.cpp:
+	.text       start:0x00001444 end:0x000019A0
+	.rodata     start:0x00000030 end:0x00000040
+	.data       start:0x00000558 end:0x00000628
+
+mo_menu/mu_title.cpp:
+	.text       start:0x000019A0 end:0x00002960
+	.rodata     start:0x00000040 end:0x00000068
+	.data       start:0x00000628 end:0x000007A8
+
+mo_menu/mu_how_to_play.cpp:
+	.text       start:0x00002960 end:0x00002EF8
+	.rodata     start:0x00000068 end:0x00000074
+	.data       start:0x000007A8 end:0x000008D0
+
+mo_menu/mu_boot_pad.cpp:
+	.text       start:0x00002EF8 end:0x00003478
+	.data       start:0x000008D0 end:0x000008F0
+
 mo_menu/mo_menu.cpp:
 	.text       start:0x00003478 end:0x00003514
 	.data       start:0x000008F0 end:0x000008FC

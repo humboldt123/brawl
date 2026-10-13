@@ -6378,7 +6378,16 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_menu/mu_strap.cpp"),
+            Object(NonMatching, "mo_menu/mu_controller_operator.cpp"),
+            Object(NonMatching, "mo_menu/mu_esrb.cpp"),
+            Object(NonMatching, "mo_menu/mu_now_loading.cpp"),
+            Object(NonMatching, "mo_menu/mu_opening_movie.cpp"),
+            Object(NonMatching, "mo_menu/mu_title.cpp"),
+            Object(NonMatching, "mo_menu/mu_how_to_play.cpp"),
+            Object(NonMatching, "mo_menu/mu_boot_pad.cpp"),
+        ],
     },
     {
         "lib": "sora_menu_title_sunset",
