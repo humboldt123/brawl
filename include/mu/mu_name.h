@@ -233,6 +233,7 @@ public:
     void initProc(nw4r::g3d::ScnGroup* scnGroup, int kind, int padNo, int priority, nw4r::g3d::ScnMdl* parentMdl,
                   const char* parentNode, void* msgData, nw4r::g3d::ResFile* wndRes);
     void createObjResFile(const muNameModel* models, int count, nw4r::g3d::ResFile* resFile, bool suffix, int priority);
+    void createKeyModels(nw4r::g3d::ResFile* resFile, int priority);
     void initMsg();
     void makeNameList();
     bool deleteNameID(int nameNo);

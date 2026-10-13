@@ -25,9 +25,10 @@ extern "C" int fn_8004D148(GameGlobal* global);
 extern "C" void fn_8004D6C4(GameGlobal* global, int number, char* buffer);
 // MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
 extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
-// nw4r::g3d::ScnMdl::Construct(allocator, size, capacity, base model) and ScnMdl::Pushback(model, object, node name)
-extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d6ScnMdlFPviiPv(void* allocator, int size, int capacity, void* scnMdl);
-extern "C" void Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(void* scnMdl, void* object, const char* name);
+// nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model) and PushBack(object, node name)
+extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(MEMAllocator* allocator, u32* size, int capacity,
+                                                                                                    void* scnMdl);
+extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* scnMdl, void* object, const char* name);
 // gfSceneRoot::layerUpdateFrame(layer) and gfSceneRoot::removeInfoCamResAnm()
 extern "C" void fn_8000DB40(gfSceneRoot* root, int layer);
 extern "C" void fn_8000D7B8(gfSceneRoot* root);
@@ -564,7 +565,7 @@ void muAdvNameTask::createExpMdl(const muAdvNameScnMdl* models, int count) {
             num = models->m_end - models->m_start + 1;
         }
         for (int j = 0; j < num; j++) {
-            m_scnMdls[models->m_start + j] = Construct__Q34nw4r3g3d6ScnMdlFPviiPv(allocator, 0, models->m_capacity,
+            m_scnMdls[models->m_start + j] = Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(allocator, 0, models->m_capacity,
                                                                                   m_objects[models->m_objectNo + j]->m_sceneModel);
         }
     }
@@ -672,8 +673,8 @@ static void addModelsToScene(muAdvNameTask* task) {
     nw4r::g3d::G3dObj* scnMdl = task->m_scnMdls[0];
     nw4r::g3d::G3dObj* attached = task->m_scnMdls[2];
     g_gfSceneRoot->add(gfSceneRoot::Layer_Info, reinterpret_cast<nw4r::g3d::ScnMdl*>(scnMdl));
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(scnMdl, attached, "pos00");
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[0], task->m_scnMdls[1], "pos01");
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(scnMdl, attached, "pos00");
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[0], task->m_scnMdls[1], "pos01");
     task->m_started = true;
     g_gfApplication->unkD0.endKeepScreen();
 }
@@ -735,7 +736,7 @@ void muAdvNameTask::mainStepAppearInit(muAdvNameTask* task) {
     MuObject* list1 = task->m_objects[4];
     MuObject* list2 = task->m_objects[3];
     if (!task->m_is2P) {
-        Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[2], list1->m_sceneModel, "pos00");
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[2], list1->m_sceneModel, "pos00");
         question->m_modelAnim->setUpdateRate(1.0f);
         frame->setFrameNode(10.0f);
         frame->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(1.0f);
@@ -750,7 +751,7 @@ void muAdvNameTask::mainStepAppearInit(muAdvNameTask* task) {
         list1->changeClrAnimNIf("MenAdvMenu0022_TopN__0");
     }
     if (task->m_is2P) {
-        Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
         cursor1->changeNodeAnimNIf("MenAdvMenu0021_TopN__0");
         cursor1->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
         cursor1->m_modelAnim->setUpdateRate(1.0f);
@@ -882,7 +883,7 @@ int muAdvNameTask::mainStepSelectMain(muAdvNameTask* task) {
                 object->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
                 object->setFrameNode(0.0f);
                 object->setFrameVisible(0.0f);
-                Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[2], task->m_objects[4]->m_sceneModel, "pos00");
+                PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[2], task->m_objects[4]->m_sceneModel, "pos00");
             }
             if (task->m_sel2[1] == 2) {
                 task->m_sel2[1] = 0;
@@ -893,7 +894,7 @@ int muAdvNameTask::mainStepSelectMain(muAdvNameTask* task) {
                 object->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
                 object->setFrameNode(0.0f);
                 object->setFrameVisible(0.0f);
-                Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
+                PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
             }
         }
         if (task->m_players[0].m_listState != 3 && task->m_players[1].m_listState == 3) {
@@ -906,7 +907,7 @@ int muAdvNameTask::mainStepSelectMain(muAdvNameTask* task) {
                 object->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
                 object->setFrameNode(0.0f);
                 object->setFrameVisible(0.0f);
-                Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
+                PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
             }
         }
     }
@@ -962,13 +963,13 @@ int muAdvNameTask::mainStepYesNoMain(muAdvNameTask* task) {
                 MuObject* cursor2 = task->m_objects[2];
                 cursor2->changeNodeAnimNIf("MenAdvMenu0021_TopN__0");
                 cursor2->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
-                Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[2], task->m_objects[4]->m_sceneModel, "pos00");
+                PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[2], task->m_objects[4]->m_sceneModel, "pos00");
                 frame->setFrameVisible(0.0f);
                 if (task->m_is2P) {
                     MuObject* cursor1 = task->m_objects[1];
                     cursor1->changeNodeAnimNIf("MenAdvMenu0021_TopN__0");
                     cursor1->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
-                    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
+                    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
                 }
             }
         }
@@ -992,13 +993,13 @@ int muAdvNameTask::mainStepBackMain(muAdvNameTask* task) {
             MuObject* cursor2 = task->m_objects[2];
             cursor2->changeNodeAnimNIf("MenAdvMenu0021_TopN__0");
             cursor2->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
-            Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[2], task->m_objects[4]->m_sceneModel, "pos00");
+            PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[2], task->m_objects[4]->m_sceneModel, "pos00");
             frame->setFrameVisible(0.0f);
             if (task->m_is2P) {
                 MuObject* cursor1 = task->m_objects[1];
                 cursor1->changeNodeAnimNIf("MenAdvMenu0021_TopN__0");
                 cursor1->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
-                Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
+                PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
             }
         }
         task->m_flag352 = false;
@@ -1014,7 +1015,7 @@ void muAdvNameTask::mainStep1POnlyInit(muAdvNameTask* task) {
     MuObject* list1 = task->m_objects[4];
     frame->setFrameNode(10.0f);
     frame->setFrameVisible(1.0f);
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[2], task->m_objects[4]->m_sceneModel, "pos00");
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[2], task->m_objects[4]->m_sceneModel, "pos00");
     cursor2->changeNodeAnimNIf("MenAdvMenu0021_TopN__0");
     cursor2->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
     cursor2->m_modelAnim->m_anmObjChrRes->SetUpdateRate(1.0f);
@@ -1065,7 +1066,7 @@ void muAdvNameTask::mainStep2POnlyInit(muAdvNameTask* task) {
     MuObject* cursor1 = task->m_objects[1];
     MuObject* list2 = task->m_objects[3];
     frame->setFrameNode(10.0f);
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[1], task->m_objects[3]->m_sceneModel, "pos00");
     cursor1->changeNodeAnimNIf("MenAdvMenu0021_TopN__0");
     cursor1->changeVisAnimNIf("MenAdvMenu0021_TopN__0");
     cursor1->m_modelAnim->setUpdateRate(1.0f);

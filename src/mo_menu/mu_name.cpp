@@ -37,11 +37,12 @@ extern "C" void setFontWidthModeFixed__5MuMsgFUlf(MuMsg* msg, u32 index, float w
 extern "C" void qsort(void* base, unsigned long count, unsigned long size, int (*compare)(const void*, const void*));
 // MuMsg::printData(text number, data, size)
 extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 index, const void* data, int size);
-// nw4r::g3d::ScnMdl::Construct(allocator, size, capacity, base model) and ScnMdl::Pushback(model, object, node name)
-extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d6ScnMdlFPviiPv(void* allocator, int size, int capacity, void* scnMdl);
-extern "C" void Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(void* scnMdl, void* object, const char* name);
-// nw4r::g3d::ScnMdlExpand::PushBack(model, object, node): attaches the object to the node of the model
-extern "C" void fn_801B4CB0(void* scnMdl, void* object, int node);
+// nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model) and PushBack(object, node name)
+extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(MEMAllocator* allocator, u32* size, int capacity,
+                                                                                                    void* scnMdl);
+extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* scnMdl, void* object, const char* name);
+// nw4r::g3d::ScnMdlExpand::PushBack(object, node): attaches the object to the node of the model
+extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjUl(void* scnMdl, void* object, u32 node);
 // muMenuController::getPadNo() and muMenuController::main()
 extern "C" int fn_800BA3D8(muMenuController* controller);
 extern "C" int fn_800BA2E0();
@@ -643,20 +644,15 @@ static char* sEnPlayerNames[5] = {"\357\274\260\357\274\221", "\357\274\260\357\
 static char* sEnNoPrefix = "\357\274\256\357\274\257\357\274\216";
 static char* sEnCpuPrefix = "\357\274\243\357\274\260\357\274\265";
 
+// How many pairs of the mark key there are, and how many random names there are in Japanese and in the other languages.
+static const int sCounts[3] = {41, 401, 150};
+
 // The sets of keys that the language uses, as indexes of the sets in g_muNameLetterTbl: hiragana, katakana, letters and digits
 // in Japanese; letters, letters of Europe and digits in the other languages.
 static const int sKeySetsJp[4] = {0, 1, 2, 3};
 static const int sKeySetsOther[3] = {2, 4, 3};
 static const float sOne = 1.0f;
 
-// How many pairs of the mark key there are, and how many random names there are in Japanese and in the other languages.
-static const int sCounts[3] = {41, 401, 150};
-
-// The buttons that give a random name, for each type of controller (GameCube, Classic, Wii Remote, Nunchuk).
-static const u32 sRandomNameButtons[4] = {0x10, 0xC000, 0x40, 0x10};
-
-// The frame of the window that shows the type of controller, for each type of controller.
-static const u8 sPadIconFrames[8] = {0, 3, 2, 1, 4, 0, 0, 0};
 
 // Whether the number of letters is counted in letters and not in bytes.
 static inline int msgLen(const char* text) {
@@ -723,7 +719,7 @@ void MuSelctChrNameEntry::init(void* scnGroup, nw4r::g3d::ScnMdl* scnMdl, MuObje
 }
 
 // Takes the model of the set of keys that is shown off the keyboard.
-void MuSelctChrNameEntry::detachSet() {
+inline void MuSelctChrNameEntry::detachSet() {
     if (m_curSetObj != NULL) {
         reinterpret_cast<nw4r::g3d::ScnGroup*>(m_scnMdl)->Remove(reinterpret_cast<nw4r::g3d::ScnObj*>(m_curSetObj->m_sceneModel));
         m_curSetObj = NULL;
@@ -731,7 +727,7 @@ void MuSelctChrNameEntry::detachSet() {
 }
 
 // Puts the line on the letter that is typed (or after it) and remembers where it is.
-void MuSelctChrNameEntry::updateCaret() {
+inline void MuSelctChrNameEntry::updateCaret() {
     int pos = msgLen(m_name);
     if (!m_caretAtEnd) {
         pos--;
@@ -746,26 +742,6 @@ void MuSelctChrNameEntry::updateCaret() {
         m_lineObj->setFrameNode(static_cast<float>(pos + 1));
     }
     m_caret = pos;
-}
-
-// Shows the type of controller of the player in the window.
-void MuSelctChrNameEntry::updatePadIcon() {
-    int type;
-    if (m_padNo >= 0 && m_padNo < 8) {
-        gfPadStatus status;
-        g_gfPadSystem->getSysPadStatus(m_padNo, &status);
-        type = status.m_controllerType;
-    } else {
-        type = 4;
-    }
-    u8 frame;
-    if (type >= 0 && type < 4) {
-        frame = sPadIconFrames[type];
-    } else {
-        frame = 4;
-    }
-    m_base->setFrameTex(static_cast<float>(frame));
-    m_base->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
 }
 
 // Opens the entry: the name is typed in the buffer (a buffer of its own that holds 5 letters when none is given).
@@ -789,17 +765,17 @@ void MuSelctChrNameEntry::open(const char* initial, char* buf, int maxLen) {
     m_curSetObj = NULL;
     char posName[12];
     sprintf(posName, "cpos%d", m_posNo + 1);
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(m_scnMdl, m_base->m_sceneModel, posName);
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, m_base->m_sceneModel, posName);
     int setNo = m_setList[m_curSet];
     detachSet();
     MuObject* setObj = m_setObj[setNo];
     char setPosName[12];
     sprintf(setPosName, "cpos%d", m_posNo + 1);
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(m_scnMdl, setObj->m_sceneModel, setPosName);
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, setObj->m_sceneModel, setPosName);
     m_curSetObj = setObj;
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(m_scnMdl, m_cursorObj->m_sceneModel, posName);
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, m_cursorObj->m_sceneModel, posName);
     if (m_lineObj != NULL) {
-        Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(m_scnMdl, m_lineObj->m_sceneModel, posName);
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, m_lineObj->m_sceneModel, posName);
     }
     int cursor;
     if (m_name[0] != 0) {
@@ -820,6 +796,31 @@ void MuSelctChrNameEntry::open(const char* initial, char* buf, int maxLen) {
     updateCaret();
     m_repeatTimer = 0x23;
     updatePadIcon();
+}
+
+// The buttons that give a random name, for each type of controller (GameCube, Classic, Wii Remote, Nunchuk).
+static const u32 sRandomNameButtons[4] = {0x10, 0xC000, 0x40, 0x10};
+
+// Shows the type of controller of the player in the window.
+inline void MuSelctChrNameEntry::updatePadIcon() {
+    // The frame of the window for each type of controller.
+    static const u8 sPadIconFrames[8] = {0, 3, 2, 1, 4, 0, 0, 0};
+    int type;
+    if (m_padNo >= 0 && m_padNo < 8) {
+        gfPadStatus status;
+        g_gfPadSystem->getSysPadStatus(m_padNo, &status);
+        type = status.m_controllerType;
+    } else {
+        type = 4;
+    }
+    u8 frame;
+    if (type >= 0 && type < 4) {
+        frame = sPadIconFrames[type];
+    } else {
+        frame = 4;
+    }
+    m_base->setFrameTex(static_cast<float>(frame));
+    m_base->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
 }
 
 // Gives the letter that follows the current one on a key (the first letter, when the current one is the last).
@@ -995,7 +996,7 @@ int MuSelctChrNameEntry::abButtonMain(gfPadStatus* pad, bool allowRandom) {
         MuObject* setObj = m_setObj[setNo];
         char posName[12];
         sprintf(posName, "cpos%d", m_posNo + 1);
-        Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(m_scnMdl, setObj->m_sceneModel, posName);
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, setObj->m_sceneModel, posName);
         m_curSetObj = setObj;
         m_caretAtEnd = true;
         updateCaret();
@@ -1286,47 +1287,8 @@ static const muNameTask::StepFunc sStepFuncs[muNameTask::Step_Count] = {
     {muNameTask::mainStepRemoteDisconnectInit, muNameTask::mainStepRemoteDisconnectMain},
 };
 
-// The models of the keyboard: the base, the sets of keys (hiragana, katakana, letters, digits, letters of Europe), the cursor
-// and the line.
-static const muNameModel sKeyModels[8] = {
-    {"MenSelchrWbase", 4, 4, 4},
-    {"MenSelchrWhiragana", 5, 5, 5},
-    {"MenSelchrWkatakana", 6, 6, 5},
-    {"MenSelchrWalphabet", 7, 7, 5},
-    {"MenSelchrWeurope", 9, 9, 5},
-    {"MenSelchrWnumber", 8, 8, 5},
-    {"MenSelchrWcursor", 0xA, 0xA, 6},
-    {"MenSelchrWline", 0xB, 0xB, 7},
-};
-
-// The models of the part of the Wii Remote.
-static const muNameModel sRemoteModels[5] = {
-    {"MenRemote0000_TopN", 0xC, 0xC, 8},
-    {"MenRemote0001_TopN", 0xD, 0x10, 0xA},
-    {"MenRemote0002_TopN", 0x10, 0x10, 0xB},
-    {"MenRemote0003_TopN", 0x11, 0x11, 9},
-    {"MenRemote0003_TopN", 0x12, 0x12, 9},
-};
-
-// The bones of the text of the three buttons of the menu of the Wii Remote.
-static const u8 sRemoteItemBones[4] = {1, 2, 4, 0};
-
-// The text and the place of the three buttons of the menu of the Wii Remote.
-static const u8 sRemoteItems[6] = {0x0F, 0x00, 0x10, 0x01, 0x11, 0x03};
-
-// The colors of the text of the buttons of the menu of the Wii Remote: a button that cannot be used, and one that can.
-static const u32 sRemoteItemColors[2] = {0xC5C5C5FF, 0x000000FF};
-
-// The colors of the names of the list: for each kind of line (a name, the line of a new name, ...) the color of each player.
-static const u8 sNameColors[7][4][4] = {
-    {{0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}},
-    {{0x19, 0x19, 0x19, 0}, {0x19, 0x19, 0x19, 0}, {0x19, 0x19, 0x19, 0}, {0x19, 0x19, 0x19, 0}},
-    {{0x80, 0x80, 0x80, 0}, {0x77, 0x07, 0x03, 0}, {0x77, 0x07, 0x03, 0}, {0x77, 0x07, 0x03, 0}},
-    {{0x19, 0x19, 0x19, 0}, {0x77, 0x07, 0x03, 0}, {0x77, 0x07, 0x03, 0}, {0x77, 0x07, 0x03, 0}},
-    {{0x8A, 0x8A, 0x8A, 0}, {0x8A, 0x8A, 0x8A, 0}, {0x8A, 0x8A, 0x8A, 0}, {0x8A, 0x8A, 0x8A, 0}},
-    {{0xC8, 0xC8, 0xC8, 0}, {0xC8, 0xC8, 0xC8, 0}, {0xC8, 0xC8, 0xC8, 0}, {0xC8, 0xC8, 0xC8, 0}},
-    {{0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}},
-};
+// The models of the window, without their names (the names are filled in from the table below).
+static muNameModel sWindowModelTemplate[4] = {{NULL, 0, 0, 0}, {NULL, 1, 1, 1}, {NULL, 2, 2, 2}, {NULL, 3, 3, 3}};
 
 // The names of the models of the window, for each model and for each kind of menu (the option menu, the icons, the events and
 // the rules of the tournament).
@@ -1345,22 +1307,25 @@ static inline nw4r::g3d::ScnObj* scnObjOf(nw4r::g3d::ScnMdl* mdl) {
     return reinterpret_cast<nw4r::g3d::ScnObj*>(mdl);
 }
 
-// Puts a model in the scene: on the node of the model that the menu is attached to, or in the group of the scene.
-static void attachToScene(muNameTask* task, nw4r::g3d::ScnObj* object) {
-    if (task->m_parentMdl != NULL) {
-        fn_801B4CB0(task->m_parentMdl, object, task->m_parentNode);
-    } else {
-        task->m_scnGroup->Insert(task->m_scnGroup->sceneItemsCount, object);
-    }
-}
+// Puts a model in the scene: on the node of the model that the menu is attached to, or in the group of the scene. These are macros
+// because the model is looked up in each of the two cases.
+#define ATTACH_TO_SCENE(task, obj)                                                                                            \
+    do {                                                                                                                      \
+        if ((task)->m_parentMdl != NULL) {                                                                                    \
+            PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjUl((task)->m_parentMdl, obj, (task)->m_parentNode);        \
+        } else {                                                                                                              \
+            (task)->m_scnGroup->Insert((task)->m_scnGroup->sceneItemsCount, obj);                                             \
+        }                                                                                                                     \
+    } while (0)
 
-static void detachFromScene(muNameTask* task, nw4r::g3d::ScnObj* object) {
-    if (task->m_parentMdl != NULL) {
-        reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_parentMdl)->Remove(object);
-    } else {
-        task->m_scnGroup->Remove(object);
-    }
-}
+#define DETACH_FROM_SCENE(task, obj)                                                                                          \
+    do {                                                                                                                      \
+        if ((task)->m_parentMdl != NULL) {                                                                                    \
+            reinterpret_cast<nw4r::g3d::ScnGroup*>((task)->m_parentMdl)->Remove(obj);                                         \
+        } else {                                                                                                              \
+            (task)->m_scnGroup->Remove(obj);                                                                                  \
+        }                                                                                                                     \
+    } while (0)
 
 // Takes the models of the Wii Remote part off the scene.
 static void detachRemoteModels(muNameTask* task) {
@@ -1404,19 +1369,20 @@ muNameTask* muNameTask::create(nw4r::g3d::ScnGroup* scnGroup, int kind, nw4r::g3
                                int padNo, int priority, nw4r::g3d::ScnMdl* parentMdl, const char* parentNode,
                                nw4r::g3d::ResFile* remoteRes, void* msgData, nw4r::g3d::ResFile* wndRes) {
     muNameTask* task = new (Heaps::MenuInstance) muNameTask();
-    muNameModel models[4] = {{NULL, 0, 0, 0}, {NULL, 1, 1, 1}, {NULL, 2, 2, 2}, {NULL, 3, 3, 3}};
-    for (int i = 0; i < 4; i++) {
-        models[i].m_name = sWindowModelNames[i][kind];
-    }
+    muNameModel models[4] = {sWindowModelTemplate[0], sWindowModelTemplate[1], sWindowModelTemplate[2], sWindowModelTemplate[3]};
+    models[0].m_name = sWindowModelNames[0][kind];
+    models[1].m_name = sWindowModelNames[1][kind];
+    models[2].m_name = sWindowModelNames[2][kind];
+    models[3].m_name = sWindowModelNames[3][kind];
     task->createObjResFile(models, 4, windowRes, true, priority);
     MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
     task->m_scnMdls[0] = reinterpret_cast<nw4r::g3d::ScnMdl*>(
-        Construct__Q34nw4r3g3d6ScnMdlFPviiPv(allocator, 0, 2, task->m_objects[Obj_Window]->m_sceneModel));
+        Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(allocator, 0, 2, task->m_objects[Obj_Window]->m_sceneModel));
     task->m_scnMdls[1] = reinterpret_cast<nw4r::g3d::ScnMdl*>(
-        Construct__Q34nw4r3g3d6ScnMdlFPviiPv(allocator, 0, 4, task->m_objects[Obj_NameWindow]->m_sceneModel));
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(task->m_scnMdls[0], task->m_objects[Obj_List]->m_sceneModel, "pos00");
+        Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(allocator, 0, 4, task->m_objects[Obj_NameWindow]->m_sceneModel));
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[0], task->m_objects[Obj_List]->m_sceneModel, "pos00");
     task->m_objects[Obj_List]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(1.0f);
-    task->createObjResFile(sKeyModels, 8, keyRes, false, priority);
+    task->createKeyModels(keyRes, priority);
     if (remoteRes != NULL) {
         task->createRemoteModel(remoteRes, priority);
         task->m_remote = muNameRemoteTask::create();
@@ -1437,7 +1403,7 @@ muNameTask* muNameTask::create1(nw4r::g3d::ScnGroup* scnGroup, int kind, MuObjec
     task->m_scnMdls[0] = scnMdls[0];
     task->m_scnMdls[1] = scnMdls[1];
     task->m_sharedModels = true;
-    task->createObjResFile(sKeyModels, 8, keyRes, false, priority);
+    task->createKeyModels(keyRes, priority);
     if (remoteRes != NULL) {
         task->createRemoteModel(remoteRes, priority);
         task->m_remote = muNameRemoteTask::create();
@@ -1544,7 +1510,7 @@ void muNameTask::initProc(nw4r::g3d::ScnGroup* scnGroup, int kind, int padNo, in
                           const char* parentNode, void* msgData, nw4r::g3d::ResFile* wndRes) {
     int nodeId = 0;
     if (parentMdl != NULL) {
-        Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(parentMdl, m_scnMdls[0], parentNode);
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(parentMdl, m_scnMdls[0], parentNode);
         m_parentMdl = parentMdl;
         nw4r::g3d::ResMdl resMdl(*reinterpret_cast<void**>(*reinterpret_cast<u8**>(reinterpret_cast<u8*>(parentMdl) + 0xE8) + 0xE8));
         nw4r::g3d::ResNode node = resMdl.GetResNode(parentNode);
@@ -1571,6 +1537,22 @@ void muNameTask::initProc(nw4r::g3d::ScnGroup* scnGroup, int kind, int padNo, in
     updateAll();
 }
 
+// Makes the models of the keyboard: the base, the sets of keys (hiragana, katakana, letters, digits, letters of Europe), the cursor
+// and the line. The table is local to this function, so it is placed in the constants after the ones of the functions above.
+inline void muNameTask::createKeyModels(nw4r::g3d::ResFile* resFile, int priority) {
+    static const muNameModel sKeyModels[8] = {
+        {"MenSelchrWbase", 4, 4, 4},
+        {"MenSelchrWhiragana", 5, 5, 5},
+        {"MenSelchrWkatakana", 6, 6, 5},
+        {"MenSelchrWalphabet", 7, 7, 5},
+        {"MenSelchrWeurope", 9, 9, 5},
+        {"MenSelchrWnumber", 8, 8, 5},
+        {"MenSelchrWcursor", 0xA, 0xA, 6},
+        {"MenSelchrWline", 0xB, 0xB, 7},
+    };
+    createObjResFile(sKeyModels, 8, resFile, false, priority);
+}
+
 void muNameTask::createObjResFile(const muNameModel* models, int count, nw4r::g3d::ResFile* resFile, bool suffix, int priority) {
     for (int i = 0; i < count; i++, models++) {
         int n = 1;
@@ -1593,7 +1575,9 @@ void muNameTask::createObjResFile(const muNameModel* models, int count, nw4r::g3
     }
 }
 
-// The bones of the three buttons of the menu of the Wii Remote are the ones of sRemoteItemBones.
+// The bones of the text of the three buttons of the menu of the Wii Remote.
+static const u8 sRemoteItemBones[4] = {1, 2, 4, 0};
+
 void muNameTask::initMsg() {
     m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(3, Heaps::MenuInstance, 0x2B);
     m_msg->allocMsgBuf(0x100, 0xC);
@@ -1623,6 +1607,17 @@ void muNameTask::initMsg() {
         m_msg->setFontColor(11, 0, 0, 0, 0xFF);
     }
 }
+
+// The colors of the names of the list: for each kind of line (a name, the line of a new name, ...) the color of each player.
+static const u8 sNameColors[7][4][4] = {
+    {{0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}},
+    {{0x19, 0x19, 0x19, 0}, {0x19, 0x19, 0x19, 0}, {0x19, 0x19, 0x19, 0}, {0x19, 0x19, 0x19, 0}},
+    {{0x80, 0x80, 0x80, 0}, {0x77, 0x07, 0x03, 0}, {0x77, 0x07, 0x03, 0}, {0x77, 0x07, 0x03, 0}},
+    {{0x19, 0x19, 0x19, 0}, {0x77, 0x07, 0x03, 0}, {0x77, 0x07, 0x03, 0}, {0x77, 0x07, 0x03, 0}},
+    {{0x8A, 0x8A, 0x8A, 0}, {0x8A, 0x8A, 0x8A, 0}, {0x8A, 0x8A, 0x8A, 0}, {0x8A, 0x8A, 0x8A, 0}},
+    {{0xC8, 0xC8, 0xC8, 0}, {0xC8, 0xC8, 0xC8, 0}, {0xC8, 0xC8, 0xC8, 0}, {0xC8, 0xC8, 0xC8, 0}},
+    {{0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}, {0x80, 0x80, 0x80, 0}},
+};
 
 // Orders the names of the list: the new name line comes first, the names follow in the order of the record of the game.
 static int compareNameSlots(const void* a, const void* b) {
@@ -1935,7 +1930,7 @@ int muNameTask::mainStepSelectNameMain(muNameTask* task) {
 
 // The notice that the list is full is shown for 30 frames.
 void muNameTask::mainStepNameFullInit(muNameTask* task) {
-    attachToScene(task, scnObjOf(task->m_objects[Obj_Unk3]));
+    ATTACH_TO_SCENE(task, scnObjOf(task->m_objects[Obj_Unk3]));
     task->m_nameFullTimer = 30;
 }
 
@@ -1943,7 +1938,7 @@ int muNameTask::mainStepNameFullMain(muNameTask* task) {
     if (--task->m_nameFullTimer > 0) {
         return task->m_step;
     }
-    detachFromScene(task, scnObjOf(task->m_objects[Obj_Unk3]));
+    DETACH_FROM_SCENE(task, scnObjOf(task->m_objects[Obj_Unk3]));
     return Step_SelectName;
 }
 
@@ -1972,7 +1967,7 @@ void muNameTask::mainStepNameEntryInit(muNameTask* task) {
         window->setFrameNode(20.0f);
         CHR_ANIM(window)->SetUpdateRate(1.0f);
     }
-    attachToScene(task, scnObjOf(task->m_scnMdls[1]));
+    ATTACH_TO_SCENE(task, scnObjOf(task->m_scnMdls[1]));
     MuObject* nameWindow = task->m_objects[Obj_NameWindow];
     nameWindow->setFrameNode(0.0f);
     CHR_ANIM(nameWindow)->SetUpdateRate(1.0f);
@@ -2073,7 +2068,7 @@ int muNameTask::mainStepNameEntryLeaveMain(muNameTask* task) {
     }
     if (windowDone && nameWindowDone) {
         task->m_entry.close();
-        detachFromScene(task, scnObjOf(task->m_scnMdls[1]));
+        DETACH_FROM_SCENE(task, scnObjOf(task->m_scnMdls[1]));
         return Step_SelectName;
     }
     return task->m_step;
@@ -2130,18 +2125,30 @@ int muNameTask::mainStepBackAvoidListMain(muNameTask* task) {
     return task->m_step;
 }
 
+// The models of the part of the Wii Remote.
+static const muNameModel sRemoteModels[5] = {
+    {"MenRemote0000_TopN", 0xC, 0xC, 8},
+    {"MenRemote0001_TopN", 0xD, 0x10, 0xA},
+    {"MenRemote0002_TopN", 0x10, 0x10, 0xB},
+    {"MenRemote0003_TopN", 0x11, 0x11, 9},
+    {"MenRemote0003_TopN", 0x12, 0x12, 9},
+};
+
 // The models of the part of the Wii Remote: a window with a text, three buttons and a cursor.
+// MATCH-ONLY: the function is not inlined into create, as in the original.
+#pragma dont_inline on
 void muNameTask::createRemoteModel(nw4r::g3d::ResFile* resFile, int priority) {
     MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
     createObjResFile(sRemoteModels, 5, resFile, true, priority);
     m_scnMdls[2] = reinterpret_cast<nw4r::g3d::ScnMdl*>(
-        Construct__Q34nw4r3g3d6ScnMdlFPviiPv(allocator, 0, 7, m_objects[Obj_RemoteWindow]->m_sceneModel));
+        Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(allocator, 0, 7, m_objects[Obj_RemoteWindow]->m_sceneModel));
     m_objects[Obj_RemoteWindow]->changeAnimN(5, 2, false, false);
     m_objects[Obj_RemoteIcon]->setFrameVisible(0.0f);
     m_objects[Obj_RemoteItem0]->setFrameVisible(1.0f);
     m_objects[Obj_RemoteItem1]->setFrameVisible(3.0f);
     m_objects[Obj_RemoteItem2]->setFrameVisible(2.0f);
 }
+#pragma dont_inline reset
 
 // Writes a text that is made of two texts of the file of texts around a name.
 void muNameTask::printBaseNameHelp(int msgIndexA, const u16* name, int msgIndexB, bool shown) {
@@ -2382,6 +2389,12 @@ int muNameTask::mainStepRemoteNoNameMain(muNameTask* task) {
     return Step_SelectName;
 }
 
+// The text and the place of the three buttons of the menu of the Wii Remote.
+static const u8 sRemoteItems[6] = {0x0F, 0x00, 0x10, 0x01, 0x11, 0x03};
+
+// The colors of the text of the buttons of the menu of the Wii Remote: a button that cannot be used, and one that can.
+static const u32 sRemoteItemColors[2] = {0xC5C5C5FF, 0x000000FF};
+
 // Shows the menu of the Wii Remote: the name that is on the Wii Remote, the name that the player picked in the game and the
 // three buttons (restore, store, close).
 void muNameTask::mainStepRemoteMenuAppearInit(muNameTask* task) {
@@ -2395,7 +2408,7 @@ void muNameTask::mainStepRemoteMenuAppearInit(muNameTask* task) {
         char name[0x20];
         Message::utf16to8(name, reinterpret_cast<const wchar_t*>(task->m_remoteData.m_name));
         task->m_msg->printf(10, name);
-        Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(models2, remoteName->m_sceneModel, "pos04");
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models2, remoteName->m_sceneModel, "pos04");
     }
     if (task->m_remoteFlags[0]) {
         task->m_remoteMenuSel = 0;
@@ -2412,7 +2425,7 @@ void muNameTask::mainStepRemoteMenuAppearInit(muNameTask* task) {
         nw4r::g3d::ScnGroup* group = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
         MuObject* line = task->m_objects[Obj_RemoteLine];
         group->Remove(scnObjOf(line));
-        Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(group, line->m_sceneModel, "pos05");
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(group, line->m_sceneModel, "pos05");
         char name[0x20];
         Message::utf16to8(name, wide);
         task->m_msg->printf(11, name);
@@ -2421,7 +2434,7 @@ void muNameTask::mainStepRemoteMenuAppearInit(muNameTask* task) {
         char posName[0x10];
         sprintf(posName, "pos%02d", sRemoteItems[i * 2 + 1]);
         MuObject* item = task->m_objects[Obj_RemoteItem0 + i];
-        Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(models, item->m_sceneModel, posName);
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, item->m_sceneModel, posName);
         item->changeAnimN(!task->m_remoteFlags[i], 0x11, false, false);
         u32 color = sRemoteItemColors[task->m_remoteFlags[i] ? 1 : 0];
         task->m_msg->setFontColor(7 + i, color >> 24, (color >> 16) & 0xFF, (color >> 8) & 0xFF, 0xFF);
@@ -2486,7 +2499,7 @@ int muNameTask::mainStepRemoteMenuMain(muNameTask* task) {
             nw4r::g3d::ScnGroup* group = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
             MuObject* line = task->m_objects[Obj_RemoteLine];
             group->Remove(scnObjOf(line));
-            Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(group, line->m_sceneModel, "pos05");
+            PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(group, line->m_sceneModel, "pos05");
             char name[0x20];
             Message::utf16to8(name, wide);
             task->m_msg->printf(11, name);
@@ -2574,13 +2587,13 @@ void muNameTask::mainStepRemoteRestoreCompleteInit(muNameTask* task) {
     task->m_timer = 30;
     MuObject* line = task->m_objects[Obj_RemoteLine];
     models->Remove(scnObjOf(line));
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(models, line->m_sceneModel, "pos05");
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, line->m_sceneModel, "pos05");
     char name[0x20];
     Message::utf16to8(name, reinterpret_cast<const wchar_t*>(task->m_remoteData.m_name));
     task->m_msg->printf(11, name);
     task->m_objects[Obj_RemoteWindow]->changeAnimN(2, 0x11, false, false);
     models->Remove(scnObjOf(item2));
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(models, item2->m_sceneModel, "pos05");
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, item2->m_sceneModel, "pos05");
 }
 
 // Waits half a second and then for a button.
@@ -2672,14 +2685,14 @@ void muNameTask::mainStepRemoteStoreCompleteInit(muNameTask* task) {
     char name[0x20];
     Message::utf16to8(name, reinterpret_cast<const wchar_t*>(wide));
     task->m_msg->printf(10, name);
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(models, cursor->m_sceneModel, "pos04");
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, cursor->m_sceneModel, "pos04");
     MuObject* window = task->m_objects[Obj_RemoteWindow];
     window->setFrameNode(0.0f);
     window->m_modelAnim->m_anmObjChrRes->SetUpdateRate(0.0f);
     window->setFrameMatCol(0.0f);
     window->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(0.0f);
     models->Remove(scnObjOf(item2));
-    Pushback__Q34nw4r3g3d6ScnMdlFPvPvPc(models, item2->m_sceneModel, "pos04");
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, item2->m_sceneModel, "pos04");
 }
 
 int muNameTask::mainStepRemoteStoreCompleteMain(muNameTask* task) {
@@ -2714,9 +2727,6 @@ int muNameTask::mainStepRemoteDisconnectMain(muNameTask* task) {
     detachRemoteModels(task);
     return Step_SelectName;
 }
-
-// MSL string comparison with the name that the game gives it (a function of the program, not of the C library).
-int strncmp_(const char* a, const char* b, unsigned long n);
 
 // The bytes of the status of the pad system: bit 7 of the byte at 0x35 says that the request for the game data of the Wii Remote
 // is over, and the code at 0xB6C is how it ended.
@@ -2879,7 +2889,7 @@ void muNameRemoteTask::writeProcess() {
         if (status == Status_Busy) {
             return;
         }
-        if (status == Status_Ok && strncmp_(reinterpret_cast<const char*>(m_readBuf), reinterpret_cast<const char*>(m_writeBuf), sGameDataSize) == 0) {
+        if (status == Status_Ok && memcmp(m_readBuf, m_writeBuf, sGameDataSize) == 0) {
             m_result = 0;
             m_state = State_Idle;
             return;
