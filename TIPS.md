@@ -260,3 +260,11 @@ Things that moved registers, roughly in the order worth trying:
 - **Single-case or contiguous `switch` for the bytes of a state:** a chain `cmpwi N; beq; bge; cmpwi M; ...` is a switch whose bodies are laid out in source order (not in case order); `isCarEnableOut` is `case 6: case 7: case 8: case 9: return false;`. **MED**
 - **A local declared with the value of the first operand (`SndID id = (SndID)place;` before the loop) keeps the argument register alive:** declaring it inside the loop makes the allocator move it. Seen: `stDxBigBlue::addCarSE`. **LOW**
 - **`float v; ...; if (cond || x <= (v = 0.0f))`:** a constant assigned inside the condition is loaded after the call that precedes it (the zero is `lfs` after `stRayCheck`), as in the original's `dVar8 = 0.0` in the branch. Seen: `updateAshibaPos`, `updateTyukeiPos`. **LOW**
+
+## Wario common (sora_melee ft_wario_common) findings
+
+- **`addis r0, r3, 1; cmplwi r0, 0xffff` for a `!= -1` test means the value is a `u32` (a task id), not an `int` (`cmpwi r, -1`).** Seen: `ftWarioCommon::notifyEventLink`. **HIGH**
+- **`cmplw r3, rX` (call result first) comes from a local for the call result, `u32 parent = link.getParentTaskId(6); if (parent == id)`; with the call in the comparison, MWCC swaps to `cmplw rX, r3`.** An id loaded into a callee-saved register *before* a call needs the nested `if` with a local (`u32 id = obj->m_taskId;` inside the outer `if`), an `&&` chain loads it after the call. **MED**
+- **`extrwi r, r0, 8, 19` after `cntlzw` is `(u8)(x == 0)` for a `u8` parameter; an `int` parameter gives `srwi r, r0, 5`.** The callee's parameter type decides, not the cast at the call site. Seen: `ftManager::toChange` second parameter (Wario and Samus call it with a `u8` flag). **MED**
+- **A local ResFile/ResMdl pair that lives in registers until the call, then stack `stw` pairs just before it, is `animObj->create(ResFile(res), ResMdl(mdl), heap, 0)` with temporaries; named stack copies spill the file pointer early.** Seen: `ftWarioCommon::onActivate`. **MED**
+- **A `switch` inside the first `if` arm whose `break`s must reach the shared `return 0` takes `do { if (..) { ... switch ... break; } switch (other) ... } while (0); return false;`; a second `return false` would emit a second `li r3, 0`.** **LOW**

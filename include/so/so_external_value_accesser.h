@@ -14,6 +14,7 @@ public:
     static int getTeamNo(StageObject* stageObject);
     static Vec3f getPos(StageObject* stageObject);
     static float getLr(StageObject* stageObject);
+    static float getScl(StageObject* stageObject);
     static Vec3f getPrevRoughPos(StageObject* stageObject);
     static u32 getClipOutStatus(StageObject* stageObject);
     static Vec2f* getRhombusCenterPos(StageObject* stageObject); // HYPOTHESIS: pointer to the ground rhombus centre
