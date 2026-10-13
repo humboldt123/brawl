@@ -11,10 +11,57 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_dxbigblue/st_dxbigblue.cpp:
+	.text       start:0x00000070 end:0x00004178
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000090
+	.data       start:0x00000000 end:0x000007A8
+	.bss        start:0x00000008 end:0x00000018
+
 mo_stage/st_dxbigblue/gr_dxbigblue.cpp:
 	.text       start:0x00004178 end:0x000042C8
 	.rodata     start:0x00000090 end:0x00000094
 	.data       start:0x000007A8 end:0x00000A20
+
+mo_stage/st_dxbigblue/gr_dxbigblue_bg.cpp:
+	.text       start:0x000042C8 end:0x00004650
+	.rodata     start:0x00000098 end:0x000000B0
+	.data       start:0x00000A20 end:0x00000C40
+
+mo_stage/st_dxbigblue/gr_dxbigblue_course.cpp:
+	.text       start:0x00004650 end:0x00004E8C
+	.rodata     start:0x000000B0 end:0x000000B8
+	.data       start:0x00000C40 end:0x00000E90
+
+mo_stage/st_dxbigblue/gr_dxbigblue_fly.cpp:
+	.text       start:0x00004E8C end:0x00005184
+	.rodata     start:0x000000B8 end:0x000000C0
+	.data       start:0x00000E90 end:0x000010B8
+
+mo_stage/st_dxbigblue/gr_dxbigblue_ashiba.cpp:
+	.text       start:0x00005184 end:0x00005DE8
+	.rodata     start:0x000000C0 end:0x000000D0
+	.data       start:0x000010B8 end:0x00001680
+
+mo_stage/st_dxbigblue/gr_dxbigblue_falcon.cpp:
+	.text       start:0x00005DE8 end:0x00006334
+	.rodata     start:0x000000D0 end:0x000000D8
+	.data       start:0x00001680 end:0x000018B0
+
+mo_stage/st_dxbigblue/gr_dxbigblue_tyukei.cpp:
+	.text       start:0x00006334 end:0x00006858
+	.rodata     start:0x000000D8 end:0x000000E0
+	.data       start:0x000018B0 end:0x00001AE0
+
+mo_stage/st_dxbigblue/gr_dxbigblue_car.cpp:
+	.text       start:0x00006858 end:0x000078F8
+	.rodata     start:0x000000E0 end:0x00000100
+	.data       start:0x00001AE0 end:0x00001D28
+
+mo_stage/st_dxbigblue/gr_dxbigblue_course_loop.cpp:
+	.text       start:0x000078F8 end:0x00008288
+	.rodata     start:0x00000100 end:0x00000120
+	.data       start:0x00001D28 end:0x00001F98
 
 mo_stage/mo_stage.cpp:
 	.text       start:0x00008288 end:0x00008324

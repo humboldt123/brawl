@@ -9,8 +9,8 @@ static void wrapper(grDxBigBlue* ths, s32 mdlIndex) {
 }
 
 grDxBigBlue::grDxBigBlue(const char* taskName) : grYakumono(taskName) {
-    unk150 = 0;
-    unk154 = 0.0f;
+    m_state = 0;
+    m_timer = 0.0f;
     setupMelee();
 }
 

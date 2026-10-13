@@ -6553,7 +6553,16 @@ config.libs = [
         "cflags": cflags_rel,
         "host": False,
         "objects": [
+            Object(NonMatching, "mo_stage/st_dxbigblue/st_dxbigblue.cpp"),
             Object(Matching, "mo_stage/st_dxbigblue/gr_dxbigblue.cpp"),
+            Object(Matching, "mo_stage/st_dxbigblue/gr_dxbigblue_bg.cpp"),
+            Object(NonMatching, "mo_stage/st_dxbigblue/gr_dxbigblue_course.cpp"),
+            Object(Matching, "mo_stage/st_dxbigblue/gr_dxbigblue_fly.cpp"),
+            Object(NonMatching, "mo_stage/st_dxbigblue/gr_dxbigblue_ashiba.cpp"),
+            Object(NonMatching, "mo_stage/st_dxbigblue/gr_dxbigblue_falcon.cpp"),
+            Object(Matching, "mo_stage/st_dxbigblue/gr_dxbigblue_tyukei.cpp"),
+            Object(NonMatching, "mo_stage/st_dxbigblue/gr_dxbigblue_car.cpp"),
+            Object(NonMatching, "mo_stage/st_dxbigblue/gr_dxbigblue_course_loop.cpp"),
         ],
     },
     {
