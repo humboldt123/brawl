@@ -42,6 +42,9 @@ public:
     virtual void setHit();
     virtual void setAttack();
     virtual void setMotion(u32 motion, u32 loop, bool force, float* endFrame);
+    virtual void setMatrixWork(Matrix* matrices) { m_mtxWork = matrices; }
+    virtual void setEventWork(u8* event) { m_stateWork = event; }
+    static grPiratesSling* create(int mdlIndex, const char* nodeName, const char* taskName);
 
 };
 static_assert(sizeof(grPiratesSling) == 0x190, "grPiratesSling layout");

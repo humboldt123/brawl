@@ -11,6 +11,36 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_stage/st_pirates/st_pirates.cpp:
+	.text       start:0x00000070 end:0x000035C8
+	.rodata     start:0x00000000 end:0x000000B0
+	.data       start:0x00000000 end:0x00000848
+
+mo_stage/st_pirates/gr_pirates.cpp:
+	.text       start:0x000035C8 end:0x00003720
+	.rodata     start:0x000000B0 end:0x000000B8
+	.data       start:0x00000848 end:0x00000AC8
+
+mo_stage/st_pirates/gr_pirates_bg.cpp:
+	.text       start:0x00003720 end:0x00004204
+	.rodata     start:0x000000B8 end:0x000000D0
+	.data       start:0x00000AC8 end:0x00000DE8
+
+mo_stage/st_pirates/gr_pirates_sea_sky.cpp:
+	.text       start:0x00004204 end:0x00004C40
+	.rodata     start:0x000000D0 end:0x000000E8
+	.data       start:0x00000DE8 end:0x00001028
+
+mo_stage/st_pirates/gr_pirates_ship.cpp:
+	.text       start:0x00004C40 end:0x00009964
+	.rodata     start:0x000000E8 end:0x00000148
+	.data       start:0x00001028 end:0x00002108
+
+mo_stage/st_pirates/gr_pirates_ship_ripple.cpp:
+	.text       start:0x00009964 end:0x0000A27C
+	.rodata     start:0x00000148 end:0x00000160
+	.data       start:0x00002108 end:0x00002338
+
 mo_stage/st_pirates/gr_pirates_sling_collision.cpp:
 	.text       start:0x0000A6B8 end:0x0000A70C
 
@@ -26,6 +56,56 @@ mo_stage/st_pirates/gr_pirates_sling_attack.cpp:
 
 mo_stage/st_pirates/gr_pirates_tornado.cpp:
 	.text       start:0x0000BB40 end:0x0000BEC8
+
+mo_stage/st_pirates/gr_pirates_tower.cpp:
+	.text       start:0x0000C688 end:0x0000CFC4
+	.rodata     start:0x000001E8 end:0x00000200
+	.data       start:0x00002818 end:0x00002B60
+
+mo_stage/st_pirates/gr_pirates_cannon.cpp:
+	.text       start:0x0000CFC4 end:0x0000D7D4
+	.rodata     start:0x00000200 end:0x00000238
+	.data       start:0x00002B60 end:0x00002D98
+
+mo_stage/st_pirates/gr_pirates_bomb.cpp:
+	.text       start:0x0000D7D4 end:0x0000E800
+	.rodata     start:0x00000238 end:0x00000280
+	.data       start:0x00002D98 end:0x00002FF0
+
+mo_stage/st_pirates/gr_pirates_aground.cpp:
+	.text       start:0x0000E800 end:0x0000F6D4
+	.rodata     start:0x00000280 end:0x000002B0
+	.data       start:0x00002FF0 end:0x00003300
+
+mo_stage/st_pirates/gr_pirates_enkei.cpp:
+	.text       start:0x0000F6D4 end:0x00010180
+	.rodata     start:0x000002B0 end:0x000002D0
+	.data       start:0x00003300 end:0x00003530
+
+mo_stage/st_pirates/gr_pirates_lion_king.cpp:
+	.text       start:0x00010180 end:0x00010F54
+	.rodata     start:0x000002D0 end:0x000002E8
+	.data       start:0x00003530 end:0x000037B8
+
+mo_stage/st_pirates/gr_pirates_drop.cpp:
+	.text       start:0x00010F54 end:0x00011384
+	.rodata     start:0x000002E8 end:0x000002F8
+	.data       start:0x000037B8 end:0x000039E0
+
+mo_stage/st_pirates/gr_pirates_warning.cpp:
+	.text       start:0x00011384 end:0x00011C50
+	.rodata     start:0x000002F8 end:0x00000310
+	.data       start:0x000039E0 end:0x00003C08
+
+mo_stage/st_pirates/gr_pirates_rain.cpp:
+	.text       start:0x00011C50 end:0x00012654
+	.rodata     start:0x00000310 end:0x00000328
+	.data       start:0x00003C08 end:0x00003E58
+
+mo_stage/st_pirates/gr_pirates_attack.cpp:
+	.text       start:0x00012654 end:0x00013580
+	.rodata     start:0x00000328 end:0x0000037C
+	.data       start:0x00003E58 end:0x00004700
 
 mo_stage/mo_stage.cpp:
 	.text       start:0x00013670 end:0x0001370C

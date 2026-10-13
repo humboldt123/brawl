@@ -26,5 +26,8 @@ public:
     virtual void updateSE(float deltaFrame);
     virtual void updateCallBack(float deltaFrame);
     virtual void setMotion(u32 motion, u32 loop, bool force, float* endFrame);
+    virtual void setMatrixWork(void* matrices) { unk164 = matrices; }
+    virtual void setEventWork(u8* event) { m_stateWork = event; }
+    static grPiratesTornado* create(int mdlIndex, const char* nodeName, const char* taskName);
 };
 static_assert(sizeof(grPiratesTornado) == 0x188, "grPiratesTornado layout");
