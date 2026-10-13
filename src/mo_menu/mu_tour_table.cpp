@@ -598,79 +598,76 @@ void muTourTable::finalEnd() {
 // Loads the resources of the table step by step (the lines are copies of one file, the faces come from a file that the table
 // reads if it got none), and returns true when everything is there and the models are made.
 bool muTourTable::isLoadEnd() {
-    if (m_archiveReady && m_texReady) {
-        return true;
-    }
-    if (!m_archiveReady) {
-        if (!(reinterpret_cast<u8*>(m_archive)[9] & 0x80)) {
-            return false;
+    if (!(m_archiveReady && m_texReady)) {
+        if (!m_archiveReady) {
+            if (!m_archive->unk9) {
+                return false;
+            }
+            m_archiveReady = true;
         }
-        m_archiveReady = true;
-    }
-    if (!m_texReady && m_texFile.m_request != NULL) {
-        if (!m_texFile.isReady()) {
-            return false;
+        if (!m_texReady && m_texFile.m_request != NULL) {
+            if (!m_texFile.isReady()) {
+                return false;
+            }
+            m_texReady = true;
         }
-        m_texReady = true;
-    }
 
-    int size;
-    void* data = m_archive->getData(static_cast<ARCNodeType>(2), 0, &size, 0xFFFE);
-    m_resLineA[0] = nw4r::g3d::ResFile(data);
-    nw4r::g3d::ResFile::Init(&m_resLineA[0]);
-    m_objs[0] = MuObject::create(&m_resLineA[0], "MenTrnLine0000_TopN", m_priority, NULL, Heaps::MenuInstance);
-    m_objs[0]->changeClrAnimNIf("MenTrnLine0000_TopN__0");
-    m_objs[0]->m_modelAnim->setUpdateRate(0.0f);
-    for (int i = 1; i < 0x3F; i++) {
-        void* copy = gfHeapManager::alloc(Heaps::MenuResource, size);
-        memcpy(copy, data, size);
-        m_resLineA[i] = nw4r::g3d::ResFile(copy);
-        nw4r::g3d::ResFile::Init(&m_resLineA[i]);
-        m_objs[i] = MuObject::create(&m_resLineA[i], "MenTrnLine0000_TopN", m_priority, NULL, Heaps::MenuInstance);
-        m_objs[i]->changeClrAnimNIf("MenTrnLine0000_TopN__0");
-        m_objs[i]->m_modelAnim->setUpdateRate(0.0f);
-    }
+        int size;
+        void* data = m_archive->getData(static_cast<ARCNodeType>(2), 0, &size, 0xFFFE);
+        m_resLineA[0] = nw4r::g3d::ResFile(data);
+        nw4r::g3d::ResFile::Init(&m_resLineA[0]);
+        m_objs[0] = MuObject::create(&m_resLineA[0], "MenTrnLine0000_TopN", m_priority, NULL, Heaps::MenuInstance);
+        m_objs[0]->changeClrAnimNIf("MenTrnLine0000_TopN__0");
+        m_objs[0]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(0.0f);
+        for (int i = 1; i < 0x3F; i++) {
+            void* copy = gfHeapManager::alloc(Heaps::MenuResource, size);
+            memcpy(copy, data, size);
+            m_resLineA[i] = nw4r::g3d::ResFile(copy);
+            nw4r::g3d::ResFile::Init(&m_resLineA[i]);
+            m_objs[i] = MuObject::create(&m_resLineA[i], "MenTrnLine0000_TopN", m_priority, NULL, Heaps::MenuInstance);
+            m_objs[i]->changeClrAnimNIf("MenTrnLine0000_TopN__0");
+            m_objs[i]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(0.0f);
+        }
 
-    int sizeB;
-    data = m_archive->getData(static_cast<ARCNodeType>(2), 1, &sizeB, 0xFFFE);
-    m_resLineB[0] = nw4r::g3d::ResFile(data);
-    nw4r::g3d::ResFile::Init(&m_resLineB[0]);
-    m_objs[0x3F] = MuObject::create(&m_resLineB[0], "MenTrnLine0001_TopN", m_priority, NULL, Heaps::MenuInstance);
-    m_objs[0x3F]->changeClrAnimNIf("MenTrnLine0001_TopN__0");
-    m_objs[0x3F]->m_modelAnim->setUpdateRate(0.0f);
-    for (int i = 1; i < 0x1F; i++) {
-        void* copy = gfHeapManager::alloc(Heaps::MenuResource, sizeB);
-        memcpy(copy, data, sizeB);
-        m_resLineB[i] = nw4r::g3d::ResFile(copy);
-        nw4r::g3d::ResFile::Init(&m_resLineB[i]);
-        m_objs[0x3F + i] = MuObject::create(&m_resLineB[i], "MenTrnLine0001_TopN", m_priority, NULL, Heaps::MenuInstance);
-        m_objs[0x3F + i]->changeClrAnimNIf("MenTrnLine0001_TopN__0");
-        m_objs[0x3F + i]->m_modelAnim->setUpdateRate(0.0f);
-    }
+                data = m_archive->getData(static_cast<ARCNodeType>(2), 1, &size, 0xFFFE);
+        m_resLineB[0] = nw4r::g3d::ResFile(data);
+        nw4r::g3d::ResFile::Init(&m_resLineB[0]);
+        m_objs[0x3F] = MuObject::create(&m_resLineB[0], "MenTrnLine0001_TopN", m_priority, NULL, Heaps::MenuInstance);
+        m_objs[0x3F]->changeClrAnimNIf("MenTrnLine0001_TopN__0");
+        m_objs[0x3F]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(0.0f);
+        for (int i = 1; i < 0x1F; i++) {
+            void* copy = gfHeapManager::alloc(Heaps::MenuResource, size);
+            memcpy(copy, data, size);
+            m_resLineB[i] = nw4r::g3d::ResFile(copy);
+            nw4r::g3d::ResFile::Init(&m_resLineB[i]);
+            m_objs[0x3F + i] = MuObject::create(&m_resLineB[i], "MenTrnLine0001_TopN", m_priority, NULL, Heaps::MenuInstance);
+            m_objs[0x3F + i]->changeClrAnimNIf("MenTrnLine0001_TopN__0");
+            m_objs[0x3F + i]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(0.0f);
+        }
 
-    m_resPlate = nw4r::g3d::ResFile(m_archive->getData(static_cast<ARCNodeType>(2), 2, 0xFFFE));
-    nw4r::g3d::ResFile::Init(&m_resPlate);
-    m_resTex = nw4r::g3d::ResFile(static_cast<void*>(NULL));
-    if (m_texRes == NULL) {
-        m_resTex = nw4r::g3d::ResFile(m_texFile.getBuffer());
-        nw4r::g3d::ResFile::Init(&m_resTex);
-        m_texRes = &m_resTex;
+        m_resPlate = nw4r::g3d::ResFile(m_archive->getData(static_cast<ARCNodeType>(2), 2, 0xFFFE));
+        nw4r::g3d::ResFile::Init(&m_resPlate);
+        m_resTex = nw4r::g3d::ResFile(static_cast<void*>(NULL));
+        if (m_texRes == NULL) {
+            m_resTex = nw4r::g3d::ResFile(m_texFile.getBuffer());
+            nw4r::g3d::ResFile::Init(&m_resTex);
+            m_texRes = &m_resTex;
+        }
+        for (int i = 0; i < 0x20; i++) {
+            m_plateObjs[i] = MuObject::create(&m_resPlate, "MenTrnName0000_TopN", m_priority, NULL, Heaps::MenuInstance);
+            m_faceObjs[i] = MuObject::create(&m_resPlate, "MenTrnFace0001_TopN", m_priority + (i % 2) + 2, m_texRes, Heaps::MenuInstance);
+            m_badgeObjs[i] = MuObject::create(&m_resPlate, "MenTrnName0001_TopN", m_priority + 4, NULL, Heaps::MenuInstance);
+            m_badgeObjs[i]->changeAnimN(0, 2, false, false);
+        }
+        for (int i = 0; i < 0x20; i++) {
+            m_msg->attachScnMdlSimple(i, m_plateObjs[i]->m_sceneModel, 0, 1.0f / 16.0f);
+            m_msg->setAlignMode(i, MuMsg::Align_Left);
+            m_msg->setFontWidthModeAuto(i);
+            m_msg->setFontType(i, 1);
+            m_msg->setFontColor(i, 0, 0, 0, 0xFF);
+        }
+            m_group = (nw4r::g3d::ScnGroup*)Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(
+            gfHeapManager::getMEMAllocator(Heaps::MenuInstance), reinterpret_cast<u32*>(&size), 0xBE, m_objs[0]->m_scnMdl);
     }
-    for (int i = 0; i < 0x20; i++) {
-        m_plateObjs[i] = MuObject::create(&m_resPlate, "MenTrnName0000_TopN", m_priority, NULL, Heaps::MenuInstance);
-        m_faceObjs[i] = MuObject::create(&m_resPlate, "MenTrnFace0001_TopN", m_priority + (i % 2) + 2, m_texRes, Heaps::MenuInstance);
-        m_badgeObjs[i] = MuObject::create(&m_resPlate, "MenTrnName0001_TopN", m_priority + 4, NULL, Heaps::MenuInstance);
-        m_badgeObjs[i]->changeAnimN(0, 2, false, false);
-    }
-    for (int i = 0; i < 0x20; i++) {
-        m_msg->attachScnMdlSimple(i, m_plateObjs[i]->m_sceneModel, 0, 1.0f / 16.0f);
-        m_msg->setAlignMode(i, MuMsg::Align_Left);
-        m_msg->setFontWidthModeAuto(i);
-        m_msg->setFontType(i, 1);
-        m_msg->setFontColor(i, 0, 0, 0, 0xFF);
-    }
-    u32 groupSize;
-    m_group = (nw4r::g3d::ScnGroup*)Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(
-        gfHeapManager::getMEMAllocator(Heaps::MenuInstance), &groupSize, 0xBE, m_objs[0]->m_scnMdl);
     return true;
 }
