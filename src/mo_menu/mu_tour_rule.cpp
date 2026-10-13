@@ -2144,7 +2144,8 @@ void muTourRuleTask::processAnim() {
             if (m_pageMoving) {
                 MuObject* pageObj = m_objs[OBJ_PAGE_COUNT];
                 float target = m_pageY;
-                Vec3f pos = pageObj->m_trans;
+                Vec3f pos;
+                tourGetTrans(pageObj, &pos);
                 pos.m_x = pos.m_x + (target - pos.m_x) * 0.25f;
                 bool keepMoving = 0.05f <= fabsf(target - pos.m_x);
                 if (!keepMoving) {
@@ -2364,7 +2365,8 @@ void muTourRuleTask::processAnim() {
                 if (m_charScrollMoving) {
                     MuObject* frame = m_objs[14];
                     float target = m_charScrollX;
-                    Vec3f pos = frame->m_trans;
+                    Vec3f pos;
+                    tourGetTrans(frame, &pos);
                     pos.m_x = pos.m_x + (target - pos.m_x) * 0.25f;
                     bool keepMoving = 0.05f <= fabsf(target - pos.m_x);
                     if (!keepMoving) {
