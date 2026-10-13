@@ -1,4 +1,5 @@
 #include <so/so_module_accesser.h>
+#include <ft/ganon/ft_ganon_status_uniq_process_special_hi.h>
 #include <so/status/so_status_module_impl.h>
 #include <so/link/so_link_module_impl.h>
 #include <so/link/so_link_event_presenter.h>
@@ -16,7 +17,7 @@ struct ftGanonSpecialHiThrowLinkEvent : soLinkEventArgs {
     ftGanonSpecialHiThrowLinkEvent(int kind) : soLinkEventArgs(kind), m_unk8(-1), m_unkC(-1), m_unk10(-1), m_unk14(-1), m_unk18(1.0f), m_unk1C(true) { }
 };
 
-class ftGanonStatusUniqProcessSpecialHiThrow : public soStatusUniqProcess {
+class ftGanonStatusUniqProcessSpecialHiThrow : public ftGanonStatusUniqProcessSpecialHiCling {
 public:
     virtual ~ftGanonStatusUniqProcessSpecialHiThrow() { }
     virtual void initStatus(soModuleAccesser* moduleAccesser);

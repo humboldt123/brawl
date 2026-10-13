@@ -3,14 +3,17 @@
 #include <so/status/so_status_module_impl.h>
 #include <types.h>
 
-// Catch-module view: the header covers the vtable prefix up to catchCut; the later
-// slots used by this status are not yet named, so they are kept as unkN.
+// soCatchModuleImpl's map and these call sites identify the used virtual slots.
+// The unused 0x34 slot remains opaque so the later slots keep their native offsets.
 class ftDiddyCatchModuleView : public soCatchModule {
 public:
-    virtual void unk2C(soModuleAccesser* moduleAccesser);
-    virtual void unk30();
-    virtual void unk34(bool);
-    virtual bool unk38(soModuleAccesser* moduleAccesser, void* data);
+    // HYPOTHESIS: the forwarded accesser is unused; its formal type is unverified.
+    virtual void updatePosCling(soModuleAccesser* moduleAccesser); // vtable +0x30
+    // HYPOTHESIS: this unused slot has an unverified signature.
+    virtual void unk34();                                         // vtable +0x34
+    // HYPOTHESIS: clingCut's zero argument is a Boolean selector.
+    virtual void clingCut(bool);                                  // vtable +0x38
+    virtual bool checkDamage(soModuleAccesser* moduleAccesser, void* data); // vtable +0x3C
 };
 
 class ftDiddyStatusUniqProcessSpecialSCling : public soStatusUniqProcess {
@@ -26,26 +29,24 @@ static inline ftDiddyCatchModuleView* getCatchModule(soModuleAccesser* moduleAcc
 }
 
 void ftDiddyStatusUniqProcessSpecialSCling::execFixPos(soModuleAccesser* moduleAccesser) {
-    getCatchModule(moduleAccesser)->unk2C(moduleAccesser);
+    getCatchModule(moduleAccesser)->updatePosCling(moduleAccesser);
 }
 
 void ftDiddyStatusUniqProcessSpecialSCling::exitStatus(soModuleAccesser* moduleAccesser, int nextStatus) {
-    if (nextStatus != 0x120) {
-        if (nextStatus < 0x120) {
-            if (nextStatus >= 0x11f) {
-                return;
-            }
-        } else {
-            if (nextStatus < 0x122) {
-                return;
-            }
-        }
+    switch (nextStatus) {
+    case 0x11f:
+    case 0x121:
+        break;
+    // MATCH-ONLY: preserve the native switch cleanup boundary.
+    case 0x120:
+    default:
+        getCatchModule(moduleAccesser)->clingCut(false);
+        break;
     }
-    getCatchModule(moduleAccesser)->unk34(false);
 }
 
 bool ftDiddyStatusUniqProcessSpecialSCling::checkDamage(soModuleAccesser* moduleAccesser, void* data) {
-    return getCatchModule(moduleAccesser)->unk38(moduleAccesser, data);
+    return getCatchModule(moduleAccesser)->checkDamage(moduleAccesser, data);
 }
 
 ftDiddyStatusUniqProcessSpecialSCling g_ftDiddyStatusUniqProcessSpecialSCling;

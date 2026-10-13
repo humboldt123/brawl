@@ -57,7 +57,12 @@ public:
 template <class T>
 class soArrayContractible : public soArrayFixed<T> {
 public:
+#ifdef SO_ARRAY_CONTRACTIBLE_DTORS_NOINLINE
+    // MATCH-ONLY: preserve the native out-of-line teardown chain in the owning unit.
+    virtual ~soArrayContractible() __attribute__((never_inline)) { }
+#else
     virtual ~soArrayContractible() { }
+#endif
     virtual void shift() = 0;
     virtual void pop() = 0;
     virtual void clear() = 0;
@@ -85,7 +90,12 @@ public:
         }
     }
 
+#ifdef SO_ARRAY_CONTRACTIBLE_DTORS_NOINLINE
+    // MATCH-ONLY: preserve the native out-of-line teardown chain in the owning unit.
+    virtual ~soArrayContractibleTable() __attribute__((never_inline)) { }
+#else
     virtual ~soArrayContractibleTable() { }
+#endif
 
     soArrayContractibleTable& operator=(const soArrayContractibleTable& other) {
         if (this == &other)
