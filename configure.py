@@ -6482,7 +6482,13 @@ config.libs = [
         "host": False,
         "objects": [
             Object(Matching, "mo_stage/st_crayon/st_crayon.cpp"),
+            Object(NonMatching, "mo_stage/st_crayon/gr_crayon.cpp"),
+            Object(NonMatching, "mo_stage/st_crayon/gr_crayon_static.cpp"),
+            Object(NonMatching, "mo_stage/st_crayon/gr_crayon_season.cpp"),
+            Object(NonMatching, "mo_stage/st_crayon/gr_crayon_gimic.cpp"),
+            Object(NonMatching, "mo_stage/st_crayon/gr_crayon_kumo.cpp"),
             Object(Matching, "mo_stage/st_crayon/gr_crayon_yakumono.cpp"),
+            Object(NonMatching, "mo_stage/st_crayon/gr_crayon_yakumono_h.cpp"),
         ],
     },
     {

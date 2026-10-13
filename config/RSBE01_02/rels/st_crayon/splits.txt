@@ -18,9 +18,42 @@ mo_stage/st_crayon/st_crayon.cpp:
 	.data       start:0x00000000 end:0x000003F0
 	.bss        start:0x00000008 end:0x00000018
 
+mo_stage/st_crayon/gr_crayon.cpp:
+	.text       start:0x00000F88 end:0x00001448
+	.rodata     start:0x00000040 end:0x00000048
+	.data       start:0x000003F0 end:0x00000668
+
+mo_stage/st_crayon/gr_crayon_static.cpp:
+	.text       start:0x00001448 end:0x00001958
+	.rodata     start:0x00000048 end:0x00000050
+	.data       start:0x00000668 end:0x00000878
+
+mo_stage/st_crayon/gr_crayon_season.cpp:
+	.text       start:0x00001958 end:0x00001E68
+	.rodata     start:0x00000050 end:0x00000058
+	.data       start:0x00000878 end:0x00000A88
+
+mo_stage/st_crayon/gr_crayon_gimic.cpp:
+	.text       start:0x00001E68 end:0x00002900
+	.rodata     start:0x00000058 end:0x00000070
+	.data       start:0x00000A88 end:0x00000CE0
+	.bss        start:0x00000018 end:0x00000028
+
+mo_stage/st_crayon/gr_crayon_kumo.cpp:
+	.text       start:0x00002900 end:0x00002D6C
+	.rodata     start:0x00000070 end:0x00000080
+	.data       start:0x00000CE0 end:0x00000F10
+
 mo_stage/st_crayon/gr_crayon_yakumono.cpp:
 	.text       start:0x00002D6C end:0x00002E10
 	.data       start:0x00000F10 end:0x00001118
+
+mo_stage/st_crayon/gr_crayon_yakumono_h.cpp:
+	.text       start:0x00002E10 end:0x0000B2B4
+	.ctors      start:0x00000004 end:0x00000008
+	.rodata     start:0x00000080 end:0x0000013C
+	.data       start:0x00001118 end:0x00002960
+	.bss        start:0x00000028 end:0x00000160
 
 mo_stage/mo_stage.cpp:
 	.text       start:0x0000B2B4 end:0x0000B350
