@@ -15,7 +15,7 @@ void muPanelCtrlTask::processAnim() {
 void muPanelCtrlTask::setMsg(int msgNo, int unk1, int unk2) {
 }
 
-void muPanelCtrlTask::changeProcess() {
+void muPanelCtrlTask::changeProcess(int unk1, int unk2) {
 }
 
 void muPanelCtrlTask::changeProcess1(int unk1, int unk2) {

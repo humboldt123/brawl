@@ -6416,7 +6416,12 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_menu/mu_tour_table.cpp"),
+            Object(NonMatching, "mo_menu/mu_tour_rule.cpp"),
+            Object(NonMatching, "mo_menu/mu_tour_entry.cpp"),
+            Object(NonMatching, "mo_menu/mu_tour_panel_ctrl.cpp"),
+        ],
     },
     {
         "lib": "sora_menu_watch",

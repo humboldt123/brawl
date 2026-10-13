@@ -22,7 +22,7 @@ public:
     virtual void setMsgData(void* data) { m_msg->setMsgData(data); }
     virtual void* getMsgData() { return *reinterpret_cast<void**>(reinterpret_cast<char*>(m_msg) + 4); }
     virtual void changeProcess1(int unk1, int unk2);
-    virtual void changeProcess();
+    virtual void changeProcess(int unk1, int unk2);
     virtual void frameCancel();
     virtual void startupSpecialMelee();
 };

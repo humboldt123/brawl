@@ -6,6 +6,26 @@ Sections:
 	.data       type:data align:32
 	.bss        type:bss align:8
 
+mo_menu/mu_tour_table.cpp:
+	.text       start:0x00000000 end:0x0000272C
+	.rodata     start:0x00000000 end:0x00008160
+	.data       start:0x00000000 end:0x00000110
+
+mo_menu/mu_tour_rule.cpp:
+	.text       start:0x0000272C end:0x0000A72C
+	.rodata     start:0x00008160 end:0x000084B0
+	.data       start:0x00000110 end:0x00000B38
+
+mo_menu/mu_tour_entry.cpp:
+	.text       start:0x0000A72C end:0x0000EC94
+	.rodata     start:0x000084B0 end:0x000085D8
+	.data       start:0x00000B38 end:0x00000DA0
+
+mo_menu/mu_tour_panel_ctrl.cpp:
+	.text       start:0x0000EC94 end:0x0000EE90
+	.rodata     start:0x000085D8 end:0x000085DC
+	.data       start:0x00000DA0 end:0x00000E88
+
 mo_menu/mo_menu.cpp:
 	.text       start:0x0000EE90 end:0x0000EF2C
 	.data       start:0x00000E88 end:0x00000E94

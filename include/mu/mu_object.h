@@ -38,7 +38,9 @@ public:
     u32 m_unk18;                    // 0x18
     MuAnimIdxData* m_animIdxData;   // 0x1C the animation that was set by setAnimIdx (cleared to force it again)
     MuAnimNameData* m_animNameData; // 0x20 the animation that was set by setAnimName (cleared to force it again)
-    char unk2[0x38];
+    char unk2[0x18];
+    Vec3f m_trans;                  // 0x3C HYPOTHESIS: the position that setTrans puts the model at
+    char unk3[0x14];
 
     static MuObject* create(nw4r::g3d::ResFile* modelSource, const char* modelNode, int drawPriority, nw4r::g3d::ResFile* textureSource, HeapType type);
     static MuObject* create(nw4r::g3d::ResFile* modelSource, int modelNode, nw4r::g3d::ResFile* textureSource, int animNode, HeapType type);
