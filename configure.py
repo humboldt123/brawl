@@ -6217,7 +6217,7 @@ config.libs = [
         "host": False,
         "objects": [
             Object(NonMatching, "mo_menu/mu_boot_nand.cpp"),
-            Object(NonMatching, "mo_menu/mu_boot_network.cpp"),
+            Object(Matching, "mo_menu/mu_boot_network.cpp"),
         ],
     },
     {
@@ -6382,13 +6382,13 @@ config.libs = [
         "cflags": cflags_rel,
         "host": False,
         "objects": [
-            Object(NonMatching, "mo_menu/mu_strap.cpp"),
-            Object(NonMatching, "mo_menu/mu_controller_operator.cpp"),
-            Object(NonMatching, "mo_menu/mu_esrb.cpp"),
-            Object(NonMatching, "mo_menu/mu_now_loading.cpp"),
-            Object(NonMatching, "mo_menu/mu_opening_movie.cpp"),
+            Object(Matching, "mo_menu/mu_strap.cpp"),
+            Object(Matching, "mo_menu/mu_controller_operator.cpp"),
+            Object(Matching, "mo_menu/mu_esrb.cpp"),
+            Object(Matching, "mo_menu/mu_now_loading.cpp"),
+            Object(Matching, "mo_menu/mu_opening_movie.cpp"),
             Object(NonMatching, "mo_menu/mu_title.cpp"),
-            Object(NonMatching, "mo_menu/mu_how_to_play.cpp"),
+            Object(Matching, "mo_menu/mu_how_to_play.cpp"),
             Object(NonMatching, "mo_menu/mu_boot_pad.cpp"),
         ],
     },
