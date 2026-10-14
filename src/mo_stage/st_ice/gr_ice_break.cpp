@@ -1,3 +1,4 @@
+#define SO_DAMAGE_STAGE_CTOR_OUT_OF_LINE
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
 #define YK_DATA_INLINE_CTOR // the ykData / ykDataGroup constructors are inline in this REL
@@ -271,4 +272,12 @@ void grIceBreak::onDamage(int index, soDamage* damage, soDamageAttackerInfo* att
             m_shakeTimer = randf() * 2.5f + 2.5f;
         }
     }
+}
+
+// This stage owns an out-of-line damage constructor.
+soDamage::soDamage() {
+    unk60 = 1.0f;
+    unk64 = 1.0f;
+    unk68 = 1.0f;
+    unk74 = unk74 & ~0x1F;
 }

@@ -2711,7 +2711,7 @@ config.libs = [
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_fox_land_master_status_uniq_process_common.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/ft/ft_fox_status_uniq_process_blaster.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_fox_blaster.cpp"),
-            Object(NonMatching, "mo_melee/sora_melee/wn/wn_fox_blaster_bullet.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/wn/wn_fox_blaster_bullet.cpp", cflags=cflags_rel + ["-DFT_MODULE_BUILDER"]),
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_pikachu_thunder_jolt.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_pikachu_thunder_jolt2.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_luigi_fireball.cpp"),

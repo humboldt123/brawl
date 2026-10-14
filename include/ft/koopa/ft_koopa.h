@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -41,7 +42,9 @@ public:
 };
 
 class ftKoopa : public ftFighterBuilder<ftKoopaBuildConfig> {
-    u8 unkTail[0x14180 - sizeof(ftFighterBuilder<ftKoopaBuildConfig>)];
+    u8 unkTail[0x1416C - sizeof(ftFighterBuilder<ftKoopaBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
 public:
     ftKoopa(s32 entryId,
             Heaps::HeapType instHeap,

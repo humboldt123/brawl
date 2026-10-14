@@ -1,3 +1,5 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/koopa/ft_koopa.h>
@@ -5,6 +7,20 @@
 
 #define FT_BC ftKoopaBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_7D74;
+extern soStatusUniqProcess lbl_102_bss_22C;
+extern soStatusUniqProcess lbl_102_bss_23C;
+extern soStatusUniqProcess lbl_102_bss_25C;
+extern soStatusUniqProcess lbl_102_bss_24C;
+extern soStatusUniqProcess lbl_102_bss_26C;
+extern soStatusUniqProcess lbl_102_bss_27C;
+extern soStatusUniqProcess lbl_102_bss_28C;
+extern soStatusUniqProcess lbl_102_bss_29C;
+extern soStatusUniqProcess lbl_102_bss_2AC;
+}
 
 ftKoopaExtendParamAccesser g_ftKoopaExtendParamAccesser;
 
@@ -18,8 +34,22 @@ ftKoopa::ftKoopa(s32 entryId,
                                          Fighter_Koopa,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Koopa)) {
+    // Register the status processes in action order.
+    soStatusUniqProcess* processes[17] = {0};
+    processes[0] = &lbl_27_bss_7D74;
+    processes[5] = &lbl_102_bss_22C;
+    processes[6] = &lbl_102_bss_23C;
+    processes[7] = &lbl_102_bss_25C;
+    processes[8] = &lbl_102_bss_24C;
+    processes[10] = &lbl_102_bss_26C;
+    processes[11] = &lbl_102_bss_26C;
+    processes[12] = &lbl_102_bss_27C;
+    processes[13] = &lbl_102_bss_28C;
+    processes[14] = &lbl_102_bss_29C;
+    processes[15] = &lbl_102_bss_2AC;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 17);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftKoopa is done

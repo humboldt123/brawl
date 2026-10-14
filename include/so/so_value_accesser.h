@@ -12,7 +12,8 @@ public:
 #ifdef WN_WEAPON_BUILDER
     soParamAccesser() : soNullable(false) { }
 #endif
-#if defined(WN_WEAPON_BUILDER) || defined(FT_PARAM_ACCESSER_TYPED_DTOR)
+// The Fox bullet's empty parameter base destructor is inlined in sora_melee.
+#if (defined(WN_WEAPON_BUILDER) && !defined(WN_PARAM_ACCESSER_INLINE_DTOR)) || defined(FT_PARAM_ACCESSER_TYPED_DTOR)
     virtual ~soParamAccesser(); // out of line in the fighter RELs
 #else
     virtual ~soParamAccesser() { }

@@ -35,10 +35,35 @@ ftClassInfoImpl<Fighter_Robot, ftRobot> g_ftClassInfoRobot;
 
 // The physics module's second interface is not declared yet: the constructor calls slot 0x54 of the vtable at +8
 // with the module pointer itself and a zero argument (HYPOTHESIS: resets the physics state).
+struct ftRobotPhysicsPad {
+    int unk0;
+    int unk4;
+};
+struct ftRobotPhysicsIface : ftRobotPhysicsPad {
+    virtual void slot0();
+    virtual void slot1();
+    virtual void slot2();
+    virtual void slot3();
+    virtual void slot4();
+    virtual void slot5();
+    virtual void slot6();
+    virtual void slot7();
+    virtual void slot8();
+    virtual void slot9();
+    virtual void slot10();
+    virtual void slot11();
+    virtual void slot12();
+    virtual void slot13();
+    virtual void slot14();
+    virtual void slot15();
+    virtual void slot16();
+    virtual void slot17();
+    virtual void slot18();
+    virtual void slot19(int arg);
+};
+
 static void ftRobotPhysicsModuleCall54(void* module, int arg) {
-    typedef void (*Fn)(void*, int);
-    void** table = *reinterpret_cast<void***>(reinterpret_cast<u8*>(module) + 8);
-    reinterpret_cast<Fn>(table[0x54 / sizeof(void*)])(module, arg);
+    static_cast<ftRobotPhysicsIface*>(module)->slot19(arg);
 }
 
 ftRobot::ftRobot(s32 entryId,
@@ -71,9 +96,8 @@ ftRobot::ftRobot(s32 entryId,
     m_moduleAccesser->getCollisionReflectorModule().add(reflectors, 2);
     m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
     ftRobotPhysicsModuleCall54(m_moduleAccesser->m_enumerationStart->m_physicsModule, 0);
-    soSlopeModule* slope = static_cast<soSlopeModule*>(m_moduleAccesser->m_enumerationStart->m_slopeModule);
-    slope->setPartNode(0x5D);
-    slope->setInvalidStatus(6);
+    static_cast<soSlopeModule*>(m_moduleAccesser->m_enumerationStart->m_slopeModule)->setPartNode(0x5D);
+    static_cast<soSlopeModule*>(m_moduleAccesser->m_enumerationStart->m_slopeModule)->setInvalidStatus(6);
 }
 
 // Emit the event builder and shared resource accesser used by this REL, following

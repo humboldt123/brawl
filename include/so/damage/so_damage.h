@@ -36,12 +36,16 @@ public:
     float unk94;
     u32 unk98;
     u8 unk9c;
+#ifdef SO_DAMAGE_STAGE_CTOR_OUT_OF_LINE
+    soDamage();
+#else
     soDamage() {
-        unk60 = 0.0f;
-        unk64 = 0.0f;
-        unk68 = 0.0f;
+        unk60 = 1.0f;
+        unk64 = 1.0f;
+        unk68 = 1.0f;
         unk74 = unk74 & ~0x1F; // HYPOTHESIS: five flag bits of the word at 0x74 are cleared
     }
+#endif
     ~soDamage() { }
 #else
     float m_damage;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -46,7 +47,7 @@ class ftLuigi : public ftFighterBuilder<ftLuigiBuildConfig> {
     u8 unkTail[0xE1F4 - sizeof(ftFighterBuilder<ftLuigiBuildConfig>)];
     // HYPOTHESIS: status table at 0xE1F4 (destroyed before the base in the target destructor); contents unidentified.
     soArrayContractibleTable<const soStatusData> unkE1F4;
-    u8 unkTail2[0xE208 - 0xE1F4 - sizeof(soArrayContractibleTable<const soStatusData>)];
+    ftData* m_data;
 public:
     ftLuigi(s32 entryId,
             Heaps::HeapType instHeap,

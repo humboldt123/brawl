@@ -227,7 +227,7 @@ void grFamicomKame::requestDown2() {
             m_state = 0x11;
         } else if (isRemoveItem() != 0 && isTurnGround() != 0) {
             FAMICOM_LEVEL_MOTION(1, 5, 9, false)
-            setMotionFrame(165.0f, 0);
+            setMotionFrame(172.0f, 0);
             m_actionTimer = 148.0f;
             disableHit(0, 0);
             disableAttack(0);
