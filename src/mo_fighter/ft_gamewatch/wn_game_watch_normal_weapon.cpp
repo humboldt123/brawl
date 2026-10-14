@@ -17,9 +17,7 @@
 wnGameWatchNormalWeapon::wnGameWatchNormalWeapon(s32 articleId, const wnArticleBuildInfo& info, const wnGameWatchNormalWeaponData* data) :
     wnWeaponBuilder<wnGameWatchNormalWeaponModuleAccesserBuildConfig>(
         "GameWatchNormalWeapon", articleId, info,
-        wnModuleAccesserBuildData(123, data, info.heapModule->getInstanceHeap(), info.heapModule->getNWModelInstanceHeap(),
-                                  info.heapModule->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
-                                  0, 0, 0, 0, 0, 0, 0)),
+        wnModuleAccesserBuildDataByHeap(123, data, info.heapModule, &m_paramAccesser)),
     m_param(data->m_param), m_paramAccesser(data->m_param), m_animObj() {
     Weapon::deactivate(false);
 }

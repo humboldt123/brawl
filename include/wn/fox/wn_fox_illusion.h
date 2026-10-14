@@ -100,6 +100,7 @@ public:
     soCollisionHitModuleBuilder<BC::CollisionHitModuleBuildConfig> m_hitModuleBuilder;
     soCollisionShieldModuleBuilder<BC::CollisionShieldModuleBuildConfig> m_shieldModuleBuilder;
     soCollisionReflectorModuleBuilder<BC::CollisionReflectorModuleBuildConfig> m_reflectorModuleBuilder;
+    ftNullCollisionAbsorberBuilder m_absorberBuilder; // the four bytes after the reflector builder
     soCollisionCatchModuleBuilder<BC::CollisionCatchModuleBuildConfig> m_collisionCatchModuleBuilder;
     BC::CollisionSearchModuleBuilder m_searchBuilder;
     soDamageModuleBuilder<BC::DamageModuleBuildConfig> m_damageModuleBuilder;

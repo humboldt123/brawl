@@ -314,7 +314,6 @@ struct soCollisionAbsorberModuleBuilderNull { };
 template <>
 class soCollisionReflectorModuleBuilder<soCollisionReflectorModuleBuildConfigNull> {
     struct Empty { } m_reflector;
-    soCollisionAbsorberModuleBuilderNull m_absorber;
 public:
     soCollisionReflectorModuleBuilder(soModuleAccesser*, int, gfTask::Category) { }
     soCollisionShieldModule* getModule() { return (soCollisionShieldModule*)g_soCollisionAbsorberModuleNull; }
@@ -872,6 +871,7 @@ inline soModuleAccesserBuilder<BC>::soModuleAccesserBuilder(const wnModuleAccess
     m_hitModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory)), FT_NULL_OBSERVER_DESC),
     m_shieldModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
     m_reflectorModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
+    m_absorberBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
     m_collisionCatchModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory)), FT_NULL_OBSERVER_DESC),
     m_searchBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
     m_damageModuleBuilder(&m_moduleAccsr, FT_NULL_OBSERVER_DESC),
