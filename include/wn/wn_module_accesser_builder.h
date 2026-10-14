@@ -44,7 +44,6 @@ FT_DOL_ARRAY_VECTOR(soLinkConnection, 5);
 FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 2);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soAnimCmdControlUnit>, 6);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 8);
-FT_DOL_ARRAY_VECTOR(soOtherAnim, 2);
 
 #ifdef WN_SHARED_ARRAYS_1
 // These article builders call sora_melee-owned constructors and virtual methods.
