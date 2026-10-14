@@ -14,7 +14,9 @@
 wnGameWatchPanel::wnGameWatchPanel(s32 articleId, const wnArticleBuildInfo& info, const wnGameWatchPanelData* data) :
     wnWeaponBuilder<wnGameWatchPanelModuleAccesserBuildConfig>(
         "GameWatchPanel", articleId, info,
-        wnModuleAccesserBuildDataByHeap(120, data, info.heapModule, &m_paramAccesser)),
+        wnModuleAccesserBuildData(120, data, info.heapModule->getInstanceHeap(), info.heapModule->getNWModelInstanceHeap(),
+                                  info.heapModule->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
+                                  0, 0, 0, 0, 0, 0, 0)),
     m_param(data->m_param), m_paramAccesser(data->m_param), m_animObj() {
     Weapon::deactivate(false);
 }

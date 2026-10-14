@@ -54,15 +54,3 @@ public:
     virtual void* getAnimCmdData(u32 eventThread, s32 p2) const;
 };
 static_assert(sizeof(wnModuleAccesserBuildData) == 0x40, "Class is wrong size!");
-
-class soHeapModule;
-// HYPOTHESIS: the Game & Watch articles build their data through one inline helper that takes the owner's heap module as a parameter
-// (the module pointer is read once and the three heap getters are called on it, then the resource group is read from the data).
-class wnModuleAccesserBuildDataByHeap : public wnModuleAccesserBuildData {
-public:
-    template <class D>
-    wnModuleAccesserBuildDataByHeap(s32 kind, const D* data, soHeapModule* heap, soParamAccesser* paramAccesser) :
-        wnModuleAccesserBuildData(kind, data, heap->getInstanceHeap(), heap->getNWModelInstanceHeap(), heap->getNWMotionInstanceHeap(),
-                                  data->m_resGroupNo, -1, paramAccesser, 0, 0, 0, 0, 0, 0, 0) { }
-};
-

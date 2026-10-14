@@ -16,7 +16,9 @@
 wnGameWatchRescue::wnGameWatchRescue(s32 articleId, const wnArticleBuildInfo& info, const wnGameWatchRescueData* data) :
     wnWeaponBuilder<wnGameWatchRescueModuleAccesserBuildConfig>(
         "GameWatchRescue", articleId, info,
-        wnModuleAccesserBuildDataByHeap(118, data, info.heapModule, &m_paramAccesser)),
+        wnModuleAccesserBuildData(118, data, info.heapModule->getInstanceHeap(), info.heapModule->getNWModelInstanceHeap(),
+                                  info.heapModule->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
+                                  0, 0, 0, 0, 0, 0, 0)),
     m_param(data->m_param), m_paramAccesser(data->m_param), m_animObj() {
     Weapon::deactivate(false);
 }
