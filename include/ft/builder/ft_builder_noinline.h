@@ -81,4 +81,7 @@ template soStatusModuleBuilder<FT_BC::StatusModuleBuildConfig>::soStatusModuleBu
 template soKineticModuleBuilder<FT_BC::KineticModuleBuildConfig>::soKineticModuleBuilder(soModuleAccesser*);
 template soGeneralWorkBuilder<FT_BC::GeneralWorkBuildConfig>::soGeneralWorkBuilder();
 template soAreaModuleBuilder<FT_BC::AreaModuleBuildConfig>::soAreaModuleBuilder(soModuleAccesser*, u8, soEventObserverRegistrationDesc*);
+#ifdef FT_NOINLINE_SEARCH_BUILDER // fighters with a collision search module (Link, Toon Link, Zelda, Peach, ...)
+template FT_BC::CollisionSearchModuleBuilder::soCollisionSearchModuleBuilder(soModuleAccesser*, int, gfTask::Category);
+#endif
 #pragma dont_inline off

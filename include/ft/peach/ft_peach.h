@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <so/so_photo_call_back.h>
 #include <sr/sr_common.h>
@@ -55,7 +56,7 @@ public:
 class ftPeach : public ftFighterBuilder<ftPeachBuildConfig>, public soPhotoCallBack {
     // The photo callback starts at +0x186F0 in the native fighter.
     soArrayContractibleTable<const soStatusData> m_statusDataTable;
-    u8 unkTail[0x18710 - sizeof(ftFighterBuilder<ftPeachBuildConfig>) - sizeof(soPhotoCallBack) - sizeof(soArrayContractibleTable<const soStatusData>)];
+    ftData* m_data;
 public:
     ftPeach(s32 entryId,
             Heaps::HeapType instHeap,
