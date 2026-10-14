@@ -334,9 +334,25 @@ private:
     soAnimCmdControlUnitBuilderUniq<typename BC::Unit9Config> m_unit9;
     soAnimCmdControlUnitBuilder<typename BC::Unit10Config> m_unit10;
 public:
-    ftAnimCmdModuleSubBuilder(soModuleAccesser* acc, const ftFighterBuildData& fbd) :
+    ftAnimCmdModuleSubBuilder(soModuleAccesser* acc, const ftFighterBuildData& fbd, int commonCount, int uniqueCount) :
         m_unit0(acc), m_unit1(acc, fbd.getAnimCmdData(1, 0), fbd.getAnimCmdData(1, 1), fbd.getAnimCmdData(1, 2)), m_unit2(acc, fbd.getAnimCmdData(2, 0), fbd.getAnimCmdData(2, 1), fbd.getAnimCmdData(2, 2)), m_unit3(acc, fbd.getAnimCmdData(3, 0), fbd.getAnimCmdData(3, 1), fbd.getAnimCmdData(3, 2)), m_unit4(acc, fbd.getAnimCmdData(4, 0), fbd.getAnimCmdData(4, 1), fbd.getAnimCmdData(4, 2)),
-        m_unit5(acc, fbd.getAnimCmdData(5, 0), fbd.getAnimCmdData(5, 1), fbd.getAnimCmdData(5, 2)), m_unit6(acc, fbd.getAnimCmdData(6, 0), fbd.getAnimCmdData(6, 1), fbd.getAnimCmdData(6, 2)), m_unit7(acc, fbd.getAnimCmdData(7, 0), fbd.getAnimCmdData(7, 1), fbd.getAnimCmdData(7, 2)), m_unit8(acc, fbd.getAnimCmdData(8, 0), fbd.getAnimCmdData(8, 1), fbd.getAnimCmdData(8, 2)), m_unit9(acc), m_unit10(acc, fbd.getAnimCmdData(10, 0), fbd.getAnimCmdData(10, 1), fbd.getAnimCmdData(10, 2)) { }
+        m_unit5(acc, fbd.getAnimCmdData(5, 0), fbd.getAnimCmdData(5, 1), fbd.getAnimCmdData(5, 2)), m_unit6(acc, fbd.getAnimCmdData(6, 0), fbd.getAnimCmdData(6, 1), fbd.getAnimCmdData(6, 2)), m_unit7(acc, fbd.getAnimCmdData(7, 0), fbd.getAnimCmdData(7, 1), fbd.getAnimCmdData(7, 2)), m_unit8(acc, fbd.getAnimCmdData(8, 0), fbd.getAnimCmdData(8, 1), fbd.getAnimCmdData(8, 2)), m_unit9(acc), m_unit10(acc, fbd.getAnimCmdData(10, 0), fbd.getAnimCmdData(10, 1), fbd.getAnimCmdData(10, 2)) {
+        setupDisguiseUnit(fbd, commonCount, uniqueCount);
+    }
     ~ftAnimCmdModuleSubBuilder() { }
     soAnimCmdControlUnitBuilderDisguise<typename BC::Unit0Config>* getDisguiseUnit() { return &m_unit0; }
+
+    // Fills unit 0 (common entries, then the unique ones) and its disguise lists from the fighter data.
+    void setupDisguiseUnit(const ftFighterBuildData& fbd, int commonCount, int uniqueCount) {
+        const acAnimCmdConv* const* cmds00 = (const acAnimCmdConv* const*)fbd.getAnimCmdData(0, 0);
+        soArrayUtility::pushRange<const acAnimCmdConv*>(m_unit0.getEntryList(0), cmds00, commonCount);
+        const acAnimCmdConv* const* cmds01 = (const acAnimCmdConv* const*)fbd.getAnimCmdData(0, 1);
+        soArrayUtility::pushRange<const acAnimCmdConv*>(m_unit0.getEntryList(1), cmds01, commonCount);
+        const acAnimCmdConv* const* cmds0F = (const acAnimCmdConv* const*)fbd.getFtData()->uniqActionEntryScripts;
+        soArrayUtility::pushRange<const acAnimCmdConv*>(m_unit0.getEntryList(0), cmds0F, uniqueCount);
+        const acAnimCmdConv* const* cmds1F = (const acAnimCmdConv* const*)fbd.getFtData()->uniqActionExitScripts;
+        soArrayUtility::pushRange<const acAnimCmdConv*>(m_unit0.getEntryList(1), cmds1F, uniqueCount);
+        m_unit0.setupDisguiseList(0, (soAnimCmdDisguiseListEntry*)fbd.getAnimCmdDisguiseList(false, 0));
+        m_unit0.setupDisguiseList(1, (soAnimCmdDisguiseListEntry*)fbd.getAnimCmdDisguiseList(false, 1));
+    }
 };

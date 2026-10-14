@@ -1,3 +1,5 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/metaknight/ft_metaknight.h>
@@ -5,6 +7,16 @@
 
 #define FT_BC ftMetaknightBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_80A4;
+extern soStatusUniqProcess lbl_111_bss_184;
+extern soStatusUniqProcess lbl_111_bss_194;
+extern soStatusUniqProcess lbl_111_bss_1C4;
+extern soStatusUniqProcess lbl_111_bss_1B4;
+extern soStatusUniqProcess lbl_111_bss_1A4;
+}
 
 ftMetaknightExtendParamAccesser g_ftMetaknightExtendParamAccesser;
 
@@ -20,7 +32,15 @@ ftMetaknight::ftMetaknight(s32 entryId,
                                          nwModelInstHeap,
                                          nwMotionInstHeap),
     m_data(g_ftCommonDataAccesser.getData(Fighter_MetaKnight)) {
-    // TODO
+    // Register the status processes in action order.
+    soStatusUniqProcess* processes[16] = {0};
+    processes[5] = &lbl_27_bss_80A4;
+    processes[7] = &lbl_111_bss_184;
+    processes[8] = &lbl_111_bss_194;
+    processes[13] = &lbl_111_bss_1C4;
+    processes[14] = &lbl_111_bss_1B4;
+    processes[15] = &lbl_111_bss_1A4;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 16);
 }
 
 ftMetaknight::~ftMetaknight() { }

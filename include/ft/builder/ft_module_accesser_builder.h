@@ -337,19 +337,7 @@ public:
     ftModuleAccesserBuilder(const ftFighterBuildData& fbd, StageObject* owner) :
         soModuleAccesserBuilder<BC>(fbd, owner),
         unkTable((const soStatusData*)fbd.getFtData()->uniqStatusData, UniqueStatusCount),
-        unkAnimCmdModuleSubBuilder(&this->m_moduleAccsr, fbd) {
-        // MATCH-ONLY: the unit is named through the member (not an accessor) and every query result is held in a
-        // local first, so MWCC forms the unit address after the queries as the original does.
-        const acAnimCmdConv* const* cmds00 = (const acAnimCmdConv* const*)fbd.getAnimCmdData(0, 0);
-        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(0), cmds00, CommonStatusCount);
-        const acAnimCmdConv* const* cmds01 = (const acAnimCmdConv* const*)fbd.getAnimCmdData(0, 1);
-        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(1), cmds01, CommonStatusCount);
-        const acAnimCmdConv* const* cmds0F = (const acAnimCmdConv* const*)fbd.getFtData()->uniqActionEntryScripts;
-        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(0), cmds0F, UniqueStatusCount);
-        const acAnimCmdConv* const* cmds1F = (const acAnimCmdConv* const*)fbd.getFtData()->uniqActionExitScripts;
-        soArrayUtility::pushRange<const acAnimCmdConv*>(unkAnimCmdModuleSubBuilder.m_unit0.getEntryList(1), cmds1F, UniqueStatusCount);
-        unkAnimCmdModuleSubBuilder.m_unit0.setupDisguiseList(0, (soAnimCmdDisguiseListEntry*)fbd.getAnimCmdDisguiseList(false, 0));
-        unkAnimCmdModuleSubBuilder.m_unit0.setupDisguiseList(1, (soAnimCmdDisguiseListEntry*)fbd.getAnimCmdDisguiseList(false, 1));
+        unkAnimCmdModuleSubBuilder(&this->m_moduleAccsr, fbd, CommonStatusCount, UniqueStatusCount) {
         this->m_moduleAccsr.getStatusModule().connectStatusDataList(&unkTable);
         // Apply fighter-specific area dimensions before registering the areas.
         soSet<soAreaData>* areas = static_cast<soSet<soAreaData>*>(

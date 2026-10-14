@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -46,7 +47,9 @@ public:
 };
 
 class ftPikachu : public ftFighterBuilder<ftPikachuBuildConfig> {
-    u8 unkTail[0x2AE48 - sizeof(ftFighterBuilder<ftPikachuBuildConfig>)];
+    u8 unkTail[0x2AE34 - sizeof(ftFighterBuilder<ftPikachuBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
 public:
     ftPikachu(s32 entryId,
             Heaps::HeapType instHeap,

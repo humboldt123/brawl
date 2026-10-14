@@ -26,6 +26,9 @@ class BaseItem;
 #include <so/status/so_status_module_impl.h>
 #include <so/area/so_area_module_impl.h>
 
+class acAnimCmdConv;
+typedef const acAnimCmdConv* ftAnimCmdConvPtr; // the macro spells `const T&`, which needs a non-const-qualified spelling of the pointer type
+
 FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 1);
 FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 5);
 FT_DOL_ARRAY_VECTOR(soCollisionGroup, 5);
@@ -68,6 +71,10 @@ FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 289);
 FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 288);
 FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 281);
 FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 285);
+// Only the capacities whose REL takes the whole class (constructor and destructors) from sora_melee; the other
+// capacities keep their destructors in the REL, so declaring them here would drop those functions.
+FT_DOL_ARRAY_VECTOR(ftAnimCmdConvPtr, 290);
+FT_DOL_ARRAY_VECTOR(ftAnimCmdConvPtr, 291);
 FT_DOL_ARRAY_VECTOR(soCollisionHitPart, 13);
 FT_DOL_ARRAY_VECTOR(soCollisionShieldPart, 1);
 FT_DOL_ARRAY_VECTOR(soCollisionShieldPart, 12);

@@ -1,3 +1,5 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #define FT_KINETIC_MEDIATOR_TRANSACTOR ftLuigiKineticTransactor
 #include <ft/luigi/ft_luigi_kinetic_transactor.h>
@@ -5,10 +7,17 @@
 #include <ft/luigi/ft_luigi.h>
 #undef FT_KINETIC_MEDIATOR_TRANSACTOR
 #include <ft/luigi/ft_luigi_extend_param_accesser.h>
+#include <ft/luigi/ft_luigi_status_special_s.h>
 #include <so/so_value_accesser.h>
 
 #define FT_BC ftLuigiBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt); the first lives in module 27 (sora_melee).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_734C;
+extern soStatusUniqProcess lbl_99_bss_1CC;
+}
 
 ftLuigiExtendParamAccesser g_ftLuigiExtendParamAccesser;
 
@@ -22,8 +31,15 @@ ftLuigi::ftLuigi(s32 entryId,
                                          Fighter_Luigi,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Luigi)) {
+    // Register the status processes in action order; entries without a process stay empty.
+    soStatusUniqProcess* processes[11] = {0};
+    processes[2] = &lbl_27_bss_734C;
+    processes[3] = &lbl_99_bss_1CC;
+    processes[6] = &g_ftLuigiStatusUniqProcessSpecialSRam;
+    processes[8] = &g_ftLuigiStatusUniqProcessSpecialSWall;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 11);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftLuigi is done
