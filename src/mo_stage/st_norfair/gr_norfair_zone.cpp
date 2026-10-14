@@ -99,11 +99,11 @@ void grNorfairZone::updateArea(float deltaFrame) {
         Vec3f positions[9];
         memset(entryIds, 0, sizeof(entryIds));
         memset(positions, 0, sizeof(positions));
+        Vec3f* zonePos = &m_posWork[*m_posIndex];
+        float centerY = 10.0f + zonePos->m_y;
         float width = 35.0f;
         float height = 20.0f;
         Rect2D area;
-        Vec3f* zonePos = &m_posWork[*m_posIndex];
-        float centerY = 10.0f + zonePos->m_y;
         area.m_left = zonePos->m_x - 0.5f * width;
         area.m_right = zonePos->m_x + 0.5f * width;
         area.m_up = centerY + 0.5f * height;

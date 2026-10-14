@@ -87,7 +87,7 @@ void grDxGreensBlock::updatePos(float deltaFrame) {
     float* data = static_cast<float*>(getStageData());
     if (data != NULL) {
         m_speed += data[11] * deltaFrame;
-        if (data[10] < m_speed) {
+        if (m_speed > data[10]) {
             m_speed = data[10];
         }
         m_blockData->m_pos.m_y -= m_speed * deltaFrame;
@@ -109,7 +109,7 @@ void grDxGreensBlock::updateMotion(float deltaFrame) {
     if (modelAnim != NULL) {
         if (m_blockData->m_hard == 1) {
             float frameCount = modelAnim->getFrameCount();
-            if (frameCount <= modelAnim->getFrame()) {
+            if (modelAnim->getFrame() >= frameCount) {
                 modelAnim->setFrame(2.0f);
             }
         } else {

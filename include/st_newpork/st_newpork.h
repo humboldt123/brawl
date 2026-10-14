@@ -141,7 +141,7 @@ class stNewpork : public stMelee {
     stNewporkSubject m_subject;     // 0x2BC: camera subject that follows the Chimera
     float m_areaCooldown;           // 0x340
     float m_areaCooldown2;          // 0x344
-    u8 m_screenFill;                // 0x348: handle of the dark screen fill
+    s8 m_screenFill;                // 0x348: handle of the dark screen fill
     char _349[3];
     grCollisionJoint* m_plankJoint; // 0x34C: collision joint of the plank
 

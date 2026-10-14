@@ -347,7 +347,7 @@ public:
     grMadein* m_grBeamL;                        // 0x1F0
     grMadein* m_grBeamR;                        // 0x1F4
     grMadein* m_grResult;                       // 0x1F8 the result screen
-    u8 m_fillId;                                // 0x1FC the fade that is on (0xFF = none)
+    s8 m_fillId;                                // 0x1FC the fade that is on (0xFF = none)
     char _1fd[3];
     int m_state;                                // 0x200 0 = start, 1 = wait, 2 = the roll plays, 3 = the result, 4 = end
     int m_isSkip;                               // 0x204 fast forward

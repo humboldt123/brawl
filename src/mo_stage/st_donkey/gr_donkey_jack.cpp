@@ -67,7 +67,7 @@ grDonkeyJack::grDonkeyJack(const char* taskName) : grDonkey(taskName) {
     if (callback == NULL) {
         return;
     }
-    callback->m_nodeCallbackDatas[0].m_flags |= 1;
+    callback->m_nodeCallbackDatas[0].m_flags |= 0x10;
 }
 
 grDonkeyJack::~grDonkeyJack() {

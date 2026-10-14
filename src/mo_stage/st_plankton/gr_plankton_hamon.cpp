@@ -52,7 +52,7 @@ void grPlanktonHamonScnObjCallBack::ExecCallback_CALC_MAT(nw4r::g3d::ScnObj::Tim
 }
 
 void grPlanktonHamonScnObjCallBack::setColor(u8 index, GXColor* color) {
-    if (index > 1) {
+    if (index >= 2) {
         return;
     }
     m_color[index] = color;

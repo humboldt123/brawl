@@ -158,7 +158,7 @@ bool grEarthSun::isChangeWeather() {
     } else if (*m_modelAnims == NULL) {
         result = false;
     } else {
-        result = (m_savedFrame * 0.85f <= (*m_modelAnims)->getFrame());
+        result = ((*m_modelAnims)->getFrame() >= m_savedFrame * 0.85f);
     }
     return result;
 }

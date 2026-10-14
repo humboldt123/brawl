@@ -1046,7 +1046,7 @@ void stHalberd::updateHeroHero() {
 }
 
 bool stHalberd::isEventEnd(int param1, int* eventState, int* eventDecision) {
-    if (m_state > 3) {
+    if (m_state >= 4) {
         *eventState = 6;
         *eventDecision = 3;
         return true;

@@ -202,7 +202,7 @@ void grJungleAshiba03::setHit() {
 
 void grJungleAshiba03::resetYakumono() {
     if (m_stateWork != NULL) {
-        if (m_stateWork[1] >= 2) {
+        if (m_stateWork[1] > 1) {
             m_stateWork[1] = 4;
         }
     }

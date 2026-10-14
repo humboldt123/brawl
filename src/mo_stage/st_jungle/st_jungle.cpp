@@ -1040,16 +1040,14 @@ void stJungle::updateSpeed(float deltaFrame) {
             case 2:
                 if (m_timerSpeed == 0.0f) {
                     setMotionSubRatio(data->unk50, 90.0f);
-                    float rand = randf();
-                    m_timerSpeed = data->unk5C + (data->unk60 - data->unk5C) * rand;
+                    m_timerSpeed = data->unk5C + (data->unk60 - data->unk5C) * randf();
                     m_stateSpeed = 3;
                 }
                 break;
             case 3:
                 if (m_timerSpeed == 0.0f) {
                     setMotionSubRatio(1.0f, 90.0f);
-                    float rand = randf();
-                    m_timerSpeed = data->unk44 + (data->unk48 - data->unk44) * rand;
+                    m_timerSpeed = data->unk44 + (data->unk48 - data->unk44) * randf();
                     m_stateSpeed = 1;
                 }
                 break;

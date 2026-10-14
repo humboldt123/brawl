@@ -186,10 +186,10 @@ void grFamicomYuka::startup(gfArchive* archive, u32 unk1, gfSceneRoot::LayerType
 
 bool grFamicomYuka::isValidResTex() {
     bool result;
-    if (m_resFile.ptr() == NULL || !m_resFile.HasResTex()) {
-        result = false;
-    } else {
+    if (m_resFile.ptr() != NULL && m_resFile.HasResTex()) {
         result = true;
+    } else {
+        result = false;
     }
     return result;
 }

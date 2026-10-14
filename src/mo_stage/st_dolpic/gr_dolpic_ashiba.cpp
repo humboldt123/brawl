@@ -239,7 +239,7 @@ void grDolpicAshiba::setMotion(u32 animId, bool loop, bool force, float* frameCo
     modelAnim->unbindMatColAnim(sceneMdl);
     m_animId = animId;
 
-    if (animId != 0) {
+    if (animId >= 1) {
         return;
     }
 

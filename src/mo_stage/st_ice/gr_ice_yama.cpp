@@ -12,6 +12,7 @@
 #include <memory.h>
 #include <mt/mt_prng.h>
 #include <nw4r/g3d/g3d_scnmdl.h>
+#include <nw4r/math/math_arithmetic.h>
 #include <nw4r/math/math_triangular.h>
 #include <snd/snd_system.h>
 #include <so/so_world.h>
@@ -338,6 +339,18 @@ void grIceYama::updateState(float deltaFrame) {
 }
 
 // The volume of the sound effects (not of the music) goes down as the avalanche comes and back up after it.
+// HYPOTHESIS: the same fsel based clamp helper the glide statuses use.
+static inline float iceClamp(float value, float lo, float hi) {
+    value = nw4r::math::FSelect(value - lo, value, lo);
+    value = nw4r::math::FSelect(value - hi, hi, value);
+    return value;
+}
+
+// HYPOTHESIS: the sound block of the stage parameters (starts at the bool pair before m_effectVol).
+static inline u8* iceSoundParam(stParam* param) {
+    return reinterpret_cast<u8*>(param) + 0xE4;
+}
+
 void grIceYama::updateSE(float deltaFrame) {
     stIceData* data = static_cast<stIceData*>(getStageData());
     if (data != NULL) {
@@ -346,39 +359,39 @@ void grIceYama::updateSE(float deltaFrame) {
         if (timer < 0.0f) {
             m_seTimer = 0.0f;
         }
-        u8 state = m_seState;
-        if (state != 3) {
-            if (state < 3) {
-                if (1 < state && g_Stage->m_stageParam != NULL) {
-                    float rate = 1.0f - m_seTimer / 625.0f;
-                    if (rate - 0.0f < 0.0f) {
-                        rate = 0.0f;
-                    }
-                    float clamped = 1.0f;
-                    if (rate - 1.0f < 0.0f) {
-                        clamped = rate;
-                    }
-                    if (clamped == 1.0f) {
-                        m_seState = 0xE;
-                    }
-                    float sine = nw4r::math::SinFIdx(static_cast<float>(static_cast<s16>(static_cast<int>(clamped * 16384.0f))) * (1.0f / 256.0f));
-                    g_sndSystem->setEffectVol(0, 1, g_Stage->m_stageParam->m_effectVol * 0.01f * (1.0f - sine));
+        int state = m_seState;
+        switch (state) {
+        case 2:
+            if (g_Stage->m_stageParam != NULL) {
+                u8* sound = iceSoundParam(g_Stage->m_stageParam);
+                if (sound == NULL) {
+                    break;
                 }
-            } else if (state < 5 && g_Stage->m_stageParam != NULL) {
-                float rate = 1.0f - m_seTimer / 400.0f;
-                if (rate - 0.0f < 0.0f) {
-                    rate = 0.0f;
-                }
-                float clamped = 1.0f;
-                if (rate - 1.0f < 0.0f) {
-                    clamped = rate;
-                }
+                float rate = 1.0f - m_seTimer / 625.0f;
+                float clamped = iceClamp(rate, 0.0f, 1.0f);
                 if (clamped == 1.0f) {
                     m_seState = 0xE;
                 }
-                float sine = nw4r::math::SinFIdx(static_cast<float>(static_cast<s16>(static_cast<int>(clamped * 16384.0f))) * (1.0f / 256.0f));
-                g_sndSystem->setEffectVol(0, 1, g_Stage->m_stageParam->m_effectVol * 0.01f * sine);
+                float sine = nw4r::math::SinFIdx(nw4r::math::U16ToF32(static_cast<u16>(static_cast<int>(clamped * 16384.0f))) * (1.0f / 256.0f));
+                float inverse = 1.0f - sine;
+                g_sndSystem->setEffectVol(0, 1, 0.01f * sound[2] * inverse);
             }
+            break;
+        case 4:
+            if (g_Stage->m_stageParam != NULL) {
+                u8* sound = iceSoundParam(g_Stage->m_stageParam);
+                if (sound == NULL) {
+                    break;
+                }
+                float rate = 1.0f - m_seTimer / 400.0f;
+                float clamped = iceClamp(rate, 0.0f, 1.0f);
+                if (clamped == 1.0f) {
+                    m_seState = 0xE;
+                }
+                float sine = nw4r::math::SinFIdx(nw4r::math::U16ToF32(static_cast<u16>(static_cast<int>(clamped * 16384.0f))) * (1.0f / 256.0f));
+                g_sndSystem->setEffectVol(0, 1, sound[2] * 0.01f * sine);
+            }
+            break;
         }
     }
 }
@@ -434,7 +447,7 @@ void grIceYama::setAttack() {
         offset.m_x = 0.0f;
         offset.m_y = 0.0f;
         offset.m_z = 0.0f;
-        setAttackGimmickDetails(&attack, 2.5f, 1.0f, 1.0f, 1.0f,
+        setAttackGimmickDetails(&attack, 5.0f, 1.0f, 1.0f, 1.0f,
             18, &offset, 361, 100, 70, 70, node,
             0x3FF, 7, false, 15,
             soCollisionAttackData::Attribute_Normal, soCollisionAttackData::Sound_Level_Large, soCollisionAttackData::Sound_Attribute_Kick,

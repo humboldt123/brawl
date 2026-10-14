@@ -111,11 +111,11 @@ void grFamicomKame::setAttack() {
         offset.m_z = 0.0f;
         u32 power;
         switch (m_level) {
-        case 2:
-            power = 13;
-            break;
         case 1:
             power = 11;
+            break;
+        case 2:
+            power = 13;
             break;
         case 3:
             power = 15;

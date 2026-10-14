@@ -110,11 +110,11 @@ void stPalutena::createObj() {
 void stPalutena::createObjBg(int index) {
     grPalutena* ground;
     switch (index) {
-    case 1:
-        ground = grPalutena::create(0xF, "", "grPalutenaSun");
-        break;
     case 0:
         ground = grPalutena::create(0xE, "", "grPalutenaMainBg");
+        break;
+    case 1:
+        ground = grPalutena::create(0xF, "", "grPalutenaSun");
         break;
     default:
         ground = NULL;

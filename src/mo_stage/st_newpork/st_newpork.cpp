@@ -129,7 +129,7 @@ stNewpork* stNewpork::create() {
     return new (Heaps::StageInstance) stNewpork;
 }
 
-stNewpork::stNewpork() : stMelee("stNewpork", Stages::NewPork), m_chimeraMtx(true), m_screenFill(0xFF) {
+stNewpork::stNewpork() : stMelee("stNewpork", Stages::NewPork), m_chimeraMtx(true), m_screenFill(-1) {
     m_chikei = NULL;
     m_chikeiBG = NULL;
     m_viking = NULL;
