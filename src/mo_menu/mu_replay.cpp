@@ -1,4 +1,5 @@
 #include <gf/gf_heap_manager.h>
+#include <nw4r/g3d/g3d_scngroup.h>
 #include <gf/gf_scene.h>
 #include <gm/gm_global.h>
 #include <ip/ip_switch.h>
@@ -102,6 +103,7 @@ struct muReplayLabel {
     char* m_text;
     u32 m_size;
 };
+
 
 // The record of the game that the replay starts: it is copied from the replay into the global data.
 // MATCH-ONLY: the split into a header, a body and a tail follows from how the compiler copies the structure.
@@ -254,16 +256,14 @@ void muReplayTask::getMineLabel(muCollectionMsgBuf* buf) {
 
 void muReplayTask::addObjCore(void* obj) {
     muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
-    void* root = holder->m_hasScnRoot ? holder->m_scnRoot : NULL;
-    u8* vtbl = *reinterpret_cast<u8**>(root);
-    (*reinterpret_cast<void (**)(void*, void*, void*)>(vtbl + 0x34))(root, *reinterpret_cast<void**>(reinterpret_cast<u8*>(root) + 0xE4), obj);
+    nw4r::g3d::ScnGroup* root = static_cast<nw4r::g3d::ScnGroup*>(holder->m_hasScnRoot ? holder->m_scnRoot : NULL);
+    root->Insert(*reinterpret_cast<int*>(reinterpret_cast<u8*>(root) + 0xE4), static_cast<nw4r::g3d::ScnObj*>(obj));
 }
 
 void muReplayTask::removeObjCore(void* obj) {
     muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
-    void* root = holder->m_hasScnRoot ? holder->m_scnRoot : NULL;
-    u8* vtbl = *reinterpret_cast<u8**>(root);
-    (*reinterpret_cast<void (**)(void*, void*)>(vtbl + 0x3C))(root, obj);
+    nw4r::g3d::ScnGroup* root = static_cast<nw4r::g3d::ScnGroup*>(holder->m_hasScnRoot ? holder->m_scnRoot : NULL);
+    root->Remove(static_cast<nw4r::g3d::ScnObj*>(obj));
 }
 
 void* muReplayTask::getScnRoot() {
@@ -490,7 +490,7 @@ void muReplayTask::dispPreviewCore(void* infoPtr) {
 void muReplayTask::erasePreviewCore() {
     removeObjCore(m_work->m_objs[36]);
     for (int i = 0; i < 4; i++) {
-        callVirtual(m_work->m_objs[36], 0x3C, m_work->m_objs[26 + i]->m_sceneModel);
+        reinterpret_cast<nw4r::g3d::ScnGroup*>(m_work->m_objs[36])->Remove(static_cast<nw4r::g3d::ScnObj*>(m_work->m_objs[26 + i]->m_sceneModel));
     }
 }
 

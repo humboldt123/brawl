@@ -495,8 +495,7 @@ void muTourTable::winnerSetIcon(int winner, int frames) {
             m_winner = i;
             m_from[i] = pos.m_y;
             winnerSet(m_slot[i]);
-            const muTourPath& path = m_paths[m_slot[i]];
-            u8 line = path.m_line[2 * path.m_step];
+            u8 line = m_paths[m_slot[i]].m_line[2 * m_paths[m_slot[i]].m_step];
             tourGetTrans(m_objs[line], &pos);
             m_to[i] = pos.m_y;
         } else {

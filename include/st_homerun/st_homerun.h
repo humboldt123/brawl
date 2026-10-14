@@ -129,8 +129,10 @@ public:
     virtual ~stHomerun();
     virtual void createObj();
     virtual bool loading();
-    virtual void getItemPac(gfArchive** brres, gfArchive** param, itKind itemID, int variantID, gfArchive** commonParam = NULL,
-                            itCustomizerInterface** customizer = NULL);
+    // Not a virtual: the signature (with the two extra pointers) differs from Stage::getItemPac, and the real class keeps its vtable
+    // slots in the same order as the stage base.
+    void getItemPac(gfArchive** brres, gfArchive** param, itKind itemID, int variantID, gfArchive** commonParam = NULL,
+                    itCustomizerInterface** customizer = NULL);
     virtual void processFixPosition();
     virtual bool isEnd();
     virtual bool isEventEnd(int param1, int* eventState, int* eventDecision);

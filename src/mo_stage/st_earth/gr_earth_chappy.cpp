@@ -111,7 +111,7 @@ void grEarthChappy::update(float deltaFrame) {
         updateCallBack(deltaFrame);
         updateSE(deltaFrame);
         if (m_itemEvent == 1) {
-            makeItem();
+            updateG3dProcCalcWorld();
             m_itemEvent = 0;
             m_hasUpdatedG3dCalcWorld = false;
         }

@@ -2912,7 +2912,7 @@ void muNameRemoteTask::writeProcess() {
         return;
     }
     int status;
-    if (!isGameDataRequestOver()) {
+    if (!g_gfPadSystem->m_flags35.f7) {
         status = Status_Busy;
     } else {
         status = Status_Ok;

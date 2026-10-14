@@ -1,4 +1,5 @@
 #include <gf/gf_heap_manager.h>
+#include <nw4r/g3d/g3d_scngroup.h>
 #include <gf/gf_scene.h>
 #include <gm/gm_global.h>
 #include <memory.h>
@@ -141,16 +142,14 @@ void muSnapShotTask::getMineLabel(muCollectionMsgBuf* buf) {
 
 void muSnapShotTask::addObjCore(void* obj) {
     muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
-    void* root = holder->m_hasScnRoot ? holder->m_scnRoot : NULL;
-    u8* vtbl = *reinterpret_cast<u8**>(root);
-    (*reinterpret_cast<void (**)(void*, void*, void*)>(vtbl + 0x34))(root, *reinterpret_cast<void**>(reinterpret_cast<u8*>(root) + 0xE4), obj);
+    nw4r::g3d::ScnGroup* root = static_cast<nw4r::g3d::ScnGroup*>(holder->m_hasScnRoot ? holder->m_scnRoot : NULL);
+    root->Insert(*reinterpret_cast<int*>(reinterpret_cast<u8*>(root) + 0xE4), static_cast<nw4r::g3d::ScnObj*>(obj));
 }
 
 void muSnapShotTask::removeObjCore(void* obj) {
     muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
-    void* root = holder->m_hasScnRoot ? holder->m_scnRoot : NULL;
-    u8* vtbl = *reinterpret_cast<u8**>(root);
-    (*reinterpret_cast<void (**)(void*, void*)>(vtbl + 0x3C))(root, obj);
+    nw4r::g3d::ScnGroup* root = static_cast<nw4r::g3d::ScnGroup*>(holder->m_hasScnRoot ? holder->m_scnRoot : NULL);
+    root->Remove(static_cast<nw4r::g3d::ScnObj*>(obj));
 }
 
 void* muSnapShotTask::getScnRoot() {
