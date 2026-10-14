@@ -13,6 +13,8 @@ class itKineticModuleImpl : public soKineticModuleImpl, public soStatusEventObse
     char _0x40[0x2EC];
 
 public:
+    // HYPOTHESIS: the argument is the item's task-related int at +0x60 (only BaseItem::updateLifeTime calls it).
+    bool isTouchDown(int);
     virtual void activate();
     virtual void updateEnergy(soModuleAccesser* moduleAccesser, soKineticEnergy::AttributeFlag);
     virtual Vec2f getSumSpeed(soKineticEnergy::AttributeFlag);
