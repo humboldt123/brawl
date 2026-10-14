@@ -926,12 +926,12 @@ public:
 // MATCH-ONLY: defined out of the class so that a capacity whose constructor lives in sora_melee can declare an
 // explicit specialization of just this constructor (see ft/builder/ft_dol_array_list.h).
 template <class T, s32 C>
-soArrayVector<T, C>::soArrayVector(s32 size) : m_topIndex(0), m_lastIndex(0), m_size(size), m_isFull(false) {
+inline soArrayVector<T, C>::soArrayVector(s32 size) : m_topIndex(0), m_lastIndex(0), m_size(size), m_isFull(false) {
     soArrayVectorCalculator::postInitialize(*this, size, C);
 }
 
 template <class T, s32 C>
-soArrayVector<T, C>::soArrayVector(s32 size, s32) : m_topIndex(0), m_lastIndex(0), m_size(size), m_isFull(false) {
+inline soArrayVector<T, C>::soArrayVector(s32 size, s32) : m_topIndex(0), m_lastIndex(0), m_size(size), m_isFull(false) {
     soArrayVectorCalculator::postInitialize(*this, size, C);
 }
 #endif
