@@ -379,6 +379,11 @@ class soCollisionReflectorModuleBuilder<soCollisionReflectorModuleBuildConfigWit
 public:
     soCollisionReflectorModuleBuilder(soModuleAccesser* acc, int taskId, gfTask::Category category) :
         m_reflector(acc, taskId, category), m_absorber(acc, taskId, category) { }
+    // The native code reads the owner's task id and category once per folded builder (they are separate calls).
+    template <class Owner>
+    soCollisionReflectorModuleBuilder(soModuleAccesser* acc, Owner* owner) :
+        m_reflector(acc, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
+        m_absorber(acc, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))) { }
     typename ReflectorBC::ModuleType* getModule() { return m_reflector.getModule(); }
     typename AbsorberBC::ModuleType* getAbsorberModule() { return m_absorber.getModule(); }
 };
@@ -394,6 +399,22 @@ struct ftReflectorBase<soCollisionReflectorModuleBuildConfigWithAbsorber<R, A> >
     static soCollisionShieldModule* getAbsorber(soCollisionReflectorModuleBuilder<soCollisionReflectorModuleBuildConfigWithAbsorber<R, A> >* b) {
         return (soCollisionShieldModule*)b->getAbsorberModule();
     }
+};
+
+// The reflector builder as a member of the module accesser builder: constructed from the owner so that the folded absorber builder
+// can read the owner's task id and category once more for its own constructor call.
+template <typename RBC>
+struct ftReflectorSlot : soCollisionReflectorModuleBuilder<RBC> {
+    template <class Owner>
+    ftReflectorSlot(soModuleAccesser* acc, Owner* owner) :
+        soCollisionReflectorModuleBuilder<RBC>(acc, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))) { }
+};
+template <typename R, typename A>
+struct ftReflectorSlot<soCollisionReflectorModuleBuildConfigWithAbsorber<R, A> > :
+    soCollisionReflectorModuleBuilder<soCollisionReflectorModuleBuildConfigWithAbsorber<R, A> > {
+    template <class Owner>
+    ftReflectorSlot(soModuleAccesser* acc, Owner* owner) :
+        soCollisionReflectorModuleBuilder<soCollisionReflectorModuleBuildConfigWithAbsorber<R, A> >(acc, owner) { }
 };
 
 ////////////////////////////////////////

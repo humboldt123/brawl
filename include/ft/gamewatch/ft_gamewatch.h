@@ -1,6 +1,8 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
+#include <so/anim/so_anim_obj.h>
 #include <sr/sr_common.h>
 #include <types.h>
 
@@ -51,10 +53,9 @@ public:
 };
 
 class ftGameWatch : public ftFighterBuilder<ftGameWatchBuildConfig> {
-    u8 unkTail[0x1FDA8 - sizeof(ftFighterBuilder<ftGameWatchBuildConfig>)];
     soArrayContractibleTable<const soStatusData> m_statusDataTable; // 0x1FDA8, 0x10 bytes
-    u8* unk1FDB8;
-    u8 unk1FDBC[0x28];
+    ftData* m_data;
+    soAnimObj m_animObj;
 public:
     ftGameWatch(s32 entryId,
             Heaps::HeapType instHeap,

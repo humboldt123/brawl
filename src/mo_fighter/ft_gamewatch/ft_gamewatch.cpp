@@ -1,7 +1,11 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_PARAM_ACCESSER_TYPED_DTOR
 #define FT_TEAM_TYPED_INTERFACE
 #include <so/anim/so_anim_obj.h>
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_physics_iface.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/gamewatch/ft_gamewatch.h>
 #include <ft/gamewatch/ft_gamewatch_extend_param_accesser.h>
@@ -19,6 +23,44 @@ template soCollisionShieldModuleBuilder<ftGameWatchCollisionReflectorBaseModuleB
 template soCollisionShieldModuleBuilder<ftGameWatchCollisionAbsorberModuleBuildConfig>::soCollisionShieldModuleBuilder(soModuleAccesser*, int, gfTask::Category);
 #pragma dont_inline off
 
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_107_bss_15C;
+extern soStatusUniqProcess lbl_107_bss_16C;
+extern soStatusUniqProcess lbl_107_bss_1BC;
+extern soStatusUniqProcess lbl_107_bss_17C;
+extern soStatusUniqProcess lbl_107_bss_19C;
+extern soStatusUniqProcess lbl_107_bss_1AC;
+extern soStatusUniqProcess lbl_107_bss_1CC;
+extern soStatusUniqProcess lbl_107_bss_1DC;
+extern soStatusUniqProcess lbl_107_bss_1EC;
+extern soStatusUniqProcess lbl_107_bss_1FC;
+extern soStatusUniqProcess lbl_107_bss_20C;
+extern soStatusUniqProcess lbl_107_bss_21C;
+extern soStatusUniqProcess lbl_107_bss_22C;
+extern soStatusUniqProcess lbl_107_bss_23C;
+}
+extern soStatusUniqProcess g_ftGamewatchStatusUniqProcessSpecialLw;
+
+// HYPOTHESIS: the turn module's second interface is not declared yet; the constructor calls slot 0x30 of its vtable with 1
+// (MATCH-ONLY placeholder virtuals put the called slot where the original has it).
+struct ftTurnIface {
+    virtual void slot0();
+    virtual void slot1();
+    virtual void slot2();
+    virtual void slot3();
+    virtual void slot4();
+    virtual void slot5();
+    virtual void slot6();
+    virtual void slot7();
+    virtual void slot8();
+    virtual void slot9();
+    virtual void slot10(int arg);
+};
+static inline void ftTurnModuleCall30(void* module, int arg) {
+    static_cast<ftTurnIface*>(module)->slot10(arg);
+}
+
 ftGameWatchExtendParamAccesser g_ftGameWatchExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_GameWatch, ftGameWatch> g_ftClassInfoGameWatch;
@@ -31,8 +73,58 @@ ftGameWatch::ftGameWatch(s32 entryId,
                                          Fighter_GameWatch,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_GameWatch)), m_animObj() {
+    // Register the status processes in action order; entries without a process stay empty.
+    soStatusUniqProcess* processes[39] = {0};
+    processes[1] = &lbl_107_bss_15C;
+    processes[2] = &lbl_107_bss_16C;
+    processes[4] = &lbl_107_bss_1BC;
+    processes[5] = &lbl_107_bss_17C;
+    processes[7] = &g_ftGamewatchStatusUniqProcessSpecialLw;
+    processes[8] = &lbl_107_bss_19C;
+    processes[9] = &lbl_107_bss_1AC;
+    processes[12] = &lbl_107_bss_1CC;
+    processes[13] = &lbl_107_bss_1DC;
+    processes[14] = &lbl_107_bss_1EC;
+    processes[15] = &lbl_107_bss_1FC;
+    processes[16] = &lbl_107_bss_20C;
+    processes[17] = &lbl_107_bss_20C;
+    processes[18] = &lbl_107_bss_21C;
+    processes[25] = &lbl_107_bss_22C;
+    processes[26] = &lbl_107_bss_22C;
+    processes[27] = &lbl_107_bss_23C;
+    processes[28] = &lbl_107_bss_23C;
+    processes[29] = &lbl_107_bss_23C;
+    processes[30] = &lbl_107_bss_1CC;
+    processes[31] = &lbl_107_bss_1DC;
+    processes[32] = &lbl_107_bss_1EC;
+    processes[33] = &lbl_107_bss_1FC;
+    processes[34] = &lbl_107_bss_20C;
+    processes[35] = &lbl_107_bss_20C;
+    processes[36] = &lbl_107_bss_21C;
+    processes[37] = &lbl_107_bss_23C;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 39);
+    // HYPOTHESIS: the common data record (+0x8c) holds a sphere (node index as a float, centre, radius) that is installed as the
+    // shape of the absorber (the bucket of Oil Panic), group 0.
+    const float* sphere = *reinterpret_cast<const float**>(reinterpret_cast<u8*>(m_data) + 0x8c);
+    soCollisionShieldData shape;
+    soCollisionShieldGroupData group;
+    shape.setOffset(0, sphere[1]);
+    shape.setOffset(1, sphere[2]);
+    shape.setOffset(2, sphere[3]);
+    shape.setOffset(3, sphere[1]);
+    shape.setOffset(4, sphere[2]);
+    shape.setOffset(5, sphere[3]);
+    shape.m_size = sphere[4];
+    shape.m_nodeIndex = (u32)sphere[0];
+    shape.m_shapeType = 1;
+    group.m_flags = 0;
+    group.m_shieldDataSet = soSet<soCollisionShieldData>(&shape, 1);
+    soCollisionShieldModule& absorber = m_moduleAccesser->getCollisionAbsorberModule();
+    absorber.add(&group, 0);
+    absorber.setStatus(0, 0, 0);
+    ftTurnModuleCall30(m_moduleAccesser->m_enumerationStart->m_turnModule, 1);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftGameWatch is done

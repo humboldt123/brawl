@@ -3,6 +3,7 @@
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_NOINLINE_SEARCH_BUILDER
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_reflector_group.h>
 #include <ft/ft_physics_iface.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/zelda/ft_zelda.h>
@@ -19,21 +20,8 @@ extern soStatusUniqProcess lbl_104_bss_1A4;
 extern soStatusUniqProcess lbl_104_bss_1D4;
 extern soStatusUniqProcess lbl_104_bss_1E4;
 extern soStatusUniqProcess lbl_104_bss_1B4;
-// HYPOTHESIS: ftUtil::convertReflectorData(const reflector record*, shape out*, group out*): turns the reflector record of the
-// common data into a one-shape reflector group.
-void fn_27_195B34(const void* record, void* shapeOut, void* groupOut);
 }
 extern soStatusUniqProcess g_ftZeldaStatusUniqProcessSpecialHi3;
-
-// HYPOTHESIS: reflector group descriptor as filled by convertReflectorData (shape array pointer, shape count, four floats,
-// high flag bit).
-struct ftZeldaReflectorGroup {
-    void* m_shapes;
-    s32 m_count;
-    float m_f0, m_f1, m_f2, m_f3;
-    u32 m_flag : 1;
-    u32 m_rest : 31;
-};
 
 ftZeldaExtendParamAccesser g_ftZeldaExtendParamAccesser;
 
@@ -65,14 +53,8 @@ ftZelda::ftZelda(s32 entryId,
     // The reflector (Nayru's Love): build the reflector group from the common data record (+0x90) and install it as group 2.
     void* reflectorRecord = *reinterpret_cast<void**>(reinterpret_cast<u8*>(m_data) + 0x90);
     u8 shape[0x20];
-    ftZeldaReflectorGroup group;
-    group.m_shapes = 0;
-    group.m_count = 0;
-    group.m_f0 = 0.0f;
-    group.m_f1 = 0.0f;
-    group.m_f2 = 0.0f;
-    group.m_f3 = 0.0f;
-    group.m_flag = 0;
+    ftReflectorGroupDraft group;
+    FT_REFLECTOR_GROUP_CLEAR(group);
     fn_27_195B34(reflectorRecord, shape, &group);
     m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&group), 2);
     m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);

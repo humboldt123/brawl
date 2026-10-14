@@ -2,6 +2,7 @@
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_reflector_group.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/mario/ft_mario.h>
 #include <ft/mario/ft_mario_extend_param_accesser.h>
@@ -29,20 +30,7 @@ extern soStatusUniqProcess lbl_91_bss_1E4;
 extern soStatusUniqProcess lbl_91_bss_204;
 extern soStatusUniqProcess lbl_27_bss_734C;
 extern soStatusUniqProcess lbl_91_bss_1F4;
-// HYPOTHESIS: ftUtil::convertReflectorData(const reflector record*, shape out*, group out*): turns the reflector record of the
-// common data into a one-shape reflector group.
-void fn_27_195B34(const void* record, void* shapeOut, void* groupOut);
 }
-
-// HYPOTHESIS: reflector group descriptor as filled by convertReflectorData (shape array pointer, shape count, four floats,
-// high flag bit).
-struct ftMarioReflectorGroup {
-    void* m_shapes;
-    s32 m_count;
-    float m_f0, m_f1, m_f2, m_f3;
-    u32 m_flag : 1;
-    u32 m_rest : 31;
-};
 
 ftMarioExtendParamAccesser g_ftMarioExtendParamAccesser;
 ftMarioDExtendParamAccesser g_ftMarioDExtendParamAccesser;
@@ -69,14 +57,8 @@ ftMario::ftMario(s32 entryId,
     processes[6] = &lbl_91_bss_1F4;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 7);
     // The cape: build the reflector group from the common data record (+0x8c) and install it as group 2.
-    ftMarioReflectorGroup group;
-    group.m_shapes = 0;
-    group.m_count = 0;
-    group.m_f0 = 0.0f;
-    group.m_f1 = 0.0f;
-    group.m_f2 = 0.0f;
-    group.m_f3 = 0.0f;
-    group.m_flag = 0;
+    ftReflectorGroupDraft group;
+    FT_REFLECTOR_GROUP_CLEAR(group);
     u8 shape[0x20];
     fn_27_195B34(*reinterpret_cast<void**>(reinterpret_cast<u8*>(m_data) + 0x8c), shape, &group);
     m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&group), 2);

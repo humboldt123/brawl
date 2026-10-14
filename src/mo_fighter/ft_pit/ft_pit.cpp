@@ -1,10 +1,21 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_reflector_group.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/pit/ft_pit.h>
 #include <ft/pit/ft_pit_extend_param_accesser.h>
 
 #define FT_BC ftPitBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_112_bss_1AC;
+extern soStatusUniqProcess lbl_112_bss_1BC;
+extern soStatusUniqProcess lbl_112_bss_1CC;
+}
 
 ftPitExtendParamAccesser g_ftPitExtendParamAccesser;
 
@@ -18,8 +29,28 @@ ftPit::ftPit(s32 entryId,
                                          Fighter_Pit,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Pit)),
+    unk297B4(0),
+    unk297B5(0) {
+    // Register the status processes in action order; entries without a process stay empty.
+    soStatusUniqProcess* processes[15] = {0};
+    processes[9] = &lbl_112_bss_1AC;
+    processes[11] = &lbl_112_bss_1BC;
+    processes[13] = &lbl_112_bss_1CC;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 15);
+    // HYPOTHESIS: the common data record holds the fighter's shield shape group at +0x8c (the Mirror Shield), group 1.
+    m_moduleAccesser->getCollisionShieldModule().add(reinterpret_cast<soCollisionShieldGroupData*>(reinterpret_cast<u8*>(m_data) + 0x8c), 1);
+    // The reflector group 3 comes straight from the record at +0x98.
+    m_moduleAccesser->getCollisionReflectorModule().add(*reinterpret_cast<soCollisionReflectorGroupData**>(reinterpret_cast<u8*>(m_data) + 0x98), 3);
+    m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 3);
+    // Reflector group 2 (the Mirror Shield's rebound) is built from the record at +0x9c.
+    u8 shape[0x20];
+    ftReflectorGroupDraft group;
+    FT_REFLECTOR_GROUP_CLEAR(group);
+    fn_27_195B34(*reinterpret_cast<void**>(reinterpret_cast<u8*>(m_data) + 0x9c), shape, &group);
+    m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&group), 2);
+    m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftPit is done

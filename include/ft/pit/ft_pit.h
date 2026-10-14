@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -48,7 +49,11 @@ public:
 };
 
 class ftPit : public ftFighterBuilder<ftPitBuildConfig> {
-    u8 unkTail[0x297B8 - sizeof(ftFighterBuilder<ftPitBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
+    u32 unk297B0;
+    u8 unk297B4;
+    u8 unk297B5;
 public:
     ftPit(s32 entryId,
             Heaps::HeapType instHeap,

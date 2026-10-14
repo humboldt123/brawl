@@ -164,7 +164,7 @@ public:
     soCollisionAttackModuleBuilder<typename BC::CollisionAttackModuleBuildConfig> m_attackModuleBuilder;   // +0x19E0
     soCollisionHitModuleBuilder<typename BC::CollisionHitModuleBuildConfig> m_hitModuleBuilder;            // +0x209C
     soCollisionShieldModuleBuilder<typename BC::CollisionShieldModuleBuildConfig> m_shieldModuleBuilder;   // +0x29F8
-    soCollisionReflectorModuleBuilder<typename BC::CollisionReflectorModuleBuildConfig> m_reflectorModuleBuilder; // +0x2DA0
+    ftReflectorSlot<typename BC::CollisionReflectorModuleBuildConfig> m_reflectorModuleBuilder; // +0x2DA0
     soCollisionCatchModuleBuilder<typename BC::CollisionCatchModuleBuildConfig> m_collisionCatchModuleBuilder; // +0x380C
     typename BC::CollisionSearchModuleBuilder m_searchBuilder; // after m_collisionCatchModuleBuilder (before m_damageModuleBuilder)
     soDamageModuleBuilder<typename BC::DamageModuleBuildConfig> m_damageModuleBuilder;                     // +0x3A70
@@ -279,7 +279,7 @@ public:
         m_attackModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory)), FT_NULL_OBSERVER_DESC),
         m_hitModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory)), FT_NULL_OBSERVER_DESC),
         m_shieldModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
-        m_reflectorModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
+        m_reflectorModuleBuilder(&m_moduleAccsr, owner),
         m_collisionCatchModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory)), FT_NULL_OBSERVER_DESC),
         m_searchBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
         m_damageModuleBuilder(&m_moduleAccsr, FT_NULL_OBSERVER_DESC),
