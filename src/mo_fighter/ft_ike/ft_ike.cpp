@@ -1,3 +1,7 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
+#define FT_NOINLINE_SEARCH_BUILDER
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/ike/ft_ike.h>
@@ -5,6 +9,18 @@
 
 #define FT_BC ftIkeBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_8A14;
+extern soStatusUniqProcess lbl_119_bss_264;
+extern soStatusUniqProcess lbl_119_bss_244;
+extern soStatusUniqProcess lbl_119_bss_254;
+extern soStatusUniqProcess lbl_119_bss_274;
+extern soStatusUniqProcess lbl_27_bss_8A24;
+extern soStatusUniqProcess lbl_27_bss_8A34;
+extern soStatusUniqProcess lbl_27_bss_8A44;
+}
 
 ftIkeExtendParamAccesser g_ftIkeExtendParamAccesser;
 
@@ -18,8 +34,49 @@ ftIke::ftIke(s32 entryId,
                                          Fighter_Ike,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Ike)) {
+    // Register the status processes in action order.
+    soStatusUniqProcess* processes[21];
+    processes[0] = &lbl_27_bss_8A14;
+    processes[1] = &lbl_119_bss_264;
+    processes[2] = &lbl_119_bss_244;
+    processes[3] = &lbl_119_bss_254;
+    processes[4] = &lbl_119_bss_274;
+    processes[5] = &lbl_27_bss_8A24;
+    processes[6] = &lbl_27_bss_8A34;
+    processes[7] = &lbl_27_bss_8A44;
+    processes[8] = &lbl_119_bss_264;
+    processes[9] = &lbl_119_bss_264;
+    processes[10] = &lbl_119_bss_264;
+    processes[11] = &lbl_119_bss_264;
+    processes[12] = &lbl_119_bss_244;
+    processes[13] = &lbl_119_bss_244;
+    processes[14] = &lbl_119_bss_244;
+    processes[15] = &lbl_119_bss_254;
+    processes[16] = &lbl_119_bss_274;
+    processes[17] = &lbl_119_bss_274;
+    processes[18] = &lbl_119_bss_274;
+    processes[19] = &lbl_119_bss_274;
+    processes[20] = &lbl_119_bss_274;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 21);
+    // HYPOTHESIS: the common data record points at a sphere (node index, centre, radius) that is installed as the
+    // fighter's shield shape group 1 (Ike's Aether/Counter shield bubble).
+    const float* sphere = *reinterpret_cast<const float**>(reinterpret_cast<u8*>(m_data) + 0x8c);
+    soCollisionShieldData shape;
+    shape.setOffset(0, sphere[1]);
+    shape.setOffset(1, sphere[2]);
+    shape.setOffset(2, sphere[3]);
+    shape.setOffset(3, sphere[1]);
+    shape.setOffset(4, sphere[2]);
+    shape.setOffset(5, sphere[3]);
+    shape.m_size = sphere[4];
+    shape.m_nodeIndex = *reinterpret_cast<const u32*>(sphere);
+    shape.m_shapeType = 1;
+    soCollisionShieldGroupData group;
+    group.m_flags = 0;
+    group.m_shieldDataSet = soSet<soCollisionShieldData>(&shape, 1);
+    m_moduleAccesser->getCollisionShieldModule().add(&group, 1);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftIke is done

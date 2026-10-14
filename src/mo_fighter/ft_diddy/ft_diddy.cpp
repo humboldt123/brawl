@@ -1,10 +1,29 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/diddy/ft_diddy.h>
+#include <ft/ft_physics_iface.h>
 #include <ft/diddy/ft_diddy_extend_param_accesser.h>
 
 #define FT_BC ftDiddyBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt); the repeated ones are the null placeholders of the
+// unused status ranges.
+extern soStatusUniqProcess g_ftDiddyStatusUniqProcessSpecialSCling;
+extern "C" {
+extern soStatusUniqProcess lbl_115_bss_284;
+extern soStatusUniqProcess lbl_115_bss_254;
+extern soStatusUniqProcess lbl_115_bss_2B4;
+extern soStatusUniqProcess lbl_115_bss_2A4;
+extern soStatusUniqProcess lbl_115_bss_324;
+extern soStatusUniqProcess lbl_115_bss_264;
+extern soStatusUniqProcess lbl_115_bss_304;
+extern soStatusUniqProcess lbl_115_bss_2C4;
+extern soStatusUniqProcess lbl_115_bss_2E4;
+extern soStatusUniqProcess lbl_115_bss_2D4;
+}
 
 ftDiddyExtendParamAccesser g_ftDiddyExtendParamAccesser;
 
@@ -18,8 +37,38 @@ ftDiddy::ftDiddy(s32 entryId,
                                          Fighter_Diddy,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Diddy)) {
+    // Register the status processes in action order.
+    soStatusUniqProcess* processes[29] = {0};
+    processes[0] = &lbl_115_bss_284;
+    processes[1] = &lbl_115_bss_254;
+    processes[2] = &lbl_115_bss_2B4;
+    processes[3] = &lbl_115_bss_2A4;
+    processes[4] = &lbl_115_bss_324;
+    processes[5] = &lbl_115_bss_284;
+    processes[6] = &lbl_115_bss_284;
+    processes[7] = &lbl_115_bss_284;
+    processes[8] = &lbl_115_bss_284;
+    processes[9] = &lbl_115_bss_254;
+    processes[10] = &lbl_115_bss_264;
+    processes[12] = &g_ftDiddyStatusUniqProcessSpecialSCling;
+    processes[13] = &lbl_115_bss_304;
+    processes[14] = &lbl_115_bss_304;
+    processes[15] = &lbl_115_bss_304;
+    processes[16] = &lbl_115_bss_304;
+    processes[19] = &lbl_115_bss_2C4;
+    processes[20] = &lbl_115_bss_2E4;
+    processes[21] = &lbl_115_bss_2D4;
+    processes[22] = &lbl_115_bss_2E4;
+    processes[23] = &lbl_115_bss_2B4;
+    processes[24] = &lbl_115_bss_2D4;
+    processes[25] = &lbl_115_bss_2A4;
+    processes[26] = &lbl_115_bss_324;
+    processes[27] = &lbl_115_bss_324;
+    processes[28] = &lbl_115_bss_324;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 29);
+    ftPhysicsModuleCall54(m_moduleAccesser->m_enumerationStart->m_physicsModule, 0);
 }
 
 // Shared-class destructors and accessors that this module emits itself (same pattern as ft_marth.cpp).

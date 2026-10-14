@@ -1,3 +1,5 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #define FT_FIGHTER_ANIMCMD_LONG // MATCH-ONLY: Fighter::notifyEventAnimCmd(long) overrides the StageObject slot (as in ft_marth.cpp)
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_manager.h>
@@ -7,6 +9,22 @@
 
 #define FT_BC ftPopoBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt); the repeated ones are the null placeholders of the
+// unused status ranges.
+extern "C" {
+extern soStatusUniqProcess lbl_105_bss_28C;
+extern soStatusUniqProcess lbl_105_bss_2AC;
+extern soStatusUniqProcess lbl_105_bss_2FC;
+extern soStatusUniqProcess lbl_105_bss_2DC;
+extern soStatusUniqProcess lbl_105_bss_29C;
+extern soStatusUniqProcess lbl_105_bss_2BC;
+extern soStatusUniqProcess lbl_105_bss_2CC;
+extern soStatusUniqProcess lbl_105_bss_2EC;
+extern soStatusUniqProcess lbl_105_bss_27C;
+extern soStatusUniqProcess lbl_105_bss_30C;
+extern soStatusUniqProcess lbl_105_bss_31C;
+}
 
 ftPopoExtendParamAccesser g_ftPopoExtendParamAccesser;
 
@@ -20,8 +38,23 @@ ftPopo::ftPopo(s32 entryId,
                                          Fighter_Popo,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Popo)),
+    unk1FE4C(0) {
+    // Register the status processes in action order.
+    soStatusUniqProcess* processes[15] = {0};
+    processes[1] = &lbl_105_bss_28C;
+    processes[2] = &lbl_105_bss_2AC;
+    processes[3] = &lbl_105_bss_2FC;
+    processes[4] = &lbl_105_bss_2DC;
+    processes[5] = &lbl_105_bss_29C;
+    processes[8] = &lbl_105_bss_2BC;
+    processes[12] = &lbl_105_bss_2CC;
+    processes[14] = &lbl_105_bss_2EC;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 15);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x74, &lbl_105_bss_27C);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x10E, &lbl_105_bss_30C);
+    m_moduleAccesser->getStatusModule().setUniqProc(0xBE, &lbl_105_bss_31C);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftPopo is done

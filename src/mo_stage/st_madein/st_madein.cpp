@@ -1027,8 +1027,8 @@ void stMadein::updateYokeroWarnning(float deltaFrame) {
                     m_curvePos[0].m_y = 80.0f;
                     m_curvePos[0].m_z = 0.0f;
                 } else {
-                    m_curvePos[0].m_y = 50.0f;
                     m_curvePos[0].m_x = -x;
+                    m_curvePos[0].m_y = 50.0f;
                     m_curvePos[0].m_z = 0.0f;
                 }
                 r = randi(2);
@@ -1036,26 +1036,26 @@ void stMadein::updateYokeroWarnning(float deltaFrame) {
                     r = 1;
                 }
                 if (r == 0) {
-                    m_curvePos[1].m_y = 100.0f;
                     m_curvePos[1].m_x = 2.0f * x;
+                    m_curvePos[1].m_y = 100.0f;
                     m_curvePos[1].m_z = 0.0f;
                 } else {
+                    m_curvePos[1].m_x = 2.0f * -x;
                     m_curvePos[1].m_y = 30.0f;
                     m_curvePos[1].m_z = 0.0f;
-                    m_curvePos[1].m_x = 2.0f * -x;
                 }
                 r = randi(2);
                 if (r >= 1) {
                     r = 1;
                 }
                 if (r == 0) {
-                    m_curvePos[2].m_y = 100.0f;
                     m_curvePos[2].m_x = 2.0f * x;
+                    m_curvePos[2].m_y = 100.0f;
                     m_curvePos[2].m_z = 0.0f;
                 } else {
+                    m_curvePos[2].m_x = 2.0f * -x;
                     m_curvePos[2].m_y = 30.0f;
                     m_curvePos[2].m_z = 0.0f;
-                    m_curvePos[2].m_x = 2.0f * -x;
                 }
                 m_curvePos[3].m_x = x;
                 m_curvePos[3].m_y = 50.0f;
@@ -1138,7 +1138,8 @@ bool stMadein::updateFumareruna(float deltaFrame) {
             m_unk748 = 0.0f;
             m_unk74C = 80.0f;
             m_unk750 = 0.0f;
-            u32 r = randi(2);
+            u32 r;
+            r = randi(2);
             if (r >= 1) {
                 r = 1;
             }
@@ -1159,9 +1160,8 @@ bool stMadein::updateFumareruna(float deltaFrame) {
             break;
         }
         case 1: {
-            float speed = m_unk758 * m_unk754;
-            m_unk75C -= deltaFrame;
-            m_unk748 += deltaFrame * speed;
+            m_unk75C = m_unk75C - deltaFrame;
+            m_unk748 += deltaFrame * (m_unk758 * m_unk754);
             if (m_unk748 < -40.0f) {
                 m_unk748 = -40.0f;
                 m_unk75C = 0.0f;
@@ -1235,8 +1235,8 @@ bool stMadein::updateFumareruna(float deltaFrame) {
                 m_unk74C = 150.0f;
             }
             MADEIN(5)->setPos(reinterpret_cast<Vec3f*>(&m_unk748));
-            m_ai.m_single.m_y = m_unk74C;
             m_ai.m_single.m_x = m_unk748;
+            m_ai.m_single.m_y = m_unk74C;
             if (150.0f == m_unk74C) {
                 if (MADEIN(6)->isEndEntity() == true) {
                     if (!m_event3.isEvent()) {
@@ -1307,9 +1307,9 @@ bool stMadein::updateYokero(float deltaFrame) {
             float y = 20.0f;
             float x = 180.0f + (50.0f - 100.0f * randf());
             if (m_unk73C == 0) {
-                x *= -1.0f;
                 rot.m_x = 0.0f;
                 rot.m_y = 180.0f;
+                x *= -1.0f;
                 rot.m_z = 0.0f;
             } else {
                 rot.m_x = 0.0f;
@@ -1354,7 +1354,7 @@ bool stMadein::updateYokero(float deltaFrame) {
                 m_curveT += speed * deltaFrame;
             }
             mtBezierCurve(m_curveT, m_curvePos, &pos);
-            pos.m_y = 12.0f + m_unk990;
+            pos.m_y = m_unk990 + 12.0f;
             if (pos.m_y < 12.0f) {
                 pos.m_y = 12.0f;
             }
@@ -1380,7 +1380,7 @@ bool stMadein::updateYokero(float deltaFrame) {
                 m_curveT = 1.0f;
             }
             mtBezierCurve(m_curveT, m_curvePos, &pos);
-            pos.m_y = 12.0f + m_unk990;
+            pos.m_y = m_unk990 + 12.0f;
             if (pos.m_y < 12.0f) {
                 pos.m_y = 12.0f;
             }
@@ -1396,7 +1396,8 @@ bool stMadein::updateYokero(float deltaFrame) {
             }
             if (1.0f == m_curveT) {
                 MADEIN(m_unk738)->endEntity();
-                if (!m_event3.isEvent()) {
+                bool eventOn = m_event3.isEvent();
+                if (!eventOn) {
                     m_ai.m_single.m_flag1 = 0;
                     m_event1.end();
                 }
@@ -1406,9 +1407,8 @@ bool stMadein::updateYokero(float deltaFrame) {
         }
     }
     if (m_curveT > m_unk998) {
-        float t = m_unk990 + m_unk994;
-        m_unk994 = m_unk994 * 0.8f;
-        m_unk990 = t - 6.0f;
+        m_unk990 = (m_unk990 + m_unk994) - 6.0f;
+        m_unk994 *= 0.8f;
     }
     return false;
 }
@@ -1702,7 +1702,7 @@ bool stMadein::updateNureruna(float deltaFrame) {
         }
         if (m_unk930 == 0) {
             if (m_unk934 > -0.75f) {
-                m_unk934 = m_unk934 - 1.5f * (0.01f * deltaFrame);
+                m_unk934 -= 1.5f * (0.01f * deltaFrame);
             }
             if (m_unk934 > 0.0f) {
                 m_unk931 = 1;
@@ -1901,8 +1901,8 @@ bool stMadein::updateNarase(float deltaFrame) {
             for (u32 i = 0; i < m_unk958 + 1; i++) {
                 float rnd = randf();
                 pos.m_x = x;
-                pos.m_z = 0.0f;
                 pos.m_y = 50.0f + (20.0f - 40.0f * rnd);
+                pos.m_z = 0.0f;
                 MADEIN(i + 0x3A)->setMotion(0);
                 MADEIN(i + 0x3A)->startEntity();
                 MADEIN(i + 0x3A)->setPos(&pos);
@@ -1911,9 +1911,9 @@ bool stMadein::updateNarase(float deltaFrame) {
                 float rnd2 = randf();
                 m_unk95C[i] = 0;
                 m_ai.m_narase.m_flag[i] = 1;
+                x += 40.0f + (20.0f - 40.0f * rnd2);
                 m_ai.m_narase.m_pos[i].m_x = pos.m_x;
                 m_ai.m_narase.m_pos[i].m_y = pos.m_y;
-                x += 40.0f + (20.0f - 40.0f * rnd2);
             }
             m_event1.setPhase(1);
             break;
@@ -2028,15 +2028,10 @@ bool stMadein::updateApirusiro(float deltaFrame) {
         case 1:
             if (m_unk9E0 == 2) {
                 if (MADEIN(0x43)->isFrameEndOffset(80.0f) == true) {
-                    u8 a = m_unk9E3[0];
-                    u8 b = m_unk9E3[1];
-                    u8 c = m_unk9E3[2];
-                    u8 d = m_unk9E3[3];
                     m_ai.m_single.m_flag0 = 1;
-                    m_unk954[0] = a;
-                    m_unk954[1] = b;
-                    m_unk954[2] = c;
-                    m_unk954[3] = d;
+                    for (int i = 0; i < 4; i++) {
+                        m_unk954[i] = m_unk9E3[i];
+                    }
                     if (MADEIN(0x43)->isFrameEndOffset(75.0f) == true) {
                         playSeBasic(snd_se_stage_Madein_10, 0.0f);
                         m_event1.setPhase(2);
@@ -2044,15 +2039,10 @@ bool stMadein::updateApirusiro(float deltaFrame) {
                 }
             } else {
                 if (MADEIN(0x43)->isFrameEndOffset(30.0f) == true) {
-                    u8 a = m_unk9E3[0];
-                    u8 b = m_unk9E3[1];
-                    u8 c = m_unk9E3[2];
-                    u8 d = m_unk9E3[3];
                     m_ai.m_single.m_flag0 = 1;
-                    m_unk954[0] = a;
-                    m_unk954[1] = b;
-                    m_unk954[2] = c;
-                    m_unk954[3] = d;
+                    for (int i = 0; i < 4; i++) {
+                        m_unk954[i] = m_unk9E3[i];
+                    }
                     if (MADEIN(0x43)->isFrameEndOffset(25.0f) == true) {
                         playSeBasic(snd_se_stage_Madein_10, 0.0f);
                         m_event1.setPhase(2);
@@ -2101,20 +2091,21 @@ bool stMadein::updateKudake(float deltaFrame) {
                 }
             }
             for (u32 i = 0; i < 12; i++) {
-                float chance[4] = {0.1f, 0.2f, 0.6f, 0.9f};
                 Vec3f pos;
+                float chance[4] = {0.1f, 0.2f, 0.6f, 0.9f};
                 int index = players - 1;
                 if (index < 0) {
                     index = 0;
                 }
+                u8& state = m_unk99D[i];
                 if (randf() > chance[index]) {
-                    m_unk99D[i] = 1;
+                    state = 1;
                 } else {
-                    m_unk99D[i] = 0;
+                    state = 0;
                 }
                 MADEIN(0x65)->getNodePosition(&pos, 0, i + 1);
                 MADEIN(i + 0x66)->setPos(&pos);
-                MADEIN(i + 0x66)->setMotion(m_unk99D[i]);
+                MADEIN(i + 0x66)->setMotion(state);
                 MADEIN(i + 0x66)->startEntity();
                 m_ai.m_kudake.m_flag[i] = 1;
                 m_ai.m_kudake.m_pos[i].m_x = pos.m_x;

@@ -1,3 +1,4 @@
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define SO_SLOW_GET_INSTANCE_OUT_OF_LINE
 // The constructor calls the status table's default constructor in sora_melee instead of inlining it.
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
@@ -5,6 +6,7 @@
 #include <ft/ft_class_info_impl.h>
 #include <ft/ft_owner.h>
 #include <ft/robot/ft_robot.h>
+#include <ft/ft_physics_iface.h>
 #include <ft/robot/ft_robot_extend_param_accesser.h>
 #include <ft/robot/ft_robot_link_event.h>
 #include <ft/robot/ft_robot_unk8.h>
@@ -32,39 +34,6 @@ static ftRobotUnk8 s_unkTag1(0xff, 1);
 
 ftRobotExtendParamAccesser g_ftRobotExtendParamAccesser;
 ftClassInfoImpl<Fighter_Robot, ftRobot> g_ftClassInfoRobot;
-
-// The physics module's second interface is not declared yet: the constructor calls slot 0x54 of the vtable at +8
-// with the module pointer itself and a zero argument (HYPOTHESIS: resets the physics state).
-struct ftRobotPhysicsPad {
-    int unk0;
-    int unk4;
-};
-struct ftRobotPhysicsIface : ftRobotPhysicsPad {
-    virtual void slot0();
-    virtual void slot1();
-    virtual void slot2();
-    virtual void slot3();
-    virtual void slot4();
-    virtual void slot5();
-    virtual void slot6();
-    virtual void slot7();
-    virtual void slot8();
-    virtual void slot9();
-    virtual void slot10();
-    virtual void slot11();
-    virtual void slot12();
-    virtual void slot13();
-    virtual void slot14();
-    virtual void slot15();
-    virtual void slot16();
-    virtual void slot17();
-    virtual void slot18();
-    virtual void slot19(int arg);
-};
-
-static void ftRobotPhysicsModuleCall54(void* module, int arg) {
-    static_cast<ftRobotPhysicsIface*>(module)->slot19(arg);
-}
 
 ftRobot::ftRobot(s32 entryId,
                  Heaps::HeapType instHeap,
@@ -95,7 +64,7 @@ ftRobot::ftRobot(s32 entryId,
     soCollisionReflectorGroupData* reflectors = *reinterpret_cast<soCollisionReflectorGroupData**>(reinterpret_cast<u8*>(m_commonData) + 0xb0);
     m_moduleAccesser->getCollisionReflectorModule().add(reflectors, 2);
     m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
-    ftRobotPhysicsModuleCall54(m_moduleAccesser->m_enumerationStart->m_physicsModule, 0);
+    ftPhysicsModuleCall54(m_moduleAccesser->m_enumerationStart->m_physicsModule, 0);
     static_cast<soSlopeModule*>(m_moduleAccesser->m_enumerationStart->m_slopeModule)->setPartNode(0x5D);
     static_cast<soSlopeModule*>(m_moduleAccesser->m_enumerationStart->m_slopeModule)->setInvalidStatus(6);
 }

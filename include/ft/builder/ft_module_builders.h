@@ -352,7 +352,6 @@ class soCollisionReflectorModuleBuilder {
     soArrayVector<soCollisionGroup, BC::GroupCapacity> m_groups;
     typename BC::PresenterType m_presenter;
     typename BC::ModuleType m_shieldModule;
-    u8 unkTail[4];
 public:
     soCollisionReflectorModuleBuilder(soModuleAccesser* acc, int taskId, gfTask::Category category) :
         m_parts(BC::PartCapacity, soCollisionShieldPart(soCollision::Category_Fighter, BC::PartKind), 0),
@@ -361,10 +360,10 @@ public:
     typename BC::ModuleType* getModule() { return &m_shieldModule; }
 };
 
-// The collision absorber builder (Lucas and Ness) follows the reflector builder; it has no slot of its own in
-// soModuleAccesserBuilder, so it is folded into the reflector builder's storage (like Kirby's collision search builder
-// inside the collision catch builder). It is the shield builder with the absorber presenter and part kind 4. The reflector
-// builder of these fighters is a plain shield builder with the reflector presenter (no padding after it).
+// The collision absorber builder (Lucas, Ness and Game & Watch) is its own member of the module accesser builder, right after the
+// reflector builder. It is the shield builder with the absorber presenter and part kind 4; the reflector builder of these fighters
+// is a plain shield builder with the reflector presenter. Every other fighter has an empty absorber builder there, which takes the
+// four bytes after the reflector builder (one byte plus the alignment of the next member).
 template <typename ReflectorBC, typename AbsorberBC>
 class soCollisionReflectorModuleBuildConfigWithAbsorber {
 public:
@@ -372,28 +371,28 @@ public:
     typedef AbsorberBC AbsorberConfig;
 };
 
-template <typename ReflectorBC, typename AbsorberBC>
-class soCollisionReflectorModuleBuilder<soCollisionReflectorModuleBuildConfigWithAbsorber<ReflectorBC, AbsorberBC> > {
-    soCollisionShieldModuleBuilder<ReflectorBC> m_reflector;
-    soCollisionShieldModuleBuilder<AbsorberBC> m_absorber;
+// The absorber module of the module accesser: the null module unless the fighter has an absorber builder.
+extern char g_soCollisionAbsorberModuleNull[];
+class ftNullCollisionAbsorberBuilder {
 public:
-    soCollisionReflectorModuleBuilder(soModuleAccesser* acc, int taskId, gfTask::Category category) :
-        m_reflector(acc, taskId, category), m_absorber(acc, taskId, category) { }
-    typename ReflectorBC::ModuleType* getModule() { return m_reflector.getModule(); }
-    typename AbsorberBC::ModuleType* getAbsorberModule() { return m_absorber.getModule(); }
+    ftNullCollisionAbsorberBuilder(soModuleAccesser*, int, gfTask::Category) { }
+    soCollisionShieldModule* getModule() { return (soCollisionShieldModule*)g_soCollisionAbsorberModuleNull; }
 };
 
-// The absorber module of the module accesser: the null module unless the absorber is folded into the reflector builder.
-extern char g_soCollisionAbsorberModuleNull[];
+template <typename RBC>
+struct ftReflectorParts {
+    typedef soCollisionReflectorModuleBuilder<RBC> Reflector;
+    typedef ftNullCollisionAbsorberBuilder Absorber;
+};
+template <typename R, typename A>
+struct ftReflectorParts<soCollisionReflectorModuleBuildConfigWithAbsorber<R, A> > {
+    typedef soCollisionShieldModuleBuilder<R> Reflector;
+    typedef soCollisionShieldModuleBuilder<A> Absorber;
+};
+
 template <typename RBC>
 struct ftReflectorBase {
     static soCollisionShieldModule* getAbsorber(soCollisionReflectorModuleBuilder<RBC>*) { return (soCollisionShieldModule*)g_soCollisionAbsorberModuleNull; }
-};
-template <typename R, typename A>
-struct ftReflectorBase<soCollisionReflectorModuleBuildConfigWithAbsorber<R, A> > {
-    static soCollisionShieldModule* getAbsorber(soCollisionReflectorModuleBuilder<soCollisionReflectorModuleBuildConfigWithAbsorber<R, A> >* b) {
-        return (soCollisionShieldModule*)b->getAbsorberModule();
-    }
 };
 
 ////////////////////////////////////////
@@ -689,6 +688,7 @@ template <typename BC>
 class soShadowModuleBuilder {
     typename BC::ModuleType m_module;
 public:
-    soShadowModuleBuilder(soModuleAccesser* acc) : m_module(acc, 0.0f, 0) { }
+    // HYPOTHESIS: 10.0f is the shared float argument of the shadow module (the first float literal of every fighter REL).
+    soShadowModuleBuilder(soModuleAccesser* acc) : m_module(acc, 10.0f, 0) { }
     typename BC::ModuleType* getModule() { return &m_module; }
 };

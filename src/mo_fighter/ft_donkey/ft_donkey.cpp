@@ -1,3 +1,5 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/donkey/ft_donkey.h>
@@ -5,6 +7,26 @@
 
 #define FT_BC ftDonkeyBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt); the repeated ones are the null placeholders of the
+// unused status ranges.
+extern soStatusUniqProcess g_ftDonkeyStatusUniqProcessFinal;
+extern soStatusUniqProcess g_ftDonkeyStatusUniqProcessFinalEnd;
+extern "C" {
+extern soStatusUniqProcess lbl_92_bss_1C4;
+extern soStatusUniqProcess lbl_92_bss_1D4;
+extern soStatusUniqProcess lbl_92_bss_244;
+extern soStatusUniqProcess lbl_92_bss_254;
+extern soStatusUniqProcess lbl_92_bss_274;
+extern soStatusUniqProcess lbl_92_bss_264;
+extern soStatusUniqProcess lbl_92_bss_284;
+extern soStatusUniqProcess lbl_92_bss_294;
+extern soStatusUniqProcess lbl_27_bss_73BC;
+extern soStatusUniqProcess lbl_92_bss_1E4;
+extern soStatusUniqProcess lbl_92_bss_204;
+extern soStatusUniqProcess lbl_92_bss_224;
+extern soStatusUniqProcess lbl_92_bss_234;
+}
 
 ftDonkeyExtendParamAccesser g_ftDonkeyExtendParamAccesser;
 
@@ -18,8 +40,44 @@ ftDonkey::ftDonkey(s32 entryId,
                                          Fighter_Donkey,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Donkey)) {
+    // Register the status processes in action order.
+    soStatusUniqProcess* processes[35] = {0};
+    processes[1] = &lbl_92_bss_1C4;
+    processes[2] = &lbl_92_bss_1D4;
+    processes[4] = &g_ftDonkeyStatusUniqProcessFinal;
+    processes[5] = &lbl_92_bss_244;
+    processes[6] = &lbl_92_bss_254;
+    processes[7] = &lbl_92_bss_244;
+    processes[8] = &lbl_92_bss_244;
+    processes[9] = &lbl_92_bss_244;
+    processes[10] = &lbl_92_bss_244;
+    processes[11] = &lbl_92_bss_244;
+    processes[12] = &lbl_92_bss_244;
+    processes[13] = &lbl_92_bss_244;
+    processes[14] = &lbl_92_bss_274;
+    processes[15] = &lbl_92_bss_264;
+    processes[16] = &lbl_92_bss_284;
+    processes[17] = &lbl_92_bss_264;
+    processes[18] = &lbl_92_bss_264;
+    processes[19] = &lbl_92_bss_264;
+    processes[20] = &lbl_92_bss_264;
+    processes[21] = &lbl_92_bss_264;
+    processes[22] = &lbl_92_bss_264;
+    processes[23] = &lbl_92_bss_264;
+    processes[24] = &lbl_92_bss_294;
+    processes[25] = &lbl_92_bss_294;
+    processes[26] = &lbl_92_bss_294;
+    processes[27] = &lbl_92_bss_294;
+    processes[30] = &lbl_27_bss_73BC;
+    processes[31] = &lbl_92_bss_1E4;
+    processes[33] = &lbl_92_bss_204;
+    processes[34] = &g_ftDonkeyStatusUniqProcessFinalEnd;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 35);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x97, &lbl_92_bss_224);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x39, &lbl_92_bss_234);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x3A, &lbl_92_bss_234);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftDonkey is done

@@ -86,7 +86,7 @@ class soAreaModuleBuilder<soAreaModuleBuildConfigNullWind<NumInstances, T> > {
     u32 m_pad;
 public:
     soAreaModuleBuilder(soModuleAccesser* acc, u8 areaCategory, soEventObserverRegistrationDesc* regDesc) :
-        m_module(acc, areaCategory, &m_instances, &m_contactLogs, &m_checker, &getNullArray<soAreaWind>(), regDesc, 8),
+        m_module(acc, areaCategory, &m_instances, &m_contactLogs, &m_checker, &getNullArray<soAreaWind>(), regDesc, -1),
         m_checker(), m_contactLogs(0), m_instances() { }
     void* getModule() { return &m_module; }
 };

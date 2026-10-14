@@ -693,13 +693,15 @@ void stPirates::updateEvent(float deltaFrame) {
                 unk609 = 7;
                 unk60A = 7;
             }
-            if (unk1E0 == 1 && --unk1E1 == 0) {
-                if (unk608 == 1) {
-                    unk55D = 7;
-                } else {
-                    unk569 = unk568;
-                    updateEventWeatherSelect(deltaFrame);
-                    updateEventWeather(deltaFrame);
+            if (unk1E0 == 1) {
+                if (--unk1E1 == 0) {
+                    if (unk608 == 1) {
+                        unk55D = 7;
+                    } else {
+                        unk569 = unk568;
+                        updateEventWeatherSelect(deltaFrame);
+                        updateEventWeather(deltaFrame);
+                    }
                 }
             }
             break;
@@ -741,9 +743,8 @@ void stPirates::updateEvent(float deltaFrame) {
                 if (--unk1E1 != 0) {
                     return;
                 }
-                u8 step = unk56B;
                 unk568 = 9;
-                switch (step) {
+                switch (unk56B) {
                 case 0:
                     unk1E1 = 3;
                     unk564 = 2400.0f;

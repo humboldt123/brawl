@@ -1,5 +1,6 @@
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR // MATCH-ONLY: call the shared table constructor used by this REL.
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_reflector_group.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/lucas/ft_lucas.h>
 #include <ft/lucas/ft_lucas_extend_param_accesser.h>
@@ -55,6 +56,35 @@ ftLucas::ftLucas(s32 entryId,
     m_moduleAccesser->getStatusModule().setUniqProc(0x21, &g_ftStatusUniqProcessEscapeAirInheritJumpAerialMotion);
     m_moduleAccesser->getStatusModule().setUniqProc(0x2C, &g_ftLucasStatusUniqProcessAttackS4);
     m_moduleAccesser->getStatusModule().setUniqProc(0x7F, &g_ftLucasStatusUniqProcessAirLasso);
+
+    // HYPOTHESIS: the common data record (+0x8c) holds a sphere (node index as a float, centre, radius) that is installed
+    // as the shape of the absorber (PSI Magnet), group 0.
+    soCollisionShieldData absorberShape;
+    u8 reflectorShape[0x20];
+    ftReflectorGroupDraft reflectorGroup;
+    soCollisionShieldGroupData absorberGroup;
+    const float* sphere = *reinterpret_cast<const float**>(reinterpret_cast<u8*>(m_commonData) + 0x8c);
+    absorberShape.setOffset(0, sphere[1]);
+    absorberShape.setOffset(1, sphere[2]);
+    absorberShape.setOffset(2, sphere[3]);
+    absorberShape.setOffset(3, sphere[1]);
+    absorberShape.setOffset(4, sphere[2]);
+    absorberShape.setOffset(5, sphere[3]);
+    absorberShape.m_size = sphere[4];
+    absorberShape.m_nodeIndex = (u32)sphere[0];
+    absorberShape.m_shapeType = 1;
+    absorberGroup.m_flags = 0;
+    absorberGroup.m_shieldDataSet = soSet<soCollisionShieldData>(&absorberShape, 1);
+    soCollisionShieldModule& absorber = m_moduleAccesser->getCollisionAbsorberModule();
+    absorber.add(&absorberGroup, 0);
+    absorber.setStatus(0, 0, 0);
+
+    // The reflector (the rebound of the Up Special) is built from the record at +0x94.
+    void* reflectorRecord = *reinterpret_cast<void**>(reinterpret_cast<u8*>(m_commonData) + 0x94);
+    FT_REFLECTOR_GROUP_CLEAR(reflectorGroup);
+    fn_27_195B34(reflectorRecord, reflectorShape, &reflectorGroup);
+    m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&reflectorGroup), 2);
+    m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
 }
 
 void** ftLucas::getExtendParam() {

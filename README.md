@@ -1,10 +1,11 @@
 Super Smash Bros. Brawl  
-[![Build Status]][actions] [![Code Progress]][progress] [![Data Progress]][progress]
+[![Build Status]][actions] [![Code Progress]][progress] [![Linked Progress]][progress] [![Data Progress]][progress]
 =============
 
 [Build Status]: https://github.com/doldecomp/brawl/actions/workflows/build.yml/badge.svg
 [actions]: https://github.com/doldecomp/brawl/actions/workflows/build.yml
 [Code Progress]: https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhumboldt123%2Fbrawl%2Fmain%2F.github%2Fbadges%2Fcode.json
+[Linked Progress]: https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhumboldt123%2Fbrawl%2Fmain%2F.github%2Fbadges%2Flinked.json
 [Data Progress]: https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhumboldt123%2Fbrawl%2Fmain%2F.github%2Fbadges%2Fdata.json
 [progress]: https://github.com/humboldt123/brawl
 

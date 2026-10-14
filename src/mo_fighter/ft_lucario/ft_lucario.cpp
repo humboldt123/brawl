@@ -1,4 +1,8 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_physics_iface.h>
 #include <so/so_value_accesser.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/lucario/ft_lucario.h>
@@ -6,6 +10,25 @@
 
 #define FT_BC ftLucarioBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_897C;
+extern soStatusUniqProcess lbl_118_bss_254;
+extern soStatusUniqProcess lbl_118_bss_274;
+extern soStatusUniqProcess lbl_118_bss_2B4;
+extern soStatusUniqProcess lbl_118_bss_2E4;
+extern soStatusUniqProcess lbl_118_bss_264;
+extern soStatusUniqProcess lbl_118_bss_284;
+extern soStatusUniqProcess lbl_118_bss_294;
+extern soStatusUniqProcess lbl_118_bss_2A4;
+extern soStatusUniqProcess lbl_118_bss_2C4;
+extern soStatusUniqProcess lbl_118_bss_2D4;
+extern soStatusUniqProcess lbl_118_bss_2F4;
+extern soStatusUniqProcess lbl_118_bss_304;
+extern soStatusUniqProcess lbl_118_bss_314;
+extern soStatusUniqProcess lbl_118_bss_324;
+}
 
 ftLucarioExtendParamAccesser g_ftLucarioExtendParamAccesser;
 
@@ -19,8 +42,32 @@ ftLucario::ftLucario(s32 entryId,
                                          Fighter_Lucario,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Lucario)) {
+    // Register the status processes in action order; entries without a process stay empty.
+    soStatusUniqProcess* processes[19] = {0};
+    processes[0] = &lbl_27_bss_897C;
+    processes[1] = &lbl_118_bss_254;
+    processes[2] = &lbl_118_bss_274;
+    processes[3] = &lbl_118_bss_2B4;
+    processes[4] = &lbl_118_bss_2E4;
+    processes[5] = &lbl_27_bss_897C;
+    processes[6] = &lbl_27_bss_897C;
+    processes[7] = &lbl_27_bss_897C;
+    processes[8] = &lbl_118_bss_264;
+    processes[9] = &lbl_118_bss_284;
+    processes[10] = &lbl_118_bss_294;
+    processes[11] = &lbl_118_bss_2A4;
+    processes[12] = &lbl_118_bss_2C4;
+    processes[13] = &lbl_118_bss_2D4;
+    processes[15] = &lbl_118_bss_2F4;
+    processes[16] = &lbl_118_bss_304;
+    processes[17] = &lbl_118_bss_314;
+    processes[18] = &lbl_118_bss_324;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 19);
+    // HYPOTHESIS: the common data record points at the fighter's shield shape group (+0x9c); it is installed as group 1.
+    m_moduleAccesser->getCollisionShieldModule().add(*reinterpret_cast<soCollisionShieldGroupData**>(reinterpret_cast<u8*>(m_data) + 0x9c), 1);
+    ftPhysicsModuleCall6C(m_moduleAccesser->m_enumerationStart->m_physicsModule, 0x13);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftLucario is done

@@ -25,6 +25,7 @@ class AnmObjChrRes;
 FT_DOL_ARRAY_VECTOR(soTransitionTermGroup, 1);
 FT_DOL_ARRAY_VECTOR(soPartialAnim, 2);
 FT_DOL_ARRAY_VECTOR(soOtherAnim, 1);
+FT_DOL_ARRAY_VECTOR(soOtherAnim, 2);
 FT_DOL_ARRAY_VECTOR(soTransitionTermPack, 1);
 FT_DOL_ARRAY_VECTOR(u32, 5);
 typedef soMotionAnimObjCacheUnit<nw4r::g3d::AnmObjChrRes> ftMotionAnimObjCacheUnitChrRes;

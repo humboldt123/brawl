@@ -1,3 +1,6 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/poke/ft_poke_lizardon.h>
@@ -10,6 +13,23 @@ ftPokeLizardonExtendParamAccesser g_ftPokeLizardonExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_PokeLizardon, ftPokeLizardon> g_ftClassInfoPokeLizardon;
 
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_82D4;
+extern soStatusUniqProcess lbl_116_bss_16C;
+}
+
+// HYPOTHESIS: the damage module of this fighter is the actor module; the constructor sets two (kind, value) pairs in it (the
+// field names are unknown).
+class ftPokeLizardonDamageActorView : public soDamageModule {
+public:
+    u8 unk[0xAC - sizeof(soDamageModule)];
+    int unkAC;
+    float unkB0;
+    int unkB4;
+    float unkB8;
+};
+
 ftPokeLizardon::ftPokeLizardon(s32 entryId,
                  Heaps::HeapType instHeap,
                  Heaps::HeapType nwModelInstHeap,
@@ -18,8 +38,24 @@ ftPokeLizardon::ftPokeLizardon(s32 entryId,
                                          Fighter_PokeLizardon,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_PokeLizardon)),
+    m_stamina(m_data->extendParam[0], m_moduleAccesser),
+    m_eventManage(entryId, m_moduleAccesser, &m_stamina),
+    m_unk17FD8(false) {
+    soStatusUniqProcess* processes[7] = {0};
+    processes[0] = &lbl_27_bss_82D4;
+    processes[1] = &lbl_116_bss_16C;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 7);
+
+    ftPokeLizardonDamageActorView& damage = dynamic_cast<ftPokeLizardonDamageActorView&>(m_moduleAccesser->getDamageModule());
+    // The extend parameter block pointer is read again for each pair: the stores may alias it.
+    float scaleA = ((float*)m_data->extendParam[0])[7];
+    damage.unkAC = 0x12;
+    damage.unkB0 = scaleA;
+    float scaleB = ((float*)m_data->extendParam[0])[8];
+    damage.unkB4 = 0x11;
+    damage.unkB8 = scaleB;
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftPokeLizardon is done

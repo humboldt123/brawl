@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -43,7 +44,9 @@ public:
 };
 
 class ftMario : public ftFighterBuilder<ftMarioBuildConfig> {
-    u8 unkTail[0x2DBE8 - sizeof(ftFighterBuilder<ftMarioBuildConfig>)];
+    ftData* m_data;
+    u8 unk2DBD4;
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
 public:
     ftMario(s32 entryId,
             Heaps::HeapType instHeap,

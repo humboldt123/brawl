@@ -220,8 +220,8 @@ void muBootNandTask::processDefault() {
     case 0x18:
         closeWnd();
         if (m_answer == 1) {
-            m_step = 0x37;
             m_flags &= 0xE0;
+            m_step = 0x37;
         }
         if (m_answer == 0) {
             m_step = 0x3B;

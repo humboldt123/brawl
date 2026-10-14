@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -41,7 +42,9 @@ public:
 };
 
 class ftDonkey : public ftFighterBuilder<ftDonkeyBuildConfig> {
-    u8 unkTail[0x1259C - sizeof(ftFighterBuilder<ftDonkeyBuildConfig>)];
+    u8 unkTail[0x12588 - sizeof(ftFighterBuilder<ftDonkeyBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
 public:
     ftDonkey(s32 entryId,
             Heaps::HeapType instHeap,

@@ -42,8 +42,26 @@ public:
     typedef ftPokeLizardonGenerateArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
 };
 
+// HYPOTHESIS: the Pokemon Trainer's party state; both modules are constructed in sora_melee from the first extend parameter block.
+class ftPokemonStaminaModule {
+    u8 unk0[0x18];
+public:
+    ftPokemonStaminaModule(const void* extendParam, soModuleAccesser* moduleAccesser);
+};
+
+class ftPokemonEventManageModule {
+    u8 unk0[0x1C];
+public:
+    ftPokemonEventManageModule(s32 entryId, soModuleAccesser* moduleAccesser, ftPokemonStaminaModule* stamina);
+};
+
 class ftPokeLizardon : public ftFighterBuilder<ftPokeLizardonBuildConfig> {
-    u8 unkTail[0x17FDC - sizeof(ftFighterBuilder<ftPokeLizardonBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusTable; // +0x17F90
+    ftData* m_data;                                             // +0x17FA0
+    ftPokemonStaminaModule m_stamina;                           // +0x17FA4
+    ftPokemonEventManageModule m_eventManage;                   // +0x17FBC
+    bool m_unk17FD8;
+    u8 unk17FD9[3];
 public:
     ftPokeLizardon(s32 entryId,
             Heaps::HeapType instHeap,

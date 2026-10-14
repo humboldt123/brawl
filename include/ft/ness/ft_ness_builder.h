@@ -54,8 +54,8 @@ public:
 };
 
 class ftNess : public ftFighterBuilder<ftNessBuildConfig> {
-    u8 unkTail[0x4AE20 - sizeof(ftFighterBuilder<ftNessBuildConfig>)];
-    ftData* m_data; // getExtendParam reads the instance data pointer at +0x4AE20.
+    soArrayContractibleTable<const soStatusData> m_statusTable; // +0x4AE10
+    ftData* m_data; // +0x4AE20: getExtendParam reads the instance data pointer here.
     u8 unk4AE24; // HYPOTHESIS: flag cleared by processUpdate
     u8 unk4AE25; // HYPOTHESIS: flag cleared by processUpdate
     u8 unkTail2[0x4AE28 - 0x4AE26];
@@ -69,4 +69,5 @@ public:
     void** getExtendParam();
 };
 
+static_assert(sizeof(ftFighterBuilder<ftNessBuildConfig>) == 0x4AE10, "Ness status table offset is wrong");
 static_assert(sizeof(ftNess) == 0x4AE28, "Ness allocation size is wrong!");

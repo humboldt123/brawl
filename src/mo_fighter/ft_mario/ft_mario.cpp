@@ -1,4 +1,8 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_reflector_group.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/mario/ft_mario.h>
 #include <ft/mario/ft_mario_extend_param_accesser.h>
@@ -20,6 +24,14 @@ extern int g_soValueVariation;
 // Parameter-table variation getter (soValueAccesser::getValueVariation) under its map address.
 extern "C" int fn_91_ABE8() { return g_soValueVariation; }
 
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_91_bss_1E4;
+extern soStatusUniqProcess lbl_91_bss_204;
+extern soStatusUniqProcess lbl_27_bss_734C;
+extern soStatusUniqProcess lbl_91_bss_1F4;
+}
+
 ftMarioExtendParamAccesser g_ftMarioExtendParamAccesser;
 ftMarioDExtendParamAccesser g_ftMarioDExtendParamAccesser;
 
@@ -34,8 +46,23 @@ ftMario::ftMario(s32 entryId,
                                          Fighter_Mario,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Mario)),
+    unk2DBD4(0) {
+    // Register the status processes in action order; entries without a process stay empty.
+    soStatusUniqProcess* processes[7] = {0};
+    processes[0] = &lbl_91_bss_1E4;
+    processes[1] = &lbl_91_bss_204;
+    processes[2] = &lbl_27_bss_734C;
+    processes[6] = &lbl_91_bss_1F4;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 7);
+    // The cape: build the reflector group from the common data record (+0x8c) and install it as group 2.
+    ftReflectorGroupDraft group;
+    FT_REFLECTOR_GROUP_CLEAR(group);
+    u8 shape[0x20];
+    fn_27_195B34(*reinterpret_cast<void**>(reinterpret_cast<u8*>(m_data) + 0x8c), shape, &group);
+    m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&group), 2);
+    m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftMario is done

@@ -913,9 +913,14 @@ public:
 
     // NOTE: shadows the BrawlHeaders copy; the bitfields are set by the mem-initializer list
     // (before m_elements is constructed), as seen in soCollisionShieldPart's constructor.
+#ifdef SO_ARRAY_SPLIT_VECTOR_CTOR
+    soArrayVector(s32 size);
+    soArrayVector(s32 size, s32);
+#else
     soArrayVector(s32 size, s32 = 0) : m_topIndex(0), m_lastIndex(0), m_size(size), m_isFull(false) {
         soArrayVectorCalculator::postInitialize(*this, size, C);
     }
+#endif
 #ifdef YK_STAGE_INLINE
     soArrayVector(s32 size, const T& element, s32) : m_topIndex(0), m_lastIndex(0), m_size(0), m_isFull(false) {
 #else
@@ -941,6 +946,20 @@ public:
         return const_cast<T&>(m_elements[i]);
     }
 };
+
+#ifdef SO_ARRAY_SPLIT_VECTOR_CTOR
+// MATCH-ONLY: defined out of the class so that a capacity whose constructor lives in sora_melee can declare an
+// explicit specialization of just this constructor (see ft/builder/ft_dol_array_list.h).
+template <class T, s32 C>
+inline soArrayVector<T, C>::soArrayVector(s32 size) : m_topIndex(0), m_lastIndex(0), m_size(size), m_isFull(false) {
+    soArrayVectorCalculator::postInitialize(*this, size, C);
+}
+
+template <class T, s32 C>
+inline soArrayVector<T, C>::soArrayVector(s32 size, s32) : m_topIndex(0), m_lastIndex(0), m_size(size), m_isFull(false) {
+    soArrayVectorCalculator::postInitialize(*this, size, C);
+}
+#endif
 
 // Individual member definitions permit explicit accessor instantiations.
 // MATCH-ONLY: Allow isolated callers to retain the existing helper owner.

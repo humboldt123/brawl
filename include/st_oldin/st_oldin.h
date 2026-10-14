@@ -54,6 +54,7 @@ struct stOldinSeq {
     int m_line;
 
     stOldinSeq(int tag) : m_tag(tag), m_line(0) { }
+    stOldinSeq(int tag, int line) : m_tag(tag), m_line(line) { }
 };
 
 // The numbers the stage is tuned with. HYPOTHESIS: names follow the use in the stage functions.

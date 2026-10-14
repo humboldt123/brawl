@@ -312,9 +312,10 @@ void stStadium::updateSpecialStage(float deltaFrame) {
                     m_eventScreenHold.start();
                     m_eventTransform.setPhase(m_eventTransform.getPhase() + 1);
                     m_normalSymbol = 0;
-                    float z0 = 30.0f + 50.0f * randf();
-                    float z1 = 20.0f + 50.0f * randf();
-                    float z2 = 10.0f + 50.0f * randf();
+                    float z2, z1, z0;
+                    z0 = 30.0f + 50.0f * randf();
+                    z1 = 20.0f + 50.0f * randf();
+                    z2 = 10.0f + 50.0f * randf();
                     m_flyZ[1] = z1;
                     m_flyZ[2] = z0;
                     m_grow[0] = 0.001f;

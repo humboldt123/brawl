@@ -11,12 +11,33 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
-mo_fighter/ft_zako/ft_zako.cpp:
-	.text       start:0x00000070 end:0x0000F814
-	.ctors      start:0x00000000 end:0x00000010
-	.rodata     start:0x00000000 end:0x0000003C
-	.data       start:0x00000000 end:0x00007358
-	.bss        start:0x00000008 end:0x000001E4
+mo_fighter/ft_zako/ft_zako_boy.cpp:
+	.text       start:0x00000070 end:0x000099B8
+	.ctors      start:0x00000000 end:0x00000004
+	.rodata     start:0x00000000 end:0x00000010
+	.data       start:0x00000000 end:0x000053B4
+	.bss        start:0x00000008 end:0x00000080
+
+mo_fighter/ft_zako/ft_zako_girl.cpp:
+	.text       start:0x000099B8 end:0x0000B92C
+	.ctors      start:0x00000004 end:0x00000008
+	.rodata     start:0x00000010 end:0x00000020
+	.data       start:0x000053B4 end:0x00005E64
+	.bss        start:0x00000080 end:0x000000F8
+
+mo_fighter/ft_zako/ft_zako_child.cpp:
+	.text       start:0x0000B92C end:0x0000D8A0
+	.ctors      start:0x00000008 end:0x0000000C
+	.rodata     start:0x00000020 end:0x00000030
+	.data       start:0x00005E64 end:0x0000691C
+	.bss        start:0x000000F8 end:0x00000170
+
+mo_fighter/ft_zako/ft_zako_ball.cpp:
+	.text       start:0x0000D8A0 end:0x0000F814
+	.ctors      start:0x0000000C end:0x00000010
+	.rodata     start:0x00000030 end:0x0000003C
+	.data       start:0x0000691C end:0x00007358
+	.bss        start:0x00000170 end:0x000001E4
 
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x0000F814 end:0x0000F8B0

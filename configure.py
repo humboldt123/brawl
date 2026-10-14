@@ -2309,7 +2309,10 @@ config.libs = [
         "cflags": cflags_fighter,
         "host": False,
         "objects": [
-            Object(NonMatching, "mo_fighter/ft_zako/ft_zako.cpp"),
+            Object(NonMatching, "mo_fighter/ft_zako/ft_zako_boy.cpp"),
+            Object(NonMatching, "mo_fighter/ft_zako/ft_zako_girl.cpp"),
+            Object(NonMatching, "mo_fighter/ft_zako/ft_zako_child.cpp"),
+            Object(NonMatching, "mo_fighter/ft_zako/ft_zako_ball.cpp"),
         ],
     },
     {

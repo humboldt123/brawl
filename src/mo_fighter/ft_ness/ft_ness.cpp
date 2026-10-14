@@ -1,6 +1,9 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <math.h>
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
+#include <ft/ft_reflector_group.h>
 #include <ft/ness/ft_ness_builder.h>
 #include <ft/ness/ft_ness_extend_param_accesser.h>
 
@@ -17,6 +20,22 @@ ftNessExtendParamAccesser g_ftNessExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_Ness, ftNess> g_ftClassInfoNess;
 
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_7CFC;
+extern soStatusUniqProcess lbl_101_bss_1DC;
+extern soStatusUniqProcess lbl_101_bss_1EC;
+extern soStatusUniqProcess lbl_101_bss_1FC;
+extern soStatusUniqProcess lbl_101_bss_20C;
+extern soStatusUniqProcess lbl_101_bss_21C;
+extern soStatusUniqProcess lbl_101_bss_22C;
+extern soStatusUniqProcess lbl_101_bss_23C;
+extern soStatusUniqProcess lbl_101_bss_25C;
+}
+extern soStatusUniqProcess g_ftStatusUniqProcessAttackAirInheritJumpAerialMotion;
+extern soStatusUniqProcess g_ftStatusUniqProcessEscapeAirInheritJumpAerialMotion;
+extern soStatusUniqProcess g_ftNessStatusUniqProcessSpecialLw;
+
 ftNess::ftNess(s32 entryId,
                  Heaps::HeapType instHeap,
                  Heaps::HeapType nwModelInstHeap,
@@ -25,8 +44,64 @@ ftNess::ftNess(s32 entryId,
                                          Fighter_Ness,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Ness)) {
+    unk4AE24 = 0;
+    unk4AE25 = 0;
+
+    // Ness owns 15 character action slots; the unused ones keep the shared null process.
+    soStatusUniqProcess* processes[15] = {0};
+    processes[0] = &lbl_27_bss_7CFC;
+    processes[1] = &lbl_101_bss_20C;
+    processes[3] = &g_ftNessStatusUniqProcessSpecialLw;
+    processes[5] = &lbl_27_bss_7CFC;
+    processes[6] = &lbl_27_bss_7CFC;
+    processes[7] = &lbl_27_bss_7CFC;
+    processes[8] = &lbl_101_bss_21C;
+    processes[10] = &lbl_101_bss_22C;
+    processes[11] = &lbl_101_bss_23C;
+    processes[12] = &lbl_101_bss_25C;
+    processes[13] = &lbl_101_bss_25C;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 15);
+
+    // Generic aerial transitions and the smash attack actions override entries outside the consecutive character range.
+    m_moduleAccesser->getStatusModule().setUniqProc(0x33, &g_ftStatusUniqProcessAttackAirInheritJumpAerialMotion);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x21, &g_ftStatusUniqProcessEscapeAirInheritJumpAerialMotion);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x2C, &lbl_101_bss_1FC);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x30, &lbl_101_bss_1DC);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x31, &lbl_101_bss_1DC);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x32, &lbl_101_bss_1EC);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x2D, &lbl_101_bss_1DC);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x2E, &lbl_101_bss_1DC);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x2F, &lbl_101_bss_1EC);
+
+    // HYPOTHESIS: as in Lucas, the common data record (+0x8c) holds a sphere that is installed as the absorber shape (PSI Magnet)
+    // and the reflector comes from the record at +0x94.
+    soCollisionShieldData absorberShape;
+    u8 reflectorShape[0x20];
+    ftReflectorGroupDraft reflectorGroup;
+    soCollisionShieldGroupData absorberGroup;
+    const float* sphere = *reinterpret_cast<const float**>(reinterpret_cast<u8*>(m_data) + 0x8c);
+    absorberShape.setOffset(0, sphere[1]);
+    absorberShape.setOffset(1, sphere[2]);
+    absorberShape.setOffset(2, sphere[3]);
+    absorberShape.setOffset(3, sphere[1]);
+    absorberShape.setOffset(4, sphere[2]);
+    absorberShape.setOffset(5, sphere[3]);
+    absorberShape.m_size = sphere[4];
+    absorberShape.m_nodeIndex = (u32)sphere[0];
+    absorberShape.m_shapeType = 1;
+    absorberGroup.m_flags = 0;
+    absorberGroup.m_shieldDataSet = soSet<soCollisionShieldData>(&absorberShape, 1);
+    soCollisionShieldModule& absorber = m_moduleAccesser->getCollisionAbsorberModule();
+    absorber.add(&absorberGroup, 0);
+    absorber.setStatus(0, 0, 0);
+
+    void* reflectorRecord = *reinterpret_cast<void**>(reinterpret_cast<u8*>(m_data) + 0x94);
+    FT_REFLECTOR_GROUP_CLEAR(reflectorGroup);
+    fn_27_195B34(reflectorRecord, reflectorShape, &reflectorGroup);
+    m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&reflectorGroup), 2);
+    m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
 }
 
 void** ftNess::getExtendParam() {

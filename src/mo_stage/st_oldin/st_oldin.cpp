@@ -51,6 +51,13 @@ static stOldinStatics sStatics = {
     {900.0f, 600.0f, 1200.0f, 0.6666667f, 180.0f, {5.0f, 2.0f, 2.0f, 1.0f}, 75.0f, 20.0f, 900.0f, 1200.0f},
 };
 
+// The native code reads the translation of a node matrix z, y, x (the registers of the three values then run upwards from z).
+#define OLDIN_VEC3F_FROM_MTX(name, mtx)    \
+    float name##Z = (mtx).m[2][3];         \
+    float name##Y = (mtx).m[1][3];         \
+    float name##X = (mtx).m[0][3];         \
+    Vec3f name(name##X, name##Y, name##Z)
+
 // The coroutine markers of the enemies and the bridge (see NEWPORK_SAVE in st_newpork.cpp). The marker of the last
 // state of a coroutine has the value 2.
 #define OLDIN_SAVE(seq, lineNumber, tagValue) \
@@ -531,7 +538,7 @@ void stOldin::LordBullboUpdate(float deltaFrame) {
             case 0x2E1:
             case 0x38D: {
                 m_lordBullbo->getNodeMatrix(&m_lordNodeMtx, 0, m_lordNode[0]);
-                Vec3f pos(m_lordNodeMtx.m[0][3], m_lordNodeMtx.m[1][3], m_lordNodeMtx.m[2][3]);
+                OLDIN_VEC3F_FROM_MTX(pos, m_lordNodeMtx);
                 m_soundLord.setPos(&pos);
                 m_lordSubject.setPos(&pos);
                 if (-320.0f <= pos.m_x && pos.m_x <= 320.0f) {
@@ -558,7 +565,7 @@ void stOldin::LordBullboUpdate(float deltaFrame) {
 
                 // King Bulblin throws a barrel when he is about to pass the middle of the stage.
                 if (m_barrel == 1 && m_taruActive == 0) {
-                    Vec3f barrelPos(m_lordNodeMtx.m[0][3], m_lordNodeMtx.m[1][3], m_lordNodeMtx.m[2][3]);
+                    OLDIN_VEC3F_FROM_MTX(barrelPos, m_lordNodeMtx);
                     if ((m_kingSide == 1 && -140.0f <= barrelPos.m_x && barrelPos.m_x <= -40.0f) ||
                         (m_kingSide == 0 && 40.0f <= barrelPos.m_x && barrelPos.m_x <= 140.0f)) {
                         m_taruActive = 1;
@@ -622,7 +629,7 @@ void stOldin::LordBullboUpdate(float deltaFrame) {
                     }
                 }
 
-                Vec3f quakePos(m_lordNodeMtx.m[0][3], m_lordNodeMtx.m[1][3], m_lordNodeMtx.m[2][3]);
+                OLDIN_VEC3F_FROM_MTX(quakePos, m_lordNodeMtx);
                 if (__fabsf(quakePos.m_x) < 455.0f) {
                     gfModelAnimation* anim = m_lordBullbo->m_modelAnims[0];
                     if (anim != NULL) {
@@ -800,7 +807,7 @@ void stOldin::KingBlublinUpdate(float deltaFrame) {
 void stOldin::BulblinUpdate(float deltaFrame) {
     if (m_bulblinActive) {
         m_bulblin->getNodeMatrix(&m_bulblinNodeMtx, 0, m_bulblinNode);
-        Vec3f soundPos(m_bulblinNodeMtx.m[0][3], m_bulblinNodeMtx.m[1][3], m_bulblinNodeMtx.m[2][3]);
+        OLDIN_VEC3F_FROM_MTX(soundPos, m_bulblinNodeMtx);
         m_soundBulblin.setPos(&soundPos);
         switch (m_bulblinSeq.m_line) {
             case 0:
@@ -820,7 +827,7 @@ void stOldin::BulblinUpdate(float deltaFrame) {
                     m_soundBulblin.playSE(snd_se_stage_Oldin_brublin_damage, -1, 0, -1);
                     goto hurt;
                 } else {
-                    Vec3f probe(m_bulblinNodeMtx.m[0][3], m_bulblinNodeMtx.m[1][3], m_bulblinNodeMtx.m[2][3]);
+                    OLDIN_VEC3F_FROM_MTX(probe, m_bulblinNodeMtx);
                     if (-100.0f <= probe.m_y && -208.0 <= probe.m_x && probe.m_x <= 200.0f) {
                         probe.m_z = 0.0f;
                         probe.m_y = probe.m_y + 2.0f;
@@ -846,7 +853,7 @@ void stOldin::BulblinUpdate(float deltaFrame) {
                 }
                 fn_27_279FC8(m_bulblinHit, &m_bulblinNodeMtx, false);
                 {
-                    Vec3f pos(m_bulblinNodeMtx.m[0][3], m_bulblinNodeMtx.m[1][3], m_bulblinNodeMtx.m[2][3]);
+                    OLDIN_VEC3F_FROM_MTX(pos, m_bulblinNodeMtx);
                     if (__fabsf(pos.m_x) < 455.0f) {
                         gfModelAnimation* anim = m_bulblin->m_modelAnims[0];
                         if (anim != NULL) {
@@ -967,7 +974,7 @@ void stOldin::BulblinUpdate(float deltaFrame) {
             }
             case 0x5B8:
             case 0x5CD: {
-                Vec3f fallPos(m_bulblinNodeMtx.m[0][3], m_bulblinNodeMtx.m[1][3], m_bulblinNodeMtx.m[2][3]);
+                OLDIN_VEC3F_FROM_MTX(fallPos, m_bulblinNodeMtx);
                 if (fallPos.m_y < -150.0f) {
                     goto despawn;
                 }
@@ -1021,7 +1028,7 @@ void stOldin::TaruUpdate(float deltaFrame) {
                 m_taruTimer -= deltaFrame;
                 Matrix mtx(true);
                 m_taru->getNodeMatrix(&mtx, 0, m_taruNode);
-                Vec3f pos(mtx.m[0][3], mtx.m[1][3], mtx.m[2][3]);
+                OLDIN_VEC3F_FROM_MTX(pos, mtx);
                 m_taruSubject.setPos(&pos);
                 gfModelAnimation* anim = m_taru->m_modelAnims[0];
                 if (anim != NULL) {
@@ -1049,7 +1056,7 @@ void stOldin::TaruUpdate(float deltaFrame) {
                     m_taruTimer -= deltaFrame;
                     Matrix mtx(true);
                     m_taru->getNodeMatrix(&mtx, 0, m_taruNode);
-                    Vec3f pos(mtx.m[0][3], mtx.m[1][3], mtx.m[2][3]);
+                    OLDIN_VEC3F_FROM_MTX(pos, mtx);
                     m_taruSubject.setPos(&pos);
                     g_ecMgr->setPos(m_taruEffect, &pos);
                     OLDIN_SAVE(m_taruSeq, 0x63C, 1);
@@ -1058,7 +1065,7 @@ void stOldin::TaruUpdate(float deltaFrame) {
                 {
                     Matrix mtx(true);
                     m_taru->getNodeMatrix(&mtx, 0, m_taruNode);
-                    Vec3f pos(mtx.m[0][3], mtx.m[1][3], mtx.m[2][3]);
+                    OLDIN_VEC3F_FROM_MTX(pos, mtx);
                     u32 effect = g_ecMgr->setEffect((EfID)0x18);
                     g_ecMgr->setPos(effect, &pos);
                     m_soundTaru.setPos(&pos);
@@ -1106,7 +1113,7 @@ void stOldin::BridgeUpdate(float deltaFrame) {
             case 0x695: {
                 Matrix mtx(true);
                 m_bridge->getNodeMatrix(&mtx, 0, m_bridgeNode[0]);
-                Vec3f pos(mtx.m[0][3], mtx.m[1][3], mtx.m[2][3]);
+                OLDIN_VEC3F_FROM_MTX(pos, mtx);
                 g_ecMgr->setEffect(ef_ptc_stg_oldin_hashi_crash_1, &pos);
                 m_bridgeSubject.setPos(&pos);
                 m_bridgeSubject.m_state = 0;
@@ -1138,11 +1145,11 @@ void stOldin::BridgeUpdate(float deltaFrame) {
             case 0x6B6: {
                 Matrix mtx(true);
                 m_bridge->getNodeMatrix(&mtx, 0, m_bridgeNode[0]);
-                Vec3f pos(mtx.m[0][3], mtx.m[1][3], mtx.m[2][3]);
+                OLDIN_VEC3F_FROM_MTX(pos, mtx);
                 g_ecMgr->setEffect(ef_ptc_stg_oldin_hashi_crash_2, &pos);
                 Matrix mtx2(true);
                 m_bridge->getNodeMatrix(&mtx2, 0, m_bridgeNode[1]);
-                Vec3f pos2(mtx2.m[0][3], mtx2.m[1][3], mtx2.m[2][3]);
+                OLDIN_VEC3F_FROM_MTX(pos2, mtx2);
                 g_ecMgr->setEffect(ef_ptc_stg_oldin_hahenkemuri, &pos2);
                 m_bridge->setVisibility(0);
                 m_bridge->setEnableCollisionStatus(false);
@@ -1177,7 +1184,7 @@ void stOldin::BridgeUpdate(float deltaFrame) {
             case 0x6E6: {
                 Matrix mtx(true);
                 m_portal->getNodeMatrix(&mtx, 0, m_portalNode);
-                Vec3f pos(mtx.m[0][3], mtx.m[1][3], mtx.m[2][3]);
+                OLDIN_VEC3F_FROM_MTX(pos, mtx);
                 g_ecMgr->setEffect(ef_ptc_stg_oldin_portaltubu, &pos);
                 m_portalSubject.setPos(&pos);
                 m_portalSubject.m_state = 0;
@@ -1207,7 +1214,7 @@ void stOldin::BridgeUpdate(float deltaFrame) {
             case 0x707: {
                 Matrix mtx(true);
                 m_bridge->getNodeMatrix(&mtx, 0, m_bridgeNode[2]);
-                Vec3f pos(mtx.m[0][3], mtx.m[1][3], mtx.m[2][3]);
+                OLDIN_VEC3F_FROM_MTX(pos, mtx);
                 g_ecMgr->setEffect(ef_ptc_stg_oldin_hukkatu, &pos);
                 m_portalSubject.m_state = 0;
                 m_bridgeTimer = 119.0f;
@@ -1225,7 +1232,7 @@ void stOldin::BridgeUpdate(float deltaFrame) {
                 {
                     Matrix mtx(true);
                     m_bridge->getNodeMatrix(&mtx, 0, m_bridgeNode[2]);
-                    Vec3f pos(mtx.m[0][3], mtx.m[1][3], mtx.m[2][3]);
+                    OLDIN_VEC3F_FROM_MTX(pos, mtx);
                     g_ecMgr->setEffect(ef_ptc_stg_oldin_hashi_hukkatu_2, &pos);
                 }
                 m_bridgeShadow->setVisibility(1);

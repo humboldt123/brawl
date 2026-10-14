@@ -1,5 +1,6 @@
 // No include guard on purpose: define FT_BC (the character's BuildConfig class) and include this once in the
 // character's .cpp, after ft_fighter_builder.h and before the character's constructor is defined.
+// FT_NOINLINE_SKIP_SHARED_DEFS: only instantiate the builders (for a unit whose out of line helpers live in another unit).
 //
 // MATCH-ONLY: In the original build almost every module builder constructor ended up as a separate function
 // in the REL (only the heap/param customize builders and the builders that hold a single module were inlined
@@ -9,6 +10,7 @@
 #error define FT_BC before including ft_builder_noinline.h
 #endif
 
+#ifndef FT_NOINLINE_SKIP_SHARED_DEFS // units that were compiled next to the one holding these definitions skip them
 // MATCH-ONLY: the REL calls the module constructor out of line (it must be compiled outside of the dont_inline region)
 soTransitionModuleImpl::soTransitionModuleImpl(soArray<soTransitionTermGroup>* groups) :
     m_transitionTermGroupArray(groups), m_groupID(0), m_transitionInfo() { }
@@ -50,7 +52,7 @@ soGeneralWorkAbstract::~soGeneralWorkAbstract() { } // MATCH-ONLY: out of line i
 soGeneralWorkSimple::soGeneralWorkSimple(s32* ints, u32 numInts, float* floats, u32 numFloats, u32* flags, u32 numFlags) :
     soGeneralWorkAbstract(false), m_intWorks(ints), m_intWorkSize(numInts), m_floatWorks(floats), m_floatWorkSize(numFloats),
     m_flagWorks(flags), m_flagWorkSize(numFlags) { }
-
+#endif
 
 #pragma dont_inline on
 template soInsideEventManageModuleBuilder<FT_BC::InsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes>::soInsideEventManageModuleBuilder();
@@ -81,4 +83,7 @@ template soStatusModuleBuilder<FT_BC::StatusModuleBuildConfig>::soStatusModuleBu
 template soKineticModuleBuilder<FT_BC::KineticModuleBuildConfig>::soKineticModuleBuilder(soModuleAccesser*);
 template soGeneralWorkBuilder<FT_BC::GeneralWorkBuildConfig>::soGeneralWorkBuilder();
 template soAreaModuleBuilder<FT_BC::AreaModuleBuildConfig>::soAreaModuleBuilder(soModuleAccesser*, u8, soEventObserverRegistrationDesc*);
+#ifdef FT_NOINLINE_SEARCH_BUILDER // fighters with a collision search module (Link, Toon Link, Zelda, Peach, ...)
+template FT_BC::CollisionSearchModuleBuilder::soCollisionSearchModuleBuilder(soModuleAccesser*, int, gfTask::Category);
+#endif
 #pragma dont_inline off

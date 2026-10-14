@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -52,7 +53,11 @@ public:
 };
 
 class ftZelda : public ftFighterBuilder<ftZeldaBuildConfig> {
-    u8 unkTail[0x18678 - sizeof(ftFighterBuilder<ftZeldaBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
+    u8 unk18674;
+    u8 unk18675;
+    u8 unkTail[0x18678 - 0x18676];
 public:
     ftZelda(s32 entryId,
             Heaps::HeapType instHeap,

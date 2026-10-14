@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -46,10 +47,13 @@ public:
 };
 
 class ftLink : public ftFighterBuilder<ftLinkBuildConfig> {
-    u8 unkTail[0x1A360 - sizeof(ftFighterBuilder<ftLinkBuildConfig>)];
+    u8 unk1A348;
+    ftData* m_data;
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
 public:
     ftLink(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
 };
+static_assert(sizeof(ftLink) == 0x1A360, "ftLink size mismatch");

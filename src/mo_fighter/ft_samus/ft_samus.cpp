@@ -1,3 +1,5 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_manager.h>
 #include <so/work/so_general_work_simple.h>
@@ -7,6 +9,21 @@
 
 #define FT_BC ftSamusBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt); the repeated ones are the null placeholders of the
+// unused status ranges.
+extern "C" {
+extern soStatusUniqProcess lbl_94_bss_1FC;
+extern soStatusUniqProcess lbl_94_bss_1CC;
+extern soStatusUniqProcess lbl_94_bss_20C;
+extern soStatusUniqProcess lbl_27_bss_75C4;
+extern soStatusUniqProcess lbl_27_bss_75E4;
+extern soStatusUniqProcess lbl_27_bss_75F4;
+extern soStatusUniqProcess lbl_27_bss_75D4;
+extern soStatusUniqProcess lbl_27_bss_7604;
+extern soStatusUniqProcess lbl_94_bss_1DC;
+extern soStatusUniqProcess lbl_94_bss_1EC;
+}
 
 ftSamusExtendParamAccesser g_ftSamusExtendParamAccesser;
 
@@ -20,8 +37,33 @@ ftSamus::ftSamus(s32 entryId,
                                          Fighter_Samus,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Samus)) {
+    // Register the status processes in action order.
+    soStatusUniqProcess* processes[27] = {0};
+    processes[1] = &lbl_94_bss_1FC;
+    processes[2] = &lbl_94_bss_1CC;
+    processes[4] = &lbl_94_bss_20C;
+    processes[5] = &lbl_27_bss_75C4;
+    processes[6] = &lbl_27_bss_75E4;
+    processes[8] = &lbl_27_bss_75F4;
+    processes[9] = &lbl_27_bss_75D4;
+    processes[10] = &lbl_27_bss_7604;
+    processes[11] = &lbl_94_bss_1DC;
+    processes[12] = &lbl_94_bss_1EC;
+    processes[14] = &lbl_94_bss_1DC;
+    processes[15] = &lbl_94_bss_1EC;
+    processes[16] = &lbl_94_bss_1FC;
+    processes[17] = &lbl_94_bss_1FC;
+    processes[18] = &lbl_94_bss_1FC;
+    processes[19] = &lbl_94_bss_1FC;
+    processes[21] = &lbl_94_bss_20C;
+    processes[22] = &lbl_94_bss_20C;
+    processes[23] = &lbl_94_bss_20C;
+    processes[24] = &lbl_94_bss_20C;
+    processes[25] = &lbl_94_bss_20C;
+    processes[26] = &lbl_94_bss_20C;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 27);
 }
 
 // Symbols for these members are not in symbols.txt yet, so they are emitted under their placeholder names.

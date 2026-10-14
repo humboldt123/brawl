@@ -1,3 +1,7 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
+#define FT_NOINLINE_SEARCH_BUILDER
 #define FT_MARTH_PHOTO_CALLBACK_NOINLINE // MATCH-ONLY: out-of-line photo base teardown and +0x186F0 photo thunks (shared shadow macro)
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
@@ -5,9 +9,17 @@
 #include <ft/peach/ft_peach_extend_param_accesser.h>
 #include <ft/peach/ft_peach_status_uniq_process_final.h>
 #include <gf/gf_task_scheduler.h>
+#include <mt/mt_prng.h>
 
 #define FT_BC ftPeachBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_103_bss_1D4;
+extern soStatusUniqProcess lbl_103_bss_1F4;
+extern soStatusUniqProcess lbl_103_bss_1C4;
+}
 
 ftPeachExtendParamAccesser g_ftPeachExtendParamAccesser;
 
@@ -21,8 +33,18 @@ ftPeach::ftPeach(s32 entryId,
                                          Fighter_Peach,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Peach)) {
+    // HYPOTHESIS: flag 0x10000040 of the work module selects one of three random variations at spawn.
+    m_moduleAccesser->getWorkManageModule().setInt(randi(3), 0x10000040);
+    // Register the status processes in action order; entries without a process stay empty.
+    soStatusUniqProcess* processes[5] = {0};
+    processes[3] = &lbl_103_bss_1D4;
+    processes[4] = &lbl_103_bss_1F4;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 5);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x2A, &lbl_103_bss_1C4);
+    // HYPOTHESIS: the common data record holds the fighter's shield shape group at +0x9c (the bubble of the parasol).
+    m_moduleAccesser->getCollisionShieldModule().add(reinterpret_cast<soCollisionShieldGroupData*>(reinterpret_cast<u8*>(m_data) + 0x9c), 1);
 }
 
 void ftPeach::endFinalRequest() {

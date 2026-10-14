@@ -1,3 +1,4 @@
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
 // MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
