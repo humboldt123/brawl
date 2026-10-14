@@ -112,11 +112,11 @@ void grFamicomKani::setAttack() {
         offset.m_z = 0.0f;
         u32 power;
         switch (m_level) {
-        case 2:
-            power = 15;
-            break;
         case 1:
             power = 13;
+            break;
+        case 2:
+            power = 15;
             break;
         case 3:
             power = 17;
@@ -258,7 +258,7 @@ void grFamicomKani::requestDown2() {
             m_state = 0x11;
         } else if (isRemoveItem() != 0 && isTurnGround() != 0) {
             m_angry = 0;
-            FAMICOM_LEVEL_MOTION(14, 15, 15, false)
+            FAMICOM_LEVEL_MOTION(14, 15, 15, true)
             m_actionTimer = 60.0f;
             toGround();
             m_state = 0xC;

@@ -129,10 +129,13 @@ public:
     virtual ~stHomerun();
     virtual void createObj();
     virtual bool loading();
-    // Not a virtual: the signature (with the two extra pointers) differs from Stage::getItemPac, and the real class keeps its vtable
-    // slots in the same order as the stage base.
-    void getItemPac(gfArchive** brres, gfArchive** param, itKind itemID, int variantID, gfArchive** commonParam = NULL,
-                    itCustomizerInterface** customizer = NULL);
+    // The native vtable overrides Stage's four-argument archive provider at slot 0x80.
+#ifdef MATCHING
+    virtual void getItemPac(gfArchive** brres, gfArchive** param, itKind itemID, int variantID);
+#else
+    virtual void getItemPac(gfArchive** brres, gfArchive** param, itKind itemID, int variantID, gfArchive** commonParam = NULL,
+                            itCustomizerInterface** customizer = NULL);
+#endif
     virtual void processFixPosition();
     virtual bool isEnd();
     virtual bool isEventEnd(int param1, int* eventState, int* eventDecision);

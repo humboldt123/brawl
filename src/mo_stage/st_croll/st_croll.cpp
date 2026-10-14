@@ -1932,7 +1932,7 @@ void stCharacterRoll::setupPanel(SoraCharacterRoll::CharacterPanel* pictures, So
 #pragma dont_inline on
 // Which fighter picture belongs to a character of the player's selection (0 for the characters outside the table).
 static u8 getCRollFighterId(u32 index) {
-    if (index > 0x2D) {
+    if (index >= 0x2E) {
         return 0;
     }
     return sRollFighterId[index];
@@ -1989,7 +1989,7 @@ stCharacterRoll::stCharacterRoll() : stMelee("stCharacterRoll", Stages::Characte
     m_scnGroup = NULL;
     m_scnProc = NULL;
     m_grWorld = NULL;
-    m_fillId = 0xFF;
+    m_fillId = -1;
     m_state = 0;
     m_isSkip = 0;
     m_panelState = 0;

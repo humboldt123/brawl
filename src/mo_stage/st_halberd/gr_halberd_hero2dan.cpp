@@ -355,7 +355,7 @@ void grHalberdHero2Dan::bomb() {
     g_ecMgr->setEffect(static_cast<EfID>(0x3F0003), &m_pos);
     m_snd.playSE(static_cast<SndID>(0x51), 0, 0, -1);
     Vec3f shake(0.0f, 0.0f, 0.0f);
-    cmReqQuake(cmQuake::Amplitude_M, &shake);
+    cmReqQuake(cmQuake::Amplitude_XL, &shake);
     m_subject.m_state = 1;
     if (m_dangerZone != -1) {
         g_aiMgr->delDangerZone(m_dangerZone);

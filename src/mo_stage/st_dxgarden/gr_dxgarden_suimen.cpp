@@ -49,8 +49,14 @@ void grDxGardenSuimen::update(float deltaFrame) {
     case 1: {
         Vec3f pos;
         getNodePosition(&pos, 0, "ptcp");
-        Vec2f from(m_posLimitWork[0], pos.m_y);
-        Vec2f to(m_posLimitWork[3], m_posLimitWork[4]);
+        Vec2f to;
+        Vec2f from;
+        float fromY = pos.m_y;
+        from.m_x = m_posLimitWork[0];
+        from.m_y = fromY;
+        float toY = m_posLimitWork[4];
+        to.m_x = m_posLimitWork[3];
+        to.m_y = toY;
         m_dangerZone = g_aiMgr->setDangerZone(&from, &to, m_dangerZone, false, false);
         break;
     }

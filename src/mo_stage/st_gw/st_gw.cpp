@@ -875,7 +875,7 @@ void stGW::updateScene(float deltaFrame) {
 }
 
 void stGW::changeScene(u32 scene) {
-    if (scene > 3) {
+    if (scene >= 4) {
         return;
     }
     if (m_scene == scene) {

@@ -41,7 +41,6 @@ extern "C" void fn_8003E87C(Matrix* matrix, float angle);
 extern "C" void fn_8003E918(Matrix* matrix, float angle);
 extern "C" void fn_8003EBF4(Matrix* matrix, float angle);
 // cmSubject::clear() / setPos(Vec3f*)
-extern "C" void fn_8009F1FC(cmSubject* subject);
 extern "C" void fn_8009EF8C(cmSubject* subject, Vec3f* pos);
 // efScreen::cancelFill(frames, handle)
 extern "C" void fn_8005E3C8(efScreen* screen, float frames, u8* handle);
@@ -129,7 +128,7 @@ stNewpork* stNewpork::create() {
     return new (Heaps::StageInstance) stNewpork;
 }
 
-stNewpork::stNewpork() : stMelee("stNewpork", Stages::NewPork), m_chimeraMtx(true), m_screenFill(0xFF) {
+stNewpork::stNewpork() : stMelee("stNewpork", Stages::NewPork), m_chimeraMtx(true), m_screenFill(-1) {
     m_chikei = NULL;
     m_chikeiBG = NULL;
     m_viking = NULL;
@@ -173,7 +172,7 @@ stNewpork::stNewpork() : stMelee("stNewpork", Stages::NewPork), m_chimeraMtx(tru
     m_areaCooldown = 0.0f;
     m_areaCooldown2 = 0.0f;
     m_plankJoint = NULL;
-    fn_8009F1FC(&m_subject);
+    m_subject.clear();
 }
 
 stNewpork::~stNewpork() {

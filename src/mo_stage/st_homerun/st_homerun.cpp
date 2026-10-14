@@ -1454,8 +1454,12 @@ u32 stHomerun::getScoreU32() {
     return (u32)(10.0f * m_dist);
 }
 
+#ifdef MATCHING
+void stHomerun::getItemPac(gfArchive** brres, gfArchive** param, itKind itemID, int variantID) {
+#else
 void stHomerun::getItemPac(gfArchive** brres, gfArchive** param, itKind itemID, int variantID, gfArchive** commonParam,
                            itCustomizerInterface** customizer) {
+#endif
     if (itemID == Item_HomeRun_Sandbag) {
         *brres = &m_sandBagBrres;
         *param = &m_sandBagParam;

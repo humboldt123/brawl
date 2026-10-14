@@ -105,7 +105,7 @@ stMarioPast::~stMarioPast() {
     }
     memset(&m_blockWork, 0, sizeof(m_blockWork));
     if (m_archive != NULL) {
-        m_archive->~gfArchive();
+        delete m_archive;
     }
     releaseArchive();
 }
