@@ -679,18 +679,17 @@ public:
     typename BC::ModuleType* getModule() { return &m_module; }
 };
 
-// HYPOTHESIS: Param is the float argument of the shadow module (0 for most fighters).
-template <typename T, int P = 0>
+template <typename T>
 class soShadowModuleBuildConfig {
 public:
     typedef T ModuleType;
-    static float param() { return (float)P; }
 };
 
 template <typename BC>
 class soShadowModuleBuilder {
     typename BC::ModuleType m_module;
 public:
-    soShadowModuleBuilder(soModuleAccesser* acc) : m_module(acc, BC::param(), 0) { }
+    // HYPOTHESIS: 10.0f is the shared float argument of the shadow module (the first float literal of every fighter REL).
+    soShadowModuleBuilder(soModuleAccesser* acc) : m_module(acc, 10.0f, 0) { }
     typename BC::ModuleType* getModule() { return &m_module; }
 };

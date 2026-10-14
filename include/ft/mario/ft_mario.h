@@ -41,8 +41,6 @@ public:
     typedef ftMarioLinkModuleBuildConfig LinkModuleBuildConfig;
     typedef ftMarioStatusModuleBuildConfig StatusModuleBuildConfig;
     typedef ftMarioGenerateArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
-    // HYPOTHESIS: Mario's shadow module takes 10.0 as its float argument.
-    typedef soShadowModuleBuildConfig<soShadowModuleImpl, 10> ShadowModuleBuildConfig;
 };
 
 class ftMario : public ftFighterBuilder<ftMarioBuildConfig> {
