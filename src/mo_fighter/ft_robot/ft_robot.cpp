@@ -1,3 +1,4 @@
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define SO_SLOW_GET_INSTANCE_OUT_OF_LINE
 // The constructor calls the status table's default constructor in sora_melee instead of inlining it.
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR

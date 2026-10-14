@@ -679,16 +679,18 @@ public:
     typename BC::ModuleType* getModule() { return &m_module; }
 };
 
-template <typename T>
+// HYPOTHESIS: Param is the float argument of the shadow module (0 for most fighters).
+template <typename T, int P = 0>
 class soShadowModuleBuildConfig {
 public:
     typedef T ModuleType;
+    static float param() { return (float)P; }
 };
 
 template <typename BC>
 class soShadowModuleBuilder {
     typename BC::ModuleType m_module;
 public:
-    soShadowModuleBuilder(soModuleAccesser* acc) : m_module(acc, 0.0f, 0) { }
+    soShadowModuleBuilder(soModuleAccesser* acc) : m_module(acc, BC::param(), 0) { }
     typename BC::ModuleType* getModule() { return &m_module; }
 };
