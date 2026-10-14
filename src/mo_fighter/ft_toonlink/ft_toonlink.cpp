@@ -1,3 +1,7 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
+#define FT_NOINLINE_SEARCH_BUILDER
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/toonlink/ft_toonlink.h>
@@ -5,6 +9,19 @@
 
 #define FT_BC ftToonLinkBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_8A9C;
+extern soStatusUniqProcess lbl_121_bss_16C;
+extern soStatusUniqProcess lbl_121_bss_14C;
+extern soStatusUniqProcess lbl_121_bss_17C;
+extern soStatusUniqProcess lbl_121_bss_18C;
+extern soStatusUniqProcess lbl_121_bss_15C;
+extern soStatusUniqProcess lbl_121_bss_19C;
+extern soStatusUniqProcess lbl_121_bss_1AC;
+extern soStatusUniqProcess lbl_121_bss_1BC;
+}
 
 ftToonLinkExtendParamAccesser g_ftToonLinkExtendParamAccesser;
 
@@ -18,8 +35,25 @@ ftToonLink::ftToonLink(s32 entryId,
                                          Fighter_ToonLink,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    unk1A384(0),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_ToonLink)) {
+    // Register the status processes in action order; entries without a process stay empty.
+    soStatusUniqProcess* processes[10] = {0};
+    processes[0] = &lbl_27_bss_8A9C;
+    processes[1] = &lbl_121_bss_16C;
+    processes[2] = &lbl_121_bss_14C;
+    processes[3] = &lbl_121_bss_17C;
+    processes[4] = &lbl_121_bss_18C;
+    processes[6] = &lbl_121_bss_15C;
+    processes[8] = &lbl_121_bss_19C;
+    processes[9] = &lbl_121_bss_1AC;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 10);
+    m_moduleAccesser->getStatusModule().setUniqProc(0, &lbl_121_bss_1BC);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x12, &lbl_121_bss_1BC);
+    // HYPOTHESIS: the common data record holds the fighter's shield shape group at +0x98 (the shield).
+    m_moduleAccesser->getCollisionShieldModule().add(reinterpret_cast<soCollisionShieldGroupData*>(reinterpret_cast<u8*>(m_data) + 0x98), 1);
+    m_moduleAccesser->getCollisionShieldModule().setTargetProperty(1, 1);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftToonLink is done

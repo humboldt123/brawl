@@ -32,8 +32,19 @@ struct ftPhysicsIface : ftPhysicsIfacePad {
     virtual void slot17();
     virtual void slot18();
     virtual void slot19(int arg);
+    virtual void slot20();
+    virtual void slot21();
+    virtual void slot22();
+    virtual void slot23();
+    virtual void slot24();
+    virtual void slot25(int arg);
 };
 
 static inline void ftPhysicsModuleCall54(void* module, int arg) {
     static_cast<ftPhysicsIface*>(module)->slot19(arg);
+}
+
+// Same interface, slot 0x6c (HYPOTHESIS: selects a physics preset by number).
+static inline void ftPhysicsModuleCall6C(void* module, int arg) {
+    static_cast<ftPhysicsIface*>(module)->slot25(arg);
 }

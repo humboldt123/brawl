@@ -1,10 +1,39 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
+#define FT_NOINLINE_SEARCH_BUILDER
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_physics_iface.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/zelda/ft_zelda.h>
 #include <ft/zelda/ft_zelda_extend_param_accesser.h>
 
 #define FT_BC ftZeldaBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_7DD4;
+extern soStatusUniqProcess lbl_104_bss_194;
+extern soStatusUniqProcess lbl_104_bss_1A4;
+extern soStatusUniqProcess lbl_104_bss_1D4;
+extern soStatusUniqProcess lbl_104_bss_1E4;
+extern soStatusUniqProcess lbl_104_bss_1B4;
+// HYPOTHESIS: ftUtil::convertReflectorData(const reflector record*, shape out*, group out*): turns the reflector record of the
+// common data into a one-shape reflector group.
+void fn_27_195B34(const void* record, void* shapeOut, void* groupOut);
+}
+extern soStatusUniqProcess g_ftZeldaStatusUniqProcessSpecialHi3;
+
+// HYPOTHESIS: reflector group descriptor as filled by convertReflectorData (shape array pointer, shape count, four floats,
+// high flag bit).
+struct ftZeldaReflectorGroup {
+    void* m_shapes;
+    s32 m_count;
+    float m_f0, m_f1, m_f2, m_f3;
+    u32 m_flag : 1;
+    u32 m_rest : 31;
+};
 
 ftZeldaExtendParamAccesser g_ftZeldaExtendParamAccesser;
 
@@ -18,8 +47,36 @@ ftZelda::ftZelda(s32 entryId,
                                          Fighter_Zelda,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Zelda)),
+    unk18674(0),
+    unk18675(0) {
+    // Register the status processes in action order; entries without a process stay empty.
+    soStatusUniqProcess* processes[10] = {0};
+    processes[0] = &lbl_27_bss_7DD4;
+    processes[1] = &lbl_104_bss_194;
+    processes[2] = &lbl_104_bss_1A4;
+    processes[3] = &lbl_104_bss_1D4;
+    processes[4] = &lbl_104_bss_1E4;
+    processes[7] = &lbl_104_bss_1B4;
+    processes[8] = &g_ftZeldaStatusUniqProcessSpecialHi3;
+    processes[9] = &lbl_104_bss_1D4;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 10);
+    // The reflector (Nayru's Love): build the reflector group from the common data record (+0x90) and install it as group 2.
+    void* reflectorRecord = *reinterpret_cast<void**>(reinterpret_cast<u8*>(m_data) + 0x90);
+    u8 shape[0x20];
+    ftZeldaReflectorGroup group;
+    group.m_shapes = 0;
+    group.m_count = 0;
+    group.m_f0 = 0.0f;
+    group.m_f1 = 0.0f;
+    group.m_f2 = 0.0f;
+    group.m_f3 = 0.0f;
+    group.m_flag = 0;
+    fn_27_195B34(reflectorRecord, shape, &group);
+    m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&group), 2);
+    m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
+    ftPhysicsModuleCall6C(m_moduleAccesser->m_enumerationStart->m_physicsModule, 0x4B);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftZelda is done

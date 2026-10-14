@@ -1,3 +1,7 @@
+// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
+#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
+#define FT_NOINLINE_SEARCH_BUILDER
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/dedede/ft_dedede.h>
@@ -7,6 +11,24 @@
 
 #define FT_BC ftDededeBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
+extern "C" {
+extern soStatusUniqProcess lbl_27_bss_88CC;
+extern soStatusUniqProcess lbl_117_bss_2AC;
+extern soStatusUniqProcess lbl_117_bss_23C;
+extern soStatusUniqProcess lbl_117_bss_28C;
+extern soStatusUniqProcess lbl_117_bss_2DC;
+extern soStatusUniqProcess lbl_27_bss_891C;
+extern soStatusUniqProcess lbl_27_bss_890C;
+extern soStatusUniqProcess lbl_27_bss_88EC;
+extern soStatusUniqProcess lbl_27_bss_88FC;
+extern soStatusUniqProcess lbl_117_bss_24C;
+}
+extern soStatusUniqProcess g_ftDededeStatusUniqProcessSpecialWaddledeeThrowPickup;
+extern soStatusUniqProcess g_ftDededeStatusUniqProcessSpecialSuperJumpLanding;
+extern soStatusUniqProcess g_ftDededeStatusUniqProcessSpecialSuperJumpHitCeil;
+extern soStatusUniqProcess g_ftDededeStatusUniqProcessSpecialSuperJumpTurn;
 
 ftDededeExtendParamAccesser g_ftDededeExtendParamAccesser;
 
@@ -20,8 +42,51 @@ ftDedede::ftDedede(s32 entryId,
                                          Fighter_Dedede,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap) {
-    // TODO
+                                         nwMotionInstHeap),
+    m_data(g_ftCommonDataAccesser.getData(Fighter_Dedede)) {
+    // Register the status processes in action order; entries without a process stay empty.
+    soStatusUniqProcess* processes[40] = {0};
+    processes[0] = &lbl_27_bss_88CC;
+    processes[1] = &lbl_117_bss_2AC;
+    processes[2] = &lbl_117_bss_23C;
+    processes[3] = &lbl_117_bss_28C;
+    processes[4] = &lbl_117_bss_2DC;
+    processes[5] = &lbl_27_bss_88CC;
+    processes[7] = &lbl_27_bss_891C;
+    processes[8] = &lbl_27_bss_891C;
+    processes[9] = &lbl_27_bss_890C;
+    processes[10] = &lbl_27_bss_890C;
+    processes[11] = &lbl_27_bss_890C;
+    processes[12] = &lbl_27_bss_890C;
+    processes[13] = &lbl_27_bss_890C;
+    processes[14] = &lbl_27_bss_890C;
+    processes[15] = &lbl_27_bss_890C;
+    processes[16] = &lbl_27_bss_890C;
+    processes[17] = &lbl_27_bss_890C;
+    processes[18] = &lbl_27_bss_890C;
+    processes[19] = &lbl_27_bss_890C;
+    processes[20] = &lbl_27_bss_890C;
+    processes[21] = &lbl_27_bss_88EC;
+    processes[22] = &lbl_27_bss_88FC;
+    processes[23] = &g_ftDededeStatusUniqProcessSpecialWaddledeeThrowPickup;
+    processes[24] = &lbl_117_bss_24C;
+    processes[25] = &g_ftDededeStatusUniqProcessSpecialSuperJumpLanding;
+    processes[26] = &g_ftDededeStatusUniqProcessSpecialSuperJumpHitCeil;
+    processes[28] = &g_ftDededeStatusUniqProcessSpecialSuperJumpTurn;
+    processes[29] = &lbl_117_bss_28C;
+    processes[30] = &lbl_117_bss_28C;
+    processes[31] = &lbl_117_bss_28C;
+    processes[32] = &lbl_117_bss_28C;
+    processes[33] = &lbl_117_bss_28C;
+    processes[34] = &lbl_117_bss_28C;
+    processes[35] = &lbl_117_bss_28C;
+    processes[36] = &lbl_117_bss_28C;
+    processes[37] = &lbl_117_bss_28C;
+    processes[38] = &lbl_117_bss_2DC;
+    processes[39] = &lbl_117_bss_2DC;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 40);
+    // HYPOTHESIS: the common data record points at the fighter's area definitions (+0xb8).
+    m_moduleAccesser->getAreaModule().addArea(*reinterpret_cast<soSet<soAreaData>**>(reinterpret_cast<u8*>(m_data) + 0xb8));
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftDedede is done

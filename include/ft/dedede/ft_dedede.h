@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -95,7 +96,8 @@ public:
 };
 
 class ftDedede : public ftFighterBuilder<ftDededeBuildConfig> {
-    u8 unkTail[0x4777C - sizeof(ftFighterBuilder<ftDededeBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
 public:
     ftDedede(s32 entryId,
             Heaps::HeapType instHeap,

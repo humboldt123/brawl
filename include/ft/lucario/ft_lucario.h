@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
@@ -51,7 +52,8 @@ public:
 };
 
 class ftLucario : public ftFighterBuilder<ftLucarioBuildConfig> {
-    u8 unkTail[0x10548 - sizeof(ftFighterBuilder<ftLucarioBuildConfig>)];
+    soArrayContractibleTable<const soStatusData> m_statusDataTable;
+    ftData* m_data;
 public:
     ftLucario(s32 entryId,
             Heaps::HeapType instHeap,
