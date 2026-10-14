@@ -144,9 +144,10 @@ public:
     virtual void registInterpreter(const soAnimCmdControlUnit& unit, const soAttributeFlag& attr);
     virtual void interpretCmd();
     virtual void interpretCmdAdjust();
-    virtual void interpretCmd1();
+    // HYPOTHESIS: parameters read off BaseItem::requestAnimEvent (a frame count, the command group and the accesser).
+    virtual void interpretCmd1(float frame, int group, soModuleAccesser* moduleAccesser);
     virtual void resetInterpreter1();
-    virtual void resetInterpreter2();
+    virtual void resetInterpreter2(float frame, int group, soModuleAccesser* moduleAccesser, u32 unk);
     virtual void resetInterpreter3();
     virtual void resetInterpreter4();
     virtual void isInterpreterAnimCmd();

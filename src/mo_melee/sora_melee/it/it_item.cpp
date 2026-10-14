@@ -115,7 +115,9 @@ struct ItemView {
     soWorkManageModuleImpl workManage; // 0x2AAC
     IT_PAD(pad5, 0x2AAC + sizeof(soWorkManageModuleImpl), 0x2C34);
     soStatusModuleImpl status; // 0x2C34
-    IT_PAD(pad6, 0x2C34 + sizeof(soStatusModuleImpl), 0x3474);
+    IT_PAD(pad6a, 0x2C34 + sizeof(soStatusModuleImpl), 0x33D0);
+    soAnimCmdModuleImpl animCmd; // 0x33D0
+    IT_PAD(pad6b, 0x33D0 + sizeof(soAnimCmdModuleImpl), 0x3474);
     itKineticModuleImpl kinetic; // 0x3474
     IT_PAD(pad7a, 0x3474 + sizeof(itKineticModuleImpl), 0x38CC);
     soEffectModuleImpl effect; // 0x38CC
@@ -142,6 +144,11 @@ struct cmCameraControllerHyp {
 #define IT_V16(n) IT_V4(n##a) IT_V4(n##b) IT_V4(n##c) IT_V4(n##d)
 struct ItemVtableHypPad {
     u8 pad[0x3C];
+};
+// HYPOTHESIS: slot 0xB4 of the same vtable (called after the posture changed; the name is unknown).
+struct ItemVtableHypB4 : ItemVtableHypPad {
+    IT_V16(a0) IT_V16(a1) IT_V4(a2) IT_V4(a3) virtual void u0(); virtual void u1(); virtual void u2();
+    virtual void unkB4();
 };
 struct ItemVtableHyp : ItemVtableHypPad {
     IT_V16(s0) IT_V16(s1) IT_V16(s2) IT_V16(s3) IT_V16(s4) IT_V16(s5) IT_V16(s6) IT_V16(s7)
@@ -660,6 +667,108 @@ void BaseItem::updateLifeTime() {
             }
         }
     }
+}
+
+// An info window request restarts the item's anim cmd at the given frame (the same call requestAnimEvent makes).
+void BaseItem::notifyEventInfoWindow(int frame) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    v->workManage.setInt(frame, Instance::Work::Int_Bound_Flag);
+    v->animCmd.resetInterpreter2(0.0f, 5, &moduleAccesser, 1);
+    v->animCmd.interpretCmd1(1.0f, 5, &moduleAccesser);
+}
+
+void BaseItem::requestAnimEvent(u32 frame) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    v->animCmd.resetInterpreter2(0.0f, 5, &moduleAccesser, frame);
+    v->animCmd.interpretCmd1(static_cast<s32>(frame), 5, &moduleAccesser);
+}
+
+bool BaseItem::isSteal() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    if (m_kind == 0x53) {
+        if (*(reinterpret_cast<u8*>(this) + kPickUpAreaRequested) != 0 && v->areaInstances.size() > 2) {
+            return v->area.isEnableArea(2);
+        }
+        return false;
+    }
+    return false;
+}
+
+// Starts an interpolating scale animation on the given node; the lower end is the current scale unless a minimum is given.
+void BaseItem::setScaleAnimation(float scaleMax, float scaleMin, int nodeIndex, int counterLimit) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    soWorkManageModule& work = v->workManage;
+    work.setInt(nodeIndex, Instance::Work::Int_Scale_Anim_Node_Index);
+    work.setInt(Scale::Anim_Interpolate, Instance::Work::Int_Scale_Anim_Type);
+    work.setInt(0, Instance::Work::Int_Scale_Anim_Counter);
+    work.setInt(counterLimit, Instance::Work::Int_Scale_Anim_Counter_Limit);
+    float low = work.getFloat(Instance::Work::Float_Scale_Anim_Now);
+    if (0.0f <= scaleMin) {
+        low = scaleMin;
+    }
+    work.setFloat(low, Instance::Work::Float_Scale_Anim_Min);
+    work.setFloat(scaleMax, Instance::Work::Float_Scale_Anim_Max);
+}
+
+// The scale of an item that was thrown or dropped by another item follows the owner's scale (or the scale of the link
+// when the owner is carried), but only for items whose scale type says so.
+void BaseItem::updateOwnerScale(BaseItem* owner) {
+    ItemView* o = reinterpret_cast<ItemView*>(owner);
+    if (itValueAccesserGlobal.getInt(&moduleAccesser, 0x5B6D, 0) == 1 &&
+        itValueAccesserGlobal.getInt(&owner->moduleAccesser, 0x5B6D, 0) == 1) {
+        float scale;
+        if (itValueAccesserGlobal.getInt(&owner->moduleAccesser, 0x5B6D, 0) == 1) {
+            int held;
+            if (owner->moduleAccesser.getStatusModule().getStatusKind() == 2) {
+                held = 1;
+            } else {
+                held = o->link.isLink(Link::No_Have);
+            }
+            if (held != 0) {
+                scale = o->link.getLinkScale();
+            } else {
+                scale = o->posture.getOwnerScale();
+            }
+        } else {
+            scale = 1.0f;
+        }
+        setOwnerScale(scale);
+    }
+}
+
+void BaseItem::setOwnerScale(float scale) {
+    reinterpret_cast<ItemView*>(this)->posture.setOwnerScale(scale);
+    reinterpret_cast<ItemVtableHypB4*>(this)->unkB4();
+}
+
+// Tells the parent of the item (link 5) that it was touched by this item, at the given position. When nobody
+// accepted the touch the "touch" work flag is cleared again.
+bool BaseItem::sendTouchMessage(int taskId, Vec3f* pos, float power) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    v->link.link(Link::No_Touch, taskId);
+    soLinkTouchItemEventArgs args(this, *pos, power, false);
+    v->link.sendEventParents(Link::No_Touch, args);
+    if (v->link.isLink(Link::No_Touch)) {
+        v->link.unlink(Link::No_Touch);
+    }
+    if (!args.m_0x1C) {
+        v->workManage.offFlag(0x22000005);
+    }
+    return args.m_0x1C;
+}
+
+void BaseItem::setModelScale(float scale) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    embedded<soModelModuleImpl>(this, kModelModule).setScale(scale * v->workManage.getFloat(Instance::Work::Float_Base_Scale));
+}
+
+bool BaseItem::notifyEventCollisionReflectorCheck() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    int soundId = v->workManage.getInt(0x1000001A);
+    if (soundId != 0) {
+        embedded<soSoundModule>(this, kSoundModule).playSE(static_cast<SndID>(soundId), false, false, 0);
+    }
+    return false;
 }
 
 // Entering water plays the item's water sound once (the Water flag remembers it); then the customizer and the life time run.

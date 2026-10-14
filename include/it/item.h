@@ -104,6 +104,7 @@ public:
         enum No {
             No_Have = 0x3,
             No_Target = 0x4,
+            No_Touch = 0x5, // HYPOTHESIS: the link sendTouchMessage uses
             No_TeamOwner = 0x6,
             No_CreateOwner = 0x7,
         };
@@ -428,6 +429,11 @@ public:
     void setTeam(int team);
     bool isCanInhaled();
     Vec3f getStartInhaledPos();
+    bool isSteal();
+    void setModelScale(float scale);
+    void updateOwnerScale(BaseItem* owner);
+    void setScaleAnimation(float scaleMax, float scaleMin, int nodeIndex, int counterLimit);
+    void requestAnimEvent(u32 frame);
     void setScale(float scale);
     void updateLifeTime();
 };
