@@ -1199,7 +1199,7 @@ void stDolpic::updateSE(float deltaFrame) {
             }
         } else if (timer > base) {
             if (m_seHandle[5] >= 0) {
-                fn_80075F1C(g_sndSystem, m_seHandle[5], 0xB4);
+                g_sndSystem->stopSE(static_cast<s32>(m_seHandle[5]), 0xB4);
                 m_seHandle[5] = -1;
             }
         }
