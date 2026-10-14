@@ -1,9 +1,12 @@
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/snake/ft_snake_builder.h>
+#include <ft/snake/ft_snake_extend_param_accesser.h>
 
 #define FT_BC ftSnakeBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+ftSnakeExtendParamAccesser g_ftSnakeExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_Snake, ftSnake> g_ftClassInfoSnake;
 

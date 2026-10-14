@@ -1,9 +1,12 @@
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/sonic/ft_sonic.h>
+#include <ft/sonic/ft_sonic_extend_param_accesser.h>
 
 #define FT_BC ftSonicBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+ftSonicExtendParamAccesser g_ftSonicExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_Sonic, ftSonic> g_ftClassInfoSonic;
 

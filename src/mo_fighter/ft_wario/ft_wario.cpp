@@ -1,9 +1,12 @@
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/wario/ft_wario_builder.h>
+#include <ft/wario/ft_wario_extend_param_accesser.h>
 
 #define FT_BC ftWarioBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+ftWarioExtendParamAccesser g_ftWarioExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_Wario, ftWario> g_ftClassInfoWario;
 

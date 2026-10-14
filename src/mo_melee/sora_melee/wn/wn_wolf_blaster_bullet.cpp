@@ -13,9 +13,9 @@ void wnWolfBlasterBullet::activate(int founderTaskId, int, int team, Vec3f* pos,
                                    float speed, float angle) {
     wnActivateDesc desc;
     desc.founderTaskId = founderTaskId;
-    desc.resourceId = -1;
-    desc.unk8 = -1;
-    desc.unkC = -1;
+    desc.resourceId = 0xFFFF;
+    desc.unk8 = 0xFFFF;
+    desc.unkC = 0xFFFF;
     desc.unk10 = -1;
     desc.unk14 = -1;
     desc.unk18 = 0;
@@ -35,8 +35,6 @@ void wnWolfBlasterBullet::activate(int founderTaskId, int, int team, Vec3f* pos,
     desc.flags = 0x88;
     // HYPOTHESIS: native retains the low six bits of this uninitialized byte.
     desc.unk4D &= 0x3F;
-    desc.unk4E[0] = 0;
-    desc.unk4E[1] = 0;
     Weapon::activate(&desc);
 
     m_moduleAccesser->getWorkManageModule().setFloat(0.001f, 0x11000001);
@@ -44,8 +42,9 @@ void wnWolfBlasterBullet::activate(int founderTaskId, int, int team, Vec3f* pos,
 
     Vec3f zeroPos(0.0f, 0.0f, 0.0f);
     Vec3f zeroRot(0.0f, 0.0f, 0.0f);
-    m_moduleAccesser->getEffectModule().reqFollow(effectId, 0, &zeroPos, &zeroRot,
+    u32 effect = m_moduleAccesser->getEffectModule().reqFollow(effectId, 0, &zeroPos, &zeroRot,
                                                   1.0f, false, 0, 0, -1);
+    m_moduleAccesser->getWorkManageModule().setInt(effect, 0x10000005);
 
     wnKineticEnergyNormal& energy = dynamic_cast<wnKineticEnergyNormal&>(
         *m_moduleAccesser->getKineticModule().getEnergy(0));
@@ -121,17 +120,20 @@ void wnWolfBlasterBullet::processUpdate() {
 }
 
 void wnWolfBlasterBullet::updateNodeSRT() {
-    soPostureModule& posture = m_moduleAccesser->getPostureModule();
-    Vec2f speed = m_moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
-    float lr = posture.getLr();
-    float angle = (float)atan2(speed.m_y, -speed.m_x * lr);
-
-    Vec3f position = posture.getPos();
-    Vec3f rotation = posture.getRot(0);
-    rotation.m_x = 57.29578f * angle + posture.getRotYLr();
-
-    float scaleValue = posture.getScale();
-    Vec3f scale(scaleValue, scaleValue, scaleValue);
+    Vec2f speed;
+    Vec2f::copy(speed, m_moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    float negativeLr = -m_moduleAccesser->getPostureModule().getLr();
+    float angle = (float)atan2(speed.m_y, speed.m_x * negativeLr);
+    Vec3f position = m_moduleAccesser->getPostureModule().getPos();
+    Vec3f rotation = m_moduleAccesser->getPostureModule().getRot(0);
+    rotation.m_x = 57.29578f * angle;
+    rotation.m_y += m_moduleAccesser->getPostureModule().getRotYLr();
+    float scaleValue = m_moduleAccesser->getPostureModule().getScale();
+    Vec3f scale;
+    // MATCH-ONLY: retain the original order of the local scale stores.
+    scale.m_z = scaleValue;
+    scale.m_y = scaleValue;
+    scale.m_x = scaleValue;
     scale.m_z *= m_moduleAccesser->getWorkManageModule().getFloat(0x11000001);
     m_moduleAccesser->getModelModule().setNodeSRT(0, &scale, &rotation, &position);
 }
