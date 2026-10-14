@@ -1,10 +1,16 @@
+#define WN_WEAPON_BUILDER
+#define WN_ARTICLE_NATIVE_BUILDERS
+#define WN_SHARED_ARRAYS_1
+#define WN_ARTICLE_ANIMCMD_INT
+#define FT_REL_LINK_EXTERN
 #define WN_KINETIC_GENERIC_BUILDER
+#define WN_KINETIC_NORMAL_HOLDER_DEFAULT
+#define WN_KINETIC_NORMAL_EXTERN
 #define MT_VEC2F_ASSIGN_NOINLINE
 #define MT_VEC3F_CTOR_NOINLINE
-#define MT_VEC2F_CTOR_NOINLINE
+#include <wn/pikmin/wn_pikmin_dolfin.h>
 #include <cm/cm_camera_controller.h>
 #include <cm/cm_controller_ai.h>
-#include <ft/ft_manager.h>
 #include <gf/gf_camera.h>
 #include <math.h>
 #include <mt/mt_common.h>
@@ -25,8 +31,18 @@
 #include <so/work/so_work_manage_module_impl.h>
 #include <st/stage.h>
 #include <types.h>
-#include <wn/pikmin/wn_pikmin_dolfin.h>
+#include <wn/pikmin/wn_pikmin_dolfin_status_uniq_process_common.h>
 #include <wn/wn_activate_desc.h>
+
+// The fighter manager entry points of the final smash (declared here: ft/ft_manager.h cannot be included after the article
+// builder headers, it re-specializes the event unit instance manager).
+class ftManager {
+public:
+    void notifyEventPikminFinalAttack(float rate, int count);
+    void setFinalStatus(int status);
+    void cancelFinalStatus();
+};
+extern ftManager* g_ftManager;
 
 // Photo-mode controller used by the Dolfin exit path (defined in sora_melee so_photo_call_back.cpp).
 class soPhotoController {
@@ -106,6 +122,22 @@ public:
 };
 
 extern "C" wnDolfinStageHook* lbl_27_bss_5668;
+
+wnPikminDolfin::wnPikminDolfin(s32 articleId, const wnArticleBuildInfo& info, const wnPikminDolfinData* data) :
+    wnWeaponBuilder<wnPikminDolfinModuleAccesserBuildConfig>(
+        "PikminDolfin", articleId, info,
+        wnModuleAccesserBuildData(0x81, data, info.heapModule->getInstanceHeap(), Heaps::FighterTechqniq,
+                                  info.heapModule->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
+                                  (s32)&data->unk38, 0, 0, 0, 0, 0, 0)),
+    m_param(data->m_param), m_paramAccesser(data->m_param), m_startPos(0.0f, 0.0f, 0.0f) {
+    m_moduleAccesser->getCollisionHitModule().add((soSet<soCollisionHitData>*)&data->m_hitDataStorage, 0);
+    soStatusUniqProcess* uniqProcs[5] = { 0, 0, 0, 0, 0 };
+    uniqProcs[1] = &g_wnPikminDolfinStatusUniqProcessCommon;
+    uniqProcs[2] = &g_wnPikminDolfinStatusUniqProcessCommon;
+    uniqProcs[3] = &g_wnPikminDolfinStatusUniqProcessCommon;
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(uniqProcs, 5);
+    Weapon::deactivate(false);
+}
 
 void wnPikminDolfin::activate(int founderTaskId, int kind, int team, Vec3f* pos) {
     wnActivateDesc desc;
@@ -281,7 +313,7 @@ void wnPikminDolfin::processFixPosition() {
     }
 }
 
-bool wnPikminDolfin::notifyEventCollisionAttackCheck() {
+bool wnPikminDolfin::notifyEventCollisionAttackCheck(u32 attackKind) {
     return false;
 }
 

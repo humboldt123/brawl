@@ -55,3 +55,11 @@ public:
     virtual void reqTipEffect(soModuleAccesser*, soCollisionLog*) { }
     #endif
 };
+
+// The shared instance (a sora_melee object) that the article builders pass to their damage module.
+extern soDamageEffectorNull g_soDamageEffectorNull;
+template <typename T> class soSingletonHolder;
+template <> class soSingletonHolder<soDamageEffectorNull> {
+public:
+    static soDamageEffectorNull* getInstance() { return &g_soDamageEffectorNull; }
+};

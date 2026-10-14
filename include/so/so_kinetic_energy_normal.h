@@ -12,6 +12,26 @@ class soModuleAccesser;
 class soKineticEnergyNormal : public soKineticEnergy {
 public:
 #ifdef WN_KINETIC_GENERIC_BUILDER
+#ifdef WN_KINETIC_NORMAL_EXTERN
+    // MATCH-ONLY: the Pikmin Dolfin article calls the sora_melee constructor and assignment (declarations only).
+    soKineticEnergyNormal(const Vec2f& speed, const Vec2f& accel,
+                          const Vec2f& target, const Vec2f& brake,
+                          const Vec2f& limit, bool unk30, bool friction);
+    soKineticEnergyNormal& operator=(const soKineticEnergyNormal& other);
+    // MATCH-ONLY: the same constructor expanded inline where the pool holder builds its energy (the native holder passes
+    // five constructed vectors to the inlined constructor; the extra tag only selects this overload).
+    soKineticEnergyNormal(const Vec2f& speed, const Vec2f& accel, const Vec2f& target, const Vec2f& brake, const Vec2f& limit,
+                          bool unk30, bool friction, int) : soKineticEnergy(false) {
+        Vec2f::copy(m_speed, speed);
+        Vec2f::copy(m_accel, accel);
+        Vec2f::copy(m_speedTarget, target);
+        Vec2f::copy(m_brake, brake);
+        Vec2f::copy(m_speedLimit, limit);
+        m_unk30 = unk30;
+        m_considerGroundFriction = friction;
+        m_unk32 = true;
+    }
+#else
     // Diddy's holders call the five-vector constructor as a separate function.
     // HYPOTHESIS: the first byte flag retains its unknown source meaning.
     soKineticEnergyNormal(const Vec2f& speed, const Vec2f& accel,
@@ -40,6 +60,7 @@ public:
         m_unk32 = other.m_unk32;
         return *this;
     }
+#endif
 #endif
     soKineticEnergyNormal() {
         // MATCH-ONLY: the original builds all default vectors first and then copies them member by member.

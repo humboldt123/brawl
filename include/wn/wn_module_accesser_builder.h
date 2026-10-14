@@ -44,6 +44,7 @@ FT_DOL_ARRAY_VECTOR(soLinkConnection, 5);
 FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 2);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soAnimCmdControlUnit>, 6);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 8);
+FT_DOL_ARRAY_VECTOR(soOtherAnim, 2);
 
 #ifdef WN_SHARED_ARRAYS_1
 // These article builders call sora_melee-owned constructors and virtual methods.
@@ -368,6 +369,26 @@ public:
     soControllerModuleBuilder(soModuleAccesser*, s16) { }
     soControllerModule* getModule() { return (soControllerModule*)lbl_27_bss_47C; }
 };
+// Controller of an article that reads its owner's controller (the Pikmin articles): no controller or clatter slots of its own.
+// HYPOTHESIS: the source spelling is soControllerModuleBuildConfig<Module, Controllers, Clatters> (map name); the fighters'
+// one-argument placeholder owns that template name.
+template <typename T, s32 Controllers, s32 Clatters>
+class wnControllerModuleBuildConfig {
+public:
+    typedef T ModuleType;
+};
+
+template <typename T>
+class soControllerModuleBuilder<wnControllerModuleBuildConfig<T, 0, 0> > {
+    soSingletonHolder<soArrayNull<soControllerImpl> > m_controllers;
+    soSingletonHolder<soArrayNull<soControllerClatter> > m_clatters;
+    T m_controllerModule;
+public:
+    soControllerModuleBuilder(soModuleAccesser* acc, s16 manageId) :
+        m_controllerModule(acc, manageId, soSingletonHolder<soArrayNull<soControllerImpl> >::getInstance(),
+                           soSingletonHolder<soArrayNull<soControllerClatter> >::getInstance()) { }
+    T* getModule() { return &m_controllerModule; }
+};
 template <>
 class soCameraModuleBuilder<soCameraModuleBuildConfigNull> {
 public:
@@ -499,6 +520,34 @@ public:
     soMotionModule* getModule() { return &m_module; }
 };
 
+// Articles with two other-animation slots use the shared null cache as well.
+template <u32 DataNum, typename T, typename TransitionConfig>
+class soMotionModuleBuilder<soMotionModuleBuildConfig<DataNum, T, 0, 2, TransitionConfig,
+                                                      soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > > {
+    soTransitionModuleBuilder<TransitionConfig> m_transitionBuilder;
+    soSingletonHolder<soArrayNull<soPartialAnim> > m_partialAnims;
+    soArraySelectHolder<1, soArrayVector<soOtherAnim, 2>, soSingletonHolder<soArrayNull<soOtherAnim> > > m_otherAnims;
+    soSingletonHolder<soArrayNull<soTransitionTermPack> > m_termPacks;
+    soSingletonHolder<soArrayNull<u32> > m_u32s;
+    soArrayContractibleTable<soMotionDataConst> m_motionData;
+    soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> m_cache;
+    T m_module;
+public:
+    soMotionModuleBuilder(soModuleAccesser* acc, void* motionData) :
+        m_transitionBuilder(), m_otherAnims(2, 0),
+        m_motionData((const soMotionData*)motionData, DataNum),
+        m_module(acc, &m_motionData, m_transitionBuilder.getModule(),
+                 soSingletonHolder<soArrayNull<soPartialAnim> >::getInstance(), m_otherAnims.get(),
+                 (soArray<soTransitionTermPack>*)lbl_27_bss_9BC,
+                 soSingletonHolder<soArrayNull<u32> >::getInstance(),
+                 static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(), false,
+                 (soMotionAnimObjCacheModule*)lbl_27_bss_DBC) {
+        acc->getModelModule().isNull();
+    }
+    ~soMotionModuleBuilder() { }
+    soMotionModule* getModule() { return &m_module; }
+};
+
 // Model without virtual nodes: see so/so_module_accesser_builder.h.
 
 
@@ -582,6 +631,24 @@ public:
     soSoundModuleBuilder(soModuleAccesser* acc, soSoundIdExchanger* exchanger, soEventObserverRegistrationDesc* regDesc) :
         m_generator(), m_soundModule(acc, &m_generator, exchanger, true, false, regDesc) { }
     T* getModule() { return &m_soundModule; }
+};
+
+// Shadow of an article: the plain module with a fixed size scale.
+// HYPOTHESIS: source spelling soShadowModuleBuildConfig<Module> with the scale taken from the builder; the fighters' builder
+// passes 0.0 and owns that template name.
+template <typename T>
+class wnShadowModuleBuildConfig {
+public:
+    typedef T ModuleType;
+};
+
+template <typename T>
+class soShadowModuleBuilder<wnShadowModuleBuildConfig<T> > {
+    u8 unk0; // HYPOTHESIS: an empty selection member (the module starts one word later)
+    T m_module;
+public:
+    soShadowModuleBuilder(soModuleAccesser* acc) : m_module(acc, 10.0f, 0) { }
+    T* getModule() { return &m_module; }
 };
 
 // Visibility with the simple module.

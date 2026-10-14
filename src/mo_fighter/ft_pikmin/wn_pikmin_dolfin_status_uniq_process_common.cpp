@@ -1,17 +1,11 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-#include <so/status/so_status_module_impl.h>
+#include <wn/pikmin/wn_pikmin_dolfin_status_uniq_process_common.h>
 #include <types.h>
 
 // Photo-mode controller used by the Dolfin exit path (defined in sora_melee so_photo_call_back.cpp).
 class soPhotoController {
 public:
     bool setFreezeMode();
-};
-
-class wnPikminDolfinStatusUniqProcessCommon : public soStatusUniqProcess {
-public:
-    virtual ~wnPikminDolfinStatusUniqProcessCommon() { }
-    virtual void exitStatus(soModuleAccesser* moduleAccesser, int);
 };
 
 wnPikminDolfinStatusUniqProcessCommon g_wnPikminDolfinStatusUniqProcessCommon;

@@ -11,6 +11,10 @@ class soControllerModuleLinkRef : public soControllerModuleImpl {
     soModuleAccesser* m_moAccessor;
     soController* m_lkController;
 public:
+    // The article builders construct this module in place: the base constructor takes the manage id, the (null) controller
+    // array in place of an int, and the clatter array.
+    soControllerModuleLinkRef(soModuleAccesser* acc, s16 manageID, soArray<soControllerImpl>* controllers, soArray<soControllerClatter>* clatters) :
+        soControllerModuleImpl(manageID, (int)controllers, clatters), m_moAccessor(acc), m_lkController(0) { }
     virtual ~soControllerModuleLinkRef();
     virtual void resetButton();
     virtual void resetTrigger();

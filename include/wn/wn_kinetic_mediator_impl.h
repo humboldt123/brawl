@@ -30,6 +30,8 @@ public:
     E* getEnergy() { return &m_energy; }
 };
 
+// MATCH-ONLY: the Diddy barrel builds its normal energies with the out-of-line five-vector constructor; units that define
+// WN_KINETIC_NORMAL_HOLDER_DEFAULT expand the constructor inline (tagged overload) instead.
 template <typename Next, typename InitInfo>
 class soKineticEnergyHolder<soKineticEnergyNormal, Next, InitInfo> {
 public:
@@ -38,9 +40,15 @@ public:
 private:
     soKineticEnergyNormal m_energy;
 public:
+#ifdef WN_KINETIC_NORMAL_HOLDER_DEFAULT
+    soKineticEnergyHolder(soModuleAccesser* acc) :
+        m_energy(Vec2f(0.0f, 0.0f), Vec2f(0.0f, 0.0f), Vec2f(-1.0f, -1.0f),
+                 Vec2f(0.0f, 0.0f), Vec2f(-1.0f, -1.0f), false, false, 0) {
+#else
     soKineticEnergyHolder(soModuleAccesser* acc) :
         m_energy(Vec2f(0.0f, 0.0f), Vec2f(0.0f, 0.0f), Vec2f(-1.0f, -1.0f),
                  Vec2f(0.0f, 0.0f), Vec2f(-1.0f, -1.0f), false, false) {
+#endif
         acc->getKineticModule().addEnergy(&m_energy, InitInfo::EnergyIndex,
             soKineticEnergy::AttributeFlag(InitInfo::EnergyAttribute), -1);
         m_energy.disable();
