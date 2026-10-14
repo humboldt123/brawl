@@ -19,6 +19,9 @@ public:
     void updateMeleeFix(float p1);
     void resetDevilOffset();
     void accDevilOffset(Vec2f*);
+    // HYPOTHESIS: sets the camera offset of the scripted camera (a rotation offset and a position offset); only the Pikmin
+    // final smash article calls it.
+    void setUserOffset(const Vec3f& rot, const Vec2f& pos);
 
 };
 static_assert(sizeof(cmAIController) == 0x198, "Class is wrong size!");
