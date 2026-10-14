@@ -11,6 +11,10 @@
 #include <so/sound/so_sound_module_impl.h>
 #include <so/area/so_area_enviroment_element_checker_impl.h>
 #include <so/so_slow.h>
+#include <cm/cm_camera_controller.h>
+#include <so/effect/so_effect_module_impl.h>
+#include <so/model/so_model_module_impl.h>
+#include <so/visibility/so_visibility_module_simple.h>
 #include <so/team/so_team.h>
 #include <so/event/so_event_manage_module_impl.h>
 #include <so/work/so_work_manage_module_impl.h>
@@ -33,6 +37,7 @@ struct ItValueAccesserHyp {
     virtual void unk14();
     virtual void unk18();
     virtual float getFloat(soModuleAccesser* accesser, int id, int unk);
+    virtual int getInt(soModuleAccesser* accesser, int id, int unk);
 };
 extern char itValueAccesserGlobalStorage[];
 #define itValueAccesserGlobal (*reinterpret_cast<ItValueAccesserHyp*>(itValueAccesserGlobalStorage))
@@ -102,7 +107,9 @@ struct ItemView {
     soItemAttackModuleHyp attack; // 0x15C0
     IT_PAD(pad2b, 0x15C0 + sizeof(soItemAttackModuleHyp), 0x27A8);
     soLinkModuleImpl link; // 0x27A8
-    IT_PAD(pad3, 0x27A8 + sizeof(soLinkModuleImpl), 0x297C);
+    IT_PAD(pad3a, 0x27A8 + sizeof(soLinkModuleImpl), 0x27FC);
+    soVisibilityModuleSimple visibility; // 0x27FC
+    IT_PAD(pad3b, 0x27FC + sizeof(soVisibilityModuleSimple), 0x297C);
     soArrayVector<s32, 31> intWork; // 0x297C
     IT_PAD(pad4, 0x297C + sizeof(soArrayVector<s32, 31>), 0x2AAC);
     soWorkManageModuleImpl workManage; // 0x2AAC
@@ -110,13 +117,38 @@ struct ItemView {
     soStatusModuleImpl status; // 0x2C34
     IT_PAD(pad6, 0x2C34 + sizeof(soStatusModuleImpl), 0x3474);
     itKineticModuleImpl kinetic; // 0x3474
-    IT_PAD(pad7, 0x3474 + sizeof(itKineticModuleImpl), 0x3A68);
+    IT_PAD(pad7a, 0x3474 + sizeof(itKineticModuleImpl), 0x38CC);
+    soEffectModuleImpl effect; // 0x38CC
+    IT_PAD(pad7b, 0x38CC + sizeof(soEffectModuleImpl), 0x3A68);
     soAreaModuleImpl area; // 0x3A68
     soArrayVector<soAreaInstance, 3> areaInstances; // 0x3AB4
 };
 inline ItemView& view(BaseItem* item) {
     return *reinterpret_cast<ItemView*>(item);
 }
+
+
+// HYPOTHESIS: the edges of the camera range the item checks itself against (CameraController 0x148..0x154).
+struct cmCameraControllerHyp {
+    u8 pad[0x148];
+    float left;
+    float right;
+    float top;
+    float bottom;
+};
+
+// HYPOTHESIS: the object whose vptr sits at +0x3C, reduced to the 135 slots in front of the one updateLifeTime calls.
+#define IT_V4(n) virtual void n##0(); virtual void n##1(); virtual void n##2(); virtual void n##3();
+#define IT_V16(n) IT_V4(n##a) IT_V4(n##b) IT_V4(n##c) IT_V4(n##d)
+struct ItemVtableHypPad {
+    u8 pad[0x3C];
+};
+struct ItemVtableHyp : ItemVtableHypPad {
+    IT_V16(s0) IT_V16(s1) IT_V16(s2) IT_V16(s3) IT_V16(s4) IT_V16(s5) IT_V16(s6) IT_V16(s7)
+    IT_V4(t) virtual void t4(); virtual void t5(); virtual void t6();
+   
+    virtual void unk224(bool prev);
+};
 
 namespace {
 // HYPOTHESIS: the modules that BaseItem::BaseItem builds inline, by offset in the item (module accesser at 0xCC).
@@ -549,24 +581,109 @@ void BaseItem::renderPre() {
     m_customizer->onRenderPre(this);
 }
 
+// The item's remaining life time ticks down while it lies on the ground (or is marked to vanish); it blinks (the scale
+// animation counter) before it is gone. While not held, it also hides itself when it leaves the camera range.
+void BaseItem::updateLifeTime() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    soWorkManageModuleImpl* work = &v->workManage;
+    int statusKind = v->status.getStatusKind();
+    *(reinterpret_cast<u8*>(this) + 0x3D25) = 0;
+    int lifeTime = work->getInt(Instance::Work::Int_Life_Time);
+    if (lifeTime > 0) {
+        u32 vanish = work->isFlag(Instance::Work::Flag_Vanish);
+        if (vanish != 0 && (static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x4C00) == 0) {
+            u32 landed = v->kinetic.isTouchDown(*reinterpret_cast<int*>(reinterpret_cast<u8*>(this) + 0x60));
+            if (landed != 0) {
+                int held = (moduleAccesser.getStatusModule().getStatusKind() == 2) ? 1 : v->link.isLink(Link::No_Have);
+                landed = (held == 0);
+            }
+            if (landed == 0) {
+                landed = work->isFlag(Instance::Work::Flag_Ground_Lost);
+            }
+            vanish = landed;
+        }
+        bool counts = true;
+        u32 shifted = statusKind - 2;
+        if (shifted <= 5 && ((1 << shifted) & 0x31) != 0) {
+            counts = false;
+        }
+        if ((counts && itValueAccesserGlobal.getInt(&moduleAccesser, 0x5B6F, 0) == 1 &&
+             lifeTime < itValueAccesserGlobal.getInt(&moduleAccesser, 0x59D9, 0)) ||
+            work->isFlag(Instance::Work::Flag_Auto_Play_Lost_Effect)) {
+            bool prev = *(reinterpret_cast<u8*>(this) + 0x3D24) != 0;
+            if (vanish == 0 && !work->isFlag(Instance::Work::Flag_Auto_Play_Lost_Effect)) {
+                *(reinterpret_cast<u8*>(this) + 0x3D24) = 1;
+            } else {
+                *(reinterpret_cast<u8*>(this) + 0x3D25) = 1;
+            }
+            // HYPOTHESIS: slot 0x224 of the StageObject vtable (vptr at 0x3C) takes the previous blink state.
+            reinterpret_cast<ItemVtableHyp*>(this)->unk224(prev);
+        }
+        if (vanish != 0) {
+            work->setInt(lifeTime - 1, Instance::Work::Int_Life_Time);
+            if (lifeTime - 1 <= 0) {
+                v->status.changeStatusRequest(Status::Lost, &moduleAccesser);
+                return;
+            }
+        }
+    }
+    const s32* flags = &static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8);
+    if ((*flags & 0xC00) != 0 && ((flags = &static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8)), true) &&
+        ((*flags & 0x8000000) | (*flags & 0x4000)) == 0) {
+        bool held = moduleAccesser.getStatusModule().getStatusKind() == 2 ? true : v->link.isLink(Link::No_Have);
+        if (!held && moduleAccesser.getStatusModule().getStatusKind() != 6 &&
+            *(reinterpret_cast<u8*>(this) + 0x3D26) == 0) {
+            bool visible = true;
+            cmCameraControllerHyp* camera = reinterpret_cast<cmCameraControllerHyp*>(CameraController::getInstance());
+            if (camera != NULL) {
+                Vec3f pos = v->posture.getPos();
+                pos.m_x += *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x28BC);
+                pos.m_y += *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x28C0);
+                float postureScale = v->posture.getScale();
+                float modelScale = embedded<soModelModuleImpl>(this, kModelModule).getScale();
+                float scaled = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x28C8) * modelScale;
+                float radius = scaled * postureScale * 1.25f + 25.0f;
+                camera = reinterpret_cast<cmCameraControllerHyp*>(CameraController::getInstance());
+                if (pos.m_x + radius < camera->left || pos.m_x - radius > camera->right ||
+                    pos.m_y - radius > camera->top || pos.m_y + radius < camera->bottom) {
+                    visible = false;
+                }
+            }
+            if (visible != v->visibility.isVisible()) {
+                bool sync = false;
+                if (m_kind == 0x6A || (m_kind < 0x6A && m_kind == 0x67)) {
+                    sync = true;
+                }
+                v->visibility.setWhole(visible);
+                embedded<soEffectModuleImpl>(this, 0x38CC)
+                    .setSyncVisibility(visible ? *reinterpret_cast<bool*>(reinterpret_cast<u8*>(this) + 0x3D27) : sync);
+            }
+        }
+    }
+}
+
 // Entering water plays the item's water sound once (the Water flag remembers it); then the customizer and the life time run.
 void BaseItem::processHit() {
     ItemView* v = reinterpret_cast<ItemView*>(this);
     StageObject::processHit();
-    int statusKind = moduleAccesser.getStatusModule().getStatusKind();
+    bool standby = moduleAccesser.getStatusModule().getStatusKind() == Status::Standby;
+    soSlow* slow = soSlow::getInstance();
     bool run = false;
-    if (soSlow::getInstance()->isEstimate() == 1 && statusKind != Status::Standby) {
+    if (slow->isEstimate() == 1 && !standby) {
         run = true;
     }
     if (run) {
-        if (!v->area.getEnviromentElementChecker()->isWater()) {
-            v->workManage.setFlag(false, Instance::Work::Flag_Water);
-        } else if (!v->workManage.isFlag(Instance::Work::Flag_Water)) {
-            v->workManage.setFlag(true, Instance::Work::Flag_Water);
-            int soundId = v->workManage.getInt(Instance::Work::Int_SE_Water_Id);
-            if (soundId != 0) {
-                embedded<soSoundModule>(this, kSoundModule).playSE(static_cast<SndID>(soundId), false, 0, 0);
+        soWorkManageModuleImpl* work = &v->workManage;
+        if (v->area.getEnviromentElementChecker()->isWater()) {
+            if (!work->isFlag(Instance::Work::Flag_Water)) {
+                work->setFlag(true, Instance::Work::Flag_Water);
+                int soundId = work->getInt(Instance::Work::Int_SE_Water_Id);
+                if (soundId != 0) {
+                    embedded<soSoundModule>(this, kSoundModule).playSE(static_cast<SndID>(soundId), false, 0, 0);
+                }
             }
+        } else {
+            work->setFlag(false, Instance::Work::Flag_Water);
         }
     }
     m_customizer->onProcessHit(this);
