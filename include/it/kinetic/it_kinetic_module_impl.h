@@ -16,6 +16,8 @@ public:
     using soKineticModuleImpl::addSpeed;
     // HYPOTHESIS: the argument is the item's task-related int at +0x60 (only BaseItem::updateLifeTime calls it).
     bool isTouchDown(int);
+    // HYPOTHESIS: refreshes the on-ground flag of the kinetic energies (called from BaseItem::processFixPosition).
+    void updateGroundFlag(soModuleAccesser* moduleAccesser, bool unk);
     virtual void activate();
     virtual void updateEnergy(soModuleAccesser* moduleAccesser, soKineticEnergy::AttributeFlag);
     virtual Vec2f getSumSpeed(soKineticEnergy::AttributeFlag);

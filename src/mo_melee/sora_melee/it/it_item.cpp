@@ -15,6 +15,7 @@
 #include <so/collision/so_collision_hit_module_impl.h>
 #include <mt/mt_prng.h>
 #include <math.h>
+#include <so/ground/so_ground_util.h>
 #include <mt/mt_common.h>
 #include <so/area/so_area_enviroment_element_checker_impl.h>
 #include <so/so_slow.h>
@@ -118,7 +119,7 @@ struct soItemAttackModuleHyp {
     virtual void setSpeed(Vec2f* speed);
     virtual void unkB0();
     virtual void setPowerMulStatus(float powerMulStatus);
-    virtual void unkB8();
+    virtual float getPowerMulStatus();
     virtual void setSpeedPowerAdd(float);
     virtual float getSpeedPowerCoef();
     virtual void setSpeedPowerMul(float);
@@ -1616,6 +1617,159 @@ void BaseItem::updateScaleAnim() {
             work->setInt(Scale::Anim_Keep, Instance::Work::Int_Scale_Anim_Type);
             work->setInt(0, Instance::Work::Int_Scale_Anim_Counter);
             work->setInt(-1, Instance::Work::Int_Scale_Anim_Counter_Limit);
+        }
+    }
+}
+
+// Items that end up outside the dead area (or too high, or far away in the "Free" mode) are lost; the mode comes from the
+// item manager (the field at +0x50) and the item parameters.
+void BaseItem::processGameProc() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    m_customizer->onProcessGameProc(this);
+    if (soSlow::getInstance()->isEstimate() == 1 && moduleAccesser.getStatusModule().getStatusKind() != 0 &&
+        embedded<soSituationModule>(this, kSituationModule).getKind() != Situation_Outfield) {
+        soWorkManageModuleImpl* work = &v->workManage;
+        bool checked = true;
+        if (*reinterpret_cast<int*>(reinterpret_cast<u8*>(itManager::getInstance()) + 0x50) != 1 &&
+            !work->isFlag(Instance::Work::Flag_Vanish)) {
+            checked = false;
+        }
+        int deadMode;
+        if (checked && m_customizer->isSafe(this) &&
+            (deadMode = itValueAccesserGlobal.getInt(&moduleAccesser, 0x5B74, 0)) != 0 &&
+            moduleAccesser.getStatusModule().getStatusKind() != 6) {
+            Vec3f posCheck = v->posture.getPos();
+            int dead = soGroundUtil::checkDeadArea(&posCheck, 0.0f, 0.0f);
+            if (dead == 0 && deadMode != 3) {
+                dead = -1;
+            }
+            bool outside = false;
+            if (dead != -1 || v->posture.getPos().m_y > 300.0f) {
+                outside = true;
+            }
+            if (outside) {
+                int held;
+                if (moduleAccesser.getStatusModule().getStatusKind() == 2) {
+                    held = 1;
+                } else {
+                    held = v->link.isLink(Link::No_Have);
+                }
+                if (held == 0) {
+                    bool keep = false;
+                    if (deadMode == 2 && work->getInt(0x1000000A) > 0) {
+                        keep = true;
+                    }
+                    if (!keep) {
+                        v->status.changeStatusRequest(6, &moduleAccesser);
+                        return;
+                    }
+                }
+            }
+        }
+        if (*reinterpret_cast<int*>(reinterpret_cast<u8*>(itManager::getInstance()) + 0x50) == 2) {
+            Vec3f far = v->posture.getPos();
+            if (4096.0f < static_cast<float>(__fabs(far.m_x)) || 4096.0f < static_cast<float>(__fabs(far.m_y)) ||
+                4096.0f < static_cast<float>(__fabs(far.m_z))) {
+                v->status.changeStatusRequest(6, &moduleAccesser);
+            }
+        }
+    }
+}
+
+// The position pass of the item: runs the customizer, counts down the timers kept in the work values (the two animation
+// timers, the life time, the reflect counter) and decides when a reflecting item is lost.
+void BaseItem::processFixPosition() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    if (moduleAccesser.getStatusModule().getStatusKind() == 0) {
+        StageObject::processFixPosition();
+        return;
+    }
+    if (!m_customizer->onProcessFixPosition(this)) {
+        return;
+    }
+    soWorkManageModuleImpl* work = &v->workManage;
+    if (soSlow::getInstance()->isAdjust() == 1) {
+        v->kinetic.updateGroundFlag(&moduleAccesser, true);
+    }
+    if (soSlow::getInstance()->isEstimate() == 1) {
+        int timer = work->getInt(0x1000000B);
+        if (0 < timer) {
+            int left = timer - 1;
+            work->setInt(left, 0x1000000B);
+            if (left == 0) {
+                work->setInt(1, Instance::Work::Int_Bound_Flag);
+                v->animCmd.resetInterpreter2(0.0f, 5, &moduleAccesser, 2);
+                v->animCmd.interpretCmd1(2.0f, 5, &moduleAccesser);
+            }
+        }
+        timer = work->getInt(0x1000000C);
+        if (0 < timer) {
+            int left = timer - 1;
+            work->setInt(left, 0x1000000C);
+            if (left == 0) {
+                work->setInt(2, Instance::Work::Int_Bound_Flag);
+                v->animCmd.resetInterpreter2(0.0f, 5, &moduleAccesser, 2);
+                v->animCmd.interpretCmd1(2.0f, 5, &moduleAccesser);
+            }
+        }
+        int frames = work->getInt(0x1000001C);
+        if (0 < frames + 1) {
+            work->setInt(frames + 1, 0x1000001C);
+        }
+        if (work->isFlag(Instance::Work::Flag_Reflect_Ground)) {
+            int reflectCount = work->getInt(0x10000017);
+            reflectCount = reflectCount + 1;
+            work->setInt(reflectCount, 0x10000017);
+            if ((static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x4000) == 0) {
+                v->animCmd.resetInterpreter2(0.0f, 4, &moduleAccesser, 1);
+            }
+            if (moduleAccesser.getStatusModule().getStatusKind() == 5) {
+                u32 scaleBits = static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x10000F;
+                u32 scaled = -scaleBits >> 31;
+                if (m_kind == 0x57) {
+                    scaled = 0;
+                }
+                if (scaled != 0) {
+                    float power = v->attack.getPowerMulStatus();
+                    float mul = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD62, 0);
+                    v->attack.setPowerMulStatus(power * mul);
+                }
+                if ((static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x815D01) == 0) {
+                    int limit = itValueAccesserGlobal.getInt(&moduleAccesser, 0x59DA, 0);
+                    if (limit <= reflectCount) {
+                        v->status.changeStatusRequest(6, &moduleAccesser);
+                        return;
+                    }
+                    if (1 < reflectCount) {
+                        int chance = itValueAccesserGlobal.getInt(&moduleAccesser, 0x59DB, 0);
+                        if (randi(100) < chance) {
+                            v->status.changeStatusRequest(6, &moduleAccesser);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    StageObject::processFixPosition();
+    if (m_alive) {
+        updateScaleAnim();
+        int life;
+        if (soSlow::getInstance()->isEstimate() == 1 && (life = work->getInt(0x1000000A)) > 0) {
+            life = life - 1;
+            work->setInt(life, 0x1000000A);
+            if (moduleAccesser.getStatusModule().getStatusKind() != 2) {
+                int a = itValueAccesserGlobal.getInt(&moduleAccesser, 0x59DD, 0);
+                int b = itValueAccesserGlobal.getInt(&moduleAccesser, 0x59DC, 0);
+                int diff = life - (b - a);
+                if (life == 0) {
+                    v->hit.setWhole(0, 0);
+                    diff = 0;
+                }
+                if (diff == 0 && v->areaInstances.size() > 2) {
+                    v->area.enableArea(2, *(reinterpret_cast<u8*>(this) + kPickUpAreaRequested), -1);
+                }
+            }
         }
     }
 }
