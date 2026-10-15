@@ -10,6 +10,9 @@
 #define MT_VEC3F_MUL_INLINE // paired-single Vec3f scale, as in the original code
 #include <it/item.h>
 #include <so/sound/so_sound_module_impl.h>
+#include <so/collision/so_collision_hit_module_impl.h>
+#include <mt/mt_prng.h>
+#include <mt/mt_common.h>
 #include <so/area/so_area_enviroment_element_checker_impl.h>
 #include <so/so_slow.h>
 #include <cm/cm_camera_controller.h>
@@ -120,7 +123,9 @@ struct ItemView {
     soGroundModuleImpl ground; // 0xE7C
     IT_PAD(pad2a, 0xE7C + sizeof(soGroundModuleImpl), 0x15C0);
     soItemAttackModuleHyp attack; // 0x15C0
-    IT_PAD(pad2b, 0x15C0 + sizeof(soItemAttackModuleHyp), 0x27A8);
+    IT_PAD(pad2b, 0x15C0 + sizeof(soItemAttackModuleHyp), 0x19CC);
+    soCollisionHitModuleImpl hit; // 0x19CC
+    IT_PAD(pad2c, 0x19CC + sizeof(soCollisionHitModuleImpl), 0x27A8);
     soLinkModuleImpl link; // 0x27A8
     IT_PAD(pad3a, 0x27A8 + sizeof(soLinkModuleImpl), 0x27FC);
     soVisibilityModuleSimple visibility; // 0x27FC
@@ -1187,6 +1192,135 @@ void BaseItem::fall(Vec3f* velocity, float lr) {
         v->attack.setSpeed(&arg);
         v->attack.setSpeedPowerAdd(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD6F, 0));
         v->attack.setSpeedPowerMul(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD70, 0));
+    }
+}
+
+// Plays the lost animation command group that fits how the item is lost, and its sound.
+void BaseItem::reqLostEffect() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    int group = -1;
+    const s32* flagsPtr = &static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8);
+    u32 flags = *flagsPtr;
+    if ((flags & 0x4000) == 0) {
+        if ((flags & 0x800) != 0) {
+            group = 3;
+        } else {
+            group = 2;
+            if ((flags & 0x400) != 0) {
+                group = 4;
+            }
+        }
+    }
+    if (group != -1) {
+        v->animCmd.resetInterpreter2(0.0f, 4, &moduleAccesser, group);
+        v->animCmd.interpretCmd1(group, 4, &moduleAccesser);
+    }
+    int soundId = v->workManage.getInt(0x1000001B);
+    if (soundId != 0) {
+        embedded<soSoundModule>(this, kSoundModule).playSE(static_cast<SndID>(soundId), false, true, 0);
+    }
+}
+
+// Pops the item out at the position: a random upward and sideways speed scaled by the item parameters (the mode picks
+// how much of it is used), plus the spin from the throw parameters.
+void BaseItem::appear(Vec3f* position, int mode, float speed) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    v->posture.setPos(position);
+    Vec3f vel;
+    vel.m_y = randaf() + 1.5f;
+    vel.m_x = 0.0f;
+    vel.m_z = 0.0f;
+    float xSpeed = (speed == 0.0f) ? randaf() : speed;
+    vel.m_x = xSpeed;
+    float limit = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD50, 0) * 30.0f;
+    if (limit > itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD51, 0)) {
+        limit = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD51, 0);
+    }
+    limit *= 0.4f;
+    float horizontal = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD6B, 0) * 100.0f;
+    if (horizontal > 1.0f) {
+        horizontal = 1.0f;
+    }
+    vel.m_x = vel.m_x * (horizontal * (limit * 0.7f + 0.3f) * 0.8f + 0.2f);
+    vel.m_y = vel.m_y * (limit * 0.8f + 0.2f);
+    switch (mode) {
+    case 0:
+        vel.m_x = 0.0f;
+        vel.m_y = 0.0f;
+        break;
+    case 1:
+        vel.m_y = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD52, 0);
+        break;
+    case 2:
+        vel.m_y = 0.0f;
+        position->m_y = position->m_y - 15.0f;
+        break;
+    case 3:
+        vel.m_y = (randaf() * 0.7f * vel.m_y);
+        break;
+    }
+    if ((static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x800) != 0) {
+        vel.m_x = 0.0f;
+    }
+    v->kinetic.addSpeed(&vel, &moduleAccesser);
+    float spinZ = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4E, 0);
+    float spinY = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4D, 0);
+    float spinX = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4C, 0);
+    Vec3f spin;
+    spin.m_x = spinX;
+    spin.m_y = spinY;
+    spin.m_z = spinZ;
+    float spinMul = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4F, 0);
+    Vec3fScale(&spin, &spin, spinMul);
+    v->kinetic.addRotation(&spin, &moduleAccesser);
+    v->workManage.setInt(itValueAccesserGlobal.getInt(&moduleAccesser, 0x59DC, 0), 0x1000000A);
+    v->hit.setWhole(2, 0);
+    if (v->areaInstances.size() > 2) {
+        v->area.enableArea(2, false, -1);
+    }
+}
+
+// The same pop-out for a given rate along an existing speed (used when the speed was already decided).
+void BaseItem::appear1(float rate, Vec3f* speed) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    float gravity = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD50, 0);
+    if (gravity <= 0.0f) {
+        speed->m_y = 0.0f;
+    } else {
+        speed->m_y = mtSqrtf(speed->m_y * 2.0f * gravity);
+    }
+    float limit = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD50, 0) * 30.0f;
+    if (limit > itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD51, 0)) {
+        limit = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD51, 0);
+    }
+    limit *= 0.4f;
+    float horizontal = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD6B, 0) * 100.0f;
+    if (horizontal > 1.0f) {
+        horizontal = 1.0f;
+    }
+    float rest = 1.0f - rate;
+    if (rest < 0.0f) {
+        rest = 0.0f;
+    }
+    speed->m_x = speed->m_x * (rest + horizontal * (limit * 0.7f + 0.3f) * rate);
+    if ((static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x800) != 0) {
+        speed->m_x = 0.0f;
+    }
+    v->kinetic.addSpeed(speed, &moduleAccesser);
+    float spinZ = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4E, 0);
+    float spinY = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4D, 0);
+    float spinX = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4C, 0);
+    Vec3f spin;
+    spin.m_x = spinX;
+    spin.m_y = spinY;
+    spin.m_z = spinZ;
+    float spinMul = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4F, 0);
+    Vec3fScale(&spin, &spin, spinMul);
+    v->kinetic.addRotation(&spin, &moduleAccesser);
+    v->workManage.setInt(itValueAccesserGlobal.getInt(&moduleAccesser, 0x59DC, 0), 0x1000000A);
+    v->hit.setWhole(2, 0);
+    if (v->areaInstances.size() > 2) {
+        v->area.enableArea(2, false, -1);
     }
 }
 

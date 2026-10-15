@@ -434,6 +434,9 @@ public:
     void setModelScale(float scale);
     // HYPOTHESIS: names/signatures from the map and the call sites; the first two may be virtual in the original.
     int enumFighter(StageObject** out, u32 flags);
+    void reqLostEffect();
+    // HYPOTHESIS: read off the call sites in appear; the speed argument is a plain 2D speed.
+    void appear1(float rate, Vec3f* speed);
     void setupThrowAttack(float lr, float powerMulStatus, Vec3f* direction);
     bool onShield();
     // HYPOTHESIS: parameter meaning read off the call to setModelConstraintPosOrt.
