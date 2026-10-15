@@ -99,6 +99,18 @@ public:
     bool isExclusiveSpecialItem(int unk1, bool unk2);
     bool isItemSwitch(int itemKind); // is the item enabled in the item switch
 
+    // Added locally (sora_melee 0x2A0D38 ... 0x2AB4D4): per-kind tables and small accessors.
+    void setItemGenLevel(itGenParam::Level level);
+    void preStartSettingSmashBallDropFrame(int frame1, int frame2);
+    const char* getItemKindName(int kind);
+    void setLotRate(int kind, float rate);
+    float getLotRate(int kind);
+    u8 isUseItemModel(int kind);
+    int getItemGroup(int kind);
+    int getItemVariationNum(int kind);
+    BaseItem* getItemFromIndex(u32 index);
+    bool isWeaponItem(int kind);
+
     static itManager* getInstance();
 };
 static_assert(sizeof(itManager) == 0x14c0, "Class is wrong size!");
