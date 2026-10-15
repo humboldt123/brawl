@@ -26,7 +26,6 @@ struct grVillageSetView {
 // itKind::gmCheckGlobalItemSwitch (main, unnamed): whether the item may appear in the match
 extern "C" bool fn_8005136C(int kind);
 // HYPOTHESIS: lets the item fall with the given speed (sora_melee, unnamed); the direction is passed in f1
-extern "C" void fn_27_28E48C(float lr, StageObject* item, Vec3f* speed);
 
 grVillageBalloon::grVillageBalloon(const char* taskName) : grVillageGuestPathMove(taskName) {
     m_itemId = 0;
@@ -229,7 +228,7 @@ void grVillageBalloon::updateMove(float deltaFrame) {
                         return;
                     }
                     Vec3f speed(0.0f, 0.0f, 0.0f);
-                    fn_27_28E48C(soExternalValueAccesser::getLr(item), item, &speed);
+                    item->fall(&speed, soExternalValueAccesser::getLr(item));
                     item->setVanishMode(true);
                 }
                 m_state = 9;

@@ -21,7 +21,6 @@
 // gmCheckGlobalItemSwitch (main, unnamed): whether the item may appear in the match
 extern "C" bool fn_8005136C(int itemKind);
 // BaseItem::fall (sora_melee, unnamed)
-extern "C" void fn_27_28E48C(BaseItem* item, Vec3f* speed, float lr);
 // Yakumono::clearAttackAll (sora_melee, unnamed)
 extern "C" void fn_27_263738(Yakumono* yakumono);
 
@@ -636,7 +635,7 @@ void grCrayonYakumonoH::onDamage(int index, soDamage* damage, soDamageAttackerIn
                 speed.m_x = 0.0f;
                 speed.m_y = 0.0f;
                 speed.m_z = 0.0f;
-                fn_27_28E48C(item, &speed, soExternalValueAccesser::getLr(item));
+                item->fall(&speed, soExternalValueAccesser::getLr(item));
             }
         }
     }

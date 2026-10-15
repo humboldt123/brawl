@@ -7,6 +7,7 @@
 // constructor instantiates).
 
 #define IT_CUSTOMIZER_BOOL_HOOKS // the default hooks below return values, see it/item.h
+#define MT_VEC3F_MUL_INLINE // paired-single Vec3f scale, as in the original code
 #include <it/item.h>
 #include <so/sound/so_sound_module_impl.h>
 #include <so/area/so_area_enviroment_element_checker_impl.h>
@@ -99,9 +100,9 @@ struct soItemAttackModuleHyp {
     virtual void unkA0();
     virtual void unkA4();
     virtual void unkA8();
-    virtual void unkAC();
+    virtual void setSpeed(Vec2f* speed);
     virtual void unkB0();
-    virtual void unkB4();
+    virtual void setPowerMulStatus(float powerMulStatus);
     virtual void unkB8();
     virtual void setSpeedPowerAdd(float);
     virtual float getSpeedPowerCoef();
@@ -1097,6 +1098,96 @@ int BaseItem::getParamInt(u32 param) {
         return itValueAccesserGlobal.getCommonInt(&moduleAccesser, param, 0);
     }
     return itValueAccesserGlobal.getInt(&moduleAccesser, param, 0);
+}
+
+// Prepares a throw: the customizer may change facing, speed, spin and attack power before they reach the modules.
+void BaseItem::setupThrowAttack(float lr, float powerMulStatus, Vec3f* direction) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    Vec3f spin;
+    spin.m_x = 0.0f;
+    spin.m_y = 0.0f;
+    spin.m_z = 0.0f;
+    if (m_customizer->isUseThrowRotParam(this)) {
+        spin.m_x = -itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4C, 0);
+        spin.m_y = -itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4D, 0);
+        spin.m_z = -itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4E, 0);
+        if (direction->m_x < 0.0f) {
+            Vec3fScale(&spin, &spin, -1.0f);
+        }
+    }
+    float speedMul = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4A, 0);
+    float outLr = lr;
+    float outPower = powerMulStatus;
+    Vec3f speed = *direction * speedMul;
+    bool unk = true;
+    m_customizer->onThrowAttack(this, lr, &outLr, &speed, &spin, &outPower, &unk);
+    v->attack.setPowerMulStatus(outPower);
+    v->posture.setLr(outLr);
+    v->kinetic.setThrowParam(&speed, &spin, &moduleAccesser, unk);
+}
+
+void BaseItem::throwAttack(float lr, Vec3f* velocity, float powerMulStatus) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    setupThrowAttack(lr, powerMulStatus, velocity);
+    Vec2f speed;
+    speed.m_x = velocity->m_x;
+    speed.m_y = velocity->m_y;
+    v->workManage.setInt(0, 0x1000001C);
+    v->status.changeStatusRequest(5, &moduleAccesser);
+    if (moduleAccesser.getStatusModule().getStatusKind() == 5) {
+        v->workManage.onFlag(0x22000000);
+        if (v->workManage.isFlag(0x22000000) &&
+            (static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x4C00) == 0) {
+            Vec2f arg = speed;
+            v->attack.setSpeed(&arg);
+            v->attack.setSpeedPowerAdd(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD6F, 0));
+            v->attack.setSpeedPowerMul(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD70, 0));
+        }
+    }
+}
+
+// Drops the item with the given velocity: like a throw, but the item goes into the Fall status (3) and, when moving
+// fast enough, spins according to the throw parameters.
+void BaseItem::fall(Vec3f* velocity, float lr) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    Vec3f spin;
+    spin.m_x = 0.0f;
+    spin.m_y = 0.0f;
+    spin.m_z = 0.0f;
+    if (m_customizer->isUseThrowRotParam(this)) {
+        float lengthSquared = velocity->m_z * velocity->m_z + (velocity->m_x * velocity->m_x + velocity->m_y * velocity->m_y);
+        double absolute = __fabs(lengthSquared);
+        float magnitude = absolute;
+        float length;
+        if (magnitude <= 1.17549435e-38f) {
+            length = 0.0f;
+        } else {
+            length = lengthSquared * rsqrtf(lengthSquared);
+        }
+        if (length >= 0.5f) {
+            spin.m_x = -itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4C, 0);
+            spin.m_y = -itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4D, 0);
+            spin.m_z = -itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4E, 0);
+            if (velocity->m_x < 0.0f) {
+                Vec3fScale(&spin, &spin, -1.0f);
+            }
+        }
+    }
+    float speedMul = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD4A, 0);
+    Vec3f speed = *velocity * speedMul;
+    v->posture.setLr(lr);
+    v->kinetic.setThrowParam(&speed, &spin, &moduleAccesser, true);
+    v->status.changeStatusRequest(3, &moduleAccesser);
+    v->workManage.onFlag(0x22000000);
+    if (v->workManage.isFlag(0x22000000) &&
+        (static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x4C00) == 0) {
+        Vec2f arg;
+        arg.m_y = velocity->m_y;
+        arg.m_x = velocity->m_x;
+        v->attack.setSpeed(&arg);
+        v->attack.setSpeedPowerAdd(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD6F, 0));
+        v->attack.setSpeedPowerMul(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD70, 0));
+    }
 }
 
 void BaseItem::setModelScale(float scale) {

@@ -434,6 +434,7 @@ public:
     void setModelScale(float scale);
     // HYPOTHESIS: names/signatures from the map and the call sites; the first two may be virtual in the original.
     int enumFighter(StageObject** out, u32 flags);
+    void setupThrowAttack(float lr, float powerMulStatus, Vec3f* direction);
     bool onShield();
     // HYPOTHESIS: parameter meaning read off the call to setModelConstraintPosOrt.
     void setTarget(int taskId);
