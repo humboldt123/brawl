@@ -8,6 +8,9 @@ class soModuleAccesser;
 // Status IDs are the common fighter action IDs (see the BrawlRE "Actions" list).
 class ftUtil {
 public:
+    // Hit by a counter shield (a shield collision whose owner is in a counter-capable status); used by BaseItem.
+    static bool isCounterShield(soCollisionLog* collisionLog);
+
     // Common statuses 0xA4-0xAE: standing, walking, dashing, jumping, falling, firing and landing while shooting an item.
     static bool isItemShootStatus(soModuleAccesser* acc, int status);
 

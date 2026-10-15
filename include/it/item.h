@@ -443,6 +443,7 @@ public:
     void appear1(float rate, Vec3f* speed);
     void setupThrowAttack(float lr, float powerMulStatus, Vec3f* direction);
     bool onShield();
+    bool onReflect();
     // HYPOTHESIS: parameter meaning read off the call to setModelConstraintPosOrt.
     void setTarget(int taskId);
     bool setModelConstraint(int taskId, int targetNode, int node);
