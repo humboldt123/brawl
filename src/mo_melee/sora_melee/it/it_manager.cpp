@@ -33,6 +33,9 @@ extern int lbl_27_rodata_50D8[];
 extern int lbl_27_data_71BF0[];
 // the four item kinds a basic-gen lottery pulls in when the "all items" flag (0x14A0) is clear
 extern u32 lbl_27_data_737A0[];
+// the two generator sheets that are never picked as the random basic sheet (stage kind, level)
+extern itGenSheetKind lbl_27_bss_6490;
+extern itGenSheetKind lbl_27_bss_6498;
 extern u8 lbl_27_data_71F6C[];
 extern char* lbl_27_data_731C0[];
 extern char lbl_27_data_73488[];
@@ -743,8 +746,6 @@ ItemKind itManager::getLotKirbyTabemonoItemKind() {
     return getLotOneItemKind(sheets, static_cast<itGenId>(10000), reinterpret_cast<ItemSwitch*>(words), false);
 }
 
-// Whether every item archive referenced by the generator sheet's parameters has finished loading. The result is cached
-// in the sheet archive once everything is complete.
 static inline bool isSameSheetStage(itGenArchive* cur, const itGenSheetKind& sheet) {
     itGenSheetKind kind = cur->m_sheetKind;
     return sheet.m_stageKind == kind.m_stageKind;
@@ -774,6 +775,8 @@ static inline itGenArchive* findGenArchive(const soArrayFixed<itGenArchive*>& li
     return NULL;
 }
 
+// Whether every item archive referenced by the generator sheet's parameters has finished loading. The result is cached
+// in the sheet archive once everything is complete.
 bool itManager::isCompItemKindArchiveFromGenArchive(itGenSheetKind sheet) {
     itGenSheetKind target = sheet;
     itGenArchive* archive = findGenArchive(m_genArchiveArrayList, target);
@@ -953,4 +956,71 @@ bool itManager::isCompFigureTexPreloadAll() {
         return fn_27_2C1674(m_figureManager);
     }
     return true;
+}
+
+static inline bool isSameSheetKind(itGenSheetKind a, const itGenSheetKind& b) {
+    return a.m_stageKind == b.m_stageKind && (u32)a.m_levelId == (u32)b.m_levelId;
+}
+
+static inline bool isSameSheetKindRef(const itGenSheetKind& a, const itGenSheetKind& b) {
+    return a.m_stageKind == b.m_stageKind && (u32)a.m_levelId == (u32)b.m_levelId;
+}
+
+// Picks a stage's generator sheet at random from the loaded ones, skipping the two defaults, whose basic-item
+// parameters exist; falls back to the default sheet.
+itGenSheetKind itManager::getRandBasicItemSheet() {
+    itGenSheetKind result = lbl_27_bss_6490;
+    int level = m_genLevel;
+    if (itManagerField<int>(this, 0x50) == 2) {
+        result = lbl_27_bss_6498;
+    } else {
+        level = 0;
+    }
+    if (static_cast<const soArrayList<itGenArchive*, 3>&>(m_genArchiveArrayList).size() > 1) {
+        for (int i = 0; i < static_cast<const soArrayList<itGenArchive*, 3>&>(m_genArchiveArrayList).size(); i++) {
+            itGenArchive* archive = static_cast<const soArrayList<itGenArchive*, 3>&>(m_genArchiveArrayList).at(i);
+            if (archive != NULL && archive->isComp()) {
+                itGenSheetKind kind = archive->m_sheetKind;
+                itGenSheetKind first = archive->m_sheetKind;
+                if (!(first.m_stageKind == lbl_27_bss_6490.m_stageKind && (u32)first.m_levelId == (u32)lbl_27_bss_6490.m_levelId) &&
+                    !(kind.m_stageKind == lbl_27_bss_6498.m_stageKind && (u32)kind.m_levelId == (u32)lbl_27_bss_6498.m_levelId) && archive->getGenParam(10000, level) != NULL) {
+                    result = kind;
+                    break;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+// Sum of the lottery values of a parameter's entries (the weight base for the percentage split); stops at the first
+// terminator entry. Entries whose kind is switched off in the item switch are skipped.
+float itManager::getPerBase(itGenParam* param, ItemSwitch* itemSwitch) {
+    float total = 0.0f;
+    u32 off = 0;
+    for (u32 i = 0; i < param->m_numEntries; off += 0x10, i++) {
+        itGenParam::Entry* entry = (itGenParam::Entry*)((u8*)param->m_entries + off);
+        int kind = entry->m_kind;
+        if (kind == -1) {
+            break;
+        }
+        if (kind == 0x7D1) {
+            kind = 0x40;
+        }
+        bool valid = false;
+        if (kind >= 0 && kind < NUM_IT_KINDS) {
+            valid = true;
+        }
+        if (valid) {
+            if ((u32)kind >= NUM_IT_KINDS) {
+                fn_803F86E4(__files + 0xA0, lbl_27_data_7908C);
+                fn_803FC984();
+            }
+            if ((((u32*)itemSwitch)[(u32)kind >> 5] & (1 << (kind & 31))) == 0) {
+                continue;
+            }
+        }
+        total += getLotValue(entry->m_rate, kind);
+    }
+    return total;
 }

@@ -73,6 +73,7 @@ public:
 
     bool isCompItemKindArchive(itKind kind, u32 variation, bool);
     bool isCompItemKindArchivePreloadAll();
+    float getPerBase(itGenParam* param, ItemSwitch* itemSwitch);
     bool isCompItemGenArchive(itGenSheetKind sheet);
     bool isPassedProcessUpdate();
     bool isCompFigureTexPreloadAll();
@@ -83,7 +84,7 @@ public:
     BaseItem* getItemFromAreaId(int areaId);
     bool isCompItemKindArchiveFromGenArchive(itGenSheetKind sheet);
     itArchive* preloadItemKindArchive(itKind kind, u32 variation, itArchive::Type archiveType, bool);
-    itGenSheetKind getRandBasicItemSheet(itGenId genKind = Item_Gen_Basic); // custom parameter
+    itGenSheetKind getRandBasicItemSheet();
     ItemKind getLotOneItemKind(itGenSheetKind* sheetKind, itGenId genKind, ItemSwitch* itemSwitch = NULL, bool unk = false);
     BaseItem* createItem(Vec3f* safePos, Vec3f* pos, float lr, itKind kind, u32 variation = 0, int createOwnerTaskId = -1,
                          soResourceModule* resourceModule = NULL, u8 groupNo = 0, int brresId = 0xffff,

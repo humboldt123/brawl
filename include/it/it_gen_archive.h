@@ -108,4 +108,5 @@ public:
     bool isFailed();
     itGenParam* getGenParamFromIndex(u32 index, u32 level);
     u32 getGenParamNum(u32 level);
+    itGenParam* getGenParam(int id, int level);
 };
