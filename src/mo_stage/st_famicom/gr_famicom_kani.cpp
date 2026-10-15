@@ -17,7 +17,6 @@
 #include <st_famicom/gr_famicom_anim.h>
 
 // BaseItem::fall (sora_melee, unnamed)
-extern "C" void fn_27_28E48C(BaseItem* item, Vec3f* speed, float lr);
 
 // HYPOTHESIS: two static objects of the original (the constants {0xFF, 0} and {0xFF, 1}; nothing refers to them in this
 // file, they only make the static initializer of the file).
@@ -168,7 +167,7 @@ void grFamicomKani::toItem() {
                         lr = -1.0f;
                     }
                 }
-                fn_27_28E48C(item, &speed, lr);
+                item->fall(&speed, lr);
                 m_itemId = item->m_instanceId;
                 setVisibility(0);
             }
