@@ -6213,6 +6213,7 @@ config.libs = [
             Object(NonMatching, "mo_melee/sora_melee/so/so_work_manage_module_impl.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/so/so_slope_module_impl.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/ft/ft_manager.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/cl/cl_collision.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/it/it_item.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/so/so_stage_object.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/ft/ft_robot_status_uniq_process_special_beam.cpp"),
