@@ -612,3 +612,76 @@ void itManager::removeItemSub(BaseItem* item, int immediate, int returnToPool) {
         }
     }
 }
+
+// The lottery weight of an item kind: the base weight plus the per-kind lot rate. During a versus match the weight of some
+// kinds is cut to zero once the field already holds too many items of the same group (the counters at 0xFF8..0x1000).
+float itManager::getLotValue(float base, int kind) {
+    if (itManagerField<int>(this, 0x50) == 2 && itManagerField<u8>(this, 0x1008) != 0) {
+        bool valid = false;
+        if (kind > -1 && kind < NUM_IT_KINDS) {
+            valid = true;
+        }
+        if (valid && kind != 0x46) {
+            int category;
+            switch (kind) {
+            case 0xB:
+            case 0x17:
+            case 0x33:
+                category = 1;
+                break;
+            default: {
+                int group;
+                if (kind == -3) {
+                    group = 1;
+                } else if (kind < 0 || kind >= NUM_IT_KINDS) {
+                    group = -1;
+                } else {
+                    group = lbl_27_data_71BF0[kind];
+                }
+                switch (group) {
+                case 0:
+                case 1:
+                case 8:
+                    category = 0;
+                    break;
+                case 5:
+                    category = 2;
+                    break;
+                default:
+                    category = 3;
+                    break;
+                }
+                break;
+            }
+            }
+            if (category == 1 || category == 0) {
+                if (category == 0) {
+                    if (5 < itManagerField<int>(this, 0xFF8) + itManagerField<int>(this, 0x1000)) {
+                        return 0.0f;
+                    }
+                }
+                if (8 < itManagerField<int>(this, 0xFFC) + itManagerField<int>(this, 0x1000) + itManagerField<int>(this, 0xFF8)) {
+                    return 0.0f;
+                }
+            }
+        }
+    }
+    float result = 0.0f;
+    if (0.0f < base) {
+        bool valid = false;
+        if (kind > -1 && kind < NUM_IT_KINDS) {
+            valid = true;
+        }
+        float rate;
+        if (valid) {
+            rate = m_itemLotRates[kind];
+        } else {
+            rate = 0.0f;
+        }
+        result = base + rate;
+    }
+    if (kind == 0x37) {
+        result = result * itManagerField<float>(this, 0x1484);
+    }
+    return result;
+}

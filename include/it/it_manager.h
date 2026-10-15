@@ -126,6 +126,8 @@ public:
 
     void removeItemSub(BaseItem* item, int immediate, int returnToPool);
 
+    float getLotValue(float base, int kind);
+
     static itManager* getInstance();
 };
 static_assert(sizeof(itManager) == 0x14c0, "Class is wrong size!");
