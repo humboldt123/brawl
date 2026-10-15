@@ -30,7 +30,9 @@ public:
         MotionModuleBuildConfig;
     typedef soCollisionAttackModuleBuildConfig<soCollision::Category_Fighter, 1, 0, soCollisionAttackModuleImpl, 1, false, true>
         CollisionAttackModuleBuildConfig;
-    typedef soLinkModuleBuildConfig<5, soLinkModuleImpl> LinkModuleBuildConfig;
+    // The capacity-carrying config class: link capacity 5 (the one-argument config would fix it at 7
+    // and change the extent).
+    typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;
     typedef wnStatusModuleBuildConfig<1, soGeneralWorkBuildConfig<2, 2, 1>, 1,
                                      soTransitionModuleBuildConfig<wnStatusTransitionTypeList> >
         StatusModuleBuildConfig;

@@ -128,7 +128,7 @@ public:
     typedef soDamageModuleBuildConfig<soDamageModuleActor> DamageModuleBuildConfig;
     typedef soShakeModuleBuildConfig<4, soShakeModuleImpl> ShakeModuleBuildConfig;
     typedef soSoundModuleBuildConfig<soSoundModuleImpl> SoundModuleBuildConfig;
-    typedef soLinkModuleBuildConfig<7, soLinkModuleImpl> LinkModuleBuildConfig;
+    typedef soLinkModuleBuildConfig<soLinkModuleImpl> LinkModuleBuildConfig;
     typedef soControllerModuleBuildConfig<ftControllerModuleImpl> ControllerModuleBuildConfig;
     typedef soCameraModuleBuildConfig<soCameraModuleImpl> CameraModuleBuildConfig;
     typedef soEffectModuleBuildConfig<soEffectModuleImpl> EffectModuleBuildConfig;
