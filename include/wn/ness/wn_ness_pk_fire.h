@@ -61,7 +61,8 @@ public:
 };
 
 class wnNessPKFire : public wnWeaponBuilder<wnNessPKFireModuleAccesserBuildConfig> {
-    const wnNessPKFireParam* m_param;           // +0x23AC
+public:
+    const wnNessPKFireParam* m_param;         // +0x23AC
     wnNessPKFireParamAccesser m_paramAccesser;  // +0x23B0
     wnKineticEnergyGravity m_energyGravity;     // +0x23F4
 public:

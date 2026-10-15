@@ -21,7 +21,7 @@ public:
     virtual void slot0C();
     virtual void slot10();
     virtual void slot14();
-    virtual void unk18Attach(u32 archiveId, int, u32, u32, bool, int, int, int);
+    virtual void unk18Attach(u32 archiveId, int, u32, u32, u32, int, int, int);
     virtual void slot1C();
     virtual void slot20();
     virtual void slot24();
@@ -39,12 +39,12 @@ public:
     virtual void slot54();
     virtual void slot58();
     virtual void slot5C();
-    virtual void slot60();
-    virtual void slot64();
+    virtual void unk60Int(int);
+    virtual void unk64Int(int);
     virtual void unk68VecPair(Vec3f* a, Vec3f* b);
     virtual void slot6C();
     virtual int unk70Int();
-    virtual void slot74();
+    virtual float unk74Float(int);
     virtual void slot78();
     virtual void slot7C();
     virtual void slot80();
@@ -102,7 +102,7 @@ public:
     virtual void slot64();
     virtual void slot68();
     virtual void slot6C();
-    virtual void slot70();
+    virtual void unk70FloatInt(float, int);
     virtual void slot74();
     virtual void slot78();
     virtual void slot7C();
@@ -151,7 +151,7 @@ public:
     virtual void slot38();
     virtual void slot3C();
     virtual void slot40();
-    virtual void slot44();
+    virtual void unk44SendEvent(int, soLinkEventArgs&);
     virtual void slot48();
     virtual void slot4C();
     virtual void slot50();
@@ -172,10 +172,10 @@ public:
     virtual void slot8C();
     virtual void slot90();
     virtual void slot94();
-    virtual void slot98();
+    virtual Vec3f unk98NodePos(u32 index, u32 nodeId, bool);
     virtual void slot9C();
     virtual void slotA0();
-    virtual void slotA4();
+    virtual int unkA4Int(int);
     virtual float unkA8Float(int);
     virtual void slotAC();
     virtual void slotB0();
@@ -239,13 +239,13 @@ public:
 };
 
 inline wnLassoAltStatusView* wnLassoGetAltStatus(soModuleAccesser* moduleAccesser) {
-    return *(wnLassoAltStatusView**)((char*)moduleAccesser->m_enumerationStart + 0x9c);
+    return (wnLassoAltStatusView*)moduleAccesser->m_enumerationStart->m_physicsModule;
 }
 
 inline wnLassoAltModelView* wnLassoGetAltModel(soModuleAccesser* moduleAccesser) {
-    return *(wnLassoAltModelView**)((char*)moduleAccesser->m_enumerationStart + 0x4);
+    return (wnLassoAltModelView*)moduleAccesser->m_enumerationStart->m_modelModule;
 }
 
 inline wnLassoLinkView* wnLassoGetLink(soModuleAccesser* moduleAccesser) {
-    return *(wnLassoLinkView**)((char*)moduleAccesser->m_enumerationStart + 0x54);
+    return (wnLassoLinkView*)moduleAccesser->m_enumerationStart->m_linkModule;
 }

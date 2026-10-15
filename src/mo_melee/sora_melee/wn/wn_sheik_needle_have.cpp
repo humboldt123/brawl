@@ -1,6 +1,5 @@
-#include <types.h>
+#include <wn/sheik/wn_sheik_needle_have.h>
+#include <wn/wn_class_info_impl.h>
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
+// Registers the Sheik held needle article class (kind 69) in the class info table during static initialization.
+wnClassInfoImpl<69, wnSheikNeedleHave, wnSheikNeedleHaveData> g_wnSheikNeedleHaveClassInfo;

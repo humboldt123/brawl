@@ -1,6 +1,5 @@
-#include <types.h>
+#include <wn/fox/wn_fox_blaster.h>
+#include <wn/wn_class_info_impl.h>
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
+// Registers the Fox Blaster article class (kind 30) in the class info table during static initialization.
+wnClassInfoImpl<30, wnFoxBlaster, wnFoxBlasterData> g_wnFoxBlasterClassInfo;

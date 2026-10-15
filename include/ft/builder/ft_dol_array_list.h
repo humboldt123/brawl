@@ -42,6 +42,8 @@ FT_DOL_ARRAY_VECTOR(soAreaWind, 1);
 FT_DOL_ARRAY_VECTOR(soAreaContactLog, 16);
 FT_DOL_ARRAY_VECTOR(soAreaInstance, 9);
 FT_DOL_ARRAY_VECTOR(soAreaInstance, 3);
+FT_DOL_ARRAY_VECTOR(soAreaInstance, 1);
+FT_DOL_ARRAY_VECTOR(soAreaContactLog, 7);
 FT_DOL_ARRAY_VECTOR(soShakeTerm, 4);
 FT_DOL_ARRAY_VECTOR(soControllerImpl, 10);
 FT_DOL_ARRAY_VECTOR(soControllerClatter, 2);

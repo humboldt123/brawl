@@ -1,6 +1,5 @@
-#include <types.h>
+#include <wn/diddy/wn_diddy_gun.h>
+#include <wn/wn_class_info_impl.h>
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
+// Registers the Diddy popgun article (kind 54) in the class info table during static initialization.
+wnClassInfoImpl<54, wnDiddyGun, wnDiddyGunData> g_wnDiddyGunClassInfo;

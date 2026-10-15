@@ -63,8 +63,9 @@ public:
     u32 _unk08;
 #ifdef FT_MODULE_BUILDER
     soTransitionInfo() {
-#ifdef FT_MARTH_RUNTIME_HELPERS
-        // MATCH-ONLY: retain Marth's native zeroed temporary before the field stores.
+#if defined(FT_MARTH_RUNTIME_HELPERS) || defined(WN_TRANSITION_CTOR_INLINE)
+        // MATCH-ONLY: retain the native zeroed temporary before the field stores (Marth, and the articles that expand the
+        // transition module constructor in their own constructor).
         volatile u32 initialReturnWord = 0;
 #endif
         m_groupId = -1;
@@ -180,7 +181,13 @@ public:
     soTransitionInfo m_transitionInfo;
 #ifdef FT_MODULE_BUILDER
     // inlined into the builders
+#ifdef WN_TRANSITION_CTOR_INLINE
+    // MATCH-ONLY: an article with a single transition builder has the constructor expanded in its own constructor.
+    soTransitionModuleImpl(soArray<soTransitionTermGroup>* groups) :
+        m_transitionTermGroupArray(groups), m_groupID(0), m_transitionInfo() { }
+#else
     soTransitionModuleImpl(soArray<soTransitionTermGroup>* groups); // out of line (ft_builder_noinline.h)
+#endif
     soArray<soTransitionTermGroup>* getGroups() { return m_transitionTermGroupArray; }
 #endif
     virtual int checkEstablish(soModuleAccesser* accesser, u32* targetKindOut, int groupID, u16* attrMask, soGeneralTermCache* generalTermCache);

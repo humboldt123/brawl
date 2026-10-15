@@ -42,7 +42,7 @@ public:
 	virtual double getAttackMul(u32 collisionShieldGroupIndex);
 	virtual double getSpeedMul(u32 collisionShieldGroupIndex);
 	virtual double getLifeMul(u32 collisionShieldGroupIndex);
-	virtual void getAttackLimit(u32 collisionShieldGroupIndex);
+	virtual float getAttackLimit(u32 collisionShieldGroupIndex); // HYPOTHESIS: returns a float (the reflector power limit)
 	virtual u8 isNoMBall(u32 collisionShieldGroupIndex);
 	virtual int getPartSize(u32 collisionShieldGroupIndex);
 	virtual u32 getTeam();
@@ -104,7 +104,7 @@ public:
 	virtual double getAttackMul(u32 collisionShieldGroupIndex);
 	virtual double getSpeedMul(u32 collisionShieldGroupIndex);
 	virtual double getLifeMul(u32 collisionShieldGroupIndex);
-	virtual void getAttackLimit(u32 collisionShieldGroupIndex);
+	virtual float getAttackLimit(u32 collisionShieldGroupIndex);
 	virtual u8 isNoMBall(u32 collisionShieldGroupIndex);
 	virtual int getPartSize(u32 collisionShieldGroupIndex);
 	virtual u32 getTeam();

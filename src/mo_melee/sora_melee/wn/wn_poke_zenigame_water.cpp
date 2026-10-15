@@ -1,6 +1,5 @@
-#include <types.h>
+#include <wn/poke/wn_poke_zenigame_water.h>
+#include <wn/wn_class_info_impl.h>
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
+// Registers the Pokemon water gun article class (kind 95) in the class info table during static initialization.
+wnClassInfoImpl<95, wnPokeZenigameWater, wnPokeZenigameWaterData> g_wnPokeZenigameWaterClassInfo;

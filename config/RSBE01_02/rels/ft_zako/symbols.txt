@@ -125,7 +125,7 @@ __dt__150soLineHierarchy<49soTypeList<14soIntToType<8>,18soTypeListNullType>,11s
 __dt__73soModelModuleBuilder<49soModelModuleBuildConfig<8,3,17soModelModuleImpl>>Fv = .text:0x00004D68; // type:function size:0x78 scope:weak
 __dt__98soArraySelectHolder<1,37soArrayVector<18soModelVirtualNode,3>,33soArrayNull<18soModelVirtualNode>>Fv = .text:0x00004DE0; // type:function size:0x5C scope:weak
 __dt__114soResourceModuleBuilder<87soResourceModuleBuildConfigDynamic<0,24ftResourceIdAccesserImpl,20soResourceModuleImpl>>Fv = .text:0x00004E3C; // type:function size:0x78 scope:weak
-fn_126_4EB4 = .text:0x00004EB4; // type:function size:0x40
+__dt__46soArrayFixed<30soInstanceUnit<P11soEventUnit>>Fv = .text:0x00004EB4; // type:function size:0x40 scope:weak
 __dt__96soParamCustomizeModuleBuilder<63soParamCustomizeModuleBuildConfig<26ftParamCustomizeModuleImpl>>Fv = .text:0x00004EF4; // type:function size:0x5C scope:weak
 __dt__66soHeapModuleBuilder<43soHeapModuleBuildConfig<16soHeapModuleImpl>>Fv = .text:0x00004F50; // type:function size:0x5C scope:weak
 __dt__180soInsideEventManageModuleBuilder<110soInsideEventManageModuleBuildConfig<32,40,4,4,4,4,4,4,5,4,4,4,4,4,1,1,0,2,1,30ftInsideEventManageModuleTypes>,30ftInsideEventManageModuleTypes>Fv = .text:0x00004FAC; // type:function size:0x144 scope:weak

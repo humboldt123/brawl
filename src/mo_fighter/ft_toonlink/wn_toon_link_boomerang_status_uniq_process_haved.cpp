@@ -1,13 +1,16 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
+#define WN_WEAPON_BUILDER
+#define WN_ARTICLE_NATIVE_BUILDERS
+#define WN_SHARED_ARRAYS_1
+#define WN_ARTICLE_ANIMCMD_INT
+#define FT_REL_LINK_EXTERN
+#include <wn/wn_module_accesser_builder.h>
+#include <wn/toonlink/wn_toon_link_boomerang.h>
 #include <so/status/so_status_module_impl.h>
 #include <so/so_module_accesser.h>
-#include <wn/weapon.h>
 #include <types.h>
 
-// Local view of the boomerang article: only its dynamic type is needed here.
-class wnToonLinkBoomerang : public Weapon {
-};
-
+// The boomerang is carried by its thrower while it is held: the article follows the thrower's hand.
 class wnToonLinkBoomerangStatusUniqProcessHaved : public soStatusUniqProcess {
 public:
     virtual ~wnToonLinkBoomerangStatusUniqProcessHaved() { }
@@ -16,7 +19,6 @@ public:
 
 wnToonLinkBoomerangStatusUniqProcessHaved g_wnToonLinkBoomerangStatusUniqProcessHaved;
 
-void wnToonLinkBoomerangStatusUniqProcessHaved::initStatus(soModuleAccesser* a) {
-    wnToonLinkBoomerang& boomerang = dynamic_cast<wnToonLinkBoomerang&>(a->getStageObject());
-    boomerang.Weapon::constraint(-1, -1, -1);
+void wnToonLinkBoomerangStatusUniqProcessHaved::initStatus(soModuleAccesser* moduleAccesser) {
+    dynamic_cast<wnToonLinkBoomerang&>(moduleAccesser->getStageObject()).constraint(-1, -1, -1);
 }

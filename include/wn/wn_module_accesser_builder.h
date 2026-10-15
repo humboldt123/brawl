@@ -30,6 +30,7 @@
 #include <so/article/so_article_mediator_null.h>
 #include <so/sound/so_sound_3d_generator_accesser_impl.h>
 #include <so/stop/so_stop_module_impl.h>
+#include <wn/wn_article_build_info.h>
 #include <wn/wn_module_accesser_build_data.h>
 
 ////////////////////////////////////////
@@ -42,7 +43,9 @@ FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 4);
 FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 2);
 FT_DOL_ARRAY_VECTOR(soCollisionHitPart, 2);
 FT_DOL_ARRAY_VECTOR(soLinkConnection, 5);
+#ifndef WN_STATUS_PROC_VECTOR2_DEFAULT_CTOR
 FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 2);
+#endif
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soAnimCmdControlUnit>, 6);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 8);
 
@@ -225,6 +228,7 @@ public:
 WN_DOL_INSTANCE_MANAGER(soAnimCmdControlUnit, 6);
 typedef soKineticEnergy* wnKineticEnergyPtr;
 WN_DOL_INSTANCE_MANAGER(wnKineticEnergyPtr, 8);
+WN_DOL_INSTANCE_MANAGER(wnKineticEnergyPtr, 2);
 
 // sora_melee modules of the articles (constructor and destructor in sora_melee; the REL only needs size and calls).
 FT_DOL_POLY_BEGIN(soReflectModuleImpl, 0x40);
@@ -254,6 +258,8 @@ extern char lbl_27_bss_47C[];  // controller
 extern char lbl_27_bss_48C[];  // camera
 extern char lbl_27_bss_170[];  // general term decide
 extern char lbl_27_bss_188[];  // switch decide
+extern char lbl_27_bss_31C[];  // motion
+extern char lbl_27_bss_D7C[];  // null transition module
 extern char lbl_27_bss_584[];  // combo
 extern char lbl_27_bss_598[];  // area
 extern char lbl_27_bss_5EC[];  // physics
@@ -299,6 +305,54 @@ public:
     soEventManageModuleImpl* getModule() { return &m_module; }
 };
 
+// Articles with a turn event unit (Ness's PK Starstorm): the units without capacity are not built at all (no manage id is asked
+// for them). HYPOTHESIS: the source spelling of the selection and of the units that are absent.
+struct wnTurnInsideEventManageModuleTypes {
+    enum {
+        hasStatus = true,
+        hasAnimCmd = true,
+        hasDamage = true,
+        hasLink = true,
+        hasSituation = true,
+        hasCollisionHit = true,
+        hasCollisionAttack = true,
+        hasModel = true,
+        hasArticle = true,
+        hasCapture = true,
+        hasCollisionShield = true,
+        hasCollisionReflector = true,
+        hasCollisionAbsorber = true,
+        hasCollisionSearch = true,
+        hasItemManage = true,
+        hasMotion = true,
+        hasGimmick = true,
+        hasTurn = true,
+        hasCollisionCatch = true,
+    };
+};
+
+template <typename B>
+class soInsideEventManageModuleBuilder<B, wnTurnInsideEventManageModuleTypes> {
+    typedef wnTurnInsideEventManageModuleTypes T;
+    soInsideEventManageModuleBuilder_MEMBER_LIST
+public:
+    soInsideEventManageModuleBuilder() :
+        m_entity(),
+        m_module(this),
+        m_status(m_module.getManageId(), B::StatusEvtId),
+        m_animCmd(m_module.getManageId(), B::AnimCmdEvtId),
+        m_damage(m_module.getManageId(), B::DamageEvtId),
+        m_link(m_module.getManageId(), B::LinkEvtId),
+        m_situation(m_module.getManageId(), B::SituationEvtId),
+        m_collisionAttack(m_module.getManageId(), B::CollisionAttackEvtId),
+        m_model(m_module.getManageId(), B::ModelEvtId),
+        m_article(m_module.getManageId(), B::ArticleEvtId),
+        m_collisionShield(m_module.getManageId(), B::CollisionShieldEvtId),
+        m_turn(m_module.getManageId(), B::TurnEvtId) { }
+    ~soInsideEventManageModuleBuilder() { }
+    soEventManageModuleImpl* getModule() { return &m_module; }
+};
+
 ////////////////////////////////////////
 // Null module builders: an empty slot (one byte in the builder) whose module is the shared null module. Their constructors
 // take the same arguments as the real builders, so the build data queries still happen.
@@ -316,6 +370,8 @@ struct soCaptureModuleBuildConfigNull { };
 struct soTurnModuleBuildConfigNull { };
 struct soControllerModuleBuildConfigNull { };
 struct soCameraModuleBuildConfigNull { };
+// Articles without animation (the motion module is the shared null one). HYPOTHESIS: source spelling of the null configuration.
+struct soMotionModuleBuildConfigNull { };
 struct soComboModuleBuildConfigNull { };
 struct soAreaModuleBuildConfigNull { };
 struct soPhysicsModuleBuildConfigNull { };
@@ -325,6 +381,9 @@ struct soItemManageModuleBuildConfigNull { };
 struct soColorBlendModuleBuildConfigNull { };
 struct soJostleModuleBuildConfigNull { };
 struct soAbnormalModuleBuildConfigNull { };
+struct soSituationModuleBuildConfigNull { }; // HYPOTHESIS: source spelling of the null configuration.
+struct soStopModuleBuildConfigNull { };       // HYPOTHESIS: null stop module (fireball family, map 0x2da26c).
+struct soVisibilityModuleBuildConfigNull { }; // HYPOTHESIS: source spelling of the null configuration.
 
 template <>
 class soCollisionShieldModuleBuilder<soCollisionShieldModuleBuildConfigNull> {
@@ -430,6 +489,13 @@ public:
     soCameraModule* getModule() { return (soCameraModule*)lbl_27_bss_48C; }
 };
 template <>
+class soMotionModuleBuilder<soMotionModuleBuildConfigNull> {
+    u8 unk0[4]; // HYPOTHESIS: the null selection owns a few bytes (the next builder starts a word later)
+public:
+    soMotionModuleBuilder(soModuleAccesser*, void*) { }
+    soMotionModule* getModule() { return (soMotionModule*)lbl_27_bss_31C; }
+};
+template <>
 class soComboModuleBuilder<soComboModuleBuildConfigNull> {
 public:
     soComboModuleBuilder(soModuleAccesser*) { }
@@ -437,6 +503,10 @@ public:
 };
 template <>
 class soAreaModuleBuilder<soAreaModuleBuildConfigNull> {
+    // HYPOTHESIS: the null territory and target search builders (which use the shared null modules) follow the area builder;
+    // only their storage (one byte each) is visible in the layout.
+    u8 unkTerritory;
+    u8 unkTargetSearch;
 public:
     soAreaModuleBuilder(soModuleAccesser*, u8, soEventObserverRegistrationDesc*) { }
     void* getModule() { return lbl_27_bss_598; }
@@ -477,6 +547,28 @@ public:
     soJostleModuleBuilder(soModuleAccesser*, void*) { }
     void* getModule() { return lbl_27_bss_654; }
 };
+extern char lbl_27_bss_35C[]; // situation
+extern char lbl_27_bss_46C[]; // visibility
+template <>
+class soSituationModuleBuilder<soSituationModuleBuildConfigNull> {
+public:
+    soSituationModuleBuilder(s16, soModuleAccesser*, soEventObserverRegistrationDesc*) { }
+    soSituationModule* getModule() { return (soSituationModule*)lbl_27_bss_35C; }
+};
+template <>
+class soVisibilityModuleBuilder<soVisibilityModuleBuildConfigNull> {
+    u8 unk0[4]; // HYPOTHESIS: the null selection owns a few bytes (the next builder starts a word later)
+public:
+    soVisibilityModuleBuilder(soModuleAccesser*, soVisibilityData*) { }
+    soVisibilityModule* getModule() { return (soVisibilityModule*)lbl_27_bss_46C; }
+};
+extern char lbl_27_bss_414[]; // stop
+template <>
+class soStopModuleBuilder<soStopModuleBuildConfigNull> {
+public:
+    soStopModuleBuilder(soModuleAccesser*) { }
+    soStopModule* getModule() { return (soStopModule*)lbl_27_bss_414; }
+};
 template <>
 class soAbnormalModuleBuilder<soAbnormalModuleBuildConfigNull> {
 public:
@@ -494,6 +586,15 @@ class soParamCustomizeModuleBuilder<soParamCustomizeModuleBuildConfig<soParamCus
     soParamCustomizeModuleImpl m_paramCustomizeModule;
 public:
     soParamCustomizeModuleBuilder(soModuleAccesser*) { }
+};
+
+// A motion module without transitions uses the shared null transition module of sora_melee.
+struct soTransitionModuleBuildConfigNull { };
+template <>
+class soTransitionModuleBuilder<soTransitionModuleBuildConfigNull> {
+public:
+    soTransitionModuleBuilder() { }
+    soTransitionModule* getModule() { return (soTransitionModule*)lbl_27_bss_D7C; }
 };
 
 // Motion without partial / other animations or an anim obj cache: the null arrays come from singletons, the null cache
@@ -532,7 +633,7 @@ class soMotionModuleBuilder<soMotionModuleBuildConfig<DataNum, T, 0, 1, Transiti
                                                       soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > > {
     soTransitionModuleBuilder<TransitionConfig> m_transitionBuilder;
     soSingletonHolder<soArrayNull<soPartialAnim> > m_partialAnims;
-    soArrayVector<soOtherAnim, 1> m_otherAnims;
+    soArraySelectHolder<1, soArrayVector<soOtherAnim, 1>, soSingletonHolder<soArrayNull<soOtherAnim> > > m_otherAnims;
     soSingletonHolder<soArrayNull<soTransitionTermPack> > m_termPacks;
     soSingletonHolder<soArrayNull<u32> > m_u32s;
     soArrayContractibleTable<soMotionDataConst> m_motionData;
@@ -543,7 +644,7 @@ public:
         m_transitionBuilder(), m_otherAnims(1, 0),
         m_motionData((const soMotionData*)motionData, DataNum),
         m_module(acc, &m_motionData, m_transitionBuilder.getModule(),
-                 soSingletonHolder<soArrayNull<soPartialAnim> >::getInstance(), &m_otherAnims,
+                 soSingletonHolder<soArrayNull<soPartialAnim> >::getInstance(), m_otherAnims.get(),
                  (soArray<soTransitionTermPack>*)lbl_27_bss_9BC,
                  soSingletonHolder<soArrayNull<u32> >::getInstance(),
                  static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(), false,
@@ -667,24 +768,6 @@ public:
     T* getModule() { return &m_soundModule; }
 };
 
-// Shadow of an article: the plain module with a fixed size scale.
-// HYPOTHESIS: source spelling soShadowModuleBuildConfig<Module> with the scale taken from the builder; the fighters' builder
-// passes 0.0 and owns that template name.
-template <typename T>
-class wnShadowModuleBuildConfig {
-public:
-    typedef T ModuleType;
-};
-
-template <typename T>
-class soShadowModuleBuilder<wnShadowModuleBuildConfig<T> > {
-    u8 unk0; // HYPOTHESIS: an empty selection member (the module starts one word later)
-    T m_module;
-public:
-    soShadowModuleBuilder(soModuleAccesser* acc) : m_module(acc, 10.0f, 0) { }
-    T* getModule() { return &m_module; }
-};
-
 // Visibility with the simple module.
 template <s32 N>
 class soVisibilityModuleBuilder<soVisibilityModuleBuildConfig<soVisibilityModuleSimple, N> > {
@@ -712,6 +795,22 @@ class soKineticModuleBuilder<soKineticModuleBuildConfigMediator<wnKineticModuleI
     wnKineticModuleImpl m_module;                                  // +0x0
     soInstanceManagerFullPropertyVector<soKineticEnergy*, 8> m_manager; // +0x30
     M m_mediator;                                                  // +0xB0
+public:
+    soKineticModuleBuilder(soModuleAccesser* acc) :
+        m_module(acc, &m_manager, &m_mediator), m_manager(false), m_mediator() { }
+    soKineticModule* getModule() { return (soKineticModule*)&m_module; }
+};
+
+// Kinetic module of an article that has room for two energies only (Ness's PK Starstorm).
+// HYPOTHESIS: source spelling; the builder map name is the same as the eight-energy one.
+template <typename Impl, typename M, int Capacity>
+class wnKineticModuleBuildConfigSized { };
+
+template <typename M>
+class soKineticModuleBuilder<wnKineticModuleBuildConfigSized<wnKineticModuleImpl, M, 2> > {
+    wnKineticModuleImpl m_module;                                       // +0x0
+    soInstanceManagerFullPropertyVector<soKineticEnergy*, 2> m_manager; // +0x30
+    M m_mediator;                                                       // +0x68
 public:
     soKineticModuleBuilder(soModuleAccesser* acc) :
         m_module(acc, &m_manager, &m_mediator), m_manager(false), m_mediator() { }
@@ -894,7 +993,7 @@ public:
 ////////////////////////////////////////
 
 template <class BC>
-inline soModuleAccesserBuilder<BC>::soModuleAccesserBuilder(const wnModuleAccesserBuildData& bdRef, StageObject* owner) :
+inline soModuleAccesserBuilder<BC>::soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bdRef) :
     m_moduleAccsr(
         owner,
         soResourceModuleBuilder<typename BC::ResourceModuleBuildConfig>::getModule(&m_resourceModuleBuilder),
@@ -1007,24 +1106,21 @@ template <class BC>
 class wnModuleAccesserBuilder : public soModuleAccesserBuilder<BC> {
     wnAnimCmdModuleSubBuilder<typename BC::AnimCmdModuleSubBuildConfig> m_animCmdSubBuilder;
 public:
-    wnModuleAccesserBuilder(const wnModuleAccesserBuildData& bd, StageObject* owner) :
-        soModuleAccesserBuilder<BC>(bd, owner), m_animCmdSubBuilder(&this->m_moduleAccsr, bd) { }
+    wnModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bd) :
+        soModuleAccesserBuilder<BC>(owner, bd), m_animCmdSubBuilder(&this->m_moduleAccsr, bd) { }
     ~wnModuleAccesserBuilder() { }
 };
 
-// The kind/sub kind pair that identifies an article (the first word of its construction info).
-// HYPOTHESIS: source spelling of the construction info.
-struct wnArticleKindInfo {
-    s32 kind;
-    s32 subKind;
-};
-struct wnArticleBuildInfo {
-    const wnArticleKindInfo* kindInfo;
-    soHeapModule* heapModule;
-    // HYPOTHESIS: the constructors read the heap module through this accessor (its inlined result is reused across the three
-    // heap queries of the build data instead of being reloaded).
-    soHeapModule* getHeapModule() const { return heapModule; }
-};
+#include <wn/wn_article_build_info.h>
+
+// The descendants of an article are the articles its own article module generated (none for most articles).
+inline void wnDeactivateArticleDescendants(ftNullGenerateArticleManageModuleBuilder&) {
+    soSingletonHolder<soArticleMediatorNull>::getInstance()->deactivate();
+}
+template <class Builder>
+inline void wnDeactivateArticleDescendants(Builder& builder) {
+    builder.getMediator()->deactivate();
+}
 
 template <class BC>
 class wnWeaponBuilder : public Weapon {
@@ -1035,7 +1131,7 @@ protected:
 public:
     wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd) :
         Weapon(name, bd.m_kind, bd.m_data, articleId, &info, this->m_modules.getModuleAccesser(), true),
-        m_modules(bd, this), m_energyNormal(), m_energyRotNormal() {
+        m_modules(this, bd), m_energyNormal(), m_energyRotNormal() {
         Weapon::initialize();
         m_moduleAccesser->getKineticModule().addEnergy(&m_energyNormal, 0, soKineticEnergy::AttributeFlag(1), -1);
         m_moduleAccesser->getKineticModule().addEnergy(&m_energyRotNormal, 1, soKineticEnergy::AttributeFlag(1), -1);
@@ -1045,7 +1141,7 @@ public:
     virtual void deactivateDescendantForce();
 #else
     virtual void deactivateDescendantForce() {
-        soSingletonHolder<soArticleMediatorNull>::getInstance()->deactivate();
+        wnDeactivateArticleDescendants(this->m_modules.m_generateArticleBuilder);
     }
 #endif
 };

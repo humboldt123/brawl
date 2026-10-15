@@ -33,7 +33,7 @@ extern soStatusUniqProcess g_wnLassoStatusUniqProcessFailure;
 
 wnPikminChain::wnPikminChain(s32 articleId, const wnArticleBuildInfo& info, const wnPikminChainData* data) :
     wnWeaponBuilder<wnPikminChainModuleAccesserBuildConfig>(
-        "wnPikminChain", articleId, info,
+        "PikminChain", articleId, info,
         wnModuleAccesserBuildData(0x90, data, info.getHeapModule()->getInstanceHeap(), info.getHeapModule()->getNWModelInstanceHeap(),
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
                                   0, 0, 0, 0, 0, 0, 0)),

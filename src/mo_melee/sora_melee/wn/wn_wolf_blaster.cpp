@@ -1,6 +1,5 @@
-#include <types.h>
+#include <wn/wolf/wn_wolf_blaster.h>
+#include <wn/wn_class_info_impl.h>
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
+// Registers the Wolf Blaster article class (kind 38) in the class info table during static initialization.
+wnClassInfoImpl<38, wnWolfBlaster, wnWolfBlasterData> g_wnWolfBlasterClassInfo;

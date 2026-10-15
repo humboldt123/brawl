@@ -94,7 +94,7 @@ struct wnPikminDolfinModuleAccesserBuildConfig : wnCommonBuildConfig {
     typedef soDamageModuleBuildConfigNull DamageModuleBuildConfig;
     typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;
     typedef soVisibilityModuleBuildConfig<soVisibilityModuleImpl, 2> VisibilityModuleBuildConfig;
-    typedef wnShadowModuleBuildConfig<soShadowModuleImpl> ShadowModuleBuildConfig;
+    typedef soShadowModuleBuildConfig<soShadowModuleImpl> ShadowModuleBuildConfig;
     typedef soGlowModuleBuildConfigNull GlowModuleBuildConfig;
     typedef wnControllerModuleBuildConfig<soControllerModuleLinkRef, 0, 0> ControllerModuleBuildConfig;
     typedef soCameraModuleBuildConfig<soCameraModuleImpl> CameraModuleBuildConfig;
@@ -112,7 +112,7 @@ protected:
     u32 unk23C0;
 public:
     wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd) :
-        Weapon(name, bd.m_kind, bd.m_data, articleId, &info, this->m_modules.getModuleAccesser(), true), m_modules(bd, this) {
+        Weapon(name, bd.m_kind, bd.m_data, articleId, &info, this->m_modules.getModuleAccesser(), true), m_modules(this, bd) {
         Weapon::initialize();
     }
     virtual ~wnWeaponBuilder() { }

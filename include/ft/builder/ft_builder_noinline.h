@@ -27,7 +27,9 @@ ftStatusGimmickUniqProcessPool::~ftStatusGimmickUniqProcessPool() { }
 #ifdef FT_MARTH_RUNTIME_HELPERS
 #pragma dont_inline off
 #endif
+#ifndef WN_ARTICLE_NATIVE_BUILDERS // the article builders (defined together in the fighter unit) define it inline
 soKineticModuleImpl::~soKineticModuleImpl() { }
+#endif
 #ifdef FT_MARTH_RUNTIME_HELPERS
 #pragma dont_inline on
 #endif

@@ -127,7 +127,7 @@ void wnDiddyBarrelStatusUniqProcess::exitStatus(soModuleAccesser*, int) { }
 
 wnWeaponBuilder<wnDiddyBarrelModuleAccesserBuildConfig>::wnWeaponBuilder(
     const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd) :
-    Weapon(name, bd.m_kind, bd.m_data, articleId, &info, m_modules.getModuleAccesser(), true), m_modules(bd, this) {
+    Weapon(name, bd.m_kind, bd.m_data, articleId, &info, m_modules.getModuleAccesser(), true), m_modules(this, bd) {
     Weapon::initialize();
 }
 

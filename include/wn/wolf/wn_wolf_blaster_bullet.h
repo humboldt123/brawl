@@ -4,6 +4,10 @@
 #include <wn/wn_kinetic_energy_normal.h>
 
 struct wnWolfBlasterBulletModuleAccesserBuildConfig;
+// HYPOTHESIS: the article data type the class info fetches for kind 39; only passed as a pointer, the
+// layout is unreconstructed (mirror of the Fox family's wnFoxBlasterBulletData role).
+struct wnWolfBlasterBulletData;
+struct wnArticleBuildInfo;
 
 // Constructor/destructor offsets establish the builder extent through the
 // embedded normal energy at +0x20C0. The remaining module-builder storage is
@@ -25,6 +29,7 @@ class wnWolfBlasterBullet : public wnWeaponBuilder<wnWolfBlasterBulletModuleAcce
     int* unk213C; // HYPOTHESIS: native activate reads one word through this pointer.
     u8 unk2140[0x38];
 public:
+    wnWolfBlasterBullet(s32 articleId, const wnArticleBuildInfo& info, const wnWolfBlasterBulletData* data);
     virtual ~wnWolfBlasterBullet();
     // HYPOTHESIS: r5 is unused; remaining arguments follow native caller/register stores.
     void activate(int founderTaskId, int unk5, int team, Vec3f* pos, int unkMode, EfID effectId, float lr, float speed, float angle);

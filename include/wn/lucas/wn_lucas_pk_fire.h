@@ -61,7 +61,8 @@ public:
 };
 
 class wnLucasPKFire : public wnWeaponBuilder<wnLucasPKFireModuleAccesserBuildConfig> {
-    const wnLucasPKFireParam* m_param;           // +0x23AC
+public:
+    const wnLucasPKFireParam* m_param;         // +0x23AC
     wnLucasPKFireParamAccesser m_paramAccesser;  // +0x23B0
     wnKineticEnergyGravity m_energyGravity;     // +0x23F4
 public:

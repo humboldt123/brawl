@@ -14,12 +14,15 @@
 #include <so/so_slow.h>
 #include <so/so_value_accesser.h>
 #include <math.h>
+#include <wn/wn_class_info_impl.h>
 
+// Registers the Fox Blaster article class (kind 31) in the class info table during static initialization.
+wnClassInfoImpl<31, wnFoxBlasterBullet, wnFoxBlasterBulletData> g_wnFoxBlasterBulletClassInfo;
 
 // MATCH-ONLY: the original unit emits its large module builder separately.
 #pragma dont_inline on
 template soModuleAccesserBuilder<wnFoxBlasterBulletModuleAccesserBuildConfig>::soModuleAccesserBuilder(
-    const wnModuleAccesserBuildData&, StageObject*);
+    StageObject*, const wnModuleAccesserBuildData&);
 #pragma dont_inline off
 
 wnFoxBlasterBullet::wnFoxBlasterBullet(s32 articleId, const wnArticleBuildInfo& info, const wnFoxBlasterBulletData* data) :

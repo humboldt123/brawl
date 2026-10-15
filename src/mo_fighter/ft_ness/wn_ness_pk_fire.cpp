@@ -17,7 +17,7 @@ extern soStatusUniqProcess g_wnNessPKFireStatusUniqProcessPillar;
 
 wnNessPKFire::wnNessPKFire(s32 articleId, const wnArticleBuildInfo& info, const wnNessPKFireData* data) :
     wnWeaponBuilder<wnNessPKFireModuleAccesserBuildConfig>(
-        "wnNessPKFire", articleId, info,
+        "NessPKFire", articleId, info,
         wnModuleAccesserBuildData(103, data, info.getHeapModule()->getInstanceHeap(), info.getHeapModule()->getNWModelInstanceHeap(),
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
                                   0, 0, 0, 0, 0, 0, 0)),

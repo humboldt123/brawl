@@ -1,6 +1,5 @@
-#include <types.h>
+#include <wn/dedede/wn_dedede_starmissile.h>
+#include <wn/wn_class_info_impl.h>
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
+// Registers the Dedede star missile article class (kind 53) in the class info table during static initialization.
+wnClassInfoImpl<53, wnDededeStarmissile, wnDededeStarmissileData> g_wnDededeStarmissileClassInfo;

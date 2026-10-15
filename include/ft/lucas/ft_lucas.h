@@ -30,8 +30,19 @@ typedef soStatusModuleBuildConfig<290, soGeneralWorkBuildConfig<18, 14, 2>, 274,
 FT_KINETIC_TRANSACTOR(ftLucasKineticTransactor);
 typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKineticMediatorImplT<ftLucasKineticTransactor, ftKineticTransactor> > ftLucasKineticModuleBuildConfig;
 
-// HYPOTHESIS: soGenerateArticleManageModuleBuilder (weapon pools), not reconstructed yet
+// HYPOTHESIS: soGenerateArticleManageModuleBuilder (weapon pools). Only the fighter unit builds the real pools; the other
+// units of the REL see an opaque block of the same size.
+#ifdef FT_LUCAS_ARTICLE_POOLS
+#include <ft/lucas/ft_lucas_article_pools.h>
+typedef ftLucasArticleManageModuleBuilder ftLucasGenerateArticleManageModuleBuilder;
+#else
 typedef ftOpaqueGenerateArticleManageModuleBuilder<0x40814, Fighter_Lucas> ftLucasGenerateArticleManageModuleBuilder;
+#endif
+
+class wnLucasPKFire;
+class wnLucasPKThunder;
+class wnLucasPKStarStorm;
+class wnLucasHimohebi;
 
 class ftLucasBuildConfig : public ftCommonBuildConfig {
 public:
@@ -59,6 +70,20 @@ public:
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
     void** getExtendParam();
+    virtual void onStart(int param);
+    virtual void toDead(Dead::Reason deadReason);
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4);
+    virtual void notifyEventCollisionAbsorber(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY);
+    virtual void notifyEventCollisionReflector(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY);
+    virtual bool notifyEventCollisionReflectorCheck();
+    virtual bool notifyEventCollisionAbsorberCheck();
+    // The hooks the article mediator calls to start an article of the pool (they return false when the article is not
+    // handed out). HYPOTHESIS: names follow the module map.
+    static bool activeArticle(wnLucasPKFire* weapon, soModuleAccesser* acc);
+    static bool activeArticle1(wnLucasPKThunder* weapon, soModuleAccesser* acc);
+    static bool activeArticle2(wnLucasPKStarStorm* weapon, soModuleAccesser* acc);
+    static bool activeArticle3(wnLucasHimohebi* weapon, soModuleAccesser* acc);
 };
 static_assert(sizeof(ftFighterBuilder<ftLucasBuildConfig>) == 0x48CB0, "Lucas status table offset is wrong");
 static_assert(sizeof(ftLucas) == 0x48CC8, "Lucas fighter size is wrong");

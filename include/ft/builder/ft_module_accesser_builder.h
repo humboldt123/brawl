@@ -320,7 +320,7 @@ public:
     }
 
     // The article (weapon) construction from its build data; defined in wn/wn_module_accesser_builder.h.
-    soModuleAccesserBuilder(const wnModuleAccesserBuildData& bd, StageObject* owner);
+    soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bd);
 
     ~soModuleAccesserBuilder() { }
     soModuleAccesser* getModuleAccesser() { return &m_moduleAccsr; }

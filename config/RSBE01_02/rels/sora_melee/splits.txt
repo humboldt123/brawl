@@ -9961,6 +9961,10 @@ mo_melee/sora_melee/so/so_array_vector_accessors_soInstanceUnitFullProperty_ptr_
 mo_melee/sora_melee/so/so_array_vector_accessors_soInstanceUnitFullProperty_ptr_soStatusEventObserver_4.cpp:
 	.text       start:0x001E7ED4 end:0x001E7F9C
 
+mo_melee/sora_melee/wn/wn_dummy_fighter.cpp:
+	.text       start:0x001E7F9C end:0x001E8168
+	.ctors      start:0x00000294 end:0x00000298
+
 mo_melee/sora_melee/so/so_array_vector_thunks_52soInstanceUnitFullProperty_P21soStatusEventObserver_4.cpp:
 	.text       start:0x001E8168 end:0x001E8190
 
@@ -9994,6 +9998,8 @@ mo_melee/sora_melee/so/so_instance_manager_thunks_Vector_soModelEventObserver_1.
 mo_melee/sora_melee/wn/wn_class_info.cpp:
 	.text       start:0x001E82E8 end:0x001E8550
 	.ctors      start:0x00000298 end:0x0000029C
+	.data       start:0x00047B98 end:0x00047BF8
+	.bss        start:0x00005278 end:0x000054F8
 
 mo_melee/sora_melee/so/so_array_list_members_ptr_BaseItem_64_part1.cpp:
 	.text       start:0x0021BE00 end:0x0021BE10
@@ -10677,7 +10683,7 @@ mo_melee/sora_melee/ft/ft_mario_status_uniq_process_special_hi.cpp:
 	.ctors      start:0x00000350 end:0x00000354
 
 mo_melee/sora_melee/wn/wn_mario_fireball.cpp:
-	.text       start:0x002D935C end:0x002DDCE4
+	.text       start:0x002D935C end:0x002DE130
 	.ctors      start:0x00000354 end:0x00000358
 
 mo_melee/sora_melee/ft/ft_donkey_status_uniq_process_special_nattack.cpp:
@@ -10693,7 +10699,7 @@ mo_melee/sora_melee/wn/wn_link_bow.cpp:
 	.ctors      start:0x00000360 end:0x00000364
 
 mo_melee/sora_melee/wn/wn_link_bow_arrow.cpp:
-	.text       start:0x002E0F24 end:0x002E4E9C
+	.text       start:0x002E0F24 end:0x002E5024
 	.ctors      start:0x00000364 end:0x00000368
 
 mo_melee/sora_melee/wn/wn_link_bow_arrow_status_uniq_process.cpp:
@@ -10829,7 +10835,7 @@ mo_melee/sora_melee/wn/wn_samus_laser2_status_uniq_process.cpp:
 	.ctors      start:0x0000037C end:0x00000380
 
 mo_melee/sora_melee/wn/wn_samus_cshot.cpp:
-	.text       start:0x002FC784 end:0x002FFDC8
+	.text       start:0x002FC784 end:0x002FFF50
 	.ctors      start:0x00000384 end:0x00000388
 
 mo_melee/sora_melee/wn/wn_samus_cshot_status_uniq_process.cpp:
@@ -10837,11 +10843,11 @@ mo_melee/sora_melee/wn/wn_samus_cshot_status_uniq_process.cpp:
 	.ctors      start:0x00000388 end:0x0000038C
 
 mo_melee/sora_melee/wn/wn_szerosuit_paralyzer.cpp:
-	.text       start:0x00300B3C end:0x003040BC
+	.text       start:0x00300B3C end:0x0030424C
 	.ctors      start:0x0000038C end:0x00000390
 
 mo_melee/sora_melee/wn/wn_szerosuit_paralyzer_bullet.cpp:
-	.text       start:0x0030424C end:0x00307550
+	.text       start:0x0030424C end:0x003076A0
 	.ctors      start:0x00000390 end:0x00000394
 
 mo_melee/sora_melee/ft/ft_yoshi_status_uniq_process_special_nswallow.cpp:
@@ -10849,11 +10855,11 @@ mo_melee/sora_melee/ft/ft_yoshi_status_uniq_process_special_nswallow.cpp:
 	.ctors      start:0x00000394 end:0x00000398
 
 mo_melee/sora_melee/wn/wn_yoshi_tamago.cpp:
-	.text       start:0x00307E00 end:0x0030B9F0
+	.text       start:0x00307E00 end:0x0030BB88
 	.ctors      start:0x00000398 end:0x0000039C
 
 mo_melee/sora_melee/wn/wn_kirby_pikmin.cpp:
-	.text       start:0x0030BB88 end:0x0030F638
+	.text       start:0x0030BB88 end:0x0030F7D0
 	.ctors      start:0x0000039C end:0x000003A0
 
 mo_melee/sora_melee/ft/ft_kirby_copy_ability_id_converter.cpp:
@@ -10903,16 +10909,20 @@ mo_melee/sora_melee/wn/wn_fox_land_master_status_uniq_process_common.cpp:
 	.text       start:0x0031AF40 end:0x0031D1BC
 	.ctors      start:0x000003B4 end:0x000003B8
 
+mo_melee/sora_melee/wn/wn_fox_land_master_shell.cpp:
+	.text       start:0x0031E5B8 end:0x0031E784
+	.ctors      start:0x000003B8 end:0x000003BC
+
 mo_melee/sora_melee/ft/ft_fox_status_uniq_process_blaster.cpp:
 	.text       start:0x0031EE78 end:0x0031EEEC
 	.ctors      start:0x000003BC end:0x000003C0
 
 mo_melee/sora_melee/wn/wn_fox_blaster.cpp:
-	.text       start:0x0031EEEC end:0x00322218
+	.text       start:0x0031EEEC end:0x003223A8
 	.ctors      start:0x000003C0 end:0x000003C4
 
 mo_melee/sora_melee/wn/wn_fox_blaster_bullet.cpp:
-	.text       start:0x003223A8 end:0x0032433C
+	.text       start:0x003223A8 end:0x0032448C
 	.ctors      start:0x000003C4 end:0x000003C8
 
 mo_melee/sora_melee/wn/wn_pikachu_thunder_jolt.cpp:
@@ -10920,11 +10930,11 @@ mo_melee/sora_melee/wn/wn_pikachu_thunder_jolt.cpp:
 	.ctors      start:0x000003CC end:0x000003D0
 
 mo_melee/sora_melee/wn/wn_pikachu_thunder_jolt2.cpp:
-	.text       start:0x003269C4 end:0x003285B4
+	.text       start:0x003269C4 end:0x00328704
 	.ctors      start:0x000003D0 end:0x000003D4
 
 mo_melee/sora_melee/wn/wn_luigi_fireball.cpp:
-	.text       start:0x00328BA8 end:0x00328CF8
+	.text       start:0x00328BA8 end:0x00328E98
 	.ctors      start:0x000003D4 end:0x000003D8
 
 mo_melee/sora_melee/ft/ft_captain_status_uniq_process_falcon_punch.cpp:
@@ -10936,7 +10946,7 @@ mo_melee/sora_melee/ft/ft_ness_status_uniq_process_special_n.cpp:
 	.ctors      start:0x000003DC end:0x000003E0
 
 mo_melee/sora_melee/wn/wn_ness_pkflash.cpp:
-	.text       start:0x0032A2BC end:0x0032DB78
+	.text       start:0x0032A2BC end:0x0032DD00
 	.ctors      start:0x000003E0 end:0x000003E4
 
 mo_melee/sora_melee/wn/wn_ness_pkflash_status_uniq_process_move.cpp:
@@ -10956,7 +10966,7 @@ mo_melee/sora_melee/wn/wn_koopa_breath.cpp:
 	.ctors      start:0x000003F0 end:0x000003F4
 
 mo_melee/sora_melee/wn/wn_peach_kinopio.cpp:
-	.text       start:0x00332B74 end:0x0033725C
+	.text       start:0x00332B74 end:0x003373B0
 	.ctors      start:0x000003F4 end:0x000003F8
 
 mo_melee/sora_melee/ft/ft_zelda_status_uniq_process_special_n.cpp:
@@ -10976,7 +10986,7 @@ mo_melee/sora_melee/ft/ft_sheik_status_uniq_process_special_nshoot.cpp:
 	.ctors      start:0x00000404 end:0x00000408
 
 mo_melee/sora_melee/wn/wn_sheik_needle.cpp:
-	.text       start:0x0033D1C4 end:0x003413A8
+	.text       start:0x0033D1C4 end:0x00341538
 	.ctors      start:0x00000408 end:0x0000040C
 
 mo_melee/sora_melee/wn/wn_sheik_needle_status_uniq_process_move.cpp:
@@ -10996,11 +11006,11 @@ mo_melee/sora_melee/wn/wn_sheik_needle_status_uniq_process_jump.cpp:
 	.ctors      start:0x00000418 end:0x0000041C
 
 mo_melee/sora_melee/wn/wn_sheik_needle_have.cpp:
-	.text       start:0x003422E8 end:0x00345A24
+	.text       start:0x003422E8 end:0x00345B74
 	.ctors      start:0x0000041C end:0x00000420
 
 mo_melee/sora_melee/wn/wn_popo_ice_shot.cpp:
-	.text       start:0x00348538 end:0x0034CD68
+	.text       start:0x00348538 end:0x0034CEB8
 	.ctors      start:0x00000420 end:0x00000424
 
 mo_melee/sora_melee/ft/ft_marth_status_uniq_process_special_n_start.cpp:
@@ -11023,7 +11033,7 @@ mo_melee/sora_melee/ft/ft_marth_status_uniq_process_special_n_end.cpp:
 	.bss        start:0x00007F48 end:0x00007F58
 
 mo_melee/sora_melee/wn/wn_game_watch_sausage.cpp:
-	.text       start:0x0034E94C end:0x00351EBC
+	.text       start:0x0034E94C end:0x0035204C
 	.ctors      start:0x00000430 end:0x00000434
 
 mo_melee/sora_melee/wn/wn_game_watch_sausage_status_uniq_process_move.cpp:
@@ -11031,11 +11041,11 @@ mo_melee/sora_melee/wn/wn_game_watch_sausage_status_uniq_process_move.cpp:
 	.ctors      start:0x00000434 end:0x00000438
 
 mo_melee/sora_melee/wn/wn_falco_blaster.cpp:
-	.text       start:0x00352878 end:0x00353EB8
+	.text       start:0x00352878 end:0x00354048
 	.ctors      start:0x00000438 end:0x0000043C
 
 mo_melee/sora_melee/wn/wn_falco_blaster_bullet.cpp:
-	.text       start:0x00354048 end:0x00355F78
+	.text       start:0x00354048 end:0x00356100
 	.ctors      start:0x0000043C end:0x00000440
 
 mo_melee/sora_melee/ft/ft_wario_status_uniq_process_special_nopen.cpp:
@@ -11071,7 +11081,7 @@ mo_melee/sora_melee/wn/wn_pit_bow.cpp:
 	.ctors      start:0x00000460 end:0x00000464
 
 mo_melee/sora_melee/wn/wn_pit_bow_arrow.cpp:
-	.text       start:0x0035D9F8 end:0x00360230
+	.text       start:0x0035D9F8 end:0x003603B8
 	.ctors      start:0x00000464 end:0x00000468
 
 mo_melee/sora_melee/wn/wn_pit_bow_arrow_status_uniq_process_fly.cpp:
@@ -11083,7 +11093,7 @@ mo_melee/sora_melee/ft/ft_lucas_status_uniq_process_special_n.cpp:
 	.ctors      start:0x0000046C end:0x00000470
 
 mo_melee/sora_melee/wn/wn_lucas_pkflash.cpp:
-	.text       start:0x00361F48 end:0x003639E0
+	.text       start:0x00361F48 end:0x00363B68
 	.ctors      start:0x00000470 end:0x00000474
 
 mo_melee/sora_melee/wn/wn_lucas_pkflash_status_uniq_process_move.cpp:
@@ -11099,7 +11109,7 @@ mo_melee/sora_melee/ft/ft_diddy_status_uniq_process_special_pop_gun.cpp:
 	.ctors      start:0x0000047C end:0x00000480
 
 mo_melee/sora_melee/wn/wn_diddy_gun.cpp:
-	.text       start:0x00364EBC end:0x0036662C
+	.text       start:0x00364EBC end:0x0036677C
 	.ctors      start:0x00000480 end:0x00000484
 
 mo_melee/sora_melee/wn/wn_diddy_peanuts_status_uniq_process.cpp:
@@ -11115,7 +11125,7 @@ mo_melee/sora_melee/wn/wn_poke_lizardon_breath.cpp:
 	.ctors      start:0x0000048C end:0x00000490
 
 mo_melee/sora_melee/wn/wn_poke_fushigisou_seed.cpp:
-	.text       start:0x0036E2F8 end:0x00372430
+	.text       start:0x0036E2F8 end:0x00372580
 	.ctors      start:0x00000490 end:0x00000494
 
 mo_melee/sora_melee/ft/ft_poke_zenigame_status_uniq_process_special_n.cpp:
@@ -11123,7 +11133,7 @@ mo_melee/sora_melee/ft/ft_poke_zenigame_status_uniq_process_special_n.cpp:
 	.ctors      start:0x00000494 end:0x00000498
 
 mo_melee/sora_melee/wn/wn_poke_zenigame_water.cpp:
-	.text       start:0x00373290 end:0x003766B8
+	.text       start:0x00373290 end:0x00376808
 	.ctors      start:0x00000498 end:0x0000049C
 
 mo_melee/sora_melee/ft/ft_poke_trainer.cpp:
@@ -11322,7 +11332,7 @@ mo_melee/sora_melee/ft/ft_dedede_status_uniq_process_special_nswallow.cpp:
 	.ctors      start:0x000004C0 end:0x000004C4
 
 mo_melee/sora_melee/wn/wn_dedede_starmissile.cpp:
-	.text       start:0x00398108 end:0x0039A03C
+	.text       start:0x00398108 end:0x0039A1D4
 	.ctors      start:0x000004C4 end:0x000004C8
 
 mo_melee/sora_melee/wn/wn_dedede_starmissile_status_uniq_process.cpp:
@@ -11334,7 +11344,7 @@ mo_melee/sora_melee/ft/ft_lucario_status_uniq_process_special_n.cpp:
 	.ctors      start:0x000004CC end:0x000004D0
 
 mo_melee/sora_melee/wn/wn_lucario_aura_ball.cpp:
-	.text       start:0x0039BDA8 end:0x003A04FC
+	.text       start:0x0039BDA8 end:0x003A064C
 	.ctors      start:0x000004D0 end:0x000004D4
 
 mo_melee/sora_melee/ft/ft_ike_status_uniq_process_special_nstart.cpp:
@@ -11388,7 +11398,7 @@ mo_melee/sora_melee/wn/wn_toon_link_bow.cpp:
 	.ctors      start:0x000004F8 end:0x000004FC
 
 mo_melee/sora_melee/wn/wn_toon_link_bow_arrow.cpp:
-	.text       start:0x003A81B4 end:0x003AA1D4
+	.text       start:0x003A81B4 end:0x003AA35C
 	.ctors      start:0x000004FC end:0x00000500
 
 mo_melee/sora_melee/wn/wn_toon_link_bow_arrow_status_uniq_process.cpp:
@@ -11407,7 +11417,7 @@ mo_melee/sora_melee/ft/ft_purin_status_uniq_process_special_n.cpp:
 	.bss        start:0x00008BF0 end:0x00008C70
 
 mo_melee/sora_melee/wn/wn_wolf_blaster.cpp:
-	.text       start:0x003C8440 end:0x003C9A80
+	.text       start:0x003C8440 end:0x003C9C10
 	.ctors      start:0x0000050C end:0x00000510
 
 mo_melee/sora_melee/wn/wn_wolf_blaster_bullet.cpp:

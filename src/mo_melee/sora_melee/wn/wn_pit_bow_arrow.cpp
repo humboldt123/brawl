@@ -1,6 +1,5 @@
-#include <types.h>
+#include <wn/pit/wn_pit_bow_arrow.h>
+#include <wn/wn_class_info_impl.h>
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
+// Registers the Pit bow arrow article class (kind 91) in the class info table during static initialization.
+wnClassInfoImpl<91, wnPitBowArrow, wnPitBowArrowData> g_wnPitBowArrowClassInfo;

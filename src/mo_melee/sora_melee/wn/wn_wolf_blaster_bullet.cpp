@@ -7,6 +7,10 @@
 #include <so/so_slow.h>
 #include <so/so_value_accesser.h>
 #include <math.h>
+#include <wn/wn_class_info_impl.h>
+
+// Registers the Wolf Blaster article class (kind 39) in the class info table during static initialization.
+wnClassInfoImpl<39, wnWolfBlasterBullet, wnWolfBlasterBulletData> g_wnWolfBlasterBulletClassInfo;
 
 void wnWolfBlasterBullet::activate(int founderTaskId, int, int team, Vec3f* pos,
                                    int unkMode, EfID effectId, float lr,

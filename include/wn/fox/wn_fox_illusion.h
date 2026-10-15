@@ -134,7 +134,7 @@ public:
     soReflectModuleBuilder<BC::ReflectModuleBuildConfig> m_reflectModuleBuilder;
     soGlowModuleBuilder<BC::GlowModuleBuildConfig> m_glowModuleBuilder;
 
-    soModuleAccesserBuilder(const wnModuleAccesserBuildData& bd, StageObject* owner);
+    soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bd);
     ~soModuleAccesserBuilder() { }
     soModuleAccesser* getModuleAccesser() { return &m_moduleAccsr; }
 };
@@ -151,7 +151,7 @@ public:
     wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info,
                     const wnModuleAccesserBuildData& bd)
         : Weapon(name, bd.m_kind, bd.m_data, articleId, &info, m_modules.getModuleAccesser(), true),
-          m_modules(bd, this) {
+          m_modules(this, bd) {
         Weapon::initialize();
         // Native constructor has no energy constructors and no kinetic addEnergy calls.
     }

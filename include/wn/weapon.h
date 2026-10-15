@@ -34,7 +34,9 @@ private:
     s32 m_inhaleCount;       // +0xA8
     Vec3f m_inhaleStartPos;  // +0xAC
     s32 m_subKind;      // +0xB8: the article kind of the build data
+protected:
     const void* m_data; // +0xBC: the article data block of the build data
+private:
     s32 m_articleId;    // +0xC0
     // The constructor copies the two words reached through its kind descriptor.
     s32 unkC4;
