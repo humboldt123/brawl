@@ -10,8 +10,11 @@
 #define MT_VEC3F_MUL_INLINE // paired-single Vec3f scale, as in the original code
 #include <it/item.h>
 #include <so/sound/so_sound_module_impl.h>
+#include <so/collision/so_collision_shield_module_impl.h>
+#include <so/collision/so_collision_search_module_impl.h>
 #include <so/collision/so_collision_hit_module_impl.h>
 #include <mt/mt_prng.h>
+#include <math.h>
 #include <mt/mt_common.h>
 #include <so/area/so_area_enviroment_element_checker_impl.h>
 #include <so/so_slow.h>
@@ -50,6 +53,15 @@ struct ItValueAccesserHyp {
 extern char itValueAccesserGlobalStorage[];
 #define itValueAccesserGlobal (*reinterpret_cast<ItValueAccesserHyp*>(itValueAccesserGlobalStorage))
 
+// HYPOTHESIS: the item's collision catch module (0x1FDC): only the slot inhaled uses is known.
+struct soCatchModuleHyp {
+    virtual void unk08();
+    virtual void unk0C();
+    virtual void unk10();
+    virtual void unk14();
+    virtual void clearAll();
+};
+
 // HYPOTHESIS: the glow module (module enumeration +0xC8) has a getter and a setter for the glow attack at 0x18/0x1C.
 struct soGlowModuleHyp {
     virtual void unk08();
@@ -68,7 +80,7 @@ struct soItemAttackModuleHyp {
     virtual void unk14();
     virtual void unk18();
     virtual void unk1C();
-    virtual void unk20();
+    virtual void sleep(bool sleep);
     virtual void unk24();
     virtual void unk28();
     virtual void unk2C();
@@ -564,8 +576,7 @@ bool BaseItem::isCanInhaled() {
     if (isHaved() || !m_customizer->isSafe(this)) {
         return false;
     }
-    u32 flags = static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8);
-    return (flags & 0x1000000) == 0;
+    return !(static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x1000000);
 }
 
 Vec3f BaseItem::getStartInhaledPos() {
@@ -1508,6 +1519,104 @@ void BaseItem::updateNodeSRT() {
         facing.m_z = 0.0f;
         v->model.setNodeRotate(0, &facing);
         v->model.setNodeRotate(node, &rot);
+    }
+}
+
+// Kirby's inhale: a free item that may be inhaled is pulled to the given position; on the first call it is made
+// inert (no collision, no correction, no hit/attack boxes, air situation) and its start position is remembered.
+bool BaseItem::inhaled(float step, Vec3f* pos) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    int held;
+    if (moduleAccesser.getStatusModule().getStatusKind() == 2) {
+        held = 1;
+    } else {
+        held = v->link.isLink(Link::No_Have);
+    }
+    u32 canInhale;
+    if (held != 0 || !m_customizer->isSafe(this)) {
+        canInhale = 0;
+    } else {
+        canInhale = !(static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8) & 0x1000000);
+    }
+    if (canInhale == 0) {
+        return false;
+    }
+    soWorkManageModuleImpl* work = &v->workManage;
+    float count = work->getFloat(Instance::Work::Float_Inhaled_Count);
+    if (count < 0.0f) {
+        m_startInhaledPos = v->posture.getPos();
+        m_moduleAccesser->getStopModule().setSpecialStop(1);
+        v->area.setWhole(0);
+        v->ground.setCorrect(static_cast<soGroundShapeImpl::CorrectKind>(0), 0);
+        v->ground.setGrCollisionMode(false);
+        embedded<soSituationModule>(this, kSituationModule).setKind(Situation_Air, false);
+        v->hit.setWhole(3, 0);
+        v->attack.sleep(true);
+        embedded<soCollisionShieldModuleImpl>(this, 0x1D6C).clearAll();
+        embedded<soCollisionShieldModuleImpl>(this, 0x20D0).clearAll();
+        embedded<soCatchModuleHyp>(this, 0x1FDC).clearAll();
+        embedded<soCollisionSearchModuleImpl>(this, 0x1AA0).clearAll();
+    } else {
+        v->ground.setCorrect(static_cast<soGroundShapeImpl::CorrectKind>(0), 0);
+    }
+    work->setFloat(count + step, Instance::Work::Float_Inhaled_Count);
+    v->posture.setPos(pos);
+    return true;
+}
+
+// Advances the scale animation one step (when the game is estimating a frame) and applies the scale to the model node.
+void BaseItem::updateScaleAnim() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    soWorkManageModuleImpl* work = &v->workManage;
+    v->status.getStatusKind();
+    int type = work->getInt(Instance::Work::Int_Scale_Anim_Type);
+    if (type != Scale::Anim_None) {
+        int node = work->getInt(Instance::Work::Int_Scale_Anim_Node_Index);
+        float scale = work->getFloat(Instance::Work::Float_Scale_Anim_Now);
+        u32 counter = work->getInt(Instance::Work::Int_Scale_Anim_Counter);
+        u32 limit = work->getInt(Instance::Work::Int_Scale_Anim_Counter_Limit);
+        if (limit == 0) {
+            limit = 1;
+        }
+        if (soSlow::getInstance()->isEstimate() == 1) {
+            work->setInt(counter + 1, Instance::Work::Int_Scale_Anim_Counter);
+        }
+        float low = work->getFloat(Instance::Work::Float_Scale_Anim_Min);
+        float high = work->getFloat(Instance::Work::Float_Scale_Anim_Max);
+        if (type != Scale::Anim_Interpolate) {
+            if (type < 3) {
+                if (type == Scale::Anim_Loop) {
+                    scale = static_cast<float>(cos(static_cast<float>(static_cast<int>(counter)) * 0.7f)) * 0.3f + 0.9f;
+                } else if (0 < type) {
+                    float rate = static_cast<float>(static_cast<int>(counter)) * 0.05f;
+                    if (rate < 1.0f) {
+                        rate = 1.0f - (1.0f - rate) * (1.0f - rate);
+                    }
+                    scale = rate * 0.5f + 0.5f;
+                    if (1.0f <= scale) {
+                        work->setInt(Scale::Anim_None, Instance::Work::Int_Scale_Anim_Type);
+                        work->setInt(0, Instance::Work::Int_Scale_Anim_Counter);
+                        scale = 1.0f;
+                    }
+                }
+            }
+        } else {
+            float rate = static_cast<float>(static_cast<int>(counter)) / static_cast<float>(static_cast<int>(limit));
+            scale = low * (1.0f - rate) + high * rate;
+        }
+        float base = scale;
+        if (node == 0) {
+            scale = base * v->posture.getScale();
+        }
+        Vec3f nodeScale;
+        nodeScale.m_x = nodeScale.m_y = nodeScale.m_z = scale;
+        moduleAccesser.getModelModule().setNodeScale(node, &nodeScale);
+        work->setFloat(base, Instance::Work::Float_Scale_Anim_Now);
+        if (static_cast<int>(limit) >= 0 && static_cast<int>(limit) <= static_cast<int>(counter)) {
+            work->setInt(Scale::Anim_Keep, Instance::Work::Int_Scale_Anim_Type);
+            work->setInt(0, Instance::Work::Int_Scale_Anim_Counter);
+            work->setInt(-1, Instance::Work::Int_Scale_Anim_Counter_Limit);
+        }
     }
 }
 
