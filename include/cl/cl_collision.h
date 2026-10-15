@@ -35,8 +35,8 @@ public:
     virtual void display() = 0;
     virtual void updateBBox(float* bbox) = 0; // grows the box (min xyz, max xyz) around the shape
 
-    bool checkTarget(newCollision* other, int useTargetMask);
-    bool checkSizeInfinity(newCollision* other);
+    bool checkTarget(newCollision* other, int useTargetMask) __attribute__((never_inline));
+    bool checkSizeInfinity(newCollision* other) __attribute__((never_inline));
 };
 
 class clCapsule : public newCollision {
@@ -55,6 +55,9 @@ public:
     virtual bool check(newCollision* other, int useTargetMask);
     virtual void display();
     virtual void updateBBox(float* bbox);
+
+    bool chkCapsuleSameScale(float radius, clCapsule* other);
+    bool chkCapsuleScale(Vec3f* scale, clCapsule* other, Vec3f* otherScale);
 };
 static_assert(sizeof(clCapsule) == 0x7C, "Class is wrong size!");
 
@@ -72,8 +75,22 @@ public:
     virtual bool check(newCollision* other, int useTargetMask);
     virtual void display();
     virtual void updateBBox(float* bbox);
+
+    bool chkSphere(clSphere* other);
 };
 static_assert(sizeof(clSphere) == 0x40, "Class is wrong size!");
+
+// Overlap tests between the primitives.
+class clUtil {
+public:
+    // Rejects when both points c and d lie beyond segment a-b grown by the radius on some axis.
+    static bool chkRough(float radius, float* a, float* b, float* c, float* d);
+    // Same as chkRough with a per-axis radius.
+    static bool chkRough1(float* a, float* b, float* c, float* d, float* radius);
+    static bool chkCapsuleSphereSameScale(float scaledRadius, clCapsule* capsule, clSphere* sphere);
+    static bool chkCapsuleSphereScale(clCapsule* capsule, Vec3f* scale, clSphere* sphere);
+    static bool chkCapsuleSphere(clCapsule* capsule, clSphere* sphere);
+};
 
 // Pools of capsules and spheres: free objects live in an intrusive list per type.
 class clManager {

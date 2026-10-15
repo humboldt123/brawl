@@ -4,6 +4,7 @@
 
 #include <cl/cl_collision.h>
 #include <sr/sr_common.h>
+#include <math.h>
 
 void getScalingFactor(Matrix* matrix, Vec3f* scale); // main binary, name unknown
 
@@ -190,3 +191,256 @@ void clManager::freeCollision(int type, newCollision* collision) {
     nw4r::ut::List_Append(&m_freeLists[type], collision);
 }
 
+
+bool clCapsule::check(newCollision* other, int useTargetMask) {
+    if (checkTarget(other, useTargetMask) == 1) {
+        if (checkSizeInfinity(other) == 1) {
+            return true;
+        }
+        switch (other->getType()) {
+        case 1: {
+            clCapsule* otherCapsule = static_cast<clCapsule*>(other);
+            Vec3f otherScale = otherCapsule->m_scale;
+            float scale = m_scale.m_x;
+            float dy = scale - m_scale.m_y;
+            float dz = scale - m_scale.m_z;
+            if (static_cast<float>(fabs(dy)) >= 0.001f || static_cast<float>(fabs(dz)) >= 0.001f) {
+                return chkCapsuleScale(&m_scale, otherCapsule, &otherScale);
+            }
+            float oy = otherScale.m_x - otherScale.m_y;
+            float oz = otherScale.m_x - otherScale.m_z;
+            if (static_cast<float>(fabs(oy)) >= 0.001f || static_cast<float>(fabs(oz)) >= 0.001f) {
+                return otherCapsule->chkCapsuleScale(&otherScale, this, &m_scale);
+            }
+            return chkCapsuleSameScale(m_radius * scale, otherCapsule);
+        }
+        case 0:
+            return clUtil::chkCapsuleSphere(this, static_cast<clSphere*>(other));
+        }
+    }
+    return false;
+}
+
+bool clSphere::check(newCollision* other, int useTargetMask) {
+    if (checkTarget(other, useTargetMask) == 1) {
+        if (checkSizeInfinity(other) == 1) {
+            return true;
+        }
+        switch (other->getType()) {
+        case 1:
+            return clUtil::chkCapsuleSphere(static_cast<clCapsule*>(other), this);
+        case 0:
+            return chkSphere(static_cast<clSphere*>(other));
+        }
+    }
+    return false;
+}
+
+// Grows the box (min xyz, max xyz) so that it contains the point.
+static inline void clGrowBBox(float* bbox, Vec3f* p) {
+    if (p->m_x < bbox[0]) {
+        bbox[0] = p->m_x;
+    }
+    if (p->m_x > bbox[3]) {
+        bbox[3] = p->m_x;
+    }
+    if (p->m_y < bbox[1]) {
+        bbox[1] = p->m_y;
+    }
+    if (p->m_y > bbox[4]) {
+        bbox[4] = p->m_y;
+    }
+    if (p->m_z < bbox[2]) {
+        bbox[2] = p->m_z;
+    }
+    if (p->m_z > bbox[5]) {
+        bbox[5] = p->m_z;
+    }
+}
+
+void clCapsule::updateBBox(float* bbox) {
+    if (m_isInfinite == 1) {
+        bbox[2] = -3.4028235e+38f;
+        bbox[1] = -3.4028235e+38f;
+        bbox[0] = -3.4028235e+38f;
+        bbox[5] = 3.4028235e+38f;
+        bbox[4] = 3.4028235e+38f;
+        bbox[3] = 3.4028235e+38f;
+    } else {
+        Vec3f extent = m_scale * m_radius;
+        Vec3f lo;
+        Vec3f hi;
+        float x = m_pos.m_x;
+        if (x > m_pos1.m_x) {
+            hi.m_x = x + extent.m_x;
+            lo.m_x = m_pos1.m_x - extent.m_x;
+        } else {
+            hi.m_x = m_pos1.m_x + extent.m_x;
+            lo.m_x = x - extent.m_x;
+        }
+        float y = m_pos.m_y;
+        if (y > m_pos1.m_y) {
+            hi.m_y = y + extent.m_y;
+            lo.m_y = m_pos1.m_y - extent.m_y;
+        } else {
+            hi.m_y = m_pos1.m_y + extent.m_y;
+            lo.m_y = y - extent.m_y;
+        }
+        float z = m_pos.m_z;
+        if (z > m_pos1.m_z) {
+            hi.m_z = z + extent.m_z;
+            lo.m_z = m_pos1.m_z - extent.m_z;
+        } else {
+            hi.m_z = m_pos1.m_z + extent.m_z;
+            lo.m_z = z - extent.m_z;
+        }
+        clGrowBBox(bbox, &lo);
+        clGrowBBox(bbox, &hi);
+    }
+}
+
+void clSphere::updateBBox(float* bbox) {
+    if (m_isInfinite == 1) {
+        bbox[2] = -3.4028235e+38f;
+        bbox[1] = -3.4028235e+38f;
+        bbox[0] = -3.4028235e+38f;
+        bbox[5] = 3.4028235e+38f;
+        bbox[4] = 3.4028235e+38f;
+        bbox[3] = 3.4028235e+38f;
+    } else {
+        Vec3f lo;
+        Vec3f hi;
+        float x = m_pos.m_x;
+        if (x > m_pos1.m_x) {
+            hi.m_x = x + m_radius;
+            lo.m_x = m_pos1.m_x - m_radius;
+        } else {
+            hi.m_x = m_pos1.m_x + m_radius;
+            lo.m_x = x - m_radius;
+        }
+        float y = m_pos.m_y;
+        if (y > m_pos1.m_y) {
+            hi.m_y = y + m_radius;
+            lo.m_y = m_pos1.m_y - m_radius;
+        } else {
+            hi.m_y = m_pos1.m_y + m_radius;
+            lo.m_y = y - m_radius;
+        }
+        float z = m_pos.m_z;
+        if (z > m_pos1.m_z) {
+            hi.m_z = z + m_radius;
+            lo.m_z = m_pos1.m_z - m_radius;
+        } else {
+            hi.m_z = m_pos1.m_z + m_radius;
+            lo.m_z = z - m_radius;
+        }
+        clGrowBBox(bbox, &lo);
+        clGrowBBox(bbox, &hi);
+    }
+}
+
+bool clUtil::chkRough(float radius, float* a, float* b, float* c, float* d) {
+    if (a[0] > b[0]) {
+        if (a[0] + radius < c[0] && a[0] + radius < d[0]) {
+            return false;
+        }
+        if (b[0] - radius > c[0] && b[0] - radius > d[0]) {
+            return false;
+        }
+    } else {
+        if (a[0] - radius > c[0] && a[0] - radius > d[0]) {
+            return false;
+        }
+        if (b[0] + radius < c[0] && b[0] + radius < d[0]) {
+            return false;
+        }
+    }
+    if (a[1] > b[1]) {
+        if (a[1] + radius < c[1] && a[1] + radius < d[1]) {
+            return false;
+        }
+        if (b[1] - radius > c[1] && b[1] - radius > d[1]) {
+            return false;
+        }
+    } else {
+        if (a[1] - radius > c[1] && a[1] - radius > d[1]) {
+            return false;
+        }
+        if (b[1] + radius < c[1] && b[1] + radius < d[1]) {
+            return false;
+        }
+    }
+    if (a[2] > b[2]) {
+        if (a[2] + radius < c[2] && a[2] + radius < d[2]) {
+            return false;
+        }
+        if (b[2] - radius > c[2] && b[2] - radius > d[2]) {
+            return false;
+        }
+    } else {
+        if (a[2] - radius > c[2] && a[2] - radius > d[2]) {
+            return false;
+        }
+        if (b[2] + radius < c[2] && b[2] + radius < d[2]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool clUtil::chkCapsuleSphere(clCapsule* capsule, clSphere* sphere) {
+    Vec3f scale = capsule->m_scale;
+    if (static_cast<float>(fabs(scale.m_x - scale.m_y)) < 0.001f && static_cast<float>(fabs(scale.m_x - scale.m_z)) < 0.001f) {
+        return chkCapsuleSphereSameScale(capsule->m_radius * scale.m_x, capsule, sphere);
+    }
+    return chkCapsuleSphereScale(capsule, &scale, sphere);
+}
+
+bool clUtil::chkRough1(float* a, float* b, float* c, float* d, float* radius) {
+    if (a[0] > b[0]) {
+        if (a[0] + radius[0] < c[0] && a[0] + radius[0] < d[0]) {
+            return false;
+        }
+        if (b[0] - radius[0] > c[0] && b[0] - radius[0] > d[0]) {
+            return false;
+        }
+    } else {
+        if (a[0] - radius[0] > c[0] && a[0] - radius[0] > d[0]) {
+            return false;
+        }
+        if (b[0] + radius[0] < c[0] && b[0] + radius[0] < d[0]) {
+            return false;
+        }
+    }
+    if (a[1] > b[1]) {
+        if (a[1] + radius[1] < c[1] && a[1] + radius[1] < d[1]) {
+            return false;
+        }
+        if (b[1] - radius[1] > c[1] && b[1] - radius[1] > d[1]) {
+            return false;
+        }
+    } else {
+        if (a[1] - radius[1] > c[1] && a[1] - radius[1] > d[1]) {
+            return false;
+        }
+        if (b[1] + radius[1] < c[1] && b[1] + radius[1] < d[1]) {
+            return false;
+        }
+    }
+    if (a[2] > b[2]) {
+        if (a[2] + radius[2] < c[2] && a[2] + radius[2] < d[2]) {
+            return false;
+        }
+        if (b[2] - radius[2] > c[2] && b[2] - radius[2] > d[2]) {
+            return false;
+        }
+    } else {
+        if (a[2] - radius[2] > c[2] && a[2] - radius[2] > d[2]) {
+            return false;
+        }
+        if (b[2] + radius[2] < c[2] && b[2] + radius[2] < d[2]) {
+            return false;
+        }
+    }
+    return true;
+}
