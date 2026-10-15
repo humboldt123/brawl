@@ -128,6 +128,9 @@ public:
 
     float getLotValue(float base, int kind);
 
+    ItemKind getLotKirbyNormalItemKind();
+    ItemKind getLotKirbyTabemonoItemKind();
+
     static itManager* getInstance();
 };
 static_assert(sizeof(itManager) == 0x14c0, "Class is wrong size!");

@@ -27,6 +27,8 @@ extern char* lbl_27_data_731C0[];
 extern char lbl_27_data_73488[];
 extern int lbl_27_rodata_47C8[];
 extern int lbl_27_bss_64A0[];
+// the all-clear base item switch of the Tabemono (food) lottery
+extern u32 lbl_27_data_7419C;
 extern u8 lbl_27_data_71EB8[];
 extern s16 lbl_27_rodata_53A0[];
 
@@ -684,4 +686,48 @@ float itManager::getLotValue(float base, int kind) {
         result = result * itManagerField<float>(this, 0x1484);
     }
     return result;
+}
+
+// The item Kirby gets from a Pokemon-less basic lottery: the item switch minus the kinds Kirby cannot copy.
+ItemKind itManager::getLotKirbyNormalItemKind() {
+    u32 words[6];
+    words[1] = itManagerField<u32>(this, 0x11A0);
+    words[1] &= ~0x800;
+    words[1] &= ~0x80000;
+    words[3] = itManagerField<u32>(this, 0x11A8);
+    words[0] = itManagerField<u32>(this, 0x119C);
+    words[0] &= ~0x800;
+    words[0] &= ~0x800000;
+    words[4] = itManagerField<u32>(this, 0x11AC);
+    words[2] = itManagerField<u32>(this, 0x11A4) & ~1;
+    words[5] = itManagerField<u32>(this, 0x11B0);
+    itGenSheetKind sheet = getRandBasicItemSheet();
+    itGenSheetKind sheets[3] = { sheet, sheet, sheet };
+    return getLotOneItemKind(sheets, static_cast<itGenId>(10000), reinterpret_cast<ItemSwitch*>(words), false);
+}
+
+// The food item Kirby gets for his Tabemono (eat) lottery: only the food kinds the item switch allows.
+ItemKind itManager::getLotKirbyTabemonoItemKind() {
+    u32 words[6];
+    words[0] = lbl_27_data_7419C;
+    words[1] = lbl_27_data_7419C;
+    words[2] = lbl_27_data_7419C;
+    words[3] = lbl_27_data_7419C;
+    words[4] = lbl_27_data_7419C;
+    words[5] = lbl_27_data_7419C;
+    if ((itManagerField<u32>(this, 0x11A4) & 1) != 0) {
+        words[2] = lbl_27_data_7419C | 1;
+    }
+    if ((itManagerField<u32>(this, 0x11A0) & 1) != 0) {
+        words[1] = lbl_27_data_7419C | 1;
+    }
+    if ((itManagerField<u32>(this, 0x119C) & 0x10000) != 0) {
+        words[0] = lbl_27_data_7419C | 0x10000;
+    }
+    if ((itManagerField<u32>(this, 0x11A0) & 0x10) != 0) {
+        words[1] = words[1] | 0x10;
+    }
+    itGenSheetKind sheet = getRandBasicItemSheet();
+    itGenSheetKind sheets[3] = { sheet, sheet, sheet };
+    return getLotOneItemKind(sheets, static_cast<itGenId>(10000), reinterpret_cast<ItemSwitch*>(words), false);
 }
