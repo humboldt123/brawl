@@ -684,7 +684,7 @@ bool grEarthChappy::isOutEndForce() {
 
 void grEarthChappy::receiveCollMsg_Landing(grCollStatus* collStatus, grCollisionJoint* collisionJoint, bool isFirstContact) {
     static u32 sOwnerFlags = 1;
-    if (isCollisionStatusOwnerTask(collStatus, reinterpret_cast<CollCategoryFlag*>(&sOwnerFlags)) == 1) {
+    if (isCollisionStatusOwnerTask__6GroundFP12grCollStatusPi(this, collStatus, reinterpret_cast<int*>(&sOwnerFlags)) == 1) {
         m_landTimer = 5.0f;
     }
 }

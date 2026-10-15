@@ -287,8 +287,9 @@ void grEarthChappy::setPosGimmickWork(Vec3f* posGimmickWork) {
 
 void stEarth::createObjPellet() {
     if (m_stageData != NULL) {
+        u8 i = 0;
         u8 count = static_cast<stEarthData*>(m_stageData)->maxPellets;
-        for (u8 i = 0; i != count; i++) {
+        for (; i != count; i++) {
             createObjPelletFlower(i);
             createObjPellet1(i);
         }
@@ -924,8 +925,8 @@ void stEarth::initPelletData(stEarthPelletData* pellet) {
         pellet->m_pos.m_x = 0.0f;
         pellet->m_pos.m_y = 0.0f;
         pellet->m_pos.m_z = 0.0f;
+        pellet->unk20 = 90.0f * randf() + 45.0f;
         pellet->unk24 = 0.5f;
-        pellet->unk20 = randf() * 90.0f + 45.0f;
         pellet->m_mtx.setIdentity();
     }
 }
@@ -940,11 +941,11 @@ int stEarth::selectPelletColor(int lastColor) {
     float weight1 = data->pelletBlueWeight;
     float weight2 = data->pelletYellowWeight;
     switch (lastColor) {
-    case 1:
-        weight1 = weight1 * data->unk20;
-        break;
     case 0:
         weight0 = weight0 * data->unk20;
+        break;
+    case 1:
+        weight1 = weight1 * data->unk20;
         break;
     case 2:
         weight2 = weight2 * data->unk20;

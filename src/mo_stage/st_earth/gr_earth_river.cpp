@@ -161,22 +161,23 @@ void grEarthRiver::update(float deltaFrame) {
 }
 
 void grEarthRiver::startRiver() {
-    u8 state = m_riverState;
+    int state = m_riverState;
     if (state < 6) {
         if (state != 1) {
             return;
         }
-    } else if (7 < state) {
+    } else if (8 <= state) {
         return;
     }
     m_riverState = 2;
 }
 
 void grEarthRiver::endRiver() {
-    if (5 < m_riverState) {
+    int state = m_riverState;
+    if (6 <= state) {
         return;
     }
-    if (m_riverState < 2) {
+    if (state < 2) {
         return;
     }
     m_endRequest = 1;

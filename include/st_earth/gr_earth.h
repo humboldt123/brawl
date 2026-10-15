@@ -10,6 +10,9 @@
 #include <it/it_manager.h>
 #include <it/item.h>
 #include <gr/collision/gr_collision.h>
+
+// Ground::isCollisionStatusOwnerTask (sora_melee): the symbol takes an int pointer (the header declares another type)
+extern "C" bool isCollisionStatusOwnerTask__6GroundFP12grCollStatusPi(Ground* ground, grCollStatus* collStatus, int* flags);
 #include <gr/collision/gr_collision_joint.h>
 #include <gr/gr_calc_world_callback.h>
 #include <gr/gr_gimmick.h>
@@ -325,11 +328,12 @@ public:
         m_pelletData = NULL;
         m_mtx.setIdentity();
         grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-        if (callback != NULL) {
-            callback->m_numNodeCallbackData = 1;
-            callback->initialize(false, Heaps::StageInstance);
-            callback->m_nodeCallbackDatas[0].m_flags |= 8;
+        if (callback == NULL) {
+            return;
         }
+        callback->m_numNodeCallbackData = 1;
+        callback->initialize(false, Heaps::StageInstance);
+        callback->m_nodeCallbackDatas[0].m_flags |= 8;
     }
     virtual ~grEarthPellet();
     virtual void update(float deltaFrame);
@@ -514,11 +518,12 @@ public:
         m_weatherWork = NULL;
         m_posOffsetWork = NULL;
         grCalcWorldCallBack* callback = &m_calcWorldCallBack;
-        if (callback != NULL) {
-            callback->m_numNodeCallbackData = 1;
-            callback->initialize(false, Heaps::StageInstance);
-            callback->m_nodeCallbackDatas[0].m_flags |= 0x10;
+        if (callback == NULL) {
+            return;
         }
+        callback->m_numNodeCallbackData = 1;
+        callback->initialize(false, Heaps::StageInstance);
+        callback->m_nodeCallbackDatas[0].m_flags |= 0x10;
     }
     virtual ~grEarthHaneMizu();
     virtual void update(float deltaFrame);

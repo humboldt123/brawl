@@ -444,3 +444,54 @@ bool clUtil::chkRough1(float* a, float* b, float* c, float* d, float* radius) {
     }
     return true;
 }
+
+// Vec3f::length() inlined (the original inlines it here)
+static inline float clLength(const Vec3f& v) {
+    float lengthSq = v.m_z * v.m_z + v.m_x * v.m_x + v.m_y * v.m_y;
+    if (static_cast<float>(fabs(lengthSq)) <= 1.17549435e-38f) {
+        return 0.0f;
+    }
+    return lengthSq * rsqrtf(lengthSq);
+}
+
+bool clCapsule::chkCapsuleSameScale(float radius, clCapsule* other) {
+    float otherRadius = other->m_radius * other->m_scale.m_x;
+    float sum = radius + otherRadius;
+    if (clUtil::chkRough(sum, &m_pos1.m_x, &m_pos.m_x, &other->m_pos1.m_x, &other->m_pos.m_x) == 1) {
+        Vec3f dir = m_pos - m_pos1;
+        Vec3f otherDir = other->m_pos - other->m_pos1;
+        float t;
+        float otherT;
+        clUtil::getLines(&m_pos1, &m_pos, &dir, &other->m_pos1, &other->m_pos, &otherDir, &t, &otherT);
+        Vec3f offset = dir * t;
+        Vec3f otherOffset = otherDir * otherT;
+        Vec3f closest = m_pos1 + offset;
+        Vec3f otherClosest = other->m_pos1 + otherOffset;
+        Vec3f diff = closest - otherClosest;
+        float distance = clLength(diff);
+        if (sum + otherRadius >= distance) {
+            if (distance > sum) {
+                if (distance > otherRadius) {
+                    float ratio = sum / distance;
+                    Vec3f delta = otherClosest - closest;
+                    Vec3f scaled = delta * ratio;
+                    m_hitPos = closest + scaled;
+                } else {
+                    m_hitPos = otherClosest;
+                }
+            } else if (distance > otherRadius) {
+                m_hitPos = closest;
+            } else {
+                Vec3f delta = otherClosest - closest;
+                Vec3f scaled = delta * 0.5f;
+                m_hitPos = closest + scaled;
+            }
+            other->m_hitPos = m_hitPos;
+            float overlap = (otherRadius + sum) - distance;
+            m_distance = overlap;
+            other->m_distance = overlap;
+            return true;
+        }
+    }
+    return false;
+}

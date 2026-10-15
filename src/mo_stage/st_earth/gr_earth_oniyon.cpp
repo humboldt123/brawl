@@ -1,5 +1,6 @@
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
+#define YK_CLTARGET_4_FIRST // the clTarget constructor writes the second member first in this REL
 #define YK_DATA_INLINE_CTOR // the ykData / ykDataGroup constructors are inline in this REL
 #define SO_COLLISION_GROUP_ALIGNED // the hit object embeds soArrayVector<soCollisionGroup, 1> with 4-byte aligned elements
 #define SO_COLLISION_GROUP_MEMBERWISE // ... and copies the group member by member
@@ -481,7 +482,8 @@ void grEarthOniyon::setMotion(u32 animId, bool loop, float* frameCount) {
 
 // The stage says that the oniyon lands on the leaf (0, 1 or 2) when it waits.
 void grEarthOniyon::requestLanding(u8 leaf) {
-    if (m_state != 1) {
+    int state = m_state;
+    if (state != 1) {
         return;
     }
     m_landingLeaf = leaf;
@@ -489,7 +491,8 @@ void grEarthOniyon::requestLanding(u8 leaf) {
 }
 
 void grEarthOniyon::requestTakeOff() {
-    if (m_state != 0x13) {
+    int state = m_state;
+    if (state != 0x13) {
         return;
     }
     m_state = 0x14;
@@ -603,7 +606,8 @@ void grEarthOniyon::requestItem(int kind) {
 }
 
 bool grEarthOniyon::isPreLanding() {
-    return m_state == 0x11 || m_state == 0x12;
+    u32 state = m_state; // HYPOTHESIS: every step from 0x12 on counts (the original compares the unsigned value)
+    return state >= 0x12;
 }
 
 bool grEarthOniyon::isLanding() {

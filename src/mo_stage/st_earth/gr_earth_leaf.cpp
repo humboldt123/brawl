@@ -314,7 +314,7 @@ void grEarthLeaf::getPos(Vec3f* pos, int mode) {
 void grEarthLeaf::receiveCollMsg_Landing(grCollStatus* collStatus, grCollisionJoint* collisionJoint, bool isFirstContact) {
     static u32 sOwnerFighter = 1;
     static u32 sOwnerItem = 4;
-    if (isCollisionStatusOwnerTask(collStatus, reinterpret_cast<CollCategoryFlag*>(&sOwnerFighter)) == 1) {
+    if (isCollisionStatusOwnerTask__6GroundFP12grCollStatusPi(this, collStatus, reinterpret_cast<int*>(&sOwnerFighter)) == 1) {
         Fighter* fighter = static_cast<Fighter*>(gfTask::getTask(collStatus->m_taskId));
         if (fighter == NULL) {
             return;
@@ -322,12 +322,15 @@ void grEarthLeaf::receiveCollMsg_Landing(grCollStatus* collStatus, grCollisionJo
         m_weight = ftExternalValueAccesser::getWeight(fighter);
     }
     BaseItem* item;
-    if ((isCollisionStatusOwnerTask(collStatus, reinterpret_cast<CollCategoryFlag*>(&sOwnerItem)) != 1)
+    if ((isCollisionStatusOwnerTask__6GroundFP12grCollStatusPi(this, collStatus, reinterpret_cast<int*>(&sOwnerItem)) != 1)
         || ((item = static_cast<BaseItem*>(gfTask::getTask(collStatus->m_taskId))) != NULL
             && item->getParam(static_cast<itValueAccesser::ParamInt>(0x5B69)) != 0)) {
-        float prev = m_timerReturn;
+        bool wasIdle = false;
+        if (m_timerReturn == 0.0f) {
+            wasIdle = true;
+        }
         m_timerReturn = 5.0f;
-        if (prev == 0.0f) {
+        if (wasIdle == 1) {
             m_stateDown = 1;
         }
     }

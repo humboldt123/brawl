@@ -90,6 +90,8 @@ public:
     static bool chkCapsuleSphereSameScale(float scaledRadius, clCapsule* capsule, clSphere* sphere);
     static bool chkCapsuleSphereScale(clCapsule* capsule, Vec3f* scale, clSphere* sphere);
     static bool chkCapsuleSphere(clCapsule* capsule, clSphere* sphere);
+    // Closest points of two segments (each given by its two ends and direction): parameters ta/tb along the directions.
+    static void getLines(Vec3f* a1, Vec3f* a0, Vec3f* da, Vec3f* b1, Vec3f* b0, Vec3f* db, float* ta, float* tb);
 };
 
 // Pools of capsules and spheres: free objects live in an intrusive list per type.

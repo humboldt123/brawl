@@ -21,7 +21,7 @@ void grEarthStump::processAnim() {
     Ground::processAnim();
     if (m_posGimmickWork != NULL) {
         getNodePosition(&m_posGimmickWork[2], 0, 1);
-        m_posGimmickWork[2].m_x = m_posGimmickWork[2].m_x + 15.0f;
+        m_posGimmickWork[2].m_x += 15.0f;
         getNodePosition(&m_posGimmickWork[1], 0, 2);
         getNodePosition(&m_posGimmickWork[0], 0, 3);
     }

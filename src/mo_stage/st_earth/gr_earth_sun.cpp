@@ -92,32 +92,28 @@ void grEarthSun::update(float deltaFrame) {
 }
 
 void grEarthSun::requestToFine() {
-    u8 state = m_state;
+    int state = m_state;
     if (0xC < state) {
         if (state < 0x10) {
             m_request = 1;
-            return;
         }
         return;
     }
-    if (state < 2) {
+    if (state < 2 && 0 <= state) {
         m_state = 0xA;
-        return;
     }
 }
 
 void grEarthSun::requestToRain() {
-    u8 state = m_state;
+    int state = m_state;
     if (9 < state) {
         if (state < 0xD) {
             m_request = 1;
-            return;
         }
         return;
     }
-    if (state < 2) {
+    if (state < 2 && 0 <= state) {
         m_state = 0xD;
-        return;
     }
 }
 
