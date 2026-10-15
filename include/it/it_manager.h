@@ -72,6 +72,7 @@ public:
     virtual void notifyDrawDone();
 
     bool isCompItemKindArchive(itKind kind, u32 variation, bool);
+    bool isCompItemKindArchiveFromGenArchive(itGenSheetKind sheet);
     itArchive* preloadItemKindArchive(itKind kind, u32 variation, itArchive::Type archiveType, bool);
     itGenSheetKind getRandBasicItemSheet(itGenId genKind = Item_Gen_Basic); // custom parameter
     ItemKind getLotOneItemKind(itGenSheetKind* sheetKind, itGenId genKind, ItemSwitch* itemSwitch = NULL, bool unk = false);

@@ -22,6 +22,8 @@ extern int lbl_27_rodata_50D8[];
 // per kind tables: item group (int), uses an item model (u8), name (char*), variation count (int, sign = flag), weapon
 // item cache (0 unknown, 1 yes, 2 no), the weapon id lists (7 shorts per kind)
 extern int lbl_27_data_71BF0[];
+// the four item kinds a basic-gen lottery pulls in when the "all items" flag (0x14A0) is clear
+extern u32 lbl_27_data_737A0[];
 extern u8 lbl_27_data_71F6C[];
 extern char* lbl_27_data_731C0[];
 extern char lbl_27_data_73488[];
@@ -730,4 +732,123 @@ ItemKind itManager::getLotKirbyTabemonoItemKind() {
     itGenSheetKind sheet = getRandBasicItemSheet();
     itGenSheetKind sheets[3] = { sheet, sheet, sheet };
     return getLotOneItemKind(sheets, static_cast<itGenId>(10000), reinterpret_cast<ItemSwitch*>(words), false);
+}
+
+// Whether every item archive referenced by the generator sheet's parameters has finished loading. The result is cached
+// in the sheet archive once everything is complete.
+static inline bool isSameSheetStage(itGenArchive* cur, const itGenSheetKind& sheet) {
+    itGenSheetKind kind = cur->m_sheetKind;
+    return sheet.m_stageKind == kind.m_stageKind;
+}
+
+static inline bool isSameSheetLevel(itGenArchive* cur, const itGenSheetKind& sheet) {
+    itGenSheetKind kind = cur->m_sheetKind;
+    return (u32)sheet.m_levelId == (u32)kind.m_levelId;
+}
+
+static inline itGenArchive* findGenArchive(const soArrayFixed<itGenArchive*>& list, const itGenSheetKind& sheet) {
+    itGenArchive* cur;
+    for (int i = 0; i < list.size(); i++) {
+        cur = list.at(i);
+        bool stageMatches = false;
+        bool found = false;
+        if (cur != NULL && isSameSheetStage(cur, sheet)) {
+            stageMatches = true;
+        }
+        if (stageMatches && isSameSheetLevel(cur, sheet)) {
+            found = true;
+        }
+        if (found) {
+            return cur;
+        }
+    }
+    return NULL;
+}
+
+bool itManager::isCompItemKindArchiveFromGenArchive(itGenSheetKind sheet) {
+    itGenSheetKind target = sheet;
+    itGenArchive* archive = findGenArchive(m_genArchiveArrayList, target);
+    if (archive == NULL) {
+        return false;
+    }
+    if (!archive->isComp()) {
+        return false;
+    }
+    if (archive->m_itemArchivesChecked) {
+        return true;
+    }
+    if (archive->isFailed()) {
+        return true;
+    }
+    for (u32 level = 0; level < 5; level++) {
+        u32 numParams = archive->getGenParamNum(level);
+        for (u32 p = 0; p < numParams; p++) {
+            itGenParam* param = archive->getGenParamFromIndex(p, level);
+            if (param == NULL) {
+                continue;
+            }
+            if ((u32)param->m_id == (u32)Item_Gen_Basic && itManagerField<u8>(this, 0x14A0) == 0) {
+                continue;
+            }
+            u32 off = 0;
+            u32 e = 0;
+            for (; e < param->m_numEntries; off += 0x10, e++) {
+                itGenParam::Entry* entry = (itGenParam::Entry*)((u8*)param->m_entries + off);
+                int kind = entry->m_kind;
+                if (kind == -1) {
+                    break;
+                }
+                switch (kind) {
+                case 0x7D1:
+                    kind = 0x40;
+                    break;
+                case 0x7D2:
+                case 0x7D3:
+                    if (itManagerField<u8>(this, 0x14A0) != 0) {
+                        if (!isCompItemKindArchive((itKind)0x3E, 5000, true)) {
+                            return false;
+                        }
+                    } else {
+                        for (u32 j = 0; j < 4; j++) {
+                            if (!isCompItemKindArchive((itKind)lbl_27_data_737A0[j], 5000, true)) {
+                                return false;
+                            }
+                        }
+                    }
+                    continue;
+                case 0x7D4:
+                case 0x7D5:
+                    continue;
+                }
+                int group;
+                if (kind == -3) {
+                    group = 1;
+                } else if (kind < 0 || kind >= 0xB2) {
+                    group = -1;
+                } else {
+                    group = lbl_27_data_71BF0[kind];
+                }
+                switch (group) {
+                case 5:
+                    break;
+                case 2:
+                case 3:
+                case 4:
+                case 6:
+                case 7:
+                    continue;
+                }
+                if (kind == 0x46) {
+                    int variation = entry->m_variation;
+                    if (variation != 5000 && !isCompItemKindArchive((itKind)kind, variation, true)) {
+                        return false;
+                    }
+                } else if (!isCompItemKindArchive((itKind)kind, 5000, true)) {
+                    return false;
+                }
+            }
+        }
+    }
+    archive->m_itemArchivesChecked = true;
+    return true;
 }

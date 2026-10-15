@@ -100,8 +100,12 @@ public:
     int m_archiveId;
     u8 m_16;
     u8 m_17;
-    u8 m_18;
+    u8 m_itemArchivesChecked; // HYPOTHESIS: set once every item archive named by the sheet's parameters is complete
     char m_19[1];
 
     virtual ~itGenArchive();
+    bool isComp();
+    bool isFailed();
+    itGenParam* getGenParamFromIndex(u32 index, u32 level);
+    u32 getGenParamNum(u32 level);
 };
