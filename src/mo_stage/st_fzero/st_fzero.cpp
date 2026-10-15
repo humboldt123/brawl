@@ -479,13 +479,14 @@ void stFzero::update(float deltaFrame) {
 // Mirrors the camera's limits into the stage so the hazards can stay inside them.
 void stFzero::updateLimit() {
     CameraController* camera = CameraController::getInstance();
-    float minY = camera->unk160;
-    float minX = camera->unk158;
+    float minX, minY, maxX, maxY;
+    minY = camera->unk160;
+    minX = camera->unk158;
     m_limitMin.m_x = minX;
     m_limitMin.m_y = minY;
     m_limitMin.m_z = 0.0f;
-    float maxY = camera->unk164;
-    float maxX = camera->unk15C;
+    maxY = camera->unk164;
+    maxX = camera->unk15C;
     m_limitMax.m_x = maxX;
     m_limitMax.m_y = maxY;
     m_limitMax.m_z = 0.0f;

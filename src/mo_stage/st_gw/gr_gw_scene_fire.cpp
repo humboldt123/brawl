@@ -298,8 +298,7 @@ void grGWSceneFire::updateStep(float deltaFrame) {
             }
             if (m_timerStep == 0.0f) {
                 selectStepManhore();
-                float r = randf();
-                m_timerStep = data[6] + (data[7] - data[6]) * r;
+                m_timerStep = data[6] + (data[7] - data[6]) * randf();
             }
         }
     }
@@ -316,7 +315,7 @@ void grGWSceneFire::updateEvent(float deltaFrame) {
                 *m_eventWork = 1;
                 float r = randf();
                 m_stateEvent = 1;
-                m_timerEvent = data[12] + (data[13] - data[12]) * r;
+                m_timerEvent = data[12] + r * (data[13] - data[12]);
                 break;
             }
             case 1:

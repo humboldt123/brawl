@@ -504,11 +504,16 @@ void stDonkey::update(float deltaFrame) {
 // Keeps the camera limit of the stage (the AI uses it to know where the screen is).
 void stDonkey::updateLimit() {
     CameraController* camera = CameraController::getInstance();
-    m_limitMin.m_x = camera->unk158;
-    m_limitMin.m_y = camera->unk160;
+    float minX, minY, maxX, maxY;
+    minY = camera->unk160;
+    minX = camera->unk158;
+    m_limitMin.m_x = minX;
+    m_limitMin.m_y = minY;
     m_limitMin.m_z = 0.0f;
-    m_limitMax.m_x = camera->unk15C;
-    m_limitMax.m_y = camera->unk164;
+    maxY = camera->unk164;
+    maxX = camera->unk15C;
+    m_limitMax.m_x = maxX;
+    m_limitMax.m_y = maxY;
     m_limitMax.m_z = 0.0f;
 }
 

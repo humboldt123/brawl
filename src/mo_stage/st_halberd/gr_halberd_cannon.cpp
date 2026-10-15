@@ -9,6 +9,9 @@
 #include <st_halberd/gr_halberd.h>
 #include <st_halberd/gr_halberd_anim.h>
 
+// stMelee: the position of a player, his hip (sora_melee, unnamed)
+extern "C" bool fn_27_2398D0(int playerNo, Vec3f* pos);
+
 grHalberdCannon* grHalberdCannon::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
     grHalberdCannon* ground = new (Heaps::StageInstance) grHalberdCannon(taskName);
     if (ground != NULL) {
@@ -73,6 +76,7 @@ grHalberdCannon::~grHalberdCannon() {
 }
 
 void grHalberdCannon::processAnim() {
+    Ground::processAnim();
 }
 
 void grHalberdCannon::update(float deltaFrame) {
@@ -379,5 +383,5 @@ void grHalberdCannon::setMotion(u32 animId, bool shouldLoop, bool force, float* 
 }
 
 bool grHalberdCannon::getPlayerPosition(int playerNo, Vec3f* pos) {
-    return stMelee::getPlayerPosition(playerNo, pos);
+    return fn_27_2398D0(playerNo, pos);
 }

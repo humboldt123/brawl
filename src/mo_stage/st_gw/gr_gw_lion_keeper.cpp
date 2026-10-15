@@ -139,8 +139,7 @@ void grGWLionKeeper::updateActive(float deltaFrame) {
                     } else {
                         m_posIndex = 2;
                     }
-                    float r2 = randf();
-                    m_timer = data[21] + (data[22] - data[21]) * r2;
+                    m_timer = data[21] + (data[22] - data[21]) * randf();
                 }
             }
             break;

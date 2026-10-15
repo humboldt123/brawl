@@ -452,11 +452,16 @@ void stIce::update(float deltaFrame) {
 
 void stIce::updateLimit(float deltaFrame) {
     CameraController* camera = CameraController::getInstance();
-    m_posLimit[0].m_x = camera->unk158;
-    m_posLimit[0].m_y = camera->unk160;
+    float minX, minY, maxX, maxY;
+    minY = camera->unk160;
+    minX = camera->unk158;
+    m_posLimit[0].m_x = minX;
+    m_posLimit[0].m_y = minY;
     m_posLimit[0].m_z = 0.0f;
-    m_posLimit[1].m_x = camera->unk15C;
-    m_posLimit[1].m_y = camera->unk164;
+    maxY = camera->unk164;
+    maxX = camera->unk15C;
+    m_posLimit[1].m_x = maxX;
+    m_posLimit[1].m_y = maxY;
     m_posLimit[1].m_z = 0.0f;
 }
 

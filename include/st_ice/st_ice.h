@@ -12,6 +12,9 @@
 #include <st/st_trigger.h>
 #include <types.h>
 
+// stMelee: the position of a player, his hip (sora_melee, unnamed)
+extern "C" bool fn_27_2398D0(int playerNo, Vec3f* pos);
+
 template<typename T>
 class stClassInfoImpl<Stages::Ice, T> : public stClassInfo {
 public:
@@ -184,7 +187,7 @@ public:
     virtual void updateWater(float deltaFrame);
     virtual void updateFish(float deltaFrame);
     virtual void updateYasai(float deltaFrame);
-    virtual bool getPlayerPosition(int playerNo, Vec3f* pos) { return stMelee::getPlayerPosition(playerNo, pos); }
+    virtual bool getPlayerPosition(int playerNo, Vec3f* pos) { return fn_27_2398D0(playerNo, pos); }
 
     static stClassInfoImpl<Stages::Ice, stIce> bss_loc_14;
 };

@@ -128,6 +128,7 @@ grHalberdBg::~grHalberdBg() {
 }
 
 void grHalberdBg::processAnim() {
+    Ground::processAnim();
 }
 
 void grHalberdBg::startup(gfArchive* data, u32 unk1, gfSceneRoot::LayerType layerType) {
