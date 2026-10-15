@@ -137,7 +137,9 @@ struct soTeamModuleView : soTeamModule {
 // by the compiler. The offsets come from BaseItem::BaseItem.
 #define IT_PAD(name, from, to) u8 name[(to) - (from)]
 struct ItemView {
-    u8 pad0[0xDB4];
+    u8 pad0[0xA04];
+    soModelModuleImpl model; // 0xA04
+    IT_PAD(pad0b, 0xA04 + sizeof(soModelModuleImpl), 0xDB4);
     soPostureModuleImpl posture; // 0xDB4
     IT_PAD(pad1, 0xDB4 + sizeof(soPostureModuleImpl), 0xE7C);
     soGroundModuleImpl ground; // 0xE7C
@@ -191,6 +193,12 @@ struct ItemVtableHypPad {
 struct ItemVtableHypB4 : ItemVtableHypPad {
     IT_V16(a0) IT_V16(a1) IT_V4(a2) IT_V4(a3) virtual void u0(); virtual void u1(); virtual void u2();
     virtual void unkB4();
+};
+// HYPOTHESIS: slot 0x1FC of the same vtable (called when the held link is dropped; the name is unknown).
+struct ItemVtableHyp1FC : ItemVtableHypPad {
+    IT_V16(a0) IT_V16(a1) IT_V16(a2) IT_V16(a3) IT_V16(a4) IT_V16(a5) IT_V16(a6) IT_V4(b0) IT_V4(b1) IT_V4(b2)
+    virtual void c0();
+    virtual void unk1FC();
 };
 struct ItemVtableHyp : ItemVtableHypPad {
     IT_V16(s0) IT_V16(s1) IT_V16(s2) IT_V16(s3) IT_V16(s4) IT_V16(s5) IT_V16(s6) IT_V16(s7)
@@ -510,12 +518,11 @@ bool BaseItem::isPickUp() {
 void BaseItem::setPickUpAreaRequest(bool request) {
     ItemView* v = reinterpret_cast<ItemView*>(this);
     if (v->areaInstances.size() > 2) {
-        *(reinterpret_cast<u8*>(this) + kPickUpAreaRequested) = request;
-        if (!request ||
-            v->workManage.getInt(Instance::Work::Int_No_Damage_Frame) < 1) {
-            v->area.enableArea(Area::Pickup, *(reinterpret_cast<u8*>(this) + kPickUpAreaRequested), -1);
-        } else {
+        *(reinterpret_cast<bool*>(this) + kPickUpAreaRequested) = request;
+        if (request && v->workManage.getInt(Instance::Work::Int_No_Damage_Frame) > 0) {
             v->area.enableArea(Area::Pickup, false, -1);
+        } else {
+            v->area.enableArea(Area::Pickup, *(reinterpret_cast<bool*>(this) + kPickUpAreaRequested), -1);
         }
     }
 }
@@ -589,20 +596,15 @@ void BaseItem::unlinkOwner(int index) {
 
 soLogAttackInfo BaseItem::getLogAttackInfo() {
     ItemView* v = reinterpret_cast<ItemView*>(this);
-    soWorkManageModule& work = v->workManage;
-    soLogAttackInfo info;
-    int kind = work.getInt(Instance::Work::Int_Attack_Kind);
-    info._0 = work.getInt(Instance::Work::Int_Attack_Serial_Id);
-    info._4 = kind;
-    info._8 = 0;
-    return info;
+    int kind = v->workManage.getInt(Instance::Work::Int_Attack_Kind);
+    return soLogAttackInfo(v->workManage.getInt(Instance::Work::Int_Attack_Serial_Id), kind);
 }
 
 void BaseItem::setLogAttackInfo(soLogAttackInfo* info) {
     ItemView* v = reinterpret_cast<ItemView*>(this);
-    soWorkManageModule& work = v->workManage;
-    work.setInt(info->_0, Instance::Work::Int_Attack_Serial_Id);
-    work.setInt(info->_4, Instance::Work::Int_Attack_Kind);
+    int serial = info->_0;
+    v->workManage.setInt(serial, Instance::Work::Int_Attack_Serial_Id);
+    v->workManage.setInt(info->_4, Instance::Work::Int_Attack_Kind);
 }
 
 // ---- Per frame passes -------------------------------------------------------------------------------------------------
@@ -1428,6 +1430,84 @@ void BaseItem::have(int taskId, int node, int playerIndex) {
         reinterpret_cast<ItemVtableHyp*>(this)->unk224(true);
         *(reinterpret_cast<u8*>(this) + 0x3D24) = 1;
         v->status.changeStatusRequest(2, &moduleAccesser);
+    }
+}
+
+// Link events: the item reacts to being dropped (event 2), to the death of a linked object and to the touch events.
+// HYPOTHESIS: event kinds 0x37/0x38 are only known by number.
+void BaseItem::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* other, int linkNo) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    StageObject::notifyEventLink(eventInfo, moduleAccesser, other, linkNo);
+    m_customizer->onNotifyEventLink(this, eventInfo, moduleAccesser, other, linkNo);
+    switch (eventInfo->m_eventKind) {
+    case 2: {
+        soWorkManageModuleImpl* work = &v->workManage;
+        if (linkNo == 4) {
+            u32 taskId = other->m_taskId;
+            if (taskId == work->getInt(Instance::Work::Int_Target_Task_Id)) {
+                work->setInt(-1, Instance::Work::Int_Target_Task_Id);
+            }
+            if (v->link.isLink(Link::No_Target)) {
+                v->link.unlink(Link::No_Target);
+            }
+        } else if (linkNo == 3) {
+            v->link.removeModelConstraint(true);
+            if (v->link.isLink(Link::No_Have)) {
+                v->link.unlink(Link::No_Have);
+            }
+            reinterpret_cast<ItemVtableHyp1FC*>(this)->unk1FC();
+        }
+        break;
+    }
+    case 0x37:
+        if (linkNo == 3 && (m_kind == 0xC || m_kind == 0x38)) {
+            reinterpret_cast<ItemVtableHyp*>(this)->unk224(*(reinterpret_cast<bool*>(eventInfo) + 5));
+        }
+        break;
+    case 0x38:
+        if (linkNo == 3 && (m_kind == 0xC || m_kind == 0x38)) {
+            Vec3f zero;
+            zero.m_x = 0.0f;
+            zero.m_y = 0.0f;
+            zero.m_z = 0.0f;
+            fall(&zero, *reinterpret_cast<float*>(reinterpret_cast<u8*>(eventInfo) + 8));
+        }
+        break;
+    case 0x3D:
+        if (linkNo == 4) {
+            v->workManage.setInt(-1, Instance::Work::Int_Target_Task_Id);
+        } else if (linkNo == 7) {
+            m_createOwnerTaskId = -1;
+        }
+        break;
+    }
+}
+
+// Pushes the posture (scale, position, rotation) to the model: node 0 gets everything at once, or, when the item is
+// attached to another node (work value 0x10000015), the node 0 gets position and facing and the node gets the rotation.
+void BaseItem::updateNodeSRT() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    float postureScale = v->posture.getScale();
+    Vec3f scale;
+    scale.m_x = scale.m_y = scale.m_z = postureScale;
+    Vec3f rot;
+    Vec3f pos;
+    Vec3f facing;
+    pos = v->posture.getPos();
+    Vec3f rotTemp = v->posture.getRot(0);
+    rot = rotTemp;
+    int node = v->workManage.getInt(0x10000015);
+    if (node == 0) {
+        rot.m_y = rot.m_y + v->posture.getRotYLr();
+        v->model.setNodeSRT(0, &scale, &rot, &pos);
+    } else {
+        v->model.setNodeTranslate(0, &pos);
+        v->model.setNodeScale(0, &scale);
+        facing.m_y = v->posture.getRotYLr();
+        facing.m_x = 0.0f;
+        facing.m_z = 0.0f;
+        v->model.setNodeRotate(0, &facing);
+        v->model.setNodeRotate(node, &rot);
     }
 }
 
