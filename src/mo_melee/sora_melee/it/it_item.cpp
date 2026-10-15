@@ -37,8 +37,8 @@ struct ItValueAccesserHyp {
     u32 unk0;
     virtual void unk08();
     virtual void unk0C();
-    virtual void unk10();
-    virtual void unk14();
+    virtual float getCommonFloat(soModuleAccesser* accesser, int id, int unk);
+    virtual int getCommonInt(soModuleAccesser* accesser, int id, int unk);
     virtual void unk18();
     virtual float getFloat(soModuleAccesser* accesser, int id, int unk);
     virtual int getInt(soModuleAccesser* accesser, int id, int unk);
@@ -795,22 +795,26 @@ int BaseItem::getTrait() {
     return static_cast<const soArrayVector<s32, 31>&>(reinterpret_cast<ItemView*>(this)->intWork).at(8);
 }
 
-static inline BaseItem* itemFromTaskId(u32 taskId) {
+template <class T>
+inline T* castTask(u32 taskId) {
     if (taskId == 0xFFFFFFFF) {
         return NULL;
     }
     gfTask* task = gfTask::getTask(taskId);
     if (task != NULL) {
-        return dynamic_cast<BaseItem*>(task);
+        return dynamic_cast<T*>(task);
     }
     return NULL;
 }
 
 BaseItem* BaseItem::getCreaterItem() {
+    BaseItem* item;
     if (static_cast<u32>(m_createOwnerTaskId) == 0xFFFFFFFF) {
-        return NULL;
+        item = NULL;
+    } else {
+        item = castTask<BaseItem>(m_createOwnerTaskId);
     }
-    return itemFromTaskId(m_createOwnerTaskId);
+    return item;
 }
 
 // Hides or shows the item; the effects follow it unless the "sync visibility" flag is off. The Force variant also
@@ -924,6 +928,175 @@ int BaseItem::enumFighter(StageObject** out, u32 flags) {
         idPtr++;
     }
     return added;
+}
+
+// How the item reacts when its attack hits a shield (the mode comes from the item parameters): knocked away in the
+// Lost/status 6 or 7 cases, bounced back off the shield or, in the air, bounced on the ground.
+bool BaseItem::onShield() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    soWorkManageModuleImpl* work = &v->workManage;
+    int mode = itValueAccesserGlobal.getInt(&moduleAccesser, 0x5B73, 0);
+    if (mode == 1) {
+        v->status.changeStatusRequest(6, &moduleAccesser);
+        return true;
+    } else if (mode == 2) {
+        v->status.changeStatusRequest(7, &moduleAccesser);
+        return true;
+    } else if (*(reinterpret_cast<u8*>(this) + 0x2130) != 0) {
+        work->offFlag(0x22000003);
+        float reflectY = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x212C);
+        float reflectX = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x2128);
+        Vec3f reflect;
+        reflect.m_x = reflectX;
+        reflect.m_y = reflectY;
+        reflect.m_z = 0.0f;
+        soKineticEnergy::AttributeFlag attr(1);
+        v->kinetic.reflectSpeed(&reflect, attr);
+        return true;
+    } else {
+        if (mode == 3 && moduleAccesser.getSituationModule().getKind() != 0) {
+            work->offFlag(0x22000003);
+            v->kinetic.characterBound(&moduleAccesser, false);
+            return true;
+        }
+        return false;
+    }
+}
+
+// Targets the stage object with the given task id (-1 clears the target): its position is remembered in the work module.
+void BaseItem::setTarget(int taskId) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    soWorkManageModuleImpl* work = &v->workManage;
+    if (v->link.isLink(Link::No_Target)) {
+        v->link.unlink(Link::No_Target);
+    }
+    if (static_cast<u32>(taskId) == 0xFFFFFFFF) {
+        work->offFlag(Instance::Work::Flag_Target_Found);
+    } else {
+        StageObject* target = castTask<StageObject>(taskId);
+        if (target != NULL) {
+            Vec3f pos = soExternalValueAccesser::getPos(target);
+            work->onFlag(Instance::Work::Flag_Target_Found);
+            work->setInt(taskId, Instance::Work::Int_Target_Task_Id);
+            work->setFloat(pos.m_x, Instance::Work::Float_Target_Pos_X);
+            work->setFloat(pos.m_y, Instance::Work::Float_Target_Pos_Y);
+            if (static_cast<u32>(taskId) != 0xFFFFFFFF) {
+                v->link.link(Link::No_Target, taskId);
+            }
+        }
+    }
+}
+
+// Attaches the item to a model node of another object (e.g. a fighter's hand): the link number 3 is the held link.
+bool BaseItem::setModelConstraint(int taskId, int targetNode, int node) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    if (static_cast<u32>(taskId) == 0xFFFFFFFF || static_cast<u32>(targetNode) == 0xFFFFFFFF || static_cast<u32>(node) == 0xFFFFFFFF) {
+        return false;
+    }
+    v->link.removeModelConstraint(true);
+    if (v->link.isLink(Link::No_Have)) {
+        v->link.unlink(Link::No_Have);
+    }
+    if (!v->link.link(Link::No_Have, taskId)) {
+        return false;
+    }
+    if (m_customizer->isConstraintHave(this)) {
+        v->link.setModelConstraintPosOrt(Link::No_Have, node, targetNode, 3, true);
+        if (itValueAccesserGlobal.getInt(&moduleAccesser, 0x5B6D, 0) == 1) {
+            v->posture.setOwnerScale(1.0f);
+            v->link.setAttribute(Link::No_Have, soLinkConnection::Attribute_Reference_Parent_Scale, true);
+        }
+    }
+    return true;
+}
+
+float BaseItem::getParam(itValueAccesser::ParamFloat param) {
+    return itValueAccesserGlobal.getFloat(&moduleAccesser, param, 0);
+}
+
+int BaseItem::getParam(itValueAccesser::ParamInt param) {
+    return itValueAccesserGlobal.getInt(&moduleAccesser, param, 0);
+}
+
+// A parameter id says where it lives: the high nibble 1 or 2 means a work value (nibble below: 0 int, 1 float), ids
+// below 1999 / 20000 are float parameters of the common / item tables and the rest are ints. getParamFloat and
+// getParamInt convert between the two kinds. MATCH-ONLY: the original expands each into the other three levels deep, so
+// the levels are spelled out as inline helpers.
+#define IT_PARAM_IS_WORK(param) ((param) >> 28 != 0 && (param) >> 28 < 3)
+#define IT_PARAM_FLOAT(NAME, ELSE)                                                                 \
+    static inline float NAME(BaseItem* item, u32 param) {                                          \
+        ItemView* v = reinterpret_cast<ItemView*>(item);                                           \
+        int kind = param >> 28;                                                                    \
+        bool isWork = false;                                                                       \
+        if (kind != 0 && kind < 3) {                                                               \
+            isWork = true;                                                                         \
+        }                                                                                          \
+        if (isWork) {                                                                              \
+            if (static_cast<int>((param >> 24) & 0xF) == 0) {                                                      \
+                return v->workManage.getInt(param);                                                \
+            }                                                                                      \
+            return v->workManage.getFloat(param);                                                  \
+        } else if (static_cast<int>(param) < 20000) {                                              \
+            if (static_cast<int>(param) < 1999) {                                                  \
+                return itValueAccesserGlobal.getCommonFloat((reinterpret_cast<soModuleAccesser*>(reinterpret_cast<u8*>(item) + 0xCC)), param, 0);      \
+            }                                                                                      \
+            return itValueAccesserGlobal.getFloat((reinterpret_cast<soModuleAccesser*>(reinterpret_cast<u8*>(item) + 0xCC)), param, 0);                \
+        }                                                                                          \
+        return ELSE;                                                                               \
+    }
+#define IT_PARAM_INT(NAME, ELSE)                                                                   \
+    static inline int NAME(BaseItem* item, u32 param) {                                            \
+        ItemView* v = reinterpret_cast<ItemView*>(item);                                           \
+        int kind = param >> 28;                                                                    \
+        bool isWork = false;                                                                       \
+        if (kind != 0 && kind < 3) {                                                               \
+            isWork = true;                                                                         \
+        }                                                                                          \
+        if (isWork) {                                                                              \
+            if (static_cast<int>((param >> 24) & 0xF) == 1) {                                                      \
+                return static_cast<int>(v->workManage.getFloat(param));                            \
+            }                                                                                      \
+            return v->workManage.getInt(param);                                                    \
+        } else if (static_cast<int>(param) < 19999) {                                              \
+            return static_cast<int>(ELSE);                                                         \
+        } else if (static_cast<int>(param) < 21999) {                                              \
+            return itValueAccesserGlobal.getCommonInt((reinterpret_cast<soModuleAccesser*>(reinterpret_cast<u8*>(item) + 0xCC)), param, 0);            \
+        }                                                                                          \
+        return itValueAccesserGlobal.getInt((reinterpret_cast<soModuleAccesser*>(reinterpret_cast<u8*>(item) + 0xCC)), param, 0);                      \
+    }
+
+IT_PARAM_FLOAT(paramFloatC, item->getParamInt(param))
+IT_PARAM_INT(paramIntB, paramFloatC(item, param))
+IT_PARAM_FLOAT(paramFloatB, paramIntB(item, param))
+IT_PARAM_INT(paramIntA, paramFloatB(item, param))
+IT_PARAM_FLOAT(paramFloatA, paramIntA(item, param))
+
+float BaseItem::getParamFloat(u32 param) {
+    return paramFloatA(this, param);
+}
+
+IT_PARAM_FLOAT(paramFloatY, item->getParamInt(param))
+IT_PARAM_INT(paramIntY, paramFloatY(item, param))
+IT_PARAM_FLOAT(paramFloatX, paramIntY(item, param))
+
+int BaseItem::getParamInt(u32 param) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    int kind = param >> 28;
+    bool isWork = false;
+    if (kind != 0 && kind < 3) {
+        isWork = true;
+    }
+    if (isWork) {
+        if (static_cast<int>((param >> 24) & 0xF) == 1) {
+            return static_cast<int>(v->workManage.getFloat(param));
+        }
+        return v->workManage.getInt(param);
+    } else if (static_cast<int>(param) < 19999) {
+        return static_cast<int>(paramFloatX(this, param));
+    } else if (static_cast<int>(param) < 21999) {
+        return itValueAccesserGlobal.getCommonInt(&moduleAccesser, param, 0);
+    }
+    return itValueAccesserGlobal.getInt(&moduleAccesser, param, 0);
 }
 
 void BaseItem::setModelScale(float scale) {

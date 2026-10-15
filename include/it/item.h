@@ -385,6 +385,7 @@ public:
     float getParam(itValueAccesser::ParamFloat param);
     int getParam(itValueAccesser::ParamInt param);
     float getParamFloat(u32 param);
+    int getParamInt(u32 param);
     bool isHaved();
     int getTeamOwnerTaskId();
     void setTeamOwnerTaskId(int taskId);
@@ -433,6 +434,10 @@ public:
     void setModelScale(float scale);
     // HYPOTHESIS: names/signatures from the map and the call sites; the first two may be virtual in the original.
     int enumFighter(StageObject** out, u32 flags);
+    bool onShield();
+    // HYPOTHESIS: parameter meaning read off the call to setModelConstraintPosOrt.
+    void setTarget(int taskId);
+    bool setModelConstraint(int taskId, int targetNode, int node);
     float getAttackPower(int index);
     int getTrait();
     BaseItem* getCreaterItem();

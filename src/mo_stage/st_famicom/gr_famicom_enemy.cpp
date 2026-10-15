@@ -23,7 +23,6 @@
 #include <st_famicom/gr_famicom.h>
 
 // HYPOTHESIS: BaseItem members of sora_melee that have no names yet
-extern "C" int fn_27_28CCF0(BaseItem* item, u32 param);    // BaseItem::getParamInt
 extern "C" BaseItem* fn_27_2A8A00(itManager* manager, int index); // itManager::getSafeItemFromIndex
 extern "C" Stage* lbl_27_bss_5668;
 
@@ -943,7 +942,7 @@ bool grFamicomEnemy::isTurnGround() {
     if (item == NULL) {
         return false;
     }
-    return fn_27_28CCF0(item, 0x10000009) <= 1;
+    return item->getParamInt(0x10000009) <= 1;
 }
 
 // Another enemy (or an item on the floor) right in front of the enemy makes it turn around.
@@ -978,7 +977,7 @@ bool grFamicomEnemy::isTurn() {
             BaseItem* item = fn_27_2A8A00(items, i);
             if (item != NULL) {
                 int held = reinterpret_cast<famicomItemView*>(item)->m_box->m_holder->getCarryKind();
-                u32 flags = fn_27_28CCF0(item, 0x10000008);
+                u32 flags = item->getParamInt(0x10000008);
                 if ((flags & 0x4000) == 0 && held != 2) {
                     Vec3f itemPos = soExternalValueAccesser::getPos(item);
                     float top = (itemPos.m_y - item->getParamFloat(0xD5C)) + 10.0f;
