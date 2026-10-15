@@ -10683,7 +10683,7 @@ mo_melee/sora_melee/ft/ft_mario_status_uniq_process_special_hi.cpp:
 	.ctors      start:0x00000350 end:0x00000354
 
 mo_melee/sora_melee/wn/wn_mario_fireball.cpp:
-	.text       start:0x002D935C end:0x002DDCE4
+	.text       start:0x002D935C end:0x002DE130
 	.ctors      start:0x00000354 end:0x00000358
 
 mo_melee/sora_melee/ft/ft_donkey_status_uniq_process_special_nattack.cpp:

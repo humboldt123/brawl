@@ -40,149 +40,144 @@ extern "C" void* fn_27_1482C0(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_1494D0(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_149B70(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_148F64(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
+extern "C" void* fn_27_147C9C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-// The data types the dispatch below selects on; the instantiating unit includes its article header,
-// which declares the struct with this name (the layout is not needed here, only the pointer type).
-struct wnFoxBlasterBulletData;
-struct wnWolfBlasterBulletData;
-struct wnFoxBlasterData;
-struct wnFalcoBlasterData;
-struct wnFalcoBlasterBulletData;
-struct wnWolfBlasterData;
-struct wnLinkBowArrowData;
-struct wnSamusCShotData;
-struct wnPitBowArrowData;
-struct wnToonLinkBowArrowData;
-struct wnSZerosuitParalyzerData;
-struct wnSheikNeedleData;
-struct wnGameWatchSausageData;
-struct wnYoshiTamagoData;
-struct wnKirbyPikminData;
-struct wnNessPKFlashData;
-struct wnLucasPKFlashData;
-struct wnDededeStarmissileData;
-struct wnDiddyGunData;
-struct wnMarioFireballData;
-struct wnSZerosuitParalyzerBulletData;
-struct wnFoxLandMasterShellData;
-struct wnPikachuThunderJolt2Data;
-struct wnSheikNeedleHaveData;
-struct wnPopoIceShotData;
-struct wnPokeFushigisouSeedData;
-struct wnPokeZenigameWaterData;
-struct wnLucarioAuraBallData;
-struct wnDummyFighterData;
-struct wnPeachKinopioData;
+// The article classes the dispatch below selects on; the instantiating unit includes its article
+// header, which declares the class with this name (the layout is not needed here, only the pointer type).
+class wnFoxBlasterBullet;
+class wnWolfBlasterBullet;
+class wnFoxBlaster;
+class wnFalcoBlaster;
+class wnFalcoBlasterBullet;
+class wnWolfBlaster;
+class wnLinkBowArrow;
+class wnSamusCShot;
+class wnPitBowArrow;
+class wnToonLinkBowArrow;
+class wnSZerosuitParalyzer;
+class wnSheikNeedle;
+class wnGameWatchSausage;
+class wnYoshiTamago;
+class wnKirbyPikmin;
+class wnNessPKFlash;
+class wnLucasPKFlash;
+class wnDededeStarmissile;
+class wnDiddyGun;
+class wnMarioFireball;
+class wnLuigiFireball;
+class wnSZerosuitParalyzerBullet;
+class wnFoxLandMasterShell;
+class wnPikachuThunderJolt2;
+class wnSheikNeedleHave;
+class wnPopoIceShot;
+class wnPokeFushigisouSeed;
+class wnPokeZenigameWater;
+class wnLucarioAuraBall;
+class wnDummyFighter;
+class wnPeachKinopio;
 
-// Data-type dispatch so the template below picks the right family's accesser; extend per blaster family as
-// its data class is reconstructed. HYPOTHESIS: helper name; it is inline and leaves no symbol.
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFoxBlasterBulletData*) {
+// Article-type dispatch so the template below picks the right family's accesser: kinds 0 (Mario fireball)
+// and 149 (Luigi fireball) share wnMarioFireballData but their createArrays call different accessers,
+// so the key is the article class. HYPOTHESIS: helper name; it is inline and leaves no symbol.
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFoxBlasterBullet*) {
     return fn_27_148414(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnWolfBlasterBulletData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnWolfBlasterBullet*) {
     return fn_27_14875C(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFoxBlasterData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFoxBlaster*) {
     return fn_27_148380(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFalcoBlasterData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFalcoBlaster*) {
     return fn_27_14858C(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFalcoBlasterBulletData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFalcoBlasterBullet*) {
     return fn_27_148620(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnWolfBlasterData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnWolfBlaster*) {
     return fn_27_1486C8(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnLinkBowArrowData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnLinkBowArrow*) {
     return fn_27_147E6C(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSamusCShotData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSamusCShot*) {
     return fn_27_1492F8(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPitBowArrowData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPitBowArrow*) {
     return fn_27_1490FC(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnToonLinkBowArrowData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnToonLinkBowArrow*) {
     return fn_27_149A64(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSZerosuitParalyzerData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSZerosuitParalyzer*) {
     return fn_27_148BBC(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSheikNeedleData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSheikNeedle*) {
     return fn_27_148C54(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnGameWatchSausageData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnGameWatchSausage*) {
     return fn_27_149844(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnYoshiTamagoData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnYoshiTamago*) {
     return fn_27_148AB0(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnKirbyPikminData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnKirbyPikmin*) {
     return fn_27_147C88(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnNessPKFlashData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnNessPKFlash*) {
     return fn_27_14959C(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnLucasPKFlashData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnLucasPKFlash*) {
     return fn_27_148E54(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnDededeStarmissileData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnDededeStarmissile*) {
     return fn_27_148910(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
 
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnDiddyGunData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnDiddyGun*) {
     return fn_27_1489B8(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnMarioFireballData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnMarioFireball*) {
+    return fn_27_147C9C(&g_ftCommonDataAccesser, subKind, resourceGroup);
+}
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnLuigiFireball*) {
     return fn_27_148DA4(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSZerosuitParalyzerBulletData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSZerosuitParalyzerBullet*) {
     return fn_27_148BD0(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFoxLandMasterShellData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnFoxLandMasterShell*) {
     return fn_27_148524(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPikachuThunderJolt2Data*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPikachuThunderJolt2*) {
     return fn_27_1480CC(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSheikNeedleHaveData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSheikNeedleHave*) {
     return fn_27_148CE8(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPopoIceShotData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPopoIceShot*) {
     return fn_27_1491DC(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPokeFushigisouSeedData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPokeFushigisouSeed*) {
     return fn_27_148264(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPokeZenigameWaterData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPokeZenigameWater*) {
     return fn_27_1482C0(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnLucarioAuraBallData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnLucarioAuraBall*) {
     return fn_27_1494D0(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnDummyFighterData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnDummyFighter*) {
     return fn_27_149B70(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
-
-inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPeachKinopioData*) {
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPeachKinopio*) {
     return fn_27_148F64(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
 
 // Class info for one article kind: registers itself in the class info table during static initialization
 // and builds the article array when the article manager asks for it.
 //   K: article kind (30/31 Fox, 35/36 Falco, 38/39 Wolf; blaster first, bullet second; plus 5 Link,
-//      83 Samus, 91 Pit, 140 Toon Link one-shot articles, 53/60/68/77/98/102/117/150 single-kind articles, 54 Diddy popgun, 149 Luigi fireball, 10 Pikachu thunder jolt 2, 64 Zerosuit paralyzer bullet, 69 Sheik held needle, 74/95 Pokemon seed and water gun, 99 Lucario aura ball, 109 Popo ice shot, 152 dummy fighter, 93 Peach Kinopio.
+//      83 Samus, 91 Pit, 140 Toon Link one-shot articles, 53/60/68/77/98/102/117/150 single-kind articles, 54 Diddy popgun, 149 Luigi fireball, 10 Pikachu thunder jolt 2, 64 Zerosuit paralyzer bullet, 69 Sheik held needle, 74/95 Pokemon seed and water gun, 99 Lucario aura ball, 109 Popo ice shot, 152 dummy fighter, 93 Peach Kinopio, 0 Mario fireball.
 //   T: article class, D: the data type its constructor consumes.
 // HYPOTHESIS: template spelling; the data strings prove the instantiation
 // wnClassInfoImpl<31, wnFoxBlasterBullet, wnFoxBlasterBulletData>.
@@ -201,7 +196,7 @@ public:
                              wnArticleList* list) const {
         bool found = false;
         const D* data = static_cast<const D*>(
-            wnFetchBlasterBulletData(info.kindInfo->subKind, &found, static_cast<const D*>(nullptr)));
+            wnFetchBlasterBulletData(info.kindInfo->subKind, &found, static_cast<const T*>(nullptr)));
         for (s32 i = 0; i < count; i++) {
             // The Heaps::HeapType placement form passes sizeof(T) implicitly and returns null on failure.
             T* article = new ((Heaps::HeapType)heapType) T(articleId, info, data);
