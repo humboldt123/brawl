@@ -389,6 +389,7 @@ public:
     bool isHaved();
     int getTeamOwnerTaskId();
     void setTeamOwnerTaskId(int taskId);
+    void setTeamOwnerTaskId(BaseItem* other);
 
     void setSafePos(Vec2f* pos);
     void warp(Vec3f* pos);

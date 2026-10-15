@@ -112,6 +112,26 @@ struct soItemAttackModuleHyp {
     virtual void setSpeedPowerMul(float);
 };
 
+// MATCH-ONLY: stands in for soTeamModuleImpl (0x44 bytes), which is only known as an opaque builder type: the overrides
+// are declared but never defined or constructed; the object exists only as an overlay on the item.
+struct soTeamModuleView : soTeamModule {
+    virtual ~soTeamModuleView();
+    virtual soTeam* getTeam();
+    virtual void setTeam(int team, bool notify);
+    virtual soTeam* getHitTeam();
+    virtual soTeam* getIndirectTeam();
+    virtual void setHitTeam(int team);
+    virtual void setTeamOwnerId(int taskId);
+    virtual int getTeamOwnerId();
+    virtual void set2nd(int);
+    virtual void setHit2nd(int);
+    virtual void activate();
+    virtual void deactivate();
+    virtual void reset();
+    virtual void setEnableOwnerEvent(bool);
+    u8 pad[0x44 - 8];
+};
+
 // MATCH-ONLY: the embedded modules of the item as real members (MWCC addresses a member of `this` differently from a
 // pointer computed by hand). Only the members the code below needs; the pads are sized so that every offset is checked
 // by the compiler. The offsets come from BaseItem::BaseItem.
@@ -121,7 +141,9 @@ struct ItemView {
     soPostureModuleImpl posture; // 0xDB4
     IT_PAD(pad1, 0xDB4 + sizeof(soPostureModuleImpl), 0xE7C);
     soGroundModuleImpl ground; // 0xE7C
-    IT_PAD(pad2a, 0xE7C + sizeof(soGroundModuleImpl), 0x15C0);
+    IT_PAD(pad2a, 0xE7C + sizeof(soGroundModuleImpl), 0xF60);
+    soTeamModuleView team; // 0xF60
+    IT_PAD(pad2a2, 0xF60 + sizeof(soTeamModuleView), 0x15C0);
     soItemAttackModuleHyp attack; // 0x15C0
     IT_PAD(pad2b, 0x15C0 + sizeof(soItemAttackModuleHyp), 0x19CC);
     soCollisionHitModuleImpl hit; // 0x19CC
@@ -175,6 +197,8 @@ struct ItemVtableHyp : ItemVtableHypPad {
     IT_V4(t) virtual void t4(); virtual void t5(); virtual void t6();
    
     virtual void unk224(bool prev);
+    IT_V4(v) IT_V4(w) virtual void x0(); virtual void x1(); virtual void x2();
+    virtual void unk254();
 };
 
 namespace {
@@ -518,29 +542,31 @@ void BaseItem::warp(Vec3f* pos) {
 
 // The hit team follows the team until the two are told apart; then the team is set and announced.
 void BaseItem::setTeam(int team) {
-    soTeamModule& teamModule = embedded<soTeamModule>(this, kTeamModule);
-    int hitTeamNo = teamModule.getHitTeam()->getNo();
-    if (teamModule.getTeam()->getNo() == hitTeamNo) {
-        teamModule.setHitTeam(team);
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    int hitTeamNo = v->team.getHitTeam()->getNo();
+    int teamNo = v->team.getTeam()->getNo();
+    if (teamNo == hitTeamNo) {
+        v->team.setHitTeam(team);
     }
-    teamModule.setTeam(team, true);
+    v->team.setTeam(team, true);
 }
 
 // Inhale (Kirby): a free item whose trait flag does not forbid it and whose customizer calls it safe can be sucked in.
 bool BaseItem::isCanInhaled() {
     ItemView* v = reinterpret_cast<ItemView*>(this);
-    if (!isHaved() && m_customizer->isSafe(this)) {
-        return (v->intWork.at(8) & 0x1000000) == 0;
+    if (isHaved() || !m_customizer->isSafe(this)) {
+        return false;
     }
-    return false;
+    u32 flags = static_cast<const soArrayVector<s32, 31>&>(v->intWork).at(8);
+    return (flags & 0x1000000) == 0;
 }
 
 Vec3f BaseItem::getStartInhaledPos() {
     ItemView* v = reinterpret_cast<ItemView*>(this);
-    if (v->workManage.getFloat(Instance::Work::Float_Inhaled_Count) < 0.0f) {
-        return v->posture.getPos();
+    if (isInhaled()) {
+        return m_startInhaledPos;
     }
-    return m_startInhaledPos;
+    return v->posture.getPos();
 }
 
 // Starts a scale animation of the "keep" kind on the node the item is held with.
@@ -1321,6 +1347,87 @@ void BaseItem::appear1(float rate, Vec3f* speed) {
     v->hit.setWhole(2, 0);
     if (v->areaInstances.size() > 2) {
         v->area.enableArea(2, false, -1);
+    }
+}
+
+// Links the item to its team owner (link number 6): the owner's article attack power multiplier and glow attack are taken over.
+static inline void linkTeamOwner(BaseItem* item, int ownerTaskId) {
+    ItemView* v = reinterpret_cast<ItemView*>(item);
+    if (v->link.isLink(6)) {
+        v->link.unlink(6);
+    }
+    v->link.link(6, ownerTaskId);
+    if (v->link.isLink(6)) {
+        float powerMul = item->m_moduleAccesser->getLinkModule().getOwnerAttackPowerMulArticle(6);
+        item->m_moduleAccesser->getCollisionAttackModule().setPowerMul2nd(powerMul);
+        if (v->link.isParentGlow(6)) {
+            int glowAttack = v->link.getParentWeaponGlowAttack(6);
+            embedded<soGlowModuleHyp>(item, 0x2488).setGlowAttack(glowAttack);
+            v->link.setAttribute(6, static_cast<soLinkConnection::Attribute>(10), true);
+        }
+    }
+}
+
+void BaseItem::setTeamOwnerTaskId(int taskId) {
+    embedded<soTeamModule>(this, kTeamModule).setTeamOwnerId(taskId);
+    linkTeamOwner(this, taskId);
+}
+
+// Takes over the team and the team owner of another item.
+void BaseItem::setTeamOwnerTaskId(BaseItem* other) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    ItemView* o = reinterpret_cast<ItemView*>(other);
+    int ownerTaskId = o->team.getTeamOwnerId();
+    int otherTeamNo = o->team.getTeam()->getNo();
+    int hitTeamNo = v->team.getHitTeam()->getNo();
+    int teamNo = v->team.getTeam()->getNo();
+    if (teamNo == hitTeamNo) {
+        v->team.setHitTeam(otherTeamNo);
+    }
+    v->team.setTeam(otherTeamNo, true);
+    v->team.setTeamOwnerId(ownerTaskId);
+    linkTeamOwner(this, ownerTaskId);
+}
+
+// A fighter picks the item up: it is attached to the given node of the owner (mode: the node index, -1 for the first),
+// and the item takes over the owner's team. The haved log remembers which player held it.
+void BaseItem::have(int taskId, int node, int playerIndex) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    bool taken = m_customizer->onHave(this, taskId);
+    int result = 0;
+    if (static_cast<u32>(taskId) != 0xFFFFFFFF) {
+        u32 nodeIndex = v->workManage.getInt(Instance::Work::Int_Have_Node_Index);
+        u32 nodeCount = moduleAccesser.getModelModule().getNodeNum();
+        if (nodeIndex < nodeCount) {
+            if (static_cast<u32>(node) == 0xFFFFFFFF) {
+                node = 0;
+            }
+            result = setModelConstraint(taskId, node, nodeIndex);
+            if (result != 0) {
+                if (taken) {
+                    v->team.setTeamOwnerId(taskId);
+                    linkTeamOwner(this, taskId);
+                    reinterpret_cast<ItemVtableHyp*>(this)->unk254();
+                    if (playerIndex >= 0) {
+                        u8& log = *(reinterpret_cast<u8*>(this) + 0x8D4);
+                        log |= 1 << playerIndex;
+                    }
+                }
+                if (m_customizer->isReferenceControlerHave(this)) {
+                    v->link.setAttribute(Link::No_Have, static_cast<soLinkConnection::Attribute>(4), true);
+                }
+                if (m_kind == 0x53) {
+                    v->posture.setLr(v->link.getParentLr(Link::No_Have));
+                }
+            }
+        }
+    } else {
+        result = 1;
+    }
+    if (result != 0) {
+        reinterpret_cast<ItemVtableHyp*>(this)->unk224(true);
+        *(reinterpret_cast<u8*>(this) + 0x3D24) = 1;
+        v->status.changeStatusRequest(2, &moduleAccesser);
     }
 }
 
