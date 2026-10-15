@@ -431,6 +431,13 @@ public:
     Vec3f getStartInhaledPos();
     bool isSteal();
     void setModelScale(float scale);
+    // HYPOTHESIS: names/signatures from the map and the call sites; the first two may be virtual in the original.
+    int enumFighter(StageObject** out, u32 flags);
+    float getAttackPower(int index);
+    int getTrait();
+    BaseItem* getCreaterItem();
+    float getLinkOwnerScale();
+    Vec3f getHavedParentSafePos();
     void updateOwnerScale(BaseItem* owner);
     void setScaleAnimation(float scaleMax, float scaleMin, int nodeIndex, int counterLimit);
     void requestAnimEvent(u32 frame);

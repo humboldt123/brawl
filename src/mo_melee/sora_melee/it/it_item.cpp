@@ -12,6 +12,10 @@
 #include <so/area/so_area_enviroment_element_checker_impl.h>
 #include <so/so_slow.h>
 #include <cm/cm_camera_controller.h>
+#include <gf/gf_task.h>
+#include <ft/ft_manager.h>
+#include <so/so_external_value_accesser.h>
+#include <nw4r/g3d/g3d_scnmdl.h>
 #include <so/effect/so_effect_module_impl.h>
 #include <so/model/so_model_module_impl.h>
 #include <so/visibility/so_visibility_module_simple.h>
@@ -42,6 +46,16 @@ struct ItValueAccesserHyp {
 extern char itValueAccesserGlobalStorage[];
 #define itValueAccesserGlobal (*reinterpret_cast<ItValueAccesserHyp*>(itValueAccesserGlobalStorage))
 
+// HYPOTHESIS: the glow module (module enumeration +0xC8) has a getter and a setter for the glow attack at 0x18/0x1C.
+struct soGlowModuleHyp {
+    virtual void unk08();
+    virtual void unk0C();
+    virtual void unk10();
+    virtual void unk14();
+    virtual int getGlowAttack();
+    virtual void setGlowAttack(int glowAttack);
+};
+
 // HYPOTHESIS: the item's collision attack module has three slots past soCollisionAttackModule that processUpdate uses to hand the throw speed power over (names guessed from their arguments).
 struct soItemAttackModuleHyp {
     virtual void unk08();
@@ -70,7 +84,7 @@ struct soItemAttackModuleHyp {
     virtual void unk64();
     virtual void unk68();
     virtual void unk6C();
-    virtual void unk70();
+    virtual float getPower(u32 index, bool);
     virtual void unk74();
     virtual void unk78();
     virtual void unk7C();
@@ -755,6 +769,161 @@ bool BaseItem::sendTouchMessage(int taskId, Vec3f* pos, float power) {
         v->workManage.offFlag(0x22000005);
     }
     return args.m_0x1C;
+}
+
+float BaseItem::getAttackPower(int index) {
+    return reinterpret_cast<ItemView*>(this)->attack.getPower(index, false);
+}
+
+void BaseItem::addSpeed(Vec3f* speed, bool unk) {
+    reinterpret_cast<ItemView*>(this)->kinetic.addSpeed(speed, unk, &moduleAccesser);
+}
+
+void BaseItem::setGlowAttack(int glowAttack) {
+    reinterpret_cast<soGlowModuleHyp*>(moduleAccesser.m_enumerationStart->m_glowModule)->setGlowAttack(glowAttack);
+}
+
+int BaseItem::getGlowAttack() {
+    return reinterpret_cast<soGlowModuleHyp*>(moduleAccesser.m_enumerationStart->m_glowModule)->getGlowAttack();
+}
+
+void BaseItem::setSafePos(Vec2f* pos) {
+    reinterpret_cast<ItemView*>(this)->ground.setShapeSafePos(pos, 0);
+}
+
+int BaseItem::getTrait() {
+    return static_cast<const soArrayVector<s32, 31>&>(reinterpret_cast<ItemView*>(this)->intWork).at(8);
+}
+
+static inline BaseItem* itemFromTaskId(u32 taskId) {
+    if (taskId == 0xFFFFFFFF) {
+        return NULL;
+    }
+    gfTask* task = gfTask::getTask(taskId);
+    if (task != NULL) {
+        return dynamic_cast<BaseItem*>(task);
+    }
+    return NULL;
+}
+
+BaseItem* BaseItem::getCreaterItem() {
+    if (static_cast<u32>(m_createOwnerTaskId) == 0xFFFFFFFF) {
+        return NULL;
+    }
+    return itemFromTaskId(m_createOwnerTaskId);
+}
+
+// Hides or shows the item; the effects follow it unless the "sync visibility" flag is off. The Force variant also
+// pauses the effects while the item is hidden.
+void BaseItem::setVisibilityWhole(u8 visible) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    v->visibility.setWhole(visible);
+    u32 synced = v->effect.isSyncVisibility();
+    if (*(reinterpret_cast<u8*>(this) + 0x3D27) != synced) {
+        v->effect.setSyncVisibility(*reinterpret_cast<bool*>(reinterpret_cast<u8*>(this) + 0x3D27));
+        bool whole = true;
+        if (*(reinterpret_cast<u8*>(this) + 0x3D27) != 0) {
+            whole = visible;
+        }
+        v->effect.setWhole(whole);
+    }
+    if (*(reinterpret_cast<u8*>(this) + 0x3D26) != 0) {
+        v->effect.reqPause(false);
+        *(reinterpret_cast<u8*>(this) + 0x3D26) = 0;
+    }
+}
+
+void BaseItem::setVisibilityWholeForce(u8 visible) {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    v->visibility.setWhole(visible);
+    if (v->effect.isSyncVisibility() != 1) {
+        v->effect.setSyncVisibility(true);
+        v->effect.setWhole(visible);
+    }
+    bool hidden = (visible == 0);
+    *(reinterpret_cast<u8*>(this) + 0x3D26) = hidden;
+    v->effect.reqPause(hidden);
+}
+
+float BaseItem::getLinkOwnerScale() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    if (itValueAccesserGlobal.getInt(&moduleAccesser, 0x5B6D, 0) == 1) {
+        int held;
+        if (moduleAccesser.getStatusModule().getStatusKind() == 2) {
+            held = 1;
+        } else {
+            held = v->link.isLink(Link::No_Have);
+        }
+        if (held != 0) {
+            return v->link.getLinkScale();
+        }
+        return v->posture.getOwnerScale();
+    }
+    return 1.0f;
+}
+
+Vec3f BaseItem::getHavedParentSafePos() {
+    ItemView* v = reinterpret_cast<ItemView*>(this);
+    int held;
+    if (moduleAccesser.getStatusModule().getStatusKind() == 2) {
+        held = 1;
+    } else {
+        held = v->link.isLink(Link::No_Have);
+    }
+    if (held != 0) {
+        Vec2f center = v->link.getParentShapeCenterPos(Link::No_Have);
+        return Vec3f(center.m_x, center.m_y, 0.0f);
+    }
+    return v->posture.getPos();
+}
+
+void BaseItem::setRenderPriority(u8 priority) {
+    nw4r::g3d::ScnMdl* model = embedded<soModelModuleImpl>(this, kModelModule).getScnMdl(false);
+    if (model != NULL) {
+        if (m_customizer->onGetLayerType(this) >= 3) {
+            model->SetPriorityDrawXlu(priority);
+            model->SetPriorityDrawOpa(priority);
+        } else {
+            model->SetPriorityDrawOpa(priority);
+        }
+    }
+}
+
+// Collects the fighters (and their sub fighters) the item may interact with; flag 1 leaves out the fighters of the item's own team.
+int BaseItem::enumFighter(StageObject** out, u32 flags) {
+    int* idPtr;
+    int team = -1;
+    ftManager* manager = g_ftManager;
+    if ((flags & 1) != 0) {
+        team = embedded<soTeamModule>(this, kTeamModule).getTeam()->getNo();
+    }
+    int buf[14];
+    // HYPOTHESIS: the argument of enumEntryId is really the array that receives the entry ids.
+    int entryCount = manager->enumEntryId(reinterpret_cast<int>(&buf[2]));
+    idPtr = &buf[2];
+    int added = 0;
+    for (int i = 0; i < entryCount; i++) {
+        int entryId = *idPtr;
+        buf[0] = reinterpret_cast<int>(manager->getFighter(entryId, -1));
+        buf[1] = reinterpret_cast<int>(manager->getSubFighter(entryId));
+        if (team == -1 || manager->getTeam(entryId, true, true) != team) {
+            int* fighterPtr = buf;
+            u32 j = 0;
+            do {
+                StageObject* fighter = reinterpret_cast<StageObject*>(*fighterPtr);
+                if (fighter != NULL && soExternalValueAccesser::getSituationKind(fighter) != Situation_Outfield &&
+                    m_customizer->onEnumFighter(this, reinterpret_cast<Fighter*>(fighter))) {
+                    *out = fighter;
+                    out++;
+                    added++;
+                }
+                j++;
+                fighterPtr++;
+            } while (j < 2);
+        }
+        idPtr++;
+    }
+    return added;
 }
 
 void BaseItem::setModelScale(float scale) {
