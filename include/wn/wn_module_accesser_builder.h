@@ -382,6 +382,7 @@ struct soColorBlendModuleBuildConfigNull { };
 struct soJostleModuleBuildConfigNull { };
 struct soAbnormalModuleBuildConfigNull { };
 struct soSituationModuleBuildConfigNull { }; // HYPOTHESIS: source spelling of the null configuration.
+struct soStopModuleBuildConfigNull { };       // HYPOTHESIS: null stop module (fireball family, map 0x2da26c).
 struct soVisibilityModuleBuildConfigNull { }; // HYPOTHESIS: source spelling of the null configuration.
 
 template <>
@@ -560,6 +561,13 @@ class soVisibilityModuleBuilder<soVisibilityModuleBuildConfigNull> {
 public:
     soVisibilityModuleBuilder(soModuleAccesser*, soVisibilityData*) { }
     soVisibilityModule* getModule() { return (soVisibilityModule*)lbl_27_bss_46C; }
+};
+extern char lbl_27_bss_414[]; // stop
+template <>
+class soStopModuleBuilder<soStopModuleBuildConfigNull> {
+public:
+    soStopModuleBuilder(soModuleAccesser*) { }
+    soStopModule* getModule() { return (soStopModule*)lbl_27_bss_414; }
 };
 template <>
 class soAbnormalModuleBuilder<soAbnormalModuleBuildConfigNull> {
@@ -985,7 +993,7 @@ public:
 ////////////////////////////////////////
 
 template <class BC>
-inline soModuleAccesserBuilder<BC>::soModuleAccesserBuilder(const wnModuleAccesserBuildData& bdRef, StageObject* owner) :
+inline soModuleAccesserBuilder<BC>::soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bdRef) :
     m_moduleAccsr(
         owner,
         soResourceModuleBuilder<typename BC::ResourceModuleBuildConfig>::getModule(&m_resourceModuleBuilder),
@@ -1098,8 +1106,8 @@ template <class BC>
 class wnModuleAccesserBuilder : public soModuleAccesserBuilder<BC> {
     wnAnimCmdModuleSubBuilder<typename BC::AnimCmdModuleSubBuildConfig> m_animCmdSubBuilder;
 public:
-    wnModuleAccesserBuilder(const wnModuleAccesserBuildData& bd, StageObject* owner) :
-        soModuleAccesserBuilder<BC>(bd, owner), m_animCmdSubBuilder(&this->m_moduleAccsr, bd) { }
+    wnModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bd) :
+        soModuleAccesserBuilder<BC>(owner, bd), m_animCmdSubBuilder(&this->m_moduleAccsr, bd) { }
     ~wnModuleAccesserBuilder() { }
 };
 
@@ -1123,7 +1131,7 @@ protected:
 public:
     wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd) :
         Weapon(name, bd.m_kind, bd.m_data, articleId, &info, this->m_modules.getModuleAccesser(), true),
-        m_modules(bd, this), m_energyNormal(), m_energyRotNormal() {
+        m_modules(this, bd), m_energyNormal(), m_energyRotNormal() {
         Weapon::initialize();
         m_moduleAccesser->getKineticModule().addEnergy(&m_energyNormal, 0, soKineticEnergy::AttributeFlag(1), -1);
         m_moduleAccesser->getKineticModule().addEnergy(&m_energyRotNormal, 1, soKineticEnergy::AttributeFlag(1), -1);

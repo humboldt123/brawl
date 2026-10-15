@@ -400,14 +400,16 @@ struct ftReflectorBase {
 ////////////////////////////////////////
 
 
-template <typename T>
+// The original carries the connection capacity as its first template argument (the map shows
+// soLinkModuleBuildConfig<5, soLinkModuleImpl>).
+template <s32 Cap, typename T>
 class soLinkModuleBuildConfig {
 public:
-    enum { ConnectionCap = 7 };
+    enum { ConnectionCap = Cap };
     typedef T ModuleType;
 };
 
-// Same with another capacity (the original has the capacity as its first template argument).
+// The capacity-carrying config under its other original spelling.
 template <s32 Cap, typename T>
 class soLinkModuleBuildConfigCap {
 public:

@@ -26,8 +26,9 @@ public:
 class soNullable {
 public:
     soNullable() { m_isNull = false; }
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) && !defined(SO_NULLABLE_INLINE_CTOR)
     // MATCH-ONLY: the fighter RELs call this constructor out of line (defined in ft_builder_noinline.h).
+    // (A unit whose original inlines it defines SO_NULLABLE_INLINE_CTOR to take the inline body.)
     soNullable(bool isNull);
 #else
     soNullable(bool isNull) { m_isNull = isNull; }

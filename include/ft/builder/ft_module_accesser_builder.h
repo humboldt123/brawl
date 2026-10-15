@@ -128,7 +128,7 @@ public:
     typedef soDamageModuleBuildConfig<soDamageModuleActor> DamageModuleBuildConfig;
     typedef soShakeModuleBuildConfig<4, soShakeModuleImpl> ShakeModuleBuildConfig;
     typedef soSoundModuleBuildConfig<soSoundModuleImpl> SoundModuleBuildConfig;
-    typedef soLinkModuleBuildConfig<soLinkModuleImpl> LinkModuleBuildConfig;
+    typedef soLinkModuleBuildConfig<7, soLinkModuleImpl> LinkModuleBuildConfig;
     typedef soControllerModuleBuildConfig<ftControllerModuleImpl> ControllerModuleBuildConfig;
     typedef soCameraModuleBuildConfig<soCameraModuleImpl> CameraModuleBuildConfig;
     typedef soEffectModuleBuildConfig<soEffectModuleImpl> EffectModuleBuildConfig;
@@ -320,7 +320,7 @@ public:
     }
 
     // The article (weapon) construction from its build data; defined in wn/wn_module_accesser_builder.h.
-    soModuleAccesserBuilder(const wnModuleAccesserBuildData& bd, StageObject* owner);
+    soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bd);
 
     ~soModuleAccesserBuilder() { }
     soModuleAccesser* getModuleAccesser() { return &m_moduleAccsr; }
