@@ -11,11 +11,10 @@ void fn_27_2A7970(itManager* self, BaseItem* item, s32 unk1, s32 unk2);
 int fn_27_2A5EE0(itManager* self, int kind, u32 variation, bool unk);
 
 // itManager::findLowPriorityItemInstance (0x2A8054, unnamed): an item that may be recycled when the pool is full
-BaseItem* fn_27_2A8054(itManager* self);
-// itManager::setExistDragoonParts (0x2A96F4, unnamed)
-void fn_27_2A96F4(itManager* self, int variation, int exist);
 // itManager::removeItemAfter (0x2A7114, unnamed): bookkeeping after an item left (kind counters, lottery state)
 void fn_27_2A7114(itManager* self, int kind, int variation, int lotKind, int lotCreateKind);
+// itManager::getPriorityItemInstance (0x2A7E08, unnamed): how important the item is to keep (lower = recycled first)
+int fn_27_2A7E08(itManager* self, BaseItem* item);
 // BaseItem::activate(itCreate*) (0x2829D0, unnamed)
 void fn_27_2829D0(BaseItem* item, itCreate* create);
 // rodata table: per kind lottery group (-3 and out-of-range kinds map to themselves)
@@ -28,6 +27,7 @@ extern char* lbl_27_data_731C0[];
 extern char lbl_27_data_73488[];
 extern int lbl_27_rodata_47C8[];
 extern int lbl_27_bss_64A0[];
+extern u8 lbl_27_data_71EB8[];
 extern s16 lbl_27_rodata_53A0[];
 
 void fn_803F86E4(void* unk1, void* unk2, ...);
@@ -156,7 +156,7 @@ BaseItem* itManager::createItemInstance(itCreate* create) {
     if (itManagerField<u8>(this, 0x14A2) != 0) {
         if (m_itemArrayList3.size() <= 0) {
             int kind, variation, group, lotKind;
-            BaseItem* old = fn_27_2A8054(this);
+            BaseItem* old = findLowPriorityItemInstance();
             if (old == NULL) {
                 return NULL;
             }
@@ -174,7 +174,7 @@ BaseItem* itManager::createItemInstance(itCreate* create) {
             if (kind == 0x37) {
                 itManagerField<int>(this, 0x1480) = itManagerField<int>(this, 0x1490);
             } else if (kind == 0x14) {
-                fn_27_2A96F4(this, variation, 0);
+                setExistDragoonParts(variation, 0);
             } else if (kind == 0x15) {
                 u32 flags = itManagerField<u32>(this, 0x1494) & ~0x10;
                 itManagerField<u32>(this, 0x1494) = flags;
@@ -327,3 +327,147 @@ void itManager::processDebug() { }
 void itManager::renderDebug() { }
 
 void itManager::notifyDisposeInstance(bool, int, int taskId) { }
+
+BaseItem* itManager::getSafeItemFromIndex(u32 index) {
+    if (index >= static_cast<u32>(m_itemArrayList.size())) {
+        return NULL;
+    }
+    BaseItem* item = m_itemArrayList.at(index);
+    if (item == NULL || item->isSafe() == 0) {
+        return NULL;
+    }
+    return item;
+}
+
+BaseItem* itManager::getItemFromKind(int kind) {
+    for (s32 i = 0; i < m_itemArrayList.size(); i++) {
+        BaseItem* item = m_itemArrayList.at(i);
+        if (item != NULL && kind == item->m_kind) {
+            return item;
+        }
+    }
+    return NULL;
+}
+
+int itManager::getGenItemNum() {
+    int count = 0;
+    for (s32 i = 0; i < m_itemArrayList.size(); i++) {
+        BaseItem* item = static_cast<const soArrayList<BaseItem*, 64>&>(m_itemArrayList).at(i);
+        if (item != NULL && (u32)item->m_genId != 0xFFFFFFFF) {
+            count++;
+        }
+    }
+    return count;
+}
+
+int itManager::getItemShotNum() {
+    int count = 0;
+    for (s32 i = 0; i < m_itemArrayList.size(); i++) {
+        BaseItem* item = static_cast<const soArrayList<BaseItem*, 64>&>(m_itemArrayList).at(i);
+        if (item != NULL && isWeaponItem(item->m_kind)) {
+            count++;
+        }
+    }
+    return count;
+}
+
+void itManager::removeItemAll() {
+    for (s32 i = 0; i < m_itemArrayList.size(); i++) {
+        BaseItem*& item = m_itemArrayList.at(i);
+        if (item != NULL) {
+            m_itemArrayList.erase(i);
+            fn_27_2A7970(this, item, 0, 1);
+            i--;
+        }
+    }
+    m_itemArrayList.clear();
+}
+
+BaseItem* itManager::findLowPriorityItemInstance() {
+    BaseItem* best = NULL;
+    int bestPriority = 10000;
+    int count = m_itemArrayList.size();
+    for (int i = 0; i < count; i++) {
+        BaseItem* item = static_cast<const soArrayList<BaseItem*, 64>&>(m_itemArrayList).at(i);
+        int priority = fn_27_2A7E08(this, item);
+        if (priority < 10000) {
+            if (priority == bestPriority) {
+                if (best == NULL || (u32)best->m_instanceId > (u32)item->m_instanceId) {
+                    bestPriority = priority;
+                    best = item;
+                }
+            } else if (priority < bestPriority) {
+                bestPriority = priority;
+                best = item;
+            }
+        }
+    }
+    return best;
+}
+
+int itManager::getItemKindArchiveId(int kind) {
+    if (itManagerField<u8>(this, 0x14A0) != 0) {
+        if (kind == -3) {
+            return -1;
+        }
+        u8 usesArchive;
+        if (kind < 0 || kind >= NUM_IT_KINDS) {
+            usesArchive = 0;
+        } else {
+            usesArchive = lbl_27_data_71EB8[kind];
+        }
+        if (usesArchive == 0) {
+            return -1;
+        }
+        int group = getItemGroup(kind);
+        if (group < 6) {
+            if (group == 1) {
+                return kind;
+            }
+        } else if (group < 8) {
+            return kind;
+        }
+    }
+    return -1;
+}
+
+void itManager::setExistDragoonParts(int part, int exist) {
+    u32& flags = itManagerField<u32>(this, 0x1494);
+    if (exist != 0) {
+        switch (part) {
+        case 0:
+            flags |= 2;
+            break;
+        case 1:
+            flags |= 4;
+            break;
+        case 2:
+            flags |= 8;
+            break;
+        }
+    } else {
+        switch (part) {
+        case 0:
+            flags &= ~2;
+            break;
+        case 1:
+            flags &= ~4;
+            break;
+        case 2:
+            flags &= ~8;
+            break;
+        }
+    }
+}
+
+int itManager::createManaphyHeart(Vec3f* pos, int createOwnerTaskId, int targetTaskId) {
+    BaseItem* item = createBaseItem(pos, pos, 1.0f, static_cast<itKind>(0x23), 0, createOwnerTaskId, -1, NULL, 0, 0xFFFF, 0, 0xFFFF, 20);
+    int result;
+    if (item != NULL) {
+        item->setTarget(targetTaskId);
+        result = item->m_instanceId;
+    } else {
+        result = 0;
+    }
+    return result;
+}

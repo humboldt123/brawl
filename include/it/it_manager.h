@@ -111,6 +111,17 @@ public:
     BaseItem* getItemFromIndex(u32 index);
     bool isWeaponItem(int kind);
 
+    BaseItem* getSafeItemFromIndex(u32 index);
+    BaseItem* getItemFromKind(int kind);
+    int getGenItemNum();
+    int getItemShotNum();
+    void removeItemAll();
+    BaseItem* findLowPriorityItemInstance();
+
+    int getItemKindArchiveId(int kind);
+    void setExistDragoonParts(int part, int exist);
+    int createManaphyHeart(Vec3f* pos, int createOwnerTaskId, int targetTaskId);
+
     static itManager* getInstance();
 };
 static_assert(sizeof(itManager) == 0x14c0, "Class is wrong size!");
