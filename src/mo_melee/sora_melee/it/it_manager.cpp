@@ -1,7 +1,9 @@
 #include <types.h>
 #include <it/it_manager.h>
 #include <gf/gf_task_scheduler.h>
+#include <ft/ft_manager.h>
 #include <so/situation/so_situation_module_impl.h>
+#include <so/area/so_area_module_impl.h>
 
 // Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
 extern "C" {
@@ -11,6 +13,13 @@ extern "C" {
 // itManager::checkCreatableItem (0x2A5EE0, unnamed): whether the item kind may be created right now (match state, free
 // instance slots, per-kind limits)
 int fn_27_2A5EE0(itManager* self, int kind, u32 variation, bool unk);
+
+// itArchive::isComp (0x2B23F8, unnamed): whether the archive finished loading
+int fn_27_2B23F8(itArchive* archive);
+
+// itManager::initializeSmashBallFlags (0x2A95B4, unnamed) / itManager::initializeDragoonFlags (0x2A97A4, unnamed)
+// itFigureManager (0x2C1674, unnamed): whether all figure textures finished preloading
+bool fn_27_2C1674(void* figureManager);
 
 // itManager::findLowPriorityItemInstance (0x2A8054, unnamed): an item that may be recycled when the pool is full
 // itManager::removeItemAfter (0x2A7114, unnamed): bookkeeping after an item left (kind counters, lottery state)
@@ -850,5 +859,98 @@ bool itManager::isCompItemKindArchiveFromGenArchive(itGenSheetKind sheet) {
         }
     }
     archive->m_itemArchivesChecked = true;
+    return true;
+}
+
+// Whether every preloaded item archive has finished loading; the answer is cached once it turns true.
+bool itManager::isCompItemKindArchivePreloadAll() {
+    if (itManagerField<u8>(this, 0x14AC) != 0) {
+        return true;
+    }
+    itManagerField<u8>(this, 0x14AC) = 0;
+    for (int i = 0; i < m_itArchiveArrayList.size(); i++) {
+        itArchive* archive = m_itArchiveArrayList.at(i);
+        if (archive == NULL || !fn_27_2B23F8(archive)) {
+            return false;
+        }
+    }
+    itManagerField<u8>(this, 0x14AC) = 1;
+    return true;
+}
+
+// The live item that owns the given area id (its area module reports a valid index for it), or NULL.
+BaseItem* itManager::getItemFromAreaId(int areaId) {
+    for (int i = 0; i < m_itemArrayList.size(); i++) {
+        BaseItem*& item = m_itemArrayList.at(i);
+        if (item != NULL && item->m_moduleAccesser->getAreaModule().getAreaIndexFromId(areaId) >= 0) {
+            return item;
+        }
+    }
+    return NULL;
+}
+
+// Whether Manaphy's heart item must be exclusive right now: a Manaphy is already queued for the Pokeball pool
+// (checked only when requested), or a Heart Swap / technique-practice process is running.
+bool itManager::isExclusiveManaphy(bool checkPokemonList) {
+    if (checkPokemonList) {
+        for (int i = 0; i < static_cast<const soArrayList<ItemInfo, 12>&>(m_pokemonInfoArrayList).size(); i++) {
+            // HYPOTHESIS: the queue holds bare itKind words in vanilla, so compare the whole word
+            if (*(int*)&static_cast<const soArrayList<ItemInfo, 12>&>(m_pokemonInfoArrayList).at(i) == 0x78) {
+                return true;
+            }
+        }
+    }
+    int heartSwapActive = itManagerField<u8>(this, 0x1081);
+    if (heartSwapActive > 0) {
+        return true;
+    }
+    if (g_ftManager->isProcessHeartSwap()) {
+        return true;
+    }
+    int techniqueActive = itManagerField<u8>(this, 0x1040);
+    if (techniqueActive > 0 || g_ftManager->isProcessTechnique()) {
+        return true;
+    }
+    return false;
+}
+
+// Whether the generator sheet's archive has finished loading (false if it was never requested).
+bool itManager::isCompItemGenArchive(itGenSheetKind sheet) {
+    itGenSheetKind target = sheet;
+    itGenArchive* archive = findGenArchive(m_genArchiveArrayList, target);
+    if (archive == NULL) {
+        return false;
+    }
+    return archive->isComp();
+}
+
+// Sudden death re-arms the Smash Ball and the Dragoon parts.
+void itManager::startSuddenDeath() {
+    itManagerField<u8>(this, 0xBC) = 0;
+    initializeSmashBallFlags();
+    initializeDragoonFlags(0, true);
+}
+
+// HYPOTHESIS: the scheduler's first word packs two signed bytes; the second is the process phase counter.
+struct gfTaskSchedulerHead {
+    s32 unk0_1 : 8;
+    s32 phase : 8;
+    u32 unk2 : 16;
+};
+
+// Whether the scheduler has run past its first update passes since the manager asked to process.
+bool itManager::isPassedProcessUpdate() {
+    bool passed = false;
+    if (itManagerField<u8>(this, 0x14B4) != 0 && ((gfTaskSchedulerHead*)gfTaskScheduler::getInstance())->phase >= 3) {
+        passed = true;
+    }
+    return passed;
+}
+
+bool itManager::isCompFigureTexPreloadAll() {
+    u32 state = itManagerField<u32>(this, 0x50) - 2;
+    if (state <= 1) {
+        return fn_27_2C1674(m_figureManager);
+    }
     return true;
 }

@@ -72,6 +72,15 @@ public:
     virtual void notifyDrawDone();
 
     bool isCompItemKindArchive(itKind kind, u32 variation, bool);
+    bool isCompItemKindArchivePreloadAll();
+    bool isCompItemGenArchive(itGenSheetKind sheet);
+    bool isPassedProcessUpdate();
+    bool isCompFigureTexPreloadAll();
+    void startSuddenDeath();
+    void initializeSmashBallFlags();
+    void initializeDragoonFlags(int unk, bool isSuddenDeath);
+    bool isExclusiveManaphy(bool checkPokemonList);
+    BaseItem* getItemFromAreaId(int areaId);
     bool isCompItemKindArchiveFromGenArchive(itGenSheetKind sheet);
     itArchive* preloadItemKindArchive(itKind kind, u32 variation, itArchive::Type archiveType, bool);
     itGenSheetKind getRandBasicItemSheet(itGenId genKind = Item_Gen_Basic); // custom parameter
