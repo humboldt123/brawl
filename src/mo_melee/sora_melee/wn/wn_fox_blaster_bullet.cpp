@@ -22,7 +22,7 @@ wnClassInfoImpl<31, wnFoxBlasterBullet, wnFoxBlasterBulletData> g_wnFoxBlasterBu
 // MATCH-ONLY: the original unit emits its large module builder separately.
 #pragma dont_inline on
 template soModuleAccesserBuilder<wnFoxBlasterBulletModuleAccesserBuildConfig>::soModuleAccesserBuilder(
-    const wnModuleAccesserBuildData&, StageObject*);
+    StageObject*, const wnModuleAccesserBuildData&);
 #pragma dont_inline off
 
 wnFoxBlasterBullet::wnFoxBlasterBullet(s32 articleId, const wnArticleBuildInfo& info, const wnFoxBlasterBulletData* data) :

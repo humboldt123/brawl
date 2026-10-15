@@ -8,7 +8,7 @@
 #include <so/so_module_accesser.h>
 #include <wn/fox/wn_fox_illusion_util.h>
 
-inline soModuleAccesserBuilder<wnFoxIllusionModuleAccesserBuildConfig>::soModuleAccesserBuilder(const wnModuleAccesserBuildData& bdRef, StageObject* owner) :
+inline soModuleAccesserBuilder<wnFoxIllusionModuleAccesserBuildConfig>::soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bdRef) :
     m_moduleAccsr(
         owner,
         soResourceModuleBuilder<typename BC::ResourceModuleBuildConfig>::getModule(&m_resourceModuleBuilder),

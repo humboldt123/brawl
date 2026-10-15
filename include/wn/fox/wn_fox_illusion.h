@@ -134,7 +134,7 @@ public:
     soReflectModuleBuilder<BC::ReflectModuleBuildConfig> m_reflectModuleBuilder;
     soGlowModuleBuilder<BC::GlowModuleBuildConfig> m_glowModuleBuilder;
 
-    soModuleAccesserBuilder(const wnModuleAccesserBuildData& bd, StageObject* owner);
+    soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bd);
     ~soModuleAccesserBuilder() { }
     soModuleAccesser* getModuleAccesser() { return &m_moduleAccsr; }
 };
