@@ -122,6 +122,10 @@ public:
     void setExistDragoonParts(int part, int exist);
     int createManaphyHeart(Vec3f* pos, int createOwnerTaskId, int targetTaskId);
 
+    int getPriorityItemInstance(BaseItem* item);
+
+    void removeItemSub(BaseItem* item, int immediate, int returnToPool);
+
     static itManager* getInstance();
 };
 static_assert(sizeof(itManager) == 0x14c0, "Class is wrong size!");

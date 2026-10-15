@@ -1,10 +1,12 @@
 #include <types.h>
 #include <it/it_manager.h>
+#include <gf/gf_task_scheduler.h>
+#include <so/situation/so_situation_module_impl.h>
 
 // Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
 extern "C" {
 
-void fn_27_2A7970(itManager* self, BaseItem* item, s32 unk1, s32 unk2);
+
 
 // itManager::checkCreatableItem (0x2A5EE0, unnamed): whether the item kind may be created right now (match state, free
 // instance slots, per-kind limits)
@@ -13,8 +15,6 @@ int fn_27_2A5EE0(itManager* self, int kind, u32 variation, bool unk);
 // itManager::findLowPriorityItemInstance (0x2A8054, unnamed): an item that may be recycled when the pool is full
 // itManager::removeItemAfter (0x2A7114, unnamed): bookkeeping after an item left (kind counters, lottery state)
 void fn_27_2A7114(itManager* self, int kind, int variation, int lotKind, int lotCreateKind);
-// itManager::getPriorityItemInstance (0x2A7E08, unnamed): how important the item is to keep (lower = recycled first)
-int fn_27_2A7E08(itManager* self, BaseItem* item);
 // BaseItem::activate(itCreate*) (0x2829D0, unnamed)
 void fn_27_2829D0(BaseItem* item, itCreate* create);
 // rodata table: per kind lottery group (-3 and out-of-range kinds map to themselves)
@@ -66,7 +66,7 @@ void itManager::removeItem(BaseItem* item) {
         for (s32 i = 0; i < m_itemArrayList.size(); i++) {
             if (m_itemArrayList.at(i) == item) {
                 m_itemArrayList.erase(i);
-                fn_27_2A7970(this, item, 0, 1);
+                removeItemSub(item, 0, 1);
                 return;
             }
         }
@@ -79,7 +79,7 @@ void itManager::removeItem1(int createOwnerTaskId) {
             BaseItem*& item = m_itemArrayList.at(i);
             if (item != NULL && (u32)createOwnerTaskId == (u32)item->m_createOwnerTaskId) {
                 m_itemArrayList.erase(i);
-                fn_27_2A7970(this, item, 0, 1);
+                removeItemSub(item, 0, 1);
                 i--;
             }
         }
@@ -376,7 +376,7 @@ void itManager::removeItemAll() {
         BaseItem*& item = m_itemArrayList.at(i);
         if (item != NULL) {
             m_itemArrayList.erase(i);
-            fn_27_2A7970(this, item, 0, 1);
+            removeItemSub(item, 0, 1);
             i--;
         }
     }
@@ -389,7 +389,7 @@ BaseItem* itManager::findLowPriorityItemInstance() {
     int count = m_itemArrayList.size();
     for (int i = 0; i < count; i++) {
         BaseItem* item = static_cast<const soArrayList<BaseItem*, 64>&>(m_itemArrayList).at(i);
-        int priority = fn_27_2A7E08(this, item);
+        int priority = getPriorityItemInstance(item);
         if (priority < 10000) {
             if (priority == bestPriority) {
                 if (best == NULL || (u32)best->m_instanceId > (u32)item->m_instanceId) {
@@ -470,4 +470,145 @@ int itManager::createManaphyHeart(Vec3f* pos, int createOwnerTaskId, int targetT
         result = 0;
     }
     return result;
+}
+
+// How important an item is to keep when the instance pool is full: lower values are recycled first, 10000 and above never.
+int itManager::getPriorityItemInstance(BaseItem* item) {
+    int priority;
+    if (item == NULL) {
+        return -1;
+    }
+    priority = 0;
+    if (item->isHaved() != 0) {
+        return 10000;
+    }
+    if (item->isVanishMode() == 0) {
+        return 10000;
+    }
+    int kind = item->m_kind;
+    int group = getItemGroup(kind);
+    switch (group) {
+    case 0:
+    case 5:
+        return 10000;
+    case 2:
+    case 3: {
+        int mapped;
+        if (kind == -3) {
+            mapped = kind;
+        } else if (kind < 0 || kind >= 0xB2) {
+            mapped = kind;
+        } else {
+            mapped = lbl_27_rodata_50D8[kind];
+        }
+        if (mapped == kind) {
+            return 10000;
+        }
+        priority = 5000;
+        break;
+    }
+    case 4:
+    case 6:
+    case 7:
+        return 10000;
+    case 8:
+        priority = 4000;
+        break;
+    default:
+        if (kind == 0x37) {
+            return 10000;
+        }
+        if (kind == 0x17 || kind == 0x33 || kind == 0xB) {
+            priority = 1000;
+        }
+        // HYPOTHESIS: the situation module sits in slot 5 of the item's module enumeration (item + 0x1A4).
+        soSituationModule* situation = *reinterpret_cast<soSituationModule**>(*reinterpret_cast<char**>(reinterpret_cast<char*>(item) + 0x1A4) + 0x14);
+        if (situation->getKind() == 2) {
+            priority += 1000;
+        }
+        if (isWeaponItem(kind)) {
+            priority += 1000;
+        }
+        int param = item->getParamInt(0x10000009);
+        if (param < 0 || param > 1000) {
+            priority += 1000;
+        } else {
+            priority += param;
+        }
+        break;
+    }
+    return priority;
+}
+
+// HYPOTHESIS: the match phase of the task scheduler is a 9-bit field behind its first byte.
+struct gfTaskSchedulerView {
+    s32 unk0 : 8;
+    s32 phase : 9;
+};
+
+// Takes an item out of play. Items normally go back to the pool for reuse (returnToPool) unless the match is in a phase
+// where they are destroyed; immediate skips the bookkeeping and exits the task right away.
+void itManager::removeItemSub(BaseItem* item, int immediate, int returnToPool) {
+    BaseItem* removed;
+    if (item == NULL) {
+        return;
+    }
+    removed = item;
+    int kind = item->m_kind;
+    int variation = item->m_variation;
+    int group;
+    if (kind == -3) {
+        group = kind;
+    } else if (kind < 0 || kind >= 0xB2) {
+        group = kind;
+    } else {
+        group = lbl_27_rodata_50D8[kind];
+    }
+    int lotKind;
+    if (kind == 0x2A) {
+        lotKind = item->getLotCreateItKind();
+    } else {
+        lotKind = -1;
+    }
+    bool destroy = false;
+    if (itManagerField<u8>(this, 0x14B5) != 0 || immediate != 0) {
+        destroy = true;
+    }
+    if (returnToPool != 0) {
+        if (kind == 0x37) {
+            itManagerField<int>(this, 0x1480) = itManagerField<int>(this, 0x1490);
+        } else if (kind == 0x14) {
+            setExistDragoonParts(variation, 0);
+        } else if (kind == 0x15) {
+            u32 flags = itManagerField<u32>(this, 0x1494) & ~0x10;
+            itManagerField<u32>(this, 0x1494) = flags;
+            if (itManagerField<u8>(this, 0x149C) != 0) {
+                itManagerField<u32>(this, 0x1494) = flags | 1;
+            }
+        }
+        if (!destroy) {
+            if (removed->isUseOuterRes() != 0 || getItemGroup(kind) == 6) {
+                gfTaskSchedulerView* scheduler = reinterpret_cast<gfTaskSchedulerView*>(gfTaskScheduler::getInstance());
+                if (scheduler != NULL) {
+                    int phase = scheduler->phase;
+                    if (phase < 2 || phase > 5) {
+                        destroy = true;
+                    }
+                }
+            }
+        }
+    }
+    if (!destroy) {
+        m_itemArrayList2.push(removed);
+    } else {
+        reinterpret_cast<ItemSlot258*>(removed)->unk258();
+        if (immediate == 0 && itManagerField<u8>(this, 0x14A2) != 0) {
+            m_itemArrayList3.push(removed);
+        } else {
+            removed->exit();
+        }
+        if (immediate == 0) {
+            fn_27_2A7114(this, kind, variation, group, lotKind);
+        }
+    }
 }
