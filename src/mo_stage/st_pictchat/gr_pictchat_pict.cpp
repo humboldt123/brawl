@@ -19,6 +19,9 @@
 #include <st_pictchat/gr_pictchat.h>
 #include <st_pictchat/gr_pictchat_anim.h>
 
+// Yakumono::clearAttackAll (sora_melee, unnamed)
+extern "C" void fn_27_263738(Yakumono* yakumono);
+
 // The attack of the pictures: a sphere on a node of the model, the same one every time (size, power, the way it throws).
 #define PICTCHAT_ATTACK(attack, size, power, vector, effect, fix, add, node, attribute, soundLevel, soundAttr, lrCheck, detection) \
     setAttackGimmickDetails(&attack, size, 1.0f, 1.0f, 1.0f, power, &offset, vector, effect, fix, add, node, 0x3FF, 7, false, 15, \
@@ -329,7 +332,7 @@ void grPictchatPict::setHit() {
 
 void grPictchatPict::clearAttackAll() {
     if (m_yakumono != NULL) {
-        m_yakumono->moduleAccesser.getCollisionAttackModule().clearAll();
+        fn_27_263738(m_yakumono);
     }
 }
 
@@ -421,13 +424,17 @@ void grPictchatPict007::updateYakumono(float deltaFrame) {
             getNodePosition(&m_posGimmickWork[27], 0, m_nodeDamage[4]);
             getNodePosition(&m_posGimmickWork[28], 0, m_nodeDamage[5]);
         }
-        if (m_state == 3 && m_stateAttackWork != NULL) {
-            m_stateAttackWork[0] = 4;
-            m_stateAttackWork[1] = 4;
-            m_stateAttackWork[2] = 4;
-            m_stateAttackWork[3] = 4;
-            m_stateAttackWork[4] = 4;
-            m_stateAttackWork[5] = 4;
+        switch (m_state) {
+        case 3:
+            if (m_stateAttackWork != NULL) {
+                m_stateAttackWork[0] = 4;
+                m_stateAttackWork[1] = 4;
+                m_stateAttackWork[2] = 4;
+                m_stateAttackWork[3] = 4;
+                m_stateAttackWork[4] = 4;
+                m_stateAttackWork[5] = 4;
+            }
+            break;
         }
     } else {
         m_yakumonoSet = 1;
@@ -483,9 +490,9 @@ void grPictchatPict007::updateJoint(float deltaFrame) {
 
 void grPictchatPict007::setAttack() {
     if (m_attackSet != 1) {
-        u8 i = 0;
+        u32 i = 0;
         do {
-            setAttack1(i);
+            setAttack1(static_cast<u8>(i));
             i++;
         } while (i < 6);
         m_attackSet = 1;
@@ -708,9 +715,18 @@ void grPictchatPict011::updatePictDrawDetails(float deltaFrame) {
 }
 
 void grPictchatPict011::updatePictLoopDetails(float deltaFrame) {
-    if (m_state == 4 && m_seHandle != -1) {
-        m_snd.stopSE(m_seHandle, 0);
-        m_seHandle = -1;
+    switch (m_state) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+        break;
+    case 4:
+        if (m_seHandle != -1) {
+            m_snd.stopSE(m_seHandle, 0);
+            m_seHandle = -1;
+        }
+        break;
     }
 }
 
@@ -747,8 +763,10 @@ grPictchatPict012::~grPictchatPict012() {
 
 void grPictchatPict012::updateYakumono(float deltaFrame) {
     if (m_yakumonoSet == 1) {
-        if (m_state == 3) {
+        switch (m_state) {
+        case 3:
             setAttack();
+            break;
         }
     } else {
         setHit();
@@ -797,9 +815,9 @@ void grPictchatPict012::updatePictLoopDetails(float deltaFrame) {
 
 void grPictchatPict012::setAttack() {
     if (m_attackSet != 1) {
-        u8 i = 0;
+        u32 i = 0;
         do {
-            setAttack1(i);
+            setAttack1(static_cast<u8>(i));
             i++;
         } while (i < 2);
         m_attackSet = 1;
@@ -861,8 +879,10 @@ grPictchatPict013::~grPictchatPict013() {
 
 void grPictchatPict013::updateYakumono(float deltaFrame) {
     if (m_yakumonoSet == 1) {
-        if (m_state == 3) {
+        switch (m_state) {
+        case 3:
             setAttack();
+            break;
         }
     } else {
         setHit();
@@ -931,8 +951,8 @@ void grPictchatPict013::updatePictLoop(float deltaFrame) {
 // The computer players try to stay away from the missile.
 void grPictchatPict013::updatePictLoopDetails(float deltaFrame) {
     Vec3f pos;
-    Vec2f min;
     Vec2f max;
+    Vec2f min;
     getNodePosition(&pos, 0, "P013damage01");
     min.m_y = pos.m_y + 40.0f;
     max.m_y = pos.m_y - 40.0f;
@@ -1049,7 +1069,13 @@ void grPictchatPict014::updatePictDrawDetails(float deltaFrame) {
 }
 
 void grPictchatPict014::updatePictLoopDetails(float deltaFrame) {
-    if (m_state == 4) {
+    switch (m_state) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+        break;
+    case 4:
         if (m_trigger != NULL) {
             m_trigger->setAreaSleep(true);
         }
@@ -1057,6 +1083,7 @@ void grPictchatPict014::updatePictLoopDetails(float deltaFrame) {
             m_snd.stopSE(m_seHandle, 0);
             m_seHandle = -1;
         }
+        break;
     }
 }
 
@@ -1098,8 +1125,10 @@ grPictchatPict015::~grPictchatPict015() {
 
 void grPictchatPict015::updateYakumono(float deltaFrame) {
     if (m_yakumonoSet == 1) {
-        if (m_state == 3) {
+        switch (m_state) {
+        case 3:
             setAttack();
+            break;
         }
     } else {
         setHit();
@@ -1115,9 +1144,9 @@ void grPictchatPict015::updatePictLoopDetails(float deltaFrame) {
 
 void grPictchatPict015::setAttack() {
     if (m_attackSet != 1) {
-        u8 i = 0;
+        u32 i = 0;
         do {
-            setAttack1(i);
+            setAttack1(static_cast<u8>(i));
             i++;
         } while (i < 5);
         m_attackSet = 1;
@@ -1182,10 +1211,15 @@ void grPictchatPict022::updatePictDraw(float deltaFrame) {
 }
 
 void grPictchatPict022::updatePictLoopDetails(float deltaFrame) {
-    if (m_state == 4) {
+    switch (m_state) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+        break;
+    case 4:
         *m_flgHashigoWork = 0;
-    } else if (m_state > 3) {
-        return;
+        break;
     }
 }
 
@@ -1211,8 +1245,10 @@ grPictchatPict025::~grPictchatPict025() {
 
 void grPictchatPict025::updateYakumono(float deltaFrame) {
     if (m_yakumonoSet == 1) {
-        if (m_state == 3) {
+        switch (m_state) {
+        case 3:
             setAttack();
+            break;
         }
     } else {
         setHit();
@@ -1272,9 +1308,9 @@ void grPictchatPict025::updatePictElaseDetails(float deltaFrame) {
 
 void grPictchatPict025::setAttack() {
     if (m_attackSet != 1) {
-        u8 i = 0;
+        u32 i = 0;
         do {
-            setAttack1(i);
+            setAttack1(static_cast<u8>(i));
             i++;
         } while (i < 2);
         m_attackSet = 1;
@@ -1324,8 +1360,10 @@ grPictchatPict027::~grPictchatPict027() {
 
 void grPictchatPict027::updateYakumono(float deltaFrame) {
     if (m_yakumonoSet == 1) {
-        if (m_state == 3) {
+        switch (m_state) {
+        case 3:
             setAttack();
+            break;
         }
     } else {
         setHit();
@@ -1389,9 +1427,9 @@ void grPictchatPict027::updatePictElaseDetails(float deltaFrame) {
 
 void grPictchatPict027::setAttack() {
     if (m_attackSet != 1) {
-        u8 i = 0;
+        u32 i = 0;
         do {
-            setAttack1(i);
+            setAttack1(static_cast<u8>(i));
             i++;
         } while (i < 4);
         m_attackSet = 1;
