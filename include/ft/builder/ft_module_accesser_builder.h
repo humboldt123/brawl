@@ -13,6 +13,7 @@
 #include <ft/builder/ft_builder_misc.h>
 #include <so/so_module_accesser_builder.h>
 #include <so/so_inside_event_manage_module_builder.h>
+#include <so/article/so_article_mediator_null.h>
 #include <ft/ft_param_customize_module_impl.h>
 #include <ft/ft_resource_id_accesser_impl.h>
 
@@ -82,6 +83,11 @@ public:
     ftOpaqueGenerateArticleManageModuleBuilder(soModuleAccesser* acc);
     ~ftOpaqueGenerateArticleManageModuleBuilder();
     void* getModule() { return m_module; }
+    // HYPOTHESIS: soSelectInstanceHolder<0, soArticleMediatorNull> - a weapon's article mediator holds no state, so
+    // this builder stores none (the mediator takes no room in these sizes) and hands out the shared null mediator.
+    // Evidence: the thunder jolt article's deactivateDescendantForce ignores the builder pointer and calls
+    // deactivate() on the guarded singleton object's vtable slot 0x20 (sora_melee 0x326410).
+    soArticleMediator* getMediator() { return soSingletonHolder<soArticleMediatorNull>::getInstance(); }
 };
 
 ////////////////////////////////////////

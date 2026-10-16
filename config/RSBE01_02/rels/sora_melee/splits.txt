@@ -10926,7 +10926,7 @@ mo_melee/sora_melee/wn/wn_fox_blaster_bullet.cpp:
 	.ctors      start:0x000003C4 end:0x000003C8
 
 mo_melee/sora_melee/wn/wn_pikachu_thunder_jolt.cpp:
-	.text       start:0x00324900 end:0x00326538
+	.text       start:0x00324900 end:0x00326984
 	.ctors      start:0x000003CC end:0x000003D0
 
 mo_melee/sora_melee/wn/wn_pikachu_thunder_jolt2.cpp:

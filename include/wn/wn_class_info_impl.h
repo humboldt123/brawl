@@ -41,6 +41,7 @@ extern "C" void* fn_27_1494D0(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_149B70(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_148F64(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_147C9C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
+extern "C" void* fn_27_148050(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
 // The article classes the dispatch below selects on; the instantiating unit includes its article
 // header, which declares the class with this name (the layout is not needed here, only the pointer type).
@@ -68,6 +69,7 @@ class wnLuigiFireball;
 class wnSZerosuitParalyzerBullet;
 class wnFoxLandMasterShell;
 class wnPikachuThunderJolt2;
+class wnPikachuThunderJolt;
 class wnSheikNeedleHave;
 class wnPopoIceShot;
 class wnPokeFushigisouSeed;
@@ -151,6 +153,9 @@ inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, co
 }
 inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPikachuThunderJolt2*) {
     return fn_27_1480CC(&g_ftCommonDataAccesser, subKind, resourceGroup);
+}
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPikachuThunderJolt*) {
+    return fn_27_148050(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
 inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnSheikNeedleHave*) {
     return fn_27_148CE8(&g_ftCommonDataAccesser, subKind, resourceGroup);
