@@ -2,6 +2,9 @@
 #include <it/it_manager.h>
 #include <gf/gf_task_scheduler.h>
 #include <ft/ft_manager.h>
+#include <gm/gm_global.h>
+#include <mt/mt_prng.h>
+#include <gm/gm_global_mode_melee.h>
 #include <so/situation/so_situation_module_impl.h>
 #include <so/area/so_area_module_impl.h>
 
@@ -24,6 +27,10 @@ bool fn_27_2C1674(void* figureManager);
 // itArchive::isRemovable (0x2B24C4, unnamed): whether the archive may be freed now (nothing uses it, load finished)
 int fn_27_2B24C4(itArchive* archive);
 
+// gm (main module): whether a Dragoon is already in play / mark that one has been used (unnamed)
+int fn_800526E4();
+void fn_80052694();
+
 // itManager::findLowPriorityItemInstance (0x2A8054, unnamed): an item that may be recycled when the pool is full
 // itManager::removeItemAfter (0x2A7114, unnamed): bookkeeping after an item left (kind counters, lottery state)
 void fn_27_2A7114(itManager* self, int kind, int variation, int lotKind, int lotCreateKind);
@@ -36,6 +43,10 @@ extern int lbl_27_rodata_50D8[];
 extern int lbl_27_data_71BF0[];
 // the four item kinds a basic-gen lottery pulls in when the "all items" flag (0x14A0) is clear
 extern u32 lbl_27_data_737A0[];
+// per kind: the kind whose Brres this kind borrows (-1 none), may chain
+extern int lbl_27_rodata_4B48[];
+// per kind: archive group index (char)
+extern u8 lbl_27_rodata_4A90[];
 // the two generator sheets that are never picked as the random basic sheet (stage kind, level)
 extern itGenSheetKind lbl_27_bss_6490;
 extern itGenSheetKind lbl_27_bss_6498;
@@ -1357,4 +1368,134 @@ preload:
     }
     m_pokemonInfoArrayList.push(*(ItemInfo*)&queued);
     return true;
+}
+
+// Follows the chain of "borrows another kind's Brres" links to its end (the original unrolls the recursion).
+int itManager::getItemKindArchiveRefBrresItKind(int kind, bool unk) {
+    if (kind == -3) {
+        return kind;
+    }
+    if (kind < 0 || kind >= NUM_IT_KINDS) {
+        return kind;
+    }
+    int ref = lbl_27_rodata_4B48[kind];
+    if (ref == -1) {
+        return kind;
+    }
+    return getItemKindArchiveRefBrresItKind(ref, false);
+}
+
+// The archive group of a kind. A handful of kinds with variation archives (Smash Ball style crates and barrels) add
+// the caller's group to the table value; every other kind first resolves its borrowed-Brres chain.
+u8 itManager::getItemKindArchiveGroup(int kind, u8 group) {
+    bool valid = false;
+    if (kind > -1 && kind < NUM_IT_KINDS) {
+        valid = true;
+    }
+    if (!valid) {
+        return 0;
+    }
+    int variationSign;
+    if (kind < 0) {
+        variationSign = 0;
+    } else {
+        int mask = lbl_27_rodata_47C8[kind] >> 31;
+        variationSign = (mask ^ lbl_27_rodata_47C8[kind]) - mask;
+    }
+    if (variationSign < 1 || (kind != 0xF && kind != 7 && kind != 3 && kind != 10 && kind != 0x14 && kind != 0x8F)) {
+        getItemKindArchiveRefBrresItKind(kind, false);
+        return lbl_27_rodata_4A90[kind];
+    }
+    return lbl_27_rodata_4A90[kind] + group;
+}
+
+// HYPOTHESIS: the byte at +9 of the melee init data packs the game rule (time / stock / coin) in its top 3 bits.
+struct gmGameRuleByte {
+    u8 rule : 3;
+    u8 rest : 5;
+};
+
+// Arms the Smash Ball timers at the start of a match (HYPOTHESIS: 0x148C/0x1490 are the first-drop and re-drop frame
+// counts, derived from the item parameter floats at 0x64/0x70 when still unset; 0x1488 is the latest drop frame, a
+// fraction (param 0x68) of the match length).
+void itManager::initializeSmashBallFlags() {
+    if (itManagerField<int>(this, 0x148C) < 0) {
+        float seconds = itManagerField<float>(this, 0x64);
+        itManagerField<int>(this, 0x148C) = (int)(60.0f * seconds);
+    }
+    if (itManagerField<int>(this, 0x1490) < 0) {
+        float seconds = itManagerField<float>(this, 0x70);
+        itManagerField<int>(this, 0x1490) = (int)(60.0f * seconds);
+    }
+    itManagerField<int>(this, 0x1480) = itManagerField<int>(this, 0x148C);
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
+    if (melee != NULL) {
+        u32 timeLimit = melee->m_meleeInitData.m_timeLimitFrames;
+        switch (((gmGameRuleByte*)((u8*)melee + 9))->rule) {
+        case 1:
+        case 2:
+            timeLimit = 0x1C20;
+            break;
+        }
+        u32 matchFrames = (u32)(itManagerField<float>(this, 0x6C) * 60.0f * 60.0f);
+        if (timeLimit == 0 || timeLimit > matchFrames) {
+            timeLimit = matchFrames;
+        }
+        float ratio = itManagerField<float>(this, 0x68);
+        itManagerField<float>(this, 0x1484) = 0.0f;
+        u32 latest = (u32)((float)timeLimit * ratio);
+        itManagerField<u32>(this, 0x1488) = latest;
+        if (latest <= itManagerField<u32>(this, 0x1480)) {
+            itManagerField<u32>(this, 0x1488) = 0;
+        }
+    }
+}
+
+// Decides whether the Dragoon (the machine from Kirby Air Ride) shows up this match and when. HYPOTHESIS: 0x1494 bit 0
+// = a Dragoon is scheduled, 0x1498 = the frame it arrives, 0x149C = forced; the chance comes from the item parameter
+// floats (0x74 time rule, 0x78 coin rule, 0x7C stock rule), scaled by the basic-item lottery value of kind 0x14.
+void itManager::initializeDragoonFlags(int forced, bool disabled) {
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
+    if (melee != NULL) {
+        itManagerField<u32>(this, 0x1498) = 0;
+        itManagerField<u32>(this, 0x1494) = 0;
+        itManagerField<u8>(this, 0x149C) = 0;
+        if (itManagerField<int>(this, 0x50) != 4 && !disabled && (forced != 0 || fn_800526E4() == 0)) {
+            float rate = itManagerField<float>(this, 0x74);
+            int rule = ((gmGameRuleByte*)((u8*)melee + 9))->rule;
+            u32 frames = melee->m_meleeInitData.m_timeLimitFrames;
+            switch (rule) {
+            case 1: {
+                rate = itManagerField<float>(this, 0x7C);
+                frames = *(int*)((u8*)melee + 0x24) * (itManagerField<int>(this, 0xAC) * 60);
+                u32 minFrames = itManagerField<int>(this, 0xB0) * 60;
+                if (frames < minFrames) {
+                    frames = minFrames;
+                }
+                break;
+            }
+            case 2:
+                rate = itManagerField<float>(this, 0x78);
+                break;
+            }
+            if (forced != 0) {
+                frames = frames / 3;
+                itManagerField<u8>(this, 0x149C) = 1;
+            }
+            u32 maxFrames = itManagerField<int>(this, 0xB4) * 3600;
+            if (frames == 0 || frames > maxFrames) {
+                frames = maxFrames;
+            }
+            float base = 0.1f;
+            if (itManagerField<u8>(this, 0x149E) != 0) {
+                base = getRandBasicItemValue(0x14, reinterpret_cast<ItemSwitch*>(&itManagerField<u32>(this, 0x119C)));
+            }
+            float chance = base * rate;
+            if (forced != 0 || randf() < chance) {
+                itManagerField<u32>(this, 0x1498) = frames;
+                itManagerField<u32>(this, 0x1494) |= 1;
+                fn_80052694();
+            }
+        }
+    }
 }

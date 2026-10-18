@@ -82,6 +82,8 @@ public:
     const char* getGenArchiveLoadPathFromStepID(itGenSheetKind sheet);
     itArchive* getItemKindArchive(int kind, int variation);
     bool preloadPokemon(int kind);
+    int getItemKindArchiveRefBrresItKind(int kind, bool unk);
+    u8 getItemKindArchiveGroup(int kind, u8 group);
     float getPerBase(itGenParam* param, ItemSwitch* itemSwitch);
     bool isCompItemGenArchive(itGenSheetKind sheet);
     bool isPassedProcessUpdate();
