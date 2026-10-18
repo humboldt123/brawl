@@ -103,9 +103,11 @@ public:
     u8 m_itemArchivesChecked; // HYPOTHESIS: set once every item archive named by the sheet's parameters is complete
     char m_19[1];
 
+    itGenArchive(itGenSheetKind sheet, const char* path, int unk);
     virtual ~itGenArchive();
     bool isComp();
     bool isFailed();
+    bool isRemovable();
     itGenParam* getGenParamFromIndex(u32 index, u32 level);
     u32 getGenParamNum(u32 level);
     itGenParam* getGenParam(int id, int level);

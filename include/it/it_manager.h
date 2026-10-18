@@ -75,6 +75,11 @@ public:
     bool isCompItemKindArchivePreloadAll();
     float getRandBasicItemValue(int kind, ItemSwitch* itemSwitch);
     int getRandBasicItemVariation(int kind);
+    bool isRemovedItemArchive(int archiveType);
+    bool removeItemOld(int kind, int variation, u32 createOwnerTaskId, u32 genId);
+    void removeItemArchive(int archiveType);
+    itGenArchive* preloadItemGenArchive(itGenSheetKind sheet, int unk);
+    const char* getGenArchiveLoadPathFromStepID(itGenSheetKind sheet);
     float getPerBase(itGenParam* param, ItemSwitch* itemSwitch);
     bool isCompItemGenArchive(itGenSheetKind sheet);
     bool isPassedProcessUpdate();

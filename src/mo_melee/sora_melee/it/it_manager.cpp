@@ -21,6 +21,9 @@ int fn_27_2B23F8(itArchive* archive);
 // itFigureManager (0x2C1674, unnamed): whether all figure textures finished preloading
 bool fn_27_2C1674(void* figureManager);
 
+// itArchive::isRemovable (0x2B24C4, unnamed): whether the archive may be freed now (nothing uses it, load finished)
+int fn_27_2B24C4(itArchive* archive);
+
 // itManager::findLowPriorityItemInstance (0x2A8054, unnamed): an item that may be recycled when the pool is full
 // itManager::removeItemAfter (0x2A7114, unnamed): bookkeeping after an item left (kind counters, lottery state)
 void fn_27_2A7114(itManager* self, int kind, int variation, int lotKind, int lotCreateKind);
@@ -1118,4 +1121,109 @@ int itManager::getRandBasicItemVariation(int kind) {
         }
     }
     return 0;
+}
+
+// Whether no loaded item archive or generator archive of the given type is left (true once the type is fully removed).
+bool itManager::isRemovedItemArchive(int archiveType) {
+    for (int i = 0; i < m_itArchiveArrayList.size(); i++) {
+        itArchive*& archive = m_itArchiveArrayList.at(i);
+        if (archive != NULL && archiveType == archive->m_type) {
+            return false;
+        }
+    }
+    for (int i = 0; i < m_genArchiveArrayList.size(); i++) {
+        itGenArchive*& archive = m_genArchiveArrayList.at(i);
+        if (archive != NULL && archiveType == archive->m_itArchiveType) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Removes the most recently created live item that matches the filters (kind -1, variation 0, owner task -1 and
+// generator id -1 mean "any"); returns whether one was removed.
+bool itManager::removeItemOld(int kind, int variation, u32 createOwnerTaskId, u32 genId) {
+    BaseItem* target = NULL;
+    int i;
+    for (i = 0; i < m_itemArrayList.size(); i++) {
+        BaseItem*& item = m_itemArrayList.at(i);
+        if (item != NULL && (kind == item->m_kind || kind == -1) && (variation == 0 || variation == (int)item->m_variation) &&
+            (createOwnerTaskId == 0xFFFFFFFF || createOwnerTaskId == item->m_createOwnerTaskId) &&
+            (genId == 0xFFFFFFFF || genId == item->m_genId) &&
+            (target == NULL || (u32)target->m_instanceId < (u32)item->m_instanceId)) {
+            target = item;
+        }
+    }
+    if (target == NULL) {
+        return false;
+    }
+    if (target != NULL) {
+        for (i = 0; i < m_itemArrayList.size(); i++) {
+            if (m_itemArrayList.at(i) == target) {
+                m_itemArrayList.erase(i);
+                removeItemSub(target, 0, 1);
+                break;
+            }
+        }
+    }
+    return true;
+}
+
+// Frees every item archive and generator archive of the given type; archives still in use are only flagged for
+// removal. Archives of other types lose their "checked" marks, and the preload-complete cache is cleared.
+void itManager::removeItemArchive(int archiveType) {
+    for (int i = 0; i < m_itArchiveArrayList.size(); i++) {
+        itArchive*& archive = m_itArchiveArrayList.at(i);
+        if (archive != NULL && archiveType == archive->m_type) {
+            if (fn_27_2B24C4(archive)) {
+                delete archive;
+                m_itArchiveArrayList.erase(i);
+                i--;
+            } else {
+                archive->m_4 = 1;
+            }
+        }
+    }
+    for (int i = 0; i < m_genArchiveArrayList.size(); i++) {
+        itGenArchive*& archive = m_genArchiveArrayList.at(i);
+        if (archive != NULL) {
+            if (archiveType != archive->m_itArchiveType) {
+                archive->m_17 = 0;
+                archive->m_itemArchivesChecked = 0;
+            } else {
+                if (archive->isRemovable()) {
+                    delete archive;
+                    m_genArchiveArrayList.erase(i);
+                    i--;
+                } else {
+                    archive->m_16 = 1;
+                }
+            }
+        }
+    }
+    itManagerField<u8>(this, 0x14AC) = 0;
+}
+
+// Starts loading the generator archive for a stage sheet (unless the manager is in a state that skips it) and returns
+// it; an archive that is already queued is returned as is unless it has been flagged for removal.
+itGenArchive* itManager::preloadItemGenArchive(itGenSheetKind sheet, int unk) {
+    itGenArchive* archive;
+    if ((u32)(itManagerField<int>(this, 0x4C) - 3) <= 1) {
+        archive = NULL;
+    } else {
+        itGenSheetKind target = sheet;
+        archive = findGenArchive(m_genArchiveArrayList, target);
+        if (archive == NULL) {
+            itGenArchive* created = new itGenArchive(sheet, getGenArchiveLoadPathFromStepID(sheet), unk);
+            if (created == NULL) {
+                archive = NULL;
+            } else {
+                archive = created;
+                m_genArchiveArrayList.push(archive);
+            }
+        } else if (archive->m_16 != 0) {
+            archive = NULL;
+        }
+    }
+    return archive;
 }

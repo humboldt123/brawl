@@ -406,3 +406,9 @@ Things that moved registers, roughly in the order worth trying:
 - **`float limit = bottom + 0.5f * fabs(top - bottom); if (y > limit)` instead of the expression inline** changes which FPR the compare operands get (`ft_status_uniq_process_throw_kirby.cpp`). **MED**
 - **`x += c` after loading `x` into a local keeps `fadds f1, f1, f0` (value first) where `x + c` over a call result emits the constant first** (`ft_status_uniq_process_adv_follow.cpp`). **MED**
 - **Named `Vec3f` locals for effect arguments (declared position first, then rotation, then members assigned in the original order) reproduce the stack layout** where temporaries put the slots at the bottom of the frame; `reqFollow(..)` with two zero vectors in Kinoko and the reflect statuses. **MED**
+
+### itManager list loops and archive cleanup (sora_melee it_manager)
+- A stray `beq` that follows an early `bne ...; li r3,0; b end` return is a second, redundant `if (x != NULL)` around the rest of the body; write `if (x == NULL) return false; if (x != NULL) { ... } return true;` (removeItemOld).
+- `delete p;` already null-checks; an explicit `if (p != NULL) delete p;` adds an extra `beq` (removeItemArchive).
+- Virtual `at(i)` slot 0xC is the non-const overload (use `T*& x = list.at(i);`), slot 0x10 is the const overload: reach it with `static_cast<const soArrayList<T, N>&>(list).at(i)`.
+- `u32` parameters compared with `-1` produce the `addis/cmplwi 0xffff` idiom; `int` ones produce `cmpwi -1`.
