@@ -1826,3 +1826,132 @@ nw4r::g3d::ResFile itManager::getResFileData(int set) {
     }
     return fn_27_2B26E8(archive, 4, set == 1, 0x28);
 }
+
+// Removes every live item of the given kind; returns how many were removed.
+static inline int removeItemsOfKind(itManager* manager, int kind) {
+    int removed = 0;
+    for (int i = 0; i < manager->m_itemArrayList.size(); i++) {
+        BaseItem*& item = manager->m_itemArrayList.at(i);
+        if (item != NULL && item->m_kind == kind) {
+            manager->m_itemArrayList.erase(i);
+            manager->removeItemSub(item, 0, 1);
+            i--;
+            removed++;
+        }
+    }
+    return removed;
+}
+
+// Training mode asks to spawn an item: makes room for it first (kinds 0x14 / 0x37 and the Assist Trophy preload replace
+// each other). Returns 0 if the request must wait (something was removed or is still unloading), 1 if the item can be
+// created without further checks, 2 if it can be created and the normal creatable-item check passed.
+int itManager::removeRequestTrainingItem(int kind) {
+    if ((u32)(itManagerField<int>(this, 0x4C) - 3) <= 1) {
+        return 1;
+    }
+    if (itManagerField<int>(this, 0x4C) == 7) {
+        return 1;
+    }
+    bool removedAny = false;
+    bool paired = false;
+    switch (kind) {
+    case 0x37:
+        paired = true;
+        if (removeItemsOfKind(this, 0x14) > 0) {
+            removedAny = true;
+        }
+        break;
+    case 0x14:
+        paired = true;
+        if (removeItemsOfKind(this, 0x37) > 0) {
+            removedAny = true;
+        }
+        break;
+    case 0:
+        if (itManagerField<int>(this, 0x10BC) == 0xA1) {
+            removedAny = removeItemsOfKind(this, 0x37) > 0;
+            if (removeItemsOfKind(this, 0x14) > 0) {
+                removedAny = true;
+            }
+        }
+        break;
+    }
+    if (!paired) {
+        if (itManagerField<int>(this, 0x10BC) == -1) {
+            if (itManagerField<int>(this, 0x10C4) < 0) {
+                itManagerField<int>(this, 0x10C4) = 0x10;
+            }
+            removedAny = true;
+        }
+        goto finish;
+    }
+    if (itManagerField<int>(this, 0x10BC) == 0xA1) {
+        if (itManagerField<int>(this, 0x10C0) > 0) {
+            for (int i = 0; i < m_itemArrayList.size(); i++) {
+                BaseItem*& item = m_itemArrayList.at(i);
+                if (item != NULL) {
+                    int itemKind = item->m_kind;
+                    if (getItemGroup(itemKind) == 2 || itemKind == 0) {
+                        m_itemArrayList.erase(i);
+                        removeItemSub(item, 0, 1);
+                        i--;
+                    }
+                }
+            }
+        }
+        bool erased = false;
+        bool stillUnloading = false;
+        for (int i = 0; i < m_itArchiveArrayList.size(); i++) {
+            itArchive*& archive = m_itArchiveArrayList.at(i);
+            if (archive != NULL) {
+                if (getItemGroup(archive->m_itKind) == 2) {
+                    if (!fn_27_2B24C4(archive)) {
+                        stillUnloading = true;
+                        archive->m_4 = 1;
+                    } else {
+                        m_itArchiveArrayList.erase(i);
+                        delete archive;
+                        erased = true;
+                        i--;
+                    }
+                }
+            }
+        }
+        if (erased || stillUnloading) {
+            itManagerField<int>(this, 0x10BC) = -1;
+            itManagerField<int>(this, 0x10C4) = -1;
+            if (stillUnloading) {
+                return 0;
+            }
+        }
+    }
+    if (itManagerField<int>(this, 0x10BC) != -1) {
+        goto finish;
+    }
+    {
+        int archiveKind = 0xA1;
+        if (archiveIdOf(this, 0xA1) >= 0) {
+            archiveKind = -3;
+        }
+        itArchive* found = NULL;
+        for (int i = 0; i < static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).size(); i++) {
+            itArchive* cur = static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).at(i);
+            if (cur != NULL && archiveKind == cur->m_itKind && cur->m_itVariation == 0) {
+                found = cur;
+                break;
+            }
+        }
+        if (found != NULL) {
+            return 0;
+        }
+    }
+finish:
+    if (removedAny) {
+        return 0;
+    }
+    int result = 1;
+    if (fn_27_2A5EE0(this, kind, 0, true) != 0) {
+        result = 2;
+    }
+    return result;
+}
