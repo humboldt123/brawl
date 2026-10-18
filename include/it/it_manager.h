@@ -84,6 +84,8 @@ public:
     bool preloadPokemon(int kind);
     int getItemKindArchiveRefBrresItKind(int kind, bool unk);
     u8 getItemKindArchiveGroup(int kind, u8 group);
+    void finish();
+    void start(int mode);
     float getPerBase(itGenParam* param, ItemSwitch* itemSwitch);
     bool isCompItemGenArchive(itGenSheetKind sheet);
     bool isPassedProcessUpdate();

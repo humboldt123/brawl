@@ -1,3 +1,4 @@
+#include <string.h>
 #include <types.h>
 #include <it/it_manager.h>
 #include <gf/gf_task_scheduler.h>
@@ -30,6 +31,20 @@ int fn_27_2B24C4(itArchive* archive);
 // gm (main module): whether a Dragoon is already in play / mark that one has been used (unnamed)
 int fn_800526E4();
 void fn_80052694();
+
+// itArchive::procWait (0x2B2358, unnamed): per-frame wait processing of a loading archive
+void fn_27_2B2358(itArchive* archive);
+// itFigureManager::onProcessFixPosition (0x2C197C, unnamed): whether the figure textures are done with this pass
+bool fn_27_2C197C(void* figureManager);
+
+// itFigureManager::removeFigureTexAll (0x2C1890, unnamed)
+void fn_27_2C1890(void* figureManager);
+
+// gmCheckGlobalItemSwitch (main, unnamed): whether the item may appear in the match
+bool fn_8005136C(int itemKind);
+// itFigureManager::preloadFigureTex (0x2C0FBC, unnamed)
+void fn_27_2C0FBC(void* figureManager, int unk1, int unk2);
+extern char lbl_27_data_79068[];
 
 // itManager::findLowPriorityItemInstance (0x2A8054, unnamed): an item that may be recycled when the pool is full
 // itManager::removeItemAfter (0x2A7114, unnamed): bookkeeping after an item left (kind counters, lottery state)
@@ -1497,5 +1512,215 @@ void itManager::initializeDragoonFlags(int forced, bool disabled) {
                 fn_80052694();
             }
         }
+    }
+}
+
+// Per-frame fix-position pass. After setup (state > 2) it drops the items queued for removal, counts the archives still
+// flagged for removal and retires the removable generator archives; state 3 (unloading) moves on to 4 once nothing is
+// left, state 4 returns to 2 (idle). Loading archives get their wait processing run.
+void itManager::processFixPosition() {
+    u32 state = itManagerField<u32>(this, 0x4C);
+    itManagerField<u8>(this, 0x14B5) = 1;
+    if (state > 2) {
+        for (int i = 0; i < m_itemArrayList2.size(); i++) {
+            BaseItem*& item = m_itemArrayList2.at(i);
+            if (item != NULL) {
+                m_itemArrayList2.erase(i);
+                removeItemSub(item, 0, 0);
+                i--;
+            }
+        }
+        int pendingArchives = 0;
+        for (int i = 0; i < m_itArchiveArrayList.size(); i++) {
+            itArchive*& archive = m_itArchiveArrayList.at(i);
+            if (archive != NULL && archive->m_4 != 0) {
+                pendingArchives++;
+            }
+        }
+        int pendingGenArchives = 0;
+        for (int i = 0; i < m_genArchiveArrayList.size(); i++) {
+            itGenArchive*& archive = m_genArchiveArrayList.at(i);
+            if (archive != NULL && archive->m_16 != 0) {
+                if (archive->isRemovable()) {
+                    delete archive;
+                    m_genArchiveArrayList.erase(i);
+                    i--;
+                } else {
+                    pendingGenArchives++;
+                }
+            }
+        }
+        bool allClear = false;
+        if (!(pendingArchives > 0) && !(pendingGenArchives > 0)) {
+            allClear = true;
+        }
+        if (m_figureManager != NULL && !fn_27_2C197C(m_figureManager)) {
+            allClear = false;
+        }
+        if (itManagerField<int>(this, 0x4C) == 3) {
+            if (allClear) {
+                itManagerField<int>(this, 0x4C) = 4;
+            }
+        } else if (itManagerField<int>(this, 0x4C) == 4) {
+            itManagerField<int>(this, 0x4C) = 2;
+        }
+        for (int i = 0; i < m_itArchiveArrayList.size(); i++) {
+            itArchive*& archive = m_itArchiveArrayList.at(i);
+            if (archive != NULL) {
+                fn_27_2B2358(archive);
+            }
+        }
+    }
+}
+
+// Ends a match: removes every live item and recycled item instance, drops the Assist Trophy / Pokemon queues and the
+// figure textures, and resets the item-spawn bookkeeping (Smash Ball / Dragoon timers, lot rates, item switch).
+void itManager::finish() {
+    for (int i = 0; i < m_itemArrayList2.size(); i++) {
+        BaseItem*& item = m_itemArrayList2.at(i);
+        if (item != NULL) {
+            m_itemArrayList2.erase(i);
+            removeItemSub(item, 0, 0);
+            i--;
+        }
+    }
+    for (int i = 0; i < m_itemArrayList.size(); i++) {
+        BaseItem*& item = m_itemArrayList.at(i);
+        if (item != NULL) {
+            m_itemArrayList.erase(i);
+            removeItemSub(item, 0, 1);
+            i--;
+        }
+    }
+    m_itemArrayList.clear();
+    for (int i = 0; i < m_itemArrayList3.size(); i++) {
+        BaseItem*& item = m_itemArrayList3.at(i);
+        if (item != NULL) {
+            m_itemArrayList3.erase(i);
+            removeItemSub(item, 1, 0);
+            i--;
+        }
+    }
+    m_itemArrayList3.clear();
+    itManagerField<u8>(this, 0xFF4) = 0;
+    removeItemArchive(1);
+    m_numAssists = 0;
+    itManagerField<int>(this, 0x10BC) = -1;
+    m_preloadAssistTimer = 0;
+    m_nextPokemonIndex = 0;
+    m_numPokemon = 0;
+    m_numPokeballs = 0;
+    m_pokemonInfoArrayList.clear();
+    m_preloadPokemonTimer = 0;
+    if (m_figureManager != NULL) {
+        fn_27_2C1890(m_figureManager);
+    }
+    itManagerField<int>(this, 0x4C) = 3;
+    m_frameCount = 0;
+    m_numItems = 0;
+    itManagerField<int>(this, 0xFF0) = 0;
+    itManagerField<int>(this, 0x147C) = 0;
+    itManagerField<int>(this, 0x1480) = -1;
+    itManagerField<float>(this, 0x1484) = 0.0f;
+    itManagerField<int>(this, 0x1488) = 0;
+    itManagerField<int>(this, 0x148C) = -1;
+    itManagerField<int>(this, 0x1490) = -1;
+    itManagerField<int>(this, 0x1494) = 0;
+    itManagerField<int>(this, 0x1498) = 0;
+    itManagerField<u8>(this, 0x149C) = 0;
+    itManagerField<int>(this, 0x50) = 0;
+    itManagerField<int>(this, 0x54) = 0xFF;
+    itManagerField<u8>(this, 0xBC) = 1;
+    memset(m_itemLotRates, 0, sizeof(m_itemLotRates));
+    memset(&itManagerField<u8>(this, 0xFF8), 0, 0x10);
+    memset(&itManagerField<u8>(this, 0x1009), 0, 0xB2);
+    itManagerField<u8>(this, 0x1008) = 0;
+}
+
+// HYPOTHESIS: the figure manager keeps a list at +8 (capacity through virtual slot 0x3C) and the number of figure
+// textures to preload at +0x310.
+static inline int figureListCapacity(void* figureManager) {
+    return reinterpret_cast<soArrayList<int, 4>*>((u8*)figureManager + 8)->capacity();
+}
+
+// Starts a match of the given mode: opens the item switch from the global item settings, and sets how many figure
+// textures to preload and the spawn bookkeeping for the mode (HYPOTHESIS: 0xFF0 = preload frame budget).
+void itManager::start(int mode) {
+    itManagerField<int>(this, 0x4C) = 5;
+    itManagerField<int>(this, 0x50) = mode;
+    itManagerField<u8>(this, 0xBC) = 0;
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
+    u32 stageKind;
+    if (melee != NULL) {
+        stageKind = *(u16*)((u8*)melee + 0x1A);
+    } else {
+        stageKind = 0xFF;
+    }
+    itManagerField<u32>(this, 0x54) = stageKind;
+    u32 i = 0;
+    itManagerField<u32>(this, 0x119C) = lbl_27_data_7419C;
+    itManagerField<u32>(this, 0x11A0) = lbl_27_data_7419C;
+    itManagerField<u32>(this, 0x11A4) = lbl_27_data_7419C;
+    itManagerField<u32>(this, 0x11A8) = lbl_27_data_7419C;
+    itManagerField<u32>(this, 0x11AC) = lbl_27_data_7419C;
+    itManagerField<u32>(this, 0x11B0) = lbl_27_data_7419C;
+    do {
+        bool allowed = fn_8005136C(i);
+        if (i >= NUM_IT_KINDS) {
+            fn_803F86E4(__files + 0xA0, lbl_27_data_79068);
+            fn_803FC984();
+        }
+        u32 bit = 1 << (i & 31);
+        u32* word = (u32*)((u8*)this + (i >> 5) * 4);
+        if (allowed) {
+            word[0x119C / 4] |= bit;
+        } else {
+            word[0x119C / 4] &= ~bit;
+        }
+        i++;
+    } while ((int)i < NUM_IT_KINDS);
+    itManagerField<int>(this, 0x147C) = 0;
+    itManagerField<u8>(this, 0x1008) = 0;
+    switch (mode) {
+    case 3: {
+        void* figureManager = m_figureManager;
+        itManagerField<int>(this, 0xFF0) = 0x2D;
+        *(int*)((u8*)figureManager + 0x310) = 6;
+        if (figureListCapacity(figureManager) < 6) {
+            *(int*)((u8*)figureManager + 0x310) = figureListCapacity(figureManager);
+        }
+        m_genLevel = (itGenParam::Level)2;
+        fn_27_2C0FBC(m_figureManager, -16, 1);
+        break;
+    }
+    case 2: {
+        void* figureManager = m_figureManager;
+        itManagerField<u8>(this, 0x1008) = 1;
+        itManagerField<int>(this, 0xFF0) = 0x28;
+        *(int*)((u8*)figureManager + 0x310) = 6;
+        if (figureListCapacity(figureManager) < 6) {
+            *(int*)((u8*)figureManager + 0x310) = figureListCapacity(figureManager);
+        }
+        break;
+    }
+    case 4: {
+        void* figureManager = m_figureManager;
+        itManagerField<int>(this, 0xFF0) = 10;
+        *(int*)((u8*)figureManager + 0x310) = 0;
+        if (figureListCapacity(figureManager) < 0) {
+            *(int*)((u8*)figureManager + 0x310) = figureListCapacity(figureManager);
+        }
+        break;
+    }
+    default: {
+        void* figureManager = m_figureManager;
+        itManagerField<int>(this, 0xFF0) = 0x28;
+        *(int*)((u8*)figureManager + 0x310) = 6;
+        if (figureListCapacity(figureManager) < 6) {
+            *(int*)((u8*)figureManager + 0x310) = figureListCapacity(figureManager);
+        }
+        m_genLevel = (itGenParam::Level)2;
+        break;
+    }
     }
 }
