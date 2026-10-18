@@ -73,6 +73,8 @@ public:
 
     bool isCompItemKindArchive(itKind kind, u32 variation, bool);
     bool isCompItemKindArchivePreloadAll();
+    float getRandBasicItemValue(int kind, ItemSwitch* itemSwitch);
+    int getRandBasicItemVariation(int kind);
     float getPerBase(itGenParam* param, ItemSwitch* itemSwitch);
     bool isCompItemGenArchive(itGenSheetKind sheet);
     bool isPassedProcessUpdate();

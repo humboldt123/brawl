@@ -1024,3 +1024,98 @@ float itManager::getPerBase(itGenParam* param, ItemSwitch* itemSwitch) {
     }
     return total;
 }
+
+// The lottery value of one kind in the random sheet's basic-item parameter (0 when the kind is not listed or is
+// switched off).
+float itManager::getRandBasicItemValue(int kind, ItemSwitch* itemSwitch) {
+    itGenSheetKind sheet = getRandBasicItemSheet();
+    itGenSheetKind target = sheet;
+    itGenArchive* archive = findGenArchive(m_genArchiveArrayList, target);
+    itGenParam* param;
+    if (archive == NULL) {
+        param = NULL;
+    } else {
+        int level = m_genLevel;
+        if (itManagerField<int>(this, 0x50) != 2) {
+            level = 0;
+        }
+        param = archive->getGenParam(10000, level);
+        if (param == NULL) {
+            param = archive->getGenParam(10000, 0);
+            if (param == NULL) {
+                param = NULL;
+            }
+        }
+    }
+    if (param != NULL) {
+        u32 count = param->m_numEntries;
+        u32 off = 0;
+        for (u32 i = 0; i < count; i++, off += 0x10) {
+            itGenParam::Entry* entry = (itGenParam::Entry*)((u8*)param->m_entries + off);
+            int entryKind = entry->m_kind;
+            if (entryKind == -1) {
+                return 0.0f;
+            }
+            if (entryKind == 0x7D1) {
+                entryKind = 0x40;
+            }
+            if (entryKind == kind) {
+                bool valid = false;
+                if (entryKind >= 0 && entryKind < NUM_IT_KINDS) {
+                    valid = true;
+                }
+                if (valid) {
+                    if ((u32)entryKind >= NUM_IT_KINDS) {
+                        fn_803F86E4(__files + 0xA0, lbl_27_data_7908C);
+                        fn_803FC984();
+                    }
+                    if ((((u32*)itemSwitch)[(u32)entryKind >> 5] & (1 << (entryKind & 31))) == 0) {
+                        continue;
+                    }
+                }
+                return getLotValue(entry->m_rate, entryKind);
+            }
+        }
+    }
+    return 0.0f;
+}
+
+// The variation the random sheet's basic-item parameter lists for a kind (0 when the kind is not listed).
+int itManager::getRandBasicItemVariation(int kind) {
+    itGenSheetKind sheet = getRandBasicItemSheet();
+    itGenSheetKind target = sheet;
+    itGenArchive* archive = findGenArchive(m_genArchiveArrayList, target);
+    itGenParam* param;
+    if (archive == NULL) {
+        param = NULL;
+    } else {
+        int level = m_genLevel;
+        if (itManagerField<int>(this, 0x50) != 2) {
+            level = 0;
+        }
+        param = archive->getGenParam(10000, level);
+        if (param == NULL) {
+            param = archive->getGenParam(10000, 0);
+            if (param == NULL) {
+                param = NULL;
+            }
+        }
+    }
+    if (param != NULL) {
+        u32 off = 0;
+        for (u32 remaining = param->m_numEntries; remaining > 0; remaining--) {
+            int entryKind = *(int*)((u8*)param->m_entries + off);
+            if (entryKind == -1) {
+                return 0;
+            }
+            if (entryKind == 0x7D1) {
+                entryKind = 0x40;
+            }
+            if (entryKind == kind) {
+                return *(int*)((u8*)param->m_entries + off + 4);
+            }
+            off += 0x10;
+        }
+    }
+    return 0;
+}
