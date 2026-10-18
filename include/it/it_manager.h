@@ -80,6 +80,8 @@ public:
     void removeItemArchive(int archiveType);
     itGenArchive* preloadItemGenArchive(itGenSheetKind sheet, int unk);
     const char* getGenArchiveLoadPathFromStepID(itGenSheetKind sheet);
+    itArchive* getItemKindArchive(int kind, int variation);
+    bool preloadPokemon(int kind);
     float getPerBase(itGenParam* param, ItemSwitch* itemSwitch);
     bool isCompItemGenArchive(itGenSheetKind sheet);
     bool isPassedProcessUpdate();

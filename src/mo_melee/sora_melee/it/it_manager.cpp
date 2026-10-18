@@ -1227,3 +1227,134 @@ itGenArchive* itManager::preloadItemGenArchive(itGenSheetKind sheet, int unk) {
     }
     return archive;
 }
+
+// getItemKindArchiveId as a file-local inline (the original inlines it into its callers)
+static inline int archiveIdOf(itManager* manager, int kind) {
+    if (itManagerField<u8>(manager, 0x14A0) != 0) {
+        if (kind == -3) {
+            return -1;
+        }
+        u8 usesArchive;
+        if (kind < 0 || kind >= NUM_IT_KINDS) {
+            usesArchive = 0;
+        } else {
+            usesArchive = lbl_27_data_71EB8[kind];
+        }
+        if (usesArchive == 0) {
+            return -1;
+        }
+        int group = manager->getItemGroup(kind);
+        if (group < 6) {
+            if (group == 1) {
+                return kind;
+            }
+        } else if (group < 8) {
+            return kind;
+        }
+    }
+    return -1;
+}
+
+// The loaded item archive for a kind and variation (NULL if none): kinds that share another kind's archive are looked
+// up under the shared id (-3), and the variation is zeroed for kinds that do not have variation archives.
+itArchive* itManager::getItemKindArchive(int kind, int variation) {
+    bool valid = false;
+    if (kind > -1 && kind < NUM_IT_KINDS) {
+        valid = true;
+    }
+    if (!valid) {
+        variation = 0;
+    } else if (variation == 5000) {
+        variation = 5000;
+    } else {
+        variation = variation & ~(lbl_27_rodata_47C8[kind] >> 31);
+    }
+    if (archiveIdOf(this, kind) >= 0) {
+        kind = -3;
+    }
+    for (int i = 0; i < static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).size(); i++) {
+        itArchive* archive = static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).at(i);
+        if (archive != NULL && kind == archive->m_itKind && variation == (int)archive->m_itVariation) {
+            return archive;
+        }
+    }
+    return NULL;
+}
+
+// Kinds that share another kind's lottery group map to that group's kind (-3 and out-of-range kinds map to themselves).
+static inline int lotGroupKindOf(int kind) {
+    int group;
+    if (kind == -3) {
+        group = kind;
+    } else if (kind < 0 || kind >= NUM_IT_KINDS) {
+        group = kind;
+    } else {
+        group = lbl_27_rodata_50D8[kind];
+    }
+    return group;
+}
+
+// Queues a Pokemon kind for preloading (Pokeball pool): at most 5 stay queued; when the queue is full the oldest
+// one is dropped, together with its live items and loaded archives, and the preload is retried later.
+bool itManager::preloadPokemon(int kind) {
+    int queued = kind;
+    int state = itManagerField<int>(this, 0x4C);
+    if ((u32)(state - 3) <= 1) {
+        return false;
+    }
+    if (state == 7) {
+        return false;
+    }
+    if (getItemGroup(kind) != 3) {
+        return false;
+    }
+    if (m_pokemonInfoArrayList.size() < 5) {
+        int capacity = m_pokemonInfoArrayList.capacity();
+        if (m_pokemonInfoArrayList.size() < capacity) {
+            goto preload;
+        }
+    }
+    {
+        int oldest = *(int*)&m_pokemonInfoArrayList.at(0);
+        if (itManagerField<int>(this, 0x1160) > 0) {
+            if (itManagerField<int>(this, 0x1160) > 0) {
+                itManagerField<int>(this, 0x1160)--;
+            }
+        }
+        m_pokemonInfoArrayList.erase(0);
+        for (int i = 0; i < m_itemArrayList.size(); i++) {
+            BaseItem*& item = m_itemArrayList.at(i);
+            if (item != NULL) {
+                int itemKind = item->m_kind;
+                if (oldest == lotGroupKindOf(itemKind) || itemKind == 0x2A) {
+                    m_itemArrayList.erase(i);
+                    removeItemSub(item, 0, 1);
+                    i--;
+                }
+            }
+        }
+        bool flagged = false;
+        for (int i = 0; i < m_itArchiveArrayList.size(); i++) {
+            itArchive*& archive = m_itArchiveArrayList.at(i);
+            if (archive != NULL) {
+                if (oldest == lotGroupKindOf(archive->m_itKind)) {
+                    archive->m_4 = 1;
+                    flagged = true;
+                }
+            }
+        }
+        if (flagged) {
+            if (!(m_preloadPokemonTimer > 0)) {
+                m_preloadPokemonTimer = 16;
+            }
+            return false;
+        }
+    }
+preload:
+    itArchive* archive = preloadItemKindArchive((itKind)queued, 5000, (itArchive::Type)1, true);
+    if (archive == NULL) {
+        return false;
+    }
+    m_pokemonInfoArrayList.push(*(ItemInfo*)&queued);
+    return true;
+}

@@ -412,3 +412,6 @@ Things that moved registers, roughly in the order worth trying:
 - `delete p;` already null-checks; an explicit `if (p != NULL) delete p;` adds an extra `beq` (removeItemArchive).
 - Virtual `at(i)` slot 0xC is the non-const overload (use `T*& x = list.at(i);`), slot 0x10 is the const overload: reach it with `static_cast<const soArrayList<T, N>&>(list).at(i)`.
 - `u32` parameters compared with `-1` produce the `addis/cmplwi 0xffff` idiom; `int` ones produce `cmpwi -1`.
+- `cmpwi r,0; bgt` on an int member needs `if (!(x > 0))` for the "<= 0" arm: `x < 1` compiles to `cmpwi r,1; bge`. A doubled `ble` after a `cmpwi r,0` is a nested duplicate test (`if (n > 0) { if (n > 0) n--; }`), i.e. an inlined decrement-if-positive (preloadPokemon).
+- A kind-to-lottery-group mapping that returns its argument for -3 and out-of-range kinds wants `if (kind == -3) r = kind; else if (kind < 0 || kind >= N) r = kind; else r = table[kind];` as a file-local inline (preloadPokemon).
+- A `goto` into the middle of a function (skip the eviction block and jump to the preload step) is the natural spelling for an early-out that skips a large block and keeps the argument in its stack slot.
