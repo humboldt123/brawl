@@ -1645,7 +1645,9 @@ void itManager::finish() {
 // HYPOTHESIS: the figure manager keeps a list at +8 (capacity through virtual slot 0x3C) and the number of figure
 // textures to preload at +0x310.
 static inline int figureListCapacity(void* figureManager) {
-    return reinterpret_cast<soArrayList<int, 4>*>((u8*)figureManager + 8)->capacity();
+    typedef int (*CapacityFn)(void*);
+    void* list = (u8*)figureManager + 8;
+    return (*(CapacityFn**)list)[0x3C / 4](list);
 }
 
 // Starts a match of the given mode: opens the item switch from the global item settings, and sets how many figure
@@ -1955,4 +1957,96 @@ finish:
         result = 2;
     }
     return result;
+}
+
+// Whether the item archive for a kind (and variation, 5000 meaning "all variations") has finished loading, including the
+// archives it depends on (the short list at lbl_27_rodata_53A0 and, with recurseGroup, the lottery group's kind).
+bool itManager::isCompItemKindArchive(itKind kind, u32 variation, bool recurseGroup) {
+    int* variationTable = lbl_27_rodata_47C8;
+    if ((int)variation == 5000) {
+        bool valid = false;
+        if (kind > -1 && kind < NUM_IT_KINDS) {
+            valid = true;
+        }
+        int count;
+        if (!valid) {
+            count = 0;
+        } else {
+            int value = variationTable[kind];
+            count = value & ~(value >> 31);
+        }
+        if (!(count > 0)) {
+            variation = 0;
+        } else {
+            for (int v = 0; v < count; v++) {
+                if (!isCompItemKindArchive(kind, v, recurseGroup)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+    bool valid2 = false;
+    if (kind > -1 && kind < NUM_IT_KINDS) {
+        valid2 = true;
+    }
+    u32 resolved;
+    if (!valid2) {
+        resolved = 0;
+    } else if ((int)variation == 5000) {
+        resolved = 5000;
+    } else {
+        resolved = variation & ~(variationTable[kind] >> 31);
+    }
+    int lookupKind = kind;
+    if (archiveIdOf(this, kind) >= 0) {
+        lookupKind = -3;
+    }
+    itArchive* archive = NULL;
+    for (int i = 0; i < static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).size(); i++) {
+        itArchive* cur = static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).at(i);
+        if (cur != NULL && lookupKind == cur->m_itKind && resolved == cur->m_itVariation) {
+            archive = cur;
+            break;
+        }
+    }
+    if (archive == NULL) {
+        return false;
+    }
+    if (archive->m_4 != 0) {
+        return false;
+    }
+    int n = 0;
+    for (s16* dep = &lbl_27_rodata_53A0[kind * 7]; n < 7 && *dep != -1; dep++) {
+        int depKind = *dep;
+        if (depKind != -2 && !isCompItemKindArchive((itKind)depKind, 0, false)) {
+            return false;
+        }
+        n++;
+    }
+    if (recurseGroup) {
+        int group = kind;
+        if (kind != -3 && kind >= 0 && kind < NUM_IT_KINDS) {
+            group = lbl_27_rodata_50D8[kind];
+        }
+        if (group != -1 && group != kind && !isCompItemKindArchive((itKind)group, 0, recurseGroup)) {
+            return false;
+        }
+    }
+    return fn_27_2B23F8(archive);
+}
+
+// Removes every live item and the temporary (type 0) item archives.
+void itManager::removeItemAllTempArchive() {
+    for (int i = 0; i < m_itemArrayList.size(); i++) {
+        BaseItem*& item = m_itemArrayList.at(i);
+        if (item != NULL) {
+            m_itemArrayList.erase(i);
+            removeItemSub(item, 0, 1);
+            i--;
+        }
+    }
+    m_itemArrayList.clear();
+    removeItemArchive(0);
+    itManagerField<u8>(this, 0x14AC) = 0;
 }
