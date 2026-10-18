@@ -3,6 +3,7 @@
 #include <it/it_manager.h>
 #include <gf/gf_task_scheduler.h>
 #include <ft/ft_manager.h>
+#include <st/stage.h>
 #include <gm/gm_global.h>
 #include <mt/mt_prng.h>
 #include <gm/gm_global_mode_melee.h>
@@ -86,8 +87,6 @@ extern u8 lbl_27_data_7908C[];
 
 // HYPOTHESIS: the item manager singleton (ftManager reads the same word as an "items enabled" flag).
 extern itManager* g_ftItemEnabled;
-// the current Stage instance (its vtable lives at +0x3C)
-extern void* lbl_27_bss_5668;
 
 } // extern "C"
 
@@ -2054,7 +2053,7 @@ void itManager::removeItemAllTempArchive() {
 }
 
 // Calls the unnamed Stage virtual at vtable offset 0x1A8 (HYPOTHESIS: a stage-wide yes/no query used to block item spawns).
-static inline bool stageBlocksSpecialItem(void* stage) {
+static inline bool stageBlocksSpecialItem(Stage* stage) {
     typedef int (*StageQueryFn)(void*);
     void* sub = (u8*)stage + 0x3C;
     return (*(StageQueryFn**)sub)[0x1A8 / 4](sub) != 0;
@@ -2096,7 +2095,7 @@ checkTechnique:
     if (g_ftManager->isProcessTechnique() == 1) {
         blocked = true;
     }
-    if ((kind == 0xA1 || kind == 0x37) && lbl_27_bss_5668 != NULL && stageBlocksSpecialItem(lbl_27_bss_5668)) {
+    if ((kind == 0xA1 || kind == 0x37) && g_Stage != NULL && stageBlocksSpecialItem(g_Stage)) {
         blocked = true;
     }
     u32 flags = itManagerField<u32>(this, 0x1494);
@@ -2111,7 +2110,7 @@ checkTechnique:
         count = itManagerField<u8>(this, 0x101D);
     }
     if (kind == 0x14) {
-        if ((flags & 0x10) == 0 && (count < 2 || lbl_27_bss_5668 == NULL || !stageBlocksSpecialItem(lbl_27_bss_5668))) {
+        if ((flags & 0x10) == 0 && (count < 2 || g_Stage == NULL || !stageBlocksSpecialItem(g_Stage))) {
             if (count < 2) {
                 blocked = false;
             }
@@ -2122,4 +2121,60 @@ checkTechnique:
         blocked = true;
     }
     return blocked;
+}
+
+// Queues an Assist Trophy kind for preloading. Only one is kept at a time (0x10BC): the previous one's archive must be
+// complete first, and when a different kind is requested the live Assist items and loaded Assist archives are dropped
+// before the new archive is loaded.
+bool itManager::preloadAssist(itKind kind) {
+    if ((u32)(itManagerField<int>(this, 0x4C) - 3) <= 1) {
+        return false;
+    }
+    if (itManagerField<int>(this, 0x4C) == 7) {
+        return false;
+    }
+    if (getItemGroup(kind) != 2) {
+        return false;
+    }
+    if (itManagerField<int>(this, 0x10BC) != -1 && !isCompItemKindArchive((itKind)itManagerField<int>(this, 0x10BC), 0, true)) {
+        return false;
+    }
+    if (kind == 0xA1 && isExclusiveSpecialItem(kind, true)) {
+        return false;
+    }
+    if (itManagerField<int>(this, 0x10C0) > 0) {
+        for (int i = 0; i < m_itemArrayList.size(); i++) {
+            BaseItem*& item = m_itemArrayList.at(i);
+            if (item != NULL) {
+                int itemKind = item->m_kind;
+                if (getItemGroup(itemKind) == 2 || itemKind == 0) {
+                    m_itemArrayList.erase(i);
+                    removeItemSub(item, 0, 1);
+                    i--;
+                }
+            }
+        }
+    }
+    bool flagged = false;
+    for (int i = 0; i < m_itArchiveArrayList.size(); i++) {
+        itArchive*& archive = m_itArchiveArrayList.at(i);
+        if (archive != NULL) {
+            if (getItemGroup(archive->m_itKind) == 2) {
+                archive->m_4 = 1;
+                flagged = true;
+            }
+        }
+    }
+    itManagerField<int>(this, 0x10BC) = -1;
+    if (flagged) {
+        if (!(itManagerField<int>(this, 0x10C4) > 0)) {
+            itManagerField<int>(this, 0x10C4) = 0x10;
+        }
+        return false;
+    }
+    if (preloadItemKindArchive(kind, 5000, (itArchive::Type)1, true) == NULL) {
+        return false;
+    }
+    itManagerField<int>(this, 0x10BC) = kind;
+    return true;
 }

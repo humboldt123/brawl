@@ -129,7 +129,7 @@ public:
     void removeItem(BaseItem*);
     // Removes all items with this creation-owner task ID; -1 leaves them alone.
     void removeItem1(int createOwnerTaskId);
-    bool preloadAssist(itKind, int variation = 0); // custom parameter
+    bool preloadAssist(itKind kind);
 
 
     bool isExclusiveSpecialItem(int kind, bool unk);
