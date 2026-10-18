@@ -46,6 +46,9 @@ bool fn_8005136C(int itemKind);
 void fn_27_2C0FBC(void* figureManager, int unk1, int unk2);
 extern char lbl_27_data_79068[];
 
+// itArchive::getResFileFromId (0x2B26E8, unnamed): the resource file data of an archive entry
+nw4r::g3d::ResFile fn_27_2B26E8(itArchive* archive, int fileKind, int index, int fileId);
+
 // itManager::findLowPriorityItemInstance (0x2A8054, unnamed): an item that may be recycled when the pool is full
 // itManager::removeItemAfter (0x2A7114, unnamed): bookkeeping after an item left (kind counters, lottery state)
 void fn_27_2A7114(itManager* self, int kind, int variation, int lotKind, int lotCreateKind);
@@ -63,6 +66,7 @@ extern int lbl_27_rodata_4B48[];
 // per kind: archive group index (char)
 extern u8 lbl_27_rodata_4A90[];
 // the two generator sheets that are never picked as the random basic sheet (stage kind, level)
+extern itItemStartupArchive lbl_27_bss_6A38;
 extern itGenSheetKind lbl_27_bss_6490;
 extern itGenSheetKind lbl_27_bss_6498;
 extern u8 lbl_27_data_71F6C[];
@@ -1723,4 +1727,102 @@ void itManager::start(int mode) {
         break;
     }
     }
+}
+
+// Remembers the startup archive description (HYPOTHESIS: seven words; the figure manager constructor reads two of them).
+void itManager::setStartupArchive(itItemStartupArchive* archive) {
+    lbl_27_bss_6A38 = *archive;
+}
+
+// Starts loading every item archive that the generator sheet's parameters reference (Assist Trophies and Pokemon are
+// skipped, they have their own queues). Returns false while the sheet archive itself is still loading.
+bool itManager::preloadItemKindArchiveFromGenArchive(itGenSheetKind sheet, int archiveType) {
+    itGenSheetKind target = sheet;
+    itGenArchive* archive = findGenArchive(m_genArchiveArrayList, target);
+    if (archive == NULL) {
+        return false;
+    }
+    if (!archive->isComp()) {
+        return false;
+    }
+    if (archive->m_17 != 0) {
+        return true;
+    }
+    for (u32 level = 0; level < 5; level++) {
+        u32 numParams = archive->getGenParamNum(level);
+        for (u32 p = 0; p < numParams; p++) {
+            itGenParam* param = archive->getGenParamFromIndex(p, level);
+            if (param == NULL) {
+                continue;
+            }
+            if ((u32)param->m_id == (u32)Item_Gen_Basic && itManagerField<u8>(this, 0x14A0) == 0) {
+                continue;
+            }
+            u32 e = 0;
+            u32 off = 0;
+            for (; e < param->m_numEntries; off += 0x10, e++) {
+                itGenParam::Entry* entry = (itGenParam::Entry*)((u8*)param->m_entries + off);
+                int kind = entry->m_kind;
+                if (kind == -1) {
+                    break;
+                }
+                switch (kind) {
+                case 0x7D1:
+                    kind = 0x40;
+                    break;
+                case 0x7D2:
+                case 0x7D3:
+                    if (itManagerField<u8>(this, 0x14A0) != 0) {
+                        preloadItemKindArchive((itKind)0x3E, 5000, (itArchive::Type)0, true);
+                    } else {
+                        for (u32 j = 0; j < 4; j++) {
+                            preloadItemKindArchive((itKind)lbl_27_data_737A0[j], 5000, (itArchive::Type)archiveType, true);
+                        }
+                    }
+                    continue;
+                case 0x7D4:
+                case 0x7D5:
+                    continue;
+                }
+                if (getItemGroup(kind) != 2) {
+                    if (getItemGroup(kind) != 3) {
+                        if (kind == 0x46) {
+                            u32 variation = entry->m_variation;
+                            if (variation != 5000) {
+                                preloadItemKindArchive((itKind)0x46, variation, (itArchive::Type)archiveType, true);
+                            }
+                        } else {
+                            preloadItemKindArchive((itKind)kind, 5000, (itArchive::Type)archiveType, true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    archive->m_17 = 1;
+    return true;
+}
+
+// The resource file data of the common (kind 0x26) item archive for the given set (0 or 1); NULL while it is missing
+// or flagged for removal.
+nw4r::g3d::ResFile itManager::getResFileData(int set) {
+    if (set >= 2 || set < 0) {
+        return nw4r::g3d::ResFile((void*)NULL);
+    }
+    int kind = 0x26;
+    if (archiveIdOf(this, 0x26) >= 0) {
+        kind = -3;
+    }
+    itArchive* archive = NULL;
+    for (int i = 0; i < static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).size(); i++) {
+        itArchive* cur = static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).at(i);
+        if (cur != NULL && kind == cur->m_itKind && cur->m_itVariation == 0) {
+            archive = cur;
+            break;
+        }
+    }
+    if (archive == NULL || archive->m_4 != 0) {
+        return nw4r::g3d::ResFile((void*)NULL);
+    }
+    return fn_27_2B26E8(archive, 4, set == 1, 0x28);
 }

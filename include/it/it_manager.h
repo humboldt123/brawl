@@ -7,9 +7,15 @@
 #include <it/it_customizer.h>
 #include <it/it_gen_archive.h>
 #include <it/item.h>
+#include <nw4r/g3d/g3d_resfile.h>
 #include <so/so_dispose_instance_manager.h>
 #include <types.h>
 #include <bitset>
+
+// HYPOTHESIS: the startup archive description is seven words (set once by setStartupArchive).
+struct itItemStartupArchive {
+    int words[7];
+};
 
 class itManager : public gfTask, public soDisposeInstanceEventObserver {
 public:
@@ -85,6 +91,10 @@ public:
     int getItemKindArchiveRefBrresItKind(int kind, bool unk);
     u8 getItemKindArchiveGroup(int kind, u8 group);
     void finish();
+    // the item resource file that holds a common animation set (the mushroom size animations use it)
+    nw4r::g3d::ResFile getResFileData(int set);
+    static void setStartupArchive(itItemStartupArchive* archive);
+    bool preloadItemKindArchiveFromGenArchive(itGenSheetKind sheet, int archiveType);
     void start(int mode);
     float getPerBase(itGenParam* param, ItemSwitch* itemSwitch);
     bool isCompItemGenArchive(itGenSheetKind sheet);

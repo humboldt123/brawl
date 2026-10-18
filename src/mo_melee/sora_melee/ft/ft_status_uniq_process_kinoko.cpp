@@ -35,8 +35,6 @@ extern "C" void GetAnmResult__Q34nw4r3g3d9ResAnmChrCFPQ34nw4r3g3d12ChrAnmResultU
 // The shared ResFile header only resolves the u32 overload for these calls; the original calls the int one.
 extern "C" nw4r::g3d::ResAnmChr GetResAnmChr__Q34nw4r3g3d7ResFileCFi(const nw4r::g3d::ResFile* self, int index);
 
-// HYPOTHESIS: returns the item resource file that holds the mushroom's size animation for the given index.
-extern "C" nw4r::g3d::ResFile fn_27_2AC0A4(itManager* manager, int index);
 // HYPOTHESIS: applies a size-change visual to the fighter (arguments unverified).
 extern "C" void fn_27_137EA4(Fighter* fighter, int arg1, int arg2, int arg3, int arg4, float scale);
 
@@ -227,7 +225,7 @@ void ftStatusUniqProcessKinoko::initStatus(soModuleAccesser* moduleAccesser) {
     }
     }
     int animIndex = moduleAccesser->getWorkManageModule().getInt(0x20000002);
-    nw4r::g3d::ResFile file = fn_27_2AC0A4(itManager::getInstance(), animIndex);
+    nw4r::g3d::ResFile file = itManager::getInstance()->getResFileData(animIndex);
     int animSlot = 0;
     nw4r::g3d::ResAnmChr anim = GetResAnmChr__Q34nw4r3g3d7ResFileCFi(&file, animSlot);
     int lastFrame = (int)((float)(int)anim->m_animLength - 1.0f);
@@ -241,7 +239,7 @@ void ftStatusUniqProcessKinoko::execStatus(soModuleAccesser* moduleAccesser) {
     moduleAccesser->getWorkManageModule().setInt(frame + 1, 0x20000000);
     if (frame + 1 <= lastFrame) {
         int animIndex = moduleAccesser->getWorkManageModule().getInt(0x20000002);
-        nw4r::g3d::ResFile file = fn_27_2AC0A4(itManager::getInstance(), animIndex);
+        nw4r::g3d::ResFile file = itManager::getInstance()->getResFileData(animIndex);
         int animSlot = 0;
         nw4r::g3d::ResAnmChr anim = GetResAnmChr__Q34nw4r3g3d7ResFileCFi(&file, animSlot);
         ChrAnmResult result;
