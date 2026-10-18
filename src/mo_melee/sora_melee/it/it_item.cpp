@@ -774,7 +774,7 @@ void BaseItem::setScaleAnimation(float scaleMax, float scaleMin, int nodeIndex, 
     work.setInt(0, Instance::Work::Int_Scale_Anim_Counter);
     work.setInt(counterLimit, Instance::Work::Int_Scale_Anim_Counter_Limit);
     float low = work.getFloat(Instance::Work::Float_Scale_Anim_Now);
-    if (0.0f <= scaleMin) {
+    if (scaleMin >= 0.0f) {
         low = scaleMin;
     }
     work.setFloat(low, Instance::Work::Float_Scale_Anim_Min);
@@ -1001,8 +1001,8 @@ bool BaseItem::onShield() {
         return true;
     } else if (*(reinterpret_cast<u8*>(this) + 0x2130) != 0) {
         work->offFlag(0x22000003);
-        float reflectY = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x212C);
         float reflectX = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x2128);
+        float reflectY = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x212C);
         Vec3f reflect;
         reflect.m_x = reflectX;
         reflect.m_y = reflectY;
