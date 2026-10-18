@@ -199,6 +199,19 @@ template <class T> static inline T& itManagerField(itManager* manager, int offse
     return *reinterpret_cast<T*>(reinterpret_cast<char*>(manager) + offset);
 }
 
+// Kinds that share another kind's lottery group map to that group's kind (-3 and out-of-range kinds map to themselves).
+static inline int lotGroupKindOf(int kind) {
+    int group;
+    if (kind == -3) {
+        group = kind;
+    } else if (kind < 0 || kind >= NUM_IT_KINDS) {
+        group = kind;
+    } else {
+        group = lbl_27_rodata_50D8[kind];
+    }
+    return group;
+}
+
 BaseItem* itManager::createItemInstance(itCreate* create) {
     BaseItem* pooled;
     BaseItem* created;
@@ -471,9 +484,10 @@ int itManager::getItemKindArchiveId(int kind) {
         int group = getItemGroup(kind);
         if (group < 6) {
             if (group == 1) {
-                return kind;
+                goto returnKind;
             }
         } else if (group < 8) {
+        returnKind:
             return kind;
         }
     }
@@ -598,11 +612,10 @@ struct gfTaskSchedulerView {
 // Takes an item out of play. Items normally go back to the pool for reuse (returnToPool) unless the match is in a phase
 // where they are destroyed; immediate skips the bookkeeping and exits the task right away.
 void itManager::removeItemSub(BaseItem* item, int immediate, int returnToPool) {
-    BaseItem* removed;
+    BaseItem* removed = item;
     if (item == NULL) {
         return;
     }
-    removed = item;
     int kind = item->m_kind;
     int variation = item->m_variation;
     int group;
@@ -1311,18 +1324,6 @@ itArchive* itManager::getItemKindArchive(int kind, int variation) {
     return NULL;
 }
 
-// Kinds that share another kind's lottery group map to that group's kind (-3 and out-of-range kinds map to themselves).
-static inline int lotGroupKindOf(int kind) {
-    int group;
-    if (kind == -3) {
-        group = kind;
-    } else if (kind < 0 || kind >= NUM_IT_KINDS) {
-        group = kind;
-    } else {
-        group = lbl_27_rodata_50D8[kind];
-    }
-    return group;
-}
 
 // Queues a Pokemon kind for preloading (Pokeball pool): at most 5 stay queued; when the queue is full the oldest
 // one is dropped, together with its live items and loaded archives, and the preload is retried later.
