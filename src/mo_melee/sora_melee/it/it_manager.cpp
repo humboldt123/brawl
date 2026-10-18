@@ -86,10 +86,12 @@ extern u8 lbl_27_data_7908C[];
 
 // HYPOTHESIS: the item manager singleton (ftManager reads the same word as an "items enabled" flag).
 extern itManager* g_ftItemEnabled;
+// the current Stage instance (its vtable lives at +0x3C)
+extern void* lbl_27_bss_5668;
 
 } // extern "C"
 
-bool itManager::isExclusiveSpecialItem(int unk1, bool unk2) {
+bool itManager::isItemSwitch(int unk1) {
     if ((u32)unk1 >= NUM_IT_KINDS) {
         fn_803F86E4(__files + 0xA0, lbl_27_data_7908C);
         fn_803FC984();
@@ -2049,4 +2051,75 @@ void itManager::removeItemAllTempArchive() {
     m_itemArrayList.clear();
     removeItemArchive(0);
     itManagerField<u8>(this, 0x14AC) = 0;
+}
+
+// Calls the unnamed Stage virtual at vtable offset 0x1A8 (HYPOTHESIS: a stage-wide yes/no query used to block item spawns).
+static inline bool stageBlocksSpecialItem(void* stage) {
+    typedef int (*StageQueryFn)(void*);
+    void* sub = (u8*)stage + 0x3C;
+    return (*(StageQueryFn**)sub)[0x1A8 / 4](sub) != 0;
+}
+
+// Whether a special item (Assist Trophy 0xA1, Smash Ball 0x37, Dragoon 0x14, ...) must not spawn right now because
+// another exclusive one is active or pending: Heart Swap / technique practice, the queued Assist Trophy preload, the
+// Dragoon / Smash Ball bookkeeping bits (0x1494) and the per-kind counts.
+bool itManager::isExclusiveSpecialItem(int kind, bool unk) {
+    bool blocked = false;
+    int techniqueActive = itManagerField<u8>(this, 0x1040);
+    if (techniqueActive > 0) {
+        blocked = true;
+    }
+    if (kind != 0xA1) {
+        if (itManagerField<int>(this, 0x10BC) != 0xA1) {
+            if (itManagerField<int>(this, 0x10BC) != -1) {
+                goto checkTechnique;
+            }
+            int archiveKind = 0xA1;
+            if (archiveIdOf(this, 0xA1) >= 0) {
+                archiveKind = -3;
+            }
+            itArchive* found = NULL;
+            for (int i = 0; i < static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).size(); i++) {
+                itArchive* cur = static_cast<const soArrayList<itArchive*, 128>&>(m_itArchiveArrayList).at(i);
+                if (cur != NULL && archiveKind == cur->m_itKind && cur->m_itVariation == 0) {
+                    found = cur;
+                    break;
+                }
+            }
+            if (found == NULL) {
+                goto checkTechnique;
+            }
+        }
+        blocked = true;
+    }
+checkTechnique:
+    if (g_ftManager->isProcessTechnique() == 1) {
+        blocked = true;
+    }
+    if ((kind == 0xA1 || kind == 0x37) && lbl_27_bss_5668 != NULL && stageBlocksSpecialItem(lbl_27_bss_5668)) {
+        blocked = true;
+    }
+    u32 flags = itManagerField<u32>(this, 0x1494);
+    u8 count = (flags & 2) != 0;
+    if ((flags & 4) != 0) {
+        count++;
+    }
+    if ((flags & 8) != 0) {
+        count++;
+    }
+    if (count < itManagerField<u8>(this, 0x101D)) {
+        count = itManagerField<u8>(this, 0x101D);
+    }
+    if (kind == 0x14) {
+        if ((flags & 0x10) == 0 && (count < 2 || lbl_27_bss_5668 == NULL || !stageBlocksSpecialItem(lbl_27_bss_5668))) {
+            if (count < 2) {
+                blocked = false;
+            }
+        } else {
+            blocked = true;
+        }
+    } else if (count > 2 || (flags & 0x10) != 0) {
+        blocked = true;
+    }
+    return blocked;
 }

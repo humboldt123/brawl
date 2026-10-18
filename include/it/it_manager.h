@@ -132,7 +132,7 @@ public:
     bool preloadAssist(itKind, int variation = 0); // custom parameter
 
 
-    bool isExclusiveSpecialItem(int unk1, bool unk2);
+    bool isExclusiveSpecialItem(int kind, bool unk);
     bool isItemSwitch(int itemKind); // is the item enabled in the item switch
 
     // Added locally (sora_melee 0x2A0D38 ... 0x2AB4D4): per-kind tables and small accessors.
