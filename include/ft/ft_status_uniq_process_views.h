@@ -164,8 +164,9 @@ public:
     virtual void pad5();
     virtual void pad6();
     virtual void pad7();
-    virtual void pad8();
-    virtual void pad9();
+    // HYPOTHESIS: slot 0x28 returns the pull offset of the captured fighter for the given index, slot 0x2c its progress.
+    virtual Vec2f slot28(int index);
+    virtual float slot2c();
     virtual void slot30(u32 a, u32 b);
     virtual bool slot34(int value);
     virtual bool slot38(soModuleAccesser* moduleAccesser, void* damageInfo);
@@ -177,6 +178,11 @@ public:
     virtual void slot4c(u32 value);
     virtual void pad103();
     virtual void slot54(u32 value);
+    virtual void pad104();
+    virtual void pad105();
+    virtual void pad106();
+    // HYPOTHESIS: slot 0x64 returns the capture level of the grab (0 when none).
+    virtual int slot64();
 };
 
 // Controller module. HYPOTHESIS: the callers of startClatter (slot 0xc8, soControllerModuleImpl::startClatter) pass the fifth

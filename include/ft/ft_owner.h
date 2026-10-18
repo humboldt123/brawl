@@ -87,6 +87,7 @@ public:
     void setSlipInterval(bool);
     void setResultWinRotY(float);
 
+    float getResultWinRotY(); // pose rotation Y set by the results screen (setResultWinRotY)
     float getYoshiEggTimeMul(); // Multiplies the Egg status clatter duration.
 
     inline ftLog& getLog() const { return m_data->m_log; };
