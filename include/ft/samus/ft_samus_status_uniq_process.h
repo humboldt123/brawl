@@ -41,6 +41,19 @@ struct ftSamusWork {
     enum LwInt {
         SpecialLw_ItemVisibility = 0x10000043,
     };
+    // The Zero Laser (final smash). HYPOTHESIS: names follow the use.
+    enum FinalFlag {
+        Final_Started = 0x1200003d,
+        Final_Setup = 0x22000010,
+    };
+    enum FinalInt {
+        Final_Duration = 0x10000044,      // counted down while aiming (status 0x129/0x12a)
+        Final_ArticleInstance = 0x10000045,
+        Final_AimMotion = 0x10000046,     // motion kind (0x1e7..0x1ea) of the second animation blended in for aiming
+    };
+    enum FinalFloat {
+        Final_Angle = 0x11000014,
+    };
 };
 
 // Status kinds of the down special that are only known by number. HYPOTHESIS: names are placeholders for the order.
@@ -91,6 +104,12 @@ struct ftSamusExtendParamSpecialLw {
 class ftSamusArticleNullView {
 public:
     virtual bool isNull() const;
+    virtual void unk0C();
+    virtual void unk10();
+    virtual void unk14();
+    virtual void unk18();
+    virtual void unk1C();
+    virtual int getInstanceId(); // HYPOTHESIS: the Zero Laser stores it in a work int and looks the article up with it again
 };
 
 // The ExtendParam group (ftData::extendParam[3]) read directly by the Charge Shot. HYPOTHESIS: names follow the use.
@@ -98,6 +117,40 @@ struct ftSamusExtendParamSpecialS {
     float unk00;
     float speedXDivisor; // the horizontal speed the move was started with is divided by it
     float airBrakeX;     // horizontal brake of the stop energy in the air
+};
+
+// The ExtendParam group (ftData::extendParam[4]) read directly by the Zero Laser. HYPOTHESIS: names follow the use.
+struct ftSamusExtendParamFinal {
+    float startSpeedY;   // vertical speed of the gravity energy while the flag is set
+    float gravity;       // stored negated
+    float fallSpeedMax;
+    float angleAccel;    // multiplied with the stick and the facing direction
+    float angleMax;      // limit of the aiming angle
+    float unk14;
+    int duration;
+};
+
+// HYPOTHESIS: ftData continues past extendParam; the three article ids removed when the final ends sit at 0xb0, 0xb8 and 0xc0.
+struct ftSamusFinalDataView {
+    u8 unk00[0xb0];
+    int article0;
+    int unkB4;
+    int article1;
+    int unkBC;
+    int article2;
+};
+
+// Zero Laser statuses that are only known by number: 0x127/0x128 start (ground/air), 0x129/0x12a aim, 0x12b/0x12c fire.
+// HYPOTHESIS: the odd kinds are the grounded versions, the even kinds the air ones.
+struct ftSamusFinalStatus {
+    enum Kind {
+        Unk127 = 0x127,
+        Unk128 = 0x128,
+        Unk129 = 0x129,
+        Unk12A = 0x12a,
+        Unk12B = 0x12b,
+        Unk12C = 0x12c,
+    };
 };
 
 // Status kinds of the Charge Shot that are only known by number. HYPOTHESIS: the even kinds are the ground/air starts and
