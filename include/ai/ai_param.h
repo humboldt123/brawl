@@ -33,6 +33,7 @@ public:
     aiParam();
     void setRank(u8 rank, u32 force, int update);
     void par_work_update();
+    void init_par(aiParData* par, int ftKind, char* atkData);
     bool chkCmdRevise(int cmd);
     bool chkCmdFall(int cmd);
     bool chkCmdReflect(int cmd);

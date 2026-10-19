@@ -10236,8 +10236,15 @@ mo_melee/sora_melee/wn/wn_class_info.cpp:
 mo_melee/sora_melee/ai/ai_mgr.cpp:
 	.text       start:0x001E8590 end:0x001F329C
 
+mo_melee/sora_melee/ai/ai_input.cpp:
+	.text       start:0x001F329C end:0x00206D94
+
 mo_melee/sora_melee/ai/ai_stat.cpp:
 	.text       start:0x00206D94 end:0x0020C56C
+
+mo_melee/sora_melee/ai/ai_act.cpp:
+	.text       start:0x0020C56C end:0x00217590
+	.ctors      start:0x0000029C end:0x000002A0
 
 mo_melee/sora_melee/ai/ai_weapon.cpp:
 	.text       start:0x00217590 end:0x0021BE00
