@@ -2718,6 +2718,7 @@ config.libs = [
             Object(NonMatching, "mo_melee/sora_melee/gr/gr_gimmick_spring.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/gr/gr_adventure_motion_ground.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/gr/gr_gimmick_catapult.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/ai/ai_mgr.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/it/it_manager.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/it/it_gen_archive.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/it/it_switch_decide_module_impl.cpp"),
