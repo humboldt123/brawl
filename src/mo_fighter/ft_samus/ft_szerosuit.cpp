@@ -15,6 +15,7 @@
 #include <so/collision/so_collision_manager.h>
 #include <so/so_external_value_accesser.h>
 #include <mt/mt_prng.h>
+#include <ft/samus/ft_samus_change_succeed.h>
 #include <ft/samus/ft_samus_status_uniq_process.h>
 
 #define FT_BC ftSZerosuitBuildConfig
@@ -480,6 +481,33 @@ void ftSZerosuit::notifyEventChangeSituation(SituationKind kind, SituationKind p
     if (kind != 2) {
         m_moduleAccesser->getWorkManageModule().offFlag(0x1200003d);
     }
+}
+
+// The dummy fighter that takes over the move gets its collision shapes from the constant table of the kind.
+void ftSZerosuit::setupChangeSucceedWork(void* work) {
+    Fighter::setupChangeSucceedWork(work);
+    soModuleAccesser* acc = m_moduleAccesser;
+    ftSamusChangeSucceedPoints hurt;
+    hurt.point[0][0] = 0.0f;
+    hurt.point[1][0] = soValueAccesser::getConstantFloat(acc, 0xbd6, 0);
+    hurt.point[2][0] = 0.0f;
+    hurt.point[3][0] = soValueAccesser::getConstantFloat(acc, 0xbd8, 0);
+    hurt.point[0][1] = 0.0f;
+    hurt.point[1][1] = soValueAccesser::getConstantFloat(acc, 0xbd1, 0);
+    hurt.point[2][1] = 0.0f;
+    hurt.point[3][1] = 0.0f;
+    ftSamusChangeSucceedPoints hit;
+    hit.point[0][0] = 0.0f;
+    hit.point[1][0] = soValueAccesser::getConstantFloat(acc, 0xbbc, 0);
+    hit.point[2][0] = 0.0f;
+    hit.point[3][0] = -1.0f;
+    hit.point[0][1] = 0.0f;
+    hit.point[1][1] = 0.0f;
+    hit.point[2][1] = 0.0f;
+    hit.point[3][1] = 0.0f;
+    Vec2f* speed = &acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(0xFFFF));
+    soPostureModule& posture = acc->getPostureModule();
+    static_cast<ftChangeSucceedWork*>(work)->activateDummyFighter(&posture.getPos(), speed, &hit.point[0][0], &hurt.point[0][0], 0xf60003, posture.getScale(), posture.getLr());
 }
 
 // The fighter that takes over (the transformation partner) is started with the work of this one.

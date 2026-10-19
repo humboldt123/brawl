@@ -34,10 +34,6 @@ extern "C" void fn_80153488(nteSection* section);
 extern "C" void fn_80153504(nteSection* section, int index);
 extern "C" muReplayData* fn_80153818(nteSection* section, Heaps::HeapType heap);
 extern "C" void fn_80153498(nteSection* section, int flags);
-// ipKeyRecorder::setBufferData(recorder, data, size), getBaseInfo(recorder) and getStageData(recorder)
-extern "C" void fn_8004B278(ipKeyRecorder* recorder, void* data, int size);
-extern "C" u8* fn_8004B0EC(ipKeyRecorder* recorder);
-extern "C" void* fn_8004B1D0(ipKeyRecorder* recorder);
 // muMenu::exchange... functions (the arguments after the first one are not set by the caller)
 extern "C" int exchangeSrStageKindToMuStageKind__6muMenuFiii(int stageKind);
 extern "C" float getStageFrameNo__6muMenuFiii(int stageKind);
@@ -363,17 +359,17 @@ void muReplayTask::setMelee() {
         int size = data->m_size;
         ipSwitch* ipsw = ipSwitch::getInstance();
         ipKeyRecorder* recorder = ipsw->m_keyRecorder;
-        fn_8004B278(recorder, buffer, size);
+        recorder->setBufferData(buffer, size);
         muReplayRecord* dest = *reinterpret_cast<muReplayRecord**>(reinterpret_cast<u8*>(g_GameGlobal) + 8);
-        muReplayRecord* src = reinterpret_cast<muReplayRecord*>(fn_8004B0EC(recorder));
+        muReplayRecord* src = reinterpret_cast<muReplayRecord*>(recorder->getBaseInfo());
         dest->m_a = src->m_a;
         dest->m_b = src->m_b;
         dest->m_c = src->m_c;
         dest->m_block = src->m_block;
         dest->m_body = src->m_body;
-        if (fn_8004B1D0(recorder) != NULL) {
+        if (recorder->getStageData() != NULL) {
             void* stageDest = *reinterpret_cast<void**>(reinterpret_cast<u8*>(g_GameGlobal) + 0x40);
-            memcpy(stageDest, fn_8004B1D0(recorder), 0x470);
+            memcpy(stageDest, recorder->getStageData(), 0x470);
         }
         *(reinterpret_cast<u8*>(ipsw) + 0x24) |= 0x80;
         getWork()->m_exitMode = 0;

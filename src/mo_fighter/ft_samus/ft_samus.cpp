@@ -10,6 +10,7 @@
 #include <ft/ft_class_info_impl.h>
 #include <ft/samus/ft_samus.h>
 #include <ft/samus/ft_samus_status_uniq_process.h>
+#include <ft/samus/ft_samus_change_succeed.h>
 #include <ft/samus/ft_samus_extend_param_accesser.h>
 #include <so/so_external_value_accesser.h>
 #include <ft/ft_owner.h>
@@ -515,17 +516,6 @@ bool ftSamus::activeArticle7(wnSamusGBeam* weapon, soModuleAccesser* acc) {
     }
     return true;
 }
-
-// HYPOTHESIS: the part of ftChangeSucceedWork the dummy fighter activation needs (only this call is recovered).
-struct ftChangeSucceedWork {
-    void activateDummyFighter(Vec3f* pos, Vec2f* speed, float* unk1, float* unk2, int flags, float scale, float lr);
-};
-
-// HYPOTHESIS: four (x, y) points of the collision shape of the dummy fighter that takes over the move.
-struct ftSamusChangeSucceedPoints {
-    float point[4][2];
-    ftSamusChangeSucceedPoints() __attribute__((never_inline));
-};
 
 void ftSamus::setupChangeSucceedWork(void* work) {
     Fighter::setupChangeSucceedWork(work);

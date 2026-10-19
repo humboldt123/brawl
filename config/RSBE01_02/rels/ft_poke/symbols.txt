@@ -35,7 +35,7 @@ __dt__82soAnimCmdControlUnitBuilder<51soAnimCmdControlUnitBuildConfig<3,64,477,0
 __dt__82soAnimCmdControlUnitBuilder<51soAnimCmdControlUnitBuildConfig<2,64,477,0,0,1,0,8>>Fv = .text:0x000026AC; // type:function size:0x8C
 __dt__81soAnimCmdControlUnitBuilder<50soAnimCmdControlUnitBuildConfig<1,2,477,0,0,1,0,8>>Fv = .text:0x00002738; // type:function size:0x8C
 __dt__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,281,281,0,1,0,8>>Fv = .text:0x000027C4; // type:function size:0x98
-fn_116_285C = .text:0x0000285C; // type:function size:0x5C
+__dt__115soArraySelectHolder<1,36soArrayVector<PC13acAni = .text:0x0000285C; // type:function size:0x5C
 __dt__52soModuleAccesserBuilder<25ftPokeLizardonBuildConfig>Fv = .text:0x000028B8; // type:function size:0x2A0
 __dt__66soGlowModuleBuilder<43soGlowModuleBuildConfig<16ftGlowModuleImpl>>Fv = .text:0x00002B58; // type:function size:0x5C
 __dt__66soSlowModuleBuilder<43soSlowModuleBuildConfig<16soSlowModuleImpl>>Fv = .text:0x00002BB4; // type:function size:0x5C
@@ -384,7 +384,7 @@ __dt__21ftKineticEnergyMotionFv = .text:0x0000BDB0; // type:function size:0x60
 __dt__98soKineticEnergyHolder<21ftKineticEnergyMotion,18soTypeListNullType,28soKineticEnergyInitInfo<0,1>>Fv = .text:0x0000BE10; // type:function size:0x60
 __dt__167soInstancePoolSub<45soInstancePoolInfo<21ftKineticEnergyMotion,1>,98soKineticEnergyHolder<21ftKineticEnergyMotion,18soTypeListNullType,28soKineticEnergyInitInfo<0,1>>>Fv = .text:0x0000BE70; // type:function size:0x60
 __dt__185soInstancePool<45soInstancePoolInfo<21ftKineticEnergyMotion,1>,98soKineticEnergyHolder<21ftKineticEnergyMotion,18soTypeListNullType,28soKineticEnergyInitInfo<0,1>>,18soInstancePoolRoot>Fv = .text:0x0000BED0; // type:function size:0x60
-fn_116_BF30 = .text:0x0000BF30; // type:function size:0x64
+__dt__185soInstancePool<45soInstancePoolInfo<21ftKinetic = .text:0x0000BF30; // type:function size:0x64
 __dt__22ftKineticEnergyGravityFv = .text:0x0000BF94; // type:function size:0x5C
 __dt__99soKineticEnergyHolder<22ftKineticEnergyGravity,18soTypeListNullType,28soKineticEnergyInitInfo<1,1>>Fv = .text:0x0000BFF0; // type:function size:0x60
 __dt__169soInstancePoolSub<46soInstancePoolInfo<22ftKineticEnergyGravity,1>,99soKineticEnergyHolder<22ftKineticEnergyGravity,18soTypeListNullType,28soKineticEnergyInitInfo<1,1>>>Fv = .text:0x0000C050; // type:function size:0x60
