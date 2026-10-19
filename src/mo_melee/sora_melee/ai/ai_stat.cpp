@@ -68,11 +68,11 @@ bool aiStat::chk_stat_ffall() {
     return false;
 }
 
-void aiStat::change(int chrIdx, int chrKind, int input, u8 unk) {
-    if (chrIdx < 0 || chrKind == -1 || input == 0) {
+void aiStat::change(int chrIdx, int chrKind, aiInput* input, int unk) {
+    if (chrIdx < 0 || chrKind == -1 || input == NULL) {
         m_chrIdx.m_idx = -1;
         m_chrKind = -1;
-        m_input = 0;
+        m_input = NULL;
     } else {
         m_chrIdx.m_idx = chrIdx;
         m_chrKind = chrKind;
@@ -165,12 +165,12 @@ float calc_arraive_f(float dist, float vel, float acc) {
     return (r - 0.5f) + t;
 }
 
-void aiStat::init(int chrIdx, int chrKind, int input, u8 unk) {
+void aiStat::init(int chrIdx, int chrKind, aiInput* input, int unk) {
     gfMemFill(this, 0, sizeof(aiStat));
-    if (chrIdx < 0 || chrKind == -1 || input == 0) {
+    if (chrIdx < 0 || chrKind == -1 || input == NULL) {
         m_chrIdx.m_idx = -1;
         m_chrKind = -1;
-        m_input = 0;
+        m_input = NULL;
     } else {
         m_chrIdx.m_idx = chrIdx;
         m_chrKind = chrKind;

@@ -4,6 +4,22 @@
 #include <ai/ai_stat.h>
 #include <types.h>
 
+// One attack the AI knows about (entry of the ATKD block); HYPOTHESIS: 0x18 bytes, id first.
+struct tag_AI_ATK_DATA {
+    u16 m_id;
+    char unk2[0x16];
+};
+
+// ATKD block header followed by its entries.
+struct tag_AI_ATK_DATA_HED {
+    char unk0[4];
+    int m_num;
+    char unk8[8];
+    tag_AI_ATK_DATA m_data[1];
+
+    tag_AI_ATK_DATA* searchAtkData(u32 id);
+};
+
 // Per-character AI parameter block loaded from the AIPD / ATKD data files.
 // HYPOTHESIS: only the command bit masks the aiParam::chkCmd* helpers read are named.
 struct aiParData {
@@ -31,7 +47,7 @@ public:
     float m_rankRate;    // 0x10: (rank - 20) / 2 clamped to 0..30
 
     aiParam();
-    void setRank(u8 rank, u32 force, int update);
+    void setRank(int rank, u32 force, int update);
     void par_work_update();
     void init_par(aiParData* par, int ftKind, char* atkData);
     bool chkCmdRevise(int cmd);

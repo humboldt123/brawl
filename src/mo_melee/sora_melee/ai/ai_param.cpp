@@ -52,9 +52,9 @@ u32 aiIpBuf::getButton(int framesBack) {
 
 // aiParam: reads the per-character AI tuning (sizes, jump reach, attack flags).
 
-static inline u8 aiClampRank(u8 rank) {
+static inline int aiClampRank(int rank) {
     rank = (s8)rank > 0 ? rank : 0;
-    u8 value = 100;
+    int value = 100;
     if ((s8)rank < 100) {
         value = rank;
     }
@@ -80,7 +80,7 @@ aiParam::aiParam() {
     m_disableCmds = 0;
 }
 
-void aiParam::setRank(u8 rank, u32 force, int update) {
+void aiParam::setRank(int rank, u32 force, int update) {
     if ((s8)m_rank != (s8)rank || force == 1) {
         m_rank = aiClampRank(rank);
         m_rankRate = aiRankToRate(m_rank);
@@ -199,4 +199,17 @@ bool aiParam::chkCmdFall(int cmd) {
 
 bool aiParam::chkCmdReflect(int cmd) {
     return m_par->m_reflectCmds & (1 << cmd);
+}
+
+tag_AI_ATK_DATA* tag_AI_ATK_DATA_HED::searchAtkData(u32 id) {
+    int remaining = m_num;
+    tag_AI_ATK_DATA* data = m_data;
+    while (remaining != 0) {
+        if (id == data->m_id) {
+            return data;
+        }
+        data++;
+        remaining--;
+    }
+    return NULL;
 }

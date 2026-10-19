@@ -16,7 +16,7 @@ public:
     char unk5[3];
     int m_unk8;              // 0x08
     char unkC[0x40];
-    int m_input;             // 0x4C: the aiInput driving this character (0 for humans)
+    aiInput* m_input;        // 0x4C: the aiInput driving this character (0 for humans)
     u32 m_flags;             // 0x50
     u32 m_transition;        // 0x54: transition bits (chk_transition)
     u32 m_chrStat;           // 0x58: character state bits (chk_chr_stat)
@@ -65,8 +65,8 @@ public:
     bool chk_stat_fpass();
     bool chk_stat_ffall();
     float get_lr_tgt(aiChrIdx* target);
-    void init(int chrIdx, int chrKind, int input, u8 unk);
-    void change(int chrIdx, int chrKind, int input, u8 unk);
+    void init(int chrIdx, int chrKind, aiInput* input, int unk);
+    void change(int chrIdx, int chrKind, aiInput* input, int unk);
     void get_tgt_vector(float scale, Vec3f* out, aiChrIdx* target);
     float get_range(float scale, aiChrIdx* target);
     float get_distance(float scale, aiChrIdx* target);

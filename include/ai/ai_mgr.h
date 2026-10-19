@@ -10,6 +10,9 @@
 
 class aiInput;
 class aiStat;
+class aiWeaponMgr;
+class aiEnemyMgr;
+class IpHuman;
 
 // One row of the AI "refer" parameter table (0x36 rows of 0x20 bytes).
 // Field names follow the aiParam getters that read them.
@@ -50,6 +53,16 @@ public:
     virtual void notifyEventDead(int entryId, int deadCount, Fighter::Dead::Reason deadReason, int respawnFrames);
     virtual void notifyEventChangeStart(int entryId, int playerNo, int activeInstanceIndex, ftKind);
     virtual void notifyEventChangeEnd(int entryId, int playerNo, int activeInstanceIndex, ftKind);
+
+    static void setEnable(int enable);
+    void CrearWork();
+    void setCpuType(int player, int type);
+    void setCpuRank(int player, s8 rank);
+    void regist_ai_child(int player, aiInput* input, int chrKind);
+    static void setEnablePlayer(int player, int enable, int unk);
+    void removeTgtRefer(int player, int unk);
+
+    void* searchAtkData(int ftKind, u32 id);
 
     static bool isReady();
     static bool isReadyUpdate();

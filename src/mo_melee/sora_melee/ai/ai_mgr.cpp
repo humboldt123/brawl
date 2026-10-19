@@ -1,4 +1,11 @@
+#include <ai/ai_enemy.h>
+#include <ai/ai_input.h>
 #include <ai/ai_mgr.h>
+#include <ai/ai_stat.h>
+#include <ai/ai_weapon.h>
+#include <ai/ai_param.h>
+#include <ft/ft_manager.h>
+#include <gf/gf_memory_util.h>
 #include <types.h>
 
 // The CPU player AI manager (aiMgr) and its helpers. HYPOTHESIS: field names are unknown, so members are read through
@@ -17,6 +24,11 @@ struct aiMgrDangerView {
 
 template <class T> static inline T& aiMgrField(aiMgr* manager, int offset) {
     return *reinterpret_cast<T*>(reinterpret_cast<u8*>(manager) + offset);
+}
+
+// Element `index` of a byte/word table at `base`; the index is added to the object first (matches `add r3, r3, r4`).
+template <class T> static inline T& aiMgrArray(aiMgr* manager, int base, int index) {
+    return *reinterpret_cast<T*>(reinterpret_cast<u8*>(manager) + index + base);
 }
 
 bool aiMgr::isReady() {
@@ -280,4 +292,137 @@ bool aiMgr::chkDangerZone(Vec2f* pos, int team, u8 attr) {
         }
     }
     return false;
+}
+
+void aiMgr::setEnable(int enable) {
+    aiMgrField<s8>(g_aiMgr, 0xA0) = enable;
+    if (enable == 0) {
+        lbl_27_data_47BF8 = -1;
+        if (aiMgrField<aiWeaponMgr*>(g_aiMgr, 0xFC) != NULL) {
+            aiMgrField<aiWeaponMgr*>(g_aiMgr, 0xFC)->reset();
+        }
+        if (aiMgrField<aiEnemyMgr*>(g_aiMgr, 0x100) != NULL) {
+            aiMgrField<aiEnemyMgr*>(g_aiMgr, 0x100)->reset();
+        }
+        g_aiMgr->CrearWork();
+    }
+}
+
+void aiMgr::CrearWork() {
+    aiMgrField<int>(this, 0xA8) = 0;
+    aiMgrField<s8>(this, 0xA4) = -1;
+    aiMgrDangerView* view = reinterpret_cast<aiMgrDangerView*>(this);
+    for (int i = 0; i < 24; i++) {
+        view->zoneUsed[i] = 0;
+    }
+    aiMgrField<u8>(this, 0x149) = 0;
+    aiMgrField<u8>(this, 0x104) = 0;
+    aiMgrField<u8>(this, 0x110) = 0;
+    aiMgrField<u8>(this, 0x11C) = 0;
+    aiMgrField<u8>(this, 0x128) = 0;
+    aiMgrField<int>(this, 0x344) = 1;
+    aiMgrField<u16>(this, 0x35C) = 0;
+    aiMgrField<u16>(this, 0x35A) = 0;
+    aiMgrField<u16>(this, 0x358) = 0;
+    aiMgrField<u16>(this, 0x350) = 0;
+    aiMgrField<u16>(this, 0x354) = 0;
+    aiMgrField<float>(this, 0x360) = -99999.9f;
+    aiMgrField<float>(this, 0x36C) = -99999.9f;
+    aiMgrField<float>(this, 0x364) = 99999.9f;
+    aiMgrField<float>(this, 0x368) = 99999.9f;
+    aiMgrField<int>(this, 0x370) = 0;
+    aiMgrField<int>(this, 0x378) = 0;
+    aiMgrField<int>(this, 0x374) = 0;
+    aiMgrField<float>(this, 0x37C) = 0.0f;
+    aiMgrField<int>(this, 0x380) = 0;
+    aiMgrField<u8>(this, 0x384) = 0;
+    aiMgrField<u8>(this, 0x385) = 0;
+    aiMgrField<u8>(this, 0x386) = 0;
+    gfMemFill(&aiMgrField<u8>(this, 0xAC), 0, 0x4C);
+}
+
+void aiMgr::setCpuType(int player, int type) {
+    if (m_aiInput != NULL && player >= 0 && player < 7) {
+        aiInput* input = m_aiInput[player];
+        if (input != NULL) {
+            if (aiMgrField<u8>(this, 0xA0) != 1 && aiMgrArray<s8>(this, 0x92, player) >= 0) {
+                return;
+            }
+            input->setCpuType(type);
+        }
+    }
+}
+
+void aiMgr::setCpuRank(int player, s8 rank) {
+    if (m_aiInput != NULL && player >= 0 && player < 7) {
+        aiInput* input = m_aiInput[player];
+        if (input != NULL) {
+            if (aiMgrField<u8>(this, 0xA0) == 1 || aiMgrArray<s8>(this, 0x99, player) < 0) {
+                aiInput* child = input->m_child;
+                input->m_par.setRank(rank, 0, (input->m_flags >> 15) & 1);
+                if (child != NULL) {
+                    child->m_par.setRank(rank, 0, (child->m_flags >> 15) & 1);
+                }
+            }
+        }
+    }
+}
+
+void aiMgr::regist_ai_child(int player, aiInput* input, int chrKind) {
+    int index = player + 7;
+    aiMgrArray<s8>(this, 0x84, index) = 1;
+    m_aiInput[index] = input;
+    aiMgrField<aiStat*>(this, 0xF8)[index].init(index, chrKind, input, 0);
+    if (input != NULL) {
+        input->setEnableRumble(false);
+    }
+}
+
+void aiMgr::notifyEventChangeStart(int entryId, int playerNo, int activeInstanceIndex, ftKind kind) {
+    setEnablePlayer(playerNo, 0, 1);
+    aiMgrField<u8>(this, 0x385) = 0xF0;
+}
+
+void aiMgr::notifyEventChangeEnd(int entryId, int playerNo, int activeInstanceIndex, ftKind kind) {
+    if (playerNo < 7) {
+        if (m_aiInput[playerNo] != NULL) {
+            m_aiInput[playerNo]->changeFtKind(kind);
+            aiMgrField<aiStat*>(this, 0xF8)[playerNo].change(playerNo, kind, m_aiInput[playerNo], activeInstanceIndex);
+        }
+    }
+}
+
+void aiMgr::notifyEventDead(int entryId, int deadCount, Fighter::Dead::Reason deadReason, int respawnFrames) {
+    int playerNo = g_ftManager->getPlayerNo(entryId);
+    removeTgtRefer(playerNo, 1);
+    if (playerNo >= 0) {
+        if (playerNo < 7) {
+            if (g_aiMgr->m_aiInput[playerNo] != NULL) {
+                g_aiMgr->m_aiInput[playerNo]->reset();
+            }
+            if ((&g_aiMgr->m_aiInput[7])[playerNo] != NULL) {
+                (&g_aiMgr->m_aiInput[7])[playerNo]->reset();
+            }
+        }
+    }
+}
+
+static inline tag_AI_ATK_DATA_HED* aiFindAtkDataHed(aiMgr* mgr, aiInput** inputs, int ftKind) {
+    if (inputs != NULL) {
+        for (int i = 0; i < 14; i++) {
+            aiInput* input = inputs[i];
+            if (input != NULL && (input->m_flags & 0x8000) != 0 && ftKind == input->m_ftKind) {
+                return (tag_AI_ATK_DATA_HED*)inputs[i]->m_par.m_atkData;
+            }
+        }
+    }
+    return NULL;
+}
+
+void* aiMgr::searchAtkData(int ftKind, u32 id) {
+    tag_AI_ATK_DATA_HED* hed = aiFindAtkDataHed(this, m_aiInput, ftKind);
+    if (hed != NULL) {
+        return hed->searchAtkData(id);
+    }
+    return NULL;
 }
