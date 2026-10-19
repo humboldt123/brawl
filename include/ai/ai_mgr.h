@@ -12,9 +12,19 @@ class aiInput;
 class aiStat;
 
 // One row of the AI "refer" parameter table (0x36 rows of 0x20 bytes).
+// Field names follow the aiParam getters that read them.
 struct aiReferPar {
-    char unk[0x20];
+    float m_downAtkRate;   // 0x00: aiParam::get_down_atk_r
+    float m_cliffAtkRate;  // 0x04: aiParam::get_cliff_atk_r
+    float m_width;         // 0x08: scaled by aiStat::m_scale.m_x in aiParam::get_width
+    float m_height;        // 0x0C: scaled by aiStat::m_scale.m_y in aiParam::get_height
+    u8 m_downAtkFlag;      // 0x10: aiParam::get_down_atk_f
+    u8 m_cliffAtkFlag;     // 0x11: aiParam::get_cliff_atk_f
+    char unk12[6];
+    float m_airHigh;       // 0x18
+    float m_airLength;     // 0x1C
 };
+static_assert(sizeof(aiReferPar) == 0x20, "Class is wrong size!");
 
 // Identifies a CPU character slot: 0..6 are the players' fighters, 7..13 their sub-characters (Nana).
 struct aiChrIdx {

@@ -1,3 +1,4 @@
+#include <ai/ai_param.h>
 #include <ai/ai_stat.h>
 #include <math.h>
 #include <gf/gf_memory_util.h>

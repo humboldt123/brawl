@@ -10245,6 +10245,9 @@ mo_melee/sora_melee/so/so_array_list_members_ptr_BaseItem_64_part1.cpp:
 mo_melee/sora_melee/so/so_array_list_members_Ul_32_part1.cpp:
 	.text       start:0x0021CB30 end:0x0021CD58
 
+mo_melee/sora_melee/ai/ai_param.cpp:
+	.text       start:0x0021CD58 end:0x00220150
+
 mo_melee/sora_melee/st/st_result.cpp:
 	.text       start:0x0022B544 end:0x0022C2D0
 	.ctors      start:0x000002A4 end:0x000002A8

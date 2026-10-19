@@ -91,7 +91,3 @@ struct aiFloorInfo {
 
 bool chk_fl_danger(aiFloorInfo* floor, int team);
 float calc_arraive_f(float dist, float vel, float acc);
-
-namespace aiParam {
-float get_width(aiChrIdx* chr);
-}
