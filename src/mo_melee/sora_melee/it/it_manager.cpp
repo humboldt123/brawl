@@ -49,6 +49,12 @@ extern char lbl_27_data_79068[];
 // itArchive::getResFileFromId (0x2B26E8, unnamed): the resource file data of an archive entry
 nw4r::g3d::ResFile fn_27_2B26E8(itArchive* archive, int fileKind, int index, int fileId);
 
+// gm (main module, unnamed): gmCheckRandomCDAllAcquired, gmLotSeal(level), gmLotFigure(), gmSetRarePokemonInfo(index)
+int fn_80051A6C();
+u32 fn_80056DB0(u32 level);
+u32 fn_800516F0();
+void fn_80051844(int index);
+
 // itManager::findLowPriorityItemInstance (0x2A8054, unnamed): an item that may be recycled when the pool is full
 // itManager::removeItemAfter (0x2A7114, unnamed): bookkeeping after an item left (kind counters, lottery state)
 // BaseItem::activate(itCreate*) (0x2829D0, unnamed)
@@ -2560,4 +2566,151 @@ void itManager::removeItemAfter(int kind, u32 variation, int lotKind, int lotCre
         itManagerField<int>(this, 0x1168)--;
     }
     m_itemNums[kind]--;
+}
+
+// Creates an item of the given kind: resolves the variation for kinds that pick one at random (CDs, stickers, figures,
+// the Dragoon part order), checks the spawn gate and that the kind's archives (and its lottery group's) are loaded,
+// builds the itCreate record, spawns the instance and updates the live counts.
+BaseItem* itManager::createBaseItem(Vec3f* safePos, Vec3f* pos, float lr, itKind kind, u32 variation, int createOwnerTaskId, int ownerTaskId, soResourceModule* resourceModule, u8 groupNo, int brresId, int texResIndex, int texResId, int teamNo) {
+    if (itManagerField<int>(this, 0x4C) != 6) {
+        return NULL;
+    }
+    if (itManagerField<u8>(this, 0xBC) != 0) {
+        return NULL;
+    }
+    if (variation == 5000) {
+        switch (kind) {
+        case 0xB:
+            variation = 0;
+            if (itManagerField<u8>(this, 0xBD) == 0 && fn_80051A6C() != 0) {
+                if ((itManagerField<u32>(this, 0x11A0) & 0x80000) == 0) {
+                    return NULL;
+                }
+                kind = (itKind)0x33;
+                variation = fn_80056DB0(itManagerField<u32>(this, 0x14B0) & 0xFF) & 0xFFFF;
+            }
+            break;
+        case 3:
+        case 7:
+            variation = itManagerField<u32>(this, 0x147C);
+            break;
+        case 0x33:
+            variation = fn_80056DB0(itManagerField<u32>(this, 0x14B0) & 0xFF) & 0xFFFF;
+            break;
+        case 0x17:
+            variation = fn_800516F0() & 0xFFFF;
+            break;
+        case 0x40:
+            variation = randi(0x1C);
+            break;
+        default:
+            variation = 0;
+            break;
+        }
+    } else if (kind == 0x33 && variation == 0) {
+        variation = fn_80056DB0(itManagerField<u32>(this, 0x14B0) & 0xFF) & 0xFFFF;
+    } else if (kind == 0x17 && variation == 0) {
+        variation = fn_800516F0() & 0xFFFF;
+    }
+    if (kind == 0x14) {
+        u32 flags = itManagerField<u32>(this, 0x1494);
+        if (variation == 0 && (flags & 2) != 0) {
+            variation = 1;
+        }
+        if (variation == 1 && (flags & 4) != 0) {
+            variation = 2;
+        }
+        if (variation == 2 && (flags & 8) != 0) {
+            variation = 0;
+        }
+        if (variation == 0 && (flags & 2) != 0) {
+            return NULL;
+        }
+    }
+    if (checkCreatableItem(kind, variation, true) == 0) {
+        return NULL;
+    }
+    itArchive* archive = findKindArchive(this, kind, variation);
+    if (archive == NULL) {
+        return NULL;
+    }
+    itArchive* groupArchive = NULL;
+    int shared = lotGroupKindOf(kind);
+    if (shared != -1) {
+        groupArchive = findKindArchive(this, shared, variation);
+        if (groupArchive == NULL) {
+            return NULL;
+        }
+    }
+    itCreate create;
+    create.m_index = ++m_numItems;
+    create.m_createOwnerTaskId = createOwnerTaskId;
+    create.m_teamOwnerTaskId = ownerTaskId;
+    create.m_kind = kind;
+    create.m_variation = variation;
+    create.m_safePos = safePos;
+    create.m_pos = pos;
+    create.m_lr = lr;
+    create.m_teamNo = teamNo;
+    create.m_resourceModule = resourceModule;
+    create.m_groupNo = groupNo;
+    create.m_brresId = brresId;
+    create.m_texResIndex = texResIndex;
+    create.m_texResId = texResId;
+    BaseItem* item = createItemInstance(&create);
+    if (item == NULL) {
+        return NULL;
+    }
+    m_itemNums[kind]++;
+    if (archive != NULL) {
+        archive->m_numItemsActive++;
+    }
+    if (groupArchive != NULL) {
+        groupArchive->m_numItemsActive++;
+        if (shared == kind) {
+            if (getItemGroup(kind) == 3) {
+                itManagerField<int>(this, 0x1164)++;
+                if (kind == 0x70) {
+                    fn_80051844(2);
+                } else if (kind < 0x70) {
+                    if (kind == 99) {
+                        fn_80051844(1);
+                    }
+                } else if (kind == 0x7C) {
+                    fn_80051844(0);
+                }
+            }
+        }
+    }
+    if (itManagerField<int>(this, 0x50) == 2) {
+        if (!isWeaponItem(kind)) {
+            int slot;
+            if (kind == 0x33 || kind == 0x17 || kind == 0xB) {
+                slot = 1;
+            } else if (kind == 0x46) {
+                slot = 2;
+            } else {
+                int group = getItemGroup(kind);
+                if (group == 5) {
+                    slot = 2;
+                } else if ((group < 2 && group >= 0) || group == 8) {
+                    slot = 0;
+                } else {
+                    slot = 3;
+                }
+            }
+            itManagerField<int>(this, 0xFF8 + slot * 4)++;
+        }
+    }
+    if (getItemGroup(kind) == 2) {
+        itManagerField<int>(this, 0x10C0)++;
+    }
+    if (kind == 0x2A) {
+        itManagerField<int>(this, 0x1168)++;
+    } else if (kind == 0x14) {
+        setExistDragoonParts(variation, 1);
+    } else if (kind == 0x15) {
+        itManagerField<u32>(this, 0x1494) = (itManagerField<u32>(this, 0x1494) & ~1) | 0x10;
+    }
+    return item;
 }
