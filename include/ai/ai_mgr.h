@@ -9,6 +9,7 @@
 #include <types.h>
 
 class aiInput;
+class aiStat;
 
 // One row of the AI "refer" parameter table (0x36 rows of 0x20 bytes).
 struct aiReferPar {
@@ -44,6 +45,7 @@ public:
     static bool isReadyUpdate();
     static bool isSmallMap();
     static char* getMadeinAiData(bool force);
+    static aiStat* get_aiStat(aiChrIdx* idx);
 
     int getCpuType(int player);
     int getCpuRank(int player);
