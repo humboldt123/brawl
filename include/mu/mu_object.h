@@ -107,7 +107,7 @@ public:
 
     void setObjRotate(Vec3f* rot);
     void getRotate(Vec3f* rot, const char* name);
-    void setRotate(Vec3f* rot, const char* name);
+    void setRotate(const char* name, Vec3f* rot);
 
     const char* getNodeAnimName();
     const char* getVisAnimName();
