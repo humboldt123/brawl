@@ -2721,6 +2721,8 @@ config.libs = [
             Object(NonMatching, "mo_melee/sora_melee/ai/ai_mgr.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/ai/ai_stat.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/ai/ai_param.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/ai/ai_weapon.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/ai/ai_enemy.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/it/it_manager.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/it/it_gen_archive.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/it/it_switch_decide_module_impl.cpp"),

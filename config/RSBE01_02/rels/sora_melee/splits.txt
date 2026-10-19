@@ -10239,8 +10239,14 @@ mo_melee/sora_melee/ai/ai_mgr.cpp:
 mo_melee/sora_melee/ai/ai_stat.cpp:
 	.text       start:0x00206D94 end:0x0020C56C
 
+mo_melee/sora_melee/ai/ai_weapon.cpp:
+	.text       start:0x00217590 end:0x0021BE00
+
 mo_melee/sora_melee/so/so_array_list_members_ptr_BaseItem_64_part1.cpp:
 	.text       start:0x0021BE00 end:0x0021BE10
+
+mo_melee/sora_melee/ai/ai_enemy.cpp:
+	.text       start:0x0021BE40 end:0x0021CB30
 
 mo_melee/sora_melee/so/so_array_list_members_Ul_32_part1.cpp:
 	.text       start:0x0021CB30 end:0x0021CD58
