@@ -60,6 +60,7 @@ struct ftSamusWork {
 struct ftSamusStatus {
     enum Kind {
         SpecialLw_Unk11E = 0x11e,
+        SpecialLw_Unk11F = 0x11f,
         SpecialLw_Unk120 = 0x120,
         SpecialLw_Unk121 = 0x121,
     };
@@ -94,10 +95,13 @@ struct ftSamusExtendParamSpecialLw {
     float airSpeedXMul;     // 0x1c: horizontal speed factor when entered in the air
     float unk20[3];         // 0x20..0x2b
     float landStickY;       // 0x2c: stick deflection below which the move is landed
-    float unk30[2];         // 0x30..0x37
+    float unk30;            // 0x30
+    float unk34;            // 0x34: multiplied with the clamped distance ratio that turns the launch angle
     float launchSpeed;      // 0x38: speed of the twin status (0x121), turned by the angle work float
     float unk3C;            // 0x3c
     float airEndSpeed;      // 0x40: acceleration/speed factors of the twin status (0x121)
+    float unk44;            // 0x44
+    float unk48;            // 0x48: horizontal distance that maps to the full range of the launch angle
 };
 
 // MATCH-ONLY: soArticle stays incomplete here; its virtual isNull() (slot 2) is called through this view.
@@ -117,6 +121,7 @@ struct ftSamusExtendParamSpecialS {
     float unk00;
     float speedXDivisor; // the horizontal speed the move was started with is divided by it
     float airBrakeX;     // horizontal brake of the stop energy in the air
+    float unk0C;         // speed of the shot articles (missile and super missile)
 };
 
 // The ExtendParam group (ftData::extendParam[4]) read directly by the Zero Laser. HYPOTHESIS: names follow the use.

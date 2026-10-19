@@ -1419,6 +1419,8 @@ public:
     virtual void notifyEventLink(soLinkEventArgs *eventInfo, soModuleAccesser* moduleAccesser, StageObject*, int unk4);
     virtual void updateRoughPos();
 
+    // Starts the final smash of the fighter (module map name Fighter::startFinal; Samus's Zero Laser calls it from its first status).
+    void startFinal();
     // HYPOTHESIS: argument meanings (R.O.B.'s Final Smash calls it with true, true, false).
     void endFinal(bool a, bool b, bool c);
 

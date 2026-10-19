@@ -65,6 +65,15 @@ public:
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftSamus();
+    virtual void processUpdate();
+    virtual void onDeadEnd();
+    virtual void onStart(int startKind);
+    virtual u32 getChangeSucceedOption() { return 0x7fab; }
+    virtual void setupChangeSucceedWork(void* work);
+    virtual void change(void* work, int mode);
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4);
     // The hooks the article mediator calls to start an article of the pool (HYPOTHESIS: names follow the module map).
     static bool activeArticle(wnSamusCShot* weapon, soModuleAccesser* acc);
     static bool activeArticle1(wnSamusBomb* weapon, soModuleAccesser* acc);

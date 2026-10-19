@@ -101,6 +101,11 @@ public:
     ftParam* getParam(ftKind kind) const;
     ftParamEtc* getParamEtc(ftKind kind) const;
     ftParam* getParamCommon() const;
+    // The special move parameter groups of Samus (module map names); the kind is the one of the asking fighter.
+    void* getParamSamusChargeShot(ftKind kind) const;
+    void* getParamSamusSpecialLw(ftKind kind) const;
+    void* getParamSamusSpecialS(ftKind kind) const;
+    void* getParamSamusFinal(ftKind kind) const;
     // HYPOTHESIS: const qualification; native pointer ABI and getter identity are verified.
     const wnGameWatchNormalWeaponData* getGameWatchNormalWeaponData() const;
     // The static data block of a weapon article: indexed by the weapon number (123, 124, ... in the module maps).

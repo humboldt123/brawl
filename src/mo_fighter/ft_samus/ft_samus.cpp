@@ -11,6 +11,7 @@
 #include <ft/samus/ft_samus.h>
 #include <ft/samus/ft_samus_status_uniq_process.h>
 #include <ft/samus/ft_samus_extend_param_accesser.h>
+#include <so/so_external_value_accesser.h>
 #include <ft/ft_owner.h>
 #include <so/article/so_article_mediator.h>
 #include <so/so_value_accesser.h>
@@ -69,86 +70,31 @@ ftSamus::ftSamus(s32 entryId,
     m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 27);
 }
 
-// Symbols for these members are not in symbols.txt yet, so they are emitted under their placeholder names.
-extern "C" {
 
-void fn_94_8FF4(ftSamus* self, int startKind) {
-    soModuleAccesser* acc = self->m_moduleAccesser;
-    soWorkManageModule* workManage = &acc->getWorkManageModule();
-    if (startKind == 8) {
-        // HYPOTHESIS: int 0x10000040 holds an effect handle that is removed on this start kind
-        int effectId = workManage->getInt(0x10000040);
-        if (effectId != 0) {
-            self->m_moduleAccesser->getEffectModule().remove(effectId);
-        }
-    }
-    workManage->setInt(0, 0x10000040);
-    workManage->setInt(0, 0x10000041);
-    workManage->setInt(0, 0x10000042);
-    workManage->offFlag(0x1200003e);
-    workManage->offFlag(0x1200003d);
-    acc->getEffectModule().removeCommon(0x1a);
-    self->Fighter::onStart(startKind);
-}
 
-void fn_94_9134(ftSamus* self) {
-    soModuleAccesser* acc = self->m_moduleAccesser;
-    soWorkManageModule& workManage = acc->getWorkManageModule();
-    if (workManage.isFlag(0x1200003d)) {
-        workManage.offFlag(0x1200003d);
-        if (static_cast<u8>(g_ftManager->getFighterCount(self->m_entryId)) > 1) {
-            int fighterNo = g_ftManager->getFighterNo(self->m_entryId, self->m_taskId);
-            // The motion module is set back to frame 0 before the next fighter is chosen.
-            acc->getMotionModule().setFrame(0.0f);
-            g_ftManager->toChange(self->m_entryId, static_cast<u8>(fighterNo) == 0, 0, 0);
-        }
-    }
-    self->Fighter::onDeadEnd();
-}
 
-}
 
-// The bomb starts with the effect resource and the team of the fighter.
-bool ftSamus::activeArticle1(wnSamusBomb* weapon, soModuleAccesser* acc) {
-    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
-    soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = fighter.m_taskId;
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
-    return true;
-}
 
-bool ftSamus::activeArticle2(wnSamusMissile* weapon, soModuleAccesser* acc) {
-    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
-    soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = fighter.m_taskId;
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
-    return true;
-}
 
-bool ftSamus::activeArticle3(wnSamusSuperMissile* weapon, soModuleAccesser* acc) {
-    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
-    soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = fighter.m_taskId;
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
-    return true;
-}
 
-bool ftSamus::activeArticle4(wnSamusLaser* weapon, soModuleAccesser* acc) {
-    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
-    soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = fighter.m_taskId;
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
-    return true;
-}
 
-bool ftSamus::activeArticle5(wnSamusLaser2* weapon, soModuleAccesser* acc) {
-    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
-    soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = fighter.m_taskId;
-    float unkFloat = acc->getWorkManageModule().getFloat(0x21000004);
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), unkFloat);
-    return true;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ---- the article holders --------------------------------------------------------------------------------------------
 // What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Samus, copied into the
@@ -245,6 +191,376 @@ ftSamusArticleMediator::~ftSamusArticleMediator() { }
 
 s32 ftSamusArticleMediator::getMediateNum() { return 8; }
 void ftSamusArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
+
+// ---- the fighter -----------------------------------------------------------------------------------------------------
+void ftSamus::onStart(int startKind) {
+    soModuleAccesser* acc = m_moduleAccesser;
+    soWorkManageModule& workManage = acc->getWorkManageModule();
+    if (startKind == 8) {
+        // HYPOTHESIS: int 0x10000040 holds the effect handle of the charge glow that is removed on this start kind
+        int effectId = workManage.getInt(0x10000040);
+        if (effectId != 0) {
+            m_moduleAccesser->getEffectModule().remove(effectId);
+        }
+    }
+    workManage.setInt(0, 0x10000040);
+    workManage.setInt(0, 0x10000041);
+    workManage.setInt(0, 0x10000042);
+    workManage.offFlag(0x1200003e);
+    workManage.offFlag(0x1200003d);
+    acc->getEffectModule().removeCommon(0x1a);
+    Fighter::onStart(startKind);
+}
+
+void ftSamus::onDeadEnd() {
+    soModuleAccesser* acc = m_moduleAccesser;
+    soWorkManageModule& workManage = acc->getWorkManageModule();
+    if (workManage.isFlag(0x1200003d)) {
+        workManage.offFlag(0x1200003d);
+        if (static_cast<u8>(g_ftManager->getFighterCount(m_entryId)) > 1) {
+            int fighterNo = g_ftManager->getFighterNo(m_entryId, m_taskId);
+            // The motion module is set back to frame 0 before the next fighter is chosen.
+            acc->getMotionModule().setFrame(0.0f);
+            g_ftManager->toChange(m_entryId, static_cast<u8>(fighterNo) == 0, 0, 0);
+        }
+    }
+    Fighter::onDeadEnd();
+}
+
+// The charge glow of the Charge Shot: it appears once the charge counter reaches the threshold and follows the scale of the fighter.
+// HYPOTHESIS: int 0x10000041 is the charge counter and int 0x10000040 the handle of the glow effect.
+void ftSamus::processUpdate() {
+    Fighter::processUpdate();
+    soModuleAccesser* acc = m_moduleAccesser;
+    soEffectModule& effects = acc->getEffectModule();
+    soWorkManageModule& workManage = acc->getWorkManageModule();
+    int* chargeParam = static_cast<int*>(g_ftCommonDataAccesser.getData(Fighter_Samus)->extendParam[0]);
+    if (acc->getWorkManageModule().getInt(0x10000041) >= *chargeParam) {
+        if (workManage.getInt(0x10000040) == 0) {
+            Vec3f unused(-8.0f, 0.0f, 0.0f);
+            int handle = effects.reqFollow(static_cast<EfID>(0x40006), 0x2b, &Vec3f(-8.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), 1.0f, true, 0, 0, -1);
+            workManage.setInt(handle, 0x10000040);
+        }
+        int handle = acc->getWorkManageModule().getInt(0x10000040);
+        float scale = acc->getPostureModule().getScale();
+        soEffectModule& effects2 = m_moduleAccesser->getEffectModule();
+        effects2.setScale(handle, &Vec3f(scale, scale, scale));
+        if (acc->getVisibilityModule().get(1) != 1) {
+            effects2.setPos(handle, &Vec3f(-8.0f, 0.0f, 0.0f));
+        } else {
+            effects2.setPos(handle, &Vec3f(0.0f, 0.0f, 0.0f));
+        }
+    } else if (workManage.getInt(0x10000040) != 0) {
+        effects.kill(acc->getWorkManageModule().getInt(0x10000040), true, true);
+        workManage.setInt(0, 0x10000040);
+    }
+}
+
+// The charge shot is started with the kind of the fighter; its charge ratio is set when it is shot.
+bool ftSamus::activeArticle(wnSamusCShot* weapon, soModuleAccesser* acc) {
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    int kind = acc->getStageObject().soGetSubKind();
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), kind);
+    return true;
+}
+
+// HYPOTHESIS: int 0x10000042 is the charge counter that is shot; the ratio to the charge limit scales the shot.
+bool ftSamus::shootArticle(wnSamusCShot* weapon, soModuleAccesser* acc) {
+    int* chargeLimit = static_cast<int*>(g_ftCommonDataAccesser.getParamSamusChargeShot(static_cast<ftKind>(acc->getStageObject().soGetSubKind())));
+    weapon->setCharge(static_cast<float>(acc->getWorkManageModule().getInt(0x10000042)) / static_cast<float>(*chargeLimit));
+    soPostureModule& posture = acc->getPostureModule();
+    int charge = acc->getWorkManageModule().getInt(0x10000042);
+    weapon->toShoot(charge, posture.getLr());
+    return false;
+}
+
+// The bomb starts with the effect resource and the team of the fighter.
+bool ftSamus::activeArticle1(wnSamusBomb* weapon, soModuleAccesser* acc) {
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
+    return true;
+}
+
+bool ftSamus::shootArticle1(wnSamusBomb* weapon, soModuleAccesser* acc) {
+    ftSamusExtendParamSpecialLw* param = static_cast<ftSamusExtendParamSpecialLw*>(g_ftCommonDataAccesser.getParamSamusSpecialLw(static_cast<ftKind>(acc->getStageObject().soGetSubKind())));
+    weapon->toShoot(acc->getPostureModule().getLr(), param->unk20[0], param->unk20[1], param->unk20[2]);
+    return false;
+}
+
+bool ftSamus::activeArticle2(wnSamusMissile* weapon, soModuleAccesser* acc) {
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
+    return true;
+}
+
+bool ftSamus::shootArticle2(wnSamusMissile* weapon, soModuleAccesser* acc) {
+    ftSamusExtendParamSpecialS* param = static_cast<ftSamusExtendParamSpecialS*>(g_ftCommonDataAccesser.getParamSamusSpecialS(static_cast<ftKind>(acc->getStageObject().soGetSubKind())));
+    weapon->toShoot(acc->getPostureModule().getLr(), param->unk0C);
+    return false;
+}
+
+bool ftSamus::activeArticle3(wnSamusSuperMissile* weapon, soModuleAccesser* acc) {
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
+    return true;
+}
+
+bool ftSamus::shootArticle3(wnSamusSuperMissile* weapon, soModuleAccesser* acc) {
+    ftSamusExtendParamSpecialS* param = static_cast<ftSamusExtendParamSpecialS*>(g_ftCommonDataAccesser.getParamSamusSpecialS(static_cast<ftKind>(acc->getStageObject().soGetSubKind())));
+    weapon->toShoot(acc->getPostureModule().getLr(), param->unk0C);
+    return false;
+}
+
+bool ftSamus::activeArticle4(wnSamusLaser* weapon, soModuleAccesser* acc) {
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
+    return true;
+}
+
+bool ftSamus::shootArticle4(wnSamusLaser* weapon, soModuleAccesser* acc) {
+    g_ftCommonDataAccesser.getParamSamusFinal(static_cast<ftKind>(acc->getStageObject().soGetSubKind()));
+    weapon->toShoot(acc->getPostureModule().getLr());
+    return true;
+}
+
+bool ftSamus::activeArticle5(wnSamusLaser2* weapon, soModuleAccesser* acc) {
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    float unkFloat = acc->getWorkManageModule().getFloat(0x21000004);
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), unkFloat);
+    return true;
+}
+
+bool ftSamus::shootArticle5(wnSamusLaser2* weapon, soModuleAccesser* acc) {
+    g_ftCommonDataAccesser.getParamSamusFinal(static_cast<ftKind>(acc->getStageObject().soGetSubKind()));
+    weapon->toShoot(acc->getPostureModule().getLr());
+    return true;
+}
+
+// The gun gets the model and the texture of the fighter.
+bool ftSamus::activeArticle6(wnSamusGun* weapon, soModuleAccesser* acc) {
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    int team = fighter.getOwner()->getTeam();
+    int texResId = resources.getResourceIdAccesser()->getTexResId();
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlResId(), texResId, 1, 0, team);
+    return true;
+}
+
+bool ftSamus::notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3) {
+    s8 group = acmd->getGroup();
+    if (!isObserv(group)) {
+        return false;
+    }
+    switch (acmd->getType()) {
+    case 5:
+        // HYPOTHESIS: command 5 switches to the other fighter of a Samus pair (the transformation).
+        if (static_cast<u8>(g_ftManager->getFighterCount(m_entryId)) > 1) {
+            int fighterNo = g_ftManager->getFighterNo(m_entryId, m_taskId);
+            g_ftManager->toChange(m_entryId, (u8)(static_cast<u8>(fighterNo) == 0), 1, 0);
+        }
+        return true;
+    }
+    return Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3);
+}
+
+// The events of the links with other stage objects. HYPOTHESIS: the event payload sits behind the two header words: a flag
+// word at +4, the value or position at +8.
+struct ftSamusLinkEventView {
+    int kind;
+    bool done;
+    int value;
+};
+
+void ftSamus::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) {
+    ftSamusLinkEventView* event = reinterpret_cast<ftSamusLinkEventView*>(eventInfo);
+    switch (stageObj->soGetSubKind()) {
+    case 0x54:
+        switch (event->kind) {
+        case 0x838:
+            switch (m_moduleAccesser->getStatusModule().getStatusKind()) {
+            case 0:
+            case 1:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 0xa:
+            case 0xb:
+            case 0xc:
+            case 0xd:
+            case 0xe:
+            case 0xf:
+            case 0x11:
+            case 0x12:
+            case 0x15:
+            case 0x16:
+            case 0x17:
+            case 0x18:
+            case 0x115:
+            case 0x11d:
+            case 0x11e: {
+                ftSamusExtendParamSpecialLw* param = static_cast<ftSamusExtendParamSpecialLw*>(g_ftCommonDataAccesser.getData(Fighter_Samus)->extendParam[2]);
+                Vec3f pos = moduleAccesser->getPostureModule().getPos();
+                Vec3f other = soExternalValueAccesser::getPos(stageObj);
+                float ratio = (pos.m_x - other.m_x) / param->unk48;
+                if (ratio >= 1.0f) {
+                    ratio = 1.0f;
+                }
+                if (ratio <= -1.0f) {
+                    ratio = -1.0f;
+                }
+                // HYPOTHESIS: the Bomb is launched at an angle around straight up that depends on the distance to the object.
+                float angle = 1.5707964f + -param->unk34 * ratio;
+                moduleAccesser->getWorkManageModule().setFloat(angle, ftSamusWork::SpecialLw_Angle);
+                m_moduleAccesser->getStatusModule().changeStatusRequest(ftSamusStatus::SpecialLw_Unk11F, m_moduleAccesser);
+                m_moduleAccesser->getControllerModule().setRumble(0, 10, false, -1);
+                event->done = true;
+                break;
+            }
+            }
+            return;
+        }
+    case 0x84:
+        switch (event->kind) {
+        case 0x838:
+            if (m_moduleAccesser->getLinkModule().isLinked(0) == true) {
+                StageObject* node = m_moduleAccesser->getLinkModule().getNode(0);
+                if (node != NULL) {
+                    Vec3f pos = soExternalValueAccesser::getPos(node);
+                    *reinterpret_cast<Vec3f*>(&event->value) = pos;
+                    event->done = true;
+                }
+            }
+            break;
+        case 0x839:
+            m_moduleAccesser->getStatusModule().changeStatusRequest(0x39, m_moduleAccesser);
+            return;
+        case 0x83a:
+            event->value = moduleAccesser->getModelModule().getCorrectNodeId(0x12e);
+            event->done = true;
+            return;
+        case 0x83b:
+            {
+                int* value = static_cast<int*>(soValueAccesser::getConstantIndefinite(moduleAccesser, 0xA80E, 0));
+                moduleAccesser->getWorkManageModule().setInt(*value, 0x20000001);
+            }
+            m_moduleAccesser->getStatusModule().changeStatusRequest(0x81, m_moduleAccesser);
+            if (moduleAccesser->getGenerateArticleManageModule().isExist(7) == true) {
+                moduleAccesser->getLinkModule().removeModelConstraint(false);
+                soLinkModule& link = moduleAccesser->getLinkModule();
+                link.setModelConstraintPosOrt(3, moduleAccesser->getModelModule().getCorrectNodeId(0x12e), event->value, 5, false);
+            }
+            return;
+        case 0x83c:
+            if (moduleAccesser->getGroundModule().isStCliff(0)) {
+                moduleAccesser->getStatusModule().changeStatusRequest(0x75, moduleAccesser);
+            } else {
+                moduleAccesser->getStatusModule().changeStatusRequest(0x7b, moduleAccesser);
+            }
+            return;
+        case 0x83e:
+            moduleAccesser->getStatusModule().changeStatusRequest(0x83, moduleAccesser);
+            return;
+        }
+        break;
+    }
+    Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4);
+}
+
+// The fighter that takes over (the transformation partner) is started with the work of this one.
+void ftSamus::change(void* work, int mode) {
+    reinterpret_cast<void (*)(ftSamus*, int)>((*reinterpret_cast<void***>(reinterpret_cast<u8*>(this) + 0x3c))[0x29c / 4])(this, mode);
+    Fighter::changeSucceedCore(work, 0x126);
+}
+
+// The grapple beam starts at the hand node; the three whip-like statuses 0x34, 0x36 and 0x38 use it as an attack.
+// HYPOTHESIS: the model constraint ties the beam to the hand node unless the status is 0x3c.
+bool ftSamus::activeArticle7(wnSamusGBeam* weapon, soModuleAccesser* acc) {
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    Vec3f pos = acc->getModelModule().getNodeGlobalPosition(0x2b, false);
+    float lr = acc->getPostureModule().getLr();
+    int attack = 0;
+    switch (acc->getStatusModule().getStatusKind()) {
+    case 0x34:
+    case 0x36:
+    case 0x38:
+        attack = 1;
+        break;
+    }
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    int team = fighter.getOwner()->getTeam();
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), team, lr, &pos, attack);
+    soLinkModule& link = acc->getLinkModule();
+    if (link.link(3, weapon->getTaskId()) == true) {
+        if (acc->getStatusModule().getStatusKind() != 0x3c) {
+            soLinkModule& linkAgain = acc->getLinkModule();
+            linkAgain.setModelConstraintPosOrt(3, acc->getModelModule().getCorrectNodeId(0x12c), 0x50, 0x11, false);
+        }
+    }
+    return true;
+}
+
+// HYPOTHESIS: the part of ftChangeSucceedWork the dummy fighter activation needs (only this call is recovered).
+struct ftChangeSucceedWork {
+    void activateDummyFighter(Vec3f* pos, Vec2f* speed, float* unk1, float* unk2, int flags, float scale, float lr);
+};
+
+// HYPOTHESIS: four (x, y) points of the collision shape of the dummy fighter that takes over the move.
+struct ftSamusChangeSucceedPoints {
+    float point[4][2];
+    ftSamusChangeSucceedPoints() __attribute__((never_inline));
+};
+
+void ftSamus::setupChangeSucceedWork(void* work) {
+    Fighter::setupChangeSucceedWork(work);
+    soModuleAccesser* acc = m_moduleAccesser;
+    ftSamusExtendParamFinal* param = static_cast<ftSamusExtendParamFinal*>(g_ftCommonDataAccesser.getData(Fighter_Samus)->extendParam[4]);
+    ftSamusChangeSucceedPoints hurt;
+    hurt.point[0][0] = 0.0f;
+    hurt.point[1][0] = soValueAccesser::getConstantFloat(acc, 0xbd6, 0);
+    hurt.point[2][0] = 0.0f;
+    hurt.point[3][0] = soValueAccesser::getConstantFloat(acc, 0xbd8, 0);
+    hurt.point[0][1] = -param->gravity;
+    hurt.point[1][1] = soValueAccesser::getConstantFloat(acc, 0xbd1, 0);
+    hurt.point[2][1] = param->fallSpeedMax;
+    hurt.point[3][1] = param->fallSpeedMax;
+    ftSamusChangeSucceedPoints hit;
+    hit.point[0][0] = 0.0f;
+    hit.point[1][0] = soValueAccesser::getConstantFloat(acc, 0xbbc, 0);
+    hit.point[2][0] = 0.0f;
+    hit.point[3][0] = -1.0f;
+    hit.point[0][1] = 0.0f;
+    hit.point[1][1] = 0.0f;
+    hit.point[2][1] = 0.0f;
+    hit.point[3][1] = 0.0f;
+    int flags = 0;
+    if (acc->getStatusModule().getStatusKind() != 0x10b) {
+        flags = 0x84;
+    }
+    Vec2f* speed = &acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(0xFFFF));
+    soPostureModule& posture = acc->getPostureModule();
+    static_cast<ftChangeSucceedWork*>(work)->activateDummyFighter(&posture.getPos(), speed, &hit.point[0][0], &hurt.point[0][0], flags, posture.getScale(), posture.getLr());
+}
+
+ftSamusChangeSucceedPoints::ftSamusChangeSucceedPoints() { }
+
+ftSamus::~ftSamus() { }
 
 // ---- the article mediator -------------------------------------------------------------------------------------------
 // Slots: 0 CShot, 1 Bomb, 2 Missile, 3 Laser, 4 Laser2, 5 Gun, 6 SuperMissile, 7 GBeam (the rest are unused).
@@ -587,16 +903,6 @@ u8* fn_94_E760(u8* self, int index) {
 
 }
 
-extern "C" {
-
-// HYPOTHESIS: the first call dispatches through the vtable stored at +0x3C with the value as its argument.
-void fn_94_A3D8(ftSamus* self, void* data, int value) {
-    reinterpret_cast<void (*)(ftSamus*, int)>((*reinterpret_cast<void***>(reinterpret_cast<u8*>(self) + 0x3c))[0x29c / 4])(self, value);
-    self->Fighter::changeSucceedCore(data, 0x126);
-}
-
-}
-
 // soGeneralWorkSimple accessors and updaters (shared inline helpers) under their placeholder names.
 extern "C" {
 
@@ -645,7 +951,6 @@ u8 fn_94_6CF8(u8* p) { return *(u8*)(p + 0x4); }
 int fn_94_A630(u8* p) { return *(int*)(p + 0x28); }
 void fn_94_AAA8() {}
 void fn_94_AAAC() {}
-int fn_94_AAB0() { return 32683; }
 void fn_94_AAB8() {}
 int fn_94_AE9C(u8* p) { return *(int*)(p + 0x20); }
 int fn_94_AF78(u8* p) { return *(int*)(p + 0x18); }

@@ -8,8 +8,6 @@
 #include <so/so_module_accesser.h>
 #include <types.h>
 
-extern "C" void fn_27_12D7F0(Fighter* fighter);
-
 static float absValue(float value) __attribute__((never_inline));
 
 // Zero Laser (final smash).
@@ -23,7 +21,7 @@ void ftSamusStatusUniqProcessFinal::initStatus(soModuleAccesser* moduleAccesser)
         if (!work.isFlag(ftSamusWork::Final_Started)) {
             Fighter* fighter = dynamic_cast<Fighter*>(&moduleAccesser->getStageObject());
             if (fighter) {
-                fn_27_12D7F0(fighter);
+                fighter->startFinal();
             }
             work.onFlag(ftSamusWork::Final_Started);
             moduleAccesser->getSituationModule().getKind();

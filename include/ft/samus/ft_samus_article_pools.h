@@ -25,6 +25,9 @@ class wnSamusCShot : public Weapon {
 public:
     wnSamusCShot(s32 articleId, const wnArticleBuildInfo& info, const wnSamusCShotData* data);
     virtual ~wnSamusCShot();
+    void activate(int founderTaskId, int etcResourceId, int team, int kind);
+    void setCharge(float ratio);
+    void toShoot(int charge, float lr);
 };
 static_assert(sizeof(wnSamusCShot) == 0x1828, "wnSamusCShot layout is wrong!");
 
@@ -35,6 +38,7 @@ public:
     wnSamusBomb(s32 articleId, const wnArticleBuildInfo& info, const wnSamusBombData* data);
     virtual ~wnSamusBomb();
     void activate(int founderTaskId, int etcResourceId, int team);
+    void toShoot(float lr, float x, float y, float z);
 };
 static_assert(sizeof(wnSamusBomb) == 0x1A98, "wnSamusBomb layout is wrong!");
 
@@ -45,6 +49,7 @@ public:
     wnSamusMissile(s32 articleId, const wnArticleBuildInfo& info, const wnSamusMissileData* data);
     virtual ~wnSamusMissile();
     void activate(int founderTaskId, int etcResourceId, int team);
+    void toShoot(float lr, float speed);
 };
 static_assert(sizeof(wnSamusMissile) == 0x1924, "wnSamusMissile layout is wrong!");
 
@@ -55,6 +60,7 @@ public:
     wnSamusLaser(s32 articleId, const wnArticleBuildInfo& info, const wnSamusLaserData* data);
     virtual ~wnSamusLaser();
     void activate(int founderTaskId, int etcResourceId, int team);
+    void toShoot(float lr);
 };
 static_assert(sizeof(wnSamusLaser) == 0x18F4, "wnSamusLaser layout is wrong!");
 
@@ -65,6 +71,7 @@ public:
     wnSamusLaser2(s32 articleId, const wnArticleBuildInfo& info, const wnSamusLaser2Data* data);
     virtual ~wnSamusLaser2();
     void activate(int founderTaskId, int etcResourceId, int team, float unkFloat);
+    void toShoot(float lr);
 };
 static_assert(sizeof(wnSamusLaser2) == 0x17C8, "wnSamusLaser2 layout is wrong!");
 
@@ -74,6 +81,7 @@ class wnSamusGun : public Weapon {
 public:
     wnSamusGun(s32 articleId, const wnArticleBuildInfo& info, const wnSamusGunData* data);
     virtual ~wnSamusGun();
+    void activate(int founderTaskId, int unk1, int unk2, int unk3, int unk4, int team);
 };
 static_assert(sizeof(wnSamusGun) == 0x1834, "wnSamusGun layout is wrong!");
 
@@ -84,6 +92,7 @@ public:
     wnSamusSuperMissile(s32 articleId, const wnArticleBuildInfo& info, const wnSamusSuperMissileData* data);
     virtual ~wnSamusSuperMissile();
     void activate(int founderTaskId, int etcResourceId, int team);
+    void toShoot(float lr, float speed);
 };
 static_assert(sizeof(wnSamusSuperMissile) == 0x1924, "wnSamusSuperMissile layout is wrong!");
 
@@ -93,6 +102,7 @@ class wnSamusGBeam : public Weapon {
 public:
     wnSamusGBeam(s32 articleId, const wnArticleBuildInfo& info, const wnSamusGBeamData* data);
     virtual ~wnSamusGBeam();
+    void activate(int founderTaskId, int etcResourceId, int team, float lr, Vec3f* pos, int unk);
 };
 static_assert(sizeof(wnSamusGBeam) == 0x178C, "wnSamusGBeam layout is wrong!");
 
