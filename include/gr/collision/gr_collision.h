@@ -47,6 +47,10 @@ public:
 
     void setEnable();
     void setDisable();
+    // Local shadow additions (names from the symbol map; HYPOTHESIS signatures).
+    void initWorkVtxPos(u16 index, Vec2f* pos);
+    void setWorkVtxPos(u16 index, Vec2f* pos);
+
     grCollisionJoint* getJoint(u16 nodeIndex);
     grCollisionLine* getLine(u16 index);
     void getSegment(clSegment2D* outSegment, grCollisionLine* line);

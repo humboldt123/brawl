@@ -5095,6 +5095,8 @@ config.libs = [
             Object(NonMatching, "mo_melee/sora_melee/so/controller/so_controller_module_impl.cpp"),
             Object(Matching, "mo_melee/sora_melee/so/so_controller_module_link_ref.cpp"),
             Object(Matching, "mo_melee/sora_melee/so/controller/so_controller_impl.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/so/ground/so_ground_module_impl.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/so/ground/so_ground_shape_impl.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/so/damage/so_damage_module_impl.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/so/damage/so_damage_transactor_actor.cpp"),
             Object(Matching, "mo_melee/sora_melee/so/so_heap_module_impl.cpp"),

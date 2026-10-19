@@ -128,6 +128,12 @@ mo_melee/sora_melee/so/anim/so_anim_chr.cpp:
 	.text       start:0x0001F2D0 end:0x0001F980
 	.rodata     start:0x00000360 end:0x00000370
 
+mo_melee/sora_melee/so/ground/so_ground_module_impl.cpp:
+	.text       start:0x0002556C end:0x0002E818
+
+mo_melee/sora_melee/so/ground/so_ground_shape_impl.cpp:
+	.text       start:0x0002E818 end:0x00030328
+
 mo_melee/sora_melee/so/so_vtable_dt_vec_8clTarget_6_41988.cpp:
 	.text       start:0x00041988 end:0x000419F0
 
