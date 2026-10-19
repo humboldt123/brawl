@@ -1,9 +1,20 @@
 #include <ai/ai_stat.h>
 #include <math.h>
+#include <gf/gf_memory_util.h>
 #include <mt/mt_common.h>
 
 template<class T> static inline T aiMgrField(aiMgr* mgr, int offset) {
     return *(T*)((u8*)mgr + offset);
+}
+
+static inline float aiLengthOf(float lengthSq) {
+    float length;
+    if ((float)fabs(lengthSq) <= 1.17549435e-38f) {
+        length = 0.0f;
+    } else {
+        length = lengthSq * rsqrtf(lengthSq);
+    }
+    return length;
 }
 
 // aiStat: the CPU AI's per-character state snapshot and helper queries.
@@ -66,7 +77,7 @@ void aiStat::change(int chrIdx, int chrKind, int input, u8 unk) {
         m_chrKind = chrKind;
         m_input = input;
     }
-    unk1[0] = unk;
+    m_unk1 = unk;
 }
 
 int aiStat::chk_over_ground1(aiChrIdx* target) {
@@ -108,23 +119,23 @@ Vec2f aiStat::getNearFloorEdge() {
 }
 
 float aiStat::calcArraiveFrameX(float target) {
-    return calc_arraive_f(target - m_pos.m_x, m_speedX, m_accelX);
+    return calc_arraive_f(target - m_pos.m_x, m_speed.m_x, m_accel.m_x);
 }
 
 float aiStat::calcArraiveFrameY(float target) {
-    return calc_arraive_f(target - m_pos.m_y, m_speedY, m_accelY);
+    return calc_arraive_f(target - m_pos.m_y, m_speed.m_y, m_accel.m_y);
 }
 
 float aiStat::calcArraivePosX(float frame) {
-    float speed = m_speedX;
-    float accel = m_accelX;
+    float speed = m_speed.m_x;
+    float accel = m_accel.m_x;
     float h = 0.5f + frame;
     return m_pos.m_x + (speed * frame + (0.5f * (h * (accel * h)) - 0.125f * accel));
 }
 
 float aiStat::calcArraivePosY(float frame) {
-    float speed = m_speedY;
-    float accel = m_accelY;
+    float speed = m_speed.m_y;
+    float accel = m_accel.m_y;
     float h = 0.5f + frame;
     return m_pos.m_y + (speed * frame + (0.5f * (h * (accel * h)) - 0.125f * accel));
 }
@@ -151,4 +162,190 @@ float calc_arraive_f(float dist, float vel, float acc) {
     float h = 0.5f + t;
     float r = mtSqrtf(__fabsf((0.125f * acc + (dist - (vel * t + (0.5f * (h * (acc * h)) - 0.125f * acc)))) / (0.5f * acc)));
     return (r - 0.5f) + t;
+}
+
+void aiStat::init(int chrIdx, int chrKind, int input, u8 unk) {
+    gfMemFill(this, 0, sizeof(aiStat));
+    if (chrIdx < 0 || chrKind == -1 || input == 0) {
+        m_chrIdx.m_idx = -1;
+        m_chrKind = -1;
+        m_input = 0;
+    } else {
+        m_chrIdx.m_idx = chrIdx;
+        m_chrKind = chrKind;
+        m_input = input;
+    }
+    m_unkB0 = -1;
+    m_unk1 = unk;
+    m_flags = 0x8000;
+    m_transition = 0;
+    m_unkD8 = -1;
+    m_unkE0 = 0;
+    m_enableAway = -1;
+    m_unk1B9 = 0;
+    m_unk1BB = 0;
+    m_unkAA = 0;
+    m_unk2 = 0;
+    m_unk8 = 0;
+    m_chrStat = 0;
+    m_center = Vec3f(0.0f, 0.0f, 0.0f);
+    m_pos.m_x = 0.0f;
+    m_pos.m_y = 0.0f;
+    m_pos.m_z = 0.0f;
+    m_scale = Vec3f(1.0f, 1.0f, 1.0f);
+    m_accel = Vec2f(0.0f, 0.0f);
+    m_speed = Vec2f(0.0f, 0.0f);
+    m_unk98.m_x = 0.0f;
+    m_unk98.m_y = 0.0f;
+    m_unk90.m_x = 0.0f;
+    m_unk90.m_y = 0.0f;
+    m_lr = 1.0f;
+    m_unkA4 = 0.0f;
+    m_unkA8 = 0;
+    m_unkB8 = 0;
+    m_unkB4 = 0;
+    m_floor = (aiFloorInfo*)((u8*)g_aiMgr + 0xAC);
+    m_unkC4 = 0.0f;
+    m_unkCC = -1;
+    m_team = -1;
+    m_unkD0 = 0;
+    m_unkD4 = 0;
+    m_unkDC = 0.0f;
+    m_unk4 = 0;
+    m_unk1BD = 0;
+    m_unk1BC = 0;
+}
+
+void aiStat::get_tgt_vector(float scale, Vec3f* out, aiChrIdx* target) {
+    aiStat* stat = aiMgr::get_aiStat(target);
+    if (m_chrIdx.m_idx == target->m_idx) {
+        *out = Vec3f(9999.9f, 0.0f, 0.0f);
+    } else {
+        Vec2f relSpeed = stat->m_speed - m_speed;
+        Vec3f diff = stat->m_center - m_center;
+        float speed = relSpeed.length();
+        if (speed >= 0.0001f) {
+            float dist = aiLengthOf(diff.m_z * diff.m_z + (diff.m_x * diff.m_x + diff.m_y * diff.m_y));
+            float time = dist / speed;
+            if (time < scale) {
+                scale = scale * 0.1f + time * 0.9f;
+            }
+            Vec3f hit;
+            hit.m_x = stat->m_center.m_x + scale * (stat->m_speed.m_x - m_speed.m_x);
+            hit.m_y = stat->m_center.m_y + scale * (stat->m_speed.m_y - m_speed.m_y);
+            hit.m_z = stat->m_center.m_z;
+            *out = hit;
+            *out -= m_center;
+        } else {
+            *out = diff;
+        }
+    }
+}
+
+float aiStat::get_range(float scale, aiChrIdx* target) {
+    aiStat* stat = aiMgr::get_aiStat(target);
+    float range;
+    if (scale <= 0.001f) {
+        range = m_lr * (stat->m_pos.m_x - m_pos.m_x);
+    } else {
+        Vec3f vec;
+        get_tgt_vector(scale, &vec, target);
+        range = vec.m_x * m_lr;
+    }
+    if (range >= 0.0f) {
+        if (m_input != 0) {
+            float targetWidth = aiParam::get_width(target);
+            float selfWidth = aiParam::get_width(&m_chrIdx);
+            range = range - (selfWidth + targetWidth);
+        }
+        if (range < 0.0001f) {
+            range = 0.0001f;
+        }
+    } else {
+        if (m_input != 0) {
+            float targetWidth = aiParam::get_width(target);
+            float selfWidth = aiParam::get_width(&m_chrIdx);
+            range = range + (selfWidth + targetWidth);
+        }
+        if (range > -0.0001f) {
+            range = -0.0001f;
+        }
+    }
+    return range;
+}
+
+float aiStat::get_distance(float scale, aiChrIdx* target) {
+    aiStat* stat = aiMgr::get_aiStat(target);
+    Vec3f vec;
+    if (scale <= 0.001f) {
+        vec = stat->m_center - m_center;
+    } else {
+        get_tgt_vector(scale, &vec, target);
+    }
+    float dist = aiLengthOf(vec.m_z * vec.m_z + (vec.m_x * vec.m_x + vec.m_y * vec.m_y));
+    float targetWidth = aiParam::get_width(target);
+    float selfWidth = aiParam::get_width(&m_chrIdx);
+    dist = dist - (selfWidth + targetWidth);
+    if (dist < 0.0001f) {
+        dist = 0.0001f;
+    }
+    return dist;
+}
+
+float aiStat::get_range_floor(float scale, Vec3f* pos) {
+    aiFloorInfo* floor = m_floor;
+    Vec2f edgeL = floor->m_edgeL;
+    Vec2f edgeR = floor->m_edgeR;
+    float sign = 1.0f;
+    float range;
+    if (m_unkC0 == 2) {
+        float x = pos->m_x;
+        if (x < edgeL.m_x) {
+            sign = -1.0f;
+            range = __fabsf(x - edgeL.m_x);
+        } else if (x > edgeR.m_x) {
+            sign = -1.0f;
+            range = __fabsf(x - edgeR.m_x);
+        } else {
+            float toLeft = __fabsf(x - edgeL.m_x);
+            float toRight = __fabsf(x - edgeR.m_x);
+            if (toLeft < toRight) {
+                toLeft = -toLeft;
+            } else {
+                toLeft = toRight;
+            }
+            range = __fabsf(toLeft * scale);
+        }
+    } else {
+        if (scale > 0.0f) {
+            range = scale * (edgeR.m_x - pos->m_x);
+        } else {
+            range = scale * (edgeL.m_x - pos->m_x);
+        }
+    }
+    float width = aiParam::get_width(&m_chrIdx);
+    range = range - width;
+    if (range < 0.001f) {
+        range = 0.001f;
+    }
+    return range * sign;
+}
+
+bool aiStat::chkDangerZoneAway() {
+    aiFloorInfo* floor = m_floor;
+    if (m_unkC0 == 0) {
+        bool danger = false;
+        if ((floor->m_flags & 0x1000) != 0 || chk_fl_danger(floor, m_team)) {
+            danger = true;
+        }
+        if (danger) {
+            return true;
+        }
+    }
+    if (chk_stat_gr_free() || chk_stat_air_free()) {
+        if (chk_fl_danger(m_floor, m_team) && aiMgr::chkDangerZone((Vec2f*)&m_center, m_team, 0)) {
+            return true;
+        }
+    }
+    return false;
 }
