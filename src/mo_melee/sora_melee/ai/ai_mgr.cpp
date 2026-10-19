@@ -1,3 +1,4 @@
+#include <ai/ai_cl_block.h>
 #include <ai/ai_enemy.h>
 #include <ai/ai_input.h>
 #include <ai/ai_mgr.h>
@@ -423,6 +424,175 @@ void* aiMgr::searchAtkData(int ftKind, u32 id) {
     tag_AI_ATK_DATA_HED* hed = aiFindAtkDataHed(this, m_aiInput, ftKind);
     if (hed != NULL) {
         return hed->searchAtkData(id);
+    }
+    return NULL;
+}
+
+bool AiClBlock::chk_fl_danger(int team) {
+    if ((m_flags & 0x800) != 0) {
+        if (team < 0 || team >= 8 || (m_teamMask & (1 << team)) != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+AiClBlock* aiMgr::get_top_block(int team) {
+    int count = aiMgrField<u16>(this, 0x350);
+    AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
+    float best = -99999.9f;
+    AiClBlock* result = NULL;
+    for (int i = 0; i < count; i++, block++) {
+        u32 flags = block->m_flags;
+        float value = block->m_top;
+        if ((flags & 2) != 0 && !(value > 100.0f)) {
+            if ((flags & 0x10000) != 0) {
+                value -= 10000000.0f;
+            } else if ((flags & 0x1000) != 0) {
+                value -= 100000.0f;
+            } else {
+                bool danger;
+                if ((flags & 0x800) == 0 || (team >= 0 && team < 8 && (block->m_teamMask & (1 << team)) == 0)) {
+                    danger = false;
+                } else {
+                    danger = true;
+                }
+                if (danger) {
+                    value -= 1000.0f;
+                }
+            }
+            if (best < value) {
+                best = value;
+                result = block;
+            }
+        }
+    }
+    return result;
+}
+
+AiClBlock* aiMgr::get_right_block(int team) {
+    int count = aiMgrField<u16>(this, 0x350);
+    AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
+    float best = -99999.9f;
+    AiClBlock* result = NULL;
+    for (int i = 0; i < count; i++, block++) {
+        u32 flags = block->m_flags;
+        float value = block->m_edgeL.m_x;
+        if ((flags & 2) != 0 && !(value > 100.0f)) {
+            if ((flags & 0x10000) != 0) {
+                value -= 10000000.0f;
+            } else if ((flags & 0x1000) != 0) {
+                value -= 100000.0f;
+            } else {
+                bool danger;
+                if ((flags & 0x800) == 0 || (team >= 0 && team < 8 && (block->m_teamMask & (1 << team)) == 0)) {
+                    danger = false;
+                } else {
+                    danger = true;
+                }
+                if (danger) {
+                    value -= 1000.0f;
+                }
+            }
+            if (best < value) {
+                best = value;
+                result = block;
+            }
+        }
+    }
+    return result;
+}
+
+AiClBlock* aiMgr::get_center_block(int team) {
+    AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
+    AiClBlock* result = NULL;
+    float best = 9999979520.0f;
+    int count = aiMgrField<u16>(this, 0x350);
+    for (int i = 0; i < count; i++, block++) {
+        u32 flags = block->m_flags;
+        if ((flags & 2) != 0) {
+            Vec2f center = (block->m_edgeL + block->m_edgeR) * 0.5f;
+            float centerY = center.m_y - 20.0f;
+            float score = center.m_x * center.m_x + centerY * centerY;
+            if (block->m_edgeL.m_x > 0.0f || block->m_edgeR.m_x < 0.0f) {
+                score += 100.0f;
+            }
+            if (block->m_top < aiMgrField<float>(this, 0x36C) + 40.0f
+                || aiMgrField<float>(this, 0x368) - 40.0f < block->m_bottom) {
+                score += 10000.0f;
+            }
+            if ((flags & 0x10000) != 0) {
+                score += 10000000.0f;
+            } else if ((flags & 0x1000) != 0) {
+                score += 100000.0f;
+            } else {
+                bool danger;
+                if ((flags & 0x800) == 0 || (team >= 0 && team < 8 && (block->m_teamMask & (1 << team)) == 0)) {
+                    danger = false;
+                } else {
+                    danger = true;
+                }
+                if (danger) {
+                    score += 1000.0f;
+                }
+            }
+            if (best > score) {
+                best = score;
+                result = block;
+            }
+        }
+    }
+    return result;
+}
+
+bool aiMgr::chkUnderFloor(float slope, Vec2f* pos) {
+    int count = aiMgrField<u16>(this, 0x350);
+    AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
+    for (int i = 0; i < count; i++, block++) {
+        if ((block->m_flags & 2) != 0 && !(block->m_top > pos->m_y)) {
+            if (block->m_edgeL.m_x > pos->m_x) {
+                if (slope > 0.01f) {
+                    if (pos->m_y - block->m_edgeL.m_y > (block->m_edgeL.m_x - pos->m_x) / slope) {
+                        return true;
+                    }
+                } else if (pos->m_y > block->m_edgeL.m_y) {
+                    return true;
+                }
+            } else {
+                if (block->m_edgeR.m_x >= pos->m_x) {
+                    return true;
+                }
+                if (slope > 0.01f) {
+                    if (pos->m_y - block->m_edgeR.m_y > (pos->m_x - block->m_edgeR.m_x) / slope) {
+                        return true;
+                    }
+                } else if (pos->m_y > block->m_edgeR.m_y) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+AiClBlock* aiMgr::search_blk1(u32* key) {
+    if (key[0] != 0) {
+        AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
+        for (int count = aiMgrField<u16>(this, 0x350); count > 0; count--) {
+            bool match;
+            if (block->m_joint == NULL) {
+                match = false;
+            } else {
+                match = false;
+                if (key[1] == (u32)block->m_unk48 && key[0] == *(u32*)((u8*)block->m_joint + 0x1C)) {
+                    match = true;
+                }
+            }
+            if (match == true) {
+                return block;
+            }
+            block++;
+        }
     }
     return NULL;
 }

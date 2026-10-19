@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ai/ai_cl_block.h>
 #include <ai/ai_mgr.h>
 #include <mt/mt_vector.h>
 #include <types.h>
@@ -35,7 +36,7 @@ public:
     int m_unkB0;
     int m_unkB4;
     int m_unkB8;
-    struct aiFloorInfo* m_floor; // 0xBC
+    AiClBlock* m_floor;      // 0xBC
     u8 m_unkC0;              // 0xC0
     char unkC1[3];
     float m_unkC4;
@@ -80,14 +81,4 @@ public:
 };
 static_assert(sizeof(aiStat) == 0x1C4, "Class is wrong size!");
 
-// A floor segment the AI can stand on (HYPOTHESIS layout: +0x40 flag word).
-struct aiFloorInfo {
-    char unk0[0x18];
-    Vec2f m_edgeL;  // 0x18
-    Vec2f m_edgeR;  // 0x20
-    char unk28[0x18];
-    u32 m_flags;
-};
-
-bool chk_fl_danger(aiFloorInfo* floor, int team);
 float calc_arraive_f(float dist, float vel, float acc);

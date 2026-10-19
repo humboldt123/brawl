@@ -112,7 +112,7 @@ float aiStat::get_lr_tgt(aiChrIdx* target) {
 }
 
 Vec2f aiStat::getNearFloorEdge() {
-    aiFloorInfo* floor = m_floor;
+    AiClBlock* floor = m_floor;
     if (m_pos.m_x < 0.5f * (floor->m_edgeL.m_x + floor->m_edgeR.m_x)) {
         return floor->m_edgeL;
     }
@@ -205,7 +205,7 @@ void aiStat::init(int chrIdx, int chrKind, aiInput* input, int unk) {
     m_unkA8 = 0;
     m_unkB8 = 0;
     m_unkB4 = 0;
-    m_floor = (aiFloorInfo*)((u8*)g_aiMgr + 0xAC);
+    m_floor = (AiClBlock*)((u8*)g_aiMgr + 0xAC);
     m_unkC4 = 0.0f;
     m_unkCC = -1;
     m_team = -1;
@@ -294,7 +294,7 @@ float aiStat::get_distance(float scale, aiChrIdx* target) {
 }
 
 float aiStat::get_range_floor(float scale, Vec3f* pos) {
-    aiFloorInfo* floor = m_floor;
+    AiClBlock* floor = m_floor;
     Vec2f edgeL = floor->m_edgeL;
     Vec2f edgeR = floor->m_edgeR;
     float sign = 1.0f;
@@ -333,10 +333,10 @@ float aiStat::get_range_floor(float scale, Vec3f* pos) {
 }
 
 bool aiStat::chkDangerZoneAway() {
-    aiFloorInfo* floor = m_floor;
+    AiClBlock* floor = m_floor;
     if (m_unkC0 == 0) {
         bool danger = false;
-        if ((floor->m_flags & 0x1000) != 0 || chk_fl_danger(floor, m_team)) {
+        if ((floor->m_flags & 0x1000) != 0 || floor->chk_fl_danger(m_team)) {
             danger = true;
         }
         if (danger) {
@@ -344,7 +344,7 @@ bool aiStat::chkDangerZoneAway() {
         }
     }
     if (chk_stat_gr_free() || chk_stat_air_free()) {
-        if (chk_fl_danger(m_floor, m_team) && aiMgr::chkDangerZone((Vec2f*)&m_center, m_team, 0)) {
+        if (m_floor->chk_fl_danger(m_team) && aiMgr::chkDangerZone((Vec2f*)&m_center, m_team, 0)) {
             return true;
         }
     }

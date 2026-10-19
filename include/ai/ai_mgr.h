@@ -10,6 +10,7 @@
 
 class aiInput;
 class aiStat;
+struct AiClBlock;
 class aiWeaponMgr;
 class aiEnemyMgr;
 class IpHuman;
@@ -63,6 +64,12 @@ public:
     void removeTgtRefer(int player, int unk);
 
     void* searchAtkData(int ftKind, u32 id);
+
+    AiClBlock* get_top_block(int team);
+    AiClBlock* get_right_block(int team);
+    AiClBlock* get_center_block(int team);
+    bool chkUnderFloor(float slope, Vec2f* pos);
+    AiClBlock* search_blk1(u32* key);
 
     static bool isReady();
     static bool isReadyUpdate();
