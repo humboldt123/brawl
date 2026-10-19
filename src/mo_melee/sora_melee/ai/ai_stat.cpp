@@ -1,3 +1,4 @@
+#include <ai/ai_enemy.h>
 #include <ai/ai_param.h>
 #include <ai/ai_stat.h>
 #include <math.h>
@@ -349,4 +350,24 @@ bool aiStat::chkDangerZoneAway() {
         }
     }
     return false;
+}
+
+void aiStat::update_enemy(aiEnemy* enemy, aiChrIdx* chrIdx) {
+    init(-1, -1, NULL, 0);
+    m_chrIdx = *chrIdx;
+    m_flags = 0x80000004;
+    if ((enemy->m_flags & 2) == 0) {
+        m_flags |= 1;
+    }
+    m_unkB4 = enemy->m_status;
+    m_center.m_x = enemy->m_pos.m_x;
+    m_center.m_y = enemy->m_pos.m_y;
+    m_center.m_z = enemy->m_pos.m_z;
+    m_pos.m_x = m_center.m_x;
+    m_pos.m_y = m_center.m_y;
+    m_pos.m_z = m_center.m_z;
+    m_speed.m_x = enemy->m_move.m_x;
+    m_speed.m_y = enemy->m_move.m_y;
+    m_lr = enemy->m_lr;
+    set_floor_info(0);
 }

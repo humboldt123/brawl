@@ -76,6 +76,9 @@ public:
     static bool isSmallMap();
     static char* getMadeinAiData(bool force);
     static aiStat* get_aiStat(aiChrIdx* idx);
+    aiStat* get_aiStatFinal();
+    void removePlayer(aiChrIdx* idx);
+    static void setAdventureMd(u32 md);
 
     int getCpuType(int player);
     int getCpuRank(int player);

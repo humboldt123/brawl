@@ -7,6 +7,8 @@
 
 // One CPU character's view of the match (position, speed, floor, transition flags); 0x1C4 bytes, one per aiChrIdx.
 // HYPOTHESIS: only the offsets used so far are named, the rest is still unknown.
+class aiEnemy;
+
 class aiStat {
 public:
     aiChrIdx m_chrIdx;       // 0x00: -1 = unused
@@ -68,6 +70,8 @@ public:
     float get_lr_tgt(aiChrIdx* target);
     void init(int chrIdx, int chrKind, aiInput* input, int unk);
     void change(int chrIdx, int chrKind, aiInput* input, int unk);
+    void update_enemy(aiEnemy* enemy, aiChrIdx* chrIdx);
+    void set_floor_info(int unk);
     void get_tgt_vector(float scale, Vec3f* out, aiChrIdx* target);
     float get_range(float scale, aiChrIdx* target);
     float get_distance(float scale, aiChrIdx* target);

@@ -295,6 +295,34 @@ bool aiMgr::chkDangerZone(Vec2f* pos, int team, u8 attr) {
     return false;
 }
 
+static inline bool aiIndexValid(s8 index) {
+    bool valid = false;
+    if (index >= 0 && index < 14) {
+        valid = true;
+    }
+    return valid;
+}
+
+aiStat* aiMgr::get_aiStat(aiChrIdx* idx) {
+    aiStat* stat;
+    s8 index = idx->m_idx;
+    if (index >= 0) {
+        if (aiIndexValid(index)) {
+            stat = &aiMgrField<aiStat*>(g_aiMgr, 0xF8)[index];
+        } else {
+            aiEnemy* enemy = aiMgrField<aiEnemyMgr*>(g_aiMgr, 0x100)->getEnemy(index - 14);
+            stat = &aiMgrField<aiStat*>(g_aiMgr, 0xF8)[14];
+            if (aiMgrField<s8>(g_aiMgr, 0xA4) != idx->m_idx - 14 && enemy != NULL) {
+                stat->update_enemy(enemy, idx);
+                aiMgrField<s8>(g_aiMgr, 0xA4) = idx->m_idx - 14;
+            }
+        }
+    } else {
+        stat = &aiMgrField<aiStat*>(g_aiMgr, 0xF8)[14];
+    }
+    return stat;
+}
+
 void aiMgr::setEnable(int enable) {
     aiMgrField<s8>(g_aiMgr, 0xA0) = enable;
     if (enable == 0) {
@@ -595,4 +623,50 @@ AiClBlock* aiMgr::search_blk1(u32* key) {
         }
     }
     return NULL;
+}
+
+aiStat* aiMgr::get_aiStatFinal() {
+    int i = 0;
+    do {
+        aiChrIdx idx;
+        idx.m_idx = i;
+        aiStat* stat = get_aiStat(&idx);
+        if ((stat->m_flags & 0x8000) == 0) {
+            if ((stat->m_flags & 0xC00) != 0) {
+                return stat;
+            }
+            if (stat->chk_chr_stat(2, 0x12)) {
+                return stat;
+            }
+        }
+        i++;
+    } while (i < 7);
+    return NULL;
+}
+
+void aiMgr::removePlayer(aiChrIdx* idx) {
+    if (aiChrIdx::IsValid(idx)) {
+        removeTgtRefer(aiChrIdx::GetPlayerNo(idx), 0);
+        aiMgrArray<s8>(this, 0x84, idx->m_idx) = -1;
+        aiInput* input = m_aiInput[idx->m_idx];
+        if (input != NULL) {
+            input->setEnableRumble(false);
+        }
+        m_aiInput[idx->m_idx] = NULL;
+        get_aiStat(idx)->init(idx->m_idx, -1, NULL, 0);
+    }
+}
+
+void aiMgr::setAdventureMd(u32 md) {
+    u32 current = aiMgrField<u8>(g_aiMgr, 0xA1);
+    if (current == md) {
+        return;
+    }
+    aiMgrField<u8>(g_aiMgr, 0xA1) = md;
+    for (int i = 0; i < 14; i++) {
+        aiInput* input = g_aiMgr->m_aiInput[i];
+        if (input != NULL) {
+            input->m_unk112 = aiMgrField<u8>(g_aiMgr, 0xA1);
+        }
+    }
 }
