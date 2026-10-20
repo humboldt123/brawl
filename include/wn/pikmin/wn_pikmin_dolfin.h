@@ -102,24 +102,8 @@ struct wnPikminDolfinModuleAccesserBuildConfig : wnCommonBuildConfig {
         StatusModuleBuildConfig;
     typedef wnAnimCmdModuleSubBuildConfigDefault<1, 5, 0, 0, 1, 8, 0, 0, 1, 8, 0, 0, 1, 8, 0, 0> AnimCmdModuleSubBuildConfig;
 };
-// The builder of this article carries no appended common energies: its only energy is the normal one of the kinetic mediator.
-template <>
-class wnWeaponBuilder<wnPikminDolfinModuleAccesserBuildConfig> : public Weapon {
-protected:
-    wnModuleAccesserBuilder<wnPikminDolfinModuleAccesserBuildConfig> m_modules; // +0xCC
-    // HYPOTHESIS: the native module storage ends one word later than the generic builder (padding of its last animation command
-    // unit); the word is kept here.
-    u32 unk23C0;
-public:
-    wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd) :
-        Weapon(name, bd.m_kind, bd.m_data, articleId, &info, this->m_modules.getModuleAccesser(), true), m_modules(this, bd) {
-        Weapon::initialize();
-    }
-    virtual ~wnWeaponBuilder() { }
-    virtual void deactivateDescendantForce() {
-        soSingletonHolder<soArticleMediatorNull>::getInstance()->deactivate();
-    }
-};
+// The builder of this article carries no appended common energies (WN_WEAPON_NO_COMMON_ENERGIES in the unit): its only energy is
+// the normal one of the kinetic mediator.
 static_assert(sizeof(wnWeaponBuilder<wnPikminDolfinModuleAccesserBuildConfig>) == 0x23C4, "Dolfin builder extent");
 
 class wnPikminDolfin : public wnWeaponBuilder<wnPikminDolfinModuleAccesserBuildConfig> {

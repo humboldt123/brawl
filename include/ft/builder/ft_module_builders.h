@@ -177,7 +177,7 @@ class soShakeModuleBuilder : public soArraySelectHolder<1, soArrayVector<soShake
     typename BC::ModuleType m_shakeModule;
 public:
     soShakeModuleBuilder(soModuleAccesser* acc, void* shakeData) :
-        soArraySelectHolder<1, soArrayVector<soShakeTerm, BC::TermCapacity>, soArrayNull<soShakeTerm> >(4, 0), m_shakeModule(acc, this->get(), shakeData) { }
+        soArraySelectHolder<1, soArrayVector<soShakeTerm, BC::TermCapacity>, soArrayNull<soShakeTerm> >(BC::TermCapacity, 0), m_shakeModule(acc, this->get(), shakeData) { }
     typename BC::ModuleType* getModule() { return &m_shakeModule; }
 };
 

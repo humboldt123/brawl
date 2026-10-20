@@ -1162,17 +1162,30 @@ template <class BC>
 class wnWeaponBuilder : public Weapon {
 protected:
     wnModuleAccesserBuilder<BC> m_modules;      // +0xCC
+#ifdef WN_WEAPON_NO_COMMON_ENERGIES
+    // HYPOTHESIS: the article keeps its only energy in its own kinetic mediator; the native module storage ends one word
+    // later than the generic builder (padding of its last animation command unit), the word is kept here.
+    u32 m_modulesPad;
+#else
     wnKineticEnergyNormal m_energyNormal;       // the main movement energy (index 0)
     soKineticEnergyRotNormal m_energyRotNormal; // the rotation energy (index 1)
+#endif
 public:
     wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd,
                     bool weaponFlag = true) :
+#ifdef WN_WEAPON_NO_COMMON_ENERGIES
+        Weapon(name, bd.m_kind, bd.m_data, articleId, &info, this->m_modules.getModuleAccesser(), weaponFlag),
+        m_modules(this, bd) {
+        Weapon::initialize();
+    }
+#else
         Weapon(name, bd.m_kind, bd.m_data, articleId, &info, this->m_modules.getModuleAccesser(), weaponFlag),
         m_modules(this, bd), m_energyNormal(), m_energyRotNormal() {
         Weapon::initialize();
         m_moduleAccesser->getKineticModule().addEnergy(&m_energyNormal, 0, soKineticEnergy::AttributeFlag(1), -1);
         m_moduleAccesser->getKineticModule().addEnergy(&m_energyRotNormal, 1, soKineticEnergy::AttributeFlag(1), -1);
     }
+#endif
     virtual ~wnWeaponBuilder() { }
 #ifdef WN_OCTOPUS_ARRAYS
     virtual void deactivateDescendantForce();
