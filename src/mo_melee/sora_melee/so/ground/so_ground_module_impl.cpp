@@ -661,17 +661,18 @@ u16 soGroundModuleImpl::getGrCollisionVertexNum() {
 
 void soGroundModuleImpl::updateCheckGrCollision() {
     grCollision* collision;
-    if (m_collData != NULL && (collision = m_collision) != NULL) {
-        if (m_collisionOn) {
-            if (!collision->m_isEnabled) {
-                collision->setEnable();
-            }
+    if (m_collData == NULL || (collision = m_collision) == NULL) {
+        return;
+    }
+    if (m_collisionOn) {
+        if (!collision->m_isEnabled) {
+            collision->setEnable();
         }
-        if (m_collision->m_isEnabled) {
-            if (!m_collision->m_noUpdate) {
-                updateGrCollisionMatrix();
-                m_collision->update();
-            }
+    }
+    if (m_collision->m_isEnabled) {
+        if (!m_collision->m_noUpdate) {
+            updateGrCollisionMatrix();
+            m_collision->update();
         }
     }
 }

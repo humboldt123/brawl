@@ -1647,22 +1647,23 @@ void stDolpic::setScene(u32 scene, int force) {
 
 // Starts or stops the looping sound of the platforms that are moving (volume and pitch follow the platform's rate).
 void stDolpic::setSEVolAshibaSet(float volume, int index) {
-    if (index < 5 && 0 <= index) {
-        int handle = m_seHandle[6];
-        if (handle == -1 && volume > 0.0f) {
-            m_seHandle[6] = m_snd5.playSE(static_cast<SndID>(0x1B4D), 0, 0, -1);
-            Vec3f pos;
-            pos.m_x = 0.0f;
-            pos.m_y = 0.0f;
-            pos.m_z = 0.0f;
-            m_snd5.setPos(&pos);
-        } else if (handle != -1) {
-            fn_800777DC(g_sndSystem, volume, handle, 0);
-            fn_800778CC(g_sndSystem, volume, m_seHandle[6]);
-            if (volume == 0.0f) {
-                m_snd5.stopSE(m_seHandle[6], 0);
-                m_seHandle[6] = -1;
-            }
+    if (index >= 5 || index < 0) {
+        return;
+    }
+    int handle = m_seHandle[6];
+    if (handle == -1 && volume > 0.0f) {
+        m_seHandle[6] = m_snd5.playSE(static_cast<SndID>(0x1B4D), 0, 0, -1);
+        Vec3f pos;
+        pos.m_x = 0.0f;
+        pos.m_y = 0.0f;
+        pos.m_z = 0.0f;
+        m_snd5.setPos(&pos);
+    } else if (handle != -1) {
+        fn_800777DC(g_sndSystem, volume, handle, 0);
+        fn_800778CC(g_sndSystem, volume, m_seHandle[6]);
+        if (volume == 0.0f) {
+            m_snd5.stopSE(m_seHandle[6], 0);
+            m_seHandle[6] = -1;
         }
     }
 }
@@ -1671,7 +1672,8 @@ void stDolpic::setSEVolAshibaSet(float volume, int index) {
 // them.
 void stDolpic::setStateGroundCollision(u32 scene, u32 enable) {
     if (scene < 10) {
-        if (scene == 0) {
+        switch (scene) {
+        case 0: {
             u32 i = 0;
             do {
                 if (m_collision[(u8)i] != NULL) {
@@ -1685,19 +1687,24 @@ void stDolpic::setStateGroundCollision(u32 scene, u32 enable) {
                 i++;
             } while (i < 10);
             m_collisionScene = 0;
-        } else if (enable == 1) {
-            grCollision* collision = m_collision[(u8)scene];
-            if (collision != NULL) {
-                fn_80110B98(collision, enable, 0);
-                if (m_collisionScenePrev == 0) {
-                    m_collision[(u8)scene]->setEnable();
+            break;
+        }
+        default:
+            if (enable == 1) {
+                grCollision* collision = m_collision[(u8)scene];
+                if (collision != NULL) {
+                    fn_80110B98(collision, enable, 0);
+                    if (m_collisionScenePrev == 0) {
+                        m_collision[(u8)scene]->setEnable();
+                    }
                 }
+                m_collisionScene = scene;
+            } else {
+                m_collisionScenePrev = m_collisionScene;
+                m_collisionTimer = 600.0f;
+                m_collisionScene = 0;
             }
-            m_collisionScene = scene;
-        } else {
-            m_collisionScenePrev = m_collisionScene;
-            m_collisionTimer = 600.0f;
-            m_collisionScene = 0;
+            break;
         }
     }
 }

@@ -40,18 +40,19 @@ struct ftFoxFinalCameraRangeView {
 // Fox, Falco and Wolf share this process; Falco's statuses are shifted by 3 from status 0x117 on (stage object subkind 0x13).
 static inline int ftFoxFinalStatus(soModuleAccesser* moduleAccesser, int status) {
     int result = status;
-    if (status > 0x116) {
-        switch (moduleAccesser->getStageObject().soGetSubKind()) {
-        case 0x6:
-            result = status;
-            break;
-        case 0x13:
-            result = status + 3;
-            break;
-        case 0x2c:
-            result = status;
-            break;
-        }
+    if (status <= 0x116) {
+        return result;
+    }
+    switch (moduleAccesser->getStageObject().soGetSubKind()) {
+    case 0x6:
+        result = status;
+        break;
+    case 0x13:
+        result = status + 3;
+        break;
+    case 0x2c:
+        result = status;
+        break;
     }
     return result;
 }
