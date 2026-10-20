@@ -13,35 +13,6 @@ struct wnDededeJethammerData {
     s32 m_resGroupNo;
 };
 
-// The shared null modules of the hammer: it owns no posture, ground, situation, attack or kinetic module.
-extern char lbl_27_bss_330[]; // posture
-extern char lbl_27_bss_384[]; // collision attack
-extern char lbl_27_bss_530[]; // kinetic
-
-struct soPostureModuleBuildConfigNull { };
-template <>
-class soPostureModuleBuilder<soPostureModuleBuildConfigNull> {
-public:
-    soPostureModuleBuilder(soModuleAccesser*, soEventObserverRegistrationDesc*) { }
-    soPostureModule* getModule() { return (soPostureModule*)lbl_27_bss_330; }
-};
-
-struct soCollisionAttackModuleBuildConfigNull { };
-template <>
-class soCollisionAttackModuleBuilder<soCollisionAttackModuleBuildConfigNull> {
-public:
-    soCollisionAttackModuleBuilder(soModuleAccesser*, int, u8, soEventObserverRegistrationDesc*) { }
-    soCollisionAttackModule* getModule() { return (soCollisionAttackModule*)lbl_27_bss_384; }
-};
-
-struct soKineticModuleBuildConfigNull { };
-template <>
-class soKineticModuleBuilder<soKineticModuleBuildConfigNull> {
-public:
-    soKineticModuleBuilder(soModuleAccesser*) { }
-    soKineticModule* getModule() { return (soKineticModule*)lbl_27_bss_530; }
-};
-
 class wnDededeJethammerModuleAccesserBuildConfig : public wnCommonBuildConfig {
 public:
     typedef soInsideEventManageModuleBuildConfig<16, 32, 4, 2, 4, 4, 4, 5, 2, 4, 4, 4, 4, 4, 1, 1, 0, 0, 0,

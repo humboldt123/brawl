@@ -590,6 +590,35 @@ public:
     soSituationModuleBuilder(s16, soModuleAccesser*, soEventObserverRegistrationDesc*) { }
     soSituationModule* getModule() { return (soSituationModule*)lbl_27_bss_35C; }
 };
+
+// The shared null posture, collision attack and kinetic modules of the articles that own none of them (the Jet Hammer, Mario's
+// cape, Kirby's hammer ...).
+extern char lbl_27_bss_330[]; // posture
+extern char lbl_27_bss_384[]; // collision attack
+extern char lbl_27_bss_530[]; // kinetic
+struct soPostureModuleBuildConfigNull { };
+template <>
+class soPostureModuleBuilder<soPostureModuleBuildConfigNull> {
+public:
+    soPostureModuleBuilder(soModuleAccesser*, soEventObserverRegistrationDesc*) { }
+    soPostureModule* getModule() { return (soPostureModule*)lbl_27_bss_330; }
+};
+
+struct soCollisionAttackModuleBuildConfigNull { };
+template <>
+class soCollisionAttackModuleBuilder<soCollisionAttackModuleBuildConfigNull> {
+public:
+    soCollisionAttackModuleBuilder(soModuleAccesser*, int, u8, soEventObserverRegistrationDesc*) { }
+    soCollisionAttackModule* getModule() { return (soCollisionAttackModule*)lbl_27_bss_384; }
+};
+
+struct soKineticModuleBuildConfigNull { };
+template <>
+class soKineticModuleBuilder<soKineticModuleBuildConfigNull> {
+public:
+    soKineticModuleBuilder(soModuleAccesser*) { }
+    soKineticModule* getModule() { return (soKineticModule*)lbl_27_bss_530; }
+};
 template <>
 class soVisibilityModuleBuilder<soVisibilityModuleBuildConfigNull> {
     u8 unk0[4]; // HYPOTHESIS: the null selection owns a few bytes (the next builder starts a word later)

@@ -8,9 +8,7 @@
 #include <wn/wn_kinetic_mediator_impl.h>
 #include <wn/wn_kinetic_transactor.h>
 #include <wn/wn_extend_param_accesser.h>
-#include <so/article/so_article.h>
-#include <so/article/so_generate_article_manage_module.h>
-#include <so/article/so_article_mediator.h>
+#include <wn/wn_article_manage_module.h>
 #include <ft/builder/ft_module_accesser_builder.h>
 
 WN_STATUS_PROC_VECTOR_ARG_CTOR(4);
@@ -79,56 +77,9 @@ typedef soKineticTransactorInfo<wnKineticTransactor, wnKineticTransactor, wnKine
     wnPopoIceBergKineticTransactorInfo;
 
 FT_DOL_ARRAY_VECTOR(soArticle*, 1);
-// The SDK exposes a 12-byte observer prefix. The original array constructor uses a 16-byte stride; preserve the trailing word
-// without changing SDK users (same as the Purin and R.O.B. instances).
-template <>
-class soArrayVector<soArticleEventObserver, 1> : public soArrayVectorAbstract<soArticleEventObserver> {
-    s32 m_topIndex : sizeof(bit_width<1>) + 1;
-    s32 m_lastIndex : sizeof(bit_width<1>) + 1;
-    s32 m_size : sizeof(bit_width<1>) + 1;
-    u32 m_isFull : 1;
-    struct ObserverSlot { soArticleEventObserver m_observer; u32 m_unkC; };
-    ObserverSlot m_elements[1];
-public:
-    soArrayVector(s32 = 0);
-    soArrayVector(s32 size, s32);
-    soArrayVector(s32 size, const soArticleEventObserver& element, s32);
-    virtual s32 size() const;
-    virtual ~soArrayVector();
-    virtual s32 capacity() const;
-    virtual bool isFull() const;
-    virtual soArticleEventObserver& atFastAbstractSub(s32 index) const;
-    virtual soArticleEventObserver& getArrayValueConst(s32 index);
-    virtual s32 getTopIndex() const;
-    virtual s32 getLastIndex() const;
-    virtual void setSize(s32 size);
-    virtual void setTopIndex(s32 topIndex);
-    virtual void setLastIndex(s32 lastIndex);
-    virtual void onFull();
-    virtual void offFull();
-};
+WN_ARTICLE_EVENT_OBSERVER_VECTOR(1);
 static_assert(sizeof(soArrayVector<soArticleEventObserver, 1>) == 0x1c, "Observer array layout is wrong!");
-
-// soGenerateArticleManageModuleBuilder with the null article mediator: the article lists, the (empty) mediator holder and
-// the module. The berg generates no article of its own (the wind is activated by the fighter).
-// HYPOTHESIS: soSelectInstanceHolder<0, soArticleMediatorNull>; it stores nothing and hands out the shared null mediator.
-class wnNullArticleMediatorHolder {
-    u8 unk0;
-public:
-    soArticleMediator* getMediator() { return soSingletonHolder<soArticleMediatorNull>::getInstance(); }
-};
-class wnPopoIceBergArticleManageModuleBuilder {
-    soArrayVector<soArticle*, 1> m_articles;
-    soArrayVector<soArticleEventObserver, 1> m_observers;
-    wnNullArticleMediatorHolder m_mediator;
-    soGenerateArticleManageModuleImpl m_module;
-public:
-    wnPopoIceBergArticleManageModuleBuilder(soModuleAccesser* acc) :
-        m_articles(0), m_observers(1, 0), m_mediator(), m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
-    ~wnPopoIceBergArticleManageModuleBuilder() { }
-    void* getModule() { return &m_module; }
-    soArticleMediator* getMediator() { return m_mediator.getMediator(); }
-};
+typedef wnNullMediatorArticleManageModuleBuilder<1> wnPopoIceBergArticleManageModuleBuilder;
 
 class wnPopoIceBergModuleAccesserBuildConfig : public wnCommonBuildConfig {
 public:
