@@ -600,7 +600,7 @@ void fn_92_CB4C(u8* p, BaseItem* a0, u32 a1, bool a2) { return ((Fighter*)(p - 0
 void fn_92_CB54(u8* p, BaseItem* a0) { return ((Fighter*)(p - 0xD0))->Fighter::notifyShootBulletItem(a0); }
 void fn_92_CB5C(u8* p, BaseItem* a0) { return ((Fighter*)(p - 0xD0))->Fighter::notifyDropItem(a0); }
 void fn_92_CB64(u8* p, BaseItem* a0, u32 a1, int* a2) { return ((Fighter*)(p - 0xD0))->Fighter::notifyThrowItem(a0, a1, a2); }
-void fn_92_CB6C(u8* p, BaseItem* a0, u32 a1, int* a2) { return ((Fighter*)(p - 0xD0))->Fighter::notifyUseItem(a0, a1, a2); }
+bool fn_92_CB6C(u8* p, BaseItem* a0, u32 a1, int* a2) { return ((Fighter*)(p - 0xD0))->Fighter::notifyUseItem(a0, a1, a2); }
 void fn_92_CB74(u8* p, BaseItem* a0, u32 a1, u32 a2, bool a3, bool a4) { return ((Fighter*)(p - 0xD0))->Fighter::notifyAttachItem(a0, a1, a2, a3, a4); }
 void fn_92_CB7C(u8* p, itParam::SizeKind a0, BaseItem* a1, u32 a2, u32 a3, bool a4) { return ((Fighter*)(p - 0xD0))->Fighter::notifyHaveItem(a0, a1, a2, a3, a4); }
 bool fn_92_CB84(u8* p, BaseItem* a0, bool* a1) { return ((Fighter*)(p - 0xD0))->Fighter::notifyHaveItemPreCheck(a0, a1); }

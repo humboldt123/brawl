@@ -64,13 +64,34 @@ class ftPopo : public ftFighterBuilder<ftPopoBuildConfig> {
     u8 unkTail[0x1FE38 - sizeof(ftFighterBuilder<ftPopoBuildConfig>)];
     soArrayContractibleTable<const soStatusData> m_statusDataTable;
     ftData* m_data;
-    u8 unk1FE4C;
+    bool m_isPartner; // HYPOTHESIS: set for the second fighter of the pair (fighter number 1), whose input and owner are the sub ones
     u8 unkTail2[0x1FE50 - 0x1FE4D];
 public:
     ftPopo(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual void processUpdate();
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    virtual void postCreate();
+    virtual bool notifyUseItem(BaseItem* item, u32 nodeIndex, int* unk);
+    virtual void setCursor(bool enable);
+    virtual void setNameCursor(bool enable);
+    virtual void setLoupe(bool enable);
+    virtual void setLoupeDamage(bool enable);
+    virtual void onActivate();
+    virtual ftOwner* getOwner();
+    virtual Fighter* getPartner();
+    virtual Input* getInput();
+    virtual void notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4);
+    virtual void onDeadEnd();
+    virtual void onStart(int startKind);
+    virtual void toKnockOut();
+    virtual void analyzeSeal(void* seal);
+    virtual bool checkTransitionStatus(u32 statusKind);
+    virtual void adjustParentGroundCollision(int unk1, float* unk2);
+    static bool isModelSwapColor(int color);
     // The hooks the article mediator calls to start an article of the pool (HYPOTHESIS: names follow the module map).
     static bool activeArticle(wnPopoBlizzard* weapon, soModuleAccesser* acc);
     static bool activeArticle1(wnPopoIceBerg* weapon, soModuleAccesser* acc);

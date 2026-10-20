@@ -47,7 +47,7 @@ ftPopo::ftPopo(s32 entryId,
                                          nwModelInstHeap,
                                          nwMotionInstHeap),
     m_data(g_ftCommonDataAccesser.getData(Fighter_Popo)),
-    unk1FE4C(0) {
+    m_isPartner(false) {
     // Register the status processes in action order.
     soStatusUniqProcess* processes[15] = {0};
     processes[1] = &lbl_105_bss_28C;
@@ -586,16 +586,107 @@ void* fn_105_78F8(void* p, s32 flags) { if (p != 0) { fn_105_45E4(p, 0); if ((s1
 #pragma dont_inline reset
 }
 
-// Cursor and loupe forwarders: call the Fighter setter unless the sub-object flag byte at +0x1FE4C is set.
-extern "C" {
-void fn_105_AAE8(u8* p, bool b) { if (*(p + 0x1FE4C) == 0) { ((Fighter*)p)->Fighter::setCursor(b); } } // ftPopo setCursor
-void fn_105_AB00(u8* p, bool b) { if (*(p + 0x1FE4C) == 0) { ((Fighter*)p)->Fighter::setNameCursor(b); } } // ftPopo setNameCursor
-void fn_105_AB18(u8* p, bool b) { if (*(p + 0x1FE4C) == 0) { ((Fighter*)p)->Fighter::setLoupe(b); } } // ftPopo setLoupe
-void fn_105_AB30(u8* p, bool b) { if (*(p + 0x1FE4C) == 0) { ((Fighter*)p)->Fighter::setLoupeDamage(b); } } // ftPopo setLoupeDamage
+// ---- the fighter hooks -----------------------------------------------------------------------------------------------
+// The link events the Ice Climbers send each other (HYPOTHESIS: the field meanings follow the uses below).
+struct ftPopoLinkEventArgs : soLinkEventArgs {
+    int m_value;
+    bool m_flag;
+    ftPopoLinkEventArgs(int eventKind) : soLinkEventArgs(eventKind), m_value(0), m_flag(false) { }
+};
 
-// Owner and input lookups: the manager's sub-owner/sub-input variant is used when the flag byte equals 1.
-ftOwner* fn_105_AF54(u8* p) { if (*(p + 0x1FE4C) == 1) { return g_ftManager->getSubOwner(*(int*)(p + 0x10c)); } return g_ftManager->getOwner(*(int*)(p + 0x10c)); } // ftPopo getOwner
-void* fn_105_AF88(u8* p) { if (*(p + 0x1FE4C) == 1) { return g_ftManager->getSubInput(*(int*)(p + 0x10c)); } return g_ftManager->getInput(*(int*)(p + 0x10c)); } // ftPopo getInput
+// The kinetic transactor singleton of the pair; its slot 5 takes the situation change (the shared header names the slot after the
+// robot's use of it).
+struct ftPopoTransactorSlots {
+    virtual ~ftPopoTransactorSlots();
+    virtual void slot1();
+    virtual void slot2();
+    virtual void slot3();
+    virtual void slot4();
+    virtual void notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser);
+};
+
+void ftPopo::setCursor(bool enable) {
+    if (m_isPartner == false) {
+        Fighter::setCursor(enable);
+    }
+}
+
+void ftPopo::setNameCursor(bool enable) {
+    if (m_isPartner == false) {
+        Fighter::setNameCursor(enable);
+    }
+}
+
+void ftPopo::setLoupe(bool enable) {
+    if (m_isPartner == false) {
+        Fighter::setLoupe(enable);
+    }
+}
+
+void ftPopo::setLoupeDamage(bool enable) {
+    if (m_isPartner == false) {
+        Fighter::setLoupeDamage(enable);
+    }
+}
+
+// The second fighter of the pair borrows the sub owner and sub input of the entry.
+ftOwner* ftPopo::getOwner() {
+    if (m_isPartner == true) {
+        return g_ftManager->getSubOwner(m_entryId);
+    }
+    return g_ftManager->getOwner(m_entryId);
+}
+
+Input* ftPopo::getInput() {
+    if (m_isPartner == true) {
+        return static_cast<Input*>(g_ftManager->getSubInput(m_entryId));
+    }
+    return static_cast<Input*>(g_ftManager->getInput(m_entryId));
+}
+
+// The other fighter of the entry (none when the entry has just one).
+Fighter* ftPopo::getPartner() {
+    ftManager* manager = g_ftManager;
+    if (static_cast<u8>(manager->getFighterCount(m_entryId)) > 1) {
+        int index = 1;
+        if (m_moduleAccesser->getWorkManageModule().isFlag(0x1200003e)) {
+            index = 0;
+        }
+        return manager->getFighter(m_entryId, index);
+    }
+    return NULL;
+}
+
+void ftPopo::processUpdate() {
+    Fighter::processUpdate();
+    if (m_moduleAccesser->getStatusModule().getStatusKind() == 0x117 || m_moduleAccesser->getStatusModule().getStatusKind() == 0x120) {
+        soLinkModule& link = m_moduleAccesser->getLinkModule();
+        soPostureModule& posture = m_moduleAccesser->getPostureModule();
+        Vec3f position = link.getModelConstraintTargetNodePosition();
+        posture.setPos(&position);
+    }
+}
+
+bool ftPopo::notifyUseItem(BaseItem* item, u32 nodeIndex, int* unk) {
+    if (m_isPartner == true && item->soGetSubKind() == 0x14) {
+        return false;
+    }
+    return Fighter::notifyUseItem(item, nodeIndex, unk);
+}
+
+void ftPopo::notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser) {
+    reinterpret_cast<ftPopoTransactorSlots*>(ftPopoTransactor::getInstance())->notifyEventChangeSituation(kind, prevKind, moduleAccesser);
+    Fighter::notifyEventChangeSituation(kind, prevKind, moduleAccesser);
+}
+
+bool ftPopo::isModelSwapColor(int color) {
+    switch (color) {
+    case 1:
+    case 4:
+    case 5:
+        return true;
+    }
+    return false;
 }
 
 // Shared value variation getter (the Marth translation unit owns the C++ member; this is the REL copy).
@@ -611,12 +702,8 @@ void* fn_105_12E70(void* p, s32 flags) { return fn_105_F0C8((u8*)p - 0x4, flags)
 void* fn_105_12E78(void* p, s32 flags) { return fn_105_327C((u8*)p - 0x4, flags); } // soArticleMediatorImpl thunk
 void fn_105_B138(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4);
 void fn_105_A240(u8* self, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
-void fn_105_AFBC(u8* self, SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser);
-void fn_105_AA64(u8* self, BaseItem* item, u32 nodeIndex, int* unk);
 void fn_105_12EC0(u8* p, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4) { fn_105_B138(p - 0x54, eventInfo, moduleAccesser, stageObject, unk4); } // ftPopo notifyEventLink thunk
 void fn_105_12EC8(u8* p, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) { fn_105_A240(p - 0x64, statusKind, prevStatusKind, statusData, moduleAccesser); } // ftPopo notifyEventChangeStatus thunk
-void fn_105_12ED0(u8* p, SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser) { fn_105_AFBC(p - 0x70, kind, prevKind, moduleAccesser); } // ftPopo notifyEventChangeSituation thunk
-void fn_105_12F78(u8* p, BaseItem* item, u32 nodeIndex, int* unk) { fn_105_AA64(p - 0xd0, item, nodeIndex, unk); } // ftPopo notifyUseItem thunk
 }
 
 // Chained sub-object destructor wrappers (same shape as above): destroy the sub-object, then delete when flags > 0.
@@ -669,6 +756,4 @@ struct ftPopoVSlotsArticle {
 };
 int fn_105_F4D8(ftPopoVSlotsArticle* p) { return p->slot20(); } // soArticle checkActivate (virtual tail call)
 
-// Range check on the index: 1 for 1, and for 4 and 5; otherwise 0.
-int fn_105_AB48(int index) { if (index < 4) { if (index == 1) { return 1; } } else if (index < 6) { return 1; } return 0; } // ftPopo table test
 }

@@ -21,7 +21,7 @@ public:
     virtual bool notifyHaveItemPreCheck(BaseItem* item, bool*);
     virtual void notifyHaveItem(itParam::SizeKind, BaseItem* item, u32 nodeIndex, u32 index, bool);
     virtual void notifyAttachItem(BaseItem* item, u32 nodeIndex, u32 attachNodeIndex, bool, bool);
-    virtual void notifyUseItem(BaseItem* item, u32 nodeIndex, int*);
+    virtual bool notifyUseItem(BaseItem* item, u32 nodeIndex, int*);
     virtual void notifyThrowItem(BaseItem* item, u32 nodeIndex, int*);
     virtual void notifyDropItem(BaseItem*);
     virtual void notifyShootBulletItem(BaseItem* item);

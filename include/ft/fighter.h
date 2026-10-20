@@ -1407,12 +1407,6 @@ public:
 #endif
 #ifdef FT_MODULE_BUILDER
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3); // overrides the soAnimCmdEventObserver one (the BrawlHeaders signature uses int)
-#ifdef FT_FIGHTER_ANIMCMD_LONG
-    // HYPOTHESIS: with FT_FIGHTER_ANIMCMD_LONG (StageObject's slot is long too) the long override above serves both bases and an
-    // additional new fighter virtual (an empty 4 byte function in sora_melee) sits at the vtable position the old slot had;
-    // its meaning is unknown. fn_27_12646C is named after this placeholder.
-    virtual void unk_fighter_slot();
-#endif
 #else
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, int unk3);
 #endif
@@ -1426,7 +1420,17 @@ public:
 
     // TODO: Verify parameters
     virtual void postCreate();
+    // The slot after postCreate; the base returns no partner (the Ice Climbers override it).
+    // HYPOTHESIS: unless the long notifyEventAnimCmd merges the two animcmd slots (FT_MODULE_BUILDER with FT_FIGHTER_ANIMCMD_LONG) the
+    // vtable already has this slot's room, so only that variant models it as a real virtual (it replaces the old placeholder slot).
+#if defined(FT_MODULE_BUILDER) && defined(FT_FIGHTER_ANIMCMD_LONG)
+    virtual Fighter* getPartner();
+#else
     Fighter* getPartner();
+#endif
+    // Fighter::standby / Fighter::startFinalCommon (map names; the final smash helpers of the Ice Climbers call them).
+    void standby(int unk);
+    void startFinalCommon();
     virtual void attachInstance();
     virtual void detachInstance();
     virtual void standbyAdvFollow();
@@ -1546,7 +1550,7 @@ public:
     virtual bool notifyHaveItemPreCheck(BaseItem* item, bool*);
     virtual void notifyHaveItem(itParam::SizeKind, BaseItem* item, u32 nodeIndex, u32 index, bool);
     virtual void notifyAttachItem(BaseItem* item, u32 nodeIndex, u32 attachNodeIndex, bool, bool);
-    virtual void notifyUseItem(BaseItem* item, u32 nodeIndex, int*);
+    virtual bool notifyUseItem(BaseItem* item, u32 nodeIndex, int*);
     virtual void notifyThrowItem(BaseItem* item, u32 nodeIndex, int*);
     virtual void notifyDropItem(BaseItem*);
     virtual void notifyShootBulletItem(BaseItem* item);
