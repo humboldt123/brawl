@@ -8,7 +8,7 @@
 #include <string.h>
 
 // the scale of a matrix (unnamed function of main)
-extern "C" void fn_8003E6DC(Matrix* matrix, Vec3f* out);
+void getScalingFactor(Matrix* matrix, Vec3f* out); // main binary, name unknown (as in cl_collision.cpp)
 
 grDolpicMainBg* grDolpicMainBg::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
     grDolpicMainBg* ground = new (Heaps::StageInstance) grDolpicMainBg(taskName);
@@ -62,7 +62,7 @@ void grDolpicMainBg::update(float deltaFrame) {
         Vec3f rot;
         mtx.getRotate(&rot);
         Vec3f scl;
-        fn_8003E6DC(&mtx, &scl);
+        getScalingFactor(&mtx, &scl);
         g_ecMgr->setPos(m_effectHandle, &pos);
         g_ecMgr->setRot(m_effectHandle, &rot);
         g_ecMgr->setScl(m_effectHandle, &scl);

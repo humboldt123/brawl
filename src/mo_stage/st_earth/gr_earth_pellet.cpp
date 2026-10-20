@@ -13,7 +13,7 @@
 // Matrix::setTrans (sets the translation of a matrix to the three numbers)
 extern "C" void fn_8003F03C(Matrix* mtx, float x, float y, float z);
 // Matrix::getScalingFactor
-extern "C" void fn_8003E6DC(const Matrix* mtx, Vec3f* scale);
+void getScalingFactor(Matrix* mtx, Vec3f* scale); // main binary, name unknown (as in cl_collision.cpp)
 // the matrix of a translation
 extern "C" void fn_8003F074(Matrix* mtx, float x, float y, float z);
 // the matrix of a rotation of the three angles
@@ -70,7 +70,7 @@ void grEarthPellet::updatePos() {
         Vec3f rot;
         mtx.getRotate(&rot);
         Vec3f scale;
-        fn_8003E6DC(&mtx, &scale);
+        getScalingFactor(&mtx, &scale);
         mtx.setIdentity();
         fn_8003F074(&mtx, pos.m_x, pos.m_y, pos.m_z);
         fn_8003EA50(&mtx, &rot);
