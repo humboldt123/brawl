@@ -99,7 +99,7 @@ struct grEarthMeleeView {
     u8 m_gameMode : 6;
     u8 _unused : 2;
     u8 _pad[0xD];
-    u8 m_itemsOn;
+    char m_itemsOn;
 };
 
 // The base ground of the stage. The grounds that move have the state (the step of their sequence) and a timer.

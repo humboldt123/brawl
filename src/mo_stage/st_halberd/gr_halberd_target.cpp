@@ -61,8 +61,12 @@ void grHalberdTarget::updateMotion(float deltaFrame) {
             }
             break;
         case 6: {
-            Vec2f zoneMin(m_posWork->m_x - 20.0f, m_posWork->m_y + 20.0f);
-            Vec2f zoneMax(m_posWork->m_x + 20.0f, m_posWork->m_y - 20.0f);
+            Vec2f zoneMax;
+            Vec2f zoneMin;
+            zoneMin.m_x = m_posWork->m_x - 20.0f;
+            zoneMin.m_y = m_posWork->m_y + 20.0f;
+            zoneMax.m_x = m_posWork->m_x + 20.0f;
+            zoneMax.m_y = m_posWork->m_y - 20.0f;
             m_dangerZone = g_aiMgr->setDangerZone(&zoneMin, &zoneMax, m_dangerZone, 0, 0);
             if (*m_stateWork == 9) {
                 setMotion(1, 1, 1, &m_motionTimer);
@@ -89,13 +93,17 @@ void grHalberdTarget::updateMotion(float deltaFrame) {
                 m_state = 8;
             }
             break;
+        case 8:
+            break;
         }
         if (m_motionTimer == 0.0f) {
-            u8 motion = m_motion;
-            if (motion == 3) {
+            switch (m_motion) {
+            case 3:
                 setMotion(2, 1, 1, NULL);
-            } else if (motion < 3 && motion == 0) {
+                break;
+            case 0:
                 m_state = 0;
+                break;
             }
         }
     }

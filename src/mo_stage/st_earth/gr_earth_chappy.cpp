@@ -743,16 +743,15 @@ void grEarthChappy::makeItem() {
     if (g_GameGlobal->m_modeMelee != NULL && melee->m_itemsOn != 0 && fn_8005136C(0x40) != 0) {
         itManager* items = itManager::getInstance();
         if (items != NULL) {
-            int variations = fn_27_2A0DDC(items, 0x40);
+            int variations = items->getItemVariationNum(0x40);
             if (variations < 0) {
                 variations = 0;
             }
-            int variation = static_cast<int>(static_cast<float>(variations) * randf());
-            BaseItem* item = items->createItem(static_cast<itKind>(0x40), variation, -1, NULL, 0, 0xFFFF, 0, 0xFFFF);
+            BaseItem* item = items->createItem(static_cast<itKind>(0x40), static_cast<int>(static_cast<float>(variations) * randf()), -1, NULL, 0, 0xFFFF, 0, 0xFFFF);
             if (item != NULL) {
                 Vec3f pos;
-                getNodePosition(&pos, 0, getNodeIndex(0, "locator15"));
-                pos.m_z = pos.m_z + 10.0f;
+                getNodePosition(&pos, 0, "locator15");
+                pos.m_y += 10.0f;
                 item->warp(&pos);
             }
         }
@@ -766,7 +765,7 @@ void grEarthChappy::makeItemInMouth() {
         Vec3f pos;
         getNodePosition(&pos, 0, m_nodeAgo);
         pos.m_x = pos.m_x - 10.0f;
-        pos.m_y = pos.m_y + 10.0f;
+        pos.m_y += 10.0f;
         itManager* items = itManager::getInstance();
         if (items != NULL) {
             ItemKind kind;

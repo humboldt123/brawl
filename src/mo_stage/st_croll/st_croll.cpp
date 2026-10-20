@@ -1689,14 +1689,15 @@ static int check_same_id(int id, int count, int* ids);
 
 // The name of the picture of an entry of a list in the stage file; false when there is no such entry.
 bool stCharacterRoll::getResTexName(char* dest, int kind, int index) {
-    if (dest == NULL || static_cast<u32>(kind) > 4 || static_cast<u32>(sKindCount[kind]) <= static_cast<u32>(index)) {
+    if (dest == NULL || static_cast<u32>(kind) >= 5 || static_cast<u32>(index) >= static_cast<u32>(sKindCount[kind])) {
         return false;
     }
+    int picture = index;
     if (kind == 4) {
         // the trophies are 256 to a picture
-        index = index / 256;
+        picture = index / 256;
     }
-    sprintf(dest, sResTexFormat[kind], index + 1);
+    sprintf(dest, sResTexFormat[kind], picture + 1);
     return true;
 }
 
