@@ -128,9 +128,9 @@ stStadium::stStadium() : stMelee("stStadium", Stages::Stadium) {
     m_visionMin.m_y = 0.0f;
     m_visionMax.m_x = 1.0f;
     m_visionMax.m_y = 1.0f;
-    m_flyZ[0] = 0.0f;
-    m_flyZ[1] = 0.0f;
-    m_flyZ[2] = 0.0f;
+    m_flyY[0] = 0.0f;
+    m_flyY[1] = 0.0f;
+    m_flyY[2] = 0.0f;
     m_grow[0] = 1.0f;
     m_grow[1] = 1.0f;
     m_grow[2] = 1.0f;
@@ -316,10 +316,10 @@ void stStadium::updateSpecialStage(float deltaFrame) {
                     z0 = 30.0f + 50.0f * randf();
                     z1 = 20.0f + 50.0f * randf();
                     z2 = 10.0f + 50.0f * randf();
-                    m_flyZ[1] = z1;
-                    m_flyZ[2] = z0;
+                    m_flyY[1] = z1;
+                    m_flyY[2] = z0;
                     m_grow[0] = 0.001f;
-                    m_flyZ[0] = z2;
+                    m_flyY[0] = z2;
                     m_grow[1] = 0.001f;
                     m_grow[2] = 0.001f;
                 }
@@ -757,88 +757,88 @@ void stStadium::updateSpecialStage(float deltaFrame) {
                 }
                 break;
         }
-    }
-    // The Pokemon of the current terrain follow their nodes in the field model, scaled by their grow factor.
-    Vec3f posA, posB, posC;
-    Vec3f scaleA, scaleB, scaleC;
-    switch (m_terrain) {
-        case 0xA: {
-            float growA = 1.1f * m_grow[0];
-            scaleA.m_x = growA;
-            scaleA.m_y = growA;
-            scaleA.m_z = growA;
-            float growB = 1.4f * m_grow[1];
-            scaleB.m_x = growB;
-            scaleB.m_y = growB;
-            scaleB.m_z = growB;
-            getGround(m_terrain)->getNodePosition(&posA, 0, "Jibacoil1");
-            getGround(m_terrain)->getNodePosition(&posB, 0, "Elekible1");
-            static_cast<grGimmick*>(getGround(0x14))->setPos(&posA);
-            static_cast<grGimmick*>(getGround(0x11))->setPos(&posB);
-            static_cast<grGimmick*>(getGround(0x14))->setScale(&scaleA);
-            static_cast<grGimmick*>(getGround(0x11))->setScale(&scaleB);
-            break;
-        }
-        case 0xC: {
-            float growA = 1.4f * m_grow[0];
-            scaleA.m_x = growA;
-            scaleA.m_y = growA;
-            scaleA.m_z = growA;
-            float growB = 1.6f * m_grow[1];
-            scaleB.m_x = growB;
-            scaleB.m_y = growB;
-            scaleB.m_z = growB;
-            getGround(m_terrain)->getNodePosition(&posA, 0, "Yukikaburi1");
-            getGround(m_terrain)->getNodePosition(&posB, 0, "Yukiwarashi1");
-            static_cast<grGimmick*>(getGround(0x16))->setPos(&posA);
-            static_cast<grGimmick*>(getGround(0x17))->setPos(&posB);
-            static_cast<grGimmick*>(getGround(0x16))->setScale(&scaleA);
-            static_cast<grGimmick*>(getGround(0x17))->setScale(&scaleB);
-            break;
-        }
-        case 0xD: {
-            float growA = 1.85f * m_grow[0];
-            scaleA.m_x = growA;
-            scaleA.m_y = growA;
-            scaleA.m_z = growA;
-            float growB = 1.6f * m_grow[1];
-            scaleB.m_x = growB;
-            scaleB.m_y = growB;
-            scaleB.m_z = growB;
-            getGround(m_terrain)->getNodePosition(&posA, 0, "Karakara1");
-            getGround(m_terrain)->getNodePosition(&posB, 0, "Dugtorio1");
-            static_cast<grGimmick*>(getGround(0x15))->setPos(&posA);
-            static_cast<grGimmick*>(getGround(0x10))->setPos(&posB);
-            static_cast<grGimmick*>(getGround(0x15))->setScale(&scaleA);
-            static_cast<grGimmick*>(getGround(0x10))->setScale(&scaleB);
-            break;
-        }
-        case 0xE: {
-            float growA = 1.6f * m_grow[0];
-            scaleA.m_x = growA;
-            scaleA.m_y = growA;
-            scaleA.m_z = growA;
-            float growB = 2.5f * m_grow[1];
-            scaleB.m_x = growB;
-            scaleB.m_y = growB;
-            scaleB.m_z = growB;
-            float growC = 2.1f * m_grow[2];
-            scaleC.m_x = growC;
-            scaleC.m_y = growC;
-            scaleC.m_z = growC;
-            getGround(m_terrain)->getNodePosition(&posA, 0, "Airmd1");
-            getGround(m_terrain)->getNodePosition(&posB, 0, "Fuwante1");
-            getGround(m_terrain)->getNodePosition(&posC, 0, "Hanecco1");
-            posA.m_z = m_flyZ[0];
-            posB.m_z = m_flyZ[1];
-            posC.m_z = m_flyZ[2];
-            static_cast<grGimmick*>(getGround(0xF))->setPos(&posA);
-            static_cast<grGimmick*>(getGround(0x12))->setPos(&posB);
-            static_cast<grGimmick*>(getGround(0x13))->setPos(&posC);
-            static_cast<grGimmick*>(getGround(0xF))->setScale(&scaleA);
-            static_cast<grGimmick*>(getGround(0x12))->setScale(&scaleB);
-            static_cast<grGimmick*>(getGround(0x13))->setScale(&scaleC);
-            break;
+        // The Pokemon of the current terrain follow their nodes in the field model, scaled by their grow factor.
+        Vec3f posA, posB, posC;
+        Vec3f scaleA, scaleB, scaleC;
+        switch (m_terrain) {
+            case 0xA: {
+                float growA = 1.1f * m_grow[0];
+                scaleA.m_x = growA;
+                scaleA.m_y = growA;
+                scaleA.m_z = growA;
+                float growB = 1.4f * m_grow[1];
+                scaleB.m_x = growB;
+                scaleB.m_y = growB;
+                scaleB.m_z = growB;
+                getGround(m_terrain)->getNodePosition(&posA, 0, "Jibacoil1");
+                getGround(m_terrain)->getNodePosition(&posB, 0, "Elekible1");
+                static_cast<grGimmick*>(getGround(0x14))->setPos(&posA);
+                static_cast<grGimmick*>(getGround(0x11))->setPos(&posB);
+                static_cast<grGimmick*>(getGround(0x14))->setScale(&scaleA);
+                static_cast<grGimmick*>(getGround(0x11))->setScale(&scaleB);
+                break;
+            }
+            case 0xC: {
+                float growA = 1.4f * m_grow[0];
+                scaleA.m_x = growA;
+                scaleA.m_y = growA;
+                scaleA.m_z = growA;
+                float growB = 1.6f * m_grow[1];
+                scaleB.m_x = growB;
+                scaleB.m_y = growB;
+                scaleB.m_z = growB;
+                getGround(m_terrain)->getNodePosition(&posA, 0, "Yukikaburi1");
+                getGround(m_terrain)->getNodePosition(&posB, 0, "Yukiwarashi1");
+                static_cast<grGimmick*>(getGround(0x16))->setPos(&posA);
+                static_cast<grGimmick*>(getGround(0x17))->setPos(&posB);
+                static_cast<grGimmick*>(getGround(0x16))->setScale(&scaleA);
+                static_cast<grGimmick*>(getGround(0x17))->setScale(&scaleB);
+                break;
+            }
+            case 0xD: {
+                float growA = 1.85f * m_grow[0];
+                scaleA.m_x = growA;
+                scaleA.m_y = growA;
+                scaleA.m_z = growA;
+                float growB = 1.6f * m_grow[1];
+                scaleB.m_x = growB;
+                scaleB.m_y = growB;
+                scaleB.m_z = growB;
+                getGround(m_terrain)->getNodePosition(&posA, 0, "Karakara1");
+                getGround(m_terrain)->getNodePosition(&posB, 0, "Dugtorio1");
+                static_cast<grGimmick*>(getGround(0x15))->setPos(&posA);
+                static_cast<grGimmick*>(getGround(0x10))->setPos(&posB);
+                static_cast<grGimmick*>(getGround(0x15))->setScale(&scaleA);
+                static_cast<grGimmick*>(getGround(0x10))->setScale(&scaleB);
+                break;
+            }
+            case 0xE: {
+                float growA = 1.6f * m_grow[0];
+                scaleA.m_x = growA;
+                scaleA.m_y = growA;
+                scaleA.m_z = growA;
+                float growB = 2.5f * m_grow[1];
+                scaleB.m_x = growB;
+                scaleB.m_y = growB;
+                scaleB.m_z = growB;
+                float growC = 2.1f * m_grow[2];
+                scaleC.m_x = growC;
+                scaleC.m_y = growC;
+                scaleC.m_z = growC;
+                getGround(m_terrain)->getNodePosition(&posA, 0, "Airmd1");
+                getGround(m_terrain)->getNodePosition(&posB, 0, "Fuwante1");
+                getGround(m_terrain)->getNodePosition(&posC, 0, "Hanecco1");
+                posA.m_y = m_flyY[0];
+                posB.m_y = m_flyY[1];
+                posC.m_y = m_flyY[2];
+                static_cast<grGimmick*>(getGround(0xF))->setPos(&posA);
+                static_cast<grGimmick*>(getGround(0x12))->setPos(&posB);
+                static_cast<grGimmick*>(getGround(0x13))->setPos(&posC);
+                static_cast<grGimmick*>(getGround(0xF))->setScale(&scaleA);
+                static_cast<grGimmick*>(getGround(0x12))->setScale(&scaleB);
+                static_cast<grGimmick*>(getGround(0x13))->setScale(&scaleC);
+                break;
+            }
         }
     }
 }

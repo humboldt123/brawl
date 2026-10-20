@@ -457,14 +457,14 @@ void grFzeroBg::updateSE(float deltaFrame) {
         break;
     case 3:
         switch (m_seIndex) {
-        case 1:
-            if (!(getMotionFrame(0) < 504.0f)) {
+        case 0:
+            if (!(getMotionFrame(0) < 415.0f)) {
                 playSEMarkPass();
                 m_seIndex++;
             }
             break;
-        case 0:
-            if (!(getMotionFrame(0) < 415.0f)) {
+        case 1:
+            if (!(getMotionFrame(0) < 504.0f)) {
                 playSEMarkPass();
                 m_seIndex++;
             }

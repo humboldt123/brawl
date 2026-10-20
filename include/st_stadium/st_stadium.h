@@ -56,7 +56,7 @@ class stStadium : public stMelee {
     s32 m_seHandleB;                 // 0x6C0
     s32 m_pickIndex;                 // 0x6C4
     u8 m_pickOrder[4];               // 0x6C8: shuffled terrain order
-    float m_flyZ[3];                 // 0x6CC: random depth of the three flying Pokemon
+    float m_flyY[3];                 // 0x6CC: random depth of the three flying Pokemon
     float m_grow[3];                 // 0x6D8: grow factor of the Pokemon groups (they appear one after another)
     u8 m_visionPlayer;               // 0x6E4
     u8 m_visionNext;                 // 0x6E5

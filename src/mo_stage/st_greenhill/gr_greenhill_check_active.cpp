@@ -129,10 +129,11 @@ void grGreenhillCheck::updateActive(float deltaFrame) {
         // Danger zone for the AI: a box around the ball.
         // MATCH-ONLY: coordinate temporaries preserve MWCC register allocation.
         const float halfExtent = g_greenhillCheckDangerHalfExtent;
-        float top = halfExtent + ballPos.m_y;
-        float left = ballPos.m_x - halfExtent;
-        float bottom = ballPos.m_y - halfExtent;
-        float right = halfExtent + ballPos.m_x;
+        float left, top, right, bottom;
+        top = halfExtent + ballPos.m_y;
+        left = ballPos.m_x - halfExtent;
+        bottom = ballPos.m_y - halfExtent;
+        right = halfExtent + ballPos.m_x;
         Vec2f corners[2];
         corners[0].m_x = left;
         corners[0].m_y = top;

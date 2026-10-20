@@ -247,7 +247,7 @@ void muBootNandTask::processDefault() {
         break;
     }
     case 0x1A:
-        openWnd(1, m_msgData, m_requireKind + 6, 0);
+        { void* msgData = m_msgData; int msgId = m_requireKind + 6; openWnd(1, msgData, msgId, 0); }
         fn_800BF97C(m_wnd, m_msgData, 0xE);
         fn_800BFA04(m_wnd, m_msgData, 0xF);
         m_step = 0x1B;
@@ -318,7 +318,7 @@ void muBootNandTask::processDefault() {
         }
         break;
     case 0x22:
-        openWnd(0, m_msgData, m_requireKind + 0xA, 0);
+        { int msgId = m_requireKind + 0xA; void* msgData = m_msgData; openWnd(0, msgData, msgId, 0); }
         m_step = 0x23;
         break;
     case 0x23:
@@ -345,7 +345,7 @@ void muBootNandTask::processDefault() {
         m_step = 0x2B;
         break;
     case 0x28:
-        openWnd(0, m_msgData, m_requireKind + 0x12, 0);
+        { int msgId = m_requireKind + 0x12; void* msgData = m_msgData; openWnd(0, msgData, msgId, 0); }
         m_step = 0x29;
         break;
     case 0x29:
@@ -359,7 +359,7 @@ void muBootNandTask::processDefault() {
         break;
     case 0x2B:
         // asks whether this part of the save data may be left out
-        openWnd(1, m_msgData, m_requireKind + 0x16, 0);
+        { int msgId = m_requireKind + 0x16; void* msgData = m_msgData; openWnd(1, msgData, msgId, 0); }
         fn_800BF97C(m_wnd, m_msgData, 0x10);
         fn_800BFA04(m_wnd, m_msgData, 0x11);
         m_step = 0x2C;
