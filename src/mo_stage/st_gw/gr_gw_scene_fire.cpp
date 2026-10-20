@@ -313,9 +313,8 @@ void grGWSceneFire::updateEvent(float deltaFrame) {
             switch (m_stateEvent) {
             case 0: {
                 *m_eventWork = 1;
-                float r = randf();
+                m_timerEvent = data[12] + (data[13] - data[12]) * randf();
                 m_stateEvent = 1;
-                m_timerEvent = data[12] + r * (data[13] - data[12]);
                 break;
             }
             case 1:
@@ -330,6 +329,8 @@ void grGWSceneFire::updateEvent(float deltaFrame) {
                     m_timerEvent = data[14];
                     m_stateEvent = 3;
                 }
+                break;
+            case 3:
                 break;
             }
         }

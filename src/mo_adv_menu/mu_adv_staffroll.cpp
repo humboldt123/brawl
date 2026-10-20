@@ -491,14 +491,12 @@ bool muAdvStaffrollTask::isEnableSkip() {
     if ((flags >> 31) == 0) {
         return false;
     }
-    if (m_state != 3) {
-        if (m_state < 3) {
-            if (m_state >= 0) {
-                return true;
-            }
-        } else if (m_state < 5) {
-            return true;
-        }
+    switch (m_state) {
+    case 0:
+    case 1:
+    case 2:
+    case 4:
+        return true;
     }
     return false;
 }

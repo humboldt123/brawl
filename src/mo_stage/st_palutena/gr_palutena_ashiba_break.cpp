@@ -53,6 +53,8 @@ void grPalutenaAshibaBreak::updateBreak(float deltaFrame) {
         setVisibility(0);
         m_state = 1;
         break;
+    case 1:
+        break;
     case 2:
         if (m_timer == 0.0f) {
             setMotion(1, false, true, NULL);
@@ -60,7 +62,7 @@ void grPalutenaAshibaBreak::updateBreak(float deltaFrame) {
             m_state = 3;
         }
         break;
-    default:
+    case 3:
         break;
     }
 }
