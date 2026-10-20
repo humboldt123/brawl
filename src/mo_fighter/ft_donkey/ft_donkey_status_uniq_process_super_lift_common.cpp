@@ -60,24 +60,28 @@ static inline ftItemManageModuleStub* getItemManage(soModuleAccesser* moduleAcce
 }
 
 void ftDonkeyStatusUniqProcessSuperLiftCommon::exitStatus(soModuleAccesser* moduleAccesser, int nextStatus) {
-    if (nextStatus == 0x9d) {
-        return;
-    }
-    if (nextStatus < 0x9d) {
-        if (nextStatus < 0x9b) {
-            if (nextStatus >= 0x97) {
-                return;
-            }
+    switch (nextStatus) {
+    case 0x97:
+    case 0x98:
+    case 0x99:
+    case 0x9a:
+    case 0x9d:
+    case 0x117:
+    case 0x118:
+    case 0x119:
+    case 0x11a:
+    case 0x11b:
+    case 0x11c:
+    case 0x11d:
+    case 0x11e:
+    case 0x11f:
+        break;
+    default:
+        if (getItemManage(moduleAccesser)->unk40(0)) {
+            // Target constants verified from ft_donkey.o: lbl_92_rodata_70 = 90.0f; lbl_92_rodata_74 = 0.0f.
+            getItemManage(moduleAccesser)->unk84(90.0f, 0.0f, 0);
         }
-    } else {
-        if (nextStatus >= 0x120) {
-        } else if (nextStatus >= 0x117) {
-            return;
-        }
-    }
-    if (getItemManage(moduleAccesser)->unk40(0)) {
-        // Target constants verified from ft_donkey.o: lbl_92_rodata_70 = 90.0f; lbl_92_rodata_74 = 0.0f.
-        getItemManage(moduleAccesser)->unk84(90.0f, 0.0f, 0);
+        break;
     }
 }
 
