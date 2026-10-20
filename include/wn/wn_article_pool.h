@@ -57,7 +57,7 @@ template <class W>
 class wnArticleSubPool<W, 0> {
     u32 m_terminal;
 public:
-    wnArticleSubPool(soModuleAccesser*) : m_terminal(0) { }
+    wnArticleSubPool(soModuleAccesser*) { }
     W* getInstanceAt(s32) { return NULL; }
     template <class Predicate>
     W* find(Predicate&) { return NULL; }
