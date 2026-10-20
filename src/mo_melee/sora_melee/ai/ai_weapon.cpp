@@ -65,8 +65,8 @@ aiWeapon* aiWeaponMgr::near_searched(Vec2f* pos) {
 
 aiWeapon* aiWeaponMgr::getWeapon(u32 objId) {
     if (m_count > 0) {
-        for (int i = 0; i < 64; i++) {
-            aiWeapon* weapon = &m_weapons[i];
+        aiWeapon* weapon = m_weapons;
+        for (int i = 0; i < 64; i++, weapon++) {
             if ((weapon->m_flags & 1) != 0 && weapon->m_objId == objId) {
                 return weapon;
             }

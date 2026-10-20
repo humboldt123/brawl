@@ -417,10 +417,9 @@ bool soGroundModuleImpl::renewTrace(u8 p0, u32 p1, u32 index, float p3, float p4
 bool soGroundModuleImpl::isReferenceModelNode() {
     int count = m_groundShapeArray->size();
     for (int i = 0; i < count; i++) {
-        if (m_groundShapeArray->at(i).m_shapeKind != soGroundShapeImpl::Shape_Rhombus_Modify) {
-            if (m_groundShapeArray->at(i).m_shapeKind == soGroundShapeImpl::Shape_Rhombus_Follow_Node) {
-                return true;
-            }
+        if (m_groundShapeArray->at(i).m_shapeKind == soGroundShapeImpl::Shape_Rhombus_Modify
+            || m_groundShapeArray->at(i).m_shapeKind == soGroundShapeImpl::Shape_Rhombus_Follow_Node) {
+            return true;
         }
     }
     return false;
