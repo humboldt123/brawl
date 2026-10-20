@@ -228,7 +228,7 @@ void fn_101_10EDC(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* module
 void fn_101_10EE4(u8* self, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x64))->Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser); }
 bool fn_101_10EEC(u8* self) { return ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorCheck(); }
 bool fn_101_10EFC(u8* self) { return ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorberCheck(); }
-void fn_101_10EF4(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
+void fn_101_10EF4(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
 void fn_101_10F04(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
 } // extern "C"
 
@@ -740,7 +740,7 @@ void ftNess::toDead(Dead::Reason deadReason) {
 
 // The reflector keeps two flags for the frame: the hit was too weak for it (unk4AE24) or it stopped it (unk4AE25).
 // HYPOTHESIS: names of both flags.
-void ftNess::notifyEventCollisionReflector(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) {
+void ftNess::notifyEventCollisionReflector(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
     if ((s32)groupIndex == 2) {
         if (power >= m_moduleAccesser->getCollisionReflectorModule().getAttackLimit(groupIndex)) {
             unk4AE25 = 1;
@@ -748,7 +748,7 @@ void ftNess::notifyEventCollisionReflector(soCollisionAttackModule* attackModule
         }
         unk4AE24 = 1;
     }
-    Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY);
+    Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
 }
 
 bool ftNess::notifyEventCollisionReflectorCheck() {

@@ -3,6 +3,7 @@
 #include <ft/ft_fighter_builder.h>
 #include <so/motion/so_motion_module_impl.h>
 #include <sr/sr_common.h>
+#include <so/link/so_link_event_presenter.h>
 #include <types.h>
 
 ////////////////////////////////////////
@@ -115,15 +116,36 @@ public:
     typedef ftKirbyGenerateArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
 };
 
+// Link events Kirby sends to the articles he owns (ids 0x838-0x83a).
+struct ftKirbyLinkEvent : soLinkEventArgs {
+    ftKirbyLinkEvent(int kind) : soLinkEventArgs(kind) { }
+};
+
 // HYPOTHESIS: 16 byte records with an empty constructor (two arrays of four follow the status table).
 struct ftKirbyUnk10 {
     u8 unk0[0x10];
     ftKirbyUnk10() { }
 };
 
-// Kirby's copy ability state (map: ftKirbyCopyAbilityModule); constructed and used through the REL's own functions.
-struct ftKirbyCopyAbilityModuleData {
+// Kirby's copy ability state (map: ftKirbyCopyAbilityModule); only the members the fighter calls are declared, their bodies are
+// still the REL's own (not yet reconstructed).
+class soStatusData;
+class soCollisionLog;
+class ftKirbyCopyAbilityModule {
     u8 unk0[0xB64];
+public:
+    void changeCopyAbility(int copyKind, int playerNo, bool spycloak, int unk);
+    void notifyEventChangeSituation(SituationKind kind, SituationKind prevKind);
+    void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    void notifyEventCollisionShield();
+    bool notifyEventCollisionShieldCheck();
+    void notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
+    bool notifyEventCollisionAttackCheck();
+    void notifyEventOnDamage();
+    void processUpdate();
+    void processCollision();
+    void processFixPosition();
+    void notifyArticleEventEject();
 };
 
 class ftKirby : public ftFighterBuilder<ftKirbyBuildConfig> {
@@ -137,13 +159,39 @@ class ftKirby : public ftFighterBuilder<ftKirbyBuildConfig> {
         ftKirbyUnk10 second[4];
     } unk1B6A0;
     u8 unk1B720[0xC];
-    ftKirbyCopyAbilityModuleData m_copyAbility;                  // +0x1B72C
+    ftKirbyCopyAbilityModule m_copyAbility;                      // +0x1B72C
     Heaps::HeapType m_nwModelHeap;                               // +0x1C290
 public:
     ftKirby(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+
+    // ---- fighter overrides (vtable slots in the order of the Kirby vtable) ----
+    virtual void processFixPosition();
+    virtual void onDeactivate();
+    virtual void onStart(int);
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser);
+    virtual void processCollision();
+    virtual void processUpdate();
+    virtual bool isObserv(char kind);
+    virtual void notifyArticleEventEject(int unk1, int unk2, int* unk3);
+    virtual void notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
+    virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    virtual void notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser);
+    virtual bool notifyEventCollisionShieldCheck();
+    virtual void notifyEventCollisionReflector(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser);
+    virtual bool notifyEventCollisionReflectorCheck();
+    virtual void notifyEventOnDamage(soDamage* damage, bool reaction, soModuleAccesser* moduleAccesser);
+
+    void* getExtendParam();
+    u8* getWorkStone();
+    void decisionStoneMetamorphosis();
+    void copyCancel(soModuleAccesser* moduleAccesser, bool unk);
+    void copyCancelDamage(soModuleAccesser* moduleAccesser);
+    void copyCancelDamageNoReaction(soModuleAccesser* moduleAccesser);
+    void updateShineEye();
 };
 static_assert(sizeof(ftFighterBuilder<ftKirbyBuildConfig>) == 0x1B678, "Kirby data offset is wrong");
 static_assert(sizeof(ftKirby) == 0x1C294, "Kirby allocation size is wrong");

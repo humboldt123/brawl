@@ -134,14 +134,14 @@ void ftMario::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modu
 }
 
 // The reflector (the cape) keeps a flag for the frame: the hit was too weak for it.
-void ftMario::notifyEventCollisionReflector(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) {
+void ftMario::notifyEventCollisionReflector(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
     if ((s32)groupIndex == 2) {
         if (power >= m_moduleAccesser->getCollisionReflectorModule().getAttackLimit(groupIndex)) {
             unk2DBD4 = 1;
             return;
         }
     }
-    Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY);
+    Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
 }
 
 bool ftMario::notifyEventCollisionReflectorCheck() {

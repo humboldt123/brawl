@@ -181,7 +181,7 @@ void fn_114_1073C(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* module
 void fn_114_10744(u8* self, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x64))->Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser); }
 bool fn_114_1074C(u8* self) { return ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorCheck(); }
 bool fn_114_1075C(u8* self) { return ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorberCheck(); }
-void fn_114_10754(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
+void fn_114_10754(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
 void fn_114_10764(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
 } // extern "C"
 
@@ -706,7 +706,7 @@ void ftLucas::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStat
 
 // The reflector (PK Flash counter?) keeps two flags for the frame: the hit was too weak for it (unk48CC4[0]) or it stopped it
 // (unk48CC4[1]). HYPOTHESIS: names of both flags.
-void ftLucas::notifyEventCollisionReflector(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) {
+void ftLucas::notifyEventCollisionReflector(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
     if ((s32)groupIndex == 2) {
         if (power >= m_moduleAccesser->getCollisionReflectorModule().getAttackLimit(groupIndex)) {
             unk48CC4[1] = 1;
@@ -714,7 +714,7 @@ void ftLucas::notifyEventCollisionReflector(soCollisionAttackModule* attackModul
         }
         unk48CC4[0] = 1;
     }
-    Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY);
+    Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
 }
 
 bool ftLucas::notifyEventCollisionReflectorCheck() {

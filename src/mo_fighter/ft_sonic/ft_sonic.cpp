@@ -601,7 +601,7 @@ void fn_123_EFD0(u8* p, soCollisionSearchModule* a0, soCollisionLog* a1, u32 a2,
 void fn_123_EFD8(u8* p, soCollisionAttackModule* a0, float a1, soCollisionLog* a2, int a3, float a4, float a5, soModuleAccesser* a6) { return ((Fighter*)(p - 0x94))->Fighter::notifyEventCollisionShield(a0, a1, a2, a3, a4, a5, a6); }
 bool fn_123_EFE0(u8* p) { return ((Fighter*)(p - 0xA0))->Fighter::notifyEventCollisionReflectorCheck(); }
 void fn_123_EFE8(u8* p, soCollisionSearchModule* a0, soCollisionLog* a1, u32 a2, soModuleAccesser* a3) { return ((Fighter*)(p - 0xA0))->Fighter::notifyEventCollisionReflectorSearch(a0, a1, a2, a3); }
-void fn_123_EFF0(u8* p, soCollisionAttackModule* a0, soCollisionLog* a1, u32 a2, soModuleAccesser* a3, float a4, float a5, float a6) { return ((Fighter*)(p - 0xA0))->Fighter::notifyEventCollisionReflector(a0, a1, a2, a3, a4, a5, a6); }
+void fn_123_EFF0(u8* p, soCollisionAttackModule* a0, float a4, soCollisionLog* a1, int a2, float a5, float a6, soModuleAccesser* a3) { return ((Fighter*)(p - 0xA0))->Fighter::notifyEventCollisionReflector(a0, a4, a1, a2, a5, a6, a3); }
 bool fn_123_EFF8(u8* p) { return ((Fighter*)(p - 0xAC))->Fighter::notifyEventCollisionAbsorberCheck(); }
 void fn_123_F000(u8* p, soCollisionAttackModule* a0, soCollisionLog* a1, u32 a2, soModuleAccesser* a3, float a4, float a5, float a6) { return ((Fighter*)(p - 0xAC))->Fighter::notifyEventCollisionAbsorber(a0, a1, a2, a3, a4, a5, a6); }
 bool fn_123_F008(u8* p) { return ((Fighter*)(p - 0xB8))->Fighter::notifyEventCollisionSearchCheck(); }

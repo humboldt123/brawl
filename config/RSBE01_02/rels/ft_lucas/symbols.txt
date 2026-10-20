@@ -266,7 +266,7 @@ notifyEventCollisionAbsorber__7ftLucasFP23soCollisionAttackModuleP14soCollisionL
 fn_114_B6C0 = .text:0x0000B6C0; // type:function size:0x1C
 fn_114_B6DC = .text:0x0000B6DC; // type:function size:0x24
 notifyEventCollisionAbsorberCheck__7ftLucasFv = .text:0x0000B700; // type:function size:0x1C4
-notifyEventCollisionReflector__7ftLucasFP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserfff = .text:0x0000B8C4; // type:function size:0xD0
+notifyEventCollisionReflector__7ftLucasFP23soCollisionAttackModulefP14soCollisionLogiffP16soModuleAccesser = .text:0x0000B8C4; // type:function size:0xD0
 notifyEventCollisionReflectorCheck__7ftLucasFv = .text:0x0000B994; // type:function size:0x7C
 notifyEventLink__7ftLucasFP15soLinkEventArgsP16soModuleAccesserP11StageObjecti = .text:0x0000BA10; // type:function size:0x3FC
 getInstance__17ftLucasTransactorFv = .text:0x0000BE0C; // type:function size:0x70
@@ -523,7 +523,7 @@ fn_114_10764 = .text:0x00010764; // type:function size:0x8
 @148@notifyEventCollisionShield__7FighterFP23soCollisionAttackModulefP14soCollisionLogiffP16soModuleAccesser = .text:0x000107C4; // type:function size:0x8
 @160@notifyEventCollisionReflectorCheck__7FighterFv = .text:0x000107CC; // type:function size:0x8
 @160@notifyEventCollisionReflectorSearch__7FighterFP23soCollisionSearchModuleP14soCollisionLogUlP16soModuleAccesser = .text:0x000107D4; // type:function size:0x8
-@160@notifyEventCollisionReflector__7FighterFP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserfff = .text:0x000107DC; // type:function size:0x8
+@160@notifyEventCollisionReflector__7FighterFP23soCollisionAttackModulefP14soCollisionLogiffP16soModuleAccesser = .text:0x000107DC; // type:function size:0x8
 @172@notifyEventCollisionAbsorberCheck__7FighterFv = .text:0x000107E4; // type:function size:0x8
 @172@notifyEventCollisionAbsorber__7FighterFP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserfff = .text:0x000107EC; // type:function size:0x8
 @184@notifyEventCollisionSearchCheck__7FighterFv = .text:0x000107F4; // type:function size:0x8

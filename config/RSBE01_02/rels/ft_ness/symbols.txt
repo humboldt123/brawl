@@ -277,7 +277,7 @@ notifyEventCollisionAbsorber__6ftNessFP23soCollisionAttackModuleP14soCollisionLo
 fn_101_BD60 = .text:0x0000BD60; // type:function size:0x1C
 fn_101_BD7C = .text:0x0000BD7C; // type:function size:0x24
 notifyEventCollisionAbsorberCheck__6ftNessFv = .text:0x0000BDA0; // type:function size:0x1C4
-notifyEventCollisionReflector__6ftNessFP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserfff = .text:0x0000BF64; // type:function size:0xD0
+notifyEventCollisionReflector__6ftNessFP23soCollisionAttackModulefP14soCollisionLogiffP16soModuleAccesser = .text:0x0000BF64; // type:function size:0xD0
 notifyEventCollisionReflectorCheck__6ftNessFv = .text:0x0000C034; // type:function size:0x7C
 notifyEventLink__6ftNessFP15soLinkEventArgsP16soModuleAccesserP11StageObjecti = .text:0x0000C0B0; // type:function size:0x21C
 fn_101_C2CC = .text:0x0000C2CC; // type:function size:0x18
@@ -536,7 +536,7 @@ fn_101_10F04 = .text:0x00010F04; // type:function size:0x8
 @148@notifyEventCollisionShield__7FighterFP23soCollisionAttackModulefP14soCollisionLogiffP16soModuleAccesser = .text:0x00010F64; // type:function size:0x8
 @160@notifyEventCollisionReflectorCheck__7FighterFv = .text:0x00010F6C; // type:function size:0x8
 @160@notifyEventCollisionReflectorSearch__7FighterFP23soCollisionSearchModuleP14soCollisionLogUlP16soModuleAccesser = .text:0x00010F74; // type:function size:0x8
-@160@notifyEventCollisionReflector__7FighterFP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserfff = .text:0x00010F7C; // type:function size:0x8
+@160@notifyEventCollisionReflector__7FighterFP23soCollisionAttackModulefP14soCollisionLogiffP16soModuleAccesser = .text:0x00010F7C; // type:function size:0x8
 @172@notifyEventCollisionAbsorberCheck__7FighterFv = .text:0x00010F84; // type:function size:0x8
 @172@notifyEventCollisionAbsorber__7FighterFP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserfff = .text:0x00010F8C; // type:function size:0x8
 @184@notifyEventCollisionSearchCheck__7FighterFv = .text:0x00010F94; // type:function size:0x8

@@ -183,7 +183,7 @@ void ftFalco::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modu
 }
 
 // The reflector (the shine) keeps two flags for the frame: the hit was too weak for it (unk1D090) or it stopped it (unk1D091).
-void ftFalco::notifyEventCollisionReflector(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) {
+void ftFalco::notifyEventCollisionReflector(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
     if ((s32)groupIndex == 2) {
         if (power >= m_moduleAccesser->getCollisionReflectorModule().getAttackLimit(groupIndex)) {
             unk1D091 = 1;
@@ -191,7 +191,7 @@ void ftFalco::notifyEventCollisionReflector(soCollisionAttackModule* attackModul
         }
         unk1D090 = 1;
     }
-    Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY);
+    Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
 }
 
 bool ftFalco::notifyEventCollisionReflectorCheck() {

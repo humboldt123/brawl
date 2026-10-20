@@ -106,7 +106,7 @@ public:
     virtual void onStart(int startKind);
     virtual void processFixPosition();
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4);
-    virtual void notifyEventCollisionReflector(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY);
+    virtual void notifyEventCollisionReflector(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser);
     virtual bool notifyEventCollisionReflectorCheck();
     // The hooks the article mediator calls to start an article of the pool (HYPOTHESIS: names follow the module map).
     static bool activeArticle(wnWolfBlaster* weapon, soModuleAccesser* acc);

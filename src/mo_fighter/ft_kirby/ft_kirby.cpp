@@ -7,6 +7,10 @@
 #include <ft/ft_class_info_impl.h>
 #include <ft/kirby/ft_kirby.h>
 #include <ft/kirby/ft_kirby_extend_param_accesser.h>
+#include <mt/mt_prng.h>
+#include <so/so_slow.h>
+#include <so/damage/so_damage.h>
+#include <ft/ft_owner.h>
 
 #define FT_NOINLINE_SEARCH_BUILDER
 #define FT_BC ftKirbyBuildConfig
@@ -87,7 +91,7 @@ extern soStatusUniqProcess g_ftPurinStatusUniqProcessSpecialNTurn;
 extern soStatusUniqProcess g_ftRobotStatusUniqProcessSpecialBeam;
 
 // The copy ability module's constructor and its prepareCopyAbility (ftKirbyCopyAbilityModule), defined in this REL.
-extern "C" void fn_96_1C244(ftKirbyCopyAbilityModuleData* module, soModuleAccesser* moduleAccesser);
+extern "C" void fn_96_1C244(ftKirbyCopyAbilityModule* module, soModuleAccesser* moduleAccesser);
 extern "C" void fn_96_1C4E8(u8* module, int copyKind);
 
 ftKirby::ftKirby(s32 entryId,
@@ -284,49 +288,26 @@ void fn_96_1308C() {}
 void fn_96_13174() {}
 void fn_96_1325C() {}
 
-// Kirby work and extend-param getters (map: ftKirby__getExtendParam, ftKirby__getWorkStone, ftKirby__isObserv).
-void* fn_96_AF98(u8* p) { return *(u8**)(p + 0x1B678) + 0x7C; }
-void* fn_96_B488(u8* p) { return p + 0x1B690; }
 #pragma dont_inline on
-int fn_96_EFD0(u8* p, s32 kind) { return (s8)kind == (s8)0xc; }
 
 // Kirby overrides still undefined here (defined later in this unit).
-void fn_96_B108(u8* p);
-void fn_96_B2FC(u8* p);
 void fn_96_C184(u8* p);
 void fn_96_CE58(u8* p);
 bool fn_96_D160(u8* p);
-void fn_96_D334(u8* p);
-bool fn_96_DA58(u8* p);
-bool fn_96_DAEC(u8* p);
-bool fn_96_DBA0(u8* p);
 void fn_96_DCD8(u8* p);
 void fn_96_DD50(u8* p);
-bool fn_96_DEC4(u8* p);
-bool fn_96_DF94(u8* p);
 void fn_96_DBFC(u8* p, int copyKind);
-// Fighter overrides defined in other translation units.
-void fn_96_1DB1C(u8* p);
 
 // Event thunks: a second-base adjustment (this - N) followed by a tail call to the Kirby override.
 // (fn_96_1359C, the isObserv thunk, takes no second argument in the target and is left out.)
 void fn_96_135A4(u8* p) { fn_96_C184(p - 0x54); }
-void fn_96_135AC(u8* p) { fn_96_B108(p - 0x64); }
-void fn_96_135B4(u8* p) { fn_96_B2FC(p - 0x70); }
-bool fn_96_135BC(u8* p) { return fn_96_DBA0(p - 0x7c); }
-bool fn_96_135D4(u8* p) { return fn_96_DAEC(p - 0x94); }
-bool fn_96_135E4(u8* p) { return fn_96_DA58(p - 0x94); }
-bool fn_96_135EC(u8* p) { return fn_96_DF94(p - 0xa0); }
-bool fn_96_135FC(u8* p) { return fn_96_DEC4(p - 0xa0); }
 bool fn_96_13614(u8* p) { return fn_96_D160(p - 0xb8); }
 void fn_96_1361C(u8* p) { fn_96_CE58(p - 0xb8); }
-void fn_96_13684(u8* p) { fn_96_D334(p - 0xe8); }
 void fn_96_1368C(u8* p) { fn_96_DD50(p - 0xf4); }
 void fn_96_13694(u8* p) { fn_96_DCD8(p - 0xf4); }
 void fn_96_1369C(u8* p, int copyKind) { fn_96_DBFC(p - 0xf4, copyKind); }
 
 // Second-base forwarders to the out-of-unit Fighter overrides (MATCH-ONLY: same adjustment and tail call).
-void fn_96_DB94(u8* p) { fn_96_1DB1C(p + 0x1B72C); }
 void fn_96_DBFC(u8* p, int copyKind) { fn_96_1C4E8(p + 0x1B72C, copyKind); }
 #pragma dont_inline off
 
@@ -340,3 +321,179 @@ u8* fn_96_12E10(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_96_12EC0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_96_12FA8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 } // extern "C"
+
+// ---- fighter overrides --------------------------------------------------------------------------------------------------
+// HYPOTHESIS: work flags 0x12000042/0x12000043 mark the copy ability being active; variables 0x10000047 (stone shape) and
+// 0x10000048/0x10000049 (copy ability slots) are Kirby work.
+void ftKirby::onDeactivate() {
+    if (m_moduleAccesser->getWorkManageModule().isFlag(0x12000042)) {
+        copyCancel(m_moduleAccesser, false);
+    }
+}
+
+void* ftKirby::getExtendParam() { return reinterpret_cast<u8*>(m_data) + 0x7C; }
+
+void ftKirby::onStart(int param) {
+    Fighter::onStart(param);
+    soModuleAccesser* acc = m_moduleAccesser;
+    soWorkManageModule& work = acc->getWorkManageModule();
+    work.offFlag(0x12000042);
+    work.offFlag(0x12000043);
+    work.setInt(-1, 0x10000048);
+    work.setInt(-1, 0x10000049);
+    acc->getEffectModule().removeCommon(0x1a);
+    int entryId = m_entryId;
+    ftManager* manager = g_ftManager;
+    bool spycloak = getOwner()->getSpycloak();
+    m_copyAbility.changeCopyAbility(-1, manager->getPlayerNo(entryId), spycloak, 0);
+}
+
+void ftKirby::processFixPosition() {
+    m_copyAbility.processFixPosition();
+    Fighter::processFixPosition();
+    updateShineEye();
+}
+
+void ftKirby::decisionStoneMetamorphosis() {
+    soWorkManageModule* work = &m_moduleAccesser->getWorkManageModule();
+    int cur = work->getInt(0x10000047);
+    cur = (cur + randi(3) + 1) % 5;
+    work->setInt(cur, 0x10000047);
+}
+
+// HYPOTHESIS: the stone work block starts two bytes into the unknown block.
+u8* ftKirby::getWorkStone() { return &unk1B68E[2]; }
+
+// Entering the Kirby-only statuses (the Final Cutter / Stone range 0x12e-0x132) tells the linked articles; the copy ability
+// ends when the matching statuses start.
+void ftKirby::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) {
+    Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
+    m_copyAbility.notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
+    switch (statusKind) {
+    case 0x10c:
+        if (moduleAccesser->getWorkManageModule().isFlag(0x12000042)) {
+            copyCancel(moduleAccesser, true);
+        }
+        break;
+    case 0xbd:
+        copyCancel(moduleAccesser, false);
+        break;
+    case 0x12e: case 0x12f: case 0x130: case 0x131: case 0x132: {
+        ftKirbyLinkEvent event(0x83a);
+        moduleAccesser->getLinkModule().sendEventNodes(1, event, 0);
+        break;
+    }
+    case 0xd:
+        if (moduleAccesser->getWorkManageModule().isFlag(0x12000042)) {
+            int copyKind = moduleAccesser->getWorkManageModule().getInt(0x10000048);
+            if (copyKind != 0xf && copyKind != 0x10 && copyKind != 0x16 && copyKind != 0xe && copyKind != 3 &&
+                copyKind != 9 && copyKind != 0x15 && copyKind != 0x31 && copyKind != 0x14) {
+                moduleAccesser->getVisibilityModule().set(1, 1);
+            }
+        } else {
+            moduleAccesser->getVisibilityModule().set(1, 1);
+        }
+        break;
+    }
+}
+
+void ftKirby::notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser) {
+    switch (moduleAccesser->getStatusModule().getStatusKind()) {
+    case 0x132:
+        if (kind == 2) {
+            ftKirbyLinkEvent event(0x839);
+            moduleAccesser->getLinkModule().sendEventNodes(1, event, 0);
+        } else {
+            ftKirbyLinkEvent event(0x838);
+            moduleAccesser->getLinkModule().sendEventNodes(1, event, 0);
+        }
+        break;
+    }
+    m_copyAbility.notifyEventChangeSituation(kind, prevKind);
+    Fighter::notifyEventChangeSituation(kind, prevKind, moduleAccesser);
+}
+
+void ftKirby::processUpdate() {
+    Fighter::processUpdate();
+    m_copyAbility.processUpdate();
+    unk1B68D = 0;
+    unk1B68C = 0;
+    if (soSlow::getInstance()->isEstimate() == true && !m_moduleAccesser->getStopModule().isStop()) {
+        if (m_moduleAccesser->getWorkManageModule().getInt(0x1000004c) > 0) {
+            m_moduleAccesser->getWorkManageModule().decInt(0x1000004c);
+        }
+    }
+}
+
+void ftKirby::processCollision() {
+    m_copyAbility.processCollision();
+    StageObject::processCollision();
+}
+
+bool ftKirby::isObserv(char kind) { return kind == 12; }
+
+void ftKirby::notifyArticleEventEject(int unk1, int unk2, int* unk3) {
+    m_copyAbility.notifyArticleEventEject();
+    StageObject::notifyArticleEventEject(unk1, unk2, unk3);
+}
+
+void ftKirby::notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
+    m_copyAbility.notifyEventCollisionAttackFighter(collisionLog, moduleAccesser);
+}
+
+bool ftKirby::notifyEventCollisionAttackCheck(u32 flags) {
+    if (m_copyAbility.notifyEventCollisionAttackCheck() == true) {
+        return true;
+    }
+    return Fighter::notifyEventCollisionAttackCheck(flags);
+}
+
+void ftKirby::notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
+    if (collisionLog != NULL) {
+        m_copyAbility.notifyEventCollisionShield();
+    }
+    Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
+}
+
+bool ftKirby::notifyEventCollisionShieldCheck() {
+    if (m_copyAbility.notifyEventCollisionShieldCheck() == true) {
+        return true;
+    }
+    return Fighter::notifyEventCollisionShieldCheck();
+}
+
+// HYPOTHESIS: the reflector group 2 is the Stone / Hammer reflect; hits at or above its attack limit set a flag that the
+// check below uses to keep the reflector open (unk1B68D) or to deflect (unk1B68C).
+void ftKirby::notifyEventCollisionReflector(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
+    if (groupIndex == 2) {
+        if (power >= m_moduleAccesser->getCollisionReflectorModule().getAttackLimit(groupIndex)) {
+            unk1B68D = 1;
+            return;
+        }
+        unk1B68C = 1;
+    }
+    Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
+}
+
+bool ftKirby::notifyEventCollisionReflectorCheck() {
+    if (unk1B68C == 1) {
+        return true;
+    }
+    if (unk1B68D == 1) {
+        m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
+    }
+    return Fighter::notifyEventCollisionReflectorCheck();
+}
+
+void ftKirby::notifyEventOnDamage(soDamage* damage, bool reaction, soModuleAccesser* moduleAccesser) {
+    m_copyAbility.notifyEventOnDamage();
+    if (!moduleAccesser->getLinkModule().isLink(0) &&
+        (*reinterpret_cast<const u32*>(reinterpret_cast<const u8*>(&damage->m_attackData) + 0x30) & 0x1f) != soCollisionAttackData::Attribute_Turn) {
+        if (reaction) {
+            copyCancelDamage(moduleAccesser);
+        } else {
+            copyCancelDamageNoReaction(moduleAccesser);
+        }
+    }
+    Fighter::notifyEventOnDamage(damage, reaction, moduleAccesser);
+}

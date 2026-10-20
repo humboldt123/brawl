@@ -1205,7 +1205,7 @@ void fn_113_10030(u8* p, soCollisionSearchModule* searchModule, soCollisionLog* 
     reinterpret_cast<Fighter*>(p - 0xA0)->Fighter::notifyEventCollisionReflectorSearch(searchModule, collisionLog, groupIndex, moduleAccesser);
 }
 void fn_113_10038(u8* p, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float unk7) {
-    reinterpret_cast<Fighter*>(p - 0xA0)->Fighter::notifyEventCollisionReflector(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, unk7);
+    reinterpret_cast<Fighter*>(p - 0xA0)->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, unk7, moduleAccesser);
 }
 bool fn_113_10040(u8* p) {
     return reinterpret_cast<Fighter*>(p - 0xAC)->Fighter::notifyEventCollisionAbsorberCheck();
