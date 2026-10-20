@@ -9,6 +9,14 @@
 #include <ft/kirby/ft_kirby_extend_param_accesser.h>
 #include <mt/mt_prng.h>
 #include <so/so_slow.h>
+#include <gf/gf_task_scheduler.h>
+#include <wn/weapon.h>
+#include <so/so_external_value_accesser.h>
+#include <so/so_value_accesser.h>
+#include <st/stage.h>
+#include <so/article/so_article.h>
+#include <so/article/so_generate_article_manage_module.h>
+#include <ft/ft_outside_event_presenter.h>
 #include <so/damage/so_damage.h>
 #include <ft/ft_owner.h>
 
@@ -92,7 +100,6 @@ extern soStatusUniqProcess g_ftRobotStatusUniqProcessSpecialBeam;
 
 // The copy ability module's constructor and its prepareCopyAbility (ftKirbyCopyAbilityModule), defined in this REL.
 extern "C" void fn_96_1C244(ftKirbyCopyAbilityModule* module, soModuleAccesser* moduleAccesser);
-extern "C" void fn_96_1C4E8(u8* module, int copyKind);
 
 ftKirby::ftKirby(s32 entryId,
                  Heaps::HeapType instHeap,
@@ -246,7 +253,7 @@ ftKirby::ftKirby(s32 entryId,
     // Prepare the resources of every copy ability that is loaded for this entry.
     int copyCount = g_ftManager->getKirbyCopyResourceCount(m_entryId);
     for (int i = 0; i < copyCount; i++) {
-        fn_96_1C4E8(reinterpret_cast<u8*>(&m_copyAbility), g_ftManager->getKirbyCopyResourceKind(m_entryId, i));
+        m_copyAbility.prepareCopyAbility(g_ftManager->getKirbyCopyResourceKind(m_entryId, i));
     }
 
     // HYPOTHESIS: the common data record holds the shield group at +0x15c (Stone / Hammer shields), group 1, the reflector
@@ -292,23 +299,12 @@ void fn_96_1325C() {}
 
 // Kirby overrides still undefined here (defined later in this unit).
 void fn_96_C184(u8* p);
-void fn_96_CE58(u8* p);
-bool fn_96_D160(u8* p);
-void fn_96_DCD8(u8* p);
-void fn_96_DD50(u8* p);
-void fn_96_DBFC(u8* p, int copyKind);
 
 // Event thunks: a second-base adjustment (this - N) followed by a tail call to the Kirby override.
 // (fn_96_1359C, the isObserv thunk, takes no second argument in the target and is left out.)
 void fn_96_135A4(u8* p) { fn_96_C184(p - 0x54); }
-bool fn_96_13614(u8* p) { return fn_96_D160(p - 0xb8); }
-void fn_96_1361C(u8* p) { fn_96_CE58(p - 0xb8); }
-void fn_96_1368C(u8* p) { fn_96_DD50(p - 0xf4); }
-void fn_96_13694(u8* p) { fn_96_DCD8(p - 0xf4); }
-void fn_96_1369C(u8* p, int copyKind) { fn_96_DBFC(p - 0xf4, copyKind); }
 
 // Second-base forwarders to the out-of-unit Fighter overrides (MATCH-ONLY: same adjustment and tail call).
-void fn_96_DBFC(u8* p, int copyKind) { fn_96_1C4E8(p + 0x1B72C, copyKind); }
 #pragma dont_inline off
 
 }
@@ -321,6 +317,7 @@ u8* fn_96_12E10(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_96_12EC0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_96_12FA8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 } // extern "C"
+
 
 // ---- fighter overrides --------------------------------------------------------------------------------------------------
 // HYPOTHESIS: work flags 0x12000042/0x12000043 mark the copy ability being active; variables 0x10000047 (stone shape) and
@@ -496,4 +493,224 @@ void ftKirby::notifyEventOnDamage(soDamage* damage, bool reaction, soModuleAcces
         }
     }
     Fighter::notifyEventOnDamage(damage, reaction, moduleAccesser);
+}
+
+// HYPOTHESIS: work 0x2200001a marks a Weapon inhaled by the Inhale (Special N) states 0x112 / 0x117; variable 0x20000005
+// holds how it was swallowed (0 / 2) and 0x20000004 the weapon's task id. In the Final Smash hit state (0x116) the hit
+// fighters are counted in 0x20000006 and tell the target it was inhaled.
+void ftKirby::notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
+    if (moduleAccesser->getStatusModule().getStatusKind() == 0x112 || moduleAccesser->getStatusModule().getStatusKind() == 0x117) {
+        if (!moduleAccesser->getWorkManageModule().isFlag(0x2200001a)) {
+            gfTask* task = gfTaskScheduler::getInstance()->getTask(collisionLog->m_taskId);
+            if (task != NULL && task->m_taskCategory == gfTask::Category_Weapon) {
+                Weapon* weapon = dynamic_cast<Weapon*>(task);
+                moduleAccesser->getWorkManageModule().setInt(0, 0x20000005);
+                if (weapon->isCanEat()) {
+                    switch (weapon->getSubKind()) {
+                    case 0x37:
+                        moduleAccesser->getWorkManageModule().setInt(2, 0x20000005);
+                    case 0x33:
+                        moduleAccesser->getWorkManageModule().onFlag(0x2200001a);
+                        moduleAccesser->getWorkManageModule().setInt(collisionLog->m_taskId, 0x20000004);
+                        break;
+                    }
+                }
+            }
+        }
+    } else if (moduleAccesser->getStatusModule().getStatusKind() == 0x116 && static_cast<u8>(collisionLog->_33) == 1) {
+        // MATCH-ONLY: the category is read as a plain byte, not through the bitfield.
+        gfTask* task = gfTaskScheduler::getInstance()->getTaskById(static_cast<gfTask::Category>(reinterpret_cast<u8*>(collisionLog)[0x22]), collisionLog->m_taskId);
+        if (task->m_taskCategory == gfTask::Category_Fighter) {
+            soExternalValueAccesser::getTeamNo(&dynamic_cast<StageObject&>(*task));
+            Fighter* target = dynamic_cast<Fighter*>(task);
+            if (target->getFtKind() != 0x1c) {
+                target->onInhaled();
+                int count = moduleAccesser->getWorkManageModule().getInt(0x20000006);
+                moduleAccesser->getWorkManageModule().setInt(collisionLog->m_taskId, count + 0x20000000);
+                moduleAccesser->getWorkManageModule().addInt(1, 0x20000006);
+            }
+        }
+    }
+    Fighter::notifyEventCollisionSearch(collisionLog, moduleAccesser);
+    if (collisionLog != NULL) {
+        m_copyAbility.notifyEventCollisionSearch(collisionLog, moduleAccesser);
+    }
+}
+
+bool ftKirby::notifyEventCollisionSearchCheck() {
+    soModuleAccesser* acc = m_moduleAccesser;
+    if ((acc->getStatusModule().getStatusKind() == 0x112 || acc->getStatusModule().getStatusKind() == 0x117) &&
+        acc->getWorkManageModule().isFlag(0x2200001a)) {
+        int taskId = acc->getWorkManageModule().getInt(0x20000004);
+        acc->getLinkModule().link(7, taskId);
+        ftKirbyLinkEvent event(0x835);
+        acc->getLinkModule().sendEventParents(7, event);
+        if (acc->getLinkModule().isLink(7) == true) {
+            acc->getLinkModule().unlink(7);
+        }
+        acc->getWorkManageModule().onFlag(0x2200001c);
+        acc->getStatusModule().changeStatusRequest(0x126, acc);
+        acc->getWorkManageModule().offFlag(0x2200001a);
+        return true;
+    }
+    if (m_copyAbility.notifyEventCollisionSearchCheck() == true) {
+        return true;
+    }
+    return Fighter::notifyEventCollisionSearchCheck();
+}
+
+// ---- the copy ability -------------------------------------------------------------------------------------------------
+// HYPOTHESIS: work 0x10000048 is the copy ability kind (-1 for none), 0x10000049 the slot (player) it was taken from and the
+// flag 0x12000042 is set while Kirby wears a copy ability (0x1200001f: the kind 0x20, the Stone ability).
+void ftKirby::copySetup(soModuleAccesser* moduleAccesser, int slotNo, int copyKind, bool effect) {
+    if (copyKind != 5 && (copyKind < 0x32 || copyKind > 0x35) && g_ftManager->isReadyKirbyCopyResource(m_entryId, copyKind) == true) {
+        moduleAccesser->getWorkManageModule().setInt(copyKind, 0x10000048);
+        moduleAccesser->getWorkManageModule().onFlag(0x12000042);
+        moduleAccesser->getWorkManageModule().setInt(slotNo, 0x10000049);
+        if (copyKind == 0x20) {
+            moduleAccesser->getWorkManageModule().onFlag(0x1200001f);
+        } else {
+            moduleAccesser->getWorkManageModule().offFlag(0x1200001f);
+        }
+        int entryId = m_entryId;
+        ftManager* manager = g_ftManager;
+        bool spycloak = getOwner()->getSpycloak();
+        m_copyAbility.changeCopyAbility(copyKind, manager->getPlayerNo(entryId), spycloak, 0);
+        m_outsideEventPresenter.notifyEventKirbyCopySetup(copyKind);
+        if (effect) {
+            moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0xc2e), false, false, 0);
+        }
+    } else if (effect) {
+        moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0xc33), false, false, 0);
+    }
+}
+
+void ftKirby::copyCancel(soModuleAccesser* moduleAccesser, bool effect) {
+    int copyKind = moduleAccesser->getWorkManageModule().getInt(0x10000048);
+    moduleAccesser->getWorkManageModule().setInt(-1, 0x10000048);
+    moduleAccesser->getWorkManageModule().offFlag(0x12000042);
+    moduleAccesser->getWorkManageModule().offFlag(0x1200001f);
+    int entryId = m_entryId;
+    ftManager* manager = g_ftManager;
+    bool copyStatus = isCopyStatus();
+    bool spycloak = getOwner()->getSpycloak();
+    m_copyAbility.changeCopyAbility(-1, manager->getPlayerNo(entryId), spycloak, copyStatus);
+    if (effect) {
+        moduleAccesser->getWorkManageModule().setInt(2, 0x1000004b);
+        soGenerateArticleManageModule* generator = &moduleAccesser->getGenerateArticleManageModule();
+        soArticle* article = generator->generate(2, NULL, false);
+        if (article->isNull() == false) {
+            generator->entry(article);
+        }
+        moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0xc2f), false, false, 0);
+    }
+    m_outsideEventPresenter.notifyEventKirbyCopyCancel(copyKind);
+    moduleAccesser->getEffectModule().removeCommon(0x1a);
+    moduleAccesser->getWorkManageModule().setInt(-1, 0x10000049);
+}
+
+// HYPOTHESIS: the copy ability can end when Kirby is hit; a (flinching or not) hit has a 1-in-N chance (parameter 0x5dc1).
+void ftKirby::copyCancelDamage(soModuleAccesser* moduleAccesser) {
+    if (moduleAccesser->getWorkManageModule().isFlag(0x12000042) && !moduleAccesser->getWorkManageModule().isFlag(0x12000043)) {
+        if (randi(soValueAccesser::getConstantInt(moduleAccesser, 0x5dc1, 0)) == 0) {
+            copyCancelTransitionStatus();
+        }
+    }
+}
+
+void ftKirby::copyCancelDamageNoReaction(soModuleAccesser* moduleAccesser) {
+    if (moduleAccesser->getWorkManageModule().isFlag(0x12000042) && !moduleAccesser->getWorkManageModule().isFlag(0x12000043)) {
+        if (randi(soValueAccesser::getConstantInt(moduleAccesser, 0x5dc1, 0)) == 0) {
+            copyCancelTransitionStatus();
+        }
+    }
+}
+
+// Ending the copy ability while wearing it from a copy-only status returns to the idle (air: fall) status first.
+void ftKirby::copyCancelTransitionStatus() {
+    if (isCopyStatus()) {
+        m_moduleAccesser->getWorkManageModule().offFlag(0x12000042);
+        if (m_moduleAccesser->getSituationModule().getKind() == 2) {
+            m_moduleAccesser->getStatusModule().changeStatusRequest(0xe, m_moduleAccesser);
+        } else {
+            m_moduleAccesser->getStatusModule().changeStatusRequest(0, m_moduleAccesser);
+        }
+    }
+    copyCancel(m_moduleAccesser, true);
+}
+
+void ftKirby::notifyEventKirbyResourceLoaded(int index) {
+    m_copyAbility.prepareCopyAbility(index);
+}
+
+void ftKirby::notifyEventKirbyResourceUnLoaded(int index) {
+    if (index == m_moduleAccesser->getWorkManageModule().getInt(0x10000048)) {
+        copyCancelTransitionStatus();
+    }
+    m_copyAbility.disposeCopyAbility(index);
+}
+
+void ftKirby::notifyEventExitFighter(int slotNo, int copyKind) {
+    if (slotNo == m_moduleAccesser->getWorkManageModule().getInt(0x10000049) &&
+        copyKind == m_moduleAccesser->getWorkManageModule().getInt(0x10000048)) {
+        copyCancelTransitionStatus();
+    }
+}
+
+void ftKirby::updateShineEye() {
+    soModuleAccesser* acc = m_moduleAccesser;
+    if (acc->getVisibilityModule().get(0) == 0 || acc->getVisibilityModule().get(0) == 1) {
+        if (acc->getVisibilityModule().get(1) == 1) {
+            acc->getVisibilityModule().setStatusDefault(0, 1, true);
+        } else {
+            acc->getVisibilityModule().setStatusDefault(0, 0, true);
+        }
+    }
+}
+
+int ftKirby::getCopyKind() {
+    if (!m_moduleAccesser->getWorkManageModule().isFlag(0x12000042)) {
+        return -1;
+    }
+    return m_moduleAccesser->getWorkManageModule().getInt(0x10000048);
+}
+
+int ftKirby::getCopySlotNo() {
+    if (!m_moduleAccesser->getWorkManageModule().isFlag(0x12000042)) {
+        return -1;
+    }
+    return m_moduleAccesser->getWorkManageModule().getInt(0x10000049);
+}
+
+// The copy-only statuses are 0x133-0x1bf.
+bool ftKirby::isCopyStatus() {
+    if (m_moduleAccesser->getStatusModule().getStatusKind() >= 0x133 && m_moduleAccesser->getStatusModule().getStatusKind() <= 0x1bf) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// HYPOTHESIS: the fighter data holds a table of up to 0x35 (stage kind, limit) pairs; the check passes when the current stage
+// has an entry whose limit is at least the value of the query.
+bool ftKirby::checkKirbyFinalRayCheck(ftKirbyFinalRayQuery* query) {
+    ftKirbyFinalRayEntry* entries;
+    u32 count = *reinterpret_cast<u32*>(reinterpret_cast<u8*>(m_data) + 0x188);
+    if (count > 0x35) {
+        return false;
+    }
+    entries = *reinterpret_cast<ftKirbyFinalRayEntry**>(reinterpret_cast<u8*>(m_data) + 0x184);
+    if (entries == NULL) {
+        return false;
+    }
+    for (u32 i = 0; i < count; i++) {
+        ftKirbyFinalRayEntry entry = entries[i];
+        if (entry.stageKind < 0 || entry.stageKind > 0x35) {
+            return false;
+        }
+        if (entry.stageKind == g_Stage->m_stageKind && query->limit <= entry.limit) {
+            return true;
+        }
+    }
+    return false;
 }

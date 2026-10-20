@@ -121,6 +121,16 @@ struct ftKirbyLinkEvent : soLinkEventArgs {
     ftKirbyLinkEvent(int kind) : soLinkEventArgs(kind) { }
 };
 
+// HYPOTHESIS: entry of the Final Ray table in the fighter data (stage kind, limit) and the query of the check.
+struct ftKirbyFinalRayEntry {
+    int stageKind;
+    float limit;
+};
+struct ftKirbyFinalRayQuery {
+    int unk0;
+    float limit;
+};
+
 // HYPOTHESIS: 16 byte records with an empty constructor (two arrays of four follow the status table).
 struct ftKirbyUnk10 {
     u8 unk0[0x10];
@@ -146,6 +156,10 @@ public:
     void processCollision();
     void processFixPosition();
     void notifyArticleEventEject();
+    void notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
+    bool notifyEventCollisionSearchCheck();
+    void prepareCopyAbility(int copyKind);
+    void disposeCopyAbility(int copyKind);
 };
 
 class ftKirby : public ftFighterBuilder<ftKirbyBuildConfig> {
@@ -179,6 +193,8 @@ public:
     virtual void notifyArticleEventEject(int unk1, int unk2, int* unk3);
     virtual void notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    virtual void notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
+    virtual bool notifyEventCollisionSearchCheck();
     virtual void notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser);
     virtual bool notifyEventCollisionShieldCheck();
     virtual void notifyEventCollisionReflector(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser);
@@ -192,6 +208,16 @@ public:
     void copyCancelDamage(soModuleAccesser* moduleAccesser);
     void copyCancelDamageNoReaction(soModuleAccesser* moduleAccesser);
     void updateShineEye();
+    void copySetup(soModuleAccesser* moduleAccesser, int slotNo, int copyKind, bool effect);
+    void copyCancelTransitionStatus();
+    int getCopyKind();
+    int getCopySlotNo();
+    bool isCopyStatus();
+    bool checkKirbyFinalRayCheck(ftKirbyFinalRayQuery* query);
+    // (overrides of the ftEntryEventObserver events: they get their own slots in the primary vtable)
+    virtual void notifyEventKirbyResourceLoaded(int index);
+    virtual void notifyEventKirbyResourceUnLoaded(int index);
+    virtual void notifyEventExitFighter(int slotNo, int copyKind);
 };
 static_assert(sizeof(ftFighterBuilder<ftKirbyBuildConfig>) == 0x1B678, "Kirby data offset is wrong");
 static_assert(sizeof(ftKirby) == 0x1C294, "Kirby allocation size is wrong");

@@ -24,6 +24,8 @@ public:
     void notifyOutsideEventOnInput();
     void notifyOutsideEventSuicide(int entryId);
     void notifyOutsideEventBeat(int winningEntryId, int losingEntryId);
+    void notifyEventKirbyCopySetup(int copyKind);
+    void notifyEventKirbyCopyCancel(int copyKind);
     void notifyOutsideEventDead(int entryId, int deadCount, int deadReason, int respawnFrames);
 };
 static_assert(sizeof(ftOutsideEventPresenter) == 16, "Class is wrong size!");

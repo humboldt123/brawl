@@ -53,6 +53,7 @@ public:
     void removeConstraint();
     void attachInstance(int resourceId, int unk8, int unkC, int unk10, int unk14, int unk18, int unk1C, int kind, int unk38, int unk44, bool flagBit5, bool flagBit4, bool flagBit2, bool flagBit1, int unk48, bool flagBit0, int unk3C);
     void setGroundShapeSafePosWithAncestor();
+    s32 getSubKind() const { return m_subKind; } // HYPOTHESIS: fighter units read the field directly
 
     struct Instance {
         struct Work {
