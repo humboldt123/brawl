@@ -113,11 +113,8 @@ void grMansionFloor::updateActive(float deltaFrame) {
                 if (m_motionRatio > 0.0f) {
                     m_motionRatio *= -1.0f;
                 }
-                float random = randf();
-                float most = data[14];
-                float least = data[13];
+                unk154 = data[13] + (data[14] - data[13]) * randf();
                 unk150 = 7;
-                unk154 = least + (most - least) * random;
             }
             break;
         case 7:
@@ -192,13 +189,13 @@ void grMansionFloor::updateMoveLeft(float deltaFrame) {
             }
             break;
         case 10:
-            if (unk15C == 0.0f || unk16C.m_x < unk168->m_x) {
+            if (unk15C == 0.0f || unk168->m_x > unk16C.m_x) {
                 float random = randf();
                 unk158 = 9;
                 unk15C = random * 60.0f + 60.0f;
             } else {
                 unk184 += data[15] * deltaFrame;
-                if (data[16] < unk184) {
+                if (unk184 > data[16]) {
                     unk184 = data[16];
                 }
                 unk168->m_x += unk184 * deltaFrame;
@@ -241,13 +238,13 @@ void grMansionFloor::updateMoveRight(float deltaFrame) {
             }
             break;
         case 10:
-            if (unk15C == 0.0f || unk16C.m_x + 15.0f < unk168->m_x) {
+            if (unk15C == 0.0f || unk168->m_x > unk16C.m_x + 15.0f) {
                 float random = randf();
                 unk158 = 9;
                 unk15C = random * 60.0f + 60.0f;
             } else {
                 unk184 += data[15] * deltaFrame;
-                if (data[16] < unk184) {
+                if (unk184 > data[16]) {
                     unk184 = data[16];
                 }
                 unk168->m_x += unk184 * deltaFrame;
@@ -277,13 +274,13 @@ void grMansionFloor::updateMoveUpDown(float deltaFrame) {
             }
             break;
         case 0xB:
-            if (unk160 == 0.0f || unk16C.m_y + 30.0f < unk168->m_y) {
+            if (unk160 == 0.0f || unk168->m_y > unk16C.m_y + 30.0f) {
                 float random = randf();
                 unk159 = 0xC;
                 unk160 = random * 60.0f + 50.0f;
             } else {
                 unk188 += data[15] * deltaFrame;
-                if (data[16] < unk188) {
+                if (unk188 > data[16]) {
                     unk188 = data[16];
                 }
                 unk168->m_y += unk188 * deltaFrame;

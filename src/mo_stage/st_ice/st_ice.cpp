@@ -250,15 +250,15 @@ void stIce::createObjKumo(int index) {
     Matrix* mtx;
     u8* state;
     switch (index) {
-    case 5:
-        ground = grIceKumo::create(5, "P_Kumoyuka2", "grIceKumoYuka2");
-        mtx = reinterpret_cast<Matrix*>(m_mtxGimmick[2]);
-        state = &m_kumoStateB;
-        break;
     case 4:
         ground = grIceKumo::create(4, "P_Kumoyuka1", "grIceKumoYuka1");
         mtx = reinterpret_cast<Matrix*>(m_mtxGimmick[0]);
         state = &m_kumoStateA;
+        break;
+    case 5:
+        ground = grIceKumo::create(5, "P_Kumoyuka2", "grIceKumoYuka2");
+        mtx = reinterpret_cast<Matrix*>(m_mtxGimmick[2]);
+        state = &m_kumoStateB;
         break;
     default:
         ground = NULL;
@@ -278,13 +278,13 @@ void stIce::createObjIce(int index) {
     grIceIce* ground;
     u8* state;
     switch (index) {
-    case 7:
-        ground = grIceIce::create(7, "Ryuuhyou2", "grIceRyuhyo2");
-        state = &m_iceStateB;
-        break;
     case 6:
         ground = grIceIce::create(6, "Ryuuhyou1", "grIceRyuhyo1");
         state = &m_iceStateA;
+        break;
+    case 7:
+        ground = grIceIce::create(7, "Ryuuhyou2", "grIceRyuhyo2");
+        state = &m_iceStateB;
         break;
     default:
         ground = NULL;
@@ -305,13 +305,13 @@ void stIce::createObjTurara(int index) {
     grIceTurara* ground;
     u8 type;
     switch (index) {
-    case 9:
-        ground = grIceTurara::create(9, "Turara2", "grIceTurara");
-        type = 1;
-        break;
     case 8:
         ground = grIceTurara::create(8, "Turara1", "grIceTurara");
         type = 0;
+        break;
+    case 9:
+        ground = grIceTurara::create(9, "Turara2", "grIceTurara");
+        type = 1;
         break;
     case 10:
         ground = grIceTurara::create(10, "Turara3", "grIceTurara");
