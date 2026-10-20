@@ -170,10 +170,14 @@ void grIceRot::updateCallBack(float deltaFrame) {
 // The platform only tips when a fighter lands on the top of it (the 1) and the stage is not busy.
 void grIceRot::receiveCollMsg_Landing(grCollStatus* collStatus, grCollisionJoint* collisionJoint, bool isFirstContact) {
     stIceData* data = static_cast<stIceData*>(getStageData());
-    if (data != NULL && m_state == 1) {
-        m_landTimer = 5.0f;
-        if (isFirstContact == true) {
-            m_timer = data->unk3C;
+    if (data != NULL) {
+        switch (m_state) {
+        case 1:
+            m_landTimer = 5.0f;
+            if (isFirstContact == true) {
+                m_timer = data->unk3C;
+            }
+            break;
         }
     }
 }

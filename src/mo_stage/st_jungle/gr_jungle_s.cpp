@@ -250,7 +250,8 @@ void grJungleS::onDamage(int index, soDamage* damage, soDamageAttackerInfo* atta
     if (m_stateWork != NULL) {
         float amount = damage->unk4;
         fn_27_26399C(m_yakumono);
-        if (m_state == 1) {
+        switch (m_state) {
+        case 1:
             m_hp = m_hp - amount;
             if (m_hp < 0.0f) {
                 m_hp = 0.0f;
@@ -270,6 +271,7 @@ void grJungleS::onDamage(int index, soDamage* damage, soDamageAttackerInfo* atta
                     m_effectTimer = 5.0f * randf() + 10.0f;
                 }
             }
+            break;
         }
         m_shakeTimer = 2.5f * randf() + 2.5f;
     }

@@ -432,8 +432,14 @@ void grEarthChappy::updateLanding(float deltaFrame) {
         if (m_landTimer < 0.0f) {
             m_landTimer = 0.0f;
         }
-        if (m_state != 0x13 || m_landTimer == 0.0f) {
+        switch (m_state) {
+        case 0x13:
+            if (m_landTimer != 0.0f) {
+                break;
+            }
+        default:
             m_timerStay = data->unkB0;
+            break;
         }
     }
 }

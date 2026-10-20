@@ -354,28 +354,32 @@ void grFamicomPow::setHit() {
 
 // A fighter hit the block: the stage shakes, and the third hit uses the block up.
 void grFamicomPow::pow() {
-    if (m_state == 2 && *m_stateWork != 8) {
-        stFamicomData* data = static_cast<stFamicomData*>(getStageData());
-        if (data != NULL) {
-            *m_stateWork = 8;
-            Vec3f quakePos;
-            quakePos.m_x = 0.0f;
-            quakePos.m_y = 0.0f;
-            quakePos.m_z = 0.0f;
-            cmReqQuake(cmQuake::Amplitude_Large, &quakePos);
-            m_snd.playSE(static_cast<SndID>(0x1CE2), 0, 0, -1);
-            m_hits++;
-            if (m_hits >= 3) {
-                m_hits = 3;
-            }
-            if (m_hits == 3) {
-                m_timer = data->powBlockRespawnFrames;
-                setVisibility(0);
-                setEnableCollisionStatus(false);
-                disableHit(0, 0);
-                m_state = 3;
+    switch (m_state) {
+    case 2:
+        if (*m_stateWork != 8) {
+            stFamicomData* data = static_cast<stFamicomData*>(getStageData());
+            if (data != NULL) {
+                *m_stateWork = 8;
+                Vec3f quakePos;
+                quakePos.m_x = 0.0f;
+                quakePos.m_y = 0.0f;
+                quakePos.m_z = 0.0f;
+                cmReqQuake(cmQuake::Amplitude_Large, &quakePos);
+                m_snd.playSE(static_cast<SndID>(0x1CE2), 0, 0, -1);
+                m_hits++;
+                if (m_hits >= 3) {
+                    m_hits = 3;
+                }
+                if (m_hits == 3) {
+                    m_timer = data->powBlockRespawnFrames;
+                    setVisibility(0);
+                    setEnableCollisionStatus(false);
+                    disableHit(0, 0);
+                    m_state = 3;
+                }
             }
         }
+        break;
     }
 }
 

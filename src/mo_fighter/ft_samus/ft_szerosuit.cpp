@@ -431,7 +431,8 @@ void ftSZerosuit::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* 
             event->done = true;
             break;
         case 0x83b:
-            moduleAccesser->getWorkManageModule().setInt(*static_cast<int*>(soValueAccesser::getConstantIndefinite(moduleAccesser, 0xA80E, 0)), 0x20000001);
+            int* constant = static_cast<int*>(soValueAccesser::getConstantIndefinite(moduleAccesser, 0xA80E, 0));
+            moduleAccesser->getWorkManageModule().setInt(*constant, 0x20000001);
             moduleAccesser->getStatusModule().changeStatusRequest(0x81, moduleAccesser);
             moduleAccesser->getGenerateArticleManageModule().changeMotion(0, 0xf, false);
             if (moduleAccesser->getGenerateArticleManageModule().isExist(2) == true) {

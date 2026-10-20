@@ -787,7 +787,7 @@ void ftLucas::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modu
                 if (moduleAccesser->getGenerateArticleManageModule().isExist(4) == 1) {
                     soLinkModule& link = moduleAccesser->getLinkModule();
                     if (link.link(3, moduleAccesser->getGenerateArticleManageModule().getArticle(4)->getTaskId()) == 1) {
-                        link.setModelConstraintPosOrt(3, moduleAccesser->getModelModule().getCorrectNodeId(0x12e), *reinterpret_cast<int*>(&event->value.m_x), 5, false);
+                        moduleAccesser->getLinkModule().setModelConstraintPosOrt(3, moduleAccesser->getModelModule().getCorrectNodeId(0x12e), *reinterpret_cast<int*>(&event->value.m_x), 5, false);
                     }
                 }
                 break;

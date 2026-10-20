@@ -85,7 +85,8 @@ void wnNessYoyo::activate(int founderTaskId, int kind, int team, bool flag) {
 
 void wnNessYoyo::notifyEventLink(soLinkEventArgs* event, soModuleAccesser* acc, StageObject* sender, int unk4) {
     if (sender->soGetKind() == 0 && sender->soGetSubKind() == 10) {
-        if (event->m_eventKind == 0x455) {
+        switch (event->m_eventKind) {
+        case 0x455: {
             wnNessYoyoOwnerLinkEvent* owner = (wnNessYoyoOwnerLinkEvent*)event;
             soWorkManageModule& work = acc->getWorkManageModule();
             soLinkModule& link = acc->getLinkModule();
@@ -95,11 +96,14 @@ void wnNessYoyo::notifyEventLink(soLinkEventArgs* event, soModuleAccesser* acc, 
             }
             return;
         }
+        }
     } else if (sender->soGetKind() == 2 && sender->soGetSubKind() == 0x6c) {
-        if (event->m_eventKind == 0x83f) {
+        switch (event->m_eventKind) {
+        case 0x83f: {
             wnNessYoyoHeadLinkEvent* head = (wnNessYoyoHeadLinkEvent*)event;
             acc->getStopModule().setHitStopFrame(head->unk8, head->unkC);
             return;
+        }
         }
     }
     Weapon::notifyEventLink(event, acc, sender, unk4);

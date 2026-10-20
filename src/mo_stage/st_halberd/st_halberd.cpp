@@ -1030,17 +1030,22 @@ void stHalberd::updateArmPos(float deltaFrame) {
 // While the cannon shoots the second kind of shot (12), the stage looks for the place on the floor where the shell lands.
 void stHalberd::updateHeroHero(float deltaFrame) {
     stHalberdData* data = static_cast<stHalberdData*>(m_stageData);
-    if (data != NULL && m_shotKind == 0xC) {
-        Vec3f from(0.0f, 500.0f, 0.0f);
-        Vec3f dir(0.0f, -1000.0f, 0.0f);
-        float spread = -data->unk9C + data->unk9C * 2.0f * randf();
-        Vec3f hit;
-        Vec3f normal;
-        if (stRayCheck(&from, &dir, &hit, &normal, true, NULL, false, 1)) {
-            m_targetPos.m_x = spread;
-            m_targetPos.m_y = hit.m_y;
-            m_targetPos.m_z = 0.0f;
-            m_shotKind = 0xD;
+    if (data != NULL) {
+        switch (m_shotKind) {
+        case 0xC: {
+            Vec3f from(0.0f, 500.0f, 0.0f);
+            Vec3f dir(0.0f, -1000.0f, 0.0f);
+            float spread = -data->unk9C + data->unk9C * 2.0f * randf();
+            Vec3f hit;
+            Vec3f normal;
+            if (stRayCheck(&from, &dir, &hit, &normal, true, NULL, false, 1)) {
+                m_targetPos.m_x = spread;
+                m_targetPos.m_y = hit.m_y;
+                m_targetPos.m_z = 0.0f;
+                m_shotKind = 0xD;
+            }
+            break;
+        }
         }
     }
 }

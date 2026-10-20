@@ -171,9 +171,11 @@ void grPalutenaAshibaBreak::requestBuild() {
 }
 
 void grPalutenaAshibaBreak::requestBreak() {
-    if (m_state == 1) {
+    switch (m_state) {
+    case 1:
         setMotion(0, false, true, &m_timer);
         setVisibility(1);
         m_state = 2;
+        break;
     }
 }
