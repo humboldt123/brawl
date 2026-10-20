@@ -222,7 +222,8 @@ void ftSamus::onDeadEnd() {
             int fighterNo = g_ftManager->getFighterNo(m_entryId, m_taskId);
             // The motion module is set back to frame 0 before the next fighter is chosen.
             acc->getMotionModule().setFrame(0.0f);
-            g_ftManager->toChange(m_entryId, static_cast<u8>(fighterNo) == 0, 0, 0);
+            u8 other = (u8)fighterNo == 0 ? 1 : 0;
+            g_ftManager->toChange(m_entryId, other, 0, 0);
         }
     }
     Fighter::onDeadEnd();

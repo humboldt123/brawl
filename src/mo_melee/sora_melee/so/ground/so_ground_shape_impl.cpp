@@ -55,7 +55,7 @@ void soGroundShapeImpl::setPassableCheck(bool passableCheck) {
     m_collStatus->setPassableCheck(passableCheck);
 }
 
-u16 soGroundShapeImpl::isPassableCheck() {
+bool soGroundShapeImpl::isPassableCheck() {
     return m_collStatus->m_noPassableCheck ^ 1;
 }
 

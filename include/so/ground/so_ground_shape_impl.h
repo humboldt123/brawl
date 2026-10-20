@@ -174,7 +174,7 @@ public:
     void setTargetLineCategory(u8 category);
     void setExclusiveLineAttr(short attr);
     void setPassableCheck(bool passableCheck);
-    u16 isPassableCheck();
+    bool isPassableCheck();
     void setCloudThrough(bool cloudThrough);
     bool isCloudThrough();
     bool isCloudThroughOut(Vec2f* out);

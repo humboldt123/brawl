@@ -54,7 +54,7 @@ public:
     virtual void setTargetLineCategory(grCollisionLine::CategoryMask targetLineCategory, u32 index);
     virtual void setExclusiveLineAttr(short exclusiveLineAttr, u32 index);
     virtual void setPassableCheck(bool passableCheck, u32 index);
-    virtual u16 isPassableCheck(u32 index);
+    virtual bool isPassableCheck(u32 index);
     virtual void setCloudThrough(bool cloudThrough, u32 index);
     virtual bool isCloudThrough(u32 index);
     virtual bool isCloudThroughOut(Vec2f* out, u32 index);
@@ -239,7 +239,7 @@ public:
     virtual void setTargetLineCategory(grCollisionLine::CategoryMask targetLineCategory, u32 index);
     virtual void setExclusiveLineAttr(short exclusiveLineAttr, u32 index);
     virtual void setPassableCheck(bool passableCheck, u32 index);
-    virtual u16 isPassableCheck(u32 index);
+    virtual bool isPassableCheck(u32 index);
     virtual void setCloudThrough(bool cloudThrough, u32 index);
     virtual bool isCloudThrough(u32 index);
     virtual bool isCloudThroughOut(Vec2f* out, u32 index);

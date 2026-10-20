@@ -392,7 +392,8 @@ bool ftSZerosuit::notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAc
         // HYPOTHESIS: command 5 switches to the other fighter of a Samus pair (the transformation).
         if (static_cast<u8>(g_ftManager->getFighterCount(m_entryId)) > 1) {
             int fighterNo = g_ftManager->getFighterNo(m_entryId, m_taskId);
-            g_ftManager->toChange(m_entryId, (u8)(static_cast<u8>(fighterNo) == 0), 1, 0);
+            u8 other = (u8)fighterNo == 0 ? 1 : 0;
+            g_ftManager->toChange(m_entryId, other, 1, 0);
         }
         return true;
     }

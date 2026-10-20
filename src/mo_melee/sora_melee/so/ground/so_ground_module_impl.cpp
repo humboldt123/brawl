@@ -26,7 +26,7 @@ void soGroundModuleImpl::setCalcLineMove(bool calcLineMove, u32 index) { m_groun
 void soGroundModuleImpl::setTargetLineCategory(grCollisionLine::CategoryMask targetLineCategory, u32 index) { m_groundShapeArray->at(index).setTargetLineCategory(targetLineCategory); }
 void soGroundModuleImpl::setExclusiveLineAttr(short exclusiveLineAttr, u32 index) { m_groundShapeArray->at(index).setExclusiveLineAttr(exclusiveLineAttr); }
 void soGroundModuleImpl::setPassableCheck(bool passableCheck, u32 index) { m_groundShapeArray->at(index).setPassableCheck(passableCheck); }
-u16 soGroundModuleImpl::isPassableCheck(u32 index) { return m_groundShapeArray->at(index).isPassableCheck(); }
+bool soGroundModuleImpl::isPassableCheck(u32 index) { return m_groundShapeArray->at(index).isPassableCheck(); }
 void soGroundModuleImpl::setCloudThrough(bool cloudThrough, u32 index) { m_groundShapeArray->at(index).setCloudThrough(cloudThrough); }
 bool soGroundModuleImpl::isCloudThrough(u32 index) {
     int i = index;
