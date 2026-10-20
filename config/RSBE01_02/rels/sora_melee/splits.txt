@@ -134,6 +134,25 @@ mo_melee/sora_melee/so/ground/so_ground_module_impl.cpp:
 mo_melee/sora_melee/so/ground/so_ground_shape_impl.cpp:
 	.text       start:0x0002E818 end:0x00030328
 
+mo_melee/sora_melee/so/ground/so_ground_shape_operator_none.cpp:
+	.text       start:0x00030328 end:0x000303E4
+	.ctors      start:0x00000000 end:0x00000004
+
+mo_melee/sora_melee/so/ground/so_ground_shape_operator_ground.cpp:
+	.text       start:0x000303E4 end:0x000309B4
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_melee/sora_melee/so/ground/so_ground_shape_operator_air.cpp:
+	.text       start:0x000309B4 end:0x00030DAC
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_melee/sora_melee/so/ground/so_ground_shape_operator_cliff.cpp:
+	.text       start:0x00030DAC end:0x00030EC8
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_melee/sora_melee/so/ground/so_ground_util.cpp:
+	.text       start:0x00030EC8 end:0x000311F8
+
 mo_melee/sora_melee/so/so_vtable_dt_vec_8clTarget_6_41988.cpp:
 	.text       start:0x00041988 end:0x000419F0
 

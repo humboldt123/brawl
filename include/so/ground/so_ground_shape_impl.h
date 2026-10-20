@@ -145,7 +145,7 @@ public:
 
     u8 m_correctKind;
     u8 m_cliffCheck;
-    ShapeKind m_shapeKind : 4;
+    u32 m_shapeKind : 4;
     u32 : 8;
     u32 m_posReset : 1;
     u32 m_testPreMap : 1;

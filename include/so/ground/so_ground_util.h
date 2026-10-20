@@ -17,6 +17,7 @@ namespace soGroundUtil {
     };
 
     DeadAreaCheckResult checkDeadArea(Vec3f* pos, float, float);
+    float checkDeadDivisionRate(Vec3f* pos);
 
     // Local shadow additions (HYPOTHESIS signatures, taken from the soGroundModuleImpl::rayCheck forwarders).
     bool rayCheck(soModuleAccesser* moduleAccesser, Vec3f* from, Vec3f* to, bool unk);

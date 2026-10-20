@@ -1,7 +1,12 @@
+// MATCH-ONLY: the owning unit copies whole vectors with the aggregate word copy of a plain base.
+#define MT_VEC2F_PLAIN_BASE
 #include <so/ground/so_ground_module_impl.h>
 #include <gr/collision/gr_collision.h>
 #include <so/so_heap_module.h>
+#include <so/ground/so_ground_shape_operator.h>
 #include <so/ground/so_ground_util.h>
+#include <so/kinetic/so_kinetic_module_impl.h>
+#include <so/stageobject.h>
 #include <so/so_module_accesser.h>
 #include <math.h>
 
@@ -160,6 +165,38 @@ soGroundConditionChecker* soGroundModuleImpl::getConditionChecker() { return m_g
 void soGroundModuleImpl::setIgnoreFriction(bool p0) { m_ignoreFriction = p0; }
 void soGroundModuleImpl::setDetachChangeStatus(bool p0) { m_detachChangeStatus = p0; }
 bool soGroundModuleImpl::isObserv(char unk1) { return unk1 == 8; }
+
+// Picks the operator that implements a shape's correct kind (Correct_None and Correct_Keep use the do-nothing operator).
+static inline soGroundShapeOperator* getShapeOperator(u8 correctKind) {
+    soGroundShapeOperator* op;
+    switch (correctKind) {
+    case soGroundShapeImpl::Correct_Ground:
+        op = &g_groundShapeOperatorGround;
+        break;
+    case soGroundShapeImpl::Correct_Ground_Cliff_Stop:
+        op = &g_groundShapeOperatorGroundCliffStop;
+        break;
+    case soGroundShapeImpl::Correct_Ground_Ottotto:
+        op = &g_groundShapeOperatorGroundOttotto;
+        break;
+    case soGroundShapeImpl::Correct_Cliff:
+        op = &g_groundShapeOperatorCliff;
+        break;
+    case soGroundShapeImpl::Correct_Air:
+        op = &g_groundShapeOperatorAir;
+        break;
+    case soGroundShapeImpl::Correct_Air_Passable:
+        op = &g_groundShapeOperatorAirPassable;
+        break;
+    case soGroundShapeImpl::Correct_Ground_Cliff_Stop_Front:
+        op = &g_groundShapeOperatorGroundCliffStopFront;
+        break;
+    default:
+        op = &g_groundShapeOperatorNone;
+        break;
+    }
+    return op;
+}
 
 // HYPOTHESIS: touch masks pick the first set bit in the order up, down, left, right.
 static inline grCollStatus::TouchId touchMaskToId(u8 mask) {
@@ -373,4 +410,77 @@ bool soGroundModuleImpl::renewTrace(u8 p0, u32 p1, u32 index, float p3, float p4
     Vec3f pos(center.m_x, center.m_y, 0.0f);
     relocate((Vec2f*)&pos, index);
     return result;
+}
+
+bool soGroundModuleImpl::isReferenceModelNode() {
+    int count = m_groundShapeArray->size();
+    for (int i = 0; i < count; i++) {
+        if (m_groundShapeArray->at(i).m_shapeKind != soGroundShapeImpl::Shape_Rhombus_Modify) {
+            if (m_groundShapeArray->at(i).m_shapeKind == soGroundShapeImpl::Shape_Rhombus_Follow_Node) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void soGroundModuleImpl::update(u32 p0) {
+    int i = 0;
+    int count = m_groundShapeArray->size();
+    for (; i < count; i++) {
+        soGroundShapeImpl& shape = m_groundShapeArray->at(i);
+        Vec2f speed = m_moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(8));
+        shape.setSpeed(&speed);
+        soGroundShapeOperator* op = getShapeOperator(shape.m_correctKind);
+        op->setting(&shape, m_moduleAccesser);
+        op->update(&shape, m_moduleAccesser, p0);
+    }
+    m_pause = false;
+    if (m_56_0 == true) {
+        if (m_collision != NULL) {
+            m_collision->copyVtxToPrev();
+        }
+    }
+}
+
+void soGroundModuleImpl::apply() {
+    m_applied = true;
+    if (m_pause == true) {
+        return;
+    }
+    soGroundShapeImpl& shape = m_groundShapeArray->at(0);
+    if (shape.m_correctKind == soGroundShapeImpl::Correct_None) {
+        updateTrace(false, 0);
+    } else if (shape.m_shapeKind == soGroundShapeImpl::Shape_Rhombus_Follow_Node) {
+        updateTrace(false, 0);
+    } else {
+        Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
+        shape.getCorrectPos((Vec2f*)&pos, m_moduleAccesser->getPostureModule().getScale());
+        m_moduleAccesser->getPostureModule().setPos(&pos);
+        shape.updateDownMaterialInfo();
+        updateTrace(false, 0);
+    }
+}
+
+void soGroundModuleImpl::setCorrect(soGroundShapeImpl::CorrectKind correct, u32 index) {
+    if (correct != soGroundShapeImpl::Correct_Keep) {
+        u8 prevCorrect = m_groundShapeArray->at(index).m_correctKind;
+        if (prevCorrect != correct) {
+            getShapeOperator(m_groundShapeArray->at(index).m_correctKind)->exit(&m_groundShapeArray->at(index), m_moduleAccesser);
+            getShapeOperator(correct)->init(&m_groundShapeArray->at(index), m_moduleAccesser);
+            m_groundShapeArray->at(index).m_correctKind = correct;
+            if (m_applied == true && prevCorrect == soGroundShapeImpl::Correct_None && correct != soGroundShapeImpl::Correct_None) {
+                soGroundShapeOperator* op = getShapeOperator(correct);
+                op->setting(&m_groundShapeArray->at(index), m_moduleAccesser);
+                op->update(&m_groundShapeArray->at(index), m_moduleAccesser, 1);
+                m_groundShapeArray->at(index).m_collStatus->test();
+                Vec3f pos = getCorrectPos(0);
+                m_moduleAccesser->getPostureModule().setPos(&pos);
+                m_moduleAccesser->m_stageObject->updateRoughPos();
+                Vec2f center = getCenterPos(index);
+                Vec3f safe(center.m_x, center.m_y, 0.0f);
+                m_groundShapeArray->at(index).setSafePos((Vec2f*)&safe);
+            }
+        }
+    }
 }

@@ -55,7 +55,8 @@ public:
     u32 m_unk9 : 16;
     int m_unkB : 8;
 
-    char _spacer[2];
+    u32 m_unkC : 8;
+    u32 m_cliffSide : 8; // HYPOTHESIS: 0 = left, 1 = right, 2 = both (cliff check side picked by the shape operators)
     // 14
     union {
         struct {
@@ -77,7 +78,9 @@ public:
     // 85
     char m_cliffTeam;
     // 86
-    char _spacer3[6];
+    char _spacer3a[2];
+    int m_cliffCheckSides; // HYPOTHESIS: 0 = one side, 2 = both sides
+
     // 92
     grCollShape* m_prevCollShape;
     // 96
@@ -104,14 +107,14 @@ public:
     bool : 1;
     bool : 1;
     bool m_isPassableGround : 1;
-    bool m_cliffDebug : 1;
+    bool m_cliffCheckOn : 1;
     bool : 1;
     bool : 1;
     bool m_isCalcLineMove : 1;
     // 114
     bool : 1;
     bool : 1;
-    bool : 1;
+    bool m_cliffStop : 1;
     bool : 1;
     bool m_testCollStop : 1;
     bool m_missStepR : 1;
@@ -187,6 +190,8 @@ public:
     bool isTouch(TouchId touchId);
     bool getTouchLineNormal(TouchId touchId, Vec2f* out);
     bool checkCliffEntryOverlap();
+    void setStAir();
+    void setStCliff();
     void drawDebug();
     void drawDebugCliff();
     void setIgnoreLine(u32* lineId);
