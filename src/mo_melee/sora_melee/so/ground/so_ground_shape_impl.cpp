@@ -367,7 +367,7 @@ void soGroundShapeImpl::clearSetting() {
 }
 
 void soGroundShapeImpl::updateDownMaterialInfo() {
-    u8 materialType = m_collStatus->getTouchLineMaterialType(grCollStatus::Touch_Down);
+    int materialType = m_collStatus->getTouchLineMaterialType(grCollStatus::Touch_Down);
     m_collMaterialType = materialType;
     m_downFriction = ((stCollisionAttrParam*)g_Stage->collisionAttrs)->getCollisionAttrParamSet(materialType)->m_downFriction;
 }

@@ -1,3 +1,5 @@
+// The catch module is a void* in the accesser.
+#include <so/catch/so_catch_module.h>
 #include <so/so_module_accesser.h>
 #include <so/status/so_status_module_impl.h>
 #include <so/collision/so_collision_hit_module_impl.h>
@@ -19,26 +21,10 @@ struct ftKirbySwallowLinkEvent : public soLinkEventArgs {
     ftKirbySwallowLinkEvent(int eventKind) : soLinkEventArgs(eventKind) { }
 };
 
-// Catch module is a void* in the accesser. Placeholder virtuals pad the vtable so that
-// unk0x1c and unk0x2c land at their native vtable offsets.
-class ftKirbyCatchModuleView {
-public:
-    virtual ~ftKirbyCatchModuleView() { }
-    virtual void unk0x0c();
-    virtual void unk0x10();
-    virtual void unk0x14();
-    virtual void unk0x1c(int);
-    virtual void unk0x18();
-    virtual void unk0x20();
-    virtual void unk0x24();
-    virtual void unk0x28();
-    virtual void unk0x2c(int, int);
-};
-
 void ftKirbyStatusUniqProcessSpecialNSwallow::initStatus(soModuleAccesser* moduleAccesser) {
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
     case 0x119:
-        reinterpret_cast<ftKirbyCatchModuleView*>(moduleAccesser->m_enumerationStart->m_catchModule)->unk0x1c(-1);
+        reinterpret_cast<soCatchModule*>(moduleAccesser->m_enumerationStart->m_catchModule)->setCatch(-1);
         break;
     case 0x11a:
         moduleAccesser->getCollisionHitModule().setXluGlobal(0);
@@ -67,7 +53,7 @@ void ftKirbyStatusUniqProcessSpecialNSwallow::exitStatus(soModuleAccesser* modul
         break;
     default:
         if (moduleAccesser->getLinkModule().isLinked(0) == true) {
-            reinterpret_cast<ftKirbyCatchModuleView*>(moduleAccesser->m_enumerationStart->m_catchModule)->unk0x2c(0, 1);
+            reinterpret_cast<soCatchModule*>(moduleAccesser->m_enumerationStart->m_catchModule)->catchCut(false, true);
         }
         moduleAccesser->getCollisionHitModule().cancelXluGlobal(0);
         break;

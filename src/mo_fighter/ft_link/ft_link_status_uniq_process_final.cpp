@@ -328,7 +328,7 @@ void ftLinkStatusUniqProcessFinalCombo::initStatus(soModuleAccesser* moduleAcces
     event.m_command = 3;
     event.m_value = moduleAccesser->getModelModule().getCorrectNodeId(300);
     moduleAccesser->getLinkModule().sendEventNodes(0, event, 0);
-    moduleAccesser->getWorkManageModule().offFlag(Work_Flag_ComboHidden);
+    moduleAccesser->getWorkManageModule().onFlag(Work_Flag_ComboHidden);
 }
 
 // The two slashes of the combo are triggered by the animation (flags), each asks the caught fighter to react and the second

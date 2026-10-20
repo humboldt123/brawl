@@ -1050,9 +1050,9 @@ int muAdvNameTask::mainStep1POnlyMain(muAdvNameTask* task) {
                 } else if (task->m_sel2[0] == 2) {
                     task->m_result[0] = 3;
                 }
+                frame->setFrameNode(0.0f);
+                frame->setFrameVisible(1.0f);
             }
-            frame->setFrameNode(0.0f);
-            frame->setFrameVisible(1.0f);
         }
     }
     return task->m_step;
@@ -1101,8 +1101,8 @@ int muAdvNameTask::mainStep2POnlyMain(muAdvNameTask* task) {
                 } else if (task->m_sel2[1] == 2) {
                     task->m_result[1] = 3;
                 }
+                frame->setFrameNode(0.0f);
             }
-            frame->setFrameNode(0.0f);
         }
     }
     return task->m_step;

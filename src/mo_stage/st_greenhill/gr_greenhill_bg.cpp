@@ -3,11 +3,6 @@
 #include <memory.h>
 #include <string.h>
 
-// MATCH-ONLY: node names of the stage backdrop, in the order the stage's constant pool keeps them:
-//   +0x00 markerPosition01  +0x14 markerPosition02  +0x28 markerPosition03  +0x3C markerPosition04
-//   +0x50 DanmenBrk02  +0x5C DanmenBrk03  +0x68 GHcol_collision  +0x78 flower  +0x80 himawari
-extern const char g_greenhillNodeNames[];
-
 grGreenhill::grGreenhill(const char* taskName) : grYakumono(taskName) {
     m_state = 0;
     m_timer = 0.0f;
@@ -42,13 +37,12 @@ grGreenhillBg::~grGreenhillBg() { }
 
 // The four marker positions are re-read from the model every frame.
 void grGreenhillBg::processAnim() {
-    const char* names = g_greenhillNodeNames;
     Ground::processAnim();
     if (m_posGimmickWork != NULL) {
-        getNodePosition(&m_posGimmickWork[0], 0, names + 0x00);
-        getNodePosition(&m_posGimmickWork[1], 0, names + 0x14);
-        getNodePosition(&m_posGimmickWork[2], 0, names + 0x28);
-        getNodePosition(&m_posGimmickWork[3], 0, names + 0x3C);
+        getNodePosition(&m_posGimmickWork[0], 0, "markerPosition01");
+        getNodePosition(&m_posGimmickWork[1], 0, "markerPosition02");
+        getNodePosition(&m_posGimmickWork[2], 0, "markerPosition03");
+        getNodePosition(&m_posGimmickWork[3], 0, "markerPosition04");
     }
 }
 
@@ -111,21 +105,20 @@ void grGreenhillBg::updateJoint(float deltaFrame) {
 
 // Keeps the two breakable hang pieces (state 1 / 2 of the shared break info) and the ledges around them in sync.
 void grGreenhillBg::updateHang(float deltaFrame) {
-    const char* names = g_greenhillNodeNames;
     if (m_breakInfo == NULL) {
         return;
     }
     switch (m_state) {
     case 0:
-        getNodeIndex(&m_node[0], 0, names + 0x50);
-        getNodeIndex(&m_node[1], 0, names + 0x5C);
-        getNodeIndex(&m_node[2], 0, names + 0x68);
-        getNodeIndex(&m_node[3], 0, names + 0x78);
-        getNodeIndex(&m_node[4], 0, names + 0x00);
-        getNodeIndex(&m_node[5], 0, names + 0x14);
-        getNodeIndex(&m_node[6], 0, names + 0x28);
-        getNodeIndex(&m_node[7], 0, names + 0x3C);
-        getNodeIndex(&m_node[8], 0, names + 0x80);
+        getNodeIndex(&m_node[0], 0, "DanmenBrk02");
+        getNodeIndex(&m_node[1], 0, "DanmenBrk03");
+        getNodeIndex(&m_node[2], 0, "GHcol_collision");
+        getNodeIndex(&m_node[3], 0, "flower");
+        getNodeIndex(&m_node[4], 0, "markerPosition01");
+        getNodeIndex(&m_node[5], 0, "markerPosition02");
+        getNodeIndex(&m_node[6], 0, "markerPosition03");
+        getNodeIndex(&m_node[7], 0, "markerPosition04");
+        getNodeIndex(&m_node[8], 0, "himawari");
         m_state = 1;
         // fall through
     case 1:

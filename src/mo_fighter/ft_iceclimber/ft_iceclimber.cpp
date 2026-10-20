@@ -595,7 +595,7 @@ struct ftPopoLinkEventArgs : soLinkEventArgs {
     ftPopoLinkEventArgs(int eventKind, int value) : soLinkEventArgs(eventKind), m_value(value), m_flag(false) { }
 };
 
-// The kinetic transactor singleton of the pair; its slot 5 takes the situation change (the shared header names the slot after the
+// The kinetic transactor singleton of the pair; its slot 6 takes the situation change (the shared header names the slot after the
 // robot's use of it).
 struct ftPopoTransactorSlots {
     virtual ~ftPopoTransactorSlots();
@@ -603,6 +603,7 @@ struct ftPopoTransactorSlots {
     virtual void slot2();
     virtual void slot3();
     virtual void slot4();
+    virtual void slot5();
     virtual void notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser);
 };
 

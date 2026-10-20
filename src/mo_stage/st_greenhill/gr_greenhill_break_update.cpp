@@ -1,14 +1,12 @@
 #include <st_greenhill/gr_greenhill.h>
 #include <mt/mt_prng.h>
 
-// MATCH-ONLY: the stage's float constant pool and node name strings.
+// MATCH-ONLY: the stage's float constant pool.
 extern const float g_greenhillBreakConstants[]; // [0] = 0.0f, [1] .. [4] timers
-extern const char g_greenhillBreakNodeNames[][12]; // "DanmenBrk02", "DanmenBrk03", "DanmenBrk01"
 
 // Drives the breakable piece: it waits a random time, breaks (hit boxes off, collision gone), stays away for a while,
 // comes back blinking and then goes idle again.
 void grGreenhillBreak::updateBreak(float deltaFrame) {
-    const char (*names)[12] = g_greenhillBreakNodeNames;
     const float* constants = g_greenhillBreakConstants;
     grGreenhillBreakParam* data = (grGreenhillBreakParam*)getStageData();
     if (data == NULL) {
@@ -38,14 +36,14 @@ void grGreenhillBreak::updateBreak(float deltaFrame) {
         enableHit(2, 0);
         switch (m_type) {
         case 0:
-            getNodeIndex(&m_nodeA, 0, names[0]);
-            getNodeIndex(&m_nodeB, 0, names[1]);
+            getNodeIndex(&m_nodeA, 0, "DanmenBrk02");
+            getNodeIndex(&m_nodeB, 0, "DanmenBrk03");
             break;
         case 1:
-            getNodeIndex(&m_nodeA, 0, names[2]);
+            getNodeIndex(&m_nodeA, 0, "DanmenBrk01");
             break;
         case 2:
-            getNodeIndex(&m_nodeA, 0, names[2]);
+            getNodeIndex(&m_nodeA, 0, "DanmenBrk01");
             break;
         }
         switch (m_type) {

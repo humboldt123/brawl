@@ -110,7 +110,8 @@ void muFadeTask::setData() {
     m_resFile = nw4r::g3d::ResFile(m_handle.getBuffer());
     nw4r::g3d::ResFile::Init(&m_resFile);
     m_object = MuObject::create(&m_resFile, "black_out", 1, NULL, Heaps::MenuInstance);
-    setObjectColor(0.0f, 0.0f, 0.0f, 0.0f);
+    float zero = 0.0f;
+    setObjectColor(zero, zero, zero, zero);
 }
 
 // Makes the model from a file that someone else read.
@@ -119,7 +120,8 @@ void muFadeTask::setData(nw4r::g3d::ResFile* resFile) {
     m_resFile = *resFile;
     nw4r::g3d::ResFile::Init(&m_resFile);
     m_object = MuObject::create(&m_resFile, "black_out", 1, NULL, Heaps::MenuInstance);
-    setObjectColor(0.0f, 0.0f, 0.0f, 0.0f);
+    float zero = 0.0f;
+    setObjectColor(zero, zero, zero, zero);
 }
 
 void muFadeTask::addModel() {

@@ -328,7 +328,7 @@ void ftToonLink::notifyEventCollisionShield(soCollisionAttackModule* attackModul
             work->setFloat(lr, 0x11000017);
         }
         if (power > 0.0f) {
-            moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0x220), false, false, 0);
+            moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0x1828), false, false, 0);
         }
     }
     Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);

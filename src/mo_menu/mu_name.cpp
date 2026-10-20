@@ -2219,7 +2219,7 @@ void muNameTask::mainStepRemoteSimpleSyncInit(muNameTask* task) {
     task->m_scnGroup->Insert(task->m_scnGroup->sceneItemsCount, scnObjOf(task->m_scnMdls[2]));
     window->changeAnimN(0, 0x11, true, false);
     task->m_msg->printIndex(6, 0, task->m_msgData);
-    window->setFrameVisible(0.0f);
+    task->m_objects[Obj_RemoteWindow]->setFrameVisible(0.0f);
     g_gfPadSystem->disconectWiiControler();
     task->m_remotePadNo = 4;
     task->m_remoteConnectedPad = -1;

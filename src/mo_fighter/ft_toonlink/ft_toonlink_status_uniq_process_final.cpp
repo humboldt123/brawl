@@ -328,7 +328,7 @@ void ftToonLinkStatusUniqProcessFinalCombo::initStatus(soModuleAccesser* moduleA
     event.m_command = 3;
     event.m_value = moduleAccesser->getModelModule().getCorrectNodeId(300);
     moduleAccesser->getLinkModule().sendEventNodes(0, event, 0);
-    moduleAccesser->getWorkManageModule().offFlag(Work_Flag_ComboHidden);
+    moduleAccesser->getWorkManageModule().onFlag(Work_Flag_ComboHidden);
 }
 
 // The two slashes of the combo are triggered by the animation (flags), each asks the caught fighter to react and the second
@@ -392,7 +392,7 @@ void ftToonLinkStatusUniqProcessFinalCombo::checkFinish(soModuleAccesser* module
         Vec3f pos;
         get_triforce_offset(moduleAccesser, &pos, &rot);
         rot.m_y = 0.0f;
-        u32 handle = effect->reqFollow(static_cast<EfID>(0xE20004), 0, &pos, &rot, 1.0f, true, 0, 0, -1);
+        u32 handle = effect->reqFollow(static_cast<EfID>(0xE30004), 0, &pos, &rot, 1.0f, true, 0, 0, -1);
         work2->setInt(handle, Work_Int_SecondEffect);
     }
 }

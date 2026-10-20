@@ -15,9 +15,6 @@ grFzero::grFzero(const char* taskName) : grYakumono(taskName) {
 grFzero::~grFzero() {
 }
 
-// MATCH-ONLY: the stage's node name strings ("PTposition01" .. "PTposition04", 16 bytes apart).
-extern const char g_fzeroTrainerNodeNames[][16];
-
 grFzeroTrainer* grFzeroTrainer::create(int mdlIndex, const char* nodeName, const char* taskName) {
     grFzeroTrainer* ground = new (Heaps::StageInstance) grFzeroTrainer(taskName);
     if (ground != NULL) {
@@ -75,13 +72,12 @@ void grFzeroTrainer::update(float deltaFrame) {
 // Picks the trainer animation for the course section the stage is in: it moves on to the next section's animation once
 // the scene frame is past 120 (HYPOTHESIS: the trainer rides the camera along the course).
 void grFzeroTrainer::updatePos(float deltaFrame) {
-    const char (*names)[16] = g_fzeroTrainerNodeNames;
     switch (m_state) {
     case 0:
-        getNodeIndex(&m_node[0], 0, names[0]);
-        getNodeIndex(&m_node[1], 0, names[1]);
-        getNodeIndex(&m_node[2], 0, names[2]);
-        getNodeIndex(&m_node[3], 0, names[3]);
+        getNodeIndex(&m_node[0], 0, "PTposition01");
+        getNodeIndex(&m_node[1], 0, "PTposition02");
+        getNodeIndex(&m_node[2], 0, "PTposition03");
+        getNodeIndex(&m_node[3], 0, "PTposition04");
         m_state = 1;
         break;
     case 1:
