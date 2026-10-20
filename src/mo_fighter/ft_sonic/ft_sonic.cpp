@@ -92,7 +92,7 @@ void ftSonic::analyzeSeal(void* seal) {
     s32* record = reinterpret_cast<s32*>(seal);
     if (record[0] == 0x41) {
         float amount = *reinterpret_cast<float*>(&record[1]);
-        int frames = (int)(amount * 0.5f);
+        int frames = (int)(amount / 2.0f);
         reinterpret_cast<ftSonicGlowView*>(m_moduleAccesser->m_enumerationStart->m_glowModule)->setGlow(0x117, frames);
     }
 }

@@ -145,7 +145,7 @@ public:
     virtual void updateMetalgear(float deltaFrame);
     virtual void updateWallLeft(float deltaFrame);
     virtual void updateWallRight(float deltaFrame);
-    virtual void updateSearch();
+    virtual void updateSearch(float deltaFrame);
     virtual bool isMetalgear();
     virtual void selectSnow();
 

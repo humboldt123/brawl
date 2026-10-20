@@ -329,7 +329,12 @@ public:
     virtual void updateNodeSRT();
     virtual bool isTreadPassive();
     virtual bool isObserv(char unk1);
+#if defined(FT_FIGHTER_ANIMCMD_LONG) || defined(YK_STAGE_FULL)
+    // The override must follow the StageObject slot (long) so that it does not add a vtable slot in those units.
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
+#else
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, int unk3);
+#endif
     virtual void notifyEventLink(soLinkEventArgs *eventInfo, soModuleAccesser* moduleAccesser, StageObject*, int unk4);
 
     // TODO: Verify parameters
@@ -357,8 +362,8 @@ public:
     virtual void setLogAttackInfo(soLogAttackInfo* logAttackInfo);
     virtual soLogAttackInfo getLogAttackInfo();
     virtual void updateLogAttackInfo();
-    virtual void have(int taskId, int, int);
     virtual void deactivate();
+    virtual void have(int taskId, int, int);
     virtual void action(u32, float);
     virtual void setGlowAttack(int glowAttack);
     virtual int getGlowAttack();

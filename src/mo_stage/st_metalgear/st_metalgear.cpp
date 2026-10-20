@@ -486,7 +486,7 @@ void stMetalgear::update(float deltaFrame) {
     updateMetalgear(deltaFrame);
     updateWallLeft(deltaFrame);
     updateWallRight(deltaFrame);
-    updateSearch();
+    updateSearch(deltaFrame);
 }
 
 void stMetalgear::updateLimit() {
@@ -692,7 +692,7 @@ void stMetalgear::updateWallRight(float deltaFrame) {
 }
 
 // The search light (the third place) moves toward its target place, not faster than the stage data allows.
-void stMetalgear::updateSearch() {
+void stMetalgear::updateSearch(float deltaFrame) {
     stMetalgearData* data = static_cast<stMetalgearData*>(m_stageData);
     if (data != NULL) {
         float speed;

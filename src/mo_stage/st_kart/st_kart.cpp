@@ -66,8 +66,10 @@ void stKart::createObjPath() {
     m_path = NULL;
     grFixedPathCollection* path = static_cast<grFixedPathCollection*>(m_fileData->getData(Data_Type_Misc, 4, 0xFFFE));
     if (path != NULL) {
-        path->relocation();
-        m_path = path;
+        if (path != NULL) {
+            path->relocation();
+            m_path = path;
+        }
     }
 }
 

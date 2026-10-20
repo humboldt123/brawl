@@ -169,8 +169,8 @@ void stDolpic::createObjPathData() {
     if (pathData != NULL) {
         if (pathData != NULL) {
             pathData->relocation();
+            m_pathData = pathData;
         }
-        m_pathData = pathData;
     }
 }
 

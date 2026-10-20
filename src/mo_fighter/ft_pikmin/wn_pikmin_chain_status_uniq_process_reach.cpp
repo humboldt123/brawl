@@ -19,7 +19,7 @@ void wnPikminChainStatusUniqProcessReach::initStatus(soModuleAccesser* moduleAcc
     int pikminNum = moduleAccesser->getWorkManageModule().getInt(0x10000007);
     moduleAccesser->getWorkManageModule().setInt(pikminNum, 0x20000002);
     // HYPOTHESIS: each Pikmin adds 10 units of reach.
-    float pikminNumF = (float)pikminNum;
-    float reach = pikminNumF * 10.0f;
+    float reach = (float)pikminNum;
+    reach *= 10.0f;
     moduleAccesser->getWorkManageModule().setFloat(reach, 0x21000001);
 }
