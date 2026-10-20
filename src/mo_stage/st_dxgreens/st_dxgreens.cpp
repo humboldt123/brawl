@@ -64,8 +64,8 @@ void stDxGreens::createObj() {
     createObjBg(1);
     createObjBg(0);
     createCollision(m_fileData, 2, NULL);
-    createObjWhispy();
-    createObjBlockPos();
+    createObjWhispy(2);
+    createObjBlockPos(3);
     createObjBlock();
     initCameraParam();
 
@@ -104,7 +104,7 @@ void stDxGreens::createObjBg(int index) {
     }
 }
 
-void stDxGreens::createObjWhispy() {
+void stDxGreens::createObjWhispy(int) { // HYPOTHESIS: the argument (2) is unused
     grDxGreensWhispy* ground = grDxGreensWhispy::create(2, "StgDxGreensWhispy", "grDxGreensWhispy");
     if (ground != NULL) {
         addGround(ground);
@@ -115,7 +115,7 @@ void stDxGreens::createObjWhispy() {
     }
 }
 
-void stDxGreens::createObjBlockPos() {
+void stDxGreens::createObjBlockPos(int) { // HYPOTHESIS: the argument (3) is unused
     grDxGreensBlockPos* ground = grDxGreensBlockPos::create(3, "StgDxGreensBlockPosition", "grDxGreensBlockPos");
     if (ground != NULL) {
         addGround(ground);

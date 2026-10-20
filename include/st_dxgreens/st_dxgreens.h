@@ -78,8 +78,8 @@ public:
     virtual void createObj();
     virtual void update(float deltaFrame);
     virtual void createObjBg(int index);
-    virtual void createObjWhispy();
-    virtual void createObjBlockPos();
+    virtual void createObjWhispy(int);
+    virtual void createObjBlockPos(int);
     virtual void createObjBlock();
     virtual void createObjBlock1(u32 column, u32 row);
     virtual void createObjWind();

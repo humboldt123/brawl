@@ -174,7 +174,7 @@ void grFamicomYuka::update(float deltaFrame) {
 
 // The floor is drawn by the ground itself: a scene object whose draw function (drawProc) draws all the blocks.
 void grFamicomYuka::startup(gfArchive* archive, u32 unk1, gfSceneRoot::LayerType layerType) {
-    grYakumono::startup(archive, unk1, layerType);
+    grYakumono::startup(archive, unk1, static_cast<gfSceneRoot::LayerType>(0));
     m_resFile = nw4r::g3d::ResFile(archive->getData(Data_Type_Tex, 0, 0xFFFE));
     u32 size;
     m_scnProc = nw4r::g3d::ScnProc::Construct(gfHeapManager::getMEMAllocator(Heaps::StageInstance), &size, drawProc, true, false);

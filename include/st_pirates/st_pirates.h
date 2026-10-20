@@ -133,10 +133,10 @@ public:
     virtual void update(float deltaFrame);
     virtual void createObjBg(int index);
     virtual void createObjEnkei(int index);
-    virtual void createObjShip(int index);
-    virtual void createObjShipRipple(int index);
     virtual void createObjLionKing(int index);
     virtual void createObjSling(int index);
+    virtual void createObjShip(int index);
+    virtual void createObjShipRipple(int index);
     virtual void createObjTornado(int index);
     virtual void createObjAground(int index);
     virtual void createObjSeaSky(int index);
