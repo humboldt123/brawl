@@ -40,12 +40,17 @@ class ykNormal;
 // The damage half of the gimmick: one damage record per hit part and the damage module that uses them.
 template <u32 N>
 class ykDamageModuleBuilder {
-    soArrayVector<soDamage, N> m_damageArrayVector;
+    // MATCH-ONLY: the extra level makes the inlined destructor test the array's address once more, as the original does
+    struct DamageArray {
+        soArrayVector<soDamage, N> m_vector;
+        DamageArray(s32 a, s32 b) : m_vector(a, b) { }
+    };
+    DamageArray m_damageArray;
     ykDamageModuleImpl m_damageModule;
 
 public:
     ykDamageModuleBuilder(soModuleAccesser* moduleAccesser, void* unk, soEventObserverRegistrationDesc* registrationDesc)
-        : m_damageArrayVector(N, 0), m_damageModule(moduleAccesser, &m_damageArrayVector, unk, getNullTransactor(), registrationDesc) { }
+        : m_damageArray(N, 0), m_damageModule(moduleAccesser, &m_damageArray.m_vector, unk, getNullTransactor(), registrationDesc) { }
     ykDamageModuleImpl* getModule() { return &m_damageModule; }
 
 private:
