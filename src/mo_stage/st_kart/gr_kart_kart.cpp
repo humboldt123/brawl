@@ -852,9 +852,10 @@ void grKartAttack::updateCallBack(float deltaFrame) {
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
             if (m_kart != NULL) {
-                calcWorldCallBack->m_nodeCallbackDatas[0].m_pos.m_x = m_kart->m_pos.m_x;
-                calcWorldCallBack->m_nodeCallbackDatas[0].m_pos.m_y = m_kart->m_pos.m_y;
-                calcWorldCallBack->m_nodeCallbackDatas[0].m_pos.m_z = m_kart->m_pos.m_z;
+                Vec3f* nodePos = &calcWorldCallBack->m_nodeCallbackDatas[0].m_pos;
+                nodePos->m_x = m_kart->m_pos.m_x;
+                nodePos->m_y = m_kart->m_pos.m_y;
+                nodePos->m_z = m_kart->m_pos.m_z;
                 calcWorldCallBack->m_nodeCallbackDatas[0].m_pos.m_y += 6.5f;
                 calcWorldCallBack->m_nodeCallbackDatas[0].m_pos.m_z += 3.0f;
                 calcWorldCallBack->m_nodeCallbackDatas[0].m_rot.m_y = m_kart->m_rotY;

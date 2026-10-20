@@ -132,9 +132,10 @@ void grHomerunBg::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
-            calcWorldCallBack->m_nodeCallbackDatas[0].m_pos.m_x = m_pos.m_x;
-            calcWorldCallBack->m_nodeCallbackDatas[0].m_pos.m_y = m_pos.m_y;
-            calcWorldCallBack->m_nodeCallbackDatas[0].m_pos.m_z = m_pos.m_z;
+            Vec3f* nodePos = &calcWorldCallBack->m_nodeCallbackDatas[0].m_pos;
+            nodePos->m_x = m_pos.m_x;
+            nodePos->m_y = m_pos.m_y;
+            nodePos->m_z = m_pos.m_z;
             Vec3f offset(0.0f, -250.0f, 250.0f);
             calcWorldCallBack->m_nodeCallbackDatas[1].m_offsetPos = offset;
             calcWorldCallBack->m_nodeCallbackDatas[2].m_offsetPos = offset;
