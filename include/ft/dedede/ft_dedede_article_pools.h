@@ -27,23 +27,23 @@ static_assert(sizeof(wnDededeStar) == 0x1ED0, "wnDededeStar layout is wrong!");
 
 // The Jet Hammer (the class is in the REL, wn_dedede_jethammer). Opaque shell for the same reason.
 class wnDededeJethammer : public Weapon {
-    u8 m_unreconstructed[0x1D40 - sizeof(Weapon)];
+    u8 m_unreconstructed[0x1D44 - sizeof(Weapon)];
 public:
     wnDededeJethammer(s32 articleId, const wnArticleBuildInfo& info, const wnDededeJethammerData* data);
     virtual ~wnDededeJethammer();
     void activate(int founderTaskId, int modelResourceId, float lr);
 };
-static_assert(sizeof(wnDededeJethammer) == 0x1D40, "wnDededeJethammer layout is wrong!");
+static_assert(sizeof(wnDededeJethammer) == 0x1D44, "wnDededeJethammer layout is wrong!");
 
 // The star missile (wn/dedede/wn_dedede_starmissile.h in sora_melee). Opaque shell: that header's class is a weapon builder specialization.
 // HYPOTHESIS: the size is calibrated against the size of the builder (the class info allocation says 0x1FB8).
 class wnDededeStarmissile : public Weapon {
-    u8 m_unreconstructed[0x1FBC - sizeof(Weapon)];
+    u8 m_unreconstructed[0x1FB8 - sizeof(Weapon)];
 public:
     wnDededeStarmissile(s32 articleId, const wnArticleBuildInfo& info, const wnDededeStarmissileData* data);
     virtual ~wnDededeStarmissile();
 };
-static_assert(sizeof(wnDededeStarmissile) == 0x1FBC, "wnDededeStarmissile layout is wrong!");
+static_assert(sizeof(wnDededeStarmissile) == 0x1FB8, "wnDededeStarmissile layout is wrong!");
 
 // The beam of the Waddle Doo (wn/dedede/wn_dedede_waddledoo_beam.h). Opaque shell for the same reason.
 class wnDededeWaddledooBeam : public Weapon {

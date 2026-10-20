@@ -30,7 +30,7 @@ public:
         array->capacity();
     }
     // The default-built queue (Falco's trail of positions).
-    soArrayQueueImpl() : m_array(&m_vector), m_vector() {
+    soArrayQueueImpl() : m_array(&m_vector), m_vector(0) {
         soArray<typename V::value_type>* array = &m_vector;
         array->capacity();
     }

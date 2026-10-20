@@ -71,7 +71,7 @@ public:
     // HYPOTHESIS: formal argument order from native caller scheduling; the
     // implementation uses the four integer arguments for part, motion, model
     // node set and loop control, and stores the final control as one byte.
-    virtual void addPartialAnimChr(int partKind, int kind, int nodeSet, int loop, float frame, float rate, int sync);
+    virtual void addPartialAnimChr(int partKind, int kind, int nodeSet, bool loop, float frame, float rate, bool sync);
     virtual void removePartialAnimChr(int);
     virtual void compRemovePartialAnimChr(int);
     virtual void detachPartialAnimChr(u32, bool);
@@ -241,7 +241,7 @@ public:
     // HYPOTHESIS: formal argument order from native caller scheduling; the
     // implementation uses the four integer arguments for part, motion, model
     // node set and loop control, and stores the final control as one byte.
-    virtual void addPartialAnimChr(int partKind, int kind, int nodeSet, int loop, float frame, float rate, int sync);
+    virtual void addPartialAnimChr(int partKind, int kind, int nodeSet, bool loop, float frame, float rate, bool sync);
     virtual void removePartialAnimChr(int);
     virtual void compRemovePartialAnimChr(int);
     virtual void detachPartialAnimChr(u32, bool);

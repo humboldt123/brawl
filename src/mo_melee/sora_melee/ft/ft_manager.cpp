@@ -586,7 +586,7 @@ void ftManager::generateCoin(int entryId, int amount) {
     m_entryManager->getEntity(entry->m_heartSwapEntryId != -1 ? entry->m_heartSwapEntryId : entryId)->m_owner->addGenerateCoin(amount);
 }
 
-void ftManager::toChange(int entryId, int unk1, int unk2, int unk3) {
+void ftManager::toChange(int entryId, int unk1, bool unk2, bool unk3) {
     m_entryManager->getEntity(entryId)->startChange(unk1, unk2, unk3);
 }
 

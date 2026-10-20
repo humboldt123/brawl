@@ -276,7 +276,7 @@ public:
     void notifyExitFighter(int slotIndex, int unk);
     void setTemporaryCamera(float unk1, int unk2, int unk3, int unk4);
     void setIntarpolateTemporaryCamera(float unk1, float unk2, int unk3, int unk4);
-    void startChange(int unk1, int unk2, int unk3);
+    void startChange(int unk1, bool unk2, bool unk3);
     void prepareChange(float lr, Vec3f* pos, int changePose);
     void setContNo(int contNo);
     bool addDragoon(u32 variation, bool unk);

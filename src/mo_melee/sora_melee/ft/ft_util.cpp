@@ -644,7 +644,8 @@ bool ftUtil::isCounterShield(soCollisionLog* collisionLog) {
 // HYPOTHESIS: parameter meanings and the constant roles.
 void ftUtil::setShieldSetoffSpeed(soModuleAccesser* acc, float power, float lr) {
     float base = power * (1.0f - soValueAccesser::getConstantFloat(acc, 0xCB1, 0)) * soValueAccesser::getConstantFloat(acc, 0xCAA, 0);
-    float speed = soValueAccesser::getConstantFloat(acc, 0xCAB, 0) + base;
+    float offset = soValueAccesser::getConstantFloat(acc, 0xCAB, 0);
+    float speed = offset + base;
     speed *= soValueAccesser::getConstantFloat(acc, 0xCAC, 0);
     if (speed > soValueAccesser::getConstantFloat(acc, 0xCAD, 0)) {
         speed = soValueAccesser::getConstantFloat(acc, 0xCAD, 0);

@@ -35,7 +35,7 @@ public:
     bool notifyEventLink(ftWarioLinkEventArgs* args, soModuleAccesser* acc, StageObject* sender, int unk4); // unk4 is passed along but not used
     void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* acc);
     bool activeArticle(StageObject* bike, soModuleAccesser* acc);
-    void toChange(soModuleAccesser* acc, int entryId, int unk1, int unk2);
+    void toChange(soModuleAccesser* acc, int entryId, bool unk1, bool unk2);
     void setupChangeSucceedWork(soModuleAccesser* acc, void* changeSucceedWork);
     void changeSucceedCore(soModuleAccesser* acc, void* changeSucceedWork, int unk2); // unk2 is not used
 };

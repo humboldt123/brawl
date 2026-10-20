@@ -132,7 +132,7 @@ void ftWarioCommon::notifyEventChangeStatus(int statusKind, int prevStatusKind, 
     }
 }
 
-void ftWarioCommon::toChange(soModuleAccesser* acc, int entryId, int unk1, int unk2) {
+void ftWarioCommon::toChange(soModuleAccesser* acc, int entryId, bool unk1, bool unk2) {
     if ((u8)g_ftManager->getFighterCount(entryId) > 1) {
         acc->getWorkManageModule().onFlag(Work_Flag_Unk41);
         acc->getGenerateArticleManageModule().removeExist(0, 0);

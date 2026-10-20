@@ -1185,7 +1185,7 @@ void stDolpic::updateSE(float deltaFrame) {
         case 0xA:
         case 0xC:
         case 0x20:
-            m_seTimer = time * 0.5f;
+            m_seTimer = time / 2.0f;
             break;
         }
     }

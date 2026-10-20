@@ -357,8 +357,8 @@ public:
     virtual void setLogAttackInfo(soLogAttackInfo* logAttackInfo);
     virtual soLogAttackInfo getLogAttackInfo();
     virtual void updateLogAttackInfo();
-    virtual void deactivate();
     virtual void have(int taskId, int, int);
+    virtual void deactivate();
     virtual void action(u32, float);
     virtual void setGlowAttack(int glowAttack);
     virtual int getGlowAttack();

@@ -119,7 +119,8 @@ void ftStatusUniqProcessSwallowedThrown::initStatus(soModuleAccesser* moduleAcce
     Vec2f velocity;
     if (!moduleAccesser->getWorkManageModule().isFlag(0x22000010)) {
         float throwSpeed = moduleAccesser->getWorkManageModule().getFloat(0x21000004);
-        if (throwSpeed != 0.0f) {
+        float zero = 0.0f; // MATCH-ONLY: a named zero keeps the (value, zero) operand order of the compare
+        if (throwSpeed != zero) {
             velocity.m_x = speedScale * moduleAccesser->getWorkManageModule().getFloat(0x21000004);
         } else {
             velocity.m_x = speedScale * -lr;

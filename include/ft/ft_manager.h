@@ -238,7 +238,7 @@ public:
     int getCoin(int entryId) const;
     void lostCoin(int entryId, int amount, bool unk);
     void generateCoin(int entryId, int amount);
-    void toChange(int entryId, int unk1, int unk2, int unk3);
+    void toChange(int entryId, int unk1, bool unk2, bool unk3);
     void toChangeAppear(int entryId, float lr, Vec3f* pos, int changePose); // HYPOTHESIS: parameter meanings
     void setContNo(int entryId, int contNo);
     void removeDragoon(int entryId, int index);

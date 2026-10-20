@@ -30,6 +30,11 @@ ftFalcoExtendParamAccesser g_ftFalcoExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_Falco, ftFalco> g_ftClassInfoFalco;
 
+// MATCH-ONLY: the trail's constructor is called out of line (the copy sora_melee owns).
+#pragma dont_inline on
+template soArrayVector<ftFalco::PostureInfo, 4>::soArrayVector(s32);
+#pragma dont_inline off
+
 ftFalco::ftFalco(s32 entryId,
                  Heaps::HeapType instHeap,
                  Heaps::HeapType nwModelInstHeap,

@@ -142,7 +142,7 @@ muFigureGetTask::~muFigureGetTask() {
     m_handles[500].cancelRequest();
     gfHeapManager::free(m_handles[500].getBuffer());
     m_handles[500].release();
-    m_archive->~gfArchive();
+    delete m_archive;
     m_archive = NULL;
     fn_8000D7B8(g_gfSceneRoot);
 }

@@ -72,9 +72,12 @@ void grCrayon::update(float deltaFrame) {
 void grCrayon::changeNodeAnim(u32 chrIndex, u32 modelAnimIndex) {
     if (unk16C != NULL) {
         gfModelAnimation::unbind(unk164);
-        CRAYON_BIND_CHR(chrIndex, unk168, unk16C)
-        gfModelAnimation::bind(unk164, unk16C);
-        unk16C->setFrame(0.0f);
+        bool bindResult = (unk16C->m_resFile.GetResAnmChrNumEntries() > chrIndex);
+        if (bindResult) {
+            grCrayonSetChrAnim2(chrIndex, unk168, unk16C, Heaps::StageInstance);
+            gfModelAnimation::bind(unk164, unk16C);
+            unk16C->setFrame(0.0f);
+        }
     }
 }
 

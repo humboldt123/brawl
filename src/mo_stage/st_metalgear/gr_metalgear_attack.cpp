@@ -172,7 +172,7 @@ void grMetalgearAttack::setAttack() {
             0, &offset, 135, 55, 100, 70, 0,
             0x3FF, 7, false, 15,
             soCollisionAttackData::Attribute_Normal, soCollisionAttackData::Sound_Level_Medium,
-            soCollisionAttackData::Sound_Attribute_Punch,
+            soCollisionAttackData::Sound_Attribute_None,
             false, false, false, false, false, false, 0, 60,
             false, true, true, soCollisionAttackData::Lr_Check_Pos,
             false, true, true, true, true, soCollisionAttackData::Region_None, true);

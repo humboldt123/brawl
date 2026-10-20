@@ -58,6 +58,11 @@ void ftFoxStatusUniqProcessReflectorImpl::setTurn(soModuleAccesser* moduleAccess
     turn.set(&data->reflectorTurnData, true, false, modules.m_postureModule->getLr());
 }
 
+// MATCH-ONLY: the trail's constructor is called out of line (the copy sora_melee owns).
+#pragma dont_inline on
+template soArrayVector<ftFox::PostureInfo, 4>::soArrayVector(s32, const ftFox::PostureInfo&, s32);
+#pragma dont_inline off
+
 ftFox::ftFox(s32 entryId,
                  Heaps::HeapType instHeap,
                  Heaps::HeapType nwModelInstHeap,
