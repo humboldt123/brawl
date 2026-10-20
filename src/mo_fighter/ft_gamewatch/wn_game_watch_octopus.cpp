@@ -25,7 +25,8 @@ wnGameWatchOctopus::wnGameWatchOctopus(s32 articleId, const wnArticleBuildInfo& 
     soStatusUniqProcess* uniqProc[4];
     uniqProc[0] = 0;
     uniqProc[3] = 0;
-    uniqProc[1] = uniqProc[2] = &g_wnGameWatchOctopusStatusUniqProcessCommon;
+    uniqProc[1] = &g_wnGameWatchOctopusStatusUniqProcessCommon;
+    uniqProc[2] = &g_wnGameWatchOctopusStatusUniqProcessCommon;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(uniqProc, 4);
     m_moduleAccesser->getCollisionHitModule().add(data->m_hitData, 0);
     Weapon::deactivate(false);

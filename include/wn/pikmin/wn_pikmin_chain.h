@@ -40,7 +40,7 @@ struct wnPikminChainData {
 };
 
 // The status process pointer vector uses the no-argument constructor, not the size overload.
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(9);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(9);
 
 typedef soPhysicsModuleBuildConfigCap<0, soPhysicsModuleImpl> wnPikminChainPhysicsModuleBuildConfig;
 

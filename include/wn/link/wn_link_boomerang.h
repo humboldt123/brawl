@@ -7,7 +7,7 @@
 #include <wn/wn_extend_param_accesser.h>
 
 FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 2);
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(4);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(4);
 
 // The parameter block of the boomerang (14 float and 7 int parameters, ids 4000.. and 24000..).
 // HYPOTHESIS: meanings; the layout follows the pointer table the constructor builds.

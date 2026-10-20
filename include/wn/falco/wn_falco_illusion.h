@@ -13,7 +13,7 @@ class soArrayVector<soStatusUniqProcess*, 3> : public soArrayVectorAbstract<soSt
     u32 m_isFull : 1;
     soStatusUniqProcess* m_elements[3];
 public:
-    soArrayVector();
+    soArrayVector(s32);
     virtual s32 size() const;
     virtual ~soArrayVector();
     virtual s32 capacity() const;
@@ -32,7 +32,7 @@ template <>
 class soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, 3>, soSingletonHolder<soArrayNull<soStatusUniqProcess*> > > {
 public:
     soArrayVector<soStatusUniqProcess*, 3> m_array;
-    soArraySelectHolder() : m_array() { }
+    soArraySelectHolder() : m_array(0) { }
     ~soArraySelectHolder() { }
     soArrayVector<soStatusUniqProcess*, 3>* get() { return &m_array; }
 };

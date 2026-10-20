@@ -30,8 +30,8 @@ wnLinkBoomerang::wnLinkBoomerang(s32 articleId, const wnArticleBuildInfo& info, 
     m_param(data->m_param), m_paramAccesser(data->m_param) {
     soStatusUniqProcess* uniqProcs[4];
     uniqProcs[0] = 0;
-    uniqProcs[1] = &g_wnLinkBoomerangStatusUniqProcessHaved;
     uniqProcs[2] = 0;
+    uniqProcs[1] = &g_wnLinkBoomerangStatusUniqProcessHaved;
     uniqProcs[3] = &g_wnLinkBoomerangStatusUniqProcessTurn;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(uniqProcs, 4);
     Weapon::deactivate(false);

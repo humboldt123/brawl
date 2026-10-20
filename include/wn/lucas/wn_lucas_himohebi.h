@@ -30,7 +30,7 @@ public:
 };
 
 // The status process pointer vector uses the no-argument constructor, not the size overload.
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(9);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(9);
 
 struct wnLucasHimohebiModuleAccesserBuildConfig : wnCommonBuildConfig {
     typedef soInsideEventManageModuleBuildConfig<16, 32, 4, 2, 4, 4, 4, 5, 2, 4, 4, 4, 4, 4, 1, 1, 0, 0, 0, wnInsideEventManageModuleTypes>

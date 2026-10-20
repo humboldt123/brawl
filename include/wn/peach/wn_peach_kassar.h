@@ -41,7 +41,7 @@ public:
     typedef soCollisionHitModuleBuildConfigNull CollisionHitModuleBuildConfig;
     typedef soDamageModuleBuildConfigNull DamageModuleBuildConfig;
     typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;
-    typedef soVisibilityModuleBuildConfig<soVisibilityModuleImpl, 1> VisibilityModuleBuildConfig;
+    typedef soVisibilityModuleBuildConfig<soVisibilityModuleImpl, 2> VisibilityModuleBuildConfig;
     typedef wnStatusModuleBuildConfig<1, soGeneralWorkBuildConfig<2, 2, 1>, 1, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> >
         StatusModuleBuildConfig;
     typedef wnAnimCmdModuleSubBuildConfigDefault<1, 1, 0, 0, 1, 9, 0, 0, 1, 9, 0, 0, 1, 9, 0, 0> AnimCmdModuleSubBuildConfig;

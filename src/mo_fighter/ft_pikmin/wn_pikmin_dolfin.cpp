@@ -125,6 +125,12 @@ public:
 
 extern "C" wnDolfinStageHook* lbl_27_bss_5668;
 
+// MATCH-ONLY: the unit's rodata starts with two constants no code reads (HYPOTHESIS: the pool entries of weak functions the linker dropped).
+#pragma force_active on
+extern const float sDolfinRodataLead0 = 7.5f;
+extern const float sDolfinRodataLead1 = 0.025f;
+#pragma force_active reset
+
 wnPikminDolfin::wnPikminDolfin(s32 articleId, const wnArticleBuildInfo& info, const wnPikminDolfinData* data) :
     wnWeaponBuilder<wnPikminDolfinModuleAccesserBuildConfig>(
         "PikminDolfin", articleId, info,

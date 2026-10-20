@@ -45,7 +45,7 @@ static_assert(sizeof(wnPikminDolfinParamAccesser) == 0x54, "Dolfin parameter acc
 FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 3);
 FT_DOL_ARRAY_VECTOR(soCollisionHitPart, 1);
 // The status process pointer vector uses the no-argument constructor, not the size overload.
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(5);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(5);
 
 // The static data block of the article: only the observed prefix is described.
 struct wnPikminDolfinData {
@@ -89,7 +89,7 @@ struct wnPikminDolfinModuleAccesserBuildConfig : wnCommonBuildConfig {
         MotionModuleBuildConfig;
     typedef soCollisionAttackModuleBuildConfig<soCollision::Category_Fighter, 3, 0, soCollisionAttackModuleImpl, 1, false, true>
         CollisionAttackModuleBuildConfig;
-    typedef soCollisionHitModuleBuildConfig<soCollision::Category_Fighter, 1, 1, soCollisionHitModuleImpl, 0x3ff, true>
+    typedef soCollisionHitModuleBuildConfig<soCollision::Category_Fighter, 1, 1, soCollisionHitModuleImpl, 0x33f, true>
         CollisionHitModuleBuildConfig;
     typedef soDamageModuleBuildConfigNull DamageModuleBuildConfig;
     typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;

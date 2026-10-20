@@ -5,7 +5,7 @@
 #include <wn/wn_weapon_builder.h>
 #include <wn/wn_extend_param_accesser.h>
 
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(3);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(3);
 
 // The parameter block of the article (8 floats, id 4000).
 // HYPOTHESIS: meaning of the parameters.

@@ -6,7 +6,7 @@
 #include <wn/wn_extend_param_accesser.h>
 
 FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 4);
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(4);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(4);
 
 // The parameter block of the sword (one float parameter, id 4000).
 // HYPOTHESIS: meaning of the parameter.

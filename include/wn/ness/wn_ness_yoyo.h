@@ -34,7 +34,7 @@ public:
 // The status process pointer vector uses the no-argument constructor, not the size overload.
 #ifndef WN_NESS_YOYO_PROC_VECTOR
 #define WN_NESS_YOYO_PROC_VECTOR // shared by the Yo-Yo and its head
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(3);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(3);
 #endif
 
 struct wnNessYoyoModuleAccesserBuildConfig : wnCommonBuildConfig {

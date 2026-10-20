@@ -1229,12 +1229,12 @@ __dt__175soStatusModuleBuilder<149wnStatusModuleBuildConfig<5,31soGeneralWorkBui
 __dt__123soArraySelectHolder<1,39soArrayVector<P19soStatusUniqProcess,5>,56soSingletonHolder<35soArrayNull<P19soStatusUniqProcess>>>Fv = .text:0x00029188; // type:function size:0x5C
 __dt__55soGeneralWorkBuilder<31soGeneralWorkBuildConfig<2,2,1>>Fv = .text:0x000291E4; // type:function size:0x60
 __dt__91soControllerModuleBuilder<62wnControllerModuleBuildConfig<25soControllerModuleLinkRef,0,0>>Fv = .text:0x00029244; // type:function size:0x60
-__dt__103soCollisionHitModuleBuilder<72soCollisionHitModuleBuildConfig<0,1,1,24soCollisionHitModuleImpl,1023,1>>Fv = .text:0x000292A4; // type:function size:0x84
+__dt__102soCollisionHitModuleBuilder<71soCollisionHitModuleBuildConfig<0,1,1,24soCollisionHitModuleImpl,831,1>>Fv = .text:0x000292A4; // type:function size:0x84
 __dt__111soCollisionAttackModuleBuilder<77soCollisionAttackModuleBuildConfig<0,3,0,27soCollisionAttackModuleImpl,1,0,1>>Fv = .text:0x00029328; // type:function size:0x84
 __dt__240soMotionModuleBuilder<214soMotionModuleBuildConfig<8,18soMotionModuleImpl,0,2,82soTransitionModuleBuildConfig<49soTypeList<14soIntToType<4>,18soTypeListNullType>>,73soMotionAnimObjCacheModuleBuildConfig<0,30soMotionAnimObjCacheModuleNull>>>Fv = .text:0x000293AC; // type:function size:0x84
 fn_113_29430 = .text:0x00029430; // type:function size:0x5C
 __dt__27wnPikminDolfinParamAccesserFv = .text:0x0002948C; // type:function size:0x60
-__dt__22soParamCustomizeModuleFv = .text:0x000294EC; // type:function size:0x40 scope:weak
+__dt__25soCollisionAttackAbsoluteFv = .text:0x000294EC; // type:function size:0x40 scope:weak
 activate__14wnPikminDolfinFiiiP5Vec3f = .text:0x0002952C; // type:function size:0x194
 onDeactivate__14wnPikminDolfinFv = .text:0x000296C0; // type:function size:0x64
 updateNodeSRT__14wnPikminDolfinFv = .text:0x00029724; // type:function size:0x168

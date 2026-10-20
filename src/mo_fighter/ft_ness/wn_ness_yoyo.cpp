@@ -39,8 +39,10 @@ wnNessYoyo::wnNessYoyo(s32 articleId, const wnArticleBuildInfo& info, const wnNe
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
                                   0, 0, 0, 0, 0, 0, 0)),
     m_param(data->m_param), m_paramAccesser(data->m_param) {
-    soStatusUniqProcess* uniqProcs[3] = {&g_wnNessYoyoStatusUniqProcessShot, &g_wnNessYoyoStatusUniqProcessShotFall,
-                                         &g_wnNessYoyoStatusUniqProcessShot};
+    soStatusUniqProcess* uniqProcs[3];
+    uniqProcs[0] = &g_wnNessYoyoStatusUniqProcessShot;
+    uniqProcs[1] = &g_wnNessYoyoStatusUniqProcessShotFall;
+    uniqProcs[2] = &g_wnNessYoyoStatusUniqProcessShot;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(uniqProcs, 3);
     Weapon::deactivate(false);
 }
