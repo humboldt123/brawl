@@ -592,6 +592,7 @@ struct ftPopoLinkEventArgs : soLinkEventArgs {
     int m_value;
     bool m_flag;
     ftPopoLinkEventArgs(int eventKind) : soLinkEventArgs(eventKind), m_value(0), m_flag(false) { }
+    ftPopoLinkEventArgs(int eventKind, int value) : soLinkEventArgs(eventKind), m_value(value), m_flag(false) { }
 };
 
 // The kinetic transactor singleton of the pair; its slot 5 takes the situation change (the shared header names the slot after the
@@ -679,11 +680,188 @@ void ftPopo::notifyEventChangeSituation(SituationKind kind, SituationKind prevKi
     Fighter::notifyEventChangeSituation(kind, prevKind, moduleAccesser);
 }
 
+// Link event without a payload.
+struct ftPopoLinkKindEventArgs : soLinkEventArgs {
+    ftPopoLinkKindEventArgs(int eventKind) : soLinkEventArgs(eventKind) { }
+};
+
+// HYPOTHESIS: entering a few statuses from the Ice Climbers' own statuses (0x111-0x11d) sets the initial speed of the move from a
+// constant (work floats 0x11000000/0x11000001, flag 0x12000003) and tells the partner about it through link events 0x45a/0x45d.
+void ftPopo::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) {
+    Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
+    switch (statusKind) {
+    case 0x19:
+        switch (prevStatusKind) {
+        case 0x112:
+            m_moduleAccesser->getWorkManageModule().setFloat(soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFA1, 0), 0x11000000);
+            m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
+            break;
+        case 0x113:
+            m_moduleAccesser->getWorkManageModule().setFloat(soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFA9, 0), 0x11000000);
+            m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
+            break;
+        case 0x11C:
+            m_moduleAccesser->getWorkManageModule().setFloat(soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFBD, 0), 0x11000000);
+            m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
+            m_moduleAccesser->getWorkManageModule().setFloat(soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFBC, 0), 0x11000001);
+            break;
+        case 0x11B:
+            m_moduleAccesser->getWorkManageModule().setFloat(soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFD2, 0), 0x11000000);
+            m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
+            m_moduleAccesser->getWorkManageModule().setFloat(soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFD1, 0), 0x11000001);
+            break;
+        }
+        break;
+    case 0x10:
+        if (prevStatusKind == 0x11B && moduleAccesser->getLinkModule().isLink(6) == 1) {
+            ftPopoLinkKindEventArgs event(0x45D);
+            moduleAccesser->getLinkModule().sendEventNodes(6, event, 0);
+        }
+        break;
+    case 0x73:
+        if (prevStatusKind == 0x11D && m_moduleAccesser->getWorkManageModule().isFlag(0x1200003E) == true
+            && moduleAccesser->getLinkModule().isLink(6) == 1) {
+            ftPopoLinkKindEventArgs event(0x45A);
+            moduleAccesser->getLinkModule().sendEventNodes(6, event, 0);
+        }
+        break;
+    case 0x120:
+        startFinalCommon();
+        break;
+    }
+}
+
+// Link event carrying one flag right after the base fields (HYPOTHESIS: kind 0x462 tells the partner whether to stay in the move).
+struct ftPopoLinkFlagEventArgs : soLinkEventArgs {
+    bool m_flag;
+    ftPopoLinkFlagEventArgs(int eventKind, bool flag) : soLinkEventArgs(eventKind), m_flag(flag) { }
+};
+
+// HYPOTHESIS: while linked to the partner (and not in the partner's own state) a few motions are mirrored to it: 0x462 for the
+// two movement motion groups, 0x456 with the partner's matching motion for the rest.
+void ftPopo::notifyEventChangeMotion(int motionKind, int, void*, soModuleAccesser* moduleAccesser) {
+    if (moduleAccesser->getLinkModule().isLink(6) == 1 && m_moduleAccesser->getWorkManageModule().isFlag(0x1200003e) == false) {
+        int partnerMotion = -1;
+        switch (motionKind) {
+        case 0x1C2:
+            partnerMotion = 0x1EA;
+            break;
+        case 0x1C3:
+            partnerMotion = 0x1EB;
+            break;
+        case 0x1C5:
+            partnerMotion = 0x1EC;
+            break;
+        case 0x1C7:
+            partnerMotion = 0x1EE;
+            break;
+        case 0x1C9:
+            partnerMotion = 0x1F0;
+            break;
+        case 0x1D3:
+        case 0x1D8:
+        case 0x1E4: {
+            ftPopoLinkFlagEventArgs event(0x462, true);
+            moduleAccesser->getLinkModule().sendEventNodes(6, event, 0);
+            return;
+        }
+        case 0x1D5:
+        case 0x1D9:
+        case 0x1E8: {
+            ftPopoLinkFlagEventArgs event(0x462, false);
+            moduleAccesser->getLinkModule().sendEventNodes(6, event, 0);
+            return;
+        }
+        }
+        if (partnerMotion != -1) {
+            ftPopoLinkEventArgs event(0x456, partnerMotion);
+            moduleAccesser->getLinkModule().sendEventNodes(6, event, 0);
+        }
+    }
+}
+
 bool ftPopo::isModelSwapColor(int color) {
     switch (color) {
     case 1:
     case 4:
     case 5:
+        return true;
+    }
+    return false;
+}
+
+// HYPOTHESIS: the statuses the partner may be in for a couple technique (the Ice Climbers' synchronized specials check it).
+bool ftPopo::isEnableCoupleTech(int status) {
+    switch (status) {
+    case 0:
+    case 1:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 10:
+    case 11:
+    case 12:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+    case 19:
+    case 20:
+    case 21:
+    case 22:
+    case 23:
+    case 24:
+    case 25:
+    case 30:
+    case 31:
+    case 32:
+    case 33:
+    case 36:
+    case 37:
+    case 38:
+    case 39:
+    case 40:
+    case 41:
+    case 42:
+    case 43:
+    case 44:
+    case 45:
+    case 46:
+    case 47:
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 101:
+    case 102:
+    case 103:
+    case 104:
+    case 105:
+    case 106:
+    case 107:
+    case 108:
+    case 109:
+    case 113:
+    case 114:
+    case 124:
+    case 125:
+    case 126:
+    case 142:
+    case 143:
+    case 144:
+    case 145:
+    case 149:
+    case 201:
+    case 203:
+    case 221:
+    case 246:
+    case 276:
+    case 279:
+    case 288:
         return true;
     }
     return false;
@@ -701,9 +879,7 @@ void* fn_105_F0C8(void* p, s32 flags);
 void* fn_105_12E70(void* p, s32 flags) { return fn_105_F0C8((u8*)p - 0x4, flags); } // soArticleMediatorImpl shoot thunk
 void* fn_105_12E78(void* p, s32 flags) { return fn_105_327C((u8*)p - 0x4, flags); } // soArticleMediatorImpl thunk
 void fn_105_B138(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4);
-void fn_105_A240(u8* self, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
 void fn_105_12EC0(u8* p, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4) { fn_105_B138(p - 0x54, eventInfo, moduleAccesser, stageObject, unk4); } // ftPopo notifyEventLink thunk
-void fn_105_12EC8(u8* p, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) { fn_105_A240(p - 0x64, statusKind, prevStatusKind, statusData, moduleAccesser); } // ftPopo notifyEventChangeStatus thunk
 }
 
 // Chained sub-object destructor wrappers (same shape as above): destroy the sub-object, then delete when flags > 0.

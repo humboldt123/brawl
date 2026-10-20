@@ -25,7 +25,102 @@ typedef soLinkModuleBuildConfigCap<7, soLinkModuleImpl> ftPopoLinkModuleBuildCon
 typedef soStatusModuleBuildConfig<289, soGeneralWorkBuildConfig<18, 14, 2>, 274, 71, soTransitionModuleBuildConfig<ftStatusTransitionTypeList> > ftPopoStatusModuleBuildConfig;
 
 // HYPOTHESIS: this fighter has its own kinetic transactor (changeKinetic is in a later translation unit)
-FT_KINETIC_TRANSACTOR(ftPopoKineticTransactor);
+// Popo's own updateEnergy<E>: with the ordinary kinetic types (below 100) the energy is updated if it is enabled and not suspended;
+// the Ice Climbers specific types (100-114, HYPOTHESIS: the Belay / Squall Hammer / Blizzard movement types) dispatch per type.
+// Types 101-104 of the gravity and controller energies call a type specific update that lives in sora_melee, and a few more
+// (controller 110, stop 112-114) get their own update that also receives a one byte tag object.
+// MATCH-ONLY: the original builds one volatile marker byte per case on the stack (as in Sonic's transactor).
+struct ftPopoKineticTag {
+    u8 m_value;
+    ftPopoKineticTag* clear() { m_value = 0; return this; }
+};
+class ftKineticEnergyGravity;
+class ftKineticEnergyController;
+class ftKineticEnergyStop;
+extern "C" {
+void fn_27_347C5C(ftKineticEnergyGravity* energy, soModuleAccesser* acc);
+void fn_27_3478AC(ftKineticEnergyController* energy, soModuleAccesser* acc);
+void fn_27_347F90(ftKineticEnergyController* energy, ftPopoKineticTag* tag, soModuleAccesser* acc);
+void fn_27_34819C(ftKineticEnergyStop* energy, ftPopoKineticTag* tag, soModuleAccesser* acc);
+void fn_27_3482C8(ftKineticEnergyStop* energy, ftPopoKineticTag* tag, soModuleAccesser* acc);
+void fn_27_348450(ftKineticEnergyStop* energy, ftPopoKineticTag* tag, soModuleAccesser* acc);
+}
+
+template <class E, int Type>
+struct ftPopoKineticUpdate {
+    enum { special = 0 };
+    static void run(E* energy, soModuleAccesser* acc) { energy->updateEnergy(acc); }
+};
+#define FT_POPO_KINETIC_SPECIAL(E, Type, Fn)                                                                   \
+    template <>                                                                                                \
+    struct ftPopoKineticUpdate<E, Type> {                                                                      \
+        enum { special = 1 };                                                                                  \
+        static void run(E* energy, soModuleAccesser* acc) { ftPopoKineticTag tag; Fn(energy, tag.clear(), acc); } \
+    }
+FT_POPO_KINETIC_SPECIAL(ftKineticEnergyController, 110, fn_27_347F90);
+FT_POPO_KINETIC_SPECIAL(ftKineticEnergyStop, 112, fn_27_34819C);
+FT_POPO_KINETIC_SPECIAL(ftKineticEnergyStop, 113, fn_27_3482C8);
+FT_POPO_KINETIC_SPECIAL(ftKineticEnergyStop, 114, fn_27_348450);
+
+template <class E>
+struct ftPopoKineticCommon {
+    static void run(E* energy, soModuleAccesser* acc) { energy->updateEnergy(acc); }
+};
+template <>
+struct ftPopoKineticCommon<ftKineticEnergyGravity> {
+    static void run(ftKineticEnergyGravity* energy, soModuleAccesser* acc) { fn_27_347C5C(energy, acc); }
+};
+template <>
+struct ftPopoKineticCommon<ftKineticEnergyController> {
+    static void run(ftKineticEnergyController* energy, soModuleAccesser* acc) { fn_27_3478AC(energy, acc); }
+};
+
+#define FT_POPO_KINETIC_CASE(n) \
+    case n: { \
+        if (ftPopoKineticUpdate<E, n>::special) { \
+            ftPopoKineticUpdate<E, n>::run(energy, acc); \
+        } else { \
+            volatile u8 marker = 0; \
+            ftPopoKineticUpdate<E, n>::run(energy, acc); \
+        } \
+        break; \
+    }
+class ftPopoKineticTransactor : public ftKineticTransactor {
+public:
+    static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
+    template <typename E>
+    static void updateEnergy(E* energy, soModuleAccesser* acc) {
+        int type = acc->getKineticModule().getKineticType();
+        if (type <= 99) {
+            if (energy->isEnable() == true && !energy->isSuspend()) {
+                energy->updateEnergy(acc);
+            }
+        } else if (energy->isEnable()) {
+            if (energy->isSuspend() == true) {
+            } else if (static_cast<unsigned int>(type - 101) <= 3) {
+                ftPopoKineticCommon<E>::run(energy, acc);
+            } else {
+                switch (acc->getKineticModule().getKineticType()) {
+                    FT_POPO_KINETIC_CASE(100)
+                    FT_POPO_KINETIC_CASE(101)
+                    FT_POPO_KINETIC_CASE(102)
+                    FT_POPO_KINETIC_CASE(103)
+                    FT_POPO_KINETIC_CASE(104)
+                    FT_POPO_KINETIC_CASE(105)
+                    FT_POPO_KINETIC_CASE(106)
+                    FT_POPO_KINETIC_CASE(107)
+                    FT_POPO_KINETIC_CASE(108)
+                    FT_POPO_KINETIC_CASE(109)
+                    FT_POPO_KINETIC_CASE(110)
+                    FT_POPO_KINETIC_CASE(111)
+                    FT_POPO_KINETIC_CASE(112)
+                    FT_POPO_KINETIC_CASE(113)
+                    FT_POPO_KINETIC_CASE(114)
+                }
+            }
+        }
+    }
+};
 typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKineticMediatorImplT<ftPopoKineticTransactor> > ftPopoKineticModuleBuildConfig;
 
 // HYPOTHESIS: soGenerateArticleManageModuleBuilder (the article pools). Only the fighter unit builds the real pools; the other
@@ -85,6 +180,7 @@ public:
     virtual Input* getInput();
     virtual void notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser);
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4);
+    virtual void notifyEventChangeMotion(int motionKind, int unk2, void* unk3, soModuleAccesser* moduleAccesser);
     virtual void onDeadEnd();
     virtual void onStart(int startKind);
     virtual void toKnockOut();
@@ -92,6 +188,7 @@ public:
     virtual bool checkTransitionStatus(u32 statusKind);
     virtual void adjustParentGroundCollision(int unk1, float* unk2);
     static bool isModelSwapColor(int color);
+    static bool isEnableCoupleTech(int status);
     // The hooks the article mediator calls to start an article of the pool (HYPOTHESIS: names follow the module map).
     static bool activeArticle(wnPopoBlizzard* weapon, soModuleAccesser* acc);
     static bool activeArticle1(wnPopoIceBerg* weapon, soModuleAccesser* acc);
