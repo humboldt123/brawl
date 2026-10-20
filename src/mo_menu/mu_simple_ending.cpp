@@ -71,7 +71,11 @@ void muEndPicTask::processDefault() {
     case Step_Appear: {
         // HYPOTHESIS: the top three bits of the byte at 0x2E of the record that the game global points to at 0x10 say
         // which ending it is (4: the one with the other sound)
-        if ((reinterpret_cast<u8*>(*reinterpret_cast<void**>(reinterpret_cast<u8*>(g_GameGlobal) + 0x10))[0x2E] >> 5) == 4) {
+        struct EndingByte {
+            unsigned char m_kind : 3;
+            unsigned char m_rest : 5;
+        };
+        if (reinterpret_cast<EndingByte*>(&reinterpret_cast<u8*>(*reinterpret_cast<void**>(reinterpret_cast<u8*>(g_GameGlobal) + 0x10))[0x2E])->m_kind == 4) {
             g_sndSystem->playSE(static_cast<SndID>(0x1FD4), -1, 0, 0, -1);
         } else {
             g_sndSystem->playSE(static_cast<SndID>(0x1FD3), -1, 0, 0, -1);
@@ -110,7 +114,7 @@ void muEndPicTask::processDefault() {
         m_step = Step_LeaveWait;
         break;
     case Step_LeaveWait:
-        if (m_object->isClrAnimFinished() == 1) {
+        if (m_object->isClrAnimFinished() == 1u) {
             m_step = Step_Remove;
         }
         break;
@@ -120,6 +124,9 @@ void muEndPicTask::processDefault() {
         m_step = Step_Done;
         break;
     }
+    case 8:
+    case 9:
+        break;
     }
     m_frame++;
 }

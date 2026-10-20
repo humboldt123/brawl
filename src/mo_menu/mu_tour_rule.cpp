@@ -348,19 +348,19 @@ void muTourRuleTask::pushbackPanel(int mode) {
 }
 
 muTourRuleTask::~muTourRuleTask() {
-    for (int i = 0; i < 0x28; i++) {
+    for (u32 i = 0; i < 0x28; i++) {
         if (m_mdls[i] != NULL) {
             m_mdls[i]->Destroy();
             m_mdls[i] = NULL;
         }
     }
-    for (int i = 0; i < 0xC3; i++) {
+    for (u32 i = 0; i < 0xC3; i++) {
         if (m_objs[i] != NULL) {
             delete m_objs[i];
             m_objs[i] = NULL;
         }
     }
-    for (int i = 0; i < 8; i++) {
+    for (u32 i = 0; i < 8; i++) {
         gfHeapManager::free(m_files[i].getBuffer());
         m_files[i].release();
     }

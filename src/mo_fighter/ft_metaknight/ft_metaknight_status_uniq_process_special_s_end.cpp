@@ -36,8 +36,7 @@ void ftMetaknightStatusUniqProcessSpecialSEnd::execStatus(soModuleAccesser* modu
 
 void ftMetaknightStatusUniqProcessSpecialSEnd::exitStatus(soModuleAccesser* moduleAccesser, int) {
     ftMetaknightPostureView* posture = &ftMetaknightPosture(moduleAccesser);
-    Vec3f unit(kSEndVectorValue, kSEndVectorValue, kSEndVectorValue);
-    posture->setPos(&unit, 0);
+    posture->setPos(&Vec3f(kSEndVectorValue, kSEndVectorValue, kSEndVectorValue), 0);
     ftMetaknightPosture(moduleAccesser).unk54();
 }
 

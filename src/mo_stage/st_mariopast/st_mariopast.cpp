@@ -709,9 +709,9 @@ bool stMarioPast::setupBlockWork(float scale, stMarioPastBlockWork* work, nw4r::
 }
 
 GXColor stMarioPast::getFinalTechniqColor() {
-    u32 packed = 0x140004B8;
-    if (m_stage != 0) {
-        packed = 0x14000496;
+    u32 packed = 0x14000496;
+    if (m_stage == 0) {
+        packed = 0x140004B8;
     }
     return *reinterpret_cast<GXColor*>(&packed);
 }

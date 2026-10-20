@@ -71,13 +71,13 @@ muTourTable::muTourTable(nw4r::g3d::ResFile* texRes, int priority) {
 muTourTable::~muTourTable() {
     m_group->Destroy();
     m_group = NULL;
-    for (int i = 0; i < 0x5E; i++) {
+    for (u32 i = 0; i < 0x5E; i++) {
         if (m_objs[i] != NULL) {
             delete m_objs[i];
             m_objs[i] = NULL;
         }
     }
-    for (int i = 0; i < 0x60; i++) {
+    for (u32 i = 0; i < 0x60; i++) {
         if (m_plateObjs[i] != NULL) {
             delete m_plateObjs[i];
             m_plateObjs[i] = NULL;
@@ -88,13 +88,13 @@ muTourTable::~muTourTable() {
         gfHeapManager::free(m_texFile.getBuffer());
         m_texFile.release();
     }
-    for (int i = 1; i < 0x3F; i++) {
+    for (u32 i = 1; i < 0x3F; i++) {
         if (m_resLineA[i].ptr() != NULL) {
             gfHeapManager::free(m_resLineA[i].ptr());
             m_resLineA[i] = nw4r::g3d::ResFile(static_cast<void*>(NULL));
         }
     }
-    for (int i = 1; i < 0x1F; i++) {
+    for (u32 i = 1; i < 0x1F; i++) {
         if (m_resLineB[i].ptr() != NULL) {
             gfHeapManager::free(m_resLineB[i].ptr());
             m_resLineB[i] = nw4r::g3d::ResFile(static_cast<void*>(NULL));

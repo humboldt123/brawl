@@ -221,6 +221,7 @@ bool stPlankton::loading() {
 }
 
 void stPlankton::createObj() {
+    u32 size;
     CameraController* camera = CameraController::getInstance();
     // HYPOTHESIS: flag and factor of the camera (their names are unknown)
     *(reinterpret_cast<u8*>(camera) + 0x44) |= 2;
@@ -262,7 +263,6 @@ void stPlankton::createObj() {
     initPosPokeTrainer(1, 0);
     createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, NULL);
     m_resFile = nw4r::g3d::ResFile(m_fileData->getData(Data_Type_Tex, 0, 0xFFFE));
-    u32 size;
     m_scnProc = nw4r::g3d::ScnProc::Construct(gfHeapManager::getMEMAllocator(Heaps::StageInstance), &size, drawProc, false, true);
     if (m_scnProc != NULL) {
         m_scnProc->SetUserData(this);
