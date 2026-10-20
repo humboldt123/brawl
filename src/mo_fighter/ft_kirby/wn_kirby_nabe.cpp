@@ -48,8 +48,13 @@ wnKirbyNabe::wnKirbyNabe(s32 articleId, const wnArticleBuildInfo& info, const wn
         wnModuleAccesserBuildData(0x91, data, info.getHeapModule()->getInstanceHeap(), info.getHeapModule()->getNWModelInstanceHeap(),
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &g_soParamAccesserNull,
                                   0, 0, 0, 0, 0, 0, 0)) {
-    soStatusUniqProcess* procs[6] = { &g_wnKirbyNabeStatusUniqProcess, &g_wnKirbyNabeStatusUniqProcess, &g_wnKirbyNabeStatusUniqProcess,
-                                      &g_wnKirbyNabeStatusUniqProcess, &g_wnKirbyNabeStatusUniqProcess, &g_wnKirbyNabeStatusUniqProcess };
+    soStatusUniqProcess* procs[6];
+    procs[0] = &g_wnKirbyNabeStatusUniqProcess;
+    procs[1] = &g_wnKirbyNabeStatusUniqProcess;
+    procs[2] = &g_wnKirbyNabeStatusUniqProcess;
+    procs[3] = &g_wnKirbyNabeStatusUniqProcess;
+    procs[4] = &g_wnKirbyNabeStatusUniqProcess;
+    procs[5] = &g_wnKirbyNabeStatusUniqProcess;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(procs, 6);
     Weapon::deactivate(false);
 }

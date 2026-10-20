@@ -25,7 +25,8 @@ wnKirbyFinalCutter::wnKirbyFinalCutter(s32 articleId, const wnArticleBuildInfo& 
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
                                   0, 0, 0, 0, 0, 0, 0)),
     m_param(data->m_param), m_paramAccesser(data->m_param) {
-    soStatusUniqProcess* procs[1] = { &g_wnKirbyFinalCutterStatusUniqProcessRegular };
+    soStatusUniqProcess* procs[1];
+    procs[0] = &g_wnKirbyFinalCutterStatusUniqProcessRegular;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(procs, 1);
     Weapon::deactivate(false);
 }

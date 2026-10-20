@@ -4,7 +4,7 @@
 
 #include <wn/wn_weapon_builder.h>
 
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(6);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(6);
 
 // The static data block of the article (read by its wnModuleAccesserBuildData).
 // HYPOTHESIS: layout of the untouched part.

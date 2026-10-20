@@ -929,7 +929,7 @@ updateEnergy<22ftKineticEnergyGravity>__19ftKineticTransactorFP22ftKineticEnergy
 fn_96_213E8 = .text:0x000213E8; // type:function size:0x38
 updateEnergy<21ftKineticEnergyMotion>__19ftKineticTransactorFP21ftKineticEnergyMotionP16soModuleAccesser_v = .text:0x00021420; // type:function size:0x398
 fn_96_217B8 = .text:0x000217B8; // type:function size:0x38
-fn_96_217F0 = .text:0x000217F0; // type:function size:0x1858
+__ct__18wnKirbyFinalCutterFlRC18wnArticleBuildInfoPC22wnKirbyFinalCutterData = .text:0x000217F0; // type:function size:0x1858
 __dt__62wnWeaponBuilder<43wnKirbyFinalCutterModuleAccesserBuildConfig>Fv = .text:0x00023048; // type:function size:0x88
 __dt__70wnModuleAccesserBuilder<43wnKirbyFinalCutterModuleAccesserBuildConfig>Fv = .text:0x000230D0; // type:function size:0x70
 __dt__70soModuleAccesserBuilder<43wnKirbyFinalCutterModuleAccesserBuildConfig>Fv = .text:0x00023140; // type:function size:0x180
@@ -1163,7 +1163,7 @@ fn_96_2AF2C = .text:0x0002AF2C; // type:function size:0x8
 fn_96_2AF34 = .text:0x0002AF34; // type:function size:0x8
 @136@deactivateDescendantForce__56wnWeaponBuilder<37wnKirbyStoneModuleAccesserBuildConfig>Fv = .text:0x0002AF3C; // type:function size:0x8
 fn_96_2AF44 = .text:0x0002AF44; // type:function size:0x8
-fn_96_2AF4C = .text:0x0002AF4C; // type:function size:0x1818
+__ct__11wnKirbyNabeFlRC18wnArticleBuildInfoPC15wnKirbyNabeData = .text:0x0002AF4C; // type:function size:0x1818
 __dt__55wnWeaponBuilder<36wnKirbyNabeModuleAccesserBuildConfig>Fv = .text:0x0002C764; // type:function size:0x88
 __dt__63wnModuleAccesserBuilder<36wnKirbyNabeModuleAccesserBuildConfig>Fv = .text:0x0002C7EC; // type:function size:0x70
 __dt__98wnAnimCmdModuleSubBuilder<69wnAnimCmdModuleSubBuildConfigDefault<1,6,0,0,1,6,0,0,1,6,0,0,1,6,0,0>>Fv = .text:0x0002C85C; // type:function size:0x90
