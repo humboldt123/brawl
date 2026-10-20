@@ -131,7 +131,7 @@ class soArrayVector<soStatusUniqProcess*, 1> : public soArrayVectorAbstract<soSt
     u32 m_isFull : 1;
     soStatusUniqProcess* m_elements[1];
 public:
-    soArrayVector();
+    soArrayVector(s32);
     virtual s32 size() const;
     virtual ~soArrayVector();
     virtual s32 capacity() const;
@@ -146,12 +146,12 @@ public:
     virtual void onFull();
     virtual void offFull();
 };
-// Its owning status holder also default-constructs the vector without a size argument.
+// Its owning status holder passes the same ignored argument.
 template <>
 class soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, 1>, soArrayNull<soStatusUniqProcess*> > {
 public:
     soArrayVector<soStatusUniqProcess*, 1> m_array;
-    soArraySelectHolder() : m_array() { }
+    soArraySelectHolder() : m_array(0) { }
     ~soArraySelectHolder() { }
     soArrayVector<soStatusUniqProcess*, 1>* get() { return &m_array; }
 };
@@ -161,7 +161,7 @@ template <>
 class soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, 1>, soSingletonHolder<soArrayNull<soStatusUniqProcess*> > > {
 public:
     soArrayVector<soStatusUniqProcess*, 1> m_array;
-    soArraySelectHolder() : m_array() { }
+    soArraySelectHolder() : m_array(0) { }
     ~soArraySelectHolder() { }
     soArrayVector<soStatusUniqProcess*, 1>* get() { return &m_array; }
 };

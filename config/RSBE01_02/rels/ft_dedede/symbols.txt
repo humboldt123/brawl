@@ -851,7 +851,7 @@ deactivateDescendantForce__61wnWeaponBuilder<42wnDededeJethammerModuleAccesserBu
 @136@deactivateDescendantForce__61wnWeaponBuilder<42wnDededeJethammerModuleAccesserBuildConfig>Fv = .text:0x0001A6D0; // type:function size:0x8
 @136@__dt__17wnDededeJethammerFv = .text:0x0001A6D8; // type:function size:0x8
 __ct__21wnDededeWaddledooBeamFlRC18wnArticleBuildInfoPC25wnDededeWaddledooBeamData = .text:0x0001A6E0; // type:function size:0x17E0
-fn_117_1BEC0 = .text:0x0001BEC0; // type:function size:0x5C
+__dt__68soGlowModuleBuilder<45soGlowModuleBuildConfig<18soGlowModuleSimple>>Fv = .text:0x0001BEC0; // type:function size:0x5C
 __dt__73soModuleAccesserBuilder<46wnDededeWaddledooBeamModuleAccesserBuildConfig>Fv = .text:0x0001BF1C; // type:function size:0x18C
 __dt__73wnModuleAccesserBuilder<46wnDededeWaddledooBeamModuleAccesserBuildConfig>Fv = .text:0x0001C0A8; // type:function size:0x70
 __dt__65wnWeaponBuilder<46wnDededeWaddledooBeamModuleAccesserBuildConfig>Fv = .text:0x0001C118; // type:function size:0x88
