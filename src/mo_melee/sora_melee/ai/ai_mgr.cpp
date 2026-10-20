@@ -424,15 +424,14 @@ void aiMgr::notifyEventChangeEnd(int entryId, int playerNo, int activeInstanceIn
 void aiMgr::notifyEventDead(int entryId, int deadCount, Fighter::Dead::Reason deadReason, int respawnFrames) {
     int playerNo = g_ftManager->getPlayerNo(entryId);
     removeTgtRefer(playerNo, 1);
-    if (playerNo >= 0) {
-        if (playerNo < 7) {
-            if (g_aiMgr->m_aiInput[playerNo] != NULL) {
-                g_aiMgr->m_aiInput[playerNo]->reset();
-            }
-            if ((&g_aiMgr->m_aiInput[7])[playerNo] != NULL) {
-                (&g_aiMgr->m_aiInput[7])[playerNo]->reset();
-            }
-        }
+    if (playerNo < 0 || playerNo >= 7) {
+        return;
+    }
+    if (g_aiMgr->m_aiInput[playerNo] != NULL) {
+        g_aiMgr->m_aiInput[playerNo]->reset();
+    }
+    if ((&g_aiMgr->m_aiInput[7])[playerNo] != NULL) {
+        (&g_aiMgr->m_aiInput[7])[playerNo]->reset();
     }
 }
 

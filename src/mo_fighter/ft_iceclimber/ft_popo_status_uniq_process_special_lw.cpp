@@ -1,3 +1,5 @@
+#define FT_FIGHTER_ANIMCMD_LONG
+#define FT_FIGHTER_GET_PARTNER_VIRTUAL // MATCH-ONLY: Fighter::getPartner is reached through the vtable
 #include <ft/fighter.h>
 #include <so/so_external_value_accesser.h>
 #include <so/so_module_accesser.h>
@@ -10,8 +12,6 @@
 extern "C" int fn_105_133F8(float);
 extern "C" void fn_105_133E4(Vec2f* dst, const Vec3f* src);
 
-// HYPOTHESIS: Fighter::getPartner is reached through the vtable word at offset 0x3c of the fighter (slot 0x268).
-typedef Fighter* (*ftPopoGetPartnerFunc)(Fighter*);
 // HYPOTHESIS: the stage object's secondary vtable word at 0x3c holds a no-argument-result method at slot 0xb4.
 typedef void (*ftPopoStageVirtualFunc)(StageObject*);
 
@@ -30,7 +30,7 @@ void ftPopoStatusUniqProcessSpecialLw::initStatus(soModuleAccesser* moduleAccess
     if (self == 0) {
         return;
     }
-    Fighter* partner = ((ftPopoGetPartnerFunc)(*(void***)((u8*)self + 0x3c))[0x268 / 4])(self);
+    Fighter* partner = self->getPartner();
     if (moduleAccesser->getSituationModule().getKind() != 0) {
         return;
     }
@@ -76,7 +76,7 @@ bool ftPopoStatusUniqProcessSpecialLw::onChangeLr(soModuleAccesser* moduleAccess
     if (self == 0) {
         return true;
     }
-    Fighter* partner = ((ftPopoGetPartnerFunc)(*(void***)((u8*)self + 0x3c))[0x268 / 4])(self);
+    Fighter* partner = self->getPartner();
     if (moduleAccesser->getSituationModule().getKind() != 0) {
         return true;
     }

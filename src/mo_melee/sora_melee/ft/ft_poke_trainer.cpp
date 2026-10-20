@@ -774,56 +774,54 @@ void ftPokeTrainer::notifyEventPokemonChangeCancel() {
 void ftPokeTrainer::notifyEventPokemonSpecial(int unk1, int special) {
     soModuleAccesser* acc = m_moduleAccesser;
     if (acc->getSituationModule().getKind() == Situation_Outfield || acc->getStatusModule().getStatusKind() == 0x11B) {
-    } else {
-        int specialIndex;
-        switch (special) {
-        case 0x112:
-            specialIndex = 0;
-            break;
-        case 0x113:
-            specialIndex = 1;
-            break;
-        case 0x114:
-            specialIndex = 2;
-            break;
-        default:
-            return;
-        }
-        int pokemonIndex = acc->getWorkManageModule().getInt(0x10000049);
-        int side = 1;
-        int facing = 0;
-        if (reinterpret_cast<ftPokeTrainerExtendView*>(m_commonData)->specialMotions[pokemonIndex].motions[specialIndex] == 1) {
-            if (special == 0x112) {
-                facing = (acc->getWorkManageModule().getFloat(0x11000015) == 1.0f) ? 2 : 1;
-            } else {
-                facing = (acc->getControllerModule().getStickX() > 0.0f) ? 2 : 1;
-            }
-        }
-        float stickY = acc->getWorkManageModule().getFloat(0x1100001A);
-        if (stickY > soValueAccesser::getConstantFloat(acc, 0xFA6, 0)) {
-            float stickX = acc->getWorkManageModule().getFloat(0x11000017);
-            float sideThreshold = soValueAccesser::getConstantFloat(acc, 0xFA7, 0);
-            if (stickX > sideThreshold) {
-                side = 0;
-            } else if (stickX < -sideThreshold) {
-                side = 2;
-            }
-        }
-        acc->getWorkManageModule().setInt(reinterpret_cast<ftPokeTrainerExtendView*>(m_commonData)->specialMotionsSide[side].motions[facing], 0x20000000);
-        acc->getStatusModule().changeStatusRequest(0x122, acc);
+        return;
     }
+    int specialIndex;
+    switch (special) {
+    case 0x112:
+        specialIndex = 0;
+        break;
+    case 0x113:
+        specialIndex = 1;
+        break;
+    case 0x114:
+        specialIndex = 2;
+        break;
+    default:
+        return;
+    }
+    int pokemonIndex = acc->getWorkManageModule().getInt(0x10000049);
+    int side = 1;
+    int facing = 0;
+    if (reinterpret_cast<ftPokeTrainerExtendView*>(m_commonData)->specialMotions[pokemonIndex].motions[specialIndex] == 1) {
+        if (special == 0x112) {
+            facing = (acc->getWorkManageModule().getFloat(0x11000015) == 1.0f) ? 2 : 1;
+        } else {
+            facing = (acc->getControllerModule().getStickX() > 0.0f) ? 2 : 1;
+        }
+    }
+    float stickY = acc->getWorkManageModule().getFloat(0x1100001A);
+    if (stickY > soValueAccesser::getConstantFloat(acc, 0xFA6, 0)) {
+        float stickX = acc->getWorkManageModule().getFloat(0x11000017);
+        float sideThreshold = soValueAccesser::getConstantFloat(acc, 0xFA7, 0);
+        if (stickX > sideThreshold) {
+            side = 0;
+        } else if (stickX < -sideThreshold) {
+            side = 2;
+        }
+    }
+    acc->getWorkManageModule().setInt(reinterpret_cast<ftPokeTrainerExtendView*>(m_commonData)->specialMotionsSide[side].motions[facing], 0x20000000);
+    acc->getStatusModule().changeStatusRequest(0x122, acc);
 }
 
 // HYPOTHESIS: the trainer's own statuses (the ids are not named yet): 0x119 waits while a Pokemon fights, 0x11A/0x11D are
 // the cancelled-change variants, 0x11B is the appeal pose, 0x122 plays a reaction motion that the work slot selects.
 void ftPokeTrainer::notifyEventPokemonAppeal() {
     soModuleAccesser* acc = m_moduleAccesser;
-    if (acc->getSituationModule().getKind() != Situation_Outfield) {
-        if (acc->getStatusModule().getStatusKind() == 0x11B) {
-        } else {
-            acc->getStatusModule().changeStatusRequest(0x127, acc);
-        }
+    if (acc->getSituationModule().getKind() == Situation_Outfield || acc->getStatusModule().getStatusKind() == 0x11B) {
+        return;
     }
+    acc->getStatusModule().changeStatusRequest(0x127, acc);
 }
 
 void ftPokeTrainer::notifyEventPokemonRebirthEnd() {

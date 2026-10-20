@@ -1,3 +1,5 @@
+#define FT_FIGHTER_ANIMCMD_LONG
+#define FT_FIGHTER_GET_PARTNER_VIRTUAL // MATCH-ONLY: Fighter::getPartner is reached through the vtable
 #include <ft/fighter.h>
 #include <so/so_external_value_accesser.h>
 #include <so/so_module_accesser.h>
@@ -7,8 +9,6 @@
 #include <so/work/so_work_manage_module_impl.h>
 #include <types.h>
 
-// HYPOTHESIS: Fighter::getPartner is reached through the vtable word at offset 0x3c of the fighter (slot 0x268).
-typedef Fighter* (*ftPopoFinalPartnerGetPartnerFunc)(Fighter*);
 
 class ftPopoStatusUniqProcessFinalPartner : public soStatusUniqProcess {
     void detachConstraint(soModuleAccesser* moduleAccesser);
@@ -26,7 +26,7 @@ void ftPopoStatusUniqProcessFinalPartner::initStatus(soModuleAccesser* moduleAcc
     if (self == 0) {
         return;
     }
-    Fighter* partner = ((ftPopoFinalPartnerGetPartnerFunc)(*(void***)((u8*)self + 0x3c))[0x268 / 4])(self);
+    Fighter* partner = self->getPartner();
     if (partner == 0) {
         return;
     }

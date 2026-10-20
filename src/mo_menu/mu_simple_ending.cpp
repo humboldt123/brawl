@@ -141,9 +141,7 @@ void muEndPicTask::release() {
     m_msg = NULL;
     m_cameraTask->exit();
     m_cameraTask = NULL;
-    if (m_object != NULL) {
-        delete m_object;
-    }
+    delete m_object;
     m_object = NULL;
     Release__Q34nw4r3g3d7ResFileFv(&m_resFile);
     Release__Q34nw4r3g3d7ResFileFv(&m_resFileTex);
@@ -314,9 +312,7 @@ void muEndMovieTask::release() {
     fn_8000D7B8(g_gfSceneRoot);
     Release__Q34nw4r3g3d7ResFileFv(&m_resFile);
     Release__Q34nw4r3g3d7ResFileFv(&m_resFileModel);
-    if (m_object != NULL) {
-        delete m_object;
-    }
+    delete m_object;
     m_object = NULL;
     fn_8007EA78(m_player, 1);
     m_player = NULL;

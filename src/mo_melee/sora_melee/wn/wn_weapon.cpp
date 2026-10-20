@@ -688,9 +688,7 @@ u32 Weapon::getFounderTaskId() {
     }
     gfTask* task = gfTaskScheduler::getInstance()->getTaskById(gfTask::Category_Weapon, founder);
     Weapon* owner = dynamic_cast<Weapon*>(task);
-    if (owner != NULL) {
-        founder = owner->getFounderTaskId();
-    }
+    founder = (owner == NULL) ? founder : owner->getFounderTaskId();
     return founder;
 }
 

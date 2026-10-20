@@ -147,9 +147,7 @@ muAdvResultTask::~muAdvResultTask() {
     }
     fn_800AD87C(m_sealMng, 1);
     for (int i = 0; i < ObjNum; i++) {
-        if (m_objects[i] != NULL) {
-            delete m_objects[i];
-        }
+        delete m_objects[i];
     }
     fn_8000D7B8(g_gfSceneRoot);
     m_msg->detachMuObject(m_listDisp->m_object);

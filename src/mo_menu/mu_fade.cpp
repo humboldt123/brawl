@@ -89,9 +89,7 @@ void muFadeTask::release() {
     }
     m_handle.release();
     m_resFile.Release();
-    if (m_object != NULL) {
-        delete m_object;
-    }
+    delete m_object;
     m_object = NULL;
 }
 
