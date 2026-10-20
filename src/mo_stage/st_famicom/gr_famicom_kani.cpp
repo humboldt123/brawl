@@ -432,14 +432,16 @@ void grFamicomKani::setMotion(u32 animId, bool loop, bool force, float* frameCou
     m_motion = animId;
 
     u32 index = animId;
-    if (index == 14) {
+    switch (index) {
+    case 13:
+        index = 1;
+        break;
+    case 14:
         index = 5;
-    } else if (index < 14) {
-        if (index > 12) {
-            index = 1;
-        }
-    } else if (index < 16) {
+        break;
+    case 15:
         index = 9;
+        break;
     }
 
     if (index < 0xC) {

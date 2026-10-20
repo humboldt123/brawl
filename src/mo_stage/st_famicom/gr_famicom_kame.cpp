@@ -410,7 +410,19 @@ void grFamicomKame::setMotion(u32 animId, bool loop, bool force, float* frameCou
     m_motion = animId;
 
     if (animId < 0xC) {
-        if (animId == 5) {
+        switch (animId) {
+        case 1: {
+            bool result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > 0);
+            if (result) {
+                grFamicomSetChrAnim2(0, model, modelAnim, Heaps::StageInstance);
+            }
+            result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
+            if (result) {
+                grFamicomSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
+            }
+            break;
+        }
+        case 5: {
             bool result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > 1);
             if (result) {
                 grFamicomSetChrAnim2(1, model, modelAnim, Heaps::StageInstance);
@@ -419,18 +431,9 @@ void grFamicomKame::setMotion(u32 animId, bool loop, bool force, float* frameCou
             if (result) {
                 grFamicomSetVisibilityAnim2(1, model, modelAnim, Heaps::StageInstance);
             }
-        } else if (animId < 5) {
-            if (animId == 1) {
-                bool result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > 0);
-                if (result) {
-                    grFamicomSetChrAnim2(0, model, modelAnim, Heaps::StageInstance);
-                }
-                result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
-                if (result) {
-                    grFamicomSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
-                }
-            }
-        } else if (animId == 9) {
+            break;
+        }
+        case 9: {
             bool result = (modelAnim->m_resFile.GetResAnmChrNumEntries() > 2);
             if (result) {
                 grFamicomSetChrAnim2(2, model, modelAnim, Heaps::StageInstance);
@@ -439,6 +442,8 @@ void grFamicomKame::setMotion(u32 animId, bool loop, bool force, float* frameCou
             if (result) {
                 grFamicomSetVisibilityAnim2(2, model, modelAnim, Heaps::StageInstance);
             }
+            break;
+        }
         }
 
         bool result = (modelAnim->m_resFile.GetResAnmTexPatNumEntries() > animId);

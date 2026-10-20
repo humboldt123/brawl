@@ -82,8 +82,7 @@ void grGWAlarm::update(float deltaFrame) {
 
 // The animation is split in parts: 0 is the ringing (only the visibility), 1 the rest (visibility and color), 2 hides.
 void grGWAlarm::setMotion(u32 animId, bool loop, bool force, float* frameCount) {
-    u32 prev = m_motion;
-    if (prev == animId && force == 0) {
+    if (m_motion == animId && force == 0) {
         return;
     }
     nw4r::g3d::ScnMdl* sceneMdl = *m_sceneModels;
@@ -98,36 +97,53 @@ void grGWAlarm::setMotion(u32 animId, bool loop, bool force, float* frameCount) 
     if (!model.IsValid()) {
         return;
     }
+    u32 prev = m_motion;
     m_motion = animId;
     if (animId == 2) {
         modelAnim->unbindVisibleAnim(sceneMdl);
         modelAnim->unbindMatColAnim(sceneMdl);
     } else {
-        if (prev == 1) {
-            if (animId == 0) {
-                modelAnim->unbindMatColAnim(sceneMdl);
-            }
-        } else if (prev == 0) {
-            if (animId == 1) {
+        switch (prev) {
+        case 0:
+            switch (animId) {
+            case 1: {
                 bool result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > 0);
                 if (result) {
                     grGWSetColorAnim2(0, model, modelAnim, Heaps::StageInstance);
                 }
+                break;
             }
-        } else if (animId == 1) {
-            bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
-            if (result) {
-                grGWSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
             }
-            result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > 0);
-            if (result) {
-                grGWSetColorAnim2(0, model, modelAnim, Heaps::StageInstance);
+            break;
+        case 1:
+            switch (animId) {
+            case 0:
+                modelAnim->unbindMatColAnim(sceneMdl);
+                break;
             }
-        } else if (animId == 0) {
-            bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
-            if (result) {
-                grGWSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
+            break;
+        default:
+            switch (animId) {
+            case 0: {
+                bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
+                if (result) {
+                    grGWSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
+                }
+                break;
             }
+            case 1: {
+                bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
+                if (result) {
+                    grGWSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
+                }
+                result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > 0);
+                if (result) {
+                    grGWSetColorAnim2(0, model, modelAnim, Heaps::StageInstance);
+                }
+                break;
+            }
+            }
+            break;
         }
         gfModelAnimation::bind(sceneMdl, modelAnim);
         if (prev == 2) {

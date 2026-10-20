@@ -99,16 +99,21 @@ void grGWFireSmoke::setMotion(u32 animId, bool loop, bool force, float* frameCou
     modelAnim->unbindMatColAnim(sceneMdl);
     m_motion = animId;
     if (animId != 2) {
-        if (animId == 1) {
-            bool result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > 0);
-            if (result) {
-                grGWSetColorAnim2(0, model, modelAnim, Heaps::StageInstance);
-            }
-        } else if (animId == 0) {
+        switch (animId) {
+        case 0: {
             bool result = (modelAnim->m_resFile.GetResAnmVisNumEntries() > 0);
             if (result) {
                 grGWSetVisibilityAnim2(0, model, modelAnim, Heaps::StageInstance);
             }
+            break;
+        }
+        case 1: {
+            bool result = (modelAnim->m_resFile.GetResAnmClrNumEntries() > 0);
+            if (result) {
+                grGWSetColorAnim2(0, model, modelAnim, Heaps::StageInstance);
+            }
+            break;
+        }
         }
         gfModelAnimation::bind(sceneMdl, modelAnim);
         modelAnim->setFrame(0.0);
