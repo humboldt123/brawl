@@ -353,7 +353,7 @@ public:
     virtual void setVisibilityWholeForce(u8);
     virtual u8 getVisibilityWhole();
     virtual void setSituationKind(SituationKind);
-    virtual bool isConstraint();
+    virtual bool isConstraint(bool);
     virtual void setConstraintTargetNode(int);
     virtual bool isSyncOwnerStatus();
     virtual void setSyncOwnerStatus(bool);

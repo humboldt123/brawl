@@ -58,7 +58,7 @@ public:
     virtual void action(int);
 #endif
     virtual void setSituationKind(SituationKind);
-    virtual bool isConstraint();
+    virtual bool isConstraint(bool);
     virtual void deactivateDescendantForce();
     virtual bool isActiveArticle() = 0;
     virtual void deactivateArticle() = 0;

@@ -276,7 +276,7 @@ void ftSnake::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStat
     }
     if (prevStatusKind == 0x12f && m_moduleAccesser->getGenerateArticleManageModule().isExist(4)) {
         soArticle* c4 = m_moduleAccesser->getGenerateArticleManageModule().getArticle(4);
-        if (c4 != NULL && c4->isConstraint() == true) {
+        if (c4 != NULL && c4->isConstraint(false) == true) {
             ftSnakeC4Event event;
             m_moduleAccesser->getLinkModule().sendEventNodes(3, c4->getTaskId(), event);
         }

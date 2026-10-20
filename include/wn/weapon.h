@@ -98,7 +98,7 @@ public:
     virtual void setVisibility(int, u8);
     virtual void set2nd(u8);
     virtual void setSituationKind(SituationKind);
-    virtual bool isConstraint();
+    virtual bool isConstraint(bool);
     virtual void have(int, int, int);
     virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
     virtual int getArticleId() { return m_articleId; }

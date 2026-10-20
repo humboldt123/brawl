@@ -327,7 +327,7 @@ void BaseItem::setSituationKind(SituationKind kind) {
     embedded<soSituationModule>(this, kSituationModule).setKind(kind, false);
 }
 
-bool BaseItem::isConstraint() {
+bool BaseItem::isConstraint(bool) {
     ItemView* v = reinterpret_cast<ItemView*>(this);
     return v->link.isModelConstraint();
 }
