@@ -2249,6 +2249,7 @@ config.libs = [
         "host": False,
         "objects": [
             Object(NonMatching, "mo_fighter/ft_wario/wn_wario_garlic.cpp"),
+            Object(NonMatching, "mo_fighter/ft_wario/ft_wario_man.cpp"),
             Object(NonMatching, "mo_fighter/ft_wario/ft_wario.cpp"),
             Object(Matching, "mo_fighter/ft_wario/ft_wario_status_uniq_process_special_s_drive.cpp"),
             Object(NonMatching, "mo_fighter/ft_wario/ft_wario_status_uniq_process_special_s.cpp"),
