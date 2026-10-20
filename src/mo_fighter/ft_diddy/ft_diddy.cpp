@@ -1,3 +1,5 @@
+#define MT_VEC3F_CTOR_NOINLINE
+#define MT_VEC3F_ASSIGN_NOINLINE
 // MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
@@ -14,6 +16,7 @@
 #include <so/so_value_accesser.h>
 #include <ft/diddy/ft_diddy_transactor.h>
 #include <ft/ft_owner.h>
+#include <math.h>
 
 #define FT_BC ftDiddyBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
@@ -118,6 +121,11 @@ void ftDiddy::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStat
     Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
 }
 
+// MATCH-ONLY: a pool entry of a weak function the linker dropped (20.0 sits between the 1.0 of the constructor and the first 0.0).
+#pragma force_active on
+extern const float g_ftDiddyDroppedWeakPool = 20.0f;
+#pragma force_active reset
+
 void ftDiddy::notifyEventOnDamage(soDamage* damage, bool isDamage, soModuleAccesser* moduleAccesser) {
     if (isDamage) {
         // Taking a hit outside the two Diddy-specific statuses clears the work flags of the gun and barrel states.
@@ -153,6 +161,103 @@ bool ftDiddy::activeArticle3(wnDiddyExplosion* weapon, soModuleAccesser* acc) {
     int founderTaskId = acc->getStageObject().m_taskId;
     weapon->activate(founderTaskId, acc->getTeamModule().getTeam()->getNo(), &pos, 0.0f);
     return true;
+}
+
+// HYPOTHESIS: the work variable 0x20000002 says how the barrel is thrown: 0 along the angle 0x21000005 of the work, 1 with the
+// speed of Diddy's kinetic energy (scaled by parameter 0xfb4); any other value drops it (flag). It starts at the "JikuN" node.
+bool ftDiddy::activeArticle1(wnDiddyBarrel* weapon, soModuleAccesser* acc) {
+    float rot = 0.0f;
+    Vec2f speed;
+    speed.m_x = 0.0f;
+    speed.m_y = 0.0f;
+    Vec3f pos(0.0f, 0.0f, 0.0f);
+    float lr = acc->getPostureModule().getLr();
+    const char* nodeName = "JikuN";
+    soModelModule* model = &acc->getModelModule();
+    pos = model->getNodeGlobalPosition(model->getNodeId(nodeName), false);
+    pos.m_z = acc->getGroundModule().getZ();
+    bool unk5;
+    int mode = acc->getWorkManageModule().getInt(0x20000002);
+    if (mode == 0) {
+        unk5 = false;
+        float angle = 0.017453292f * acc->getWorkManageModule().getFloat(0x21000005);
+        float cosine = cos(angle);
+        speed.m_x = lr * (cosine * soValueAccesser::getConstantFloat(acc, 0xfaf, 0));
+        float sine = sin(angle);
+        speed.m_y = sine * soValueAccesser::getConstantFloat(acc, 0xfaf, 0);
+        rot = acc->getWorkManageModule().getInt(0x20000000);
+    } else if (mode == 1) {
+        Vec2f kinetic;
+        Vec2f::copy(kinetic, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        speed.m_x = kinetic.m_x * soValueAccesser::getConstantFloat(acc, 0xfb4, 0);
+        speed.m_y = kinetic.m_y * soValueAccesser::getConstantFloat(acc, 0xfb4, 0);
+        rot = acc->getWorkManageModule().getInt(0x20000000);
+        unk5 = false;
+    } else {
+        unk5 = true;
+    }
+    int founderTaskId = acc->getStageObject().m_taskId;
+    weapon->activate(founderTaskId, acc->getResourceModule().getResourceIdAccesser()->getEtcResId(),
+                     acc->getTeamModule().getTeam()->getNo(), &pos, &speed, unk5, lr, rot);
+    return false;
+}
+
+// Shooting a held barrel uses the same throw, started from the weapon itself.
+bool ftDiddy::shootArticle(wnDiddyBarrel* weapon, soModuleAccesser* acc) {
+    Vec2f speed;
+    speed.m_x = 0.0f;
+    speed.m_y = 0.0f;
+    float rot = 0.0f;
+    float angle = 0.0f;
+    Vec3f pos(0.0f, 0.0f, 0.0f);
+    const char* nodeName = "JikuN";
+    soModelModule* model = &acc->getModelModule();
+    pos = model->getNodeGlobalPosition(model->getNodeId(nodeName), false);
+    pos.m_z = acc->getGroundModule().getZ();
+    bool unk5;
+    int mode = acc->getWorkManageModule().getInt(0x20000002);
+    if (mode == 0) {
+        unk5 = false;
+        speed.m_x = 0.0f;
+        speed.m_y = soValueAccesser::getConstantFloat(acc, 0xfaf, 0);
+        rot = acc->getWorkManageModule().getInt(0x20000000);
+        angle = 90.0f;
+    } else if (mode == 1) {
+        acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
+        speed.m_x *= soValueAccesser::getConstantFloat(acc, 0xfb4, 0);
+        speed.m_y *= soValueAccesser::getConstantFloat(acc, 0xfb4, 0);
+        rot = acc->getWorkManageModule().getInt(0x20000000);
+        unk5 = false;
+    } else {
+        unk5 = true;
+    }
+    weapon->shoot(&pos, &speed, acc->getPostureModule().getLr(), rot, angle, unk5);
+    return false;
+}
+
+// The peanuts fly out of Diddy's hand (link 4 of the model) with a speed rotated by the work angle.
+bool ftDiddy::activeArticle2(wnDiddyPeanuts* weapon, soModuleAccesser* acc) {
+    float lr = acc->getPostureModule().getLr();
+    Vec2f speed(0.0f, soValueAccesser::getConstantFloat(acc, 0xfcd, 0));
+    Vec2f offset;
+    if (acc->getWorkManageModule().isFlag(0x22000010)) {
+        offset.m_x = lr * soValueAccesser::getConstantFloat(acc, 0xfcf, 0);
+        offset.m_y = soValueAccesser::getConstantFloat(acc, 0xfd0, 0);
+        acc->getWorkManageModule().offFlag(0x22000010);
+    } else if (acc->getWorkManageModule().isFlag(0x22000011)) {
+        offset.m_x = lr * soValueAccesser::getConstantFloat(acc, 0xfd1, 0);
+        offset.m_y = soValueAccesser::getConstantFloat(acc, 0xfd2, 0);
+        acc->getWorkManageModule().offFlag(0x22000011);
+    }
+    Vec3f direction(0.0f, offset.m_y, offset.m_x);
+    Vec3f pos = acc->getModelModule().getNodeGlobalPosition(4, &direction, true, false);
+    pos.m_z = acc->getGroundModule().getZ();
+    speed.rot(&speed, 0.017453292f * (360.0f - acc->getWorkManageModule().getFloat(0x21000007)));
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = acc->getStageObject().m_taskId;
+    int team = acc->getTeamModule().getTeam()->getNo();
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), team, lr, &pos, &speed);
+    return false;
 }
 
 // ---- the article holders --------------------------------------------------------------------------------------------

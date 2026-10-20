@@ -30,6 +30,8 @@ class wnDiddyBarrel : public Weapon {
 public:
     wnDiddyBarrel(s32 articleId, const wnArticleBuildInfo& info, const wnDiddyBarrelData* data);
     virtual ~wnDiddyBarrel();
+    void activate(int founderTaskId, int resourceId, int team, Vec3f* pos, Vec2f* speed, bool unk5, float lr, float rot);
+    void shoot(Vec3f* pos, Vec2f* speed, float lr, float rot, float angle, bool unk5);
 };
 static_assert(sizeof(wnDiddyBarrel) == 0x25F0, "wnDiddyBarrel layout is wrong!");
 
@@ -39,6 +41,7 @@ class wnDiddyPeanuts : public Weapon {
 public:
     wnDiddyPeanuts(s32 articleId, const wnArticleBuildInfo& info, const wnDiddyPeanutsData* data);
     virtual ~wnDiddyPeanuts();
+    void activate(int founderTaskId, int resourceId, int team, float lr, Vec3f* pos, Vec2f* speed);
 };
 static_assert(sizeof(wnDiddyPeanuts) == 0x1FB4, "wnDiddyPeanuts layout is wrong!");
 
