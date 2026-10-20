@@ -530,7 +530,7 @@ initAttackPosXWork__94ykNoHitNormal<77soCollisionAttackModuleBuildConfig<6,1,0,2
 initHitPosXWork__94ykNoHitNormal<77soCollisionAttackModuleBuildConfig<6,1,0,27soCollisionAttackModuleImpl,1,0,1>>Fii = .text:0x00012AF8; // type:function size:0xC
 getAttackPosX__94ykNoHitNormal<77soCollisionAttackModuleBuildConfig<6,1,0,27soCollisionAttackModuleImpl,1,0,1>>Fi = .text:0x00012B04; // type:function size:0x10
 getHitPosX__94ykNoHitNormal<77soCollisionAttackModuleBuildConfig<6,1,0,27soCollisionAttackModuleImpl,1,0,1>>Fi = .text:0x00012B14; // type:function size:0x10
-fn_68_12B24 = .text:0x00012B24; // type:function size:0x8
+@64@__dt__94ykNoHitNormal<77soCollisionAttackModuleBuildConfig<6,1,0,27soCollisionAttackModuleImpl,1,0,1>>Fv = .text:0x00012B24; // type:function size:0x8
 create__11grFamicomBgFiPCcPCc = .text:0x00012B2C; // type:function size:0xA8
 __ct__11grFamicomBgFPCc = .text:0x00012BD4; // type:function size:0xAC
 __dt__11grFamicomBgFv = .text:0x00012C80; // type:function size:0x58
