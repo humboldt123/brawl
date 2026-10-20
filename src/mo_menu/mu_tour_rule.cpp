@@ -2205,12 +2205,6 @@ void muTourRuleTask::processAnim() {
             break;
         case State_NameWindow:
             switch (m_nameWnd->m_resultKind) {
-            case 3:
-                if (!m_nameDone) {
-                    g_sndSystem->playSE(static_cast<SndID>(2), -1, 0, 0, -1);
-                    m_nameDone = 1;
-                }
-                break;
             case 1:
             case 2:
                 if (!m_nameDone) {
@@ -2220,6 +2214,12 @@ void muTourRuleTask::processAnim() {
                     setPlayerWindow(m_slotCursor);
                     m_nameWnd->m_step = muNameTask::Step_Leave;
                     m_edited = 1;
+                    m_nameDone = 1;
+                }
+                break;
+            case 3:
+                if (!m_nameDone) {
+                    g_sndSystem->playSE(static_cast<SndID>(2), -1, 0, 0, -1);
                     m_nameDone = 1;
                 }
                 break;

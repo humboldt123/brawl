@@ -513,7 +513,7 @@ void ftSZerosuit::setupChangeSucceedWork(void* work) {
 
 // The fighter that takes over (the transformation partner) is started with the work of this one.
 void ftSZerosuit::change(void* work, int mode) {
-    reinterpret_cast<void (*)(ftSZerosuit*, int)>((*reinterpret_cast<void***>(reinterpret_cast<u8*>(this) + 0x3c))[0x29c / 4])(this, mode);
+    onStart(mode);
     Fighter::changeSucceedCore(work, 0x120);
 }
 

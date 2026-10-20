@@ -1864,10 +1864,12 @@ int itManager::removeRequestTrainingItem(int kind) {
     bool removedAny = false;
     bool paired = false;
     switch (kind) {
-    case 0x37:
-        paired = true;
-        if (removeItemsOfKind(this, 0x14) > 0) {
-            removedAny = true;
+    case 0:
+        if (itManagerField<int>(this, 0x10BC) == 0xA1) {
+            removedAny = removeItemsOfKind(this, 0x37) > 0;
+            if (removeItemsOfKind(this, 0x14) > 0) {
+                removedAny = true;
+            }
         }
         break;
     case 0x14:
@@ -1876,12 +1878,10 @@ int itManager::removeRequestTrainingItem(int kind) {
             removedAny = true;
         }
         break;
-    case 0:
-        if (itManagerField<int>(this, 0x10BC) == 0xA1) {
-            removedAny = removeItemsOfKind(this, 0x37) > 0;
-            if (removeItemsOfKind(this, 0x14) > 0) {
-                removedAny = true;
-            }
+    case 0x37:
+        paired = true;
+        if (removeItemsOfKind(this, 0x14) > 0) {
+            removedAny = true;
         }
         break;
     }
@@ -2273,11 +2273,6 @@ int itManager::checkCreatableItem(int kind, u32 variation, bool force) {
         return 0;
     }
     switch (kind) {
-    case 0x22:
-        if (m_itemNums[0x22] > 2 || (m_itemNums[0x44] + m_itemNums[0x2F] > 4 && m_itemNums[0x22] != 0)) {
-            return 0;
-        }
-        break;
     case 0:
         if (itManagerField<int>(this, 0x10C0) > 0 || m_itemNums[0] != 0) {
             return 0;
@@ -2332,6 +2327,11 @@ int itManager::checkCreatableItem(int kind, u32 variation, bool force) {
             }
         }
         if (isExclusiveSpecialItem(0x14, true)) {
+            return 0;
+        }
+        break;
+    case 0x22:
+        if (m_itemNums[0x22] > 2 || (m_itemNums[0x44] + m_itemNums[0x2F] > 4 && m_itemNums[0x22] != 0)) {
             return 0;
         }
         break;
@@ -2580,6 +2580,10 @@ BaseItem* itManager::createBaseItem(Vec3f* safePos, Vec3f* pos, float lr, itKind
     }
     if (variation == 5000) {
         switch (kind) {
+        case 3:
+        case 7:
+            variation = itManagerField<u32>(this, 0x147C);
+            break;
         case 0xB:
             variation = 0;
             if (itManagerField<u8>(this, 0xBD) == 0 && fn_80051A6C() != 0) {
@@ -2590,15 +2594,11 @@ BaseItem* itManager::createBaseItem(Vec3f* safePos, Vec3f* pos, float lr, itKind
                 variation = fn_80056DB0(itManagerField<u32>(this, 0x14B0) & 0xFF) & 0xFFFF;
             }
             break;
-        case 3:
-        case 7:
-            variation = itManagerField<u32>(this, 0x147C);
+        case 0x17:
+            variation = fn_800516F0() & 0xFFFF;
             break;
         case 0x33:
             variation = fn_80056DB0(itManagerField<u32>(this, 0x14B0) & 0xFF) & 0xFFFF;
-            break;
-        case 0x17:
-            variation = fn_800516F0() & 0xFFFF;
             break;
         case 0x40:
             variation = randi(0x1C);

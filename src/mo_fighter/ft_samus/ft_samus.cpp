@@ -486,7 +486,7 @@ void ftSamus::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modu
 
 // The fighter that takes over (the transformation partner) is started with the work of this one.
 void ftSamus::change(void* work, int mode) {
-    reinterpret_cast<void (*)(ftSamus*, int)>((*reinterpret_cast<void***>(reinterpret_cast<u8*>(this) + 0x3c))[0x29c / 4])(this, mode);
+    onStart(mode);
     Fighter::changeSucceedCore(work, 0x126);
 }
 
