@@ -474,7 +474,6 @@ bool ftPokeTrainer::isExistAdvFollowEffect() {
 // from the Final Smash article, otherwise from the work slots that hold where the trainer wants the next Pokemon to appear.
 inline void ftPokeTrainer::sendPartnerPosEvents() {
     soModuleAccesser* acc = m_moduleAccesser;
-    Vec3f pos;
     if (acc->getStatusModule().getStatusKind() == 0x116) {
         int taskId = acc->getWorkManageModule().getInt(0x10000043);
         gfTask* task = gfTaskScheduler::getInstance()->getTaskById(gfTask::Category_Weapon, taskId);
@@ -488,10 +487,7 @@ inline void ftPokeTrainer::sendPartnerPosEvents() {
     } else {
         float y = acc->getWorkManageModule().getFloat(0x11000014);
         float x = acc->getWorkManageModule().getFloat(0x11000013);
-        pos.m_x = x;
-        pos.m_y = y;
-        pos.m_z = 0.0f;
-        ftPokeTrainerPosEvent event(0x839, pos);
+        ftPokeTrainerPosEvent event(0x839, Vec3f(x, y, 0.0f));
         acc->getLinkModule().sendEventNodes(-1, event, 0);
     }
 }

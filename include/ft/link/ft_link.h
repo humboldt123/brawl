@@ -46,8 +46,10 @@ public:
     typedef ftLinkGenerateArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
 };
 
+// HYPOTHESIS: the sword and shield fighter. m_shieldRaised tells whether the shield collision (the Hylian Shield group
+// registered in the constructor) is switched on; it follows the work flag 0x12000041.
 class ftLink : public ftFighterBuilder<ftLinkBuildConfig> {
-    u8 unk1A348;
+    u8 m_shieldRaised;
     ftData* m_data;
     soArrayContractibleTable<const soStatusData> m_statusDataTable;
 public:
@@ -55,5 +57,13 @@ public:
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual void onActivate();
+    virtual void onStart(int startKind);
+    virtual void processUpdate();
+    virtual void processFixPosition();
+    virtual void notifyEventChangeCollisionHit(int index, soModuleAccesser* moduleAccesser);
+    virtual void onHitReflector(soModuleAccesser* moduleAccesser, bool hit);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4);
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
 };
 static_assert(sizeof(ftLink) == 0x1A360, "ftLink size mismatch");

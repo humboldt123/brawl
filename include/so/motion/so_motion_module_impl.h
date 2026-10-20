@@ -57,7 +57,7 @@ public:
     virtual void setWeightRate(float weightRate);
     virtual bool isBlend();
     virtual void disableNode(int);
-    virtual void calcNode(void*, int, int);
+    virtual Vec3f calcNode(int, int); // HYPOTHESIS: returns the transformed node position (hidden return buffer in r3)
     virtual void calcNode(int, void*, void*);
     virtual bool changeMotionRequest(soMotionChangeParam* changeParam);
     virtual void processFixPosition();
@@ -227,7 +227,7 @@ public:
     virtual void setWeightRate(float weightRate);
     virtual bool isBlend();
     virtual void disableNode(int);
-    virtual void calcNode(void*, int, int);
+    virtual Vec3f calcNode(int, int); // HYPOTHESIS: returns the transformed node position (hidden return buffer in r3)
     virtual void calcNode(int, void*, void*);
     virtual bool changeMotionRequest(soMotionChangeParam* changeParam);
     virtual void processFixPosition();

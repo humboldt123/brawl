@@ -275,7 +275,7 @@ public:
             ps_sub fr5, fr2, fr3
             psq_st fr4, Vec3f.m_x(pOut), 0, 0
             psq_st fr5, Vec3f.m_z(pOut), 1, 0
-#elif defined(MT_VEC3F_BIKE_UTILITY_OPERATORS)
+#elif defined(MT_VEC3F_BIKE_UTILITY_OPERATORS) || defined(MT_VEC3F_SUB_NATIVE_ORDER)
             // MATCH-ONLY: retain the same native register order for subtraction.
             psq_l  fr3, Vec3f.m_x(lhs), 0, 0
             psq_l  fr1, Vec3f.m_x(rhs), 0, 0

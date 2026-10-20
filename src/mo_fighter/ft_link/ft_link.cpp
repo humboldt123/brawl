@@ -6,6 +6,7 @@
 #include <ft/ft_class_info_impl.h>
 #include <ft/link/ft_link.h>
 #include <ft/link/ft_link_extend_param_accesser.h>
+#include <so/article/so_generate_article_manage_module.h>
 
 #define FT_BC ftLinkBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
@@ -36,7 +37,7 @@ ftLink::ftLink(s32 entryId,
                                          instHeap,
                                          nwModelInstHeap,
                                          nwMotionInstHeap),
-    unk1A348(0),
+    m_shieldRaised(0),
     m_data(g_ftCommonDataAccesser.getData(Fighter_Link)) {
     // Register the status processes in action order; entries without a process stay empty.
     soStatusUniqProcess* processes[10] = {0};
@@ -54,6 +55,215 @@ ftLink::ftLink(s32 entryId,
     // HYPOTHESIS: the common data record holds the fighter's shield shape group at +0x98 (the Hylian Shield).
     m_moduleAccesser->getCollisionShieldModule().add(reinterpret_cast<soCollisionShieldGroupData*>(reinterpret_cast<u8*>(m_data) + 0x98), 1);
     m_moduleAccesser->getCollisionShieldModule().setTargetProperty(1, 1);
+}
+
+// The node whose position is stored when Link enters the stage (the work floats 0x11000013/0x11000014 hold it).
+// HYPOTHESIS: 300 is the abstract id of that node, 0x1E3 the motion value the node is read for.
+void ftLink::onActivate() {
+    const soModuleEnumeration* modules = m_moduleAccesser->m_enumerationStart;
+    soWorkManageModule* work = modules->m_workManageModule;
+    soModelModule* model = modules->m_modelModule;
+    soMotionModule* motion = modules->m_motionModule;
+    int node = model->getCorrectNodeId(300);
+    Vec3f stored;
+    stored = motion->calcNode(0x1E3, node);
+    work->setFloat(stored.m_x, 0x11000013);
+    work->setFloat(stored.m_y, 0x11000014);
+    m_moduleAccesser->getWorkManageModule().offFlag(0x1200003D);
+}
+
+void ftLink::onStart(int startKind) {
+    Fighter::onStart(startKind);
+    m_moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x11000016);
+    m_shieldRaised = 0;
+}
+
+void ftLink::processUpdate() {
+    Fighter::processUpdate();
+    m_moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x11000016);
+}
+
+// The Hylian Shield (shield group 1) is raised while the work flag 0x12000041 is set and no item is held, and lowered again
+// when the flag goes away or an item is picked up.
+void ftLink::processFixPosition() {
+    soModuleAccesser* acc = m_moduleAccesser;
+    Fighter::processFixPosition();
+    if (m_shieldRaised == 0) {
+        if (acc->getWorkManageModule().isFlag(0x12000041) == true) {
+            if (acc->getItemManageModule().isHaveItem(0) == false) {
+                if (acc->getWorkManageModule().isFlag(0x12000035) == false) {
+                    acc->getCollisionShieldModule().setStatus(0, 1, 1);
+                }
+                m_shieldRaised = 1;
+            }
+        }
+    } else if (acc->getWorkManageModule().isFlag(0x12000041) == false || acc->getItemManageModule().isHaveItem(0) == true) {
+        acc->getCollisionShieldModule().setStatus(0, 0, 1);
+        m_shieldRaised = 0;
+    }
+}
+
+// HYPOTHESIS: while flag 0x12000035 is set the shield follows the hit collision: it is switched off when no hit group is
+// active and on again otherwise.
+void ftLink::notifyEventChangeCollisionHit(int index, soModuleAccesser* moduleAccesser) {
+    int total = moduleAccesser->getCollisionHitModule().getTotalStatus(0);
+    Fighter::notifyEventChangeCollisionHit(index, moduleAccesser);
+    if (m_shieldRaised == 1) {
+        if (moduleAccesser->getWorkManageModule().isFlag(0x12000035) == true) {
+            if (total == 0) {
+                moduleAccesser->getCollisionShieldModule().setStatus(0, 0, 1);
+            } else {
+                moduleAccesser->getCollisionShieldModule().setStatus(0, 1, 1);
+            }
+        }
+    }
+}
+
+// A reflector (the shield group of the hit fighter) was hit: the shield is switched on or off with it.
+void ftLink::onHitReflector(soModuleAccesser* moduleAccesser, bool hit) {
+    if (m_shieldRaised == 1) {
+        if (hit == true) {
+            moduleAccesser->getCollisionShieldModule().setStatus(0, 0, 1);
+        } else {
+            moduleAccesser->getCollisionShieldModule().setStatus(0, 1, 1);
+        }
+    }
+}
+
+// HYPOTHESIS: the link events other objects send to Link, as far as this fighter reads them (event kinds below 0x65 are
+// the engine's, the 0x83x ones are sent by articles with the kinds seen below).
+struct ftLinkLinkEventView {
+    int m_eventKind;
+    bool m_handled;
+    int m_node;  // 0x8
+    int m_param; // 0xC
+    u8 unk10[0xC];
+    u8 unk1C;
+};
+
+void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) {
+    ftLinkLinkEventView* event = reinterpret_cast<ftLinkLinkEventView*>(eventInfo);
+    int eventKind = event->m_eventKind;
+    if (eventKind >= 0x65) {
+        switch (stageObj->soGetSubKind()) {
+        case 3:
+            if (eventKind == 0x838) {
+                switch (m_moduleAccesser->getStatusModule().getStatusKind()) {
+                case 0:
+                case 1:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 10:
+                case 0xB:
+                case 0xC:
+                case 0xD:
+                case 0xE:
+                case 0xF:
+                case 0x11:
+                case 0x12:
+                case 0x15:
+                case 0x16:
+                case 0x17:
+                case 0x18:
+                    m_moduleAccesser->getStatusModule().changeStatusRequest(0x119, m_moduleAccesser);
+                    event->m_handled = true;
+                    break;
+                }
+            }
+            return;
+        case 0x6E:
+            switch (eventKind) {
+            case 0x839:
+                m_moduleAccesser->getStatusModule().changeStatusRequest(0x39, m_moduleAccesser);
+                return;
+            case 0x83A:
+                break;
+            case 0x83B: {
+                int* value = reinterpret_cast<int*>(soValueAccesser::getConstantIndefinite(moduleAccesser, 0xA80E, 0));
+                moduleAccesser->getWorkManageModule().setInt(*value, 0x20000001);
+                m_moduleAccesser->getStatusModule().changeStatusRequest(0x81, m_moduleAccesser);
+                if (moduleAccesser->getGenerateArticleManageModule().isExist(3) == true) {
+                    moduleAccesser->getLinkModule().removeModelConstraint(false);
+                    soLinkModule* link = &moduleAccesser->getLinkModule();
+                    int node = moduleAccesser->getModelModule().getCorrectNodeId(0x12E);
+                    link->setModelConstraintPosOrt(3, node, event->m_node, 5, false);
+                }
+                return;
+            }
+            case 0x83C:
+                if (moduleAccesser->getGroundModule().isStCliff(0)) {
+                    moduleAccesser->getStatusModule().changeStatusRequest(0x75, moduleAccesser);
+                } else {
+                    moduleAccesser->getStatusModule().changeStatusRequest(0x7B, moduleAccesser);
+                }
+                return;
+            case 0x83E:
+                moduleAccesser->getStatusModule().changeStatusRequest(0x83, moduleAccesser);
+                return;
+            }
+            break;
+        }
+    } else {
+        switch (eventKind) {
+        case 0x3C:
+            if (stageObj->soGetKind() == 2) {
+                switch (stageObj->soGetSubKind()) {
+                case 3:
+                    m_moduleAccesser->getWorkManageModule().offFlag(0x1200003D);
+                    break;
+                case 0x6E:
+                    m_moduleAccesser->getModelModule().setVirtualNodeUpdate(2, true);
+                    break;
+                }
+            }
+            break;
+        case 8: {
+            int status = moduleAccesser->getStatusModule().getStatusKind();
+            if (event->m_param == 0xED && status == 0x116) {
+                moduleAccesser->getStatusModule().changeStatusRequest(0x11A, moduleAccesser);
+                event->m_handled = true;
+                event->unk1C = 0;
+                return;
+            }
+            break;
+        }
+        }
+    }
+    Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4);
+}
+
+// HYPOTHESIS: visibility groups 1 and 2 are the sword and the shield on Link's back (the two models are shown while an item is held
+// by the other hand); the shield group goes back to the default state when the status changes.
+void ftLink::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) {
+    Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
+    switch (statusKind) {
+    case 0:
+    case 0x12:
+        break;
+    case 0x33: {
+        soWorkManageModule* work = &moduleAccesser->getWorkManageModule();
+        work->offFlag(0x1200003E);
+        work->offFlag(0x12000040);
+        work->setInt(0, 0x10000040);
+        break;
+    }
+    }
+    soItemManageModule* items = &moduleAccesser->getItemManageModule();
+    soVisibilityModule* visibility = &moduleAccesser->getVisibilityModule();
+    if (items->isHaveItem(0) == true) {
+        if (items->getHaveItemSize(0) == 1) {
+            visibility->setStatusDefault(1, 1, true);
+        }
+        visibility->setStatusDefault(2, 1, true);
+    } else {
+        visibility->setStatusDefault(1, 0, true);
+        visibility->setStatusDefault(2, 0, true);
+    }
+    moduleAccesser->getWorkManageModule().offFlag(0x12000041);
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftLink is done
