@@ -53,7 +53,7 @@ __dt__72soEffectModuleBuilder<47soEffectModuleBuildConfig<18soEffectModuleImpl>>
 __dt__90soArraySelectHolder<1,33soArrayVector<14efScreenHandle,1>,29soArrayNull<14efScreenHandle>>Fv = .text:0x000030A8; // type:function size:0x5C
 __dt__86soArraySelectHolder<1,31soArrayVector<12soEffectTime,1>,27soArrayNull<12soEffectTime>>Fv = .text:0x00003104; // type:function size:0x5C
 __dt__52ftOpaqueGenerateArticleManageModuleBuilder<17968,20>Fv = .text:0x00003160; // type:function size:0x84
-fn_109_31E4 = .text:0x000031E4; // type:function size:0x5C
+__dt__97soArrayPool<14soIntToType<8>,65soArrayPoolRoot<46soInstanceUnitFullProperty<16soTransitionTerm>>>Fv = .text:0x000031E4; // type:function size:0x5C
 fn_109_3240 = .text:0x00003240; // type:function size:0x70
 fn_109_32B0 = .text:0x000032B0; // type:function size:0x5C
 fn_109_330C = .text:0x0000330C; // type:function size:0x70

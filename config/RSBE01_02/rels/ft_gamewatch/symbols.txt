@@ -769,7 +769,7 @@ deactivateDescendantForce__61wnWeaponBuilder<42wnGameWatchRescueModuleAccesserBu
 @136@setAttackPowerMulPattern__6WeaponFf = .text:0x00016ACC; // type:function size:0x8
 @136@getActiveGlobalFrame__6WeaponFv = .text:0x00016AD4; // type:function size:0x8
 @136@updateLogAttackInfo__6WeaponFv = .text:0x00016ADC; // type:function size:0x8
-fn_107_16AE4 = .text:0x00016AE4; // type:function size:0x8
+@136@getLogAttackInfo__6WeaponFv = .text:0x00016AE4; // type:function size:0x8
 @136@setLogAttackInfo__6WeaponFP15soLogAttackInfo = .text:0x00016AEC; // type:function size:0x8
 @136@setSyncOwnerStatus__6WeaponFb = .text:0x00016AF4; // type:function size:0x8
 @136@isSyncOwnerStatus__6WeaponFv = .text:0x00016AFC; // type:function size:0x8
