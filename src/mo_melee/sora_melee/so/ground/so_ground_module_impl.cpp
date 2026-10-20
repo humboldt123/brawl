@@ -50,8 +50,8 @@ void soGroundModuleImpl::setTestDynamicCollision(bool testDynamicCollision, u32 
 void soGroundModuleImpl::setEventToGround(bool eventToGround, u32 index) { m_groundShapeArray->at(index).setEventToGround(eventToGround, 1); }
 void soGroundModuleImpl::setEventToGroundStatus(bool eventToGround, u32 index) { m_groundShapeArray->at(index).setEventToGround(eventToGround, 0); }
 grCollStatus* soGroundModuleImpl::getCollStatus(u32 index) {
-    soArray<soGroundShapeImpl>* shapes = m_groundShapeArray;
-    return shapes->at(index).m_collStatus;
+    grCollStatus* status = m_groundShapeArray->at(index).m_collStatus;
+    return status;
 }
 bool soGroundModuleImpl::isOttotto(float p0, u32 index) {
     grCollStatus* status = m_groundShapeArray->at(index).m_collStatus;
@@ -643,11 +643,12 @@ bool soGroundModuleImpl::isEnableGrCollision() {
 
 void soGroundModuleImpl::setGrCollisionMode(bool mode) {
     grCollision* collision;
-    if (m_collData != NULL && (collision = m_collision) != NULL) {
-        m_collisionOn = mode;
-        if (mode == false) {
-            collision->setDisable();
-        }
+    if (m_collData == NULL || (collision = m_collision) == NULL) {
+        return;
+    }
+    m_collisionOn = mode;
+    if (mode == false) {
+        collision->setDisable();
     }
 }
 

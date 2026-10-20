@@ -151,17 +151,12 @@ bool aiChrIdx::IsPlayer(const aiChrIdx* idx) {
 // 8-23 the dynamic ones. m_active (+0x32C, one byte per slot, bit 0 = in use, the rest an attribute mask), the
 // box corners (+0x14C, 0x14 bytes per slot: minX, minY, maxX, maxY, team) and the in-use count (+0x149).
 void aiMgr::delDangerZone(int index) {
-    if (index < 0) {
-        return;
-    }
-    if ((u32)index >= 0x18) {
-        return;
-    }
     aiMgrDangerView* view = reinterpret_cast<aiMgrDangerView*>(this);
-    if (view->zoneUsed[index] != 0) {
-        view->zoneUsed[index] = 0;
-        aiMgrField<s8>(this, 0x149)--;
+    if (index < 0 || (u32)index >= 0x18 || view->zoneUsed[index] == 0) {
+        return;
     }
+    view->zoneUsed[index] = 0;
+    aiMgrField<s8>(this, 0x149)--;
 }
 
 void aiMgr::clearDangerZone(int index) {
@@ -242,29 +237,20 @@ int aiMgr::setDangerZone(Vec2f* p1, Vec2f* p2, int index, bool unk, bool attr) {
 }
 
 void aiMgr::setDangerAttr(int index, u8 attr) {
-    if (index < 0) {
-        return;
-    }
-    if ((u32)index >= 0x18) {
-        return;
-    }
     aiMgrDangerView* view = reinterpret_cast<aiMgrDangerView*>(this);
-    u8 current = view->zoneUsed[index];
-    if (current != 0) {
-        view->zoneUsed[index] = current | attr;
+    u8 current;
+    if (index < 0 || (u32)index >= 0x18 || (current = view->zoneUsed[index]) == 0) {
+        return;
     }
+    view->zoneUsed[index] = current | attr;
 }
 
 void aiMgr::setDangerTeam(int index, int team) {
-    if (index < 0) {
+    if (index < 0 || (u32)index >= 0x18 || reinterpret_cast<aiMgrDangerView*>(this)->zoneUsed[index] == 0) {
         return;
     }
-    if ((u32)index >= 0x18) {
-        return;
-    }
-    if (reinterpret_cast<aiMgrDangerView*>(this)->zoneUsed[index] != 0) {
-        aiMgrField<int>(this, 0x15C + index * 0x14) = team;
-    }
+    u8* zone = reinterpret_cast<u8*>(this) + index * 0x14;
+    *reinterpret_cast<int*>(zone + 0x15C) = team;
 }
 
 // Whether a point lies inside an active danger zone (other than the ones registered for the given team, if team >= 0,
