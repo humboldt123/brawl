@@ -295,15 +295,21 @@ void muEndMovieTask::processDefault() {
 }
 
 void muEndMovieTask::renderOpa() {
-    if (m_step == Step_Play) {
+    switch (m_step) {
+    case Step_Play:
         m_frameNo = fn_8007EF70(m_player, 0, 0, -1, -1);
+        break;
     }
 }
 
 void muEndMovieTask::initialize() {
     unk2C_b1 = false;
     void* memory = operator new(1, Heaps::MenuInstance);
-    m_player = (memory != NULL) ? fn_8007E99C(memory) : NULL;
+    mvMoviePlayer* player = static_cast<mvMoviePlayer*>(memory);
+    if (memory != NULL) {
+        player = fn_8007E99C(memory);
+    }
+    m_player = player;
     m_frameNum = 0;
     m_frameNo = 0;
 }

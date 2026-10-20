@@ -532,3 +532,7 @@ Things that moved registers, roughly in the order worth trying:
 ## Menu task near-misses (mu_event, mu_adv_telop, mu_simple_ending)
 - A ctor that stores several members: the store order in the asm follows the *body* assignments, not the member-init list. `m_tex(), m_object(NULL), m_frame(0) { m_step = Step_Create; }` gives the original order where an init-list for `m_step` did not.
 - Inline functions defined in a header put their `@STRING@` groups at the *end* of the unit's string pool. Moving an inline ctor into the .cpp (to reorder the pool) adds a global ctor symbol the original does not have, so it is not an option.
+- Two loads of the same member in the asm (`lwz r4, 0x1ac(r3)` and `lwz r5, 0x1ac(r3)`, index and base separately) come from reading it through different paths: `m_work->m_media[getWork()->m_curMedia]` (member in one place, inline getter in the other) where `m_work->m_media[m_work->m_curMedia]` is CSE'd into one load.
+- `x = (p != NULL) ? fn(p) : NULL;` emits `b L+2; li r3, 0` after the call; the original `beq L+2; bl fn` (no extra branch) is `T* r = (T*)p; if (p != NULL) { r = fn(p); } x = r;`.
+- A one-case `switch` (`switch (m_step) { case Step_Play: ...; break; }`) is the source of `beq L+2; b end`, as in `if`-less renderOpa style functions; `if (m_step == Step_Play)` gives a single `bne end`.
+- `for (...) { ... aiWeapon* w = &m_arr[i]; ... }` can differ from the original in the order of the increments; `aiWeapon* w = m_arr; for (int i = 0; i < N; i++, w++)` matched `getWeapon` (the increment `addi r5` before `addi r3`).

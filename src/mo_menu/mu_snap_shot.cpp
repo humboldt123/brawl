@@ -179,7 +179,7 @@ void muSnapShotTask::onDecided() {
 }
 
 void muSnapShotTask::controlBrowsing() {
-    if (m_work->m_media[m_work->m_curMedia].m_numPic == 0 || (m_input & 6) != 0) {
+    if (m_work->m_media[getWork()->m_curMedia].m_numPic == 0 || (m_input & 6) != 0) {
         removeObjCore(m_work->m_objs[24]->m_sceneModel);
         m_work->m_state = 0;
         g_sndSystem->playSE(static_cast<SndID>(2), -1, 0, 0, -1);
