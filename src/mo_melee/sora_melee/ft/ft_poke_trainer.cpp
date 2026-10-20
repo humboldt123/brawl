@@ -1,5 +1,6 @@
 // The trainer's long animation-command override puts an extra Fighter virtual before getOwner.
 #define FT_FIGHTER_ANIMCMD_LONG
+#define FT_FIGHTER_GET_PARTNER_VIRTUAL // MATCH-ONLY: the original reaches Fighter::getPartner through the vtable
 #define SO_EVENT_PRESENTER_STORE_NULL_LIST
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_manager.h>
@@ -233,9 +234,8 @@ void ftPokeTrainer::trainerStart(float lr, Vec3f* pos, Vec3f* wanderPos, int sta
         }
         break;
     case 4: {
-        Fighter* partner = getPartner();
-        acc->getWorkManageModule().setInt(soExternalValueAccesser::getWorkInt(partner, 0x20000000), 0x10000047);
-        switch (getPartner()->soGetSubKind()) {
+        acc->getWorkManageModule().setInt(soExternalValueAccesser::getWorkInt(getPartner(), 0x20000000), 0x10000047);
+        switch (getPartner()->getFtKind()) {
         case 0x1D:
             acc->getWorkManageModule().setInt(0, 0x10000048);
             acc->getSoundModule().playSE(static_cast<SndID>(0x869), false, false, 0);
@@ -389,10 +389,7 @@ void ftPokeTrainer::processFixPosition() {
     }
     StageObject::processFixPosition();
     if (soSlow::getInstance()->isEstimate() == 1) {
-        // MATCH-ONLY: Fighter::getPartner is reached through the vtable (slot 0x268), which the Fighter header does not declare as virtual yet.
-        typedef Fighter* (*GetPartnerFunc)(Fighter*);
-        GetPartnerFunc getPartnerVirtual = *reinterpret_cast<GetPartnerFunc*>(*reinterpret_cast<u8**>(reinterpret_cast<u8*>(this) + 0x3C) + 0x268);
-        m_wandering.processFixPosition(this, getPartnerVirtual(this), m_moduleAccesser);
+        m_wandering.processFixPosition(this, static_cast<Fighter*>(this)->getPartner(), m_moduleAccesser);
     }
 }
 

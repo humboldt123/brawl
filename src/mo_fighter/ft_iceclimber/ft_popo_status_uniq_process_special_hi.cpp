@@ -1,3 +1,5 @@
+#define FT_FIGHTER_ANIMCMD_LONG
+#define FT_FIGHTER_GET_PARTNER_VIRTUAL // MATCH-ONLY: Fighter::getPartner is reached through the vtable
 #include <ft/fighter.h>
 #include <so/so_external_value_accesser.h>
 #include <so/so_module_accesser.h>
@@ -33,8 +35,7 @@ struct ftPopoSpecialHiStateEvent : soLinkEventArgs {
     ftPopoSpecialHiStateEvent(int kind, int state) : soLinkEventArgs(kind), m_state(state), m_flag(false) { }
 };
 
-// HYPOTHESIS: Fighter::getPartner is reached through the vtable word at offset 0x3c of the fighter (slot 0x268).
-typedef Fighter* (*ftPopoSpecialHiGetPartnerFunc)(Fighter*);
+
 
 class ftPopoStatusUniqProcessSpecialHi : public soStatusUniqProcess {
 public:
@@ -53,7 +54,7 @@ void ftPopoStatusUniqProcessSpecialHi::execFixPos(soModuleAccesser* moduleAccess
         Fighter* self = dynamic_cast<Fighter*>(&moduleAccesser->getStageObject());
         Fighter* partner = 0;
         if (self != 0) {
-            partner = ((ftPopoSpecialHiGetPartnerFunc)(*(void***)((u8*)self + 0x3c))[0x268 / 4])(self);
+            partner = self->getPartner();
         }
         if (partner != 0 && fn_105_C29C(soExternalValueAccesser::getStatusKind(partner)) == 1) {
             Vec3f partnerPos = soExternalValueAccesser::getPos(partner);
@@ -94,7 +95,7 @@ void ftPopoStatusUniqProcessSpecialHi::execFixPos(soModuleAccesser* moduleAccess
         if (self == 0) {
             return;
         }
-        Fighter* partner = ((ftPopoSpecialHiGetPartnerFunc)(*(void***)((u8*)self + 0x3c))[0x268 / 4])(self);
+        Fighter* partner = self->getPartner();
         if (partner == 0) {
             return;
         }
@@ -127,7 +128,7 @@ void ftPopoStatusUniqProcessSpecialHi::exitStatus(soModuleAccesser* moduleAccess
     if (self == 0) {
         return;
     }
-    Fighter* partner = ((ftPopoSpecialHiGetPartnerFunc)(*(void***)((u8*)self + 0x3c))[0x268 / 4])(self);
+    Fighter* partner = self->getPartner();
     if (partner == 0) {
         return;
     }
