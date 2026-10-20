@@ -206,8 +206,8 @@ void muEventTask::createModel() {
     m_objects[0x10]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(1.0f);
     m_objects[0x53]->m_modelAnim->m_anmObjChrRes->SetUpdateRate(1.0f);
     m_objects[0x53]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(1.0f);
-    m_objects[0x1E]->setFrameNode(1.0f);
-    m_objects[0x1F]->setFrameNode(0.0f);
+    m_objects[0xE]->setFrameNode(1.0f);
+    m_objects[0xF]->setFrameNode(0.0f);
 }
 
 // Creates the models of the table; they are stored in the slots of the task and start with the animation "__0". The models

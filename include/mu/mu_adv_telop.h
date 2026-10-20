@@ -52,7 +52,7 @@ public:
     u8 m_unk71;                     // 0x71
 
     muAdvTelopTask()
-        : gfTask("Telop", Category_Menu, 0xF, 8, true), m_tex(), m_object(NULL), m_step(Step_Create), m_frame(0) { }
+        : gfTask("Telop", Category_Menu, 0xF, 8, true), m_tex(), m_object(NULL), m_frame(0) { m_step = Step_Create; }
     static muAdvTelopTask* create(const muAdvTelopParam* param);
 
     virtual void processDefault();
