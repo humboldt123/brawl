@@ -20,13 +20,13 @@ grEarthHaneMizu::~grEarthHaneMizu() {
 void grEarthHaneMizu::update(float deltaFrame) {
     grGimmick::update(deltaFrame);
     if (m_isUpdate) {
-        updateWeather();
-        updateCallBack();
+        updateWeather(deltaFrame);
+        updateCallBack(deltaFrame);
     }
 }
 
 // The drops show while it rains (the weather 1 or 2) and are hidden when it is fine.
-void grEarthHaneMizu::updateWeather() {
+void grEarthHaneMizu::updateWeather(float deltaFrame) {
     switch (m_state) {
     case 0:
         setVisibility(0);
@@ -56,7 +56,7 @@ void grEarthHaneMizu::updateWeather() {
     }
 }
 
-void grEarthHaneMizu::updateCallBack() {
+void grEarthHaneMizu::updateCallBack(float deltaFrame) {
     grCalcWorldCallBack* calcWorldCallBack = &m_calcWorldCallBack;
     if (calcWorldCallBack != NULL) {
         nw4r::g3d::ScnMdl* scnMdl = m_sceneModels[0];

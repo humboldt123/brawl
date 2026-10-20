@@ -462,14 +462,14 @@ void stPlankton::update(float deltaFrame) {
     case 1:
         break;
     }
-    updateLimit();
-    updateAshibaLeft();
+    updateLimit(deltaFrame);
+    updateAshibaLeft(deltaFrame);
     updateHanenbou(deltaFrame);
     updateWater(deltaFrame);
 }
 
 // The camera's right and top limit.
-void stPlankton::updateLimit() {
+void stPlankton::updateLimit(float deltaFrame) {
     CameraController* camera = CameraController::getInstance();
     float top = camera->unk164;
     m_posLimitNow.m_x = camera->unk15C;
@@ -477,7 +477,7 @@ void stPlankton::updateLimit() {
     m_posLimitNow.m_z = 0.0f;
 }
 
-void stPlankton::updateAshibaLeft() {
+void stPlankton::updateAshibaLeft(float deltaFrame) {
     Ground* ground = getGround(2);
     if (ground != NULL) {
         ground->getNodePosition(&m_posAshibaLeft[0], 0, "AshibaLeft_Loc");

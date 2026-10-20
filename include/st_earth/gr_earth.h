@@ -469,8 +469,8 @@ public:
     virtual ~grEarthStump();
     virtual void processAnim();
     virtual void update(float deltaFrame);
-    virtual void updateJoint();
-    virtual void updatePellet();
+    virtual void updateJoint(float deltaFrame);
+    virtual void updatePellet(float deltaFrame);
     virtual void getPosPellet(float rate, Vec3f* pos);
     virtual void setPelletData(stEarthPelletData* pelletData);
     virtual void setPosGimmickWork(Vec3f* posGimmickWork);
@@ -527,8 +527,8 @@ public:
     }
     virtual ~grEarthHaneMizu();
     virtual void update(float deltaFrame);
-    virtual void updateWeather();
-    virtual void updateCallBack();
+    virtual void updateWeather(float deltaFrame);
+    virtual void updateCallBack(float deltaFrame);
     virtual void setWeatherWork(u8* weatherWork);
     virtual void setPosOffsetWork(Vec3f* posOffsetWork);
 

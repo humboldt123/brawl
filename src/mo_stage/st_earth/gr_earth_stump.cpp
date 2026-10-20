@@ -29,12 +29,12 @@ void grEarthStump::processAnim() {
 
 void grEarthStump::update(float deltaFrame) {
     grGimmick::update(deltaFrame);
-    updateJoint();
-    updatePellet();
+    updateJoint(deltaFrame);
+    updatePellet(deltaFrame);
 }
 
 // The joint of the collision that belongs to the stump is looked for once.
-void grEarthStump::updateJoint() {
+void grEarthStump::updateJoint(float deltaFrame) {
     if (m_joint == NULL) {
         grCollision* collision = m_collision;
         if (collision != NULL) {
@@ -60,7 +60,7 @@ void grEarthStump::updateJoint() {
 }
 
 // The pellets that lie on the stump (the leaf 3) follow the line between the two nodes of it.
-void grEarthStump::updatePellet() {
+void grEarthStump::updatePellet(float deltaFrame) {
     stEarthData* data = static_cast<stEarthData*>(getStageData());
     if (data != NULL) {
         u32 i;

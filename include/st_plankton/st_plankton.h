@@ -163,8 +163,8 @@ public:
     virtual void createObjHanenbou();
     virtual void createObjHamon();
     virtual void createObjWater();
-    virtual void updateLimit();
-    virtual void updateAshibaLeft();
+    virtual void updateLimit(float deltaFrame);
+    virtual void updateAshibaLeft(float deltaFrame);
     virtual void updateHanenbou(float deltaFrame);
     virtual void updateWater(float deltaFrame);
     virtual void updateWaterMakeWave(float deltaFrame);
