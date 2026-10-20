@@ -23,6 +23,16 @@ struct ftWarioConsumeWeaponEvent : soLinkEventArgs {
     ftWarioConsumeWeaponEvent() : soLinkEventArgs(0x835) { }
 };
 
+// HYPOTHESIS: two (value, flag) pairs initialized in the static initializer before the status instance (as in
+// ft_status_uniq_process_swallowed_thrown.cpp; the owner of the pairs is not known).
+struct ftWarioStatusUniqProcessSpecialNOpenPair {
+    u32 m_0;
+    u32 m_4;
+    ftWarioStatusUniqProcessSpecialNOpenPair(u32 first, u32 second) : m_0(first), m_4(second) { }
+};
+static ftWarioStatusUniqProcessSpecialNOpenPair g_ftWarioStatusUniqProcessSpecialNOpenPairA(0xff, 0);
+static ftWarioStatusUniqProcessSpecialNOpenPair g_ftWarioStatusUniqProcessSpecialNOpenPairB(0xff, 1);
+
 class ftWarioStatusUniqProcessSpecialNOpen : public soStatusUniqProcess {
 public:
     virtual ~ftWarioStatusUniqProcessSpecialNOpen() { }

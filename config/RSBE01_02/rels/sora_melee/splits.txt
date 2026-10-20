@@ -5294,6 +5294,9 @@ mo_melee/sora_melee/ft/ft_status_uniq_process_swallowed_capture.cpp:
 mo_melee/sora_melee/ft/ft_status_uniq_process_swallowed_thrown.cpp:
 	.text       start:0x00184F78 end:0x0018553C
 	.ctors      start:0x0000019C end:0x000001A0
+	.rodata     start:0x000024A0 end:0x000024A8
+	.data       start:0x00030C08 end:0x00030C80
+	.bss        start:0x00004CB0 end:0x00004CD0
 
 mo_melee/sora_melee/ft/ft_status_uniq_process_swallowed_thrown_star.cpp:
 	.text       start:0x0018553C end:0x00185BA8
@@ -11337,6 +11340,8 @@ mo_melee/sora_melee/ft/ft_wario_transactor.cpp:
 mo_melee/sora_melee/ft/ft_wario_status_uniq_process_special_nopen.cpp:
 	.text       start:0x00356A14 end:0x00357080
 	.ctors      start:0x00000444 end:0x00000448
+	.data       start:0x0008F2D8 end:0x0008F3D0
+	.bss        start:0x00008018 end:0x00008038
 
 mo_melee/sora_melee/ft/ft_wario_status_uniq_process_special_nbite.cpp:
 	.text       start:0x00357080 end:0x00357378
