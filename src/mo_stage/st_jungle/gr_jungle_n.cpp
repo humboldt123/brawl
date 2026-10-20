@@ -117,18 +117,20 @@ void grJungleN::updateBreak(float deltaFrame) {
     if (m_stateWork != NULL) {
         stJungleData* data = static_cast<stJungleData*>(getStageData());
         if (data != NULL) {
-            u8 state = m_state;
-            if (state != 1) {
-                if (state == 0) {
-                    setVisibility(1);
-                    m_hp = data->unk14;
-                    m_state = 1;
-                } else if (state == 9) {
-                    if (*m_stateWork == 4) {
-                        *m_stateWork = 0;
-                        m_state = 0;
-                    }
+            switch (m_state) {
+            case 0:
+                setVisibility(1);
+                m_hp = data->unk14;
+                m_state = 1;
+                break;
+            case 1:
+                break;
+            case 9:
+                if (*m_stateWork == 4) {
+                    *m_stateWork = 0;
+                    m_state = 0;
                 }
+                break;
             }
         }
     }

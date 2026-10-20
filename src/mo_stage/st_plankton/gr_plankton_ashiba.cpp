@@ -376,8 +376,10 @@ void grPlanktonAshiba::updateCallBack(float deltaFrame) {
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
             float angle = m_leaf->m_angle;
-            if (m_leaf->m_flip == 0) {
+            switch (m_leaf->m_flip) {
+            case 0:
                 angle = -angle;
+                break;
             }
             calcWorldCallBack->m_nodeCallbackDatas[0].m_offsetPos.m_z = m_leaf->unk00;
             calcWorldCallBack->m_nodeCallbackDatas[0].m_offsetRot.m_z = angle;

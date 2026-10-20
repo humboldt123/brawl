@@ -350,8 +350,8 @@ void grMansionPillar::setMotion(u32 animId, bool loop, bool force, float* frameC
 // A hit shakes the pillar and takes the damage off its hit points; the pillar breaks when they are gone.
 void grMansionPillar::onDamage(int index, soDamage* damage, soDamageAttackerInfo* attackerInfo) {
     // HYPOTHESIS: the second float of the damage is what a hit takes off the pillar
-    float power = damage->unk4;
     fn_27_26399C(m_yakumono);
+    float power = damage->unk4;
     float random = randf();
     if (random < 0.25f) {
         unk1A8.playSE(snd_se_stage_Mansion_post_dmg_a, 0, 0, -1);
@@ -362,12 +362,16 @@ void grMansionPillar::onDamage(int index, soDamage* damage, soDamageAttackerInfo
     } else {
         unk1A8.playSE(snd_se_stage_Mansion_post_dmg_d, 0, 0, -1);
     }
-    if (unk160 == 0 && unk168[-1] != 2) {
-        if (unk188 == 0.0f) {
-            u32 effect = g_ecMgr->setEffect(ef_ptc_stg_mansion_pillar_hit);
-            g_ecMgr->setParent(effect, m_sceneModels[0], "StgManshon00pillar01", true);
+    switch (unk160) {
+    case 0:
+        if (unk168[-1] != 2) {
+            if (unk188 == 0.0f) {
+                u32 effect = g_ecMgr->setEffect(ef_ptc_stg_mansion_pillar_hit);
+                g_ecMgr->setParent(effect, m_sceneModels[0], "StgManshon00pillar01", true);
+            }
+            break;
         }
-    } else {
+    default:
         if (unk188 == 0.0f) {
             u32 effect = g_ecMgr->setEffect(ef_ptc_stg_mansion_pillar_damage);
             g_ecMgr->setParent(effect, m_sceneModels[0], "StgManshon00pillar01", true);
@@ -382,5 +386,6 @@ void grMansionPillar::onDamage(int index, soDamage* damage, soDamageAttackerInfo
         } else {
             unk170 = randf() * 2.5f + 2.5f;
         }
+        break;
     }
 }
