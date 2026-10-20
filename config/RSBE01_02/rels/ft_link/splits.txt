@@ -14,7 +14,7 @@ global_destructor_chain.c:
 mo_fighter/ft_link/ft_link.cpp:
 	.text       start:0x00000070 end:0x0000E9BC
 	.ctors      start:0x00000000 end:0x00000004
-	.rodata     start:0x00000000 end:0x00000050
+	.rodata     start:0x00000000 end:0x00000040
 	.data       start:0x00000000 end:0x000080B8
 	.bss        start:0x00000008 end:0x00000140
 
@@ -27,6 +27,9 @@ mo_fighter/ft_link/ft_link_status_uniq_process_special_r_slash.cpp:
 mo_fighter/ft_link/ft_link_status_uniq_process_special_r_slash_end.cpp:
 	.text       start:0x0000F348 end:0x0000F4BC
 	.ctors      start:0x00000008 end:0x0000000C
+	.rodata     start:0x00000040 end:0x00000050
+	.data       start:0x00008150 end:0x000081D0
+	.bss        start:0x00000150 end:0x00000160
 
 mo_fighter/ft_link/ft_link_status_uniq_process_special_boomerang.cpp:
 	.text       start:0x0000F4BC end:0x0000F74C
@@ -38,6 +41,8 @@ mo_fighter/ft_link/ft_link_status_uniq_process_special_boomerang.cpp:
 mo_fighter/ft_link/ft_link_status_uniq_process_special_bomb.cpp:
 	.text       start:0x0000F74C end:0x0000F998
 	.ctors      start:0x00000010 end:0x00000014
+	.data       start:0x00008250 end:0x000083F8
+	.bss        start:0x00000170 end:0x00000180
 
 mo_fighter/ft_link/ft_link_status_uniq_process_final.cpp:
 	.text       start:0x0000F998 end:0x00010F3C

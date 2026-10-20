@@ -1,3 +1,4 @@
+#define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/ft_entry.h>
 #include <so/collision/so_collision_attack_module_impl.h>
 #include <so/so_module_accesser.h>
