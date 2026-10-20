@@ -54,6 +54,7 @@ typedef ftOpaqueGenerateArticleManageModuleBuilder<0x17878, Fighter_Pikmin> ftPi
 
 class ftPikminBuildConfig : public ftCommonBuildConfig {
 public:
+    static const ftKind Kind = Fighter_Pikmin;
     typedef ftPikminInsideEventManageModuleBuildConfig InsideEventManageModuleBuildConfig;
     typedef ftPikminHeapModuleBuildConfig HeapModuleBuildConfig;
     typedef ftPikminParamCustomizeModuleBuildConfig ParamCustomizeModuleBuildConfig;

@@ -40,8 +40,11 @@ extern s32 g_soValueVariation;
 // MATCH-ONLY: unlike the other fighters, ftPikmin calls the ftFighterBuilder constructor out of line (it has a large
 // constructor body of its own that MWCC's inliner no longer fits it into).
 #pragma dont_inline on
-template ftFighterBuilder<ftPikminBuildConfig>::ftFighterBuilder(s32, ftKind, Heaps::HeapType, Heaps::HeapType, Heaps::HeapType);
+template ftFighterBuilder<ftPikminBuildConfig>::ftFighterBuilder(s32, Heaps::HeapType, Heaps::HeapType, Heaps::HeapType, s32);
 #pragma dont_inline off
+
+// MATCH-ONLY: the target reaches the common data accesser through an out-of-line getter in this unit.
+extern "C" void* fn_113_62F4();
 
 ftPikminExtendParamAccesser g_ftPikminExtendParamAccesser;
 
@@ -55,11 +58,11 @@ ftPikmin::ftPikmin(s32 entryId,
                  Heaps::HeapType nwModelInstHeap,
                  Heaps::HeapType nwMotionInstHeap) :
     ftFighterBuilder<ftPikminBuildConfig>(entryId,
-                                         Fighter_Pikmin,
                                          instHeap,
                                          nwModelInstHeap,
-                                         nwMotionInstHeap),
-    m_commonData(g_ftCommonDataAccesser.getData(Fighter_Pikmin)),
+                                         nwMotionInstHeap,
+                                         -1),
+    m_commonData(static_cast<ftCommonDataAccesser*>(fn_113_62F4())->getData(Fighter_Pikmin)),
     m_troops(),
     m_owners(0),
     m_specialS(&m_troops),

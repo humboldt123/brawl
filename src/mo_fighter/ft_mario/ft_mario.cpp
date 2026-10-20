@@ -68,10 +68,11 @@ ftMario::ftMario(s32 entryId,
     processes[6] = &lbl_91_bss_1F4;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 7);
     // The cape: build the reflector group from the common data record (+0x8c) and install it as group 2.
+    void* reflectorRecord = *reinterpret_cast<void**>(reinterpret_cast<u8*>(m_data) + 0x8c);
+    u8 shape[0x20];
     ftReflectorGroupDraft group;
     FT_REFLECTOR_GROUP_CLEAR(group);
-    u8 shape[0x20];
-    fn_27_195B34(*reinterpret_cast<void**>(reinterpret_cast<u8*>(m_data) + 0x8c), shape, &group);
+    fn_27_195B34(reflectorRecord, shape, &group);
     m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&group), 2);
     m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, 2);
 }

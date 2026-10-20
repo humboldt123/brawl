@@ -79,6 +79,33 @@ public:
         Fighter::postInitialize();
         static_cast<ftCancelModule&>(m_cancelModule).postInitialize(m_moduleAccesser);
     }
+    // The fighter kind comes from the build config (BC::Kind) and the trailing int is unused.
+    // HYPOTHESIS: the fighters whose builder constructor is not inlined into their own constructor use this form.
+    ftFighterBuilder(s32 entryId,
+                     Heaps::HeapType instHeap,
+                     Heaps::HeapType nwModelInstHeap,
+                     Heaps::HeapType nwMotionInstHeap,
+                     s32 unused) :
+        Fighter(entryId, BC::Kind, instHeap, &m_moduleBuilder.m_moduleAccsr),
+        m_moduleBuilder(ftFighterBuildData(entryId,
+                               BC::Kind,
+                               instHeap,
+                               nwModelInstHeap,
+                               nwMotionInstHeap,
+                               0,
+                               m_moduleAccesser,
+                               -1,
+                               &m_cameraRangeSet,
+                               &m_cameraClipSphereSet),
+                           this),
+        m_cancelModule(m_moduleAccesser),
+        m_virtualNodeMtxPool(),
+        m_gimmickProcPool(((void)0, m_moduleAccesser)), // MATCH-ONLY: keeps the module accesser in the original saved register
+        m_cameraRangeSet(static_cast<soCameraRange*>(soValueAccesser::getConstantIndefinite(m_moduleAccesser, 0xA7F9, 0)), 1),
+        m_cameraClipSphereSet(static_cast<soCameraClipSphere*>(soValueAccesser::getConstantIndefinite(m_moduleAccesser, 0xA7FC, 0)), 1) {
+        Fighter::postInitialize();
+        static_cast<ftCancelModule&>(m_cancelModule).postInitialize(m_moduleAccesser);
+    }
     virtual void* getCancelModule() { return &m_cancelModule; }
     virtual bool isEnableCancel() {
         return static_cast<ftCancelModule*>(&m_cancelModule)->isEnableCancel();
