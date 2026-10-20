@@ -1028,6 +1028,10 @@ public:
 // soModuleAccesserBuilder<BC>: the article constructor (declared in ft_module_accesser_builder.h)
 ////////////////////////////////////////
 
+// MATCH-ONLY: the owner's task id is read through a helper; it changes the order in which the register allocator sees the values the
+// attack module builder takes from the owner (the category goes to r20, the task id to r22 as in the target).
+inline int wnOwnerTaskId(StageObject* owner) { return owner->m_taskId; }
+
 template <class BC>
 inline soModuleAccesserBuilder<BC>::soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bdRef) :
     m_moduleAccsr(
@@ -1092,13 +1096,13 @@ inline soModuleAccesserBuilder<BC>::soModuleAccesserBuilder(StageObject* owner, 
     m_groundModuleBuilder(&m_moduleAccsr, bdRef.getGroundConditionChecker()),
     m_situationModuleBuilder(ftGetManageId(&m_moduleAccsr), &m_moduleAccsr, FT_NULL_OBSERVER_DESC),
     m_teamBuilder(bdRef.getTeam(), &m_moduleAccsr),
-    m_attackModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory)), FT_NULL_OBSERVER_DESC),
-    m_hitModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory)), FT_NULL_OBSERVER_DESC),
-    m_shieldModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
-    m_reflectorModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
-    m_absorberBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
-    m_collisionCatchModuleBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory)), FT_NULL_OBSERVER_DESC),
-    m_searchBuilder(&m_moduleAccsr, owner->m_taskId, static_cast<gfTask::Category>(static_cast<u8>(owner->m_taskCategory))),
+    m_attackModuleBuilder(&m_moduleAccsr, wnOwnerTaskId(owner), owner->m_taskCategory, FT_NULL_OBSERVER_DESC),
+    m_hitModuleBuilder(&m_moduleAccsr, wnOwnerTaskId(owner), owner->m_taskCategory, FT_NULL_OBSERVER_DESC),
+    m_shieldModuleBuilder(&m_moduleAccsr, wnOwnerTaskId(owner), owner->m_taskCategory),
+    m_reflectorModuleBuilder(&m_moduleAccsr, wnOwnerTaskId(owner), owner->m_taskCategory),
+    m_absorberBuilder(&m_moduleAccsr, wnOwnerTaskId(owner), owner->m_taskCategory),
+    m_collisionCatchModuleBuilder(&m_moduleAccsr, wnOwnerTaskId(owner), owner->m_taskCategory, FT_NULL_OBSERVER_DESC),
+    m_searchBuilder(&m_moduleAccsr, wnOwnerTaskId(owner), owner->m_taskCategory),
     m_damageModuleBuilder(&m_moduleAccsr, FT_NULL_OBSERVER_DESC),
     m_catchModuleBuilder(&m_moduleAccsr),
     m_captureModuleBuilder(&m_moduleAccsr),
