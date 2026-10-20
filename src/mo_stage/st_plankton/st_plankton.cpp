@@ -275,10 +275,13 @@ void stPlankton::createObj() {
 
 void stPlankton::createObjBg(int index) {
     grPlanktonBg* ground;
-    if (index == 0) {
+    switch (index) {
+    case 0:
         ground = grPlanktonBg::create(0, "StgPlanktonMain", "grPlanktonMainBg");
-    } else {
+        break;
+    default:
         ground = NULL;
+        break;
     }
     if (ground != NULL) {
         addGround(ground);

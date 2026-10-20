@@ -47,11 +47,11 @@ void stKart::createObj() {
     createObjKart();
     initCameraParam();
     void* posData = m_fileData->getData(Data_Type_Model, 100, 0xFFFE);
-    if (posData == NULL) {
-        createStagePositions();
-    } else {
+    if (posData != NULL) {
         nw4r::g3d::ResFile posFile(posData);
         createStagePositions(&posFile);
+    } else {
+        createStagePositions();
     }
     createWind2ndOnly();
     loadStageAttrParam(m_fileData, 0x1E);

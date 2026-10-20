@@ -132,11 +132,11 @@ void stGW::createObj() {
     createCollision(m_fileData, 2, NULL);
     initCameraParam();
     void* posData = m_fileData->getData(Data_Type_Model, 100, 0xFFFE);
-    if (posData == NULL) {
-        createStagePositions();
-    } else {
+    if (posData != NULL) {
         nw4r::g3d::ResFile posFile(posData);
         createStagePositions(&posFile);
+    } else {
+        createStagePositions();
     }
     createWind2ndOnly();
     loadStageAttrParam(m_fileData, 0x1E);
@@ -148,10 +148,13 @@ void stGW::createObj() {
 // The model of the building that all scenes share (the Game & Watch "body").
 void stGW::createObjBg(int index) {
     grGW* ground;
-    if (index == 0) {
+    switch (index) {
+    case 0:
         ground = grGW::create(1, "_GAME_WATCH_BODY", "grGWMainBg");
-    } else {
+        break;
+    default:
         ground = NULL;
+        break;
     }
     if (ground != NULL) {
         addGround(ground);
@@ -328,10 +331,13 @@ void stGW::createObjChef() {
 
 void stGW::createObjChefEtc(int index) {
     grGWChefEtc* ground;
-    if (index == 0x15) {
+    switch (index) {
+    case 0x15:
         ground = grGWChefEtc::create(0xC, "_CHIF_ETC", "grGWChefEtc");
-    } else {
+        break;
+    default:
         ground = NULL;
+        break;
     }
     if (ground != NULL) {
         addGround(ground);
@@ -486,10 +492,13 @@ void grGWFireManhore::setEventWork(u8* event) {
 
 void stGW::createObjFireSmoke(int index) {
     grGWFireSmoke* ground;
-    if (index == 10) {
+    switch (index) {
+    case 10:
         ground = grGWFireSmoke::create(0x1D, "_FIRE_GIMMICK_SMOKE", "grGWFireSmoke");
-    } else {
+        break;
+    default:
         ground = NULL;
+        break;
     }
     if (ground != NULL) {
         addGround(ground);
@@ -502,10 +511,13 @@ void stGW::createObjFireSmoke(int index) {
 
 void stGW::createObjFireEtc(int index) {
     grGWFireEtc* ground;
-    if (index == 8) {
+    switch (index) {
+    case 8:
         ground = grGWFireEtc::create(0x1C, "_FIRE_ETC", "grGWFireEtc");
-    } else {
+        break;
+    default:
         ground = NULL;
+        break;
     }
     if (ground != NULL) {
         addGround(ground);
@@ -522,10 +534,13 @@ void stGW::createObjFireEtc(int index) {
 
 void stGW::createObjFireFighter(int index) {
     grGWFireFighter* ground;
-    if (index == 9) {
+    switch (index) {
+    case 9:
         ground = grGWFireFighter::create(0x26, "_FIRE_FIREFIGHTER", "grGWFireFighter");
-    } else {
+        break;
+    default:
         ground = NULL;
+        break;
     }
     if (ground != NULL) {
         addGround(ground);

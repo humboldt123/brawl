@@ -116,11 +116,11 @@ void stHalberd::createObj() {
     initCameraParam();
     loadStageAttrParam(m_fileData, 0x1E);
     void* posData = m_fileData->getData(Data_Type_Model, 100, 0xFFFE);
-    if (posData == NULL) {
-        createStagePositions();
-    } else {
+    if (posData != NULL) {
         nw4r::g3d::ResFile posFile(posData);
         createStagePositions(&posFile);
+    } else {
+        createStagePositions();
     }
     createWind2ndOnly();
     registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), 0);
