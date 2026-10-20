@@ -280,7 +280,7 @@ fn_96_BC74 = .text:0x0000BC74; // type:function size:0x16C
 fn_96_BDE0 = .text:0x0000BDE0; // type:function size:0xE0
 fn_96_BEC0 = .text:0x0000BEC0; // type:function size:0x2BC
 fn_96_C17C = .text:0x0000C17C; // type:function size:0x8
-fn_96_C184 = .text:0x0000C184; // type:function size:0xCD4
+notifyEventLink__7ftKirbyFP15soLinkEventArgsP16soModuleAccesserP11StageObjecti = .text:0x0000C184; // type:function size:0xCD4
 notifyEventCollisionSearch__7ftKirbyFP14soCollisionLogP16soModuleAccesser = .text:0x0000CE58; // type:function size:0x308
 notifyEventCollisionSearchCheck__7ftKirbyFv = .text:0x0000D160; // type:function size:0x1D4
 notifyEventOnDamage__7ftKirbyFP8soDamagebP16soModuleAccesser = .text:0x0000D334; // type:function size:0xB4
@@ -556,7 +556,7 @@ create__27ftClassInfoImpl<5,7ftKirby>CFlQ25Heaps8HeapTypeQ25Heaps8HeapTypeQ25Hea
 @64@__dt__7ftKirbyFv = .text:0x0001358C; // type:function size:0x8
 @72@notifyEventAnimCmd__7FighterFP9acAnimCmdP16soModuleAccesserl = .text:0x00013594; // type:function size:0x8
 @72@isObserv__7ftKirbyFc = .text:0x0001359C; // type:function size:0x8
-fn_96_135A4 = .text:0x000135A4; // type:function size:0x8
+@84@notifyEventLink__7ftKirbyFP15soLinkEventArgsP16soModuleAccesserP11StageObjecti = .text:0x000135A4; // type:function size:0x8
 @100@notifyEventChangeStatus__7ftKirbyFiiP12soStatusDataP16soModuleAccesser = .text:0x000135AC; // type:function size:0x8
 @112@notifyEventChangeSituation__7ftKirbyF13SituationKind13SituationKindP16soModuleAccesser = .text:0x000135B4; // type:function size:0x8
 @124@notifyEventCollisionAttackCheck__7ftKirbyFUl = .text:0x000135BC; // type:function size:0x8

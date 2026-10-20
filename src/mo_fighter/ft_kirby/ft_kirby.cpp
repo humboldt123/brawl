@@ -14,6 +14,8 @@
 #include <so/so_external_value_accesser.h>
 #include <so/so_value_accesser.h>
 #include <st/stage.h>
+#include <so/catch/so_catch_module.h>
+#include <so/controller/so_controller_module_impl.h>
 #include <so/article/so_article.h>
 #include <so/article/so_generate_article_manage_module.h>
 #include <ft/ft_outside_event_presenter.h>
@@ -298,11 +300,9 @@ void fn_96_1325C() {}
 #pragma dont_inline on
 
 // Kirby overrides still undefined here (defined later in this unit).
-void fn_96_C184(u8* p);
 
 // Event thunks: a second-base adjustment (this - N) followed by a tail call to the Kirby override.
 // (fn_96_1359C, the isObserv thunk, takes no second argument in the target and is left out.)
-void fn_96_135A4(u8* p) { fn_96_C184(p - 0x54); }
 
 // Second-base forwarders to the out-of-unit Fighter overrides (MATCH-ONLY: same adjustment and tail call).
 #pragma dont_inline off
@@ -713,4 +713,201 @@ bool ftKirby::checkKirbyFinalRayCheck(ftKirbyFinalRayQuery* query) {
         }
     }
     return false;
+}
+
+// ---- link events --------------------------------------------------------------------------------------------------------
+// HYPOTHESIS: the catch module (the target is held by Kirby) has more virtuals than the shared header declares; the call at
+// 0x40 is made through this extension.
+class ftKirbyCatchModuleExt : public soCatchModule {
+public:
+    virtual void unk30();
+    virtual void unk34();
+    virtual void unk38();
+    virtual void unk3c();
+    virtual void unk40(int);
+};
+
+static inline ftKirbyCatchModuleExt& getKirbyCatchModule(soModuleAccesser* moduleAccesser) {
+    return *static_cast<ftKirbyCatchModuleExt*>(moduleAccesser->m_enumerationStart->m_catchModule);
+}
+
+// Events from the articles that Kirby inhales or copies, from the Stone / Final Cutter articles and from the thrown fighters.
+// HYPOTHESIS: statuses 0x112/0x117 are the inhale, 0x119/0x11a hold, 0x14b/0x14c and 0x192/0x193 the copy ability cases.
+void ftKirby::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4) {
+    soStatusModule& status = moduleAccesser->getStatusModule();
+    ftKirbyLinkEventIn* event = static_cast<ftKirbyLinkEventIn*>(eventInfo);
+    switch (eventInfo->m_eventKind) {
+    case 8: {
+        int current = status.getStatusKind();
+        if (current == 0x112 || current == 0x117) {
+            float scl = soExternalValueAccesser::getScl(stageObject);
+            if (scl <= moduleAccesser->getPostureModule().getScale()) {
+                status.changeStatusRequest(0x119, m_moduleAccesser);
+                event->m_result = m_moduleAccesser->getModelModule().getCorrectNodeId(300);
+                event->_0x4 = true;
+            }
+            return;
+        }
+        if (current == 0x14b || current == 0x14c) {
+            float scl = soExternalValueAccesser::getScl(stageObject);
+            if (scl <= moduleAccesser->getPostureModule().getScale()) {
+                status.changeStatusRequest(0x14e, moduleAccesser);
+                event->m_result = moduleAccesser->getModelModule().getCorrectNodeId(300);
+                event->_0x4 = true;
+            }
+            return;
+        }
+        if (current == 0x159) {
+            event->m_result = moduleAccesser->getModelModule().getCorrectNodeId(300);
+            event->_0x4 = true;
+            getKirbyCatchModule(moduleAccesser).setCatch(-1);
+            status.changeStatusRequest(0x15a, moduleAccesser);
+            return;
+        }
+        if (status.getStatusKind() == 0x192 || status.getStatusKind() == 0x193) {
+            float scl = soExternalValueAccesser::getScl(stageObject);
+            if (scl <= moduleAccesser->getPostureModule().getScale()) {
+                status.changeStatusRequest(0x195, m_moduleAccesser);
+                event->m_result = m_moduleAccesser->getModelModule().getCorrectNodeId(300);
+                event->_0x4 = true;
+            }
+            return;
+        }
+        break;
+    }
+    case 0xf:
+        status.changeStatusRequest(0x150, moduleAccesser);
+        return;
+    case 0x14:
+        if (m_moduleAccesser->getWorkManageModule().isFlag(0x12000042)) {
+            if (m_moduleAccesser->getWorkManageModule().getInt(0x10000048) == 0x20) {
+                status.changeStatusRequest(0x196, m_moduleAccesser);
+            }
+        } else {
+            status.changeStatusRequest(0x11a, m_moduleAccesser);
+        }
+        break;
+    case 9:
+        if (status.getStatusKind() < 0x11b || status.getStatusKind() > 0x125) {
+            if (status.getStatusKind() >= 0x197 && status.getStatusKind() <= 0x1a2) {
+                getKirbyCatchModule(m_moduleAccesser).unk40(0);
+                getKirbyCatchModule(m_moduleAccesser).catchCut(false, true);
+                if (moduleAccesser->getSituationModule().getKind() == 2) {
+                    status.changeStatusRequest(0xe, m_moduleAccesser);
+                } else {
+                    status.changeStatusRequest(0, m_moduleAccesser);
+                }
+                return;
+            }
+            if (status.getStatusKind() != 0x119 && status.getStatusKind() != 0x11a && status.getStatusKind() != 0x195 &&
+                status.getStatusKind() != 0x196 &&
+                (status.getStatusKind() == 0x128 || status.getStatusKind() == 0x127 || status.getStatusKind() == 0x1a4)) {
+                if (moduleAccesser->getWorkManageModule().isFlag(0x22000016)) {
+                    getKirbyCatchModule(moduleAccesser).unk40(0);
+                    getKirbyCatchModule(moduleAccesser).catchCut(false, false);
+                } else {
+                    getKirbyCatchModule(m_moduleAccesser).unk40(0);
+                    getKirbyCatchModule(m_moduleAccesser).catchCut(false, true);
+                    if (moduleAccesser->getSituationModule().getKind() == 2) {
+                        status.changeStatusRequest(0xe, m_moduleAccesser);
+                    } else {
+                        status.changeStatusRequest(0, m_moduleAccesser);
+                    }
+                }
+                return;
+            }
+        }
+        break;
+    case 0x18:
+        moduleAccesser->getWorkManageModule().setFloat(event->m_x, 0x21000006);
+        moduleAccesser->getWorkManageModule().setFloat(event->m_y, 0x21000007);
+        moduleAccesser->getWorkManageModule().onFlag(0x22000017);
+        break;
+    case 0x2f:
+        moduleAccesser->getWorkManageModule().addInt(1, 0x20000008);
+        moduleAccesser->getWorkManageModule().addInt(1, 0x20000020);
+        moduleAccesser->getWorkManageModule().addInt(soValueAccesser::getConstantInt(moduleAccesser, 0x5dc9, 0), 0x2000000a);
+        {
+            soLinkModule& link = moduleAccesser->getLinkModule();
+            soEffectModule& effect = moduleAccesser->getEffectModule();
+            // MATCH-ONLY: the arguments are address-of temporaries (the target builds the zero vector before the node position).
+            effect.req(static_cast<EfID>(0xe60008), &link.getParentModelNodeGlobalPosition(6, u32(0), false), &Vec3f(0.0f, 0.0f, 0.0f), 1.0f, 0, -1);
+        }
+        switch (soValueAccesser::getConstantInt(moduleAccesser, 0x59e8, 0)) {
+        case 0:
+            moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0xba), false, false, 0);
+            break;
+        case 1:
+            moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0xbb), false, false, 0);
+            break;
+        case 2:
+            moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0xbc), false, false, 0);
+            break;
+        }
+        moduleAccesser->getControllerModule().setRumble(5, 10, false, -1);
+        break;
+    case 0x30:
+        moduleAccesser->getWorkManageModule().addInt(1, 0x20000009);
+        moduleAccesser->getWorkManageModule().addInt(soValueAccesser::getConstantInt(moduleAccesser, 0x5dcb, 0), 0x2000000a);
+        break;
+    case 0x455:
+        if (status.getStatusKind() == 0x116) {
+            moduleAccesser->getWorkManageModule().onFlag(0x22000018);
+        }
+        break;
+    case 0x456:
+        if (status.getStatusKind() == 0x116 || status.getStatusKind() == 0x12e || status.getStatusKind() == 0x12f ||
+            status.getStatusKind() == 0x130 || status.getStatusKind() == 0x131 || status.getStatusKind() == 0x132) {
+            if (moduleAccesser->getSituationModule().getKind() == 2) {
+                status.changeStatusRequest(0xe, m_moduleAccesser);
+            } else {
+                status.changeStatusRequest(0, m_moduleAccesser);
+            }
+            return;
+        }
+    case 0x33: {
+        int count = moduleAccesser->getWorkManageModule().getInt(0x20000006);
+        for (int i = 0; i < count; i++) {
+            if (event->m_result == moduleAccesser->getWorkManageModule().getInt(i + 0x20000000)) {
+                moduleAccesser->getWorkManageModule().setInt(-1, i + 0x20000000);
+            }
+        }
+        if (status.getStatusKind() == 0x12e) {
+            if (event->m_flag == 1) {
+                moduleAccesser->getWorkManageModule().addInt(1, 0x20000020);
+            }
+        } else if (status.getStatusKind() != 0x12f && status.getStatusKind() != 0x130) {
+            status.getStatusKind();
+        }
+        return;
+    }
+    case 0x17:
+        if (event->m_flag != 0) {
+            copyCancel(moduleAccesser, false);
+        }
+        break;
+    }
+    if (stageObject->soGetKind() == 2) {
+        switch (stageObject->soGetSubKind()) {
+        case 0x4d:
+            switch (eventInfo->m_eventKind) {
+            case 0x838:
+                if (moduleAccesser->getStatusModule().getStatusKind() == 0x170) {
+                    moduleAccesser->getStatusModule().changeStatusRequest(0x172, moduleAccesser);
+                }
+                break;
+            }
+            return;
+        case 0x66:
+            switch (eventInfo->m_eventKind) {
+            case 0x838:
+                if (moduleAccesser->getStatusModule().getStatusKind() == 0x174) {
+                    moduleAccesser->getStatusModule().changeStatusRequest(0x176, moduleAccesser);
+                }
+                break;
+            }
+            return;
+        }
+    }
+    Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObject, unk4);
 }

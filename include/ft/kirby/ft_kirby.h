@@ -121,6 +121,20 @@ struct ftKirbyLinkEvent : soLinkEventArgs {
     ftKirbyLinkEvent(int kind) : soLinkEventArgs(kind) { }
 };
 
+// HYPOTHESIS: the link events the articles of the copy abilities send to Kirby (layout from the reads of notifyEventLink):
+// a result word (the node the article reports back), then either two floats or a flag.
+struct ftKirbyLinkEventIn : soLinkEventArgs {
+    u32 m_result;
+    int unkC;
+    union {
+        struct {
+            float m_x;
+            float m_y;
+        };
+        u8 m_flag;
+    };
+};
+
 // HYPOTHESIS: entry of the Final Ray table in the fighter data (stage kind, limit) and the query of the check.
 struct ftKirbyFinalRayEntry {
     int stageKind;
@@ -193,6 +207,7 @@ public:
     virtual void notifyArticleEventEject(int unk1, int unk2, int* unk3);
     virtual void notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4);
     virtual void notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
     virtual bool notifyEventCollisionSearchCheck();
     virtual void notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser);
