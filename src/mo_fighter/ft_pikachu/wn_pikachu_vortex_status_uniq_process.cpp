@@ -97,8 +97,8 @@ inline void wnPikachuVortexUpdateHitFlag(soModuleAccesser* moduleAccesser) {
 inline void wnPikachuVortexUpdateOwnerCameraSubject(soModuleAccesser* moduleAccesser) {
     StageObject* owner = moduleAccesser->getLinkModule().getParent(3);
     if (owner) {
-        Fighter* fighter = dynamic_cast<Fighter*>(owner);
-        fn_98_98B8(fighter, &moduleAccesser->getCameraModule());
+        Fighter& fighter = dynamic_cast<Fighter&>(*owner);
+        fn_98_98B8(&fighter, &moduleAccesser->getCameraModule());
     }
 }
 

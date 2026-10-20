@@ -70,6 +70,12 @@ bool stFzero::loading() {
     return true;
 }
 
+// MATCH-ONLY: the game mode is the first six bits of byte 0 (read as an unsigned bitfield)
+struct fzeroMeleeMode {
+    unsigned char mode : 6;
+    unsigned char rest : 2;
+};
+
 void stFzero::createObj() {
     testStageParamInit(m_fileData, 10);
     testStageDataInit(m_fileData, 20, 92);
@@ -105,7 +111,7 @@ void stFzero::createObj() {
     createWind2ndOnly();
     registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), 0);
     gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
-    if (melee != NULL && melee->m_meleeInitData.m_gameMode == 7 && *((u8*)melee + 0x10) == 0x1f) {
+    if (melee != NULL && reinterpret_cast<fzeroMeleeMode*>(&melee->m_meleeInitData)->mode == 7 && *((u8*)melee + 0x10) == 0x1f) {
         m_eventFlag = 1;
     }
 }

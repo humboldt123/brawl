@@ -515,19 +515,20 @@ public:
 template <typename T>
 class soEffectModuleBuildConfig {
 public:
+    enum { ScreenCapacity = 1 };
     typedef T ModuleType;
 };
 
 template <typename BC>
 class soEffectModuleBuilder : public soArraySelectHolder<1, soArrayVector<soEffectContinual, 1>, soArrayNull<soEffectContinual> > {
     soArraySelectHolder<1, soArrayVector<soEffectTime, 1>, soArrayNull<soEffectTime> > m_times;
-    soArraySelectHolder<1, soArrayVector<efScreenHandle, 1>, soArrayNull<efScreenHandle> > m_screens;
+    soArraySelectHolder<1, soArrayVector<efScreenHandle, BC::ScreenCapacity>, soArrayNull<efScreenHandle> > m_screens;
     soArrayVector<u32, 1> m_u32s;
     typename BC::ModuleType m_effectModule;
 public:
     soEffectModuleBuilder(soModuleAccesser* acc, void* nodeData, void* emitData, void* commonData, void* screenData,
                           soEventObserverRegistrationDesc* regDesc) :
-        soArraySelectHolder<1, soArrayVector<soEffectContinual, 1>, soArrayNull<soEffectContinual> >(1, 0), m_times(1, 0), m_screens(1, 0), m_u32s(1, 0, 0),
+        soArraySelectHolder<1, soArrayVector<soEffectContinual, 1>, soArrayNull<soEffectContinual> >(1, 0), m_times(1, 0), m_screens(BC::ScreenCapacity, 0), m_u32s(1, 0, 0),
         m_effectModule(acc, this->get(), nodeData, &m_u32s, m_times.get(), emitData, regDesc, commonData, 10, screenData, m_screens.get()) { }
     typename BC::ModuleType* getModule() { return &m_effectModule; }
 };

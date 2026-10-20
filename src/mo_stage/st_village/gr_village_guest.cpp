@@ -568,7 +568,7 @@ void grVillageGuest::setMotionCommon(u32 animId, bool loop, bool force, float* f
         return;
     }
 
-    bool special = true;
+    u32 special = 1;
     switch (m_id) {
     case 2:
     case 3:
@@ -576,22 +576,22 @@ void grVillageGuest::setMotionCommon(u32 animId, bool loop, bool force, float* f
     case 8:
     case 9:
         if (animId != 9) {
-            special = false;
+            special = 0;
         }
         break;
     case 7:
         if (animId == 8) {
-            special = false;
+            special = 0;
         }
         break;
     case 0x16:
     case 0x17:
         if (animId == 0xB) {
-            special = false;
+            special = 0;
         }
         break;
     }
-    if (special) {
+    if (special == 1) {
         sceneMdl->SetScnObjOption(0x20001, 1);
     }
 

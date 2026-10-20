@@ -24,6 +24,12 @@ static inline u8* jungleMeleeBytes() {
     return reinterpret_cast<u8*>(&g_GameGlobal->m_modeMelee->m_meleeInitData);
 }
 
+// MATCH-ONLY: the game mode is the upper six bits of byte 0 (read as an unsigned bitfield)
+struct jungleMeleeMode {
+    unsigned char mode : 6;
+    unsigned char rest : 2;
+};
+
 // MATCH-ONLY: the setting that picks the speed is the upper three bits of the byte 6
 struct jungleMeleeSpeed {
     u8 _pad[6];
@@ -161,7 +167,7 @@ void stJungle::createObj() {
     createObjPokeTrainer(m_fileData, 0x68, "PokeTrainer03", &m_pokeTrainerPos[6], &m_posGimmick[0]);
     loadStageAttrParam(m_fileData, 100);
     registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), 0);
-    if (g_GameGlobal->m_modeMelee != NULL && (jungleMeleeBytes()[0] >> 2) == 7 && jungleMeleeBytes()[8] == 0x15) {
+    if (g_GameGlobal->m_modeMelee != NULL && reinterpret_cast<jungleMeleeMode*>(jungleMeleeBytes())->mode == 7 && jungleMeleeBytes()[8] == 0x15) {
         m_isEvent = 1;
     }
 }

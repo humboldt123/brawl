@@ -99,8 +99,8 @@ public:
     virtual void update(float deltaFrame);
     virtual void createObjBg(int index);
     virtual void createObjBgLocator(int index);
-    virtual void createObjLift();
-    virtual void createObjBlockPos();
+    virtual void createObjLift(int unused);       // HYPOTHESIS: the argument (2) is unused
+    virtual void createObjBlockPos(int unused);  // HYPOTHESIS: the argument (3) is unused
     virtual void updateLimit(float deltaFrame);
     virtual void updateLift(float deltaFrame);
     virtual void updateLift1(float deltaFrame, u8 index);

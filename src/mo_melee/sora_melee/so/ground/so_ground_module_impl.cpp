@@ -693,26 +693,28 @@ bool soGroundModuleImpl::isOnDynamicCollision(u32 index) {
 }
 
 bool soGroundModuleImpl::isCliffOver(u8 side, u32 index) {
-    if (side == 0) {
+    int dir = side;
+    if (dir == 0) {
         return m_groundShapeArray->at(index).m_collStatus->isCliffOver(1);
     }
-    if (side == 1) {
+    if (dir == 1) {
         return m_groundShapeArray->at(index).m_collStatus->isCliffOver(0);
     }
-    if (side == 2) {
+    if (dir == 2) {
         return m_groundShapeArray->at(index).m_collStatus->isCliffOver(3);
     }
     return false;
 }
 
 bool soGroundModuleImpl::isCliffOverPos(Vec2f* pos, u8 side, u32 index) {
-    if (side == 0) {
+    int dir = side;
+    if (dir == 0) {
         return m_groundShapeArray->at(index).m_collStatus->isCliffOverPos(*pos, 1);
     }
-    if (side == 1) {
+    if (dir == 1) {
         return m_groundShapeArray->at(index).m_collStatus->isCliffOverPos(*pos, 0);
     }
-    if (side == 2) {
+    if (dir == 2) {
         return m_groundShapeArray->at(index).m_collStatus->isCliffOverPos(*pos, 3);
     }
     return false;

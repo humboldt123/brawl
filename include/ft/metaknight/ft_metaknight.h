@@ -33,6 +33,16 @@ typedef ftMetaknightArticleManageModuleBuilder ftMetaknightGenerateArticleManage
 typedef ftOpaqueGenerateArticleManageModuleBuilder<0x2178, Fighter_MetaKnight> ftMetaknightGenerateArticleManageModuleBuilder;
 #endif
 
+// MATCH-ONLY: Meta Knight's effect module builder keeps two screen handles; the symbol names are the same as in the other fighters
+// (the build config has the same name), so the difference is expressed as a specialization local to this fighter.
+// HYPOTHESIS: the second handle is for the screen effect of the final smash.
+template <>
+class soEffectModuleBuildConfig<soEffectModuleImpl> {
+public:
+    enum { ScreenCapacity = 2 };
+    typedef soEffectModuleImpl ModuleType;
+};
+
 class ftMetaknightBuildConfig : public ftCommonBuildConfig {
 public:
     typedef ftMetaknightInsideEventManageModuleBuildConfig InsideEventManageModuleBuildConfig;

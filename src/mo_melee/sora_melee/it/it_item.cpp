@@ -542,8 +542,8 @@ bool BaseItem::isPickUp() {
 void BaseItem::setPickUpAreaRequest(bool request) {
     ItemView* v = reinterpret_cast<ItemView*>(this);
     if (v->areaInstances.size() > 2) {
-        *(reinterpret_cast<bool*>(this) + kPickUpAreaRequested) = request;
-        if (request && v->workManage.getInt(Instance::Work::Int_No_Damage_Frame) > 0) {
+        *(reinterpret_cast<u8*>(this) + kPickUpAreaRequested) = request;
+        if (*(reinterpret_cast<u8*>(this) + kPickUpAreaRequested) && v->workManage.getInt(Instance::Work::Int_No_Damage_Frame) > 0) {
             v->area.enableArea(Area::Pickup, false, -1);
         } else {
             v->area.enableArea(Area::Pickup, *(reinterpret_cast<bool*>(this) + kPickUpAreaRequested), -1);

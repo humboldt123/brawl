@@ -53,6 +53,19 @@ static inline u8* mpMeleeBytes() {
     return reinterpret_cast<u8*>(&g_GameGlobal->m_modeMelee->m_meleeInitData);
 }
 
+// MATCH-ONLY: the game mode is the first six bits of byte 0 (read as an unsigned bitfield)
+struct mpMeleeMode {
+    unsigned char mode : 6;
+    unsigned char rest : 2;
+};
+
+// MATCH-ONLY: the setting that picks the speed of the lifts is the upper three bits of the byte 6
+struct mpMeleeLevel {
+    u8 _pad[6];
+    unsigned char level : 3;
+    unsigned char rest : 5;
+};
+
 // MATCH-ONLY: the first word of the AI camera controller after its base holds flags of which only the top byte is used here.
 static inline u32* mpCameraFlags() {
     return reinterpret_cast<u32*>(reinterpret_cast<u8*>(g_cmAIController) + 8);
@@ -132,8 +145,8 @@ void stMarioPast::createObj() {
         createObjBgLocator(0);
         createObjBg(1);
         createCollision(m_fileData, 2, NULL);
-        createObjLift();
-        createObjBlockPos();
+        createObjLift(2);
+        createObjBlockPos(3);
         initCameraParam();
 
         void* posData = m_fileData->getData(Data_Type_Model, 100, 0xFFFE);
@@ -145,20 +158,23 @@ void stMarioPast::createObj() {
         }
         createWind2ndOnly();
         initPosPokeTrainer(4, 0);
-        if (m_stage == 1) {
-            createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, &m_posGimmick[0]);
-            createObjPokeTrainer(m_fileData, 0x66, "PokeTrainer01", m_pokeTrainerPos + 2, &m_posGimmick[2]);
-            createObjPokeTrainer(m_fileData, 0x67, "PokeTrainer02", m_pokeTrainerPos + 4, &m_posGimmick[2]);
-            createObjPokeTrainer(m_fileData, 0x68, "PokeTrainer03", m_pokeTrainerPos + 6, &m_posGimmick[0]);
-        } else if (m_stage == 0) {
+        switch (m_stage) {
+        case 0:
             createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, &m_posGimmick[0]);
             createObjPokeTrainer(m_fileData, 0x66, "PokeTrainer01", m_pokeTrainerPos + 2, &m_posGimmick[0]);
-            createObjPokeTrainer(m_fileData, 0x67, "PokeTrainer02", m_pokeTrainerPos + 4, &m_posGimmick[2]);
-            createObjPokeTrainer(m_fileData, 0x68, "PokeTrainer03", m_pokeTrainerPos + 6, &m_posGimmick[2]);
+            createObjPokeTrainer(m_fileData, 0x67, "PokeTrainer02", m_pokeTrainerPos + 4, &m_posGimmick[1]);
+            createObjPokeTrainer(m_fileData, 0x68, "PokeTrainer03", m_pokeTrainerPos + 6, &m_posGimmick[1]);
+            break;
+        case 1:
+            createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, &m_posGimmick[0]);
+            createObjPokeTrainer(m_fileData, 0x66, "PokeTrainer01", m_pokeTrainerPos + 2, &m_posGimmick[1]);
+            createObjPokeTrainer(m_fileData, 0x67, "PokeTrainer02", m_pokeTrainerPos + 4, &m_posGimmick[1]);
+            createObjPokeTrainer(m_fileData, 0x68, "PokeTrainer03", m_pokeTrainerPos + 6, &m_posGimmick[0]);
+            break;
         }
         loadStageAttrParam(m_fileData, 0x1E);
         registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), 0);
-        if (g_GameGlobal->m_modeMelee != NULL && (mpMeleeBytes()[0] >> 2) == 7 && mpMeleeBytes()[8] == 8) {
+        if (g_GameGlobal->m_modeMelee != NULL && reinterpret_cast<mpMeleeMode*>(mpMeleeBytes())->mode == 7 && mpMeleeBytes()[8] == 8) {
             m_event = 1;
         }
     }
@@ -167,17 +183,17 @@ void stMarioPast::createObj() {
 void stMarioPast::createObjBgLocator(int index) {
     grMarioPastBgLocator* ground = NULL;
     switch (m_stage) {
-    case 1:
-        switch (index) {
-        case 0:
-            ground = grMarioPastBgLocator::create(2, "StgMarioPast01_Ashiba_locator", "grMarioPastBgLocator");
-            break;
-        }
-        break;
     case 0:
         switch (index) {
         case 0:
             ground = grMarioPastBgLocator::create(2, "StgMarioPast00_Ashiba_locator", "grMarioPastBgLocator");
+            break;
+        }
+        break;
+    case 1:
+        switch (index) {
+        case 0:
+            ground = grMarioPastBgLocator::create(2, "StgMarioPast01_Ashiba_locator", "grMarioPastBgLocator");
             break;
         }
         break;
@@ -195,17 +211,17 @@ void stMarioPast::createObjBgLocator(int index) {
 void stMarioPast::createObjBg(int index) {
     grMarioPastBg* ground = NULL;
     switch (m_stage) {
-    case 1:
-        switch (index) {
-        case 1:
-            ground = grMarioPastBg::create(0, "StgMarioPast01", "grMarioPastMainBg");
-            break;
-        }
-        break;
     case 0:
         switch (index) {
         case 1:
             ground = grMarioPastBg::create(0, "StgMarioPast00", "grMarioPastMainBg");
+            break;
+        }
+        break;
+    case 1:
+        switch (index) {
+        case 1:
+            ground = grMarioPastBg::create(0, "StgMarioPast01", "grMarioPastMainBg");
             break;
         }
         break;
@@ -220,7 +236,7 @@ void stMarioPast::createObjBg(int index) {
     }
 }
 
-void stMarioPast::createObjLift() {
+void stMarioPast::createObjLift(int) {
     u8 i;
     switch (m_stage) {
     case 0:
@@ -303,10 +319,10 @@ void stMarioPast::updateLift(float deltaFrame) {
             if (g_GameGlobal->m_modeMelee == NULL) {
                 return;
             }
-            if ((mpMeleeBytes()[0] >> 2) != 7) {
+            if (reinterpret_cast<mpMeleeMode*>(mpMeleeBytes())->mode != 7) {
                 return;
             }
-            switch (mpMeleeBytes()[6] >> 5) {
+            switch (reinterpret_cast<mpMeleeLevel*>(mpMeleeBytes())->level) {
             case 0:
                 m_liftSpeed = data[7];
                 break;
@@ -421,7 +437,7 @@ void stMarioPast::getBamperVector(Vec3f* vec) {
 
 // Builds the two block grounds (one per model node group): the blocks are read from the model nodes, their collision is
 // built from the nodes' positions and the ground gets pointers to both.
-void stMarioPast::createObjBlockPos() {
+void stMarioPast::createObjBlockPos(int) {
     if (m_stageData != NULL) {
         nw4r::g3d::ResMdl model;
         void* data = m_fileData->getData(Data_Type_Model, 1, 0xFFFE);

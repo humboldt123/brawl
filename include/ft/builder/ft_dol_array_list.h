@@ -64,6 +64,7 @@ FT_DOL_ARRAY_VECTOR(soItemInfo, 4);
 FT_DOL_ARRAY_VECTOR(soEffectContinual, 1);
 FT_DOL_ARRAY_VECTOR(soEffectTime, 1);
 FT_DOL_ARRAY_VECTOR(efScreenHandle, 1);
+FT_DOL_ARRAY_VECTOR(efScreenHandle, 2);
 FT_DOL_ARRAY_VECTOR(u32, 1);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 1);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 2);
