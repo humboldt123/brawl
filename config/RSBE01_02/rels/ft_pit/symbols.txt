@@ -54,7 +54,7 @@ __dt__90soArraySelectHolder<1,33soArrayVector<14efScreenHandle,1>,29soArrayNull<
 __dt__86soArraySelectHolder<1,31soArrayVector<12soEffectTime,1>,27soArrayNull<12soEffectTime>>Fv = .text:0x0000319C; // type:function size:0x5C
 __dt__54wnArticleManageModuleBuilder<20ftPitArticleMediator,5>Fv = .text:0x000031F8; // type:function size:0x88
 fn_112_3280 = .text:0x00003280; // type:function size:0x5C
-fn_112_32DC = .text:0x000032DC; // type:function size:0x70
+__dt__20ftPitArticleMediatorFv = .text:0x000032DC; // type:function size:0x70
 __dt__132wnArticleHierarchy<8wnPitBow,1,98wnArticleHierarchy<13wnPitBowArrow,4,58wnArticleHierarchy<13wnPitParthena,1,18soInstancePoolRoot>>>Fv = .text:0x0000334C; // type:function size:0x5C
 __dt__127wnArticlePool<8wnPitBow,1,98wnArticleHierarchy<13wnPitBowArrow,4,58wnArticleHierarchy<13wnPitParthena,1,18soInstancePoolRoot>>>Fv = .text:0x000033A8; // type:function size:0x7C
 __dt__29wnArticleSubPool<8wnPitBow,1>Fv = .text:0x00003424; // type:function size:0x60
@@ -366,7 +366,7 @@ getStatusGimmickUniqProcessPool__36ftFighterBuilder<16ftPitBuildConfig>Fv = .tex
 isEmpty__40soArrayFixed<24soAnimCmdAddressPackConv>CFv = .text:0x0000BDF4; // type:function size:0x34
 wnArticleIsActive__FP9soArticle = .text:0x0000BE28; // type:function size:0x10
 getInstanceAt__35wnArticleSubPool<13wnPitParthena,1>Fl = .text:0x0000BE38; // type:function size:0x18
-fn_112_BE50 = .text:0x0000BE50; // type:function size:0x48
+getInstanceAt__35wnArticleSubPool<13wnPitBowArrow,4>Fl = .text:0x0000BE50; // type:function size:0x48
 getInstanceAt__29wnArticleSubPool<8wnPitBow,1>Fl = .text:0x0000BE98; // type:function size:0x18
 __dt__21ftKineticEnergyMotionFv = .text:0x0000BEB0; // type:function size:0x60
 __dt__98soKineticEnergyHolder<21ftKineticEnergyMotion,18soTypeListNullType,28soKineticEnergyInitInfo<0,1>>Fv = .text:0x0000BF10; // type:function size:0x60

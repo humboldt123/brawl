@@ -105,6 +105,40 @@ bool ftDedede::activeArticle1(wnDededeJethammer* weapon, soModuleAccesser* acc) 
     return true;
 }
 
+// HYPOTHESIS: the work flags 0x22000013/0x22000014 mark the two throw directions of the Star Spit; the star starts at the
+// model node "TopN" moved by the parameter offsets (the second one follows the facing), and the used flag is cleared.
+bool ftDedede::activeArticle(wnDededeStar* weapon, soModuleAccesser* acc) {
+    float lr = acc->getPostureModule().getLr();
+    bool flip;
+    Vec3f pos;
+    Vec3f offset;
+    if (acc->getWorkManageModule().isFlag(0x22000013)) {
+        offset.m_x = 0.0f;
+        offset.m_y = soValueAccesser::getConstantFloat(acc, 0xfbd, 0);
+        offset.m_z = lr * soValueAccesser::getConstantFloat(acc, 0xfbc, 0);
+        const char* nodeName = "TopN";
+        soModelModule* model = &acc->getModelModule();
+        pos = model->getNodeGlobalPosition(model->getNodeId(nodeName), &offset, false, false);
+        flip = false;
+        acc->getWorkManageModule().offFlag(0x22000013);
+    }
+    if (acc->getWorkManageModule().isFlag(0x22000014)) {
+        offset.m_x = 0.0f;
+        offset.m_y = soValueAccesser::getConstantFloat(acc, 0xfbf, 0);
+        offset.m_z = lr * soValueAccesser::getConstantFloat(acc, 0xfbe, 0);
+        const char* nodeName = "TopN";
+        soModelModule* model = &acc->getModelModule();
+        pos = model->getNodeGlobalPosition(model->getNodeId(nodeName), &offset, false, false);
+        flip = true;
+        acc->getWorkManageModule().offFlag(0x22000014);
+    }
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = acc->getStageObject().m_taskId;
+    int team = acc->getTeamModule().getTeam()->getNo();
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), team, &pos, flip, 1.0f, 20.0f);
+    return false;
+}
+
 // MATCH-ONLY: the native singleton addresses its guard, instance and destructor registration separately rather than
 // pooling them into one BSS base.
 #pragma pool_data off
@@ -556,7 +590,7 @@ void fn_117_E228(u8* self, soCollisionSearchModule* searchModule, soCollisionLog
 void fn_117_E230(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
 void fn_117_E240(u8* self, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorSearch(searchModule, collisionLog, groupIndex, moduleAccesser); }
 void fn_117_E248(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-void fn_117_E258(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
+void fn_117_E258(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
 } // extern "C"
 
 // Leaf functions shared with other fighter modules (same module-map names and bodies).

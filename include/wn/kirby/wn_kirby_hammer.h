@@ -27,7 +27,7 @@ public:
     typedef soGlowModuleBuildConfigNull GlowModuleBuildConfig;
     typedef wnStatusModuleBuildConfig<2, soGeneralWorkBuildConfig<2, 2, 1>, 2, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> >
         StatusModuleBuildConfig;
-    typedef wnAnimCmdModuleSubBuildConfigDefault<1, 2, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0> AnimCmdModuleSubBuildConfig;
+    typedef wnAnimCmdModuleSubBuildConfigNoUniq<1, 2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0> AnimCmdModuleSubBuildConfig;
 };
 class wnKirbyHammer : public wnWeaponBuilder<wnKirbyHammerModuleAccesserBuildConfig> {
 public:

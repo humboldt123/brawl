@@ -591,7 +591,7 @@ bool fn_92_CAFC(u8* p) { return ((Fighter*)(p - 0xA0))->Fighter::notifyEventColl
 void fn_92_CB04(u8* p, soCollisionSearchModule* a0, soCollisionLog* a1, u32 a2, soModuleAccesser* a3) { return ((Fighter*)(p - 0xA0))->Fighter::notifyEventCollisionReflectorSearch(a0, a1, a2, a3); }
 void fn_92_CB0C(u8* p, soCollisionAttackModule* a0, float a4, soCollisionLog* a1, int a2, float a5, float a6, soModuleAccesser* a3) { return ((Fighter*)(p - 0xA0))->Fighter::notifyEventCollisionReflector(a0, a4, a1, a2, a5, a6, a3); }
 bool fn_92_CB14(u8* p) { return ((Fighter*)(p - 0xAC))->Fighter::notifyEventCollisionAbsorberCheck(); }
-void fn_92_CB1C(u8* p, soCollisionAttackModule* a0, soCollisionLog* a1, u32 a2, soModuleAccesser* a3, float a4, float a5, float a6) { return ((Fighter*)(p - 0xAC))->Fighter::notifyEventCollisionAbsorber(a0, a1, a2, a3, a4, a5, a6); }
+void fn_92_CB1C(u8* p, soCollisionAttackModule* a0, float a4, soCollisionLog* a1, int a2, float a5, float a6, soModuleAccesser* a3) { return ((Fighter*)(p - 0xAC))->Fighter::notifyEventCollisionAbsorber(a0, a4, a1, a2, a5, a6, a3); }
 bool fn_92_CB24(u8* p) { return ((Fighter*)(p - 0xB8))->Fighter::notifyEventCollisionSearchCheck(); }
 void fn_92_CB2C(u8* p, soCollisionLog* a0, soModuleAccesser* a1) { return ((Fighter*)(p - 0xB8))->Fighter::notifyEventCollisionSearch(a0, a1); }
 void fn_92_CB3C(u8* p, BaseItem* a0, int a1, bool a2, u8 a3) { return ((Fighter*)(p - 0xD0))->Fighter::notifyVisibilityItem(a0, a1, a2, a3); }

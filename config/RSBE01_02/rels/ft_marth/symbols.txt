@@ -406,7 +406,7 @@ create__28ftClassInfoImpl<17,7ftMarth>CFlQ25Heaps8HeapTypeQ25Heaps8HeapTypeQ25He
 @160@notifyEventCollisionReflectorSearch__7FighterFP23soCollisionSearchModuleP14soCollisionLogUlP16soModuleAccesser = .text:0x0000A630; // type:function size:0x8
 @160@notifyEventCollisionReflector__7FighterFP23soCollisionAttackModulefP14soCollisionLogiffP16soModuleAccesser = .text:0x0000A638; // type:function size:0x8
 @172@notifyEventCollisionAbsorberCheck__7FighterFv = .text:0x0000A640; // type:function size:0x8
-@172@notifyEventCollisionAbsorber__7FighterFP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserfff = .text:0x0000A648; // type:function size:0x8
+@172@notifyEventCollisionAbsorber__7FighterFP23soCollisionAttackModulefP14soCollisionLogiffP16soModuleAccesser = .text:0x0000A648; // type:function size:0x8
 @184@notifyEventCollisionSearchCheck__7FighterFv = .text:0x0000A650; // type:function size:0x8
 @184@notifyEventCollisionSearch__7FighterFP14soCollisionLogP16soModuleAccesser = .text:0x0000A658; // type:function size:0x8
 @196@notifyEventCaptureStatus__7FighterFP16soModuleAccesseriii = .text:0x0000A660; // type:function size:0x8

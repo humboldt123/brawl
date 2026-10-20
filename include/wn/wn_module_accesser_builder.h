@@ -981,7 +981,28 @@ public:
     typedef soAnimCmdControlUnitBuildConfig<2, 2, C2, A2, B2, 1, 0, 8> Unit2Config;
     typedef soAnimCmdControlUnitBuildConfig<3, 2, C3, A3, B3, 1, 0, 8> Unit3Config;
     typedef soAnimCmdControlUnitBuildConfigUniq<4, 8> Unit4Config;
-    enum { Unit0Enabled = E0, Unit1Enabled = E1, Unit2Enabled = E2, Unit3Enabled = E3 };
+    enum { Unit0Enabled = E0, Unit1Enabled = E1, Unit2Enabled = E2, Unit3Enabled = E3, Unit4Enabled = 1 };
+};
+
+// The same four command threads without the uniq interpreter thread 4 (the Kirby hammer builds only thread 0).
+template <int E0, int C0, int A0, int B0, int E1, int C1, int A1, int B1, int E2, int C2, int A2, int B2, int E3, int C3, int A3, int B3>
+class wnAnimCmdModuleSubBuildConfigNoUniq : public wnAnimCmdModuleSubBuildConfigDefault<E0, C0, A0, B0, E1, C1, A1, B1, E2, C2, A2, B2, E3, C3, A3, B3> {
+public:
+    enum { Unit4Enabled = 0 };
+};
+
+class soAnimCmdControlUnitBuilderUniqNull {
+public:
+    soAnimCmdControlUnitBuilderUniqNull(soModuleAccesser*) { }
+};
+
+template <bool Enabled, class BC>
+struct wnAnimCmdUniqSelect {
+    typedef soAnimCmdControlUnitBuilderUniq<BC> Type;
+};
+template <class BC>
+struct wnAnimCmdUniqSelect<false, BC> {
+    typedef soAnimCmdControlUnitBuilderUniqNull Type;
 };
 
 template <class BC>
@@ -990,7 +1011,7 @@ class wnAnimCmdModuleSubBuilder {
     typename wnAnimCmdControlUnitSelect<BC::Unit1Enabled != 0, typename BC::Unit1Config>::Type m_unit1; // +0x12C
     typename wnAnimCmdControlUnitSelect<BC::Unit2Enabled != 0, typename BC::Unit2Config>::Type m_unit2; // +0x258
     typename wnAnimCmdControlUnitSelect<BC::Unit3Enabled != 0, typename BC::Unit3Config>::Type m_unit3; // +0x384
-    soAnimCmdControlUnitBuilderUniq<typename BC::Unit4Config> m_unit4;                                    // +0x4B0
+    typename wnAnimCmdUniqSelect<BC::Unit4Enabled != 0, typename BC::Unit4Config>::Type m_unit4;       // +0x4B0
     soAnimCmdControlUnitBuilderNull<void> m_unit5;
 public:
     wnAnimCmdModuleSubBuilder(soModuleAccesser* acc, const soModuleAccesserBuildData& bd) :

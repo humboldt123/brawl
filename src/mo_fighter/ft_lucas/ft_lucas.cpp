@@ -182,7 +182,7 @@ void fn_114_10744(u8* self, int statusKind, int prevStatusKind, soStatusData* st
 bool fn_114_1074C(u8* self) { return ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorCheck(); }
 bool fn_114_1075C(u8* self) { return ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorberCheck(); }
 void fn_114_10754(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-void fn_114_10764(u8* self, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY); }
+void fn_114_10764(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
 } // extern "C"
 
 // Leaf functions shared with other fighter modules (same module-map names and bodies).
@@ -838,7 +838,7 @@ void ftLucas::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modu
 // the common data +0x88 holds the heal scale (+0x14) and its cap (+0x18).
 extern "C" Vec3f* fn_114_B6C0(Vec3f* p, const Vec3f* src);
 
-void ftLucas::notifyEventCollisionAbsorber(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, float power, float posX, float posY) {
+void ftLucas::notifyEventCollisionAbsorber(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
     if (groupIndex == 0) {
         soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
         soPostureModule& posture = m_moduleAccesser->getPostureModule();
@@ -881,5 +881,5 @@ void ftLucas::notifyEventCollisionAbsorber(soCollisionAttackModule* attackModule
         soEffectModule& effect = moduleAccesser->getEffectModule();
         effect.req((EfID)0x7a, fn_114_B6C0(&effectPos, &collisionLog->m_pos), &rot, scale, 0, -1);
     }
-    Fighter::notifyEventCollisionAbsorber(attackModule, collisionLog, groupIndex, moduleAccesser, power, posX, posY);
+    Fighter::notifyEventCollisionAbsorber(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
 }

@@ -1,3 +1,5 @@
+#define WN_STATUS_NO_TAIL
+#define WN_WEAPON_NO_COMMON_ENERGIES
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
 #define WN_SHARED_ARRAYS_1
@@ -17,5 +19,8 @@ wnKirbyCookHat::wnKirbyCookHat(s32 articleId, const wnArticleBuildInfo& info, co
         wnModuleAccesserBuildData(0x92, data, info.getHeapModule()->getInstanceHeap(), info.getHeapModule()->getNWModelInstanceHeap(),
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &g_soParamAccesserNull,
                                   0, 0, 0, 0, 0, 0, 0)) {
+    // HYPOTHESIS: the four statuses of the hat share the default (none) uniq process.
+    soStatusUniqProcess* processes[4] = {0};
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 4);
     Weapon::deactivate(false);
 }

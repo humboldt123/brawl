@@ -22,6 +22,7 @@ class wnDededeStar : public Weapon {
 public:
     wnDededeStar(s32 articleId, const wnArticleBuildInfo& info, const wnDededeStarData* data);
     virtual ~wnDededeStar();
+    void activate(int founderTaskId, int unused, int team, const Vec3f* position, bool flip, float dir, float angle);
 };
 static_assert(sizeof(wnDededeStar) == 0x1ED0, "wnDededeStar layout is wrong!");
 
