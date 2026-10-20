@@ -39,8 +39,8 @@ void grJungleAshiba::update(float deltaFrame) {
     grJungle::update(deltaFrame);
     m_hasUpdatedG3dCalcWorld = false;
     if (m_isUpdate) {
-        updateBaseActive();
-        if (m_posPrev.m_y < m_posWork->m_y) {
+        updateBaseActive(deltaFrame);
+        if (m_posWork->m_y > m_posPrev.m_y) {
             resetYakumono();
         }
         m_posPrev.m_x = m_posWork->m_x;
@@ -54,7 +54,7 @@ void grJungleAshiba::resetYakumono() {
 }
 
 // The platform is shown and has its collision while the stage says it is on the screen.
-void grJungleAshiba::updateBaseActive() {
+void grJungleAshiba::updateBaseActive(float) {
     if (m_enableWork != NULL) {
         switch (*m_enableWork) {
         case 0:

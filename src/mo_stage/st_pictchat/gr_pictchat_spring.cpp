@@ -153,13 +153,7 @@ void grPictchatSpring::getTopNode(Vec3f* pos) {
 // A fighter jumps on the spring: the state of it says it is pushed, and the place of the top is given to the event.
 void grPictchatSpring::onGimmickEvent(soGimmickEventArgs* eventInfo, int* taskId) {
     Gimmick::EventKind kind = eventInfo->m_kind;
-    if (kind == Gimmick::Event_Exit) {
-        return;
-    }
-    if (kind < Gimmick::Spring_Event_On) {
-        return;
-    }
-    if (kind > Gimmick::Spring_Event_Pos) {
+    if (kind == Gimmick::Event_Exit || kind <= 0x16 || kind >= 0x1A) {
         return;
     }
     if (kind != Gimmick::Spring_Event_On) {

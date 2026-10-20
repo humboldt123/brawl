@@ -176,7 +176,7 @@ void grCrayonYakumonoH::processFixPosition() {
         if (items != NULL) {
             BaseItem* item = items->createItem(static_cast<itKind>(0x40), 5000, -1, NULL, 0, 0xFFFF, 0, 0xFFFF);
             if (item != NULL) {
-                grCrayonItemHave(item, -1, 0, -1);
+                item->have(-1, 0, -1);
                 grCalcWorldCallBack* callback = &m_calcWorldCallBack;
                 if (callback != NULL) {
                     grNodeCallbackData* node = callback->m_nodeCallbackDatas;

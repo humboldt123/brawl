@@ -41,12 +41,12 @@ void grJungleAshiba09::processAnim() {
 void grJungleAshiba09::update(float deltaFrame) {
     grJungleAshiba::update(deltaFrame);
     if (m_isUpdate) {
-        updateSE();
+        updateSE(deltaFrame);
     }
 }
 
 // The sound of the wheels plays while the big wheel is on the screen.
-void grJungleAshiba09::updateSE() {
+void grJungleAshiba09::updateSE(float) {
     Vec3f pos;
     getNodePosition(&pos, 0, m_node[4]);
     m_snd.setPos(&pos);

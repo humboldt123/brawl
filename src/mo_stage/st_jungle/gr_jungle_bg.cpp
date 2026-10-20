@@ -52,11 +52,11 @@ void grJungleBg::update(float deltaFrame) {
     if (m_frameLocWork != NULL) {
         *m_frameLocWork = getMotionFrame(0);
     }
-    updateSE();
+    updateSE(deltaFrame);
 }
 
 // The sounds of the falls play while their nodes are on the screen (the main backdrop is the only one that plays them).
-void grJungleBg::updateSE() {
+void grJungleBg::updateSE(float) {
     if (m_posGimmickWork == NULL) {
         Vec3f pos;
         pos.m_x = 0.0f;

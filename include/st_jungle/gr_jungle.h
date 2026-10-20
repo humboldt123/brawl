@@ -102,7 +102,7 @@ public:
     virtual void processAnim();
     virtual void update(float deltaFrame);
     virtual bool setNode();
-    virtual void updateSE();
+    virtual void updateSE(float deltaFrame); // HYPOTHESIS: the frame count is passed but unused
     virtual void setPosGimmickWork(Vec3f* posGimmickWork);
     virtual void setPosLimitWork(Vec3f* posLimitWork);
     virtual void setFrameLocWork(float* frameLocWork);
@@ -134,7 +134,7 @@ public:
     grJungleAshiba(const char* taskName);
     virtual ~grJungleAshiba();
     virtual void update(float deltaFrame);
-    virtual void updateBaseActive();
+    virtual void updateBaseActive(float deltaFrame); // HYPOTHESIS: the frame count is passed but unused
     virtual void updateCallBack(float deltaFrame);
     virtual void resetYakumono();
     virtual int getCallBackNodeCount();
@@ -416,7 +416,7 @@ public:
     virtual void processAnim();
     virtual void update(float deltaFrame);
     virtual bool setNode();
-    virtual void updateSE();
+    virtual void updateSE(float deltaFrame); // HYPOTHESIS: the frame count is passed but unused
 
     static grJungleAshiba09* create(int mdlIndex, const char* tgtNodeName, const char* taskName);
 };
@@ -437,11 +437,11 @@ public:
     grJungleAshiba10(const char* taskName);
     virtual ~grJungleAshiba10();
     virtual void update(float deltaFrame);
-    virtual void updateBaseActive();
+    virtual void updateBaseActive(float deltaFrame); // HYPOTHESIS: the frame count is passed but unused
     virtual bool setNode();
     virtual void resetYakumono();
     virtual void setStateWork(u8* stateWork);
-    virtual void updateSE();
+    virtual void updateSE(float deltaFrame); // HYPOTHESIS: the frame count is passed but unused
 
     static grJungleAshiba10* create(int mdlIndex, const char* tgtNodeName, const char* taskName);
 };

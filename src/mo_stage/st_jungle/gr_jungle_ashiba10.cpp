@@ -29,7 +29,7 @@ grJungleAshiba10::~grJungleAshiba10() {
 
 void grJungleAshiba10::update(float deltaFrame) {
     grJungleAshiba::update(deltaFrame);
-    updateSE();
+    updateSE(deltaFrame);
     updateG3dProcCalcWorld();
     m_hasUpdatedG3dCalcWorld = false;
     if (m_posGimmickWork != NULL) {
@@ -39,7 +39,7 @@ void grJungleAshiba10::update(float deltaFrame) {
 }
 
 // The platform is there once the stage has scrolled far enough (4927 frames); the loads on it follow its flags.
-void grJungleAshiba10::updateBaseActive() {
+void grJungleAshiba10::updateBaseActive(float) {
     if (m_stateWork != NULL && m_enableWork != NULL) {
         switch (*m_enableWork) {
         case 0:
@@ -85,7 +85,7 @@ void grJungleAshiba10::updateBaseActive() {
 }
 
 // The sound of the airplane plays once it is far enough in the stage (4670 frames) and near the screen.
-void grJungleAshiba10::updateSE() {
+void grJungleAshiba10::updateSE(float) {
     Vec3f pos;
     getNodePosition(&pos, 0, "AirPlaneN");
     m_snd.setPos(&pos);

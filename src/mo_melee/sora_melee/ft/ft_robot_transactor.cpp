@@ -143,14 +143,6 @@ void ftRobotTransactor::processUpdateEffectTransact(soModuleAccesser* moduleAcce
     }
 }
 
-// HYPOTHESIS: the resource id accessor's virtual at vtable +0x5c (listed as getKirbyResId() in the SDK headers) takes
-// the kind of resource to look up; this view calls it with that argument.
-static u32 ftRobotGetKirbyResId(ftResourceIdAccesserImpl& resources, int kind) {
-    typedef u32 (*GetResId)(ftResourceIdAccesserImpl*, int);
-    void** table = *reinterpret_cast<void***>(&resources);
-    return reinterpret_cast<GetResId>(table[0x5c / sizeof(void*)])(&resources, kind);
-}
-
 bool ftRobotTransactor::activeArticle(soArticle* article, soModuleAccesser* moduleAccesser) {
     bool result;
     if (article->getArticleId() == 0xd) {
@@ -159,7 +151,7 @@ bool ftRobotTransactor::activeArticle(soArticle* article, soModuleAccesser* modu
             result = false;
         } else {
             ftResourceIdAccesserImpl& resources = dynamic_cast<ftResourceIdAccesserImpl&>(*moduleAccesser->getResourceModule().getResourceIdAccesser());
-            u32 resourceId = ftRobotGetKirbyResId(resources, 0x23);
+            u32 resourceId = resources.getKirbyResId(0x23);
             result = activeArticle1(beam, moduleAccesser, resourceId);
         }
     } else {

@@ -103,7 +103,8 @@ void grJungleAshiba08::updateActive(float deltaFrame) {
         }
         break;
     case 3: {
-        float c = grJungleClamp(1.0f - m_timer / 6.0f, 0.001f, 1.0f);
+        float x = 1.0f - m_timer / 6.0f;
+        float c = grJungleClamp(x, 0.001f, 1.0f);
         m_scaleRate = 1.0f - c;
         if (c == 1.0f) {
             m_state = 4;
@@ -117,7 +118,8 @@ void grJungleAshiba08::updateActive(float deltaFrame) {
         }
         break;
     case 5: {
-        float c = grJungleClamp(1.0f - m_timer / 6.0f, 0.001f, 1.0f);
+        float x = 1.0f - m_timer / 6.0f;
+        float c = grJungleClamp(x, 0.001f, 1.0f);
         m_scaleRate = c;
         if (c == 1.0f) {
             m_state = 0;
