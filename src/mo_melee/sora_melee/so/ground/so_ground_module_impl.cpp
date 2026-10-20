@@ -1,5 +1,6 @@
 // MATCH-ONLY: the owning unit copies whole vectors with the aggregate word copy of a plain base.
 #define MT_VEC2F_PLAIN_BASE
+#define MT_VEC2F_IMPLICIT_ASSIGN
 #include <so/ground/so_ground_module_impl.h>
 #include <gr/collision/gr_collision.h>
 #include <so/so_heap_module.h>
@@ -7,6 +8,7 @@
 #include <so/ground/so_ground_util.h>
 #include <so/kinetic/so_kinetic_module_impl.h>
 #include <so/stageobject.h>
+#include <so/so_external_value_accesser.h>
 #include <so/so_module_accesser.h>
 #include <math.h>
 
@@ -483,4 +485,244 @@ void soGroundModuleImpl::setCorrect(soGroundShapeImpl::CorrectKind correct, u32 
             }
         }
     }
+}
+
+u32 soGroundModuleImpl::getCliffId(u32 index) {
+    grCollisionLineWork work;
+    work = m_groundShapeArray->at(index).m_collStatus->m_collLineWorkArray[8];
+    return work.getLineId();
+}
+
+Vec2f soGroundModuleImpl::getDownMovementSpeed(u32 index) {
+    Vec2f result(0.0f, 0.0f);
+    if (m_groundShapeArray->at(index).m_collStatus->isTouch(grCollStatus::Touch_Down)) {
+        grCollision::calcLineVector(m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Down), getDownPos(index), &result);
+    }
+    return result;
+}
+
+Vec2f soGroundModuleImpl::getTouchSpeed(grCollStatus::TouchMask p0, u32 index) {
+    Vec2f total(0.0f, 0.0f);
+    for (u32 i = 0, bit = 1; bit <= 0xFF; bit <<= 1, i++) {
+        if (p0 & bit) {
+            if (m_groundShapeArray->at(index).m_collStatus->isTouch((grCollStatus::TouchId)i)) {
+                u32 lineId = m_groundShapeArray->at(index).m_collStatus->getTouchLineId((grCollStatus::TouchId)i);
+                Vec2f pos = getTouchPos(bit, 0);
+                Vec2f speed;
+                grCollision::calcLineVector(lineId, pos, &speed);
+                total.m_x = total.m_x + speed.m_x;
+                total.m_y = total.m_y + speed.m_y;
+            }
+        }
+    }
+    return total;
+}
+
+Vec2f soGroundModuleImpl::getAttachMovementSpeed(u32 index) {
+    Vec2f result(0.0f, 0.0f);
+    u8 attachKind = ((u8*)m_groundShapeArray->at(index).m_collStatus)[0x6D];
+    if (attachKind & grCollStatus::TOUCH_MASK_DOWN) {
+        grCollision::calcLineVector(m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Down), getDownPos(index), &result);
+    } else if (attachKind & grCollStatus::TOUCH_MASK_UP) {
+        grCollision::calcLineVector(m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Up), getUpPos(index), &result);
+    } else if (attachKind & grCollStatus::TOUCH_MASK_LEFT) {
+        grCollision::calcLineVector(m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Left), getLeftPos(index), &result);
+    } else if (attachKind & grCollStatus::TOUCH_MASK_RIGHT) {
+        grCollision::calcLineVector(m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Right), getRightPos(index), &result);
+    }
+    return result;
+}
+
+Vec2f soGroundModuleImpl::getAttachNormal(u32 index) {
+    Vec2f normal(0.0f, 1.0f);
+    if (isAttach(0) == true) {
+        u8 attachKind = ((u8*)m_groundShapeArray->at(index).m_collStatus)[0x6D];
+        if (attachKind & grCollStatus::TOUCH_MASK_DOWN) {
+            normal = getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0);
+        } else if (attachKind & grCollStatus::TOUCH_MASK_UP) {
+            normal = getTouchNormal(grCollStatus::TOUCH_MASK_UP, 0);
+        } else if (attachKind & grCollStatus::TOUCH_MASK_LEFT) {
+            normal = getTouchNormal(grCollStatus::TOUCH_MASK_LEFT, 0);
+        } else {
+            normal = getTouchNormal(grCollStatus::TOUCH_MASK_RIGHT, 0);
+        }
+    }
+    return normal;
+}
+
+Vec2f soGroundModuleImpl::getTouchNormal(int touchMask, u32 index) {
+    Vec2f sum(0.0f, 0.0f);
+    if (touchMask == grCollStatus::TOUCH_MASK_DOWN) {
+        m_groundShapeArray->at(index).m_collStatus->getTouchLineNormal(grCollStatus::Touch_Down, &sum);
+    } else {
+        for (u32 i = 0, bit = 1; bit <= 0xFF; bit <<= 1, i++) {
+            if (touchMask & bit) {
+                if (m_groundShapeArray->at(index).m_collStatus->isTouch((grCollStatus::TouchId)i) == true) {
+                    Vec2f normal;
+                    m_groundShapeArray->at(index).m_collStatus->getTouchLineNormal((grCollStatus::TouchId)i, &normal);
+                    Vec2f added = sum + normal;
+                    if (added.lengthSq() > 1.0e-5f) {
+                        sum.m_x = added.m_x;
+                        sum.m_y = added.m_y;
+                    }
+                }
+            }
+        }
+        if (sum.m_x != 0.0f || sum.m_y != 0.0f) {
+            sum.normalize();
+        }
+    }
+    if (sum.m_x == 0.0f && sum.m_y == 0.0f) {
+        sum.m_y = 1.0f;
+    }
+    return sum;
+}
+
+float soGroundModuleImpl::getTouchLength(grCollStatus::TouchMask p0, u32 index) {
+    grCollStatus::TouchId id = touchMaskToId(p0);
+    u32 lineId = m_groundShapeArray->at(index).m_collStatus->getTouchLineId(id);
+    grCollisionLineWork work;
+    if (!grCollision::getLineWork(&lineId, &work)) {
+        return 1.0f;
+    }
+    clSegment2D segment;
+    work.m_collision->getSegment(&segment, work.m_collisionLine);
+    Vec2f diff;
+    diff.m_x = segment.m_p0Pos.m_x - segment.m_p1Pos.m_x;
+    diff.m_y = segment.m_p0Pos.m_y - segment.m_p1Pos.m_y;
+    return diff.length();
+}
+
+float soGroundModuleImpl::getTouchLineRate(grCollStatus::TouchMask p0, u32 index) {
+    grCollStatus::TouchId id = touchMaskToId(p0);
+    u32 lineId = m_groundShapeArray->at(index).m_collStatus->getTouchLineId(id);
+    grCollisionLineWork work;
+    if (!grCollision::getLineWork(&lineId, &work)) {
+        return 0.0f;
+    }
+    clSegment2D segment;
+    work.m_collision->getSegment(&segment, work.m_collisionLine);
+    Vec2f touchPos = getTouchPos(p0, index);
+    float touchLength = segment.m_p0Pos.distance(&touchPos);
+    float lineLength = segment.m_p0Pos.distance(&segment.m_p1Pos);
+    if (lineLength == 0.0f) {
+        return 0.0f;
+    }
+    return touchLength / lineLength - 0.5f;
+}
+
+bool soGroundModuleImpl::getTouchNextNormal(bool getNext, Vec2f* outNormal, grCollStatus::TouchMask p2, u32 index) {
+    grCollStatus::TouchId id = touchMaskToId(p2);
+    u32 lineId = m_groundShapeArray->at(index).m_collStatus->getTouchLineId(id);
+    grCollisionLineWork work;
+    if (!grCollision::getLineWork(&lineId, &work)) {
+        outNormal->m_x = 0.0f;
+        outNormal->m_y = 1.0f;
+        return false;
+    }
+    grCollisionLineWork next;
+    bool found;
+    if (getNext == true) {
+        found = work.getNextSameAttr(&next);
+    } else {
+        found = work.getPrevSameAttr(&next);
+    }
+    if (found == true) {
+        *outNormal = next.getNormalVec();
+        outNormal->normalize();
+        return true;
+    }
+    return false;
+}
+
+bool soGroundModuleImpl::isEnableGrCollision() {
+    if (m_collData == NULL || m_collision == NULL) {
+        return false;
+    }
+    return m_collision->m_isEnabled;
+}
+
+void soGroundModuleImpl::setGrCollisionMode(bool mode) {
+    grCollision* collision;
+    if (m_collData != NULL && (collision = m_collision) != NULL) {
+        m_collisionOn = mode;
+        if (mode == false) {
+            collision->setDisable();
+        }
+    }
+}
+
+u16 soGroundModuleImpl::getGrCollisionVertexNum() {
+    if (m_collData == NULL || m_collision == NULL) {
+        return 0;
+    }
+    return m_collision->m_vtxLen;
+}
+
+void soGroundModuleImpl::updateCheckGrCollision() {
+    grCollision* collision;
+    if (m_collData != NULL && (collision = m_collision) != NULL) {
+        if (m_collisionOn) {
+            if (!collision->m_isEnabled) {
+                collision->setEnable();
+            }
+        }
+        if (m_collision->m_isEnabled) {
+            if (!m_collision->m_noUpdate) {
+                updateGrCollisionMatrix();
+                m_collision->update();
+            }
+        }
+    }
+}
+
+bool soGroundModuleImpl::isOnDynamicCollision(u32 index) {
+    grCollStatus* status = m_groundShapeArray->at(index).m_collStatus;
+    if (status->isTouch(grCollStatus::Touch_Down) == true) {
+        u32 lineId = status->getTouchLineId(grCollStatus::Touch_Down);
+        if (lineId != 0xFFFF) {
+            grCollisionLineWork work;
+            if (grCollision::getLineWork(&lineId, &work) == true) {
+                if (work.m_collision->m_isDynamic == true) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool soGroundModuleImpl::isCliffOver(u8 side, u32 index) {
+    if (side == 0) {
+        return m_groundShapeArray->at(index).m_collStatus->isCliffOver(1);
+    }
+    if (side == 1) {
+        return m_groundShapeArray->at(index).m_collStatus->isCliffOver(0);
+    }
+    if (side == 2) {
+        return m_groundShapeArray->at(index).m_collStatus->isCliffOver(3);
+    }
+    return false;
+}
+
+bool soGroundModuleImpl::isCliffOverPos(Vec2f* pos, u8 side, u32 index) {
+    if (side == 0) {
+        return m_groundShapeArray->at(index).m_collStatus->isCliffOverPos(*pos, 1);
+    }
+    if (side == 1) {
+        return m_groundShapeArray->at(index).m_collStatus->isCliffOverPos(*pos, 0);
+    }
+    if (side == 2) {
+        return m_groundShapeArray->at(index).m_collStatus->isCliffOverPos(*pos, 3);
+    }
+    return false;
+}
+
+bool soGroundModuleImpl::rayCheckTarget(StageObject* stageObject, bool p1) {
+    Vec2f center = getCenterPos(0);
+    Vec3f from(center.m_x, center.m_y, 0.0f);
+    Vec2f targetCenter = soExternalValueAccesser::getGroundModule(stageObject)->getCenterPos(0);
+    Vec3f to(targetCenter.m_x, targetCenter.m_y, 0.0f);
+    Vec3f dir = to - from;
+    return soGroundUtil::rayCheck(m_moduleAccesser, &from, &dir, p1);
 }

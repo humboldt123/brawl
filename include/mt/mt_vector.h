@@ -41,6 +41,7 @@ public:
         : m_x(x), m_y(y) { }
 #endif
 
+#ifndef MT_VEC2F_IMPLICIT_ASSIGN // MATCH-ONLY: some units copy with the implicit (word-wise) assignment and elide copy temporaries.
     Vec2f& operator=(const Vec2f& source)
 #ifdef MT_VEC2F_ASSIGN_NOINLINE
         __attribute__((never_inline)) // MATCH-ONLY: preserve evidenced out-of-line assignments.
@@ -51,6 +52,7 @@ public:
         m_y = source.m_y;
         return *this;
     }
+#endif
 
     friend Vec2f operator+(const Vec2f& lhs, const Vec2f& rhs) {
         Vec2f res;

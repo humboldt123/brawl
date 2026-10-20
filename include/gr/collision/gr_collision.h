@@ -34,6 +34,13 @@ public:
     clAABBox2D m_aabBox;
     // 44
     bool m_isEnabled : 1; // verified: bit 0x80 of byte 0x2C, set by setEnable and cleared by setDisable
+    bool : 1;
+    bool : 1;
+    bool : 1;
+    bool : 1;
+    bool m_noUpdate : 1; // HYPOTHESIS: bit 0x04 of byte 0x2C; while set the module does not refresh the collision
+    bool m_isDynamic : 1; // HYPOTHESIS: bit 0x02 of byte 0x2C; the collision moves (checked by isOnDynamicCollision)
+    bool : 1;
     char _spacer[3];
     // 48
     void* m_next;
@@ -51,6 +58,9 @@ public:
     void initWorkVtxPos(u16 index, Vec2f* pos);
     void setWorkVtxPos(u16 index, Vec2f* pos);
     void copyVtxToPrev();
+    void update();
+    static bool getLineWork(u32* lineId, grCollisionLineWork* out);
+    static void calcLineVector(const u32& lineId, const Vec2f& pos, Vec2f* out);
 
     grCollisionJoint* getJoint(u16 nodeIndex);
     grCollisionLine* getLine(u16 index);

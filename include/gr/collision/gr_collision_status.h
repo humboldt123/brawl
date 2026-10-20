@@ -192,6 +192,8 @@ public:
     bool checkCliffEntryOverlap();
     void setStAir();
     void setStCliff();
+    bool isCliffOver(int side);
+    bool isCliffOverPos(Vec2f pos, int side);
     void drawDebug();
     void drawDebugCliff();
     void setIgnoreLine(u32* lineId);

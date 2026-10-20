@@ -157,7 +157,7 @@ public:
     virtual grCollision* getGrCollision();
     virtual bool isEnableGrCollision();
     virtual void setGrCollisionMode(bool);
-    virtual short getGrCollisionVertexNum();
+    virtual u16 getGrCollisionVertexNum();
     virtual void initGrCollisionVertexPos(u16 vtxPosIndex, Vec2f* vertexPo);
     virtual void setGrCollisionVertexPos(u16 vtxPosIndex, Vec2f* vertexPos);
     virtual void setGrCollisionFlagAll(u16, int);
@@ -342,7 +342,7 @@ public:
     virtual grCollision* getGrCollision();
     virtual bool isEnableGrCollision();
     virtual void setGrCollisionMode(bool);
-    virtual short getGrCollisionVertexNum();
+    virtual u16 getGrCollisionVertexNum();
     virtual void initGrCollisionVertexPos(u16 vtxPosIndex, Vec2f* vertexPo);
     virtual void setGrCollisionVertexPos(u16 vtxPosIndex, Vec2f* vertexPos);
     virtual void setGrCollisionFlagAll(u16, int);
