@@ -12,6 +12,7 @@ class soCollisionShieldModule;
 
 class soExternalValueAccesser {
 public:
+    static bool isIncludeRect(StageObject* stageObject, float* rect, Vec3f* out, float, float); // HYPOTHESIS: parameters
     static int getTeamNo(StageObject* stageObject);
     static Vec3f getPos(StageObject* stageObject);
     static float getLr(StageObject* stageObject);

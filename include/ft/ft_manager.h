@@ -147,6 +147,9 @@ public:
     bool unk6f_04 : 1;
     bool unk6f_02 : 1;
     bool unk6f_01 : 1;
+    // Inline accessors (the REL tests these flags through the normalizing bool conversion).
+    bool isStamina() const { return m_isStamina; }
+    bool isGameSet() const { return m_isGameSet; }
     int m_finalStatus;
     int m_finalEntryId;
     int m_noDiscretionFinalCount;

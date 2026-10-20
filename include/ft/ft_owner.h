@@ -24,6 +24,14 @@ private:
     u8 _11;
 
 public:
+    bool isNoVoice() const; // map name ftOwner::isNoVoice
+    // Pokemon Trainer bookkeeping (map names ftOwner::...Pokemon...); one lost flag per Pokemon.
+    bool getPokemonChange() const;
+    bool getDeadPokemonLost() const;
+    void lostPokemon(int index);
+    u8 getRemainPokemonCount() const;
+    bool isLostPokemon(u8 index) const;
+    bool getNextPokemonAutoReload() const;
     bool getSpycloak() const; // HYPOTHESIS: the player wears the Spycloak (hides R.O.B.'s chest lamp)
     virtual ~ftOwner();
     virtual bool isSubOwner();
