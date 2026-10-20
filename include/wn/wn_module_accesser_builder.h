@@ -84,6 +84,41 @@ FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 8);
         soArrayVector<soStatusUniqProcess*, N>* get() { return &m_array; }                                                 \
     }
 
+// Same, for the vector whose sora_melee constructor is called with a second, unused argument (the caller loads 0 into r4
+// before the call; the constructor ignores it): the status vector of the Jet Hammer.
+#define WN_STATUS_PROC_VECTOR_ARG_CTOR(N)                                                                              \
+    template <>                                                                                                            \
+    class soArrayVector<soStatusUniqProcess*, N> : public soArrayVectorAbstract<soStatusUniqProcess*> {                    \
+        s32 m_topIndex : sizeof(bit_width<N>) + 1;                                                                        \
+        s32 m_lastIndex : sizeof(bit_width<N>) + 1;                                                                       \
+        s32 m_size : sizeof(bit_width<N>) + 1;                                                                            \
+        u32 m_isFull : 1;                                                                                                  \
+        soStatusUniqProcess* m_elements[N];                                                                                \
+    public:                                                                                                                \
+        soArrayVector(s32);                                                                                                \
+        virtual s32 size() const;                                                                                          \
+        virtual ~soArrayVector();                                                                                          \
+        virtual s32 capacity() const;                                                                                      \
+        virtual bool isFull() const;                                                                                       \
+        virtual soStatusUniqProcess*& atFastAbstractSub(s32 index) const;                                                  \
+        virtual soStatusUniqProcess*& getArrayValueConst(s32 index);                                                       \
+        virtual s32 getTopIndex() const;                                                                                   \
+        virtual s32 getLastIndex() const;                                                                                  \
+        virtual void setSize(s32 size);                                                                                    \
+        virtual void setTopIndex(s32 topIndex);                                                                            \
+        virtual void setLastIndex(s32 lastIndex);                                                                          \
+        virtual void onFull();                                                                                             \
+        virtual void offFull();                                                                                            \
+    };                                                                                                                     \
+    template <>                                                                                                            \
+    class soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, N>, soSingletonHolder<soArrayNull<soStatusUniqProcess*> > > { \
+    public:                                                                                                                \
+        soArrayVector<soStatusUniqProcess*, N> m_array;                                                                    \
+        soArraySelectHolder() : m_array(0) { }                                                                              \
+        ~soArraySelectHolder() { }                                                                                         \
+        soArrayVector<soStatusUniqProcess*, N>* get() { return &m_array; }                                                 \
+    }
+
 #ifdef WN_SHARED_ARRAYS_1
 // These article builders call sora_melee-owned constructors and virtual methods.
 FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 1);

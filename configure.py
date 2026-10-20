@@ -1670,6 +1670,7 @@ config.libs = [
             Object(NonMatching, "mo_fighter/ft_dedede/wn_dedede_star.cpp"),
             Object(NonMatching, "mo_fighter/ft_dedede/wn_dedede_jethammer.cpp"),
             Object(NonMatching, "mo_fighter/ft_dedede/wn_dedede_waddledoo_beam.cpp"),
+            Object(NonMatching, "mo_fighter/ft_dedede/wn_dedede_jethammer_status_uniq_process.cpp"),
             Object(NonMatching, "mo_fighter/ft_dedede/wn_dedede_follower.cpp"),
             Object(NonMatching, "mo_fighter/ft_dedede/ft_dedede_status_uniq_process_special_super_jump.cpp"),
             Object(NonMatching, "mo_fighter/ft_dedede/ft_dedede_status_uniq_process_special_super_jump_jump.cpp"),

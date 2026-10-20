@@ -55,7 +55,9 @@ class soStatusModuleBuilder {
 #endif
     soArrayQueueImpl<soArrayVector<s32, 1> > m_changeRequests;                                            // +0xDF4
     soStatusModuleImpl m_module;                                                                          // +0xE08
+#ifndef WN_STATUS_NO_TAIL // an article whose next module is the empty null builder has no tail word
     u32 unkEB4;
+#endif
 public:
     soStatusModuleBuilder(soModuleAccesser* acc, const soStatusData* statusData, void* preCheckData) :
         m_statusTable(statusData, BC::DataCount),
