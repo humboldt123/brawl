@@ -9,15 +9,30 @@
 
 class ftPokeTrainer;
 
+// The Final Smash article of the trainer (wn_poke_trainer_final.cpp). HYPOTHESIS: only the position query is known here.
+class wnPokeTrainerFinal : public StageObject {
+public:
+    Vec3f getFinalPokemonPos(int index);
+};
+
 // Sends the entry events (a Pokemon dies, a Pokemon starts, ...) to the observers of the entry. The trainer owns one for the
 // Pokemon it tells about its own update.
 class ftEntryEventPresenter : public soEventPresenter<ftEntryEventObserver> {
 public:
     virtual ~ftEntryEventPresenter() { }
+    bool notifyEventPokemonRequestChange(Vec3f* pos, float* lr) {
+        soInstanceManagerFullProperty<ftEntryEventObserver*>* list = getObserverList();
+        for (int i = 0; i < (s32)list->size(); i++) {
+            if (list->atIndex(i)->notifyEventPokemonRequestChange(pos, lr) == 1) {
+                return true;
+            }
+        }
+        return false;
+    }
     void notifyEventPokemonTrainerUpdate() {
         soInstanceManagerFullProperty<ftEntryEventObserver*>* list = getObserverList();
-        for (int i = 0; i < list->size(); i++) {
-            list->at(i)->notifyEventPokemonTrainerUpdate();
+        for (int i = 0; i < (s32)list->size(); i++) {
+            list->atIndex(i)->notifyEventPokemonTrainerUpdate();
         }
     }
 };
@@ -29,6 +44,8 @@ public:
     u8 m_data[0x60];
     void replace(u8 index, ftPokeTrainer* trainer, soModuleAccesser* acc);
     void setDirectionTarget(soModuleAccesser* acc);
+    void start(ftPokeTrainer* trainer, Vec3f* pos, Vec3f* unk, soModuleAccesser* acc);
+    Vec3f getTargetUpperPos(soModuleAccesser* acc);
     void preprocessFixPosition(ftPokeTrainer* trainer, soModuleAccesser* acc);
     void processFixPosition(ftPokeTrainer* trainer, Fighter* partner, soModuleAccesser* acc);
 };
@@ -52,6 +69,8 @@ public:
 
     ftKind getKindDirect() const { return *reinterpret_cast<const ftKind*>(&_272[0]); }
 
+    virtual void trainerStart(float lr, Vec3f* pos, Vec3f* unk, int startKind, bool unk5);
+    virtual void trainerRestart(float lr, float* pos, bool unk3, bool unk4);
     virtual void processUpdate();
     virtual void processFixPosition();
     virtual void updateNodeSRT();
@@ -83,12 +102,16 @@ public:
     virtual void notifyEventPokemonAttack();
     virtual void notifyEventPokemonInflict();
     virtual void notifyEventPokemonDamage();
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
     virtual void notifyEventPokemonStart(int unk1);
     virtual void notifyEventPokemonSpecial(int unk1, int unk2);
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4);
     virtual void notifyEventPokeTrainerReplace(u8 index);
 
     Fighter* getPartner();
     void setChange(int changeKind);
+    void sendPartnerPosEvents();
     void reqAdvFollowEffect(Vec2f* pos);
     bool isExistAdvFollowEffect();
 };

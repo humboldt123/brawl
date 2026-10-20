@@ -590,8 +590,8 @@ void ftManager::toChange(int entryId, int unk1, int unk2, int unk3) {
     m_entryManager->getEntity(entryId)->startChange(unk1, unk2, unk3);
 }
 
-void ftManager::toChangeAppear(int entryId, float unk1, int unk2, int unk3) {
-    m_entryManager->getEntity(entryId)->prepareChange(unk1, unk2, unk3);
+void ftManager::toChangeAppear(int entryId, float lr, Vec3f* pos, int changePose) {
+    m_entryManager->getEntity(entryId)->prepareChange(lr, pos, changePose);
 }
 
 void ftManager::setContNo(int entryId, int contNo) {

@@ -228,10 +228,22 @@ class soEventPresenter {
             return false;
         soEventUnitWrapper<T>* evtUnitWrapper =
             dynamic_cast<soEventUnitWrapper<T>* >(mgr->getEventUnit(uid));
+#ifdef SO_EVENT_PRESENTER_STORE_NULL_LIST
+        // MATCH-ONLY: the Pokemon Trainer stores the (possibly empty) list result instead of returning early.
+        soInstanceManagerFullProperty<T*>* list;
+        if (!evtUnitWrapper) {
+            list = 0;
+        } else {
+            list = evtUnitWrapper->getObserverListSub();
+        }
+        m_obsrvrList = list;
+        return m_obsrvrList;
+#else
         if (!evtUnitWrapper)
             return false;
         m_obsrvrList = evtUnitWrapper->getObserverListSub();
         return m_obsrvrList;
+#endif
     }
 
     bool checkManageId() const {

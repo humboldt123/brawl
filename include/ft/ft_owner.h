@@ -24,6 +24,7 @@ private:
     u8 _11;
 
 public:
+    float getVisibilityScale() const; // map name ftOwner::getVisibilityScale
     bool isNoVoice() const; // map name ftOwner::isNoVoice
     // Pokemon Trainer bookkeeping (map names ftOwner::...Pokemon...); one lost flag per Pokemon.
     bool getPokemonChange() const;

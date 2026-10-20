@@ -128,7 +128,7 @@ public:
 #ifdef FT_MODULE_BUILDER
     virtual bool notifyEventPokemonRequestChange(Vec3f*, float*) { return false; } // HYPOTHESIS: bool (the REL stub is li r3,0)
 #else
-    virtual void notifyEventPokemonRequestChange(Vec3f*, float*);
+    virtual bool notifyEventPokemonRequestChange(Vec3f*, float*);
 #endif
 #ifdef FT_MODULE_BUILDER
     virtual void notifyEventPokemonTrainerUpdate() { }
@@ -277,7 +277,7 @@ public:
     void setTemporaryCamera(float unk1, int unk2, int unk3, int unk4);
     void setIntarpolateTemporaryCamera(float unk1, float unk2, int unk3, int unk4);
     void startChange(int unk1, int unk2, int unk3);
-    void prepareChange(float unk1, int unk2, int unk3);
+    void prepareChange(float lr, Vec3f* pos, int changePose);
     void setContNo(int contNo);
     bool addDragoon(u32 variation, bool unk);
     void removeDragoon(int index, bool unk);

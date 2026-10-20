@@ -1571,9 +1571,9 @@ public:
     virtual void trainerStart(float, Vec3f*, Vec3f*, int, bool);
 #endif
 #ifdef FT_MODULE_BUILDER
-    virtual void trainerRestart(float*, bool, bool) { }
+    virtual void trainerRestart(float, float*, bool, bool) { }
 #else
-    virtual void trainerRestart(float*, bool, bool);
+    virtual void trainerRestart(float, float*, bool, bool);
 #endif
 #ifdef FT_MODULE_BUILDER
     virtual void disappear(bool) { }
