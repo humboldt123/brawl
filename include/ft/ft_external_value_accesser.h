@@ -5,8 +5,11 @@
 #include <ft/fighter.h>
 #include <types.h>
 
+class soDamageModule;
+
 namespace ftExternalValueAccesser {
     soCollisionHitModule* getsoCollisionHitModule(Fighter* fighter);
+    soDamageModule* getDamageModule(Fighter* fighter);
     float getWeight(Fighter* fighter);
     Vec3f getHipPos(Fighter* fighter);
     Vec3f getCursorPos(Fighter* fighter);
