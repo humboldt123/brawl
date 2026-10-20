@@ -72,8 +72,8 @@ public:
     virtual void createObjHashigo();
     virtual void createObjHashigo1(int index);
     virtual void updateLimit();
-    virtual void updateAI();
-    virtual void updateScore();
+    virtual void updateAI(float deltaFrame);
+    virtual void updateScore(float deltaFrame);
     virtual void updateJack(float deltaFrame);
 
     static stClassInfoImpl<Stages::Donkey, stDonkey> bss_loc_14;

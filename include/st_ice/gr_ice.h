@@ -432,7 +432,7 @@ public:
     virtual void processAnim();
     virtual void update(float deltaFrame);
     virtual bool setNode();
-    virtual void updateJoint();
+    virtual void updateJoint(float deltaFrame);
     virtual void updateYakumono(float deltaFrame);
     virtual void updateState(float deltaFrame);
     virtual void updateSE(float deltaFrame);

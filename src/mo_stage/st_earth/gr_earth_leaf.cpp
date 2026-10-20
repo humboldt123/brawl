@@ -66,7 +66,7 @@ void grEarthLeaf::update(float deltaFrame) {
     if (m_isUpdate) {
         updateDown(deltaFrame);
         updateReturn(deltaFrame);
-        updatePellet();
+        updatePellet(deltaFrame);
         updateCallBack(deltaFrame);
     }
 }
@@ -232,7 +232,7 @@ void grEarthLeaf::updateReturn(float deltaFrame) {
 }
 
 // The pellets that lie on this leaf (the type of the pellet is the one of the leaf) follow it.
-void grEarthLeaf::updatePellet() {
+void grEarthLeaf::updatePellet(float deltaFrame) {
     stEarthData* data = static_cast<stEarthData*>(getStageData());
     if (data != NULL) {
         u32 i;

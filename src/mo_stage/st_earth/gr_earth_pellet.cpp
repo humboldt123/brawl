@@ -46,9 +46,9 @@ void grEarthPellet::update(float deltaFrame) {
     grGimmick::update(deltaFrame);
     if (m_isUpdate) {
         updateState(deltaFrame);
-        updatePos();
-        updateMotion();
-        updateCallBack();
+        updatePos(deltaFrame);
+        updateMotion(deltaFrame);
+        updateCallBack(deltaFrame);
         m_hasUpdatedG3dCalcWorld = false;
         updateG3dProcCalcWorld();
     }
@@ -56,7 +56,7 @@ void grEarthPellet::update(float deltaFrame) {
 
 // The place of the pellet follows the data of the stage (it is lowered by one) and keeps the size of it only while it is
 // ripe (the state 0x13); then it is turned around.
-void grEarthPellet::updatePos() {
+void grEarthPellet::updatePos(float deltaFrame) {
     stEarthPelletData* pellet = m_pelletData;
     if (pellet != NULL) {
         Matrix mtx = pellet->m_mtx;
@@ -196,7 +196,7 @@ void grEarthPellet::updateState(float deltaFrame) {
 }
 
 // The pellet shows the frame of the animation that is its ripeness (the animation does not run).
-void grEarthPellet::updateMotion() {
+void grEarthPellet::updateMotion(float deltaFrame) {
     if (m_sceneModels[0] != NULL) {
         gfModelAnimation* modelAnim = *m_modelAnims;
         if (modelAnim != NULL && m_sceneModels[0]->m_resMdl.IsValid()) {
@@ -224,7 +224,7 @@ void grEarthPellet::updateMotion() {
     }
 }
 
-void grEarthPellet::updateCallBack() {
+void grEarthPellet::updateCallBack(float deltaFrame) {
     grCalcWorldCallBack* calcWorldCallBack = &m_calcWorldCallBack;
     if (calcWorldCallBack != NULL) {
         nw4r::g3d::ScnMdl* scnMdl = m_sceneModels[0];

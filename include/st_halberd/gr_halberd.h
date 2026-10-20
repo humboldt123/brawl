@@ -211,7 +211,7 @@ public:
     virtual void processAnim();
     virtual void update(float deltaFrame);
     virtual void updateMotion(float deltaFrame);
-    virtual void updateRot();
+    virtual void updateRot(float deltaFrame);
     virtual void updateCallBack(float deltaFrame);
     virtual void setMotion(u32 animId, bool loop, bool force, float* frameCount);
     virtual void setMtxWork(Matrix* mtxWork) { m_mtxWork = mtxWork; }
@@ -298,7 +298,7 @@ public:
     virtual void processAnim();
     virtual void update(float deltaFrame);
     virtual void updateMotion(float deltaFrame);
-    virtual void updateRot();
+    virtual void updateRot(float deltaFrame);
     virtual void updateCallBack(float deltaFrame);
     virtual void setMotion(u32 animId, bool loop, bool force, float* frameCount);
     virtual void setMtxWork(Matrix* mtxWork) { m_mtxWork = mtxWork; }

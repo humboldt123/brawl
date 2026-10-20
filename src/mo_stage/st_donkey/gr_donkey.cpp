@@ -453,13 +453,13 @@ grDonkeyScore::~grDonkeyScore() { }
 void grDonkeyScore::update(float deltaFrame) {
     if (m_isUpdate) {
         updateScaleBase(deltaFrame);
-        updateNumber();
+        updateNumber(deltaFrame);
         updateCallBack(deltaFrame);
     }
 }
 
 // Shows the digit at this decimal place of the score as the frame of the motion (frame 9 = blank).
-void grDonkeyScore::updateNumber() {
+void grDonkeyScore::updateNumber(float deltaFrame) {
     if (*m_scoreWork != m_lastScore) {
         m_lastScore = *m_scoreWork;
         u8 digit = 0;

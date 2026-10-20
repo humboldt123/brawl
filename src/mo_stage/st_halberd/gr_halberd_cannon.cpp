@@ -83,7 +83,7 @@ void grHalberdCannon::update(float deltaFrame) {
     grGimmick::update(deltaFrame);
     if (m_isUpdate) {
         updateMotion(deltaFrame);
-        updateRot();
+        updateRot(deltaFrame);
         updateCallBack(deltaFrame);
         updateG3dProcCalcWorld();
         m_hasUpdatedG3dCalcWorld = false;
@@ -256,7 +256,7 @@ void grHalberdCannon::updateMotion(float deltaFrame) {
 }
 
 // Turns the barrel towards the angles of the goal, no faster than the stage allows.
-void grHalberdCannon::updateRot() {
+void grHalberdCannon::updateRot(float deltaFrame) {
     stHalberdData* data = static_cast<stHalberdData*>(getStageData());
     if (data != NULL) {
         Vec3f rotNow = m_rot;

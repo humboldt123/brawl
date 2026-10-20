@@ -86,7 +86,7 @@ void grIceYama::processAnim() {
 void grIceYama::update(float deltaFrame) {
     grGimmick::update(deltaFrame);
     if (m_isUpdate) {
-        updateJoint();
+        updateJoint(deltaFrame);
         updateYakumono(deltaFrame);
         updateState(deltaFrame);
         updateSE(deltaFrame);
@@ -128,7 +128,7 @@ bool grIceYama::setNode() {
 }
 
 // The joint of the collision that belongs to the top of the mountain is found once (the avalanche changes its material).
-void grIceYama::updateJoint() {
+void grIceYama::updateJoint(float deltaFrame) {
     if (m_joint == NULL && m_collision != NULL) {
         u32 node;
         if (getNodeIndex(&node, 0, "M_top_out1")) {

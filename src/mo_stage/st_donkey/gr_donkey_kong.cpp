@@ -60,7 +60,7 @@ void grDonkeyKong::update(float deltaFrame) {
         updateYakumono();
         updateScaleBase(deltaFrame);
         updateMove(deltaFrame);
-        updateColor();
+        updateColor(deltaFrame);
         updateCallBack(deltaFrame);
     }
 }
@@ -204,7 +204,7 @@ void grDonkeyKong::updateMove(float deltaFrame) {
 }
 
 // Darkens the model while it sinks into the girder (the tev colour of the first material goes from white to grey).
-void grDonkeyKong::updateColor() {
+void grDonkeyKong::updateColor(float deltaFrame) {
     double rate;
     switch (m_state) {
     case 4:

@@ -96,7 +96,7 @@ public:
     grDonkeyScore(const char* taskName);
     virtual ~grDonkeyScore();
     virtual void update(float deltaFrame);
-    virtual void updateNumber();
+    virtual void updateNumber(float deltaFrame);
     virtual void updateCallBack(float deltaFrame);
     virtual void setPosWork(Vec3f* posWork) { m_posWork = posWork; }
     virtual void setScoreWork(int* scoreWork) { m_scoreWork = scoreWork; }
@@ -128,7 +128,7 @@ public:
     grDonkeyKong(const char* taskName);
     virtual ~grDonkeyKong();
     virtual void update(float deltaFrame);
-    virtual void updateColor();
+    virtual void updateColor(float deltaFrame);
     virtual void updateMove(float deltaFrame);
     virtual void updateYakumono();
     virtual void setHit();

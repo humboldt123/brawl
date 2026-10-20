@@ -57,7 +57,7 @@ void grHalberdHero2Hou::update(float deltaFrame) {
     grGimmick::update(deltaFrame);
     if (m_isUpdate) {
         updateMotion(deltaFrame);
-        updateRot();
+        updateRot(deltaFrame);
         updateCallBack(deltaFrame);
     }
 }
@@ -174,7 +174,7 @@ void grHalberdHero2Hou::updateMotion(float deltaFrame) {
 }
 
 // Turns the barrel towards the angles of the goal, no faster than the stage allows.
-void grHalberdHero2Hou::updateRot() {
+void grHalberdHero2Hou::updateRot(float deltaFrame) {
     stHalberdData* data = static_cast<stHalberdData*>(getStageData());
     if (data != NULL) {
         float dx = m_rotGoal.m_x - m_rot.m_x;

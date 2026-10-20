@@ -245,7 +245,7 @@ public:
     virtual void receiveCollMsg_Landing(grCollStatus* collStatus, grCollisionJoint* collisionJoint, bool isFirstContact);
     virtual void updateDown(float deltaFrame);
     virtual void updateReturn(float deltaFrame);
-    virtual void updatePellet();
+    virtual void updatePellet(float deltaFrame);
     virtual void updateCallBack(float deltaFrame);
     virtual void setDownLimit(float downLimit);
     virtual float getDownLimit();
@@ -337,10 +337,10 @@ public:
     }
     virtual ~grEarthPellet();
     virtual void update(float deltaFrame);
-    virtual void updatePos();
+    virtual void updatePos(float deltaFrame);
     virtual void updateState(float deltaFrame);
-    virtual void updateMotion();
-    virtual void updateCallBack();
+    virtual void updateMotion(float deltaFrame);
+    virtual void updateCallBack(float deltaFrame);
     virtual void changeColor();
     virtual void setPelletData(stEarthPelletData* pelletData);
 
@@ -374,8 +374,8 @@ public:
     virtual void onDamage(int index, soDamage* damage, soDamageAttackerInfo* attackerInfo);
     virtual void updateYakumono(float deltaFrame);
     virtual void updateState(float deltaFrame);
-    virtual void updateMotion();
-    virtual void updateCallBack();
+    virtual void updateMotion(float deltaFrame);
+    virtual void updateCallBack(float deltaFrame);
     virtual void setHit();
     virtual void setMotion(u32 animId, bool loop, bool force, float* frameCount);
     virtual void setPelletData(stEarthPelletData* pelletData);

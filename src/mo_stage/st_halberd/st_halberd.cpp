@@ -396,8 +396,8 @@ void stHalberd::update(float deltaFrame) {
     }
     updateActive(deltaFrame);
     updateArm(deltaFrame);
-    updateArmPos();
-    updateHeroHero();
+    updateArmPos(deltaFrame);
+    updateHeroHero(deltaFrame);
 }
 
 // The story of the ship: state 0 starts it, 2 waits until the warning comes, 3 plays the fly-by and the first shots, 4
@@ -940,7 +940,7 @@ void stHalberd::updateArm(float deltaFrame) {
 }
 
 // Lays the bones, the joints and the hand of the arm along a curve from the shoulder (the matrix of the arm) to the hand.
-void stHalberd::updateArmPos() {
+void stHalberd::updateArmPos(float deltaFrame) {
     if (m_armOffset.m_x != 0.0f || m_armOffset.m_y != 0.0f || m_armOffset.m_z != 0.0f) {
         float len = m_armOffset.length();
         Vec3f dir(m_armOffset.m_x, m_armOffset.m_y, m_armOffset.m_z);
@@ -1028,7 +1028,7 @@ void stHalberd::updateArmPos() {
 }
 
 // While the cannon shoots the second kind of shot (12), the stage looks for the place on the floor where the shell lands.
-void stHalberd::updateHeroHero() {
+void stHalberd::updateHeroHero(float deltaFrame) {
     stHalberdData* data = static_cast<stHalberdData*>(m_stageData);
     if (data != NULL && m_shotKind == 0xC) {
         Vec3f from(0.0f, 500.0f, 0.0f);

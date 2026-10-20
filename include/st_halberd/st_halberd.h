@@ -172,8 +172,8 @@ public:
     virtual void createObjArmHand(int index);
     virtual void updateActive(float deltaFrame);
     virtual void updateArm(float deltaFrame);
-    virtual void updateArmPos();
-    virtual void updateHeroHero();
+    virtual void updateArmPos(float deltaFrame);
+    virtual void updateHeroHero(float deltaFrame);
     virtual bool isEventEnd(int param1, int* eventState, int* eventDecision);
     virtual GXColor getFinalTechniqColor();
 

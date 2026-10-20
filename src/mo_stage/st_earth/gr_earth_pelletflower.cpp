@@ -79,8 +79,8 @@ void grEarthPelletFlower::update(float deltaFrame) {
     if (m_isUpdate) {
         updateYakumono(deltaFrame);
         updateState(deltaFrame);
-        updateMotion();
-        updateCallBack();
+        updateMotion(deltaFrame);
+        updateCallBack(deltaFrame);
         updateG3dProcCalcWorld();
         m_hasUpdatedG3dCalcWorld = false;
         if (m_pelletData != NULL) {
@@ -174,7 +174,7 @@ void grEarthPelletFlower::updateState(float deltaFrame) {
 
 // The animations of the flower: when the closing one (2) is over, the pellet is made again; any other animation is followed by
 // the idle one and the hit spheres are on.
-void grEarthPelletFlower::updateMotion() {
+void grEarthPelletFlower::updateMotion(float deltaFrame) {
     switch (m_motion) {
     case 2:
         if (m_frameCount <= getMotionFrame(0)) {
@@ -197,7 +197,7 @@ void grEarthPelletFlower::updateMotion() {
     }
 }
 
-void grEarthPelletFlower::updateCallBack() {
+void grEarthPelletFlower::updateCallBack(float deltaFrame) {
     grCalcWorldCallBack* calcWorldCallBack = &m_calcWorldCallBack;
     if (calcWorldCallBack != NULL) {
         nw4r::g3d::ScnMdl* scnMdl = m_sceneModels[0];

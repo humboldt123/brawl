@@ -496,8 +496,8 @@ void stDonkey::createObjHashigo1(int index) {
 
 void stDonkey::update(float deltaFrame) {
     updateLimit();
-    updateAI();
-    updateScore();
+    updateAI(deltaFrame);
+    updateScore(deltaFrame);
     updateJack(deltaFrame);
 }
 
@@ -519,7 +519,7 @@ void stDonkey::updateLimit() {
 
 // Tells the AI where the danger is: the area below Donkey Kong while he stands at his throwing position and the area around
 // the lift end.
-void stDonkey::updateAI() {
+void stDonkey::updateAI(float deltaFrame) {
     Vec2f zoneMin;
     Vec2f zoneMax;
     if (m_stateKong == 3) {
@@ -540,7 +540,7 @@ void stDonkey::updateAI() {
 }
 
 // Every item that was taken (state 4) is worth 800 points; the score stops at 999999 and carries the high score.
-void stDonkey::updateScore() {
+void stDonkey::updateScore(float deltaFrame) {
     if (m_stateItem[0] == 4) {
         m_stateItem[0] = 5;
         m_score += 800;
