@@ -6,6 +6,15 @@
 #include <ft/ft_class_info_impl.h>
 #include <ft/toonlink/ft_toonlink.h>
 #include <ft/toonlink/ft_toonlink_extend_param_accesser.h>
+#include <ft/toonlink/ft_toonlink_status_final.h>
+#include <ft/ft_kinetic_energy.h>
+#include <ft/builder/ft_builder_animcmd.h>
+#include <wn/toonlink/wn_toon_link_hook_shot.h>
+#include <wn/wn_simple.h>
+#include <ft/ft_owner.h>
+#include <ft/ft_util.h>
+#include <ft/ft_resource_id_accesser_impl.h>
+#include <so/article/so_generate_article_manage_module.h>
 
 #define FT_BC ftToonLinkBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
@@ -36,7 +45,7 @@ ftToonLink::ftToonLink(s32 entryId,
                                          instHeap,
                                          nwModelInstHeap,
                                          nwMotionInstHeap),
-    unk1A384(0),
+    m_shieldRaised(0),
     m_data(g_ftCommonDataAccesser.getData(Fighter_ToonLink)) {
     // Register the status processes in action order; entries without a process stay empty.
     soStatusUniqProcess* processes[10] = {0};
@@ -54,6 +63,423 @@ ftToonLink::ftToonLink(s32 entryId,
     // HYPOTHESIS: the common data record holds the fighter's shield shape group at +0x98 (the shield).
     m_moduleAccesser->getCollisionShieldModule().add(reinterpret_cast<soCollisionShieldGroupData*>(reinterpret_cast<u8*>(m_data) + 0x98), 1);
     m_moduleAccesser->getCollisionShieldModule().setTargetProperty(1, 1);
+}
+
+// The node whose position is stored when Toon Link enters the stage (the work floats 0x11000013/0x11000014 hold it).
+// HYPOTHESIS: 300 is the abstract id of that node, 0x1E3 the motion value the node is read for.
+// MATCH-ONLY: the module pointers stay loaded from one enumeration pointer register in the order they are declared.
+#pragma push
+#pragma opt_propagation off
+void ftToonLink::onActivate() {
+    const soModuleEnumeration* modules = m_moduleAccesser->m_enumerationStart;
+    soWorkManageModule* work = modules->m_workManageModule;
+    soModelModule* model = modules->m_modelModule;
+    soMotionModule* motion = modules->m_motionModule;
+    int node = model->getCorrectNodeId(300);
+    Vec3f stored;
+    stored = motion->calcNode(0x1E3, node);
+    work->setFloat(stored.m_x, 0x11000013);
+    work->setFloat(stored.m_y, 0x11000014);
+    m_moduleAccesser->getWorkManageModule().offFlag(0x1200003D);
+}
+#pragma pop
+
+void ftToonLink::onStart(int startKind) {
+    Fighter::onStart(startKind);
+    m_moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x11000016);
+    m_shieldRaised = 0;
+}
+
+void ftToonLink::processUpdate() {
+    Fighter::processUpdate();
+    m_moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x11000016);
+}
+
+// The Hylian Shield (shield group 1) is raised while the work flag 0x12000041 is set and no item is held, and lowered again
+// when the flag goes away or an item is picked up.
+void ftToonLink::processFixPosition() {
+    soModuleAccesser* acc = m_moduleAccesser;
+    Fighter::processFixPosition();
+    if (m_shieldRaised == 0) {
+        if (acc->getWorkManageModule().isFlag(0x12000041) == true) {
+            if (acc->getItemManageModule().isHaveItem(0) == false) {
+                if (acc->getWorkManageModule().isFlag(0x12000035) == false) {
+                    acc->getCollisionShieldModule().setStatus(0, 1, 1);
+                }
+                m_shieldRaised = 1;
+            }
+        }
+    } else if (acc->getWorkManageModule().isFlag(0x12000041) == false || acc->getItemManageModule().isHaveItem(0) == true) {
+        acc->getCollisionShieldModule().setStatus(0, 0, 1);
+        m_shieldRaised = 0;
+    }
+}
+
+// HYPOTHESIS: while flag 0x12000035 is set the shield follows the hit collision: it is switched off when no hit group is
+// active and on again otherwise.
+void ftToonLink::notifyEventChangeCollisionHit(int index, soModuleAccesser* moduleAccesser) {
+    int total = moduleAccesser->getCollisionHitModule().getTotalStatus(0);
+    Fighter::notifyEventChangeCollisionHit(index, moduleAccesser);
+    if (m_shieldRaised == 1) {
+        if (moduleAccesser->getWorkManageModule().isFlag(0x12000035) == true) {
+            if (total == 0) {
+                moduleAccesser->getCollisionShieldModule().setStatus(0, 0, 1);
+            } else {
+                moduleAccesser->getCollisionShieldModule().setStatus(0, 1, 1);
+            }
+        }
+    }
+}
+
+// A reflector (the shield group of the hit fighter) was hit: the shield is switched on or off with it.
+void ftToonLink::onHitReflector(soModuleAccesser* moduleAccesser, bool hit) {
+    if (m_shieldRaised == 1) {
+        if (hit == true) {
+            moduleAccesser->getCollisionShieldModule().setStatus(0, 0, 1);
+        } else {
+            moduleAccesser->getCollisionShieldModule().setStatus(0, 1, 1);
+        }
+    }
+}
+
+// HYPOTHESIS: the link events other objects send to Link, as far as this fighter reads them (event kinds below 0x65 are
+// the engine's, the 0x83x ones are sent by articles with the kinds seen below).
+struct ftToonLinkLinkEventView {
+    int m_eventKind;
+    bool m_handled;
+    int m_node;  // 0x8
+    int m_param; // 0xC
+    u8 unk10[0xC];
+    u8 unk1C;
+};
+
+// MATCH-ONLY: the nested dispatch keeps the event fields in their own registers.
+#pragma push
+#pragma opt_propagation off
+void ftToonLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) {
+    ftToonLinkLinkEventView* event = reinterpret_cast<ftToonLinkLinkEventView*>(eventInfo);
+    int eventKind = event->m_eventKind;
+    if (eventKind >= 0x65) {
+        switch (stageObj->soGetSubKind()) {
+        case 3:
+            if (eventKind == 0x838) {
+                switch (m_moduleAccesser->getStatusModule().getStatusKind()) {
+                case 0:
+                case 1:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 10:
+                case 0xB:
+                case 0xC:
+                case 0xD:
+                case 0xE:
+                case 0xF:
+                case 0x11:
+                case 0x12:
+                case 0x15:
+                case 0x16:
+                case 0x17:
+                case 0x18:
+                    m_moduleAccesser->getStatusModule().changeStatusRequest(0x119, m_moduleAccesser);
+                    event->m_handled = true;
+                    break;
+                }
+            }
+            return;
+        case 0x6E:
+            switch (eventKind) {
+            case 0x839:
+                m_moduleAccesser->getStatusModule().changeStatusRequest(0x39, m_moduleAccesser);
+                return;
+            case 0x83A:
+                break;
+            case 0x83B: {
+                int* value = reinterpret_cast<int*>(soValueAccesser::getConstantIndefinite(moduleAccesser, 0xA80E, 0));
+                moduleAccesser->getWorkManageModule().setInt(*value, 0x20000001);
+                m_moduleAccesser->getStatusModule().changeStatusRequest(0x81, m_moduleAccesser);
+                if (moduleAccesser->getGenerateArticleManageModule().isExist(3) == true) {
+                    moduleAccesser->getLinkModule().removeModelConstraint(false);
+                    soLinkModule* link = &moduleAccesser->getLinkModule();
+                    int node = moduleAccesser->getModelModule().getCorrectNodeId(0x12E);
+                    link->setModelConstraintPosOrt(3, node, event->m_node, 5, false);
+                }
+                return;
+            }
+            case 0x83C:
+                if (moduleAccesser->getGroundModule().isStCliff(0)) {
+                    moduleAccesser->getStatusModule().changeStatusRequest(0x75, moduleAccesser);
+                } else {
+                    moduleAccesser->getStatusModule().changeStatusRequest(0x7B, moduleAccesser);
+                }
+                return;
+            case 0x83E:
+                moduleAccesser->getStatusModule().changeStatusRequest(0x83, moduleAccesser);
+                return;
+            }
+            break;
+        }
+    } else {
+        switch (eventKind) {
+        case 0x3C:
+            if (stageObj->soGetKind() == 2) {
+                switch (stageObj->soGetSubKind()) {
+                case 3:
+                    m_moduleAccesser->getWorkManageModule().offFlag(0x1200003D);
+                    break;
+                case 0x6E:
+                    m_moduleAccesser->getModelModule().setVirtualNodeUpdate(2, true);
+                    break;
+                }
+            }
+            break;
+        case 8: {
+            int status = moduleAccesser->getStatusModule().getStatusKind();
+            if (event->m_param == 0xED && status == 0x116) {
+                moduleAccesser->getStatusModule().changeStatusRequest(0x11A, moduleAccesser);
+                event->m_handled = true;
+                event->unk1C = 0;
+                return;
+            }
+            break;
+        }
+        }
+    }
+    Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4);
+}
+#pragma pop
+
+// HYPOTHESIS: visibility groups 1 and 2 are the sword and the shield on Toon Link's back (the two models are shown while an item is held
+// by the other hand); the shield group goes back to the default state when the status changes.
+void ftToonLink::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) {
+    Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
+    switch (statusKind) {
+    case 0:
+    case 0x12:
+        break;
+    case 0x33: {
+        soWorkManageModule* work = &moduleAccesser->getWorkManageModule();
+        work->offFlag(0x1200003E);
+        work->offFlag(0x12000040);
+        work->setInt(0, 0x10000040);
+        break;
+    }
+    }
+    soItemManageModule* items = &moduleAccesser->getItemManageModule();
+    soVisibilityModule* visibility = &moduleAccesser->getVisibilityModule();
+    if (items->isHaveItem(0) == true) {
+        if (items->getHaveItemSize(0) == 1) {
+            visibility->setStatusDefault(1, 1, true);
+        }
+        visibility->setStatusDefault(2, 1, true);
+    } else {
+        visibility->setStatusDefault(1, 0, true);
+        visibility->setStatusDefault(2, 0, true);
+    }
+    moduleAccesser->getWorkManageModule().offFlag(0x12000041);
+}
+
+// HYPOTHESIS: while the final smash combo runs (status 0x11B) a hit on a fighter checks whether it is over; in the status
+// 0x33 (the shield stance) a counter with the work value 0x66 makes the stance end early: the animation is cut to the
+// frame the parameter allows and the work variables are reset.
+void ftToonLink::notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
+    switch (moduleAccesser->getStatusModule().getStatusKind()) {
+    case 0x33:
+        switch (moduleAccesser->getWorkManageModule().getInt(0x20000000)) {
+        case 0x66: {
+            soWorkManageModule* work = &moduleAccesser->getWorkManageModule();
+            soMotionModule* motion = &moduleAccesser->getMotionModule();
+            work->onFlag(0x1200003E);
+            work->offFlag(0x1200003F);
+            work->incInt(0x10000040);
+            dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1)).clearSpeed();
+            float limit = motion->getEndFrame(0x66);
+            float cut = soValueAccesser::getConstantFloat(moduleAccesser, 0xFB0, 0);
+            limit -= cut;
+            if (motion->getFrame() > limit) {
+                motion->setFrame(limit);
+            }
+            work->setFloat(cut, 0x11000015);
+            break;
+        }
+        }
+        break;
+    case 0x11B:
+        ftToonLinkStatusUniqProcessFinalCombo::checkFinish(moduleAccesser);
+        break;
+    }
+}
+
+// HYPOTHESIS: hits on the shield group 1 (the Hylian Shield) remember the strongest power and the direction of the hit
+// in the work floats 0x11000016/0x11000017, the shield check below applies them.
+void ftToonLink::notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
+    if (groupIndex == 1) {
+        moduleAccesser->getEffectModule().setShieldEffect(0x20);
+        u32 collisionIndex = collisionLog->m_collsionIndex;
+        if (power > m_moduleAccesser->getWorkManageModule().getFloat(0x11000016)) {
+            soCollisionAttackData* attackData = attackModule->getData(collisionIndex, collisionLog->m_isAbsolute);
+            m_moduleAccesser->getWorkManageModule().setFloat(power, 0x11000016);
+            soDamageModule* damage = &m_moduleAccesser->getDamageModule();
+            soWorkManageModule* work = &m_moduleAccesser->getWorkManageModule();
+            float lr = damage->getDamageLr(posX, posY, attackModule, attackData, collisionIndex, collisionLog->m_isAbsolute);
+            work->setFloat(lr, 0x11000017);
+        }
+        if (power > 0.0f) {
+            moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0x220), false, false, 0);
+        }
+    }
+    Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
+}
+
+bool ftToonLink::notifyEventCollisionShieldCheck() {
+    float power = m_moduleAccesser->getWorkManageModule().getFloat(0x11000016);
+    if (power > 0.0f) {
+        m_moduleAccesser->getStopModule().setHitStop(static_cast<int>(power), 0);
+        soModuleAccesser* acc = m_moduleAccesser;
+        ftUtil::setShieldSetoffSpeed(acc, power, acc->getWorkManageModule().getFloat(0x11000017));
+        return false;
+    }
+    return Fighter::notifyEventCollisionShieldCheck();
+}
+
+// The search of the final smash (status 0x116) is the only one Toon Link registers.
+void ftToonLink::notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
+    if (moduleAccesser->getStatusModule().getStatusKind() == 0x116) {
+        ftToonLinkStatusUniqProcessFinal::notifyEventCollisionSearch(collisionLog, moduleAccesser);
+    }
+}
+
+bool ftToonLink::notifyEventCollisionSearchCheck() {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    bool result = false;
+    if (moduleAccesser->getStatusModule().getStatusKind() == 0x116) {
+        result = ftToonLinkStatusUniqProcessFinal::notifyEventCollisionSearchCheck(moduleAccesser);
+    }
+    return result;
+}
+
+// The members of the boomerang article that the fighter calls (the article itself is in wn_link_boomerang.cpp, whose header needs
+// the article builder macros).
+class wnToonLinkBoomerang {
+public:
+    void activate(int founderTaskId, int resourceId, int team);
+    void shoot(float lr, float angle, u32 kind);
+};
+
+// The boomerang starts with the team of the fighter and the model resource.
+bool ftToonLink::activeArticle(wnToonLinkBoomerang* weapon, soModuleAccesser* acc) {
+    dynamic_cast<soResourceModuleImpl&>(acc->getResourceModule());
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
+    return true;
+}
+
+// The boomerang flies off in the direction of the stick (kind 1 = the held throw).
+bool ftToonLink::shootArticle(wnToonLinkBoomerang* weapon, soModuleAccesser* acc) {
+    weapon->shoot(acc->getPostureModule().getLr(), getBoomerangAngle(acc), acc->getWorkManageModule().isFlag(0x22000011));
+    acc->getWorkManageModule().onFlag(0x1200003D);
+    return true;
+}
+
+// The throw angle: the stick direction held inside the allowed arc when the stick is pushed up or down far enough, mirrored for
+// the facing and wrapped to the positive range.
+float ftToonLink::getBoomerangAngle(soModuleAccesser* acc) {
+    soControllerModule* controller = acc->m_enumerationStart->m_controllerModule;
+    float stickYAbs;
+    float angle = 0.0f;
+    double stickY = __fabs(controller->getStickY());
+    stickYAbs = stickY;
+    if (stickYAbs > soValueAccesser::getConstantFloat(acc, 0xFAA, 0)) {
+        float limit = soValueAccesser::getConstantFloat(acc, 0xFAB, 0);
+        float dir = controller->getStickDir();
+        angle = dir;
+        if (dir > limit) {
+            angle = limit;
+        } else if (dir < -limit) {
+            angle = -limit;
+        }
+    }
+    if (-1.0f == acc->getPostureModule().getLr()) {
+        if (angle < 0.0f) {
+            angle = -3.14159274f - angle;
+        } else {
+            angle = 3.14159274f - angle;
+        }
+    }
+    if (angle < 0.0f) {
+        angle += 6.28318548f;
+    }
+    return angle;
+}
+
+// MATCH-ONLY: the native singleton getter of the transactor is out of line.
+#pragma dont_inline on
+template ftToonLinkTransactor* soSingletonHolder<ftToonLinkTransactor>::getInstance();
+#pragma dont_inline off
+
+// The arrow starts through the transactor with the effect resource of the fighter and its facing.
+bool ftToonLink::activeArticle1(wnToonLinkBowArrow* weapon, soModuleAccesser* acc) {
+    soResourceModule& resources = acc->getResourceModule();
+    float lr = acc->getPostureModule().getLr();
+    u32 etcResId = resources.getResourceIdAccesser()->getEtcResId();
+    return soSingletonHolder<ftToonLinkTransactor>::getInstance()->activeArticle2(weapon, acc, etcResId, lr);
+}
+
+// The hookshot starts at the hand node of the fighter with its team and facing; a link is made to the fighter so that the
+// hook follows the hand.
+bool ftToonLink::activeArticle2(wnToonLinkHookShot* weapon, soModuleAccesser* acc) {
+    int founderTaskId;
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    Vec3f position = acc->getModelModule().getNodeGlobalPosition(0x43, false);
+    float lr = acc->getPostureModule().getLr();
+    bool unk = false;
+    switch (acc->getStatusModule().getStatusKind()) {
+    case 0x34:
+    case 0x36:
+    case 0x38:
+        unk = true;
+        break;
+    }
+    soResourceModule& resources = acc->getResourceModule();
+    founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), lr, position, unk);
+    if (acc->getLinkModule().link(3, weapon->getTaskId()) == true) {
+        soLinkModule* link = &acc->getLinkModule();
+        int node = acc->getModelModule().getCorrectNodeId(300);
+        link->setModelConstraintPosOrt(3, node, 0x18, 0x11, false);
+    }
+    return true;
+}
+
+// HYPOTHESIS: the start of the arrow article pair (the two simple articles of the fighter, told apart by their article id): the
+// arrow data block of the fighter data (offsets 0xC0 and 0xC8) and the model resource of the fighter.
+struct ftToonLinkSimpleArticleData {
+    u8 unk0[0xC0];
+    const wnSimpleData* m_data0;
+    u8 unkC4[4];
+    const wnSimpleData* m_data1;
+};
+
+bool ftToonLink::activeArticle3(wnSimple* weapon, soModuleAccesser* acc) {
+    if (weapon->getArticleId() == 5) {
+        int founderTaskId;
+        soResourceModule& resources = acc->getResourceModule();
+        founderTaskId = acc->getStageObject().m_taskId;
+        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), reinterpret_cast<ftToonLinkSimpleArticleData*>(g_ftCommonDataAccesser.getData(Fighter_ToonLink))->m_data1, true, false, Vec3f(0.0f, 0.0f, 0.0f),
+                         0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 3, 0xFF, false);
+    } else {
+        int founderTaskId;
+        founderTaskId = acc->getStageObject().m_taskId;
+        soResourceModule& resources = acc->getResourceModule();
+        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), reinterpret_cast<ftToonLinkSimpleArticleData*>(g_ftCommonDataAccesser.getData(Fighter_ToonLink))->m_data0, true, false, Vec3f(0.0f, 0.0f, 0.0f),
+                         0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 2, 0, false);
+    }
+    return true;
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftToonLink is done

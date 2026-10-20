@@ -67,6 +67,9 @@ ftLink::ftLink(s32 entryId,
 
 // The node whose position is stored when Link enters the stage (the work floats 0x11000013/0x11000014 hold it).
 // HYPOTHESIS: 300 is the abstract id of that node, 0x1E3 the motion value the node is read for.
+// MATCH-ONLY: the module pointers stay loaded from one enumeration pointer register in the order they are declared.
+#pragma push
+#pragma opt_propagation off
 void ftLink::onActivate() {
     const soModuleEnumeration* modules = m_moduleAccesser->m_enumerationStart;
     soWorkManageModule* work = modules->m_workManageModule;
@@ -79,6 +82,7 @@ void ftLink::onActivate() {
     work->setFloat(stored.m_y, 0x11000014);
     m_moduleAccesser->getWorkManageModule().offFlag(0x1200003D);
 }
+#pragma pop
 
 void ftLink::onStart(int startKind) {
     Fighter::onStart(startKind);
@@ -149,6 +153,9 @@ struct ftLinkLinkEventView {
     u8 unk1C;
 };
 
+// MATCH-ONLY: the nested dispatch keeps the event fields in their own registers.
+#pragma push
+#pragma opt_propagation off
 void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) {
     ftLinkLinkEventView* event = reinterpret_cast<ftLinkLinkEventView*>(eventInfo);
     int eventKind = event->m_eventKind;
@@ -243,6 +250,7 @@ void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modul
     }
     Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4);
 }
+#pragma pop
 
 // HYPOTHESIS: visibility groups 1 and 2 are the sword and the shield on Link's back (the two models are shown while an item is held
 // by the other hand); the shield group goes back to the default state when the status changes.
