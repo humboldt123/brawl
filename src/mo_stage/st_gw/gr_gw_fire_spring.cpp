@@ -171,8 +171,9 @@ void grGWFireSpring::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
+            grNodeCallbackData* data;
             Vec3f* pos = m_posWork;
-            grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+            data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_pos.m_x = pos->m_x;
             data->m_pos.m_y = pos->m_y;
             data->m_pos.m_z = pos->m_z;

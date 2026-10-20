@@ -526,16 +526,17 @@ void grDonkeyScore::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
+            grNodeCallbackData* data;
             Vec3f* pos = m_posWork;
             if (pos != NULL) {
-                grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+                data = calcWorldCallBack->m_nodeCallbackDatas;
                 data->m_pos.m_x = pos->m_x;
                 data->m_pos.m_y = pos->m_y;
                 data->m_pos.m_z = pos->m_z;
             }
             Vec3f scale;
             donkeyVec3Scale(&scale, &m_scaleBase, 0.9f);
-            grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+            data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_scale.m_x = scale.m_x;
             data->m_scale.m_y = scale.m_y;
             data->m_scale.m_z = scale.m_z;

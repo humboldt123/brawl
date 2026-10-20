@@ -122,8 +122,8 @@ void grDonkeyItem::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
-            Vec3f* posWork = m_posWork;
             grNodeCallbackData* data;
+            Vec3f* posWork = m_posWork;
             if (posWork != NULL) {
                 data = calcWorldCallBack->m_nodeCallbackDatas;
                 data->m_pos.m_x = posWork->m_x;

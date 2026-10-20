@@ -262,9 +262,10 @@ void grEarthLeaf::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
+            grNodeCallbackData* data;
             Vec3f* offset = m_posOffsetWork;
             if (offset != NULL) {
-                grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+                data = calcWorldCallBack->m_nodeCallbackDatas;
                 data->m_offsetPos.m_x = offset->m_x;
                 data->m_offsetPos.m_y = offset->m_y;
                 data->m_offsetPos.m_z = offset->m_z;

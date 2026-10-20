@@ -94,8 +94,9 @@ void grNorfairShutter::updateCallBack(float deltaFrame) {
             }
             Vec3f* posWork = m_posWork;
             if (posWork != NULL) {
+                grNodeCallbackData* data;
                 Vec3f* pos = &posWork[*m_posIndex];
-                grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+                data = calcWorldCallBack->m_nodeCallbackDatas;
                 data->m_pos.m_x = pos->m_x;
                 data->m_pos.m_y = pos->m_y;
                 data->m_pos.m_z = pos->m_z;

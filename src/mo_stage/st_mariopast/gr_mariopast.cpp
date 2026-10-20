@@ -159,8 +159,9 @@ void grMarioPastBg::updateCallBack(float deltaFrame) {
                     scnMdl->EnableScnMdlCallbackTiming(1);
                     scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
                 }
+                grNodeCallbackData* data;
                 Vec3f* src = m_posGimmick;
-                grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+                data = calcWorldCallBack->m_nodeCallbackDatas;
                 data->m_pos.m_x = src->m_x;
                 data->m_pos.m_y = src->m_y;
                 data->m_pos.m_z = src->m_z;
@@ -186,8 +187,9 @@ void grMarioPastBg::updateCallBack(float deltaFrame) {
                     scnMdl->EnableScnMdlCallbackTiming(1);
                     scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
                 }
+                grNodeCallbackData* data;
                 Vec3f* src = m_posGimmick;
-                grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+                data = calcWorldCallBack->m_nodeCallbackDatas;
                 data->m_pos.m_x = src->m_x;
                 data->m_pos.m_y = src->m_y;
                 data->m_pos.m_z = src->m_z;

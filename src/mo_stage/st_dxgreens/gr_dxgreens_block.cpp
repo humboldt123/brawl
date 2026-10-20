@@ -129,9 +129,10 @@ void grDxGreensBlock::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
+            grNodeCallbackData* data;
             stDxGreensBlockData* blockData = m_blockData;
             if (blockData != NULL) {
-                grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+                data = calcWorldCallBack->m_nodeCallbackDatas;
                 data->m_pos.m_x = blockData->m_pos.m_x;
                 data->m_pos.m_y = blockData->m_pos.m_y;
                 data->m_pos.m_z = blockData->m_pos.m_z;

@@ -321,9 +321,10 @@ void grFamicomYuka::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
+            grNodeCallbackData* data;
             Vec3f* posWork = m_posWork;
             if (posWork != NULL) {
-                grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+                data = calcWorldCallBack->m_nodeCallbackDatas;
                 data->m_pos.m_x = posWork->m_x;
                 data->m_pos.m_y = posWork->m_y;
                 data->m_pos.m_z = posWork->m_z;

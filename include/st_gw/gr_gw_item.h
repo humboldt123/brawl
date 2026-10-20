@@ -62,15 +62,15 @@ static inline float gwLength(const Vec3f& v) {
 
 // MATCH-ONLY: the original scales vectors with paired singles (inline asm in the shared vector code).
 static inline void gwVec3Scale(register Vec3f* pOut, register const Vec3f* v, register float c) {
-    register float fr1, fr0;
+    register float fr0, fr2, fr1;
     // clang-format off
     asm {
         psq_l    fr1, Vec3f.m_x(v), 0, 0
         psq_l    fr0, Vec3f.m_z(v), 1, 0
         ps_muls0 fr1, fr1, c
-        ps_muls0 fr0, fr0, c
+        ps_muls0 fr2, fr0, c
         psq_st   fr1, Vec3f.m_x(pOut), 0, 0
-        psq_st   fr0, Vec3f.m_z(pOut), 1, 0
+        psq_st   fr2, Vec3f.m_z(pOut), 1, 0
     }
     // clang-format on
 }

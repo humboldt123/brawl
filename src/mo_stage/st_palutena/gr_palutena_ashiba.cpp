@@ -1,4 +1,5 @@
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
+#define YK_CLTARGET_4_FIRST // the clTarget constructor writes the second member first in this REL
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
 #define YK_DATA_INLINE_CTOR // the ykData / ykDataGroup constructors are inline in this REL
 #define SO_COLLISION_GROUP_ALIGNED // the hit object embeds soArrayVector<soCollisionGroup, 1> with 4-byte aligned elements

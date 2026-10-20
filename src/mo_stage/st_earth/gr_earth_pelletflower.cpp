@@ -208,9 +208,10 @@ void grEarthPelletFlower::updateCallBack() {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
+            grNodeCallbackData* data;
             stEarthPelletData* pellet = m_pelletData;
             if (pellet != NULL) {
-                grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+                data = calcWorldCallBack->m_nodeCallbackDatas;
                 data->m_pos.m_x = pellet->m_pos.m_x;
                 data->m_pos.m_y = pellet->m_pos.m_y;
                 data->m_pos.m_z = pellet->m_pos.m_z;

@@ -1,4 +1,5 @@
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
+#define YK_CLTARGET_4_FIRST // the clTarget constructor writes the second member first in this REL
 #define SO_COLLISION_GROUP_ALIGNED // the hit object embeds soArrayVector<soCollisionGroup, 1> with 4-byte aligned elements
 #include <ef/ef_id.h>
 #include <gr/gr_calc_world_callback.h>

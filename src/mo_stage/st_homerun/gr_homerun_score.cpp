@@ -110,9 +110,10 @@ void grHomerunScore::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
+            grNodeCallbackData* data;
             Vec3f* pos = m_posWork;
             if (pos != NULL) {
-                grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
+                data = calcWorldCallBack->m_nodeCallbackDatas;
                 calcWorldCallBack->m_nodeCallbackDatas[0].m_pos.m_x = pos->m_x;
                 data[0].m_pos.m_y = pos->m_y;
                 data[0].m_pos.m_z = pos->m_z;
