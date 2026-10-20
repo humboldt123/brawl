@@ -113,7 +113,7 @@ void soGroundShapeImpl::modify(float up, float down, float width) {
     m_rhombusWidth = width;
 }
 
-void soGroundShapeImpl::modify1(float up, float down, float width, int followNode) {
+void soGroundShapeImpl::modify(float up, float down, float width, int followNode) {
     m_rhombusUp = up;
     m_rhombusDown = down;
     m_rhombusWidth = width;
@@ -130,7 +130,7 @@ void soGroundShapeImpl::getRhombus(soModuleAccesser* moduleAccesser, float* up, 
     *width = v2;
 }
 
-void soGroundShapeImpl::getRhombus1(soModuleAccesser* moduleAccesser, float* up, float* down, float* width, int* followNode) {
+void soGroundShapeImpl::getRhombus(soModuleAccesser* moduleAccesser, float* up, float* down, float* width, int* followNode) {
     // MATCH-ONLY: load/store interleaving
     float v0 = m_rhombusUp;
     float v1 = m_rhombusDown;

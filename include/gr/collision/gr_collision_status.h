@@ -68,7 +68,12 @@ public:
     // 16
     int m_taskId;
     // 20
-    char _spacer2[65];
+    char _spacer2a[32];
+    // 52
+    Vec2f m_cliffPos;
+    char _spacer2b[24];
+    // 84
+    int m_cliffDir : 8;
     // 85
     char m_cliffTeam;
     // 86
@@ -184,6 +189,7 @@ public:
     bool checkCliffEntryOverlap();
     void drawDebug();
     void drawDebugCliff();
+    void setIgnoreLine(u32* lineId);
 };
 static_assert(sizeof(grCollStatus) == 636, "Class is wrong size!");
 

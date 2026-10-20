@@ -192,9 +192,9 @@ public:
     void detach();
     void getAttackPointBreak(bool* a, bool* b, bool* c, bool* d);
     void modify(float up, float down, float width);
-    void modify1(float up, float down, float width, int followNode);
+    void modify(float up, float down, float width, int followNode);
     void getRhombus(soModuleAccesser* moduleAccesser, float* up, float* down, float* width);
-    void getRhombus1(soModuleAccesser* moduleAccesser, float* up, float* down, float* width, int* followNode);
+    void getRhombus(soModuleAccesser* moduleAccesser, float* up, float* down, float* width, int* followNode);
     void setAttackPoint(bool a, bool b, bool c, bool d, bool flag);
     void getCorrectPos(Vec2f* out, float scale);
     void update(soModuleAccesser* moduleAccesser, int state);

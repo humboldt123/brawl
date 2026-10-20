@@ -9,6 +9,7 @@
 #include <gr/collision/gr_collision_status.h>
 #include <memory.h>
 #include <mt/mt_coll2d.h>
+#include <mt/mt_matrix.h>
 #include <so/collision/so_collision_attack_part.h>
 #include <so/ground/so_ground_shape_impl.h>
 #include <so/ground/so_ground_tracer_impl.h>
@@ -32,7 +33,7 @@ class soGroundModule : public soNull, public soNullable {
 
 public:
     virtual ~soGroundModule();
-    virtual void setup(void*, int taskId, bool);
+    virtual void setup(void*, int taskId, u8);
     virtual void clean();
     virtual void constructGrCollision(int, int, Heaps::HeapType, u8, u8, u8);
     virtual void activate(int taskId, Vec2f*);
@@ -195,7 +196,7 @@ public:
     soArray<soGroundShapeImpl>* m_groundShapeArray;
     grCollData* m_collData;
     grCollision* m_collision;
-    int m_52;
+    u8* m_matrixData; // HYPOTHESIS: Matrix[], allocated as raw bytes (no array cookie)
     bool m_56_0 : 1;
     bool : 1;
     bool : 1;
@@ -217,7 +218,7 @@ public:
     soModuleAccesser* m_moduleAccesser;
 
     virtual ~soGroundModuleImpl();
-    virtual void setup(void*, int taskId, bool);
+    virtual void setup(void*, int taskId, u8);
     virtual void clean();
     virtual void constructGrCollision(int, int, Heaps::HeapType, u8, u8, u8);
     virtual void activate(int taskId, Vec2f*);
