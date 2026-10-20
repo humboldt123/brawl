@@ -222,8 +222,7 @@ __dt__81soAnimCmdControlUnitBuilder<50soAnimCmdControlUnitBuildConfig<1,2,478,0,
 __dt__134soArraySelectHolder<1,45soArrayVector<25acCmdInterpreterStackData,10>,61soSingletonHolder<40soArrayNull<25acCmdInterpreterStackData>>>Fv = .text:0x000092FC; // type:function size:0x5C
 __dt__76soAnimCmdControlUnitBuilderUniq<41soAnimCmdControlUnitBuildConfigUniq<9,10>>Fv = .text:0x00009358; // type:function size:0x6C
 fn_91_93C4 = .text:0x000093C4; // type:function size:0x8C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,281,281,0,1,0,8>>Fi = .text:0x00009450; // type:function size:0x38
-postUpdateEnergy__21ftKineticMediatorImplFv = .text:0x00009488; // type:function size:0x4
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,281,281,0,1,0,8>>Fi = .text:0x00009450; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,281,281,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x0000948C; // type:function size:0xB0
 __dt__67ftAnimCmdModuleSubBuilder<38ftAnimCmdModuleSubBuildConfig<281,478>>Fv = .text:0x0000953C; // type:function size:0xD8
 __dt__45ftModuleAccesserBuilder<18ftMarioBuildConfig>Fv = .text:0x00009614; // type:function size:0x84

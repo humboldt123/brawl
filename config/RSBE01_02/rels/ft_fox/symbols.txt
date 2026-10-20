@@ -234,8 +234,7 @@ __ct__33soAnimCmdAddressPackArraySeparateFP31soArrayFixed<PC13acAnimCmdConv>P31s
 __ct__20soAnimCmdInterpreterFsP44soArrayVector<25acCmdInterpreterStackData,8>iifPCUc = .text:0x00009D98; // type:function size:0x190
 getInstance__51soSingletonHolder<30soArrayNull<PC13acAnimCmdConv>>Fv = .text:0x00009F28; // type:function size:0x70
 pushRange<PC13acAnimCmdConv>__14soArrayUtilityFP26soArray<PC13acAnimCmdConv>PCPC13acAnimCmdConvl_v = .text:0x00009F98; // type:function size:0x7C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,288,288,0,1,0,8>>Fi = .text:0x0000A014; // type:function size:0x38
-postUpdateEnergy__21ftKineticMediatorImplFv = .text:0x0000A04C; // type:function size:0x4
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,288,288,0,1,0,8>>Fi = .text:0x0000A014; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,288,288,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x0000A050; // type:function size:0xB0
 onStart__5ftFoxFi = .text:0x0000A100; // type:function size:0x68
 processUpdate__5ftFoxFv = .text:0x0000A168; // type:function size:0x3C

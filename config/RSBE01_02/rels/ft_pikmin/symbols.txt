@@ -261,8 +261,7 @@ __ct__33soAnimCmdAddressPackArraySeparateFP31soArrayFixed<PC13acAnimCmdConv>P31s
 __ct__20soAnimCmdInterpreterFsP44soArrayVector<25acCmdInterpreterStackData,8>iifPCUc = .text:0x00009CA0; // type:function size:0x190
 getInstance__51soSingletonHolder<30soArrayNull<PC13acAnimCmdConv>>Fv = .text:0x00009E30; // type:function size:0x70
 pushRange<PC13acAnimCmdConv>__14soArrayUtilityFP26soArray<PC13acAnimCmdConv>PCPC13acAnimCmdConvl_v = .text:0x00009EA0; // type:function size:0x7C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,284,284,0,1,0,8>>Fi = .text:0x00009F1C; // type:function size:0x38
-clearWorkAll__21soGeneralWorkAbstractFv = .text:0x00009F54; // type:function size:0x4 scope:weak
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,284,284,0,1,0,8>>Fi = .text:0x00009F1C; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,284,284,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x00009F58; // type:function size:0xB0
 onActivate__8ftPikminFv = .text:0x0000A008; // type:function size:0x7C
 onStart__8ftPikminFi = .text:0x0000A084; // type:function size:0x14C

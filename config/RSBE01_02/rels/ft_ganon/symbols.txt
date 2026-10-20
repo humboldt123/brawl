@@ -199,8 +199,7 @@ __ct__33soAnimCmdAddressPackArraySeparateFP31soArrayFixed<PC13acAnimCmdConv>P31s
 __ct__20soAnimCmdInterpreterFsP44soArrayVector<25acCmdInterpreterStackData,8>iifPCUc = .text:0x000082C4; // type:function size:0x190
 getInstance__51soSingletonHolder<30soArrayNull<PC13acAnimCmdConv>>Fv = .text:0x00008454; // type:function size:0x70
 pushRange<PC13acAnimCmdConv>__14soArrayUtilityFP26soArray<PC13acAnimCmdConv>PCPC13acAnimCmdConvl_v = .text:0x000084C4; // type:function size:0x7C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,290,290,0,1,0,8>>Fi = .text:0x00008540; // type:function size:0x38
-clearWorkAll__21soGeneralWorkAbstractFv = .text:0x00008578; // type:function size:0x4 scope:weak
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,290,290,0,1,0,8>>Fi = .text:0x00008540; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,290,290,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x0000857C; // type:function size:0xB0
 fn_109_862C = .text:0x0000862C; // type:function size:0x30
 notifyEventCollisionAttackFighter__7ftGanonFP14soCollisionLogP16soModuleAccesser = .text:0x0000865C; // type:function size:0x5C

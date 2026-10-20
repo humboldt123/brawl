@@ -222,8 +222,7 @@ __dt__82soAnimCmdControlUnitBuilder<51soAnimCmdControlUnitBuildConfig<8,32,484,0
 __dt__134soArraySelectHolder<1,45soArrayVector<25acCmdInterpreterStackData,10>,61soSingletonHolder<40soArrayNull<25acCmdInterpreterStackData>>>Fv = .text:0x0000905C; // type:function size:0x5C
 __dt__76soAnimCmdControlUnitBuilderUniq<41soAnimCmdControlUnitBuildConfigUniq<9,10>>Fv = .text:0x000090B8; // type:function size:0x6C
 __dt__82soAnimCmdControlUnitBuilder<51soAnimCmdControlUnitBuildConfig<10,16,41,0,0,1,0,8>>Fv = .text:0x00009124; // type:function size:0x8C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,284,284,0,1,0,8>>Fi = .text:0x000091B0; // type:function size:0x38
-clearWorkAll__21soGeneralWorkAbstractFv = .text:0x000091E8; // type:function size:0x4 scope:weak
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,284,284,0,1,0,8>>Fi = .text:0x000091B0; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,284,284,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x000091EC; // type:function size:0xB0
 __dt__67ftAnimCmdModuleSubBuilder<38ftAnimCmdModuleSubBuildConfig<284,484>>Fv = .text:0x0000929C; // type:function size:0xD8
 __dt__48ftModuleAccesserBuilder<21ftToonLinkBuildConfig>Fv = .text:0x00009374; // type:function size:0x84

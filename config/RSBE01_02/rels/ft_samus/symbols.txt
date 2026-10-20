@@ -222,8 +222,7 @@ __ct__33soAnimCmdAddressPackArraySeparateFP31soArrayFixed<PC13acAnimCmdConv>P31s
 __ct__20soAnimCmdInterpreterFsP44soArrayVector<25acCmdInterpreterStackData,8>iifPCUc = .text:0x00008C8C; // type:function size:0x190
 getInstance__51soSingletonHolder<30soArrayNull<PC13acAnimCmdConv>>Fv = .text:0x00008E1C; // type:function size:0x70
 pushRange<PC13acAnimCmdConv>__14soArrayUtilityFP26soArray<PC13acAnimCmdConv>PCPC13acAnimCmdConvl_v = .text:0x00008E8C; // type:function size:0x7C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,301,301,0,1,0,8>>Fi = .text:0x00008F08; // type:function size:0x38
-postUpdateEnergy__21ftKineticMediatorImplFv = .text:0x00008F40; // type:function size:0x4
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,301,301,0,1,0,8>>Fi = .text:0x00008F08; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,301,301,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x00008F44; // type:function size:0xB0
 onStart__7ftSamusFi = .text:0x00008FF4; // type:function size:0x140
 onDeadEnd__7ftSamusFv = .text:0x00009134; // type:function size:0xF0

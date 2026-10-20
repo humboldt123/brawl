@@ -211,8 +211,7 @@ __ct__33soAnimCmdAddressPackArraySeparateFP31soArrayFixed<PC13acAnimCmdConv>P31s
 __ct__20soAnimCmdInterpreterFsP44soArrayVector<25acCmdInterpreterStackData,8>iifPCUc = .text:0x000086B8; // type:function size:0x190
 getInstance__51soSingletonHolder<30soArrayNull<PC13acAnimCmdConv>>Fv = .text:0x00008848; // type:function size:0x70
 pushRange<PC13acAnimCmdConv>__14soArrayUtilityFP26soArray<PC13acAnimCmdConv>PCPC13acAnimCmdConvl_v = .text:0x000088B8; // type:function size:0x7C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,290,290,0,1,0,8>>Fi = .text:0x00008934; // type:function size:0x38
-postUpdateEnergy__21ftKineticMediatorImplFv = .text:0x0000896C; // type:function size:0x4
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,290,290,0,1,0,8>>Fi = .text:0x00008934; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,290,290,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x00008970; // type:function size:0xB0
 processUpdate__9ftCaptainFv = .text:0x00008A20; // type:function size:0x78
 notifyEventCollisionAttack__9ftCaptainFfP14soCollisionLogP16soModuleAccesser = .text:0x00008A98; // type:function size:0xBC

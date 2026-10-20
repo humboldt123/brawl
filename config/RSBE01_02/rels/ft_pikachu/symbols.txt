@@ -228,8 +228,7 @@ __ct__33soAnimCmdAddressPackArraySeparateFP31soArrayFixed<PC13acAnimCmdConv>P31s
 __ct__20soAnimCmdInterpreterFsP44soArrayVector<25acCmdInterpreterStackData,8>iifPCUc = .text:0x000090E8; // type:function size:0x190
 getInstance__51soSingletonHolder<30soArrayNull<PC13acAnimCmdConv>>Fv = .text:0x00009278; // type:function size:0x70
 pushRange<PC13acAnimCmdConv>__14soArrayUtilityFP26soArray<PC13acAnimCmdConv>PCPC13acAnimCmdConvl_v = .text:0x000092E8; // type:function size:0x7C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,288,288,0,1,0,8>>Fi = .text:0x00009364; // type:function size:0x38
-clearWorkAll__21soGeneralWorkAbstractFv = .text:0x0000939C; // type:function size:0x4 scope:weak
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,288,288,0,1,0,8>>Fi = .text:0x00009364; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,288,288,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x000093A0; // type:function size:0xB0
 fn_98_9450 = .text:0x00009450; // type:function size:0x28
 fn_98_9478 = .text:0x00009478; // type:function size:0x64

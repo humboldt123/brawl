@@ -231,8 +231,7 @@ notifyEventChangeSituation__7ftSonicF13SituationKind13SituationKindP16soModuleAc
 analyzeSeal__7ftSonicFPv = .text:0x00009A60; // type:function size:0x64
 notifyEventOnDamage__7ftSonicFP8soDamagebP16soModuleAccesser = .text:0x00009AC4; // type:function size:0x64
 onSetMetal__7ftSonicFb = .text:0x00009B28; // type:function size:0x6C
-notifyEventChangeMotion__7ftSonicFiiPvP16soModuleAccesser = .text:0x00009B94; // type:function size:0x28
-clearWorkAll__21soGeneralWorkAbstractFv = .text:0x00009BBC; // type:function size:0x4 scope:weak
+notifyEventChangeMotion__7ftSonicFiiPvP16soModuleAccesser = .text:0x00009B94; // type:function size:0x2C
 fn_123_9BC0 = .text:0x00009BC0; // type:function size:0x4
 getTerritoryParam__25soModuleAccesserBuildDataCFv = .text:0x00009BC4; // type:function size:0x8 scope:weak
 setup__26ftSonicExtendParamAccesserFPCUc = .text:0x00009BCC; // type:function size:0x2BC

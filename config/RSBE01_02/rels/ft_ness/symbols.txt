@@ -266,8 +266,7 @@ __ct__33soAnimCmdAddressPackArraySeparateFP31soArrayFixed<PC13acAnimCmdConv>P31s
 __ct__20soAnimCmdInterpreterFsP44soArrayVector<25acCmdInterpreterStackData,8>iifPCUc = .text:0x0000B2D8; // type:function size:0x190
 getInstance__51soSingletonHolder<30soArrayNull<PC13acAnimCmdConv>>Fv = .text:0x0000B468; // type:function size:0x70
 pushRange<PC13acAnimCmdConv>__14soArrayUtilityFP26soArray<PC13acAnimCmdConv>PCPC13acAnimCmdConvl_v = .text:0x0000B4D8; // type:function size:0x7C
-getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,289,289,0,1,0,8>>Fi = .text:0x0000B554; // type:function size:0x38
-clearWorkAll__21soGeneralWorkAbstractFv = .text:0x0000B58C; // type:function size:0x4 scope:weak
+getEntryList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,289,289,0,1,0,8>>Fi = .text:0x0000B554; // type:function size:0x3C
 setupDisguiseList__99soAnimCmdControlUnitBuilderDisguise<60soAnimCmdControlUnitBuildConfigDisguise<0,1,289,289,0,1,0,8>>FiP26soAnimCmdDisguiseListEntry = .text:0x0000B590; // type:function size:0xB0
 getExtendParam__6ftNessFv = .text:0x0000B640; // type:function size:0x10
 processUpdate__6ftNessFv = .text:0x0000B650; // type:function size:0x3C
