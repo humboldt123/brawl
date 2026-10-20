@@ -95,31 +95,6 @@ void grEarthPellet::updateState(float deltaFrame) {
             m_timer = 0.0f;
         }
         switch (m_state) {
-        case 0x13:
-            if (m_timer == 0.0f) {
-                stEarthPelletData* pellet = m_pelletData;
-                if (pellet->unk0B == 1) {
-                    m_timer = data->unk2C;
-                    pellet->unk0B = 2;
-                    m_pelletData->unk08 = 2;
-                } else if (pellet->unk0B == 0) {
-                    m_timer = data->unk28;
-                    pellet->unk0B = 1;
-                    m_pelletData->unk08 = 2;
-                }
-            }
-            if (m_pelletData->unk08 == 4) {
-                m_state = 0x19;
-            }
-            break;
-        case 1:
-            if (m_pelletData->m_state == 2) {
-                changeColor();
-                setVisibility(1);
-                m_timer = data->unk24;
-                m_state = 0x13;
-            }
-            break;
         case 0:
             setVisibility(0);
             m_state = 1;
@@ -190,6 +165,31 @@ void grEarthPellet::updateState(float deltaFrame) {
                 }
             }
             break;
+        case 1:
+            if (m_pelletData->m_state == 2) {
+                changeColor();
+                setVisibility(1);
+                m_timer = data->unk24;
+                m_state = 0x13;
+            }
+            break;
+        case 0x13:
+            if (m_timer == 0.0f) {
+                stEarthPelletData* pellet = m_pelletData;
+                if (pellet->unk0B == 1) {
+                    m_timer = data->unk2C;
+                    pellet->unk0B = 2;
+                    m_pelletData->unk08 = 2;
+                } else if (pellet->unk0B == 0) {
+                    m_timer = data->unk28;
+                    pellet->unk0B = 1;
+                    m_pelletData->unk08 = 2;
+                }
+            }
+            if (m_pelletData->unk08 == 4) {
+                m_state = 0x19;
+            }
+            break;
         }
         }
     }
@@ -202,14 +202,14 @@ void grEarthPellet::updateMotion() {
         if (modelAnim != NULL && m_sceneModels[0]->m_resMdl.IsValid()) {
             float frame;
             switch (m_pelletData->unk0B) {
-            case 2:
-                frame = 2.0f;
-                break;
             case 0:
                 frame = 0.0f;
                 break;
             case 1:
                 frame = 1.0f;
+                break;
+            case 2:
+                frame = 2.0f;
                 break;
             case 3:
                 frame = 3.0f;

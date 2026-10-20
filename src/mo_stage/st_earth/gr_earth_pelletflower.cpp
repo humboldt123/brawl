@@ -109,13 +109,29 @@ void grEarthPelletFlower::updateState(float deltaFrame) {
             m_timer = 0.0f;
         }
         switch (m_state) {
+        case 0:
+            setMotion(6, false, true, NULL);
+            setVisibility(0);
+            disableHit(0, 0);
+            disableHit(1, 0);
+            m_pelletData->unk08 = 0;
+            m_state = 1;
+            break;
+        case 1:
+            if (m_pelletData->m_state == 2) {
+                setMotion(0, false, true, &m_frameCount);
+                setVisibility(1);
+                m_snd.setPos(&m_pelletData->m_pos);
+                m_snd.playSE(static_cast<SndID>(0x1CC5), 0, 0, -1);
+                u32 effect = g_ecMgr->setEffect(static_cast<EfID>(0x4E0003));
+                fn_8005FF8C(g_ecMgr, effect, 0x14);
+                g_ecMgr->setParent(effect, m_sceneModels[0], "TopN", 1);
+                m_state = 0x13;
+            }
+            break;
         case 0x13:
             switch (m_pelletData->unk08) {
-            case 3:
-                setMotion(4, false, true, &m_frameCount);
-                disableHit(0, 0);
-                disableHit(1, 0);
-                m_pelletData->unk08 = 0;
+            case 0:
                 break;
             case 1:
                 setMotion(1, false, true, &m_frameCount);
@@ -134,7 +150,11 @@ void grEarthPelletFlower::updateState(float deltaFrame) {
                 m_snd.playSE(static_cast<SndID>(0x1CC4), 0, 0, -1);
                 m_pelletData->unk08 = 0;
                 break;
-            case 0:
+            case 3:
+                setMotion(4, false, true, &m_frameCount);
+                disableHit(0, 0);
+                disableHit(1, 0);
+                m_pelletData->unk08 = 0;
                 break;
             default:
                 if (m_pelletData->unk08 < 5) {
@@ -147,26 +167,6 @@ void grEarthPelletFlower::updateState(float deltaFrame) {
                 }
                 break;
             }
-            break;
-        case 1:
-            if (m_pelletData->m_state == 2) {
-                setMotion(0, false, true, &m_frameCount);
-                setVisibility(1);
-                m_snd.setPos(&m_pelletData->m_pos);
-                m_snd.playSE(static_cast<SndID>(0x1CC5), 0, 0, -1);
-                u32 effect = g_ecMgr->setEffect(static_cast<EfID>(0x4E0003));
-                fn_8005FF8C(g_ecMgr, effect, 0x14);
-                g_ecMgr->setParent(effect, m_sceneModels[0], "TopN", 1);
-                m_state = 0x13;
-            }
-            break;
-        case 0:
-            setMotion(6, false, true, NULL);
-            setVisibility(0);
-            disableHit(0, 0);
-            disableHit(1, 0);
-            m_pelletData->unk08 = 0;
-            m_state = 1;
             break;
         }
     }

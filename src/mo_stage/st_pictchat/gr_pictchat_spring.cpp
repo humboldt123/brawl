@@ -43,6 +43,7 @@ grPictchatSpring::~grPictchatSpring() {
 }
 
 void grPictchatSpring::startup(gfArchive* archive, u32 unk1, gfSceneRoot::LayerType layerType) {
+    grYakumono::startup(archive, unk1, layerType);
 }
 
 void grPictchatSpring::processGameProc() {

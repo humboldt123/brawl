@@ -558,18 +558,18 @@ void grKartKart::updateAI(float deltaFrame) {
         if (m_aiTimer == 0.0f) {
             float chance = randf();
             switch (m_aiState) {
-            case 1:
-                if (0.3f <= chance) {
-                    m_aiState = 0;
-                } else {
-                    m_aiState = 2;
-                }
-                break;
             case 0:
                 if (0.5f <= chance) {
                     m_aiState = 2;
                 } else {
                     m_aiState = 1;
+                }
+                break;
+            case 1:
+                if (0.3f <= chance) {
+                    m_aiState = 0;
+                } else {
+                    m_aiState = 2;
                 }
                 break;
             case 2:
@@ -592,10 +592,6 @@ void grKartKart::updateAI(float deltaFrame) {
                 break;
             }
             switch (m_aiState) {
-            case 2:
-                m_aiSideDist = randf() * 200.0f + 50.0f;
-                m_aiSideRate = randf() * 0.3f + 0.1f;
-                break;
             case 0:
                 m_aiSideDist = randf() * 100.0f + 50.0f;
                 m_aiSideRate = randf() * 0.6f;
@@ -604,13 +600,17 @@ void grKartKart::updateAI(float deltaFrame) {
                 m_aiSideDist = randf() * 50.0f + 25.0f;
                 m_aiSideRate = randf() * 0.5f + 0.2f;
                 break;
-            case 4:
+            case 2:
                 m_aiSideDist = randf() * 200.0f + 50.0f;
-                m_aiSideRate = randf() * 0.1f + 0.1f;
+                m_aiSideRate = randf() * 0.3f + 0.1f;
                 break;
             case 3:
                 m_aiSideDist = randf() * 200.0f + 50.0f;
                 m_aiSideRate = randf() * 0.4f + 0.3f;
+                break;
+            case 4:
+                m_aiSideDist = randf() * 200.0f + 50.0f;
+                m_aiSideRate = randf() * 0.1f + 0.1f;
                 break;
             }
             m_aiTimer = param->unk2C;

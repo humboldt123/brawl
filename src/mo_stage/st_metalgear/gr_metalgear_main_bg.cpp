@@ -94,6 +94,12 @@ void grMetalgearMainBg::updateJoint(float deltaFrame) {
 // The roof breaks when the stage says so (state 0): the whole roof is replaced by the broken one and pieces fly away.
 void grMetalgearMainBg::updateBreak(float deltaFrame) {
     switch (m_state) {
+    case 0:
+        setMotion(0, false, true, &m_frameCount);
+        setNodeVisibility(true, 0, m_nodeYaneNormal, true, false);
+        setNodeVisibility(false, 0, m_nodeYaneCrash, true, false);
+        m_state = 1;
+        break;
     case 1:
         if (*m_stateWork == 0) {
             setMotion(0, false, true, &m_frameCount);
@@ -112,12 +118,6 @@ void grMetalgearMainBg::updateBreak(float deltaFrame) {
         } else {
             setMotionFrame(0.0f, 0);
         }
-        break;
-    case 0:
-        setMotion(0, false, true, &m_frameCount);
-        setNodeVisibility(true, 0, m_nodeYaneNormal, true, false);
-        setNodeVisibility(false, 0, m_nodeYaneCrash, true, false);
-        m_state = 1;
         break;
     case 2:
         if (getMotionFrame(0) >= m_frameCount) {

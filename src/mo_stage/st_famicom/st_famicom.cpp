@@ -482,14 +482,14 @@ void stFamicom::updateBall(float deltaFrame) {
                 }
                 if (index != 4) {
                     switch (index) {
-                    case 2:
-                        m_ballKind = 0xB;
-                        break;
                     case 0:
                         m_ballKind = 9;
                         break;
                     case 1:
                         m_ballKind = 10;
+                        break;
+                    case 2:
+                        m_ballKind = 0xB;
                         break;
                     case 3:
                         m_ballKind = 0xC;

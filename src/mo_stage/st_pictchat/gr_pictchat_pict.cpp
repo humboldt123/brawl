@@ -309,9 +309,6 @@ void grPictchatPict::setHit() {
     case 7:
         yakumono = new (Heaps::StageInstance) ykNoHitNormal<soCollisionAttackModuleBuildConfig<soCollision::Category_Gimmick, 6, 0, soCollisionAttackModuleImpl, 1, false, true> >(&info);
         break;
-    default:
-        yakumono = NULL;
-        break;
     case 0xC:
         yakumono = new (Heaps::StageInstance) ykNoHitNormal<soCollisionAttackModuleBuildConfig<soCollision::Category_Gimmick, 2, 0, soCollisionAttackModuleImpl, 1, false, true> >(&info);
         break;
@@ -326,6 +323,9 @@ void grPictchatPict::setHit() {
         break;
     case 0x1B:
         yakumono = new (Heaps::StageInstance) ykNoHitNormal<soCollisionAttackModuleBuildConfig<soCollision::Category_Gimmick, 4, 0, soCollisionAttackModuleImpl, 1, false, true> >(&info);
+        break;
+    default:
+        yakumono = NULL;
         break;
     }
     setYakumono(yakumono);

@@ -271,11 +271,11 @@ void grFamicomKani::requestMove() {
         return;
     }
     switch (m_level) {
-    case 2:
-        m_speed = data->unk30 * data->enemySpeedMulLevel2;
-        break;
     case 1:
         m_speed = data->unk30;
+        break;
+    case 2:
+        m_speed = data->unk30 * data->enemySpeedMulLevel2;
         break;
     case 3:
         m_speed = data->unk30 * data->enemySpeedMulLevel3;

@@ -49,6 +49,11 @@ void grMarioPastLift::updateMove(float deltaFrame) {
         return;
     }
     switch (m_state) {
+    case 0:
+        setVisibility(0);
+        setEnableCollisionStatus(false);
+        m_state = 1;
+        return;
     case 1:
         if (*m_ctrlId != m_id) {
             m_pos.m_x = m_posWork[0].m_x;
@@ -68,11 +73,6 @@ void grMarioPastLift::updateMove(float deltaFrame) {
         }
         m_state = 2;
         break;
-    case 0:
-        setVisibility(0);
-        setEnableCollisionStatus(false);
-        m_state = 1;
-        return;
     case 2:
         break;
     default:

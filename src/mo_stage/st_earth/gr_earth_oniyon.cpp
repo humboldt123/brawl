@@ -246,17 +246,6 @@ void grEarthOniyon::updateMove(float deltaFrame) {
                     m_itemTimer = 0.0f;
                 }
                 switch (m_itemStep) {
-                case 2:
-                    if (m_itemTimer <= 0.0f) {
-                        makeItem();
-                        m_itemTimer = randf() * 2.0f + 3.0f;
-                        if (m_itemKind == 2) {
-                            m_itemStep = 0xFF;
-                        } else {
-                            m_itemStep = m_itemStep + 1;
-                        }
-                    }
-                    break;
                 case 0:
                     m_itemStep = m_itemStep + 1;
                     m_itemTimer = randf() * 2.0f + 3.0f;
@@ -272,11 +261,11 @@ void grEarthOniyon::updateMove(float deltaFrame) {
                         }
                     }
                     break;
-                case 4:
+                case 2:
                     if (m_itemTimer <= 0.0f) {
                         makeItem();
                         m_itemTimer = randf() * 2.0f + 3.0f;
-                        if (m_itemKind == 4) {
+                        if (m_itemKind == 2) {
                             m_itemStep = 0xFF;
                         } else {
                             m_itemStep = m_itemStep + 1;
@@ -288,6 +277,17 @@ void grEarthOniyon::updateMove(float deltaFrame) {
                         makeItem();
                         m_itemTimer = randf() * 2.0f + 3.0f;
                         if (m_itemKind == 3) {
+                            m_itemStep = 0xFF;
+                        } else {
+                            m_itemStep = m_itemStep + 1;
+                        }
+                    }
+                    break;
+                case 4:
+                    if (m_itemTimer <= 0.0f) {
+                        makeItem();
+                        m_itemTimer = randf() * 2.0f + 3.0f;
+                        if (m_itemKind == 4) {
                             m_itemStep = 0xFF;
                         } else {
                             m_itemStep = m_itemStep + 1;
@@ -404,16 +404,16 @@ void grEarthOniyon::makeItem() {
             getNodePosition(&pos, m_unk1, 3);
             int lot;
             switch (m_itemKind) {
-            case 3:
-                lot = 5;
-                break;
+            case 0:
+                return;
             case 1:
                 lot = 3;
                 break;
-            case 0:
-                return;
             case 2:
                 lot = 4;
+                break;
+            case 3:
+                lot = 5;
                 break;
             default:
                 if (4 < m_itemKind) {
@@ -658,11 +658,11 @@ u8 grEarthOniyon::selectColor(int lastColor) {
         float weight1 = data->unk58;
         float weight2 = data->unk5C;
         switch (lastColor) {
-        case 1:
-            weight1 = weight1 * data->unk60;
-            break;
         case 0:
             weight0 = weight0 * data->unk60;
+            break;
+        case 1:
+            weight1 = weight1 * data->unk60;
             break;
         case 2:
             weight2 = weight2 * data->unk60;

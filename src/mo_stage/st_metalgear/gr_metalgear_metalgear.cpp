@@ -349,11 +349,11 @@ void grMetalgearGekko::updateActive(float deltaFrame) {
                         }
                         setMotion(next, false, true, &m_frameCount);
                         switch (next) {
-                        case 3:
-                            m_seIndex = 3;
-                            break;
                         case 0:
                             m_seIndex = 0;
+                            break;
+                        case 3:
+                            m_seIndex = 3;
                             break;
                         }
                         if (m_seIndex != -1) {
@@ -395,11 +395,11 @@ void grMetalgearGekko::updateActive(float deltaFrame) {
                         }
                         setMotion(next, false, true, &m_frameCount);
                         switch (next) {
-                        case 2:
-                            m_seIndex = 2;
-                            break;
                         case 1:
                             m_seIndex = 1;
+                            break;
+                        case 2:
+                            m_seIndex = 2;
                             break;
                         }
                         if (m_seIndex != -1) {
@@ -454,11 +454,11 @@ void grMetalgearGekko::updateActive(float deltaFrame) {
                 }
                 setMotion(next, false, true, &m_frameCount);
                 switch (next) {
-                case 3:
-                    m_seIndex = 3;
-                    break;
                 case 0:
                     m_seIndex = 0;
+                    break;
+                case 3:
+                    m_seIndex = 3;
                     break;
                 }
                 if (m_seIndex != -1) {
@@ -770,23 +770,23 @@ void grMetalgearRay::updateActive(float deltaFrame) {
                     setMotion(next, true, true, &m_frameCount);
                     frame = 0.0f;
                     switch (next) {
-                    case 3:
-                        m_seIndex = -1;
+                    case 0:
+                        m_seIndex = 0;
                         break;
                     case 1:
                         m_seIndex = -1;
                         break;
-                    case 0:
-                        m_seIndex = 0;
-                        break;
                     case 2:
+                        m_seIndex = -1;
+                        break;
+                    case 3:
+                        m_seIndex = -1;
+                        break;
+                    case 4:
                         m_seIndex = -1;
                         break;
                     case 5:
                         m_seIndex = 1;
-                        break;
-                    case 4:
-                        m_seIndex = -1;
                         break;
                     }
                     if (m_seIndex != -1) {
@@ -951,18 +951,18 @@ void grMetalgearRex::updateActive(float deltaFrame) {
                     u8 next;
                     if (data->unk60 <= randf()) {
                         switch (m_motion) {
-                        case 4:
-                            if (randf() < 0.5f) {
-                                next = 5;
-                            } else {
-                                next = 3;
-                            }
-                            break;
                         case 3:
                             if (randf() < 0.5f) {
                                 next = 4;
                             } else {
                                 next = 5;
+                            }
+                            break;
+                        case 4:
+                            if (randf() < 0.5f) {
+                                next = 5;
+                            } else {
+                                next = 3;
                             }
                             break;
                         case 5:
@@ -995,23 +995,23 @@ void grMetalgearRex::updateActive(float deltaFrame) {
                     setMotion(next, true, true, &m_frameCount);
                     frame = 0.0f;
                     switch (next) {
-                    case 3:
-                        m_seIndex = 2;
+                    case 0:
+                        m_seIndex = 0;
                         break;
                     case 1:
                         m_seIndex = 1;
                         break;
-                    case 0:
-                        m_seIndex = 0;
-                        break;
                     case 2:
                         m_seIndex = 1;
                         break;
-                    case 5:
-                        m_seIndex = 4;
+                    case 3:
+                        m_seIndex = 2;
                         break;
                     case 4:
                         m_seIndex = 3;
+                        break;
+                    case 5:
+                        m_seIndex = 4;
                         break;
                     }
                     if (m_seIndex != -1) {

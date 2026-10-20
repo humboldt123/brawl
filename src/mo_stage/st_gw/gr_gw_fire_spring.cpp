@@ -48,6 +48,7 @@ grGWFireSpring::~grGWFireSpring() {
 }
 
 void grGWFireSpring::startup(gfArchive* archive, u32 unk1, gfSceneRoot::LayerType layerType) {
+    grYakumono::startup(archive, unk1, layerType);
 }
 
 void grGWFireSpring::processGameProc() {

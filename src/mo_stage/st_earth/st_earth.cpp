@@ -609,25 +609,6 @@ void stEarth::updateWeather(float deltaFrame) {
             m_timerSun = 0.0f;
         }
         switch (m_stateWeather) {
-        case 5:
-            if (sun->isChangeWeather()) {
-                m_weather = 3;
-                registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), m_weather);
-                sun->requestToFine();
-                nw4r::g3d::ResFile scnFile(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE));
-                if (scnFile.IsValid() && scnFile.HasResAnmScn()) {
-                    m_timerSun = 0.0f;
-                    m_timerWeather = scnFile.GetResAnmScn(m_weather).ptr()->m_animLength;
-                }
-                if (m_firstWeather != 1) {
-                    if (m_seHandle >= 0) {
-                        fn_80075F1C(g_sndSystem, m_seHandle, 0x3C);
-                    }
-                    m_seHandle = g_sndSystem->playSE(static_cast<SndID>(0x1CD9), 0, 0x3C, 0, -1);
-                }
-                m_stateWeather = 0;
-            }
-            break;
         case 0:
             if (m_timerWeather == 0.0f) {
                 m_weather = 0;
@@ -727,6 +708,25 @@ void stEarth::updateWeather(float deltaFrame) {
                     river->startRiver();
                     m_sunOn = 1;
                 }
+            }
+            break;
+        case 5:
+            if (sun->isChangeWeather()) {
+                m_weather = 3;
+                registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), m_weather);
+                sun->requestToFine();
+                nw4r::g3d::ResFile scnFile(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE));
+                if (scnFile.IsValid() && scnFile.HasResAnmScn()) {
+                    m_timerSun = 0.0f;
+                    m_timerWeather = scnFile.GetResAnmScn(m_weather).ptr()->m_animLength;
+                }
+                if (m_firstWeather != 1) {
+                    if (m_seHandle >= 0) {
+                        fn_80075F1C(g_sndSystem, m_seHandle, 0x3C);
+                    }
+                    m_seHandle = g_sndSystem->playSE(static_cast<SndID>(0x1CD9), 0, 0x3C, 0, -1);
+                }
+                m_stateWeather = 0;
             }
             break;
         }

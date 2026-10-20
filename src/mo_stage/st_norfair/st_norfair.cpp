@@ -817,9 +817,6 @@ void stNorfair::updateEvent(float deltaFrame) {
         m_eventBg.end();
     }
     switch (m_bgState) {
-    case 2:
-        g_gfSceneRoot->setCurrentFrame(60.0f);
-        break;
     case 0:
         g_gfSceneRoot->setCurrentFrame(0.0f);
         break;
@@ -832,6 +829,9 @@ void stNorfair::updateEvent(float deltaFrame) {
             g_gfSceneRoot->setCurrentFrame(60.0f);
             m_bgState = 2;
         }
+        break;
+    case 2:
+        g_gfSceneRoot->setCurrentFrame(60.0f);
         break;
     }
     case 3: {

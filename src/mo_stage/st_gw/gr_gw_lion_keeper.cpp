@@ -220,11 +220,11 @@ void grGWLionKeeper::setAttack() {
                                 false, false, false, soCollisionAttackData::Lr_Check_Forward, false, false, false, false,
                                 false, soCollisionAttackData::Region_None, true);
         switch (m_type) {
-        case 5:
-            m_yakumono->setLr(-1.0f);
-            break;
         case 4:
             m_yakumono->setLr(1.0f);
+            break;
+        case 5:
+            m_yakumono->setLr(-1.0f);
             break;
         }
         m_yakumono->setAttack(0, 0, &attack);

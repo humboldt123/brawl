@@ -379,11 +379,11 @@ void stMetalgear::createObjMetalgear() {
             if (randf() <= data->unk38) {
                 int index;
                 switch (melee->m_meleeInitData.m_subStageKind) {
-                case 1:
-                    index = 0xE;
-                    break;
                 case 0:
                     index = 0xD;
+                    break;
+                case 1:
+                    index = 0xE;
                     break;
                 case 2:
                     index = 0xF;

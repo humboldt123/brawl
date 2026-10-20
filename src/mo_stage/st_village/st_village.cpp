@@ -92,11 +92,11 @@ void stVillage::createObj() {
     initPosPokeTrainer(1, 0);
     createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, NULL);
     switch (m_scene) {
-    case 3:
-        g_sndSystem->playSE(snd_se_stage_Village_night, 0, 0, 0, -1);
-        break;
     case 0:
         g_sndSystem->playSE(snd_se_stage_Village_morning, 0, 0, 0, -1);
+        break;
+    case 3:
+        g_sndSystem->playSE(snd_se_stage_Village_night, 0, 0, 0, -1);
         break;
     case 4:
         g_sndSystem->playSE(snd_se_stage_Village_midnight, 0, 0, 0, -1);

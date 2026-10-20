@@ -85,17 +85,17 @@ void grKartBg::updateJoint(float deltaFrame) {
         }
     } else {
         switch (*m_stateAIWork) {
-        case 9:
-            m_joint[0]->m_0x55_3 = true;
-            m_joint[1]->m_0x55_3 = true;
-            m_joint[2]->m_0x55_3 = true;
-            m_joint[3]->m_0x55_3 = false;
-            break;
         case 8:
             m_joint[0]->m_0x55_3 = false;
             m_joint[1]->m_0x55_3 = false;
             m_joint[2]->m_0x55_3 = false;
             m_joint[3]->m_0x55_3 = true;
+            break;
+        case 9:
+            m_joint[0]->m_0x55_3 = true;
+            m_joint[1]->m_0x55_3 = true;
+            m_joint[2]->m_0x55_3 = true;
+            m_joint[3]->m_0x55_3 = false;
             break;
         default:
             m_joint[0]->m_0x55_3 = false;

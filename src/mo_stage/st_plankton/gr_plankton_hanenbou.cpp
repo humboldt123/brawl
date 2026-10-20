@@ -152,16 +152,16 @@ bool grPlanktonHanenbou::checkRefrect() {
     if (data == NULL) {
         return false;
     }
-    if (m_bounce < data->unk68) {
-        if (checkLeaf() == 1) {
-            m_bounce++;
-            return true;
-        }
-        if (checkWall() == 1) {
-            m_bounce++;
-            return true;
-        }
+    if (m_bounce >= data->unk68) {
         return false;
+    }
+    if (checkLeaf() == 1) {
+        m_bounce++;
+        return true;
+    }
+    if (checkWall() == 1) {
+        m_bounce++;
+        return true;
     }
     return false;
 }

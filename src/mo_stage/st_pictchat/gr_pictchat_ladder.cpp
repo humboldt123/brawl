@@ -107,4 +107,5 @@ void grPictchatLadder::updateActive(float deltaFrame) {
 }
 
 void grPictchatLadder::startup(gfArchive* archive, u32 unk1, gfSceneRoot::LayerType layerType) {
+    grYakumono::startup(archive, unk1, layerType);
 }

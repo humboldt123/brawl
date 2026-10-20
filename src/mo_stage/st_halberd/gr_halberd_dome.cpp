@@ -142,10 +142,6 @@ void grHalberdDome::updateCollision(float deltaFrame) {
     if (m_frameWork != NULL && m_stateWork != NULL && m_joint[0] != NULL && m_joint[1] != NULL) {
         int state = *m_stateWork;
         switch (state) {
-        case 3:
-            grHalberdJointDisable(m_joint[0]);
-            grHalberdJointDisable(m_joint[1]);
-            break;
         case 2:
             {
                 float frame = *m_frameWork;
@@ -193,6 +189,10 @@ void grHalberdDome::updateCollision(float deltaFrame) {
                     *reinterpret_cast<float*>(reinterpret_cast<u8*>(CameraController::getInstance()) + 0x18C) = lift;
                 }
             }
+            break;
+        case 3:
+            grHalberdJointDisable(m_joint[0]);
+            grHalberdJointDisable(m_joint[1]);
             break;
         case 4:
             grHalberdJointDisable(m_joint[0]);

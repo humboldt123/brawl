@@ -59,6 +59,11 @@ void grKartWarning::updateActive(float deltaFrame) {
             m_timer = 0.0f;
         }
         switch (m_state) {
+        case 0:
+            setMotion(1, true, false, NULL);
+            setVisibility(0);
+            m_state = 1;
+            break;
         case 1:
             if (*m_stateWork == 0) {
                 setMotion(0, true, false, &m_motionTimer);
@@ -67,11 +72,6 @@ void grKartWarning::updateActive(float deltaFrame) {
                 m_timer = param->unk18;
                 m_state = 6;
             }
-            break;
-        case 0:
-            setMotion(1, true, false, NULL);
-            setVisibility(0);
-            m_state = 1;
             break;
         case 6:
             m_seSeq.playFrame(0, getMotionFrame(0));

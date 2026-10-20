@@ -570,17 +570,17 @@ void grVillageGuest::setMotionCommon(u32 animId, bool loop, bool force, float* f
 
     bool special = true;
     switch (m_id) {
-    case 7:
-        if (animId == 8) {
-            special = false;
-        }
-        break;
     case 2:
     case 3:
     case 4:
     case 8:
     case 9:
         if (animId != 9) {
+            special = false;
+        }
+        break;
+    case 7:
+        if (animId == 8) {
             special = false;
         }
         break;
@@ -754,23 +754,23 @@ void grVillageGuest::setMouth(u32 mouth) {
                 mat = model.GetResMat("m");
                 if (mat.IsValid()) {
                     switch (mouth) {
-                    case 3:
-                        tex = m_resFile.GetResTex("m.3");
+                    case 0:
+                        tex = m_resFile.GetResTex("m.0");
                         break;
                     case 1:
                         tex = m_resFile.GetResTex("m.1");
                         break;
-                    case 0:
-                        tex = m_resFile.GetResTex("m.0");
-                        break;
                     case 2:
                         tex = m_resFile.GetResTex("m.2");
                         break;
-                    case 5:
-                        tex = m_resFile.GetResTex("m.5");
+                    case 3:
+                        tex = m_resFile.GetResTex("m.3");
                         break;
                     case 4:
                         tex = m_resFile.GetResTex("m.4");
+                        break;
+                    case 5:
+                        tex = m_resFile.GetResTex("m.5");
                         break;
                     }
                     if (tex.IsValid()) {

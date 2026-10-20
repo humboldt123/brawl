@@ -45,6 +45,7 @@ grMarioPastBg::~grMarioPastBg() {
 }
 
 void grMarioPastBg::processAnim() {
+    Ground::processAnim();
 }
 
 // In the first stage (0) the torches burn with the sound of the stage start; in the second (1) the torches have a sound of
@@ -52,6 +53,29 @@ void grMarioPastBg::processAnim() {
 void grMarioPastBg::update(float deltaFrame) {
     grGimmick::update(deltaFrame);
     switch (m_stage) {
+    case 0:
+        switch (m_state) {
+        case 0: {
+            m_snd[0].playSE(SndID(0x1B76), 0, 0, -1);
+            Vec3f pos(0.0f, 0.0f, 0.0f);
+            m_snd[0].setPos(&pos);
+            getNodeIndex(&m_node[0], 0, "Castle");
+            getNodeIndex(&m_node[5], 0, "ca");
+            m_state = 1;
+        }
+            // fall through
+        case 1:
+            if (m_torchEffect == 1) {
+                if (getMotionFrame(0) <= 3600.0f) {
+                    setNodeVisibility(false, 0, m_node[0], true, false);
+                } else {
+                    setNodeVisibility(true, 0, m_node[0], true, false);
+                    m_torchEffect = 0;
+                }
+            }
+            break;
+        }
+        break;
     case 1:
         switch (m_state) {
         case 1: {
@@ -97,29 +121,6 @@ void grMarioPastBg::update(float deltaFrame) {
             m_state = 1;
             break;
         }
-        }
-        break;
-    case 0:
-        switch (m_state) {
-        case 0: {
-            m_snd[0].playSE(SndID(0x1B76), 0, 0, -1);
-            Vec3f pos(0.0f, 0.0f, 0.0f);
-            m_snd[0].setPos(&pos);
-            getNodeIndex(&m_node[0], 0, "Castle");
-            getNodeIndex(&m_node[5], 0, "ca");
-            m_state = 1;
-        }
-            // fall through
-        case 1:
-            if (m_torchEffect == 1) {
-                if (getMotionFrame(0) <= 3600.0f) {
-                    setNodeVisibility(false, 0, m_node[0], true, false);
-                } else {
-                    setNodeVisibility(true, 0, m_node[0], true, false);
-                    m_torchEffect = 0;
-                }
-            }
-            break;
         }
         break;
     }

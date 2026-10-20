@@ -215,8 +215,8 @@ void grMetalgearSearch::updateActive(float deltaFrame) {
 
 // The place of a player: kind 1 is his cursor, any other kind his hip (both are small functions of the melee stage in sora_melee).
 bool grMetalgearSearch::getPlayerPosition(int playerNo, Vec3f* pos, int kind) {
-    if (kind == 1) {
-        return fn_27_2398D8(playerNo, pos);
+    if (kind != 1) {
+        return fn_27_2398D0(playerNo, pos);
     }
-    return fn_27_2398D0(playerNo, pos);
+    return fn_27_2398D8(playerNo, pos);
 }

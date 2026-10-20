@@ -116,6 +116,12 @@ void grDonkeyFireBall::updateActive(float deltaFrame) {
             break;
         case 8:
             switch (m_dir) {
+            case 0:
+                updateMoveX(deltaFrame);
+                if (m_timer == 0.0f) {
+                    m_state = 1;
+                }
+                break;
             case 1:
                 updateMoveX(deltaFrame);
                 if (m_pos.m_x == m_posTgt.m_x) {
@@ -123,12 +129,6 @@ void grDonkeyFireBall::updateActive(float deltaFrame) {
                     if (m_pos.m_y == m_posTgt.m_y && m_timer == 0.0f) {
                         m_state = 1;
                     }
-                }
-                break;
-            case 0:
-                updateMoveX(deltaFrame);
-                if (m_timer == 0.0f) {
-                    m_state = 1;
                 }
                 break;
             }

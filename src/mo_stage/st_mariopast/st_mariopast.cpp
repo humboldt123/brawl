@@ -118,11 +118,11 @@ void stMarioPast::createObj() {
     testStageDataInit(m_fileData, 0x14, 0x28);
     if (g_GameGlobal->m_modeMelee != NULL) {
         switch (mpMeleeBytes()[0x14]) {
-        case 1:
-            m_stage = 1;
-            break;
         case 0:
             m_stage = 0;
+            break;
+        case 1:
+            m_stage = 1;
             break;
         default:
             m_stage = 0;

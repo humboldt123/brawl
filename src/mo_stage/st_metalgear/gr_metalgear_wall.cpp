@@ -622,14 +622,14 @@ void grMetalgearWall::onDamage(int index, soDamage* damage, soDamageAttackerInfo
     if (m_effectTimer == 0.0f) {
         u32 handle = g_ecMgr->setEffect(ef_ptc_stg_metalgear_tower_damage);
         switch (m_type) {
-        case 2:
-            g_ecMgr->setParent(handle, m_sceneModels[0], "StgMetalgear_R_TOP", false);
-            break;
         case 0:
             g_ecMgr->setParent(handle, m_sceneModels[0], "StgMetalgear_L_TOP", false);
             break;
         case 1:
             g_ecMgr->setParent(handle, m_sceneModels[0], "StgMetalgear_L_UNDER", false);
+            break;
+        case 2:
+            g_ecMgr->setParent(handle, m_sceneModels[0], "StgMetalgear_R_TOP", false);
             break;
         case 3:
             g_ecMgr->setParent(handle, m_sceneModels[0], "StgMetalgear_R_UNDER", false);

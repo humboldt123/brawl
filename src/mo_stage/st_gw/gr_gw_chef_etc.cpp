@@ -685,17 +685,16 @@ bool grGWChefEtc::isTurnMeal(u32 index) {
     float* data = static_cast<float*>(getStageData());
     if (data == NULL) {
         return false;
-    } else if (m_stateChef == 6) {
-        if (m_posChef == index) {
-            m_stateChef = 7;
-            m_timerChef = data[31];
-            return true;
-        } else {
-            return false;
-        }
-    } else {
+    }
+    if (m_stateChef != 6) {
         return false;
     }
+    if (m_posChef == index) {
+        m_stateChef = 7;
+        m_timerChef = data[31];
+        return true;
+    }
+    return false;
 }
 
 // A pan burned a fighter: the flames of that pan go out for a while.

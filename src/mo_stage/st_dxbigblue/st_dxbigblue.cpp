@@ -736,14 +736,14 @@ void stDxBigBlue::updateCarSE(float deltaFrame) {
         }
         stDxBigBlueCarData* car = &m_carData[m_carTbl[m_seCar[i].m_carPlace]];
         switch (car->m_state) {
-        case 8:
-            m_seCar[i].m_sound.stopSE(m_seCar[i].m_seHandle, 0x78);
-            break;
         case 4:
         case 5:
         case 6:
         case 7:
             m_seCar[i].m_sound.setPos(reinterpret_cast<Vec3f*>(&car->unk04));
+            break;
+        case 8:
+            m_seCar[i].m_sound.stopSE(m_seCar[i].m_seHandle, 0x78);
             break;
         }
     }
