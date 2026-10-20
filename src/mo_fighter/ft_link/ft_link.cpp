@@ -6,6 +6,14 @@
 #include <ft/ft_class_info_impl.h>
 #include <ft/link/ft_link.h>
 #include <ft/link/ft_link_extend_param_accesser.h>
+#include <ft/link/ft_link_status_final.h>
+#include <ft/ft_kinetic_energy.h>
+#include <ft/builder/ft_builder_animcmd.h>
+#include <wn/link/wn_link_hookshot.h>
+#include <wn/wn_simple.h>
+#include <ft/ft_owner.h>
+#include <ft/ft_util.h>
+#include <ft/ft_resource_id_accesser_impl.h>
 #include <so/article/so_generate_article_manage_module.h>
 
 #define FT_BC ftLinkBuildConfig
@@ -264,6 +272,206 @@ void ftLink::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatu
         visibility->setStatusDefault(2, 0, true);
     }
     moduleAccesser->getWorkManageModule().offFlag(0x12000041);
+}
+
+// HYPOTHESIS: while the final smash combo runs (status 0x11B) a hit on a fighter checks whether it is over; in the status
+// 0x33 (the shield stance) a counter with the work value 0x66 makes the stance end early: the animation is cut to the
+// frame the parameter allows and the work variables are reset.
+void ftLink::notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
+    switch (moduleAccesser->getStatusModule().getStatusKind()) {
+    case 0x33:
+        switch (moduleAccesser->getWorkManageModule().getInt(0x20000000)) {
+        case 0x66: {
+            soWorkManageModule* work = &moduleAccesser->getWorkManageModule();
+            soMotionModule* motion = &moduleAccesser->getMotionModule();
+            work->onFlag(0x1200003E);
+            work->offFlag(0x1200003F);
+            work->incInt(0x10000040);
+            dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1)).clearSpeed();
+            float limit = motion->getEndFrame(0x66);
+            float cut = soValueAccesser::getConstantFloat(moduleAccesser, 0xFB0, 0);
+            limit -= cut;
+            if (motion->getFrame() > limit) {
+                motion->setFrame(limit);
+            }
+            work->setFloat(cut, 0x11000015);
+            break;
+        }
+        }
+        break;
+    case 0x11B:
+        ftLinkStatusUniqProcessFinalCombo::checkFinish(moduleAccesser);
+        break;
+    }
+}
+
+// HYPOTHESIS: hits on the shield group 1 (the Hylian Shield) remember the strongest power and the direction of the hit
+// in the work floats 0x11000016/0x11000017, the shield check below applies them.
+void ftLink::notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
+    if (groupIndex == 1) {
+        moduleAccesser->getEffectModule().setShieldEffect(0x20);
+        u32 collisionIndex = collisionLog->m_collsionIndex;
+        if (power > m_moduleAccesser->getWorkManageModule().getFloat(0x11000016)) {
+            soCollisionAttackData* attackData = attackModule->getData(collisionIndex, collisionLog->m_isAbsolute);
+            m_moduleAccesser->getWorkManageModule().setFloat(power, 0x11000016);
+            soDamageModule* damage = &m_moduleAccesser->getDamageModule();
+            soWorkManageModule* work = &m_moduleAccesser->getWorkManageModule();
+            float lr = damage->getDamageLr(posX, posY, attackModule, attackData, collisionIndex, collisionLog->m_isAbsolute);
+            work->setFloat(lr, 0x11000017);
+        }
+        if (power > 0.0f) {
+            moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0x220), false, false, 0);
+        }
+    }
+    Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
+}
+
+bool ftLink::notifyEventCollisionShieldCheck() {
+    float power = m_moduleAccesser->getWorkManageModule().getFloat(0x11000016);
+    if (power > 0.0f) {
+        m_moduleAccesser->getStopModule().setHitStop(static_cast<int>(power), 0);
+        soModuleAccesser* acc = m_moduleAccesser;
+        ftUtil::setShieldSetoffSpeed(acc, power, acc->getWorkManageModule().getFloat(0x11000017));
+        return false;
+    }
+    return Fighter::notifyEventCollisionShieldCheck();
+}
+
+// The search of the final smash (status 0x116) is the only one Link registers.
+void ftLink::notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
+    if (moduleAccesser->getStatusModule().getStatusKind() == 0x116) {
+        ftLinkStatusUniqProcessFinal::notifyEventCollisionSearch(collisionLog, moduleAccesser);
+    }
+}
+
+bool ftLink::notifyEventCollisionSearchCheck() {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    bool result = false;
+    if (moduleAccesser->getStatusModule().getStatusKind() == 0x116) {
+        result = ftLinkStatusUniqProcessFinal::notifyEventCollisionSearchCheck(moduleAccesser);
+    }
+    return result;
+}
+
+// The members of the boomerang article that the fighter calls (the article itself is in wn_link_boomerang.cpp, whose header needs
+// the article builder macros).
+class wnLinkBoomerang {
+public:
+    void activate(int founderTaskId, int resourceId, int team);
+    void shoot(float lr, float angle, u32 kind);
+};
+
+// The boomerang starts with the team of the fighter and the model resource.
+bool ftLink::activeArticle(wnLinkBoomerang* weapon, soModuleAccesser* acc) {
+    dynamic_cast<soResourceModuleImpl&>(acc->getResourceModule());
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam());
+    return true;
+}
+
+// The boomerang flies off in the direction of the stick (kind 1 = the held throw).
+bool ftLink::shootArticle(wnLinkBoomerang* weapon, soModuleAccesser* acc) {
+    weapon->shoot(acc->getPostureModule().getLr(), getBoomerangAngle(acc), acc->getWorkManageModule().isFlag(0x22000011));
+    acc->getWorkManageModule().onFlag(0x1200003D);
+    return true;
+}
+
+// The throw angle: the stick direction held inside the allowed arc when the stick is pushed up or down far enough, mirrored for
+// the facing and wrapped to the positive range.
+float ftLink::getBoomerangAngle(soModuleAccesser* acc) {
+    soControllerModule* controller = acc->m_enumerationStart->m_controllerModule;
+    float stickYAbs;
+    float angle = 0.0f;
+    double stickY = __fabs(controller->getStickY());
+    stickYAbs = stickY;
+    if (stickYAbs > soValueAccesser::getConstantFloat(acc, 0xFAA, 0)) {
+        float limit = soValueAccesser::getConstantFloat(acc, 0xFAB, 0);
+        float dir = controller->getStickDir();
+        angle = dir;
+        if (dir > limit) {
+            angle = limit;
+        } else if (dir < -limit) {
+            angle = -limit;
+        }
+    }
+    if (-1.0f == acc->getPostureModule().getLr()) {
+        if (angle < 0.0f) {
+            angle = -3.14159274f - angle;
+        } else {
+            angle = 3.14159274f - angle;
+        }
+    }
+    if (angle < 0.0f) {
+        angle += 6.28318548f;
+    }
+    return angle;
+}
+
+// MATCH-ONLY: the native singleton getter of the transactor is out of line.
+#pragma dont_inline on
+template ftLinkTransactor* soSingletonHolder<ftLinkTransactor>::getInstance();
+#pragma dont_inline off
+
+// The arrow starts through the transactor with the effect resource of the fighter and its facing.
+bool ftLink::activeArticle1(wnLinkBowArrow* weapon, soModuleAccesser* acc) {
+    soResourceModule& resources = acc->getResourceModule();
+    float lr = acc->getPostureModule().getLr();
+    u32 etcResId = resources.getResourceIdAccesser()->getEtcResId();
+    return soSingletonHolder<ftLinkTransactor>::getInstance()->activeArticle2(weapon, acc, etcResId, lr);
+}
+
+// The hookshot starts at the hand node of the fighter with its team and facing; a link is made to the fighter so that the
+// hook follows the hand.
+bool ftLink::activeArticle2(wnLinkHookshot* weapon, soModuleAccesser* acc) {
+    int founderTaskId;
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    Vec3f position = acc->getModelModule().getNodeGlobalPosition(0x43, false);
+    float lr = acc->getPostureModule().getLr();
+    bool unk = false;
+    switch (acc->getStatusModule().getStatusKind()) {
+    case 0x34:
+    case 0x36:
+    case 0x38:
+        unk = true;
+        break;
+    }
+    soResourceModule& resources = acc->getResourceModule();
+    founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), lr, position, unk);
+    if (acc->getLinkModule().link(3, weapon->getTaskId()) == true) {
+        soLinkModule* link = &acc->getLinkModule();
+        int node = acc->getModelModule().getCorrectNodeId(300);
+        link->setModelConstraintPosOrt(3, node, 0x18, 0x11, false);
+    }
+    return true;
+}
+
+// HYPOTHESIS: the start of the arrow article pair (the two simple articles of the fighter, told apart by their article id): the
+// arrow data block of the fighter data (offsets 0xC0 and 0xC8) and the model resource of the fighter.
+struct ftLinkSimpleArticleData {
+    u8 unk0[0xC0];
+    const wnSimpleData* m_data0;
+    u8 unkC4[4];
+    const wnSimpleData* m_data1;
+};
+
+bool ftLink::activeArticle3(wnSimple* weapon, soModuleAccesser* acc) {
+    if (weapon->getArticleId() == 5) {
+        int founderTaskId;
+        soResourceModule& resources = acc->getResourceModule();
+        founderTaskId = acc->getStageObject().m_taskId;
+        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), reinterpret_cast<ftLinkSimpleArticleData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_data1, true, false, Vec3f(0.0f, 0.0f, 0.0f),
+                         0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 3, 0xFF, false);
+    } else {
+        int founderTaskId;
+        founderTaskId = acc->getStageObject().m_taskId;
+        soResourceModule& resources = acc->getResourceModule();
+        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), reinterpret_cast<ftLinkSimpleArticleData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_data0, true, false, Vec3f(0.0f, 0.0f, 0.0f),
+                         0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 2, 0, false);
+    }
+    return true;
 }
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftLink is done

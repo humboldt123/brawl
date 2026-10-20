@@ -5,6 +5,21 @@
 #include <sr/sr_common.h>
 #include <types.h>
 
+class wnLinkBoomerang;
+class wnLinkBowArrow;
+class wnSimple;
+class wnLinkHookshot;
+
+// The activator of the arrow lives in the transactor of sora_melee (a singleton).
+// HYPOTHESIS: the arguments of activeArticle2 (the article, the fighter, the effect resource id of the fighter and the facing).
+class ftLinkTransactor {
+    u32 m_unk4;
+public:
+    ftLinkTransactor();
+    virtual ~ftLinkTransactor();
+    bool activeArticle2(wnLinkBowArrow* weapon, soModuleAccesser* acc, u32 etcResId, float lr);
+};
+
 ////////////////////////////////////////
 // Link Build Configuration
 ////////////////////////////////////////
@@ -65,5 +80,18 @@ public:
     virtual void onHitReflector(soModuleAccesser* moduleAccesser, bool hit);
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4);
     virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser);
+    virtual bool notifyEventCollisionShieldCheck();
+    virtual void notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
+    virtual bool notifyEventCollisionSearchCheck();
+
+    // The article starters the status processes (and the article builder) call.
+    static bool activeArticle(wnLinkBoomerang* weapon, soModuleAccesser* acc);
+    static bool shootArticle(wnLinkBoomerang* weapon, soModuleAccesser* acc);
+    static bool activeArticle1(wnLinkBowArrow* weapon, soModuleAccesser* acc);
+    static bool activeArticle2(wnLinkHookshot* weapon, soModuleAccesser* acc);
+    static bool activeArticle3(wnSimple* weapon, soModuleAccesser* acc);
+    static float getBoomerangAngle(soModuleAccesser* acc);
 };
 static_assert(sizeof(ftLink) == 0x1A360, "ftLink size mismatch");

@@ -13,7 +13,7 @@ public:
     virtual ~soStopModule();
     virtual void activate();
     virtual void end(s32);
-    virtual void setHitStop();
+    virtual void setHitStop(float frame, int unk); // HYPOTHESIS: parameters (callers pass a frame count and 0); the callee is empty
     virtual void cancelHitStop();
     virtual void setOtherStop(u32 duration);
     virtual void cancelOtherStop();
@@ -54,7 +54,7 @@ public:
     virtual ~soStopModuleImpl();
     virtual void activate();
     virtual void end(s32);
-    virtual void setHitStop() { }
+    virtual void setHitStop(float frame, int unk) { }
     virtual void cancelHitStop();
     virtual void setOtherStop(u32 duration);
     virtual void cancelOtherStop();
