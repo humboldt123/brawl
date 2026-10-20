@@ -15,6 +15,14 @@ public:
     // Hit by a counter shield (a shield collision whose owner is in a counter-capable status); used by BaseItem.
     static bool isCounterShield(soCollisionLog* collisionLog);
 
+    // HYPOTHESIS: slip chances of a hit (banana-style falls); isSlip handles the ground/air kinds, isSlipDamage the damage variant.
+    static bool isSlip(float chance, soModuleAccesser* acc, int kind);
+    static bool isSlipDamage(float chance, soModuleAccesser* acc, int kind);
+    // Bit 3 of the common status data of the status (HYPOTHESIS: marks the damage statuses).
+    static bool isDamageStatus(soModuleAccesser* acc, int status);
+    // The point where the fighter's swim segment crosses the water surface line below pos (writes x and the y of pos).
+    static bool calcWaterSurfacePos(soModuleAccesser* acc, Vec3f* pos, Vec2f* out);
+
     // Common statuses 0xA4-0xAE: standing, walking, dashing, jumping, falling, firing and landing while shooting an item.
     static bool isItemShootStatus(soModuleAccesser* acc, int status);
 
