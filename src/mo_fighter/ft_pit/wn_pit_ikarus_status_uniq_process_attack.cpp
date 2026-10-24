@@ -16,6 +16,10 @@
 
 static bool isNearZero(float value);
 
+static inline const Vec3f& getStageCenter() {
+    return g_Stage->m_cameraParam1->m_centerPos;
+}
+
 // HYPOTHESIS: the attack of the Ikarus flies at the nearest fighter (or at the camera center when nobody is around).
 class wnPitIkarusStatusUniqProcessAttack : public soStatusUniqProcess {
 public:
@@ -28,14 +32,18 @@ wnPitIkarusStatusUniqProcessAttack g_wnPitIkarusStatusUniqProcessAttack;
 void wnPitIkarusStatusUniqProcessAttack::initStatus(soModuleAccesser* moduleAccesser) {
     wnKineticEnergyNormal& energy = dynamic_cast<wnKineticEnergyNormal&>(*moduleAccesser->getKineticModule().getEnergy(2));
     Vec3f pos = moduleAccesser->getPostureModule().getPos();
-    Fighter* target = g_ftManager->searchNearFighter(0.0f, -1.0f, &pos, moduleAccesser->getTeamModule().getTeam()->getNo(), true);
+    ftManager* manager = g_ftManager;
+    int team = moduleAccesser->getTeamModule().getTeam()->getNo();
+    Fighter* target = manager->searchNearFighter(0.0f, -1.0f, &pos, team, true);
     Vec3f targetPos;
     if (target != NULL) {
         targetPos = soExternalValueAccesser::getPos(target);
     } else {
-        targetPos = g_Stage->m_cameraParam1->m_centerPos;
+        targetPos = getStageCenter();
     }
-    Vec2f dir(targetPos.m_x - pos.m_x, targetPos.m_y - pos.m_y);
+    Vec2f dir;
+    dir.m_x = targetPos.m_x - pos.m_x;
+    dir.m_y = targetPos.m_y - pos.m_y;
     bool zero = false;
     if (isNearZero(dir.m_x) && isNearZero(dir.m_y)) {
         zero = true;
@@ -55,6 +63,13 @@ void wnPitIkarusStatusUniqProcessAttack::initStatus(soModuleAccesser* moduleAcce
     }
 }
 
+#pragma dont_inline on // MATCH-ONLY: the original keeps the helper out of line
 static bool isNearZero(float value) {
-    return fabs(value) < 1.0e-5f;
+    bool result = false;
+    double magnitude = fabs(value); // MATCH-ONLY: the original keeps the double result before narrowing it
+    if ((float)magnitude < 1.0e-5f) {
+        result = true;
+    }
+    return result;
 }
+#pragma dont_inline off

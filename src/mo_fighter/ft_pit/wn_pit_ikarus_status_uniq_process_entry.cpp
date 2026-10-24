@@ -23,20 +23,19 @@ wnPitIkarusStatusUniqProcessEntry g_wnPitIkarusStatusUniqProcessEntry;
 
 void wnPitIkarusStatusUniqProcessEntry::initStatus(soModuleAccesser* moduleAccesser) {
     Rect2D bounds = CameraController::getInstance()->m_stageCameraBounds;
-    Vec2f half(0.5f * (bounds.m_right - bounds.m_left), 0.5f * (bounds.m_up - bounds.m_down));
-    Vec2f center(bounds.m_left + half.m_x, bounds.m_down + half.m_y);
+    Vec2f center;
+    Vec2f half;
+    half.m_x = 0.5f * (bounds.m_right - bounds.m_left);
+    half.m_y = 0.5f * (bounds.m_up - bounds.m_down);
+    center.m_x = bounds.m_left + half.m_x;
+    center.m_y = bounds.m_down + half.m_y;
     half.m_x *= soValueAccesser::getConstantFloat(moduleAccesser, 0xfa0, 0);
     half.m_y *= soValueAccesser::getConstantFloat(moduleAccesser, 0xfa1, 0);
     center.m_y += 2.0f * half.m_y * soValueAccesser::getConstantFloat(moduleAccesser, 0xfa2, 0);
     bounds.m_left = center.m_x - half.m_x;
     bounds.m_down = center.m_y - half.m_y;
     Vec3f pos = moduleAccesser->getPostureModule().getPos();
-    float side;
-    if (pos.m_x < center.m_x) {
-        side = 1.0f;
-    } else {
-        side = -1.0f;
-    }
+    float side = (pos.m_x < center.m_x) ? 1.0f : -1.0f;
     moduleAccesser->getWorkManageModule().setFloat(side, 0x21000000);
     float angle = moduleAccesser->getWorkManageModule().getFloat(0x21000001);
     Vec2f base;
@@ -53,10 +52,14 @@ void wnPitIkarusStatusUniqProcessEntry::initStatus(soModuleAccesser* moduleAcces
         base.m_x = center.m_x;
         base.m_y = bounds.m_down;
     }
-    Vec2f target(base.m_x + half.m_x * randf(), base.m_y + half.m_y * randf());
+    Vec2f target;
+    target.m_x = base.m_x + half.m_x * randf();
+    target.m_y = base.m_y + half.m_y * randf();
     int frames = soValueAccesser::getConstantInt(moduleAccesser, 0x5dc0, 0);
     float invFrames = 1.0f / frames;
-    Vec3f speed(invFrames * (target.m_x - pos.m_x), invFrames * (target.m_y - pos.m_y), 0.0f);
+    Vec3f speed;
+    speed.m_x = invFrames * (target.m_x - pos.m_x);
+    speed.m_y = invFrames * (target.m_y - pos.m_y);
     speed.m_z = invFrames * (moduleAccesser->getGroundModule().getZ() - pos.m_z);
     soKineticEnergy3f& energy = dynamic_cast<soKineticEnergy3f&>(*moduleAccesser->getKineticModule().getEnergy(0));
     energy.m_speed3f.m_x = speed.m_x;

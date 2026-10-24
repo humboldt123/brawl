@@ -6,7 +6,7 @@
 #include <types.h>
 
 // HYPOTHESIS: the status processes of the Ikarus (the drifting weapon of Pit's side taunt); the turn exit puts the weapon
-// back on the ground plane depth.
+// at the ground plane depth with its rotation reset.
 class wnPitIkarusStatusUniqProcessTurn : public soStatusUniqProcess {
 public:
     virtual ~wnPitIkarusStatusUniqProcessTurn() { }
@@ -16,7 +16,7 @@ public:
 wnPitIkarusStatusUniqProcessTurn g_wnPitIkarusStatusUniqProcessTurn;
 
 void wnPitIkarusStatusUniqProcessTurn::exitStatus(soModuleAccesser* moduleAccesser, int) {
-    moduleAccesser->getPostureModule().turnBack();
+    moduleAccesser->getPostureModule().initRot();
     Vec3f pos = moduleAccesser->getPostureModule().getPos();
     pos.m_z = moduleAccesser->getGroundModule().getZ();
     moduleAccesser->getPostureModule().setPos(&pos);
