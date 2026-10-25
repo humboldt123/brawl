@@ -17,8 +17,8 @@ void wnSheikNeedleStatusUniqProcessStay::exitStatus(soModuleAccesser* moduleAcce
     soEffectModule& effect = moduleAccesser->getEffectModule();
     Vec3f zero(0.0f, 0.0f, 0.0f);
     posture.setRot(&zero, 0);
-    Vec3f rot(0.0f, 0.0f, 0.0f);
+    Vec3f* rot = &Vec3f(0.0f, 0.0f, 0.0f);
     Vec3f pos = posture.getPos();
     // HYPOTHESIS: effect scale from lbl_27_rodata_77EC; effect id 0x22 from the requesting status.
-    effect.req((EfID)0x22, &pos, &rot, 1.0f, 0, -1);
+    effect.req((EfID)0x22, &pos, rot, 1.0f, 0, -1);
 }

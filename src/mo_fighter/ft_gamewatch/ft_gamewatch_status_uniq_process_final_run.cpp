@@ -72,8 +72,8 @@ void ftGameWatchStatusUniqProcessFinalRun::execStatus(soModuleAccesser* moduleAc
 
 void ftGameWatchStatusUniqProcessFinalRun::setMotionRate(soModuleAccesser* moduleAccesser) {
     soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
-    float speed = workManage.getFloat(0x21000005);
-    speed = fabs(speed);
+    double magnitude = fabs(workManage.getFloat(0x21000005)); // MATCH-ONLY: the double result is narrowed afterwards
+    float speed = (float)magnitude;
     float rate = moduleAccesser->getWorkManageModule().getFloat(0x21000007);
     rate = speed * rate;
     moduleAccesser->getMotionModule().setRate(rate);

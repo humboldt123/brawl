@@ -56,12 +56,12 @@ void ftToonLinkStatusUniqProcessSpecialBow::execFixPos(soModuleAccesser* acc) {
     // HYPOTHESIS: constant from lbl_27_rodata_7EE4 (zero).
     float zero = 0.0f;
     Vec2f speed;
-    speed.m_x = zero;
-    speed.m_y = zero;
     Vec3f rot;
     rot.m_x = zero;
     rot.m_y = zero;
     rot.m_z = zero;
+    speed.m_x = zero;
+    speed.m_y = zero;
     motion.resetEnergy(kind, &speed, &rot, acc);
 }
 

@@ -51,7 +51,8 @@ void ftIkeStatusUniqProcessSpecialNStart::execStatus(soModuleAccesser* acc) {
     soWorkManageModule& work = acc->getWorkManageModule();
     soSituationModule& situation = acc->getSituationModule();
     int savedSituation = work.getInt(0x20000002);
-    if (situation.getKind() != savedSituation) {
+    int kind = situation.getKind();
+    if (kind != savedSituation) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
         Vec2f speed;
