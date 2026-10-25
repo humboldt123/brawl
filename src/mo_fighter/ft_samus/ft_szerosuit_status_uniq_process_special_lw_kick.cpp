@@ -25,10 +25,10 @@ void ftSZerosuitStatusUniqProcessSpecialLwKick::execStatus(soModuleAccesser* mod
     float lr = posture.getLr();
     float stickX = controller.getStickX();
     // HYPOTHESIS: zero threshold (lbl_94_rodata_78 == 0.0f) for the sign tests below.
-    if (__fabsf(stickX) < params[4]) {
-        float stickSign = (float)((stickX >= 0.0f) ? 1 : -1);
-        float lrSign = (float)((lr >= 0.0f) ? 1 : -1);
-        if (stickSign == lrSign) {
+    if (__fabsf(stickX) >= params[4]) {
+        float stickSign = (float)((stickX < 0.0f) ? -1 : 1);
+        float lrSign = (float)((lr < 0.0f) ? -1 : 1);
+        if (lrSign == stickSign) {
             workManage.onFlag(0x2200001c);
         }
     }
@@ -42,13 +42,14 @@ void ftSZerosuitStatusUniqProcessSpecialLwKick::execStatus(soModuleAccesser* mod
 }
 
 void ftSZerosuitStatusUniqProcessSpecialLwKick::exitStatus(soModuleAccesser* moduleAccesser, int nextStatus) {
-    if (nextStatus != 0x115 && static_cast<u32>(nextStatus - 0x11a) > 5u) {
-        soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
-        soPostureModule& posture = moduleAccesser->getPostureModule();
-        if (workManage.isFlag(0x22000017)) {
-            posture.reverseLr();
-            posture.updateRotYLr();
-        }
+    if (nextStatus == 0x115 || static_cast<u32>(nextStatus - 0x11a) <= 5u) {
+        return;
+    }
+    soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
+    soPostureModule& posture = moduleAccesser->getPostureModule();
+    if (workManage.isFlag(0x22000017)) {
+        posture.reverseLr();
+        posture.updateRotYLr();
     }
 }
 

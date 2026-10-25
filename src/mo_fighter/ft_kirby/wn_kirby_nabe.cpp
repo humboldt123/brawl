@@ -222,7 +222,7 @@ void wnKirbyNabeStatusUniqProcess::exitStatus(soModuleAccesser* moduleAccesser, 
     case 3:
     case 4:
     case 5:
-        break;
+        return;
     default:
         if (moduleAccesser->getLinkModule().isLinked(6)) {
             wnKirbyNabeLinkEvent event(0x456);

@@ -28,13 +28,14 @@ void ftSZerosuitStatusUniqProcessSpecialLw::initStatus(soModuleAccesser* moduleA
 void ftSZerosuitStatusUniqProcessSpecialLw::execFixPos(soModuleAccesser*) { }
 
 void ftSZerosuitStatusUniqProcessSpecialLw::exitStatus(soModuleAccesser* moduleAccesser, int nextStatus) {
-    if (nextStatus != 0x115 && static_cast<u32>(nextStatus - 0x11a) > 5u) {
-        soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
-        soPostureModule& posture = moduleAccesser->getPostureModule();
-        if (workManage.isFlag(0x22000017)) {
-            posture.reverseLr();
-            posture.updateRotYLr();
-        }
+    if (nextStatus == 0x115 || static_cast<u32>(nextStatus - 0x11a) <= 5u) {
+        return;
+    }
+    soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
+    soPostureModule& posture = moduleAccesser->getPostureModule();
+    if (workManage.isFlag(0x22000017)) {
+        posture.reverseLr();
+        posture.updateRotYLr();
     }
 }
 
