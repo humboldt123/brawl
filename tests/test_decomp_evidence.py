@@ -207,7 +207,7 @@ class EvidenceTests(unittest.TestCase):
 
     def test_new_local_shadow_and_unresolved_include_changes_are_detected(self):
         (self.root / "include/unit.h").unlink()
-        library = self.root / "include/lib/BrawlHeaders/Brawl/Include"
+        library = self.root / "include/Brawl/Include"
         library.mkdir(parents=True)
         (library / "unit.h").write_text("class Library {};\n")
         self.load()

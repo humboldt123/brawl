@@ -27,20 +27,18 @@ public:
     // 0: getIntData
     // 1: getFloatData
     // 2: getAddressData
-    // 3: getBoolData?
-    // 4: getStringData?
-    // 5: getValueIndexData?
+    // 3: getBoolData
+    // 4: getStringData
+    // 5: getValueIndexData
     s32 getArgType() const {
-        if (m_isNull == 1) {
+        if (m_isNull == 1)
             return -1;
-        }
         return m_dataPtr->argType;
     }
 
     s32 getIntData() const {
-        if (m_isNull == 1) {
+        if (m_isNull == 1)
             return 0;
-        }
         return m_dataPtr->data;
     }
 
@@ -60,25 +58,23 @@ public:
     }
 
     float getFloatData() const {
-        if (m_isNull == 1) {
+        if (m_isNull == 1)
             return 0.0f;
-        }
         return m_dataPtr->data / 60000.0f;
     }
 
-    // The text of a string argument (a node name, for the enemies' anim cmds).
-    const char* getStringData() const {
-        if (m_isNull == 1) {
+    // UBFIX: assumes 32-bit pointer
+    void* getAddressData() const {
+        if (m_isNull == 1)
             return 0;
-        }
-        return (const char*)m_dataPtr->data;
+        return (void*) m_dataPtr->data;
     }
 
-    void* getAddressData() {
-        if (m_isNull == 1) {
+    // UBFIX: assumes 32-bit pointer
+    char* getStringData() const {
+        if (m_isNull == 1)
             return 0;
-        }
-        return (void*) m_dataPtr->data;
+        return (char*) m_dataPtr->data;
     }
 };
 

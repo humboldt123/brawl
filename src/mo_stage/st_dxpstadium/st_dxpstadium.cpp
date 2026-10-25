@@ -10,7 +10,7 @@
 #include <gr/gr_gimmick.h>
 #include <gr/gr_madein.h>
 #include <gr/gr_stadium_vision.h>
-#include <gr/gr_tengan_event.h>
+#include <st_tengan/gr_tengan_event.h>
 #include <memory.h>
 #include <mt/mt_prng.h>
 #include <nw4r/g3d/g3d_resfile.h>

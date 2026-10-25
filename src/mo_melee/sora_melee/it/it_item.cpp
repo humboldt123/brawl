@@ -141,14 +141,14 @@ struct soLinkItemAttackEventArgs : public soLinkEventArgs {
 struct soTeamModuleView : soTeamModule {
     virtual ~soTeamModuleView();
     virtual soTeam* getTeam();
-    virtual void setTeam(int team, bool notify);
+    virtual void setTeam(s32 team, bool notify);
     virtual soTeam* getHitTeam();
     virtual soTeam* getIndirectTeam();
-    virtual void setHitTeam(int team);
-    virtual void setTeamOwnerId(int taskId);
-    virtual int getTeamOwnerId();
-    virtual void set2nd(int);
-    virtual void setHit2nd(int);
+    virtual void setHitTeam(s32 team);
+    virtual void setTeamOwnerId(s32 taskId);
+    virtual s32 getTeamOwnerId();
+    virtual void set2nd(s32);
+    virtual void setHit2nd(s32);
     virtual void activate();
     virtual void deactivate();
     virtual void reset();

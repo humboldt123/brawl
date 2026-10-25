@@ -188,10 +188,10 @@ class EvidenceStore:
     def _include_directories(self):
         return [self.root / item for item in (
             "include", "include/lib/PowerPC_EABI_Support/Runtime/Inc",
-            "include/lib/BrawlHeaders/Brawl/Include", "include/lib/BrawlHeaders/nw4r/include",
-            "include/lib/BrawlHeaders/OpenRVL/include", "include/lib/BrawlHeaders/OpenRVL/include/MetroTRK",
-            "include/lib/BrawlHeaders/OpenRVL/include/revolution", "include/lib/BrawlHeaders/OpenRVL/include/RVLFaceLib",
-            "include/lib/BrawlHeaders/OpenRVL/include/stl", "include/lib/BrawlHeaders/utils/include")]
+            "include/Brawl/Include", "include/nw4r/include",
+            "include/OpenRVL/include", "include/OpenRVL/include/MetroTRK",
+            "include/OpenRVL/include/revolution", "include/OpenRVL/include/RVLFaceLib",
+            "include/OpenRVL/include/stl", "include/utils/include")]
 
     def _resolve_include(self, parent, operand, quoted):
         candidates = ([parent / operand] if quoted else []) + [d / operand for d in self._include_directories()]

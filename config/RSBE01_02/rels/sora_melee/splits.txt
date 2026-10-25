@@ -1392,6 +1392,10 @@ mo_melee/sora_melee/so/so_array_vector_thunks_21soDisposeInstanceTerm_255.cpp:
 mo_melee/sora_melee/so/so_array_base_soArrayVectorAbstract_21soDisposeInstanceTerm_B144C.cpp:
 	.text       start:0x000B144C end:0x000B1454
 
+mo_melee/sora_melee/so/team/so_team_module_impl.cpp:
+	.text       start:0x000B5048 end:0x000B62E4
+	.data       start:0x00017020 end:0x000171D4
+
 mo_melee/sora_melee/so/so_vtable_dt_ArrayNull_P9soArticle.cpp:
 	.text       start:0x000C3B58 end:0x000C3B98
 

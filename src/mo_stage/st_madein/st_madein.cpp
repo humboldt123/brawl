@@ -6,7 +6,7 @@
 #include <it/it_manager.h>
 #include <gm/gm_global.h>
 #include <gr/gr_madein.h>
-#include <gr/gr_tengan_event.h>
+#include <st_tengan/gr_tengan_event.h>
 #include <memory.h>
 #include <mt/mt_matrix.h>
 #include <mt/mt_prng.h>

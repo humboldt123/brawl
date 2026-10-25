@@ -36,6 +36,8 @@ public:
 #else
     s32 getObserverId() const { return m_sendID; }
 #endif
+    s32 getUnitId() const { return m_unitID; }
+    s32 getManageId() const { return m_manageID; }
 
 #ifdef EM_ENEMY_BUILDER
     // MATCH-ONLY: the Enemy unit calls the sora_melee copies of the constructor and of initialize.
@@ -66,6 +68,9 @@ public:
         removeObserver(m_manageID);
     }
 #endif
+
+    // doldecomp/brawl #152: the team module registers itself by reference.
+    void addObserverSub(s32 manageId, T& obsvr, s8 p3) { addObserverSub(manageId, &obsvr, p3); }
 
 #ifdef FT_MODULE_BUILDER
     void addObserverSub(s32 manageId, T* obsvr, s8 p3); // MATCH-ONLY: a call into sora_melee in the fighter RELs
@@ -220,7 +225,7 @@ public:
         }
     }
 };
-static_assert(sizeof(soEventObserver<void>) == 0xC, "Class is wrong size!");
+static_assert(sizeof(soEventObserver<int>) == 0xC, "Class is wrong size!");
 
 enum soEventPresenterLocalStoreTag { soEventPresenterLocalStore };
 
@@ -258,6 +263,27 @@ class soEventPresenter {
     bool checkManageId() const {
         const s16 mId = m_manageID;
         return soEventSystem::getInstance()->getInstanceManager().isContain(mId);
+    }
+
+    soInstanceManagerFullProperty<T*>* setupHelper(s16 unitId) {
+        soEventManager* mgr = soEventSystem::getInstance()->getManager(m_manageID);
+        if (!mgr->getObserverCapacity(unitId))
+            return nullptr;
+        soEventUnitWrapper<T>* evtUnitWrapper =
+            dynamic_cast<soEventUnitWrapper<T>* >(mgr->getEventUnit(unitId));
+        return (!evtUnitWrapper) ? NULL : evtUnitWrapper->getObserverListSub();
+    }
+
+    void setupPresenter(s16 manageId) {
+        if (manageId > -1) {
+            if (soEventSystem::getInstance()->getInstanceManager().isContain(-1)) {
+                soEventManager* mgr = soEventSystem::getInstance()->getManager(m_manageID);
+                if (!mgr->getObserverCapacity(m_unitID))
+                    m_obsrvrList = nullptr;
+                else
+                    m_obsrvrList = setupHelper(m_unitID);
+            }
+        }
     }
 
     bool getObserverListHelper() {
@@ -321,6 +347,11 @@ public:
     // MATCH-ONLY: the tag type selects this variant; the original has one constructor per presenter user.
     soEventPresenter(s16 manageId, s16 unitId, soEventPresenterLocalStoreTag) : m_manageID(manageId), m_unitID(unitId), m_obsrvrList(nullptr) {
         if (m_manageID > 0) getObserverListHelperLocal(m_obsrvrList);
+    }
+    // doldecomp/brawl #152: presenter constructed from a manage id alone (team module).
+    soEventPresenter(s16 manageId) : m_manageID(manageId), m_unitID(0), m_obsrvrList(nullptr) {
+        if (manageId > 0)
+            setupPresenter(manageId);
     }
     virtual ~soEventPresenter() { }
 

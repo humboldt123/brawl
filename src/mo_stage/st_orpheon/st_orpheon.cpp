@@ -4,7 +4,7 @@
 #include <gf/gf_archive.h>
 #include <gm/gm_lib.h>
 #include <gr/gr_madein.h>
-#include <gr/gr_tengan_event.h>
+#include <st_tengan/gr_tengan_event.h>
 #include <memory.h>
 #include <mt/mt_prng.h>
 #include <mt/mt_spline.h>
