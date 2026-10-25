@@ -832,7 +832,7 @@ deactivateDescendantForce__56wnWeaponBuilder<37wnNessPKFireModuleAccesserBuildCo
 @136@remove__6WeaponFv = .text:0x00016464; // type:function size:0x8
 @136@__dt__12wnNessPKFireFv = .text:0x0001646C; // type:function size:0x8
 initStatus__34wnNessPKFireStatusUniqProcessShootFP16soModuleAccesser = .text:0x00016474; // type:function size:0x70
-fn_101_164E4 = .text:0x000164E4; // type:function size:0xD8
+exitStatus__34wnNessPKFireStatusUniqProcessShootFP16soModuleAccesseri = .text:0x000164E4; // type:function size:0xD8
 __dt__34wnNessPKFireStatusUniqProcessShootFv = .text:0x000165BC; // type:function size:0x40
 __sinit_\wn_ness_pk_fire_status_uniq_process_shoot_cpp = .text:0x000165FC; // type:function size:0x48
 __ct__34wnNessPKFireStatusUniqProcessShootFv = .text:0x00016644; // type:function size:0x10

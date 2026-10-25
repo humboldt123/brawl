@@ -503,7 +503,7 @@ fn_117_E268 = .text:0x0000E268; // type:function size:0x8
 @244@notifyEventBeat__7FighterFv = .text:0x0000E2E8; // type:function size:0x8
 @244@notifyEventSetDamage__7FighterFf = .text:0x0000E2F0; // type:function size:0x8
 @256@notifyEventTurn__7FighterFffP16soModuleAccesser = .text:0x0000E2F8; // type:function size:0x8
-fn_117_E300 = .text:0x0000E300; // type:function size:0x24C
+initStatus__41ftDededeStatusUniqProcessSpecialSuperJumpFP16soModuleAccesser = .text:0x0000E300; // type:function size:0x24C
 execStatus__41ftDededeStatusUniqProcessSpecialSuperJumpFP16soModuleAccesser = .text:0x0000E54C; // type:function size:0x144
 execStop__41ftDededeStatusUniqProcessSpecialSuperJumpFP16soModuleAccesser = .text:0x0000E690; // type:function size:0x4
 exitStatus__41ftDededeStatusUniqProcessSpecialSuperJumpFP16soModuleAccesseri = .text:0x0000E694; // type:function size:0x4
@@ -548,7 +548,7 @@ execStatus__45ftDededeStatusUniqProcessSpecialSuperJumpTurnFP16soModuleAccesser 
 __dt__45ftDededeStatusUniqProcessSpecialSuperJumpTurnFv = .text:0x0000F500; // type:function size:0x40
 __sinit_\ft_dedede_status_uniq_process_special_super_jump_turn_cpp = .text:0x0000F540; // type:function size:0x48
 __ct__45ftDededeStatusUniqProcessSpecialSuperJumpTurnFv = .text:0x0000F588; // type:function size:0x10
-fn_117_F598 = .text:0x0000F598; // type:function size:0x3A0
+initStatus__41ftDededeStatusUniqProcessSpecialJetHammerFP16soModuleAccesser = .text:0x0000F598; // type:function size:0x3A0
 execStatus__41ftDededeStatusUniqProcessSpecialJetHammerFP16soModuleAccesser = .text:0x0000F938; // type:function size:0x358
 exitStatus__41ftDededeStatusUniqProcessSpecialJetHammerFP16soModuleAccesseri = .text:0x0000FC90; // type:function size:0xAC
 setRumble__41ftDededeStatusUniqProcessSpecialJetHammerFP16soModuleAccesserib = .text:0x0000FD3C; // type:function size:0x214

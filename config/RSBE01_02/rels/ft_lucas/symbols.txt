@@ -819,7 +819,7 @@ deactivateDescendantForce__57wnWeaponBuilder<38wnLucasPKFireModuleAccesserBuildC
 @136@remove__6WeaponFv = .text:0x00015FB4; // type:function size:0x8
 @136@__dt__13wnLucasPKFireFv = .text:0x00015FBC; // type:function size:0x8
 initStatus__35wnLucasPKFireStatusUniqProcessShootFP16soModuleAccesser = .text:0x00015FC4; // type:function size:0x70
-fn_114_16034 = .text:0x00016034; // type:function size:0xD8
+exitStatus__35wnLucasPKFireStatusUniqProcessShootFP16soModuleAccesseri = .text:0x00016034; // type:function size:0xD8
 __dt__35wnLucasPKFireStatusUniqProcessShootFv = .text:0x0001610C; // type:function size:0x40
 __sinit_\wn_lucas_pk_fire_status_uniq_process_shoot_cpp = .text:0x0001614C; // type:function size:0x48
 __ct__35wnLucasPKFireStatusUniqProcessShootFv = .text:0x00016194; // type:function size:0x10
