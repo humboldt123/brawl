@@ -2,6 +2,8 @@
 #include <so/status/so_status_module_impl.h>
 #include <so/so_module_accesser.h>
 #include <so/article/so_generate_article_manage_module.h>
+#include <so/stageobject.h>
+#include <so/work/so_work_manage_module_impl.h>
 #include <types.h>
 
 class ftSheikStatusUniqProcessSpecialNShoot : public soStatusUniqProcess {
@@ -25,23 +27,26 @@ void ftSheikStatusUniqProcessSpecialNShoot::execStatus(soModuleAccesser* moduleA
     work.incInt(0x20000000);
 }
 
-// Fires the shot when the counter allows it, on the Sheik or Pikachu-style special-N states (0xE / 0x5).
+// Generates the held needle article when the shot flag is set and needles remain (sub kinds 0xe and 5, Kirby with the copied move).
 void ftSheikStatusUniqProcessSpecialNShoot::execFixPosCounter(soModuleAccesser* moduleAccesser) {
-    if (moduleAccesser->getStatusModule().getPrevStatusKind(0) != 0) {
-        return;
-    }
-    int status = moduleAccesser->getStatusModule().getStatusKind();
-    if (status != 0xe && status != 5) {
-        return;
-    }
-    soWorkManageModule& work = moduleAccesser->getWorkManageModule();
-    if (work.isFlag(0x22000011)) {
-        work.offFlag(0x22000011);
-        if (work.getInt(0x10000040) > 0) {
-            int articleId = (status == 0xe) ? 0 : 0xd;
-            soGenerateArticleManageModule* articles = static_cast<soGenerateArticleManageModule*>(moduleAccesser->m_enumerationStart->m_generateArticleManageModule);
-            articles->shoot(articleId, 0, false);
-            moduleAccesser->getWorkManageModule().decInt(0x10000040);
+    int kind = moduleAccesser->getStageObject().soGetKind();
+    int subKind = moduleAccesser->getStageObject().soGetSubKind();
+    if (kind == 0 && (subKind == 0xe || subKind == 5)) {
+        const soModuleEnumeration* modules = moduleAccesser->m_enumerationStart;
+        soGenerateArticleManageModule* articles = static_cast<soGenerateArticleManageModule*>(modules->m_generateArticleManageModule);
+        soWorkManageModule& work = *modules->m_workManageModule;
+        if (work.isFlag(0x22000011)) {
+            work.offFlag(0x22000011);
+            if (work.getInt(0x10000040) > 0) {
+                int articleId = 0;
+                if (subKind == 0xe) {
+                    articleId = 0;
+                } else if (subKind == 5) {
+                    articleId = 0xd;
+                }
+                articles->generate(articleId, NULL, false);
+                work.decInt(0x10000040);
+            }
         }
     }
 }
@@ -57,4 +62,29 @@ void ftSheikStatusUniqProcessSpecialNShoot::exitStatus(soModuleAccesser* moduleA
     moduleAccesser->getWorkManageModule().setInt(0, 0x10000040);
 }
 
-bool ftSheikStatusUniqProcessSpecialNShoot::checkDamage(soModuleAccesser* moduleAccesser, void*) { return false; }
+bool ftSheikStatusUniqProcessSpecialNShoot::checkDamage(soModuleAccesser* moduleAccesser, void*) {
+    int kind = moduleAccesser->getStageObject().soGetKind();
+    int subKind = moduleAccesser->getStageObject().soGetSubKind();
+    if (kind != 0) {
+        return false;
+    }
+    if (subKind != 0xe && subKind != 5) {
+        return false;
+    }
+    const soModuleEnumeration* modules = moduleAccesser->m_enumerationStart;
+    soWorkManageModule& work = *modules->m_workManageModule;
+    soGenerateArticleManageModule* articles = static_cast<soGenerateArticleManageModule*>(modules->m_generateArticleManageModule);
+    int remaining = work.getInt(0x10000040);
+    work.onFlag(0x22000012);
+    int articleId = 0;
+    if (subKind == 0xe) {
+        articleId = 0;
+    } else if (subKind == 5) {
+        articleId = 0xd;
+    }
+    for (int i = 0; i < remaining; i++) {
+        articles->generate(articleId, NULL, false);
+    }
+    work.setInt(0, 0x10000040);
+    return false;
+}
