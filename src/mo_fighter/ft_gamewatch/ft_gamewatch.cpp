@@ -176,11 +176,13 @@ bool ftGameWatch::activeArticle2(wnGameWatchParachute* weapon, soModuleAccesser*
 
 // The panel starts with the facing, the selector kept in the work of the fighter and its color.
 bool ftGameWatch::activeArticle3(wnGameWatchPanel* weapon, soModuleAccesser* acc) {
+    // MATCH-ONLY: declare the saved ID before the other persistent locals.
+    int founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
     soWorkManageModule& work = acc->getWorkManageModule();
     soPostureModule& posture = acc->getPostureModule();
     soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = fighter.m_taskId;
+    founderTaskId = fighter.m_taskId;
     weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlResId(), fighter.getOwner()->getTeam(), posture.getLr(), work.getInt(0x10000043), fighter.getOwner()->getFighterColor());
     return true;
 }
@@ -196,10 +198,12 @@ bool ftGameWatch::activeArticle4(wnGameWatchOil* weapon, soModuleAccesser* acc) 
 
 // The octopus starts at the position of the fighter with its facing, a constant and its color.
 bool ftGameWatch::activeArticle5(wnGameWatchOctopus* weapon, soModuleAccesser* acc) {
+    // MATCH-ONLY: declare the saved ID before the other persistent locals.
+    int founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
     soPostureModule& posture = acc->getPostureModule();
     soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = fighter.m_taskId;
+    founderTaskId = fighter.m_taskId;
     weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlResId(), fighter.getOwner()->getTeam(), posture.getPos(), posture.getLr(), soValueAccesser::getConstantFloat(acc, 0xdb2, 0), fighter.getOwner()->getFighterColor());
     return true;
 }
