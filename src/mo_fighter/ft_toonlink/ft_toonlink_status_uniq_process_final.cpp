@@ -241,10 +241,10 @@ void ftToonLinkStatusUniqProcessFinalDash::execFixPos(soModuleAccesser* moduleAc
         work = &moduleAccesser->getWorkManageModule();
         if (work->getInt(Work_Int_TriforceEffect) == 0) {
             soEffectModule* effect = &moduleAccesser->getEffectModule();
-            Vec3f pos;
             Vec3f rot;
+            Vec3f pos;
             get_triforce_offset(moduleAccesser, &pos, &rot);
-            u32 handle = effect->reqFollow(static_cast<EfID>(0xE20002), 0, &pos, &rot, 1.0f, true, 0, 0, -1);
+            u32 handle = effect->reqFollow(static_cast<EfID>(0xE30002), 0, &pos, &rot, 1.0f, true, 0, 0, -1);
             work->setInt(handle, Work_Int_TriforceEffect);
         }
         if (check_dash_end(moduleAccesser)) {
