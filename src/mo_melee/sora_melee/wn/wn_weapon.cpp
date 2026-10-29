@@ -525,7 +525,8 @@ bool Weapon::reflect() {
     soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
     float lifeMul = m_moduleAccesser->getReflectModule().getLifeMul();
     int initLife = work.getInt(Weapon_Work_Int_Init_Life);
-    m_moduleAccesser->getWorkManageModule().setInt((int)((float)initLife * lifeMul), Weapon_Work_Int_Life);
+    int life = (float)initLife * lifeMul;
+    m_moduleAccesser->getWorkManageModule().setInt(life, Weapon_Work_Int_Life);
     return false;
 }
 
@@ -573,7 +574,7 @@ bool Weapon::notifyEventCollisionAttackCheck(u32 flags) {
 void Weapon::notifyEventCollisionHit(float power, soCollisionAttackData* attackData, u32 index, int unk, soModuleAccesser* moduleAccesser, soCollisionLog* collisionLog) {
 }
 
-void Weapon::notifyEventCollisionHit2nd(float posX, float collisionLr, soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser, bool unk) {
+void Weapon::notifyEventCollisionHit2nd(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex, float posX, float collisionLr, soModuleAccesser* moduleAccesser, bool unk) {
 }
 
 void Weapon::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* sender, int unk4) {

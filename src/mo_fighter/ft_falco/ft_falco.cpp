@@ -1,3 +1,5 @@
+#define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
 // MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
@@ -25,6 +27,14 @@
 
 #define FT_BC ftFalcoBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// Status teardown destroys its owned change-request queue before observers.
+#pragma dont_inline on
+#ifndef FT_REL_LINK_EXTERN // with FT_REL_LINK_EXTERN the queue destructor is the sora_melee function (ft_dol_instances.h)
+template soArrayVector<s32, 8>::~soArrayVector();
+#endif
+#pragma dont_inline off
+soStatusModuleImpl::~soStatusModuleImpl() { }
 
 ftFalcoExtendParamAccesser g_ftFalcoExtendParamAccesser;
 

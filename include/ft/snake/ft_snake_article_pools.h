@@ -39,6 +39,11 @@ class wnSnakeMine : public Weapon {
 public:
     wnSnakeMine(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeMineData* data);
     virtual ~wnSnakeMine();
+    virtual void processCollision();
+    // HYPOTHESIS: the soCollisionSearchEventObserver and soDamageEventObserver overrides
+    // (the shell does not model the observer bases).
+    bool notifyEventCollisionSearchCheck();
+    void notifyEventOnDamage(soDamage* damage, bool, soModuleAccesser* moduleAccesser);
     void activate(int founderTaskId, int etcResourceId, int team, float powerMul);
     void shoot(const Vec3f& position);
 };
@@ -81,6 +86,7 @@ class wnSnakeC4 : public Weapon {
 public:
     wnSnakeC4(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeC4Data* data);
     virtual ~wnSnakeC4();
+    virtual bool notifyEventCollisionAttackCheck(u32 flags);
     void activate(int founderTaskId, int etcResourceId, int team, float lr);
     void shoot();
 };

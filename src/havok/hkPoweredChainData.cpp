@@ -35,6 +35,7 @@
 //   0x802DB984    12  __as   [map: hkPadSpuLong_P20hkConstraintInstance_____as]
 
 #include <havok/hkPoweredChainData.h>
+#include <types.h>
 
 u32 hkPoweredChainData::getType() const {
     return 102;
@@ -81,4 +82,19 @@ void* hkPoweredChainData::getMotorRuntimeQuaternions(void* base) const {
 // HYPOTHESIS: returns its argument unchanged (the target is a bare `mr r3, r4`).
 void* hkPoweredChainData::getSolverResults(void* results) const {
     return results;
+}
+
+// Function bodies below are taken from https://github.com/jj-link/brawl.
+
+extern "C" int fn_802DB564(int arg0, int arg1) {
+    return arg0 + arg1;
+}
+
+extern "C" void fn_802DB57C(int* arg0, int arg1, int arg2) {
+    *arg0 = arg2 - arg1;
+}
+
+extern "C" void fn_802DB984(int* destination, const int* source)
+{
+    *destination = *source;
 }

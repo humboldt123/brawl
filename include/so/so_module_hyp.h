@@ -183,7 +183,8 @@ struct soTurnModuleHyp {
 struct soShakeModuleHyp {
     virtual void unk08();
     virtual void unk0C();
-    virtual void unk10();
+    // Slot 0x10 of soShakeModuleSimple's vtable is the map's req. HYPOTHESIS: argument meanings.
+    virtual void req(int unk1, int kind, int unk3, const Vec2f* offset);
     virtual void unk14();
     virtual void unk18();
     virtual void unk1C();
@@ -202,6 +203,10 @@ struct soDebugModuleHyp {
     virtual void unk08();
     virtual void unk0C();
     virtual void unk10();
+    virtual void unk14();
+    virtual void unk18();
+    // HYPOTHESIS: the visibility modules recompute their visibility only while this is set.
+    virtual bool unk1C();
 };
 
 }  // namespace soHyp

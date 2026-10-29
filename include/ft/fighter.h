@@ -3,6 +3,10 @@
 
 #include <so/so_module_accesser.h>
 #include <StaticAssert.h>
+// The Fighter's observer bases, in the order the original completes them (the damage, item manage and ftEntry observers
+// right before the Fighter in the sora_enemy damage unit's type information).
+#include <so/damage/so_damage_event_presenter.h>
+#include <so/item/so_item_manage_module_impl.h>
 #include <ft/ft_entry.h>
 #include <ft/ft_outside_event_presenter.h>
 #include <ft/ft_value_accesser.h>

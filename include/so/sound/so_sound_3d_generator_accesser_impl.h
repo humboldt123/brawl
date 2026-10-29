@@ -1,5 +1,6 @@
 // SHADOW of BrawlHeaders/so/sound/so_sound_3d_generator_accesser_impl.h: with FT_MODULE_BUILDER the GeneratorInstance layout is the
 // real one (id + generator pointer, 8 bytes) and the DOL helper functions used by the fighter-side accesser are declared.
+// SO_SOUND_3D_GENERATOR_ACCESSER_FULL selects the same verified layout for the sora_melee sound units.
 #pragma once
 
 #include <StaticAssert.h>
@@ -7,8 +8,13 @@
 #include <types.h>
 
 class soSound3dGeneratorAccesser {
+#ifdef SO_SOUND_3D_GENERATOR_ACCESSER_FULL
+// HYPOTHESIS: public in the original (soSoundUtil walks the instances that getInstance returns)
+public:
+#else
 protected:
-#ifdef FT_MODULE_BUILDER
+#endif
+#if defined(FT_MODULE_BUILDER) || defined(SO_SOUND_3D_GENERATOR_ACCESSER_FULL)
     struct GeneratorInstance {
         int m_id;
         snd3DGenerator* m_soundGenerator;
@@ -24,7 +30,7 @@ protected:
 #endif
 
 public:
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(SO_SOUND_3D_GENERATOR_ACCESSER_FULL)
     virtual ~soSound3dGeneratorAccesser() { }
     virtual void activate(Vec3f* pos) = 0;
     virtual void deactivate() = 0;
@@ -33,7 +39,7 @@ public:
     virtual void activate(Vec3f* pos);
     virtual void deactivate();
 #endif
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(SO_SOUND_3D_GENERATOR_ACCESSER_FULL)
     virtual GeneratorInstance* getInstance(int idx) = 0;
 #else
     virtual void getInstance();
@@ -54,6 +60,9 @@ public:
     virtual void deactivate();
     virtual GeneratorInstance* getInstance(int);
 };
-#ifndef FT_MODULE_BUILDER
+#if defined(SO_SOUND_3D_GENERATOR_ACCESSER_FULL)
+static_assert(sizeof(soSound3dGeneratorAccesserImpl) == 12, "Class is wrong size!");
+#endif
+#if !defined(FT_MODULE_BUILDER) && !defined(SO_SOUND_3D_GENERATOR_ACCESSER_FULL)
 static_assert(sizeof(soSound3dGeneratorAccesserImpl) == 16, "Class is wrong size!");
 #endif

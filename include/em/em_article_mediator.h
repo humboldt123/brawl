@@ -179,10 +179,24 @@ struct soArticleMediatorActivator;
 // HYPOTHESIS: name shared with the fighter units (include/wn/wn_article_pool.h), where the same thunk is named.
 bool wnArticleIsActive(soArticle* article);
 
-struct soArticleActiveCounter {
-    bool (*m_isActive)(soArticle*);
-    s32 m_activeNum;
-    s32 m_inactiveNum;
+// Counts the instances the predicate accepts and rejects. MWCC inlines its operator() where a unit calls it once or
+// twice and keeps it out of line for the Cataguard's three pools, as the original does (0x43B8C).
+// HYPOTHESIS: the name; the original shape is a template functor over the predicate type.
+template <class Fn>
+struct soEachCounter {
+    Fn* m_fn;
+    s32 m_trueNum;
+    s32 m_falseNum;
+    soEachCounter(Fn* fn) : m_fn(fn), m_trueNum(0), m_falseNum(0) { }
+    template <class T>
+    bool operator()(T* instance) {
+        if (m_fn(&static_cast<soArticle&>(*instance)) == true) {
+            ++m_trueNum;
+        } else {
+            ++m_falseNum;
+        }
+        return true;
+    }
 };
 
 // The null article the mediator hands out when nothing can be generated (shared with sora_melee).
@@ -272,19 +286,14 @@ struct soArticleMediatorSlot<Mediator, AssignTL, N, true> {
         return allActive == false;
     }
     static s32 getActiveNum(Mediator& mediator) {
-        soArticleActiveCounter counter;
-        counter.m_isActive = wnArticleIsActive;
-        counter.m_activeNum = 0;
-        counter.m_inactiveNum = 0;
+        soEachCounter<bool(soArticle*)> counter(wnArticleIsActive);
         for (s32 i = 0; i < num; ++i) {
-            soArticleActiveCounter* c = &counter;
-            if (c->m_isActive(&static_cast<soArticle&>(*mediator.template getPool<N>().getInstanceAt(i))) == true) {
-                ++c->m_activeNum;
-            } else {
-                ++c->m_inactiveNum;
+            soEachCounter<bool(soArticle*)>* c = &counter;
+            if (!(*c)(mediator.template getPool<N>().getInstanceAt(i))) {
+                break;
             }
         }
-        return counter.m_activeNum;
+        return counter.m_trueNum;
     }
     static s32 getGenerateMaxNum() { return num; }
     // soArticleMediatorAssignmentNull: shooting only checks the type of the article.
@@ -350,7 +359,7 @@ bool soArticleMediatorImpl<PoolTL, AssignTL, KindInfo, Extra>::shoot(soModuleAcc
 
 // deactivate() of a mediator with Num pools: the pools in article id order, stopping at the first instance that cannot
 // be deactivated.
-// HYPOTHESIS: the original walks the whole type list; written out for the one- and two-pool mediators of the enemies.
+// HYPOTHESIS: the original walks the whole type list; written out for the one- to three-pool mediators of the enemies.
 template <class Mediator, int Num>
 struct soArticleMediatorDeactivator;
 
@@ -381,6 +390,39 @@ struct soArticleMediatorDeactivator<Mediator, 2> {
     }
 };
 
+template <class Mediator>
+struct soArticleMediatorDeactivator<Mediator, 3> {
+    static void deactivate(Mediator& mediator) {
+        for (s32 i = 0; i < soInstancePoolLevel<typename Mediator::PoolHierarchy, 0>::Type::num; ++i) {
+            if (!static_cast<soArticle&>(*mediator.template getPool<0>().getInstanceAt(i)).setDeactivateDescendant()) {
+                return;
+            }
+        }
+        for (s32 i = 0; i < soInstancePoolLevel<typename Mediator::PoolHierarchy, 1>::Type::num; ++i) {
+            if (!static_cast<soArticle&>(*mediator.template getPool<1>().getInstanceAt(i)).setDeactivateDescendant()) {
+                return;
+            }
+        }
+        for (s32 i = 0; i < soInstancePoolLevel<typename Mediator::PoolHierarchy, 2>::Type::num; ++i) {
+            if (!static_cast<soArticle&>(*mediator.template getPool<2>().getInstanceAt(i)).setDeactivateDescendant()) {
+                return;
+            }
+        }
+    }
+};
+
+// MATCH-ONLY (per unit): the original emits the pools' weak getInstanceAt copies in reverse pool order (Bombhead, Primid,
+// Arman, Siralamos: the wnemSwHolder pool 1 before the wnemSimple pool 0; Cataguard: 2, 1, 0), but every function here
+// names pool 0 first, so the calls of isGeneratable, getActiveNum and deactivate would land on the other copy. A unit
+// fixes it with an unused (never emitted) non-template inline function that calls the higher pool's getInstanceAt
+// first, see SO_ARTICLE_MEDIATOR_POOL_1_FIRST; its call is compiled when the file is parsed, before these templates are
+// instantiated at the end of the unit. A recursive walk over the levels does not reproduce the order (it even undoes
+// the per-unit fix), nor do explicit instantiations (they emit the copies before the mediator functions), sizeof or
+// address-of references, or an out-of-class getInstanceAt definition (the copies then come out in pool order whatever
+// names them first).
+#define SO_ARTICLE_MEDIATOR_POOL_1_FIRST(Mediator) \
+    static inline void Mediator##_namePool1First(Mediator& mediator) { mediator.getPool<1>().getInstanceAt(0); }
+
 template <class PoolTL, class AssignTL, class KindInfo, class Extra>
 void soArticleMediatorImpl<PoolTL, AssignTL, KindInfo, Extra>::deactivate() {
     soArticleMediatorDeactivator<soArticleMediatorImpl, mediateNum>::deactivate(*this);
@@ -395,7 +437,11 @@ extern const wnemDummy_Param lbl_41_data_3E50;
 template <class W, class KindInfo, class Id>
 class emWeaponInstanceHolder {
 public:
-    emWeaponInstanceHolder(soModuleAccesser* acc);
+    emWeaponInstanceHolder(soModuleAccesser* acc) :
+        m_instance(Id::value, static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(),
+                   soArticleConstructInfo(soArticleKindInfo(KindInfo::category, KindInfo::kind),
+                                          acc->m_enumerationStart->m_heapModule),
+                   &lbl_41_data_3E50) { }
     virtual ~emWeaponInstanceHolder() { }
     W* getInstance() { return &m_instance; }
 
@@ -403,9 +449,3 @@ private:
     W m_instance;
 };
 
-template <class W, class KindInfo, class Id>
-emWeaponInstanceHolder<W, KindInfo, Id>::emWeaponInstanceHolder(soModuleAccesser* acc) :
-    m_instance(Id::value, static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(),
-               soArticleConstructInfo(soArticleKindInfo(KindInfo::category, KindInfo::kind),
-                                      acc->m_enumerationStart->m_heapModule),
-               &lbl_41_data_3E50) { }

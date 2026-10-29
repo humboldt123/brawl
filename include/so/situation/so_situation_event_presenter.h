@@ -23,7 +23,7 @@ class soSituationEventObserver : public soEventObserver<soSituationEventObserver
 public:
     soSituationEventObserver(short unitID) : soEventObserver<soSituationEventObserver>(unitID) {};
 
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(SO_SITUATION_OBSERVER_INLINE)
     virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // MATCH-ONLY: inline in the REL
 #else
     virtual void addObserver(short param1, s8 param2);

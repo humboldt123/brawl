@@ -45,6 +45,12 @@
 
 #include <ph/ph_Interface.h>
 #include <ph/ph_2ndary_controller.h>
+#include <ph/ph_2ndary_constraint.h>
+
+#include <nw4r/g3d/g3d_scnmdl.h>
+#include <ut/ut_nw.h>
+
+extern u8 lbl_8059DC08;
 
 // ph2ndary2Controller: pair of ph2ndaryController objects created through phInterface.
 ph2ndary2Controller::ph2ndary2Controller(void* a, void* b) {
@@ -68,6 +74,232 @@ ph2ndary2Controller::~ph2ndary2Controller() {
 
 void ph2ndaryController::calacCallBackTimingCFor2ndary(int a, int b, int c, int d) {
     ph2ndaryMain(a, b, d, 0, -1, c);
+}
+
+int ph2ndaryController::get2ndaryLastNode(u32* nodes, nw4r::g3d::ResMdl resMdl) {
+    u32* out;
+    int count = 0;
+    if (unk0D) {
+        for (int i = m_lines.getSize() - 1; i >= 0; i--) {
+            if (m_lines[i]->m_array.m_size == 0) {
+                *nodes++ = m_lines[i]->m_id;
+                count++;
+            }
+        }
+    } else {
+        out = nodes;
+        for (int i = m_lines.getSize() - 1; i >= 0; i--) {
+            ph2ndaryLine* line = m_lines[i];
+            if (line->m_array.m_size == 0) {
+                nw4r::g3d::ResNode node = resMdl.GetResNode(line->m_nodeName);
+                *out++ = node.IsValid() ? node.ptr()->m_nodeIndex : 0;
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+void ph2ndaryController::setUndispNode(nw4r::g3d::ScnMdl* scnMdl) {
+    u32 nodes[200];
+    int count = get2ndaryUndispNode(nodes, scnMdl->m_resMdl);
+    if (count != 0) {
+        nwSMSetNodeVisibility(scnMdl, count, nodes, false);
+    }
+}
+
+int ph2ndaryController::get2ndaryUndispNode(u32* nodes, nw4r::g3d::ResMdl resMdl) {
+    int count = 0;
+    if (!unk0D) {
+        return 0;
+    }
+    u8 type = m_active;
+    if (type == 0) {
+        return 0;
+    }
+    if (type == 2) {
+        return 0;
+    }
+    if (unk42 > m_lines.getSize()) {
+        return 0;
+    }
+    int i;
+    int skip;
+    if (type == 1 && !unk57 && unk50 != 0.0f) {
+        skip = 2;
+    } else {
+        skip = 1;
+    }
+    for (i = 0; i < m_lines.getSize() - unk43 - skip; i++) {
+        nodes[i] = m_lines[i]->m_id;
+        count++;
+    }
+    u32* undisp = &nodes[count];
+    for (; i < m_lines.getSize(); i++) {
+        if (m_lines[i]->m_winding) {
+            *undisp++ = m_lines[i]->m_id;
+            count++;
+        }
+    }
+    return count;
+}
+
+int ph2ndaryController::getWeaponLineCount() {
+    u8 limit = unk43;
+    int count = 0;
+    for (int i = 0; i < m_lines.getSize(); i++) {
+        if (!unk55) {
+            if (m_lines[i]->m_winding) {
+                count = 0;
+            } else {
+                count++;
+            }
+        } else {
+            if (m_lines[i]->m_winding) {
+                if (count == 1 && unk5D) {
+                    return 0;
+                }
+                break;
+            }
+            count++;
+        }
+    }
+    if (count < limit) {
+        if (m_active == 1 && !unk55 && count != 0) {
+            return count - 1;
+        }
+        if (m_active == 1 && unk55 && count != 0) {
+            return count - 1;
+        }
+        return count;
+    }
+    if (m_active == 1 && !unk55 && limit != 0) {
+        return limit - 1;
+    }
+    if (m_active == 1 && unk55 && limit != 0) {
+        return limit - 1;
+    }
+    return limit;
+}
+
+u32 ph2ndaryController::getWeaponStartID(int index) {
+    int size = m_lines.getSize();
+    if (size > index) {
+        int i = size - index - 1;
+        if (i < size) {
+            return m_lines[i]->m_id;
+        }
+        return m_lines[size - 1]->m_id;
+    }
+    if (size > 0) {
+        return m_lines[0]->m_id;
+    }
+    return m_lines[size - 1]->m_id;
+}
+
+void ph2ndaryController::setLastVelocity(const Vec3f* velocity, int lineIndex, u8 a) {
+    m_active = 1;
+    unk41 = 0;
+    m_lastVelocity = *velocity;
+    if (lineIndex > m_lines.getSize() - 1) {
+        unk42 = m_lines.getSize() - 1;
+    } else {
+        unk42 = lineIndex;
+    }
+    unk43 = 0;
+    unk50 = 0.0f;
+    unk57 = 0;
+    unk58 = 0;
+    unk59 = 0;
+    unk5A = 0;
+    unk5B = a;
+    if (m_lastVelocity.m_x < 0.0f) {
+        unk56 = 1;
+    } else {
+        unk56 = 0;
+    }
+    if (!unk20 && lbl_8059DC08) {
+        unk0E = 1;
+    }
+    unk20 = lbl_8059DC08;
+}
+
+void ph2ndaryController::setWeaponType(int type) {
+    unkE9 = 1;
+    m_active = type;
+    Vec3f zero(0.0f, 0.0f, 0.0f);
+    m_lastVelocity = zero;
+    unk56 = 0;
+    unk50 = 0.0f;
+    if (m_active == 2) {
+        unk41 = 0;
+        PSMTXIdentity(m_vectorMtx1);
+        PSMTXIdentity(m_vectorMtx2);
+        unk57 = 0;
+        unk43 = m_lines.getSize();
+        unk42 = m_lines.getSize();
+        unk59 = 0;
+        unkE8 = 1;
+    } else {
+        unk43 = 0;
+        unk42 = 0;
+        unk57 = 0;
+        unk59 = 0;
+    }
+    unk30 = m_lines.getSize() - 1;
+}
+
+void ph2ndaryController::set2Vector(const Vec3f* first, const Vec3f* second) {
+    Mtx mtx;
+    PSMTXIdentity(mtx);
+    PSMTXTransApply(mtx, m_vectorMtx1, first->m_x, first->m_y, first->m_z);
+    PSMTXTransApply(mtx, m_vectorMtx2, second->m_x, second->m_y, second->m_z);
+}
+
+void ph2ndaryController::resetWinding() {
+    for (int i = 0; i < m_lines.getSize(); i++) {
+        m_lines[i]->m_winding = 0;
+    }
+    m_winding = 0;
+}
+
+void ph2ndaryController::setAwake(bool awake, u32 lineId) {
+    if (awake) {
+        if (!unk0D) {
+            m_awake = 0;
+            return;
+        }
+        int i;
+        m_awakeIndex = 0;
+        for (i = 0; i < m_lines.getSize(); i++) {
+            if (lineId == m_lines[i]->m_id) {
+                m_awakeIndex = i;
+                break;
+            }
+        }
+        if (i == m_lines.getSize()) {
+            m_awake = 0;
+            return;
+        }
+    }
+    m_awake = awake;
+}
+
+void ph2ndaryController::setSleep(bool sleep) {
+    if (!unk20) {
+        return;
+    }
+    if (sleep && !m_sleep) {
+        for (int i = 0; i < m_sleepFlagCount; i++) {
+            m_sleepFlags[i] = 1;
+        }
+    }
+    if (!sleep) {
+        for (int i = 0; i < m_sleepFlagCount; i++) {
+            m_sleepFlags[i] = 0;
+        }
+    }
+    m_sleep = sleep;
 }
 
 bool ph2ndaryController::isHitCollisionLastNode2Pos(u32 mask) {

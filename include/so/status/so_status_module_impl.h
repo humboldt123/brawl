@@ -190,7 +190,7 @@ public:
     virtual void changeStatus(int status, soModuleAccesser* moduleAccesser);
 
     virtual bool isObserv(char unk1);
-    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, soAnimCmdEventS32 unk3);
     virtual void notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);;
 };
 static_assert(sizeof(soStatusModuleImpl) == 0xAC, "Class is wrong size!");

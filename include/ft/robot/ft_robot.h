@@ -55,6 +55,8 @@ public:
     virtual void notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* acc);
     virtual void notifyEventOnDamage(soDamage* damage, bool, soModuleAccesser* acc);
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* acc, StageObject* object, int unk4);
+    virtual void notifyArticleEventRemove(int unk1, int* unk2);
+    virtual void notifyEventChangeMotion(int motionKind, int prevMotionKind, void* motionData, soModuleAccesser* acc);
     virtual bool notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, int index);
     virtual void analyzeSeal(void* sealInfo);
 

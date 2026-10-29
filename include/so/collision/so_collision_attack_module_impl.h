@@ -6,6 +6,7 @@
 #include <mt/mt_vector.h>
 #include <so/collision/so_collision_attack_part.h>
 #include <so/collision/so_collision.h>
+#include <so/collision/so_collision_group.h>
 #include <so/collision/so_collision_log.h>
 #include <so/situation/so_situation_module_impl.h>
 #include <so/event/so_event_presenter.h>
@@ -13,6 +14,7 @@
 #include <so/status/so_status_event_presenter.h>
 #include <so/anim/so_anim_cmd_event_presenter.h>
 #include <so/so_array.h>
+#include <so/team/so_team.h>
 
 class soModuleAccesser;
 class StageObject;
@@ -99,9 +101,9 @@ static_assert(sizeof(soCollisionAttackModule) == 4, "Class is wrong size!");
 class soCollisionAttackModuleImpl : public soCollisionAttackModule, public soStatusEventObserver, public soAnimCmdEventObserver, public soEventPresenter<soCollisionAttackEventObserver> {
 public:
     soModuleAccesser* m_moduleAccesser;
-    void* m_indirectTeam;
-    void* m_collisionAttackPart;
-    void* m_collisionAttackAbsoluteArray;
+    soTeam* m_indirectTeam;
+    soArray<soCollisionAttackPart>* m_collisionAttackPart;
+    soArray<soCollisionAttackAbsolute>* m_collisionAttackAbsoluteArray;
     Vec2f m_pos;
     Vec2f m_speed;
     float m_powerMulStatus;
@@ -111,7 +113,7 @@ public:
     float m_powerMul2nd;
     float m_reactionMul;
     float m_0x60;
-    void* m_collisionGroupArray;
+    soArray<soCollisionGroup>* m_collisionGroupArray;
     soCollision m_collision;
     char _128[8];
     soCollision::Situation m_situation;
@@ -119,7 +121,14 @@ public:
     int m_isInflict;
     int m_isInflictStatus;
     int m_indirectTaskId;
-    char _156[4];
+    u32 unk9c_0 : 1;
+    u32 m_isSleep : 1;
+    // HYPOTHESIS: set by begin, cleared by setSpeed.
+    u32 unk9c_2 : 1;
+    u32 m_isRestrict : 1;
+    u32 unk9c_4 : 1;
+    u32 unk9c_5 : 1;
+    u32 unk9c_6 : 26;
 
     // TODO: Verify parameters
     virtual ~soCollisionAttackModuleImpl();

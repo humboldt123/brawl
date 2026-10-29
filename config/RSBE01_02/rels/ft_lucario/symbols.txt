@@ -252,7 +252,7 @@ processGameProc__11StageObjectFv = .text:0x00009FF4; // type:function size:0x4
 addObserver__21soStatusEventObserverFsSc = .text:0x00009FF8; // type:function size:0x14
 addObserver__24soSituationEventObserverFsSc = .text:0x0000A00C; // type:function size:0x14
 addObserver__30soCollisionAttackEventObserverFsSc = .text:0x0000A020; // type:function size:0x14
-notifyEventCollisionHit2nd__27soCollisionHitEventObserverFffP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserb = .text:0x0000A034; // type:function size:0x4
+notifyEventCollisionHit2nd__27soCollisionHitEventObserverFP23soCollisionAttackModuleP14soCollisionLogUlffP16soModuleAccesserb = .text:0x0000A034; // type:function size:0x4
 notifyEventCollisionHit__27soCollisionHitEventObserverFfP21soCollisionAttackDataUliP16soModuleAccesserP14soCollisionLog = .text:0x0000A038; // type:function size:0x4
 addObserver__27soCollisionHitEventObserverFsSc = .text:0x0000A03C; // type:function size:0x14
 addObserver__30soCollisionShieldEventObserverFsSc = .text:0x0000A050; // type:function size:0x14
@@ -726,7 +726,7 @@ deactivateDescendantForce__59wnWeaponBuilder<40wnLucarioQigongModuleAccesserBuil
 @100@notifyEventChangeStatus__6WeaponFiiP12soStatusDataP16soModuleAccesser = .text:0x00013F94; // type:function size:0x8
 @112@notifyEventCollisionAttackCheck__15wnLucarioQigongFUl = .text:0x00013F9C; // type:function size:0x8
 @112@notifyEventCollisionAttack__6WeaponFfP14soCollisionLogP16soModuleAccesser = .text:0x00013FA4; // type:function size:0x8
-@124@notifyEventCollisionHit2nd__6WeaponFffP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserb = .text:0x00013FAC; // type:function size:0x8
+@124@notifyEventCollisionHit2nd__6WeaponFP23soCollisionAttackModuleP14soCollisionLogUlffP16soModuleAccesserb = .text:0x00013FAC; // type:function size:0x8
 @124@notifyEventCollisionHit__6WeaponFfP21soCollisionAttackDataUliP16soModuleAccesserP14soCollisionLog = .text:0x00013FB4; // type:function size:0x8
 @144@__dt__15wnLucarioQigongFv = .text:0x00013FBC; // type:function size:0x8
 @136@setAttackPowerMulPattern__6WeaponFf = .text:0x00013FC4; // type:function size:0x8

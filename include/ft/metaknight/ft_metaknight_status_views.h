@@ -67,17 +67,11 @@ struct ftMetaknightFinalLinkEvent : public soLinkEventArgs {
     ftMetaknightFinalLinkEvent(int eventKind) : soLinkEventArgs(eventKind) { }
 };
 
-struct ftMetaknightRect {
-    float m_x0;
-    float m_y0;
-    float m_x1;
-    float m_y1;
-};
-
 class ftMetaknightStatusUniqProcessFinalUtil {
 public:
     static void notifyMetaknightFinalEnd(soModuleAccesser* moduleAccesser);
     static void unLinkFinalTargetAll(soModuleAccesser* moduleAccesser);
-    // Combines two rectangles of four floats; the first and last components take the bound in the order of the target.
-    static void sumRect(ftMetaknightRect* out, const ftMetaknightRect* a, const ftMetaknightRect* b);
+    static void correctCameraRange(soModuleAccesser* moduleAccesser);
+    // HYPOTHESIS: parameter types; the union of two camera ranges.
+    static Rect2D sumRect(const Rect2D* a, const Rect2D* b);
 };

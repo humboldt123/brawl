@@ -31,9 +31,19 @@ public:
         m_unkD = false;
     }
 
+    // HYPOTHESIS signatures for the members below: the map has no parameter types.
+    bool getPrevVirtual(grCollisionLineWork* out) const;
+    bool getNextVirtual(grCollisionLineWork* out) const;
+    bool getNext(grCollisionLineWork* out) const;
+    bool getPrev(grCollisionLineWork* out) const;
+    bool getPrevSameAttr(grCollisionLineWork* out) const;
+    bool getNextSameAttr(grCollisionLineWork* out) const;
+    bool isLinkSameDirFlag(grCollisionLineWork* target) const;
     u32 getLineId();
-    bool getNextSameAttr(grCollisionLineWork* out);
-    bool getPrevSameAttr(grCollisionLineWork* out);
+    Vec2f getNearSegmetPos(const Vec2f& pos) const;
+    Vec2f getFarSegmetPos(const Vec2f& pos) const;
     Vec2f getNormalVec();
+    int getFarSegmetIndex(const Vec2f& pos) const;
+    int getNearSegmetIndex(const Vec2f& pos) const;
 };
 static_assert(sizeof(grCollisionLineWork) == 16, "Class is wrong size!");

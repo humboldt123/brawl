@@ -1,3 +1,6 @@
+#define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
+#define FT_TEAM_TYPED_INTERFACE
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define MT_VEC2F_PLAIN_BASE
 #define FT_PIKMIN_OWNER_INFO_DTOR
 #define MT_VEC2F_FROM_VEC3_CTOR_NOINLINE
@@ -36,6 +39,14 @@ extern s32 g_soValueVariation;
 
 #define FT_BC ftPikminBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// Status teardown destroys its owned change-request queue before observers.
+#pragma dont_inline on
+#ifndef FT_REL_LINK_EXTERN // with FT_REL_LINK_EXTERN the queue destructor is the sora_melee function (ft_dol_instances.h)
+template soArrayVector<s32, 8>::~soArrayVector();
+#endif
+#pragma dont_inline off
+soStatusModuleImpl::~soStatusModuleImpl() { }
 
 // MATCH-ONLY: unlike the other fighters, ftPikmin calls the ftFighterBuilder constructor out of line (it has a large
 // constructor body of its own that MWCC's inliner no longer fits it into).

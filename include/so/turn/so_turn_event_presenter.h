@@ -10,6 +10,8 @@ class soModuleAccesser;
 class soTurnEventObserver : public soEventObserver<soTurnEventObserver> {
 public:
     soTurnEventObserver(short unitID) : soEventObserver<soTurnEventObserver>(unitID) {};
+    // HYPOTHESIS: registering constructor like soStatusEventObserver's (seen in ftControllerModuleImpl's ctor).
+    soTurnEventObserver(short manageId, s8 p2) : soEventObserver<soTurnEventObserver>(0x12) { initialize(manageId, p2); }
 
 #ifdef FT_MODULE_BUILDER
     virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // MATCH-ONLY: inline in the REL

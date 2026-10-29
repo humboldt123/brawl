@@ -1,10 +1,11 @@
-// Local BrawlHeaders shadow: expose the replay timing counter at 0x100.
+// Local BrawlHeaders shadow: expose the video state at 0x0 and the replay timing counter at 0x100.
 #pragma once
 
 #include <StaticAssert.h>
 #include <stddef.h>
 #include <gf/gf_callback.h>
 #include <gf/gf_keep_fb.h>
+#include <gf/gf_video.h>
 #include <types.h>
 
 struct vcBootParam {
@@ -17,7 +18,8 @@ class gfApplication;
 extern gfApplication* g_gfApplication;
 class gfApplication {
 public:
-    u8 unk0[0xD0];
+    gfVideo m_video;
+    u8 unk54[0x7C];
     gfKeepFrameBuffer unkD0;
     u8 unkD1[0x13];
     int m_e4;
@@ -31,7 +33,7 @@ public:
     void* unk10C; // 0x10C HYPOTHESIS: the capture destination (IfSnapSaveTask)
     u8 unk110[0x4];
     gfCallBackList m_114;
-    u8 unk118[0x4];
+    gfCallBackList unk118;
     vcBootParam m_bootParam;
 
     gfApplication();

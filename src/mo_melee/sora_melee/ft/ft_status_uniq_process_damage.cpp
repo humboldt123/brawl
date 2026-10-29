@@ -25,7 +25,7 @@ static inline void applyDriftInput(soModuleAccesser* moduleAccesser, soDamageLog
             drift.m_y = 0.0f;
         }
         float angle = atan2(-damageLog->m_groundTouchNormal.m_x, damageLog->m_groundTouchNormal.m_y);
-        drift.rot(&drift, angle);
+        drift.rot(angle, &drift);
     }
     pos.m_y += drift.m_y;
     pos.m_x += drift.m_x;

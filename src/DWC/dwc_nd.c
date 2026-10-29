@@ -22,3 +22,17 @@ unsigned char lbl_805A1020[0x4] __attribute__((aligned(4))) = { 0 };
 unsigned char lbl_805A1024[0x4] __attribute__((aligned(4))) = { 0 };
 unsigned char lbl_805A1028[0x8] __attribute__((aligned(4))) = { 0 };
 unsigned char lbl_805A1030[0x8] __attribute__((aligned(4))) = { 0 };
+
+// Function bodies below are taken from https://github.com/jj-link/brawl.
+
+extern int DWC_AllocEx(int, int, int);
+
+int DWCi_NdAlloc(int arg0, int arg1) {
+    return DWC_AllocEx(10, arg0, arg1);
+}
+
+void DWC_Free(s32 a, void* b, s32 c);
+
+void DWCi_NdFree(void* arg0) {
+    DWC_Free(0xA, arg0, 0);
+}

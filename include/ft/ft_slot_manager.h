@@ -12,7 +12,10 @@ class ftSlotManager {
 public:
     ftSlot* m_slots;
     u32 m_slotCount;
-    char _0x8[0x538];
+    char _0x8[0x70];
+    u32 m_resId[0x37];
+    u32 m_finalResId[0x37];
+    char _0x230[0x310];
 
     ftSlotManager(int slotCapacity);
     ~ftSlotManager();

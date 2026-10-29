@@ -1,3 +1,4 @@
+#define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_CAPTAIN_ARTICLE_POOLS
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
@@ -16,6 +17,14 @@
 
 #define FT_BC ftCaptainBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// Status teardown destroys its owned change-request queue before observers.
+#pragma dont_inline on
+#ifndef FT_REL_LINK_EXTERN // with FT_REL_LINK_EXTERN the queue destructor is the sora_melee function (ft_dol_instances.h)
+template soArrayVector<s32, 8>::~soArrayVector();
+#endif
+#pragma dont_inline off
+soStatusModuleImpl::~soStatusModuleImpl() { }
 
 ftCaptainExtendParamAccesser g_ftCaptainExtendParamAccesser;
 
@@ -162,8 +171,9 @@ bool ftCaptain::activeArticle(wnCaptainBlueFalcon* weapon, soModuleAccesser* acc
 
 // The background of the Final Smash starts with the team of the fighter.
 bool ftCaptain::activeArticle1(wnCaptainFinalBg* weapon, soModuleAccesser* acc) {
+    int founderTaskId;
     ftResourceIdAccesserImpl& ids = dynamic_cast<ftResourceIdAccesserImpl&>(*acc->getResourceModule().getResourceIdAccesser());
-    int founderTaskId = acc->getStageObject().m_taskId;
+    founderTaskId = acc->getStageObject().m_taskId;
     weapon->activate(founderTaskId, ids.getFinalResId(), acc->getTeamModule().getTeam()->getNo());
     return true;
 }

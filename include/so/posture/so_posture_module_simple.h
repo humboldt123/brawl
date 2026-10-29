@@ -1,5 +1,5 @@
 #pragma once
-// Local BrawlHeaders shadow: restore the evidenced constructor used by article builders.
+// Local BrawlHeaders shadow: restore the evidenced constructor used by article builders and the fields soPostureModuleImpl reads.
 
 #include <StaticAssert.h>
 #include <mt/mt_vector.h>
@@ -13,7 +13,7 @@ struct soEventObserverRegistrationDesc;
 
 class soPostureModule : public soNullable {
 public:
-    virtual ~soPostureModule();
+    virtual ~soPostureModule() { }
     virtual void init(Vec3f* pos, float lr);
     virtual void initPos(Vec3f* pos);
     virtual Vec3f getPos();
@@ -47,22 +47,24 @@ public:
     virtual void setSyncConstraintNode(int);
     virtual void fixConstraintNodePosture(int, void*);
     virtual void fixRot();
+
+    // The offset of a point flipped for the facing lr, turned by rot (radians) and scaled by scl (map name; the enemy
+    // area module has the weak copy).
+    static Vec2f adjustPosOffset(Vec2f offset, float lr, float scl, float rot);
 };
 
 class soPostureModuleSimple : public soPostureModule {
-
+protected:
     soModuleAccesser* m_moduleAccesser;
     Vec3f m_pos;
     Vec3f m_prevPos;
     Vec3f _36;
-    char _48[12];
+    Vec3f _48;
     float m_baseScale;
     float m_lr;
 
 public:
-#ifdef WN_WEAPON_BUILDER
     soPostureModuleSimple(soModuleAccesser*, soArray<soInterpolation<Vec3f> >*, soEventObserverRegistrationDesc*);
-#endif
     virtual ~soPostureModuleSimple();
     virtual void init(Vec3f* pos, float lr);
     virtual void initPos(Vec3f* pos);

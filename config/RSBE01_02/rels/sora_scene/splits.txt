@@ -57,6 +57,147 @@ mo_scene/sora_scene/sc_adv_gameover.cpp:
 	.text       start:0x000207B4 end:0x00020B2C
 	.data       start:0x00006600 end:0x000067E8
 
+mo_scene/sora_scene/sq_menu_main.cpp:
+	.text       start:0x00020D90 end:0x000214A0
+	.data       start:0x000067F0 end:0x00006B90
+
+mo_scene/sora_scene/sq_vs_melee.cpp:
+	.text       start:0x000214A0 end:0x00021E90
+	.data       start:0x00006B90 end:0x00006CA0
+	.bss        start:0x00001798 end:0x000017A0
+
+mo_scene/sora_scene/sq_boot.cpp:
+	.text       start:0x00021E90 end:0x000220E4
+	.data       start:0x00006CA0 end:0x00006D60
+
+mo_scene/sora_scene/sq_title.cpp:
+	.text       start:0x000220E4 end:0x00022C3C
+	.rodata     start:0x000009E0 end:0x000009E8
+	.data       start:0x00006D60 end:0x00006F50
+	.bss        start:0x000017A0 end:0x000018B0
+
+mo_scene/sora_scene/sq_to_melee.cpp:
+	.text       start:0x00022C3C end:0x00023424
+	.data       start:0x00006F50 end:0x00007060
+	.bss        start:0x000018B0 end:0x000018B8
+
+mo_scene/sora_scene/sq_sp_melee.cpp:
+	.text       start:0x00023424 end:0x00024364
+	.rodata     start:0x000009E8 end:0x00000A08
+	.data       start:0x00007060 end:0x00007170
+	.bss        start:0x000018B8 end:0x000018C0
+
+mo_scene/sora_scene/sq_qu_melee.cpp:
+	.text       start:0x00024364 end:0x00024A38
+	.data       start:0x00007170 end:0x00007298
+	.bss        start:0x000018C0 end:0x000018C8
+
+mo_scene/sora_scene/sq_single_simple.cpp:
+	.text       start:0x00024A38 end:0x00027898
+	.rodata     start:0x00000A08 end:0x00000C00
+	.data       start:0x00007298 end:0x00007808
+	.bss        start:0x000018C8 end:0x00001998
+
+mo_scene/sora_scene/sq_single_allstar.cpp:
+	.text       start:0x00027898 end:0x00029304
+	.rodata     start:0x00000C00 end:0x00000D50
+	.data       start:0x00007808 end:0x00007A28
+	.bss        start:0x00001998 end:0x00001A48
+
+mo_scene/sora_scene/sq_single_boss.cpp:
+	.text       start:0x00029304 end:0x0002ACAC
+	.rodata     start:0x00000D50 end:0x00000D70
+	.data       start:0x00007A28 end:0x00007BA0
+
+mo_scene/sora_scene/sq_adventure.cpp:
+	.text       start:0x0002ACAC end:0x00032B28
+	.rodata     start:0x00000D70 end:0x000022D8
+	.data       start:0x00007BA0 end:0x00008000
+	.bss        start:0x00001A48 end:0x00001A60
+
+mo_scene/sora_scene/sq_event.cpp:
+	.text       start:0x00032B28 end:0x000342BC
+	.rodata     start:0x000022D8 end:0x000023E0
+	.data       start:0x00008000 end:0x000085E8
+	.bss        start:0x00001A60 end:0x00001B68
+
+mo_scene/sora_scene/sq_targetbreak.cpp:
+	.text       start:0x000342BC end:0x000349B4
+	.data       start:0x000085E8 end:0x000086D0
+
+mo_scene/sora_scene/sq_homerun.cpp:
+	.text       start:0x000349B4 end:0x000351CC
+	.data       start:0x000086D0 end:0x000087B0
+
+mo_scene/sora_scene/sq_kumite.cpp:
+	.text       start:0x000351CC end:0x00035F14
+	.data       start:0x000087B0 end:0x00008890
+	.bss        start:0x00001B68 end:0x00001B70
+
+mo_scene/sora_scene/sq_training.cpp:
+	.text       start:0x00035F14 end:0x000366E8
+	.data       start:0x00008890 end:0x00008980
+
+mo_scene/sora_scene/sq_edit.cpp:
+	.text       start:0x000366E8 end:0x00036934
+	.data       start:0x00008980 end:0x00008A18
+
+mo_scene/sora_scene/sq_replay.cpp:
+	.text       start:0x00036934 end:0x00036D48
+	.data       start:0x00008A18 end:0x00008AD0
+
+mo_scene/sora_scene/sq_net_any_okiraku.cpp:
+	.text       start:0x00036D48 end:0x000377D0
+	.rodata     start:0x000023E0 end:0x000023E8
+	.data       start:0x00008AD0 end:0x00008C28
+
+mo_scene/sora_scene/sq_net_friend_list.cpp:
+	.text       start:0x000377D0 end:0x00037B8C
+	.data       start:0x00008C28 end:0x00008DA8
+
+mo_scene/sora_scene/sq_net_friend_melee.cpp:
+	.text       start:0x00037B8C end:0x00038A4C
+	.rodata     start:0x000023E8 end:0x00002400
+	.data       start:0x00008DA8 end:0x00008F38
+
+mo_scene/sora_scene/sq_net_friend_kumite.cpp:
+	.text       start:0x00038A4C end:0x0003971C
+	.rodata     start:0x00002400 end:0x00002408
+	.data       start:0x00008F38 end:0x00009068
+
+mo_scene/sora_scene/sq_net_friend_homerun.cpp:
+	.text       start:0x0003971C end:0x0003A360
+	.rodata     start:0x00002408 end:0x00002410
+	.data       start:0x00009068 end:0x00009150
+
+mo_scene/sora_scene/sq_coin_shooter.cpp:
+	.text       start:0x0003A360 end:0x0003A4DC
+	.data       start:0x00009150 end:0x000091F0
+
+mo_scene/sora_scene/sq_prize_check.cpp:
+	.text       start:0x0003A4DC end:0x0003B0E0
+	.rodata     start:0x00002410 end:0x00002478
+	.data       start:0x000091F0 end:0x000095A0
+	.bss        start:0x00001B70 end:0x00001B88
+
+mo_scene/sora_scene/sq_net_any_team_melee.cpp:
+	.text       start:0x0003B6D0 end:0x0003C1A4
+	.rodata     start:0x00002480 end:0x00002488
+	.data       start:0x000097F0 end:0x00009960
+
+mo_scene/sora_scene/sq_net_any_watch.cpp:
+	.text       start:0x0003C1A4 end:0x0003CD50
+	.rodata     start:0x00002488 end:0x0000249C
+	.data       start:0x00009960 end:0x00009A80
+	.bss        start:0x00001B88 end:0x00001C08
+
+mo_scene/sora_scene/sq_button.cpp:
+	.text       start:0x0003CD50 end:0x0003CF6C
+	.data       start:0x00009A80 end:0x00009B70
+
+mo_scene/sora_scene/sq_lib.cpp:
+	.text       start:0x0003D12C end:0x0003D4B8
+
 mo_scene/mo_scene.cpp:
 	.text       start:0x0003D4B8 end:0x0003D588
 	.data       start:0x00009C30 end:0x00009C3D

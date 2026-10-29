@@ -48,6 +48,10 @@ void wnSnakeNikitaMissile::setAutonomy() {
     }
 }
 
+void wnSnakeNikita::notifyArticleEventRemove(int unk1, int* unk2) {
+    StageObject::notifyArticleEventRemove(unk1, unk2);
+}
+
 void wnSnakeNikita::notifyEventLink(soLinkEventArgs* eventInfo,
                                     soModuleAccesser* moduleAccesser,
                                     StageObject* linkedObject, int unk4) {

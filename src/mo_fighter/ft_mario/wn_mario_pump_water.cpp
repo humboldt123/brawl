@@ -7,6 +7,8 @@
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
 #define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_SPLIT_RESULT
+#define MT_VEC3F_ADD_RHS_RESULT_XY_FIRST
 #define MT_VEC2F_PLAIN_BASE
 #define MT_VEC2F_CTOR_NOINLINE
 #define MT_VEC2F_ASSIGN_NOINLINE
@@ -50,12 +52,12 @@ void wnMarioPumpWater::activate(int founderTaskId, int resourceId, int team, Vec
     float random = randf();
     float minimum = m_param->m_minScale;
     float scale = minimum + random * (m_param->m_maxScale - minimum);
-    int life = m_param->m_life;
     Vec3f origin;
     Vec3f displacement;
     Vec3f rotation;
     Vec3fScale(&displacement, direction, 3.0f * scale);
     Vec3fAdd(&origin, position, &displacement);
+    int life = m_param->m_life;
     wnActivateDesc desc;
     desc.founderTaskId = founderTaskId;
     desc.resourceId = resourceId;
@@ -79,12 +81,17 @@ void wnMarioPumpWater::activate(int founderTaskId, int resourceId, int team, Vec
     desc.unk40 = 0;
     desc.unk44 = 0x35F;
     desc.unk48 = 0;
-    desc.flagsHigh = 1;
-    desc.flagsMidHigh = 0;
-    desc.flagsMidLow = 1;
-    desc.flagsLow = 0;
-    desc.unk4DHigh = 0;
-    desc.flagBit4 = 1;
+    desc.flagBit7 = true;
+    desc.flagBit6 = false;
+    desc.flagBit5 = false;
+    desc.flagBit4 = false;
+    desc.flagBit3 = true;
+    desc.flagBit2 = false;
+    desc.flagBit1 = false;
+    desc.flagBit0 = false;
+    desc.flag4DBit7 = false;
+    desc.flag4DBit6 = false;
+    desc.flagBit4 = true;
     Weapon::activate(&desc);
     m_moduleAccesser->getModelModule().setScale(scale);
     m_moduleAccesser->getStatusModule().changeStatusForce(0, m_moduleAccesser);
@@ -112,7 +119,7 @@ void wnMarioPumpWater::activate(int founderTaskId, int resourceId, int team, Vec
     rotation.m_z = angle;
     m_moduleAccesser->getPostureModule().setRot(&rotation, 0);
     updateNodeSRT();
-    float reaction = m_moduleAccesser->getCollisionAttackModule().getReactionAdd(0, false);
+    int reaction = m_moduleAccesser->getCollisionAttackModule().getReactionAdd(0, false);
     int chargedReaction = reaction + (float)m_param->m_chargeReactionAdd * charge;
     m_moduleAccesser->getCollisionAttackModule().setReactionAdd(0, chargedReaction, false);
 }

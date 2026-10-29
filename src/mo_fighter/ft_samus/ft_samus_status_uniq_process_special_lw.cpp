@@ -1,5 +1,6 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/ft_common_data_accesser.h>
+#include <so/item/so_item_manage_module_impl.h>
 #include <ft/ft_kinetic_energy.h>
 #include <ft/ft_kinetic_energy_controller.h>
 #include <ft/samus/ft_samus_status_uniq_process.h>

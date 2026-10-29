@@ -2,6 +2,16 @@
 #define MT_VEC3F_MUL_INLINE
 #include <mu/mu_stage_edit_ui.h>
 #include <math.h>
+#include <gf/gf_scene.h>
+#include <nw4r/g3d/g3d_scngroup.h>
+#include <snd/snd_system.h>
+
+// HYPOTHESIS: the RVL SDK texture-object accessor, which the GX headers do not declare.
+extern "C" void* GXGetTexObjData(const _GXTexObj* texture);
+// HYPOTHESIS: main.dol muCollection::FileHandle constructor, isDropReady and checkLimit (map names).
+extern "C" muCollectionFileName fn_800C3538(const char* names, int index);
+extern "C" int fn_800C39D8(void* collection);
+extern "C" void fn_800C6E2C(void* collection, int media);
 
 // HYPOTHESIS: descriptive table names inferred from the grid readers.
 // Parameter tables indexed by stage size, then zoom level. Their native storage
@@ -272,4 +282,132 @@ void muStageEditUI::setGridScroll(int direction, int clearOpposite) {
     }
     }
     m_scrollState[direction] = state;
+}
+
+s16 muStageEditUI::getSettingDataNum() {
+    return m_settingDataNum;
+}
+
+void muStageEditUI::setStageThumbnail(_GXTexObj* texture) {
+    m_thumbnail->changeMaterialTex("thumbnail_mat", texture);
+    m_thumbnailData = GXGetTexObjData(texture);
+}
+
+muStageEditDataManager::Data* muStageEditDataManager::getDataId(u32 id) {
+    if (!m_loaded) {
+        return NULL;
+    }
+    for (u32 i = 0; i < m_numData; i++) {
+        if (m_data[i].m_id == id) {
+            return &m_data[i];
+        }
+    }
+    return NULL;
+}
+
+muStageEditSelectTask::~muStageEditSelectTask() { }
+
+void muStageEditSelectTask::playBGM() {
+    if ((u32)g_sndSystem->getBGMId() != 0x270F) {
+        g_sndSystem->playBGM(0x270F, 0, true);
+    }
+}
+
+void muStageEditSelectTask::addObjCore(void* obj) {
+    muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
+    nw4r::g3d::ScnGroup* root = static_cast<nw4r::g3d::ScnGroup*>(holder->m_hasScnRoot ? holder->m_scnRoot : NULL);
+    root->Insert(root->sceneItemsCount, static_cast<nw4r::g3d::ScnObj*>(obj));
+}
+
+void muStageEditSelectTask::removeObjCore(void* obj) {
+    muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
+    nw4r::g3d::ScnGroup* root = static_cast<nw4r::g3d::ScnGroup*>(holder->m_hasScnRoot ? holder->m_scnRoot : NULL);
+    root->Remove(static_cast<nw4r::g3d::ScnObj*>(obj));
+}
+
+void* muStageEditSelectTask::getScnRoot() {
+    muCollectionSceneHolder* holder = *getWork()->m_scene->m_holder;
+    if (holder->m_hasScnRoot) {
+        return holder->m_scnRoot;
+    }
+    return NULL;
+}
+
+void muStageEditSelectTask::controlExit() {
+    if (fn_800C39D8(m_work->m_collection)) {
+        int exitMode = getWork()->m_exitMode;
+        gfSceneManager* manager = gfSceneManager::getInstance();
+        manager->unk1 = exitMode;
+        manager->processStep = 2;
+    }
+}
+
+void muStageEditSelectTask::controlLoadFinish() {
+    m_work->m_exitRequest = 1;
+}
+
+void muStageEditSelectTask::onLoadFailed() {
+    removeObjCore(m_work->m_objs[30]->m_sceneModel);
+}
+
+int muStageEditSelectTask::getNumPic(int media) {
+    return m_work->m_media[media].m_numPic;
+}
+
+muCollectionFileName muStageEditSelectTask::getFileHandle(int index) {
+    return fn_800C3538(m_work->m_media[m_work->m_curMedia].m_names, index);
+}
+
+void muStageEditSelectTask::controlPopUpCheckStart() {
+    muStageEditCollection* collection = static_cast<muStageEditCollection*>(m_work->m_collection);
+    if (collection->unk350 == 0) {
+        fn_800C6E2C(collection, getWork()->m_curMedia);
+        m_work->m_state = 0x1A;
+    }
+}
+
+void muStageEditSelectTask::controlPopUpChecking() {
+    muStageEditCollection* collection = static_cast<muStageEditCollection*>(m_work->m_collection);
+    if (collection->unk350 == 0) {
+        if (collection->unk354 != 0) {
+            getWork()->m_exitMode = -1;
+            m_work->m_state = getWork()->m_unk1D48;
+        } else if (showNoFreeBlock() == 0) {
+            m_work->m_state = getWork()->m_unk1D44;
+        }
+    }
+}
+
+void muStageEditSelectTask::controlNewDataExit() {
+    if (m_work->m_objs[26]->isNodeAnimFinished()) {
+        removeObjCore(m_work->m_objs[37]);
+        if (getWork()->m_exitMode < 0) {
+            m_work->m_state = 0;
+        } else {
+            m_work->m_exitRequest = 1;
+        }
+    }
+}
+
+void muStageEditSelectTask::cancelAndExit() {
+    getWork()->m_exitMode = 3;
+    m_work->m_exitRequest = 1;
+}
+
+void muStageEditSelectTask::erasePreviewCore() {
+    removeObjCore(m_work->m_objs[36]);
+}
+
+bool muStageEditSelectTask::preLoad() {
+    return true;
+}
+
+void muStageEditSelectTask::controlNewDataChecking() { }
+
+void muStageEditSelectTask::controlBrowsingLoading() { }
+
+void muStageEditSelectTask::controlBrowsing() { }
+
+int muStageEditSelectTask::dispThumbnail(MuObject* object, void* summary) {
+    return 0;
 }

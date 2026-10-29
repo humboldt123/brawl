@@ -33,13 +33,9 @@ void wnDiddyBarrelKineticTransactor::addSpeedOutside(
         brake.m_x = paramAccesser->getParamFloat(moduleAccesser, 0xFA9, 0);
         if (lbl_115_rodata_E8 != delta.m_x || lbl_115_rodata_E8 != delta.m_y) {
             volatile u8 unkA = 0; // MATCH-ONLY: native clears this unused local byte before the pool updates.
-            // HYPOTHESIS: native treats these unknown pool words as floats.
-            float* unk120 = reinterpret_cast<float*>(poolBytes + 0x120);
-            float* unk124 = reinterpret_cast<float*>(poolBytes + 0x124);
-            float* unk128 = reinterpret_cast<float*>(poolBytes + 0x128);
-            *unk120 += delta.m_x;
-            *unk124 += delta.m_y;
-            *unk128 = paramAccesser->getParamFloat(moduleAccesser, 0xFA8, 0);
+            wind->m_windSpeed.m_x += delta.m_x;
+            wind->m_windSpeed.m_y += delta.m_y;
+            wind->m_responseRetention = paramAccesser->getParamFloat(moduleAccesser, 0xFA8, 0);
             wind->m_brake = brake;
             wind->enable();
         }

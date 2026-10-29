@@ -251,3 +251,11 @@ void DWC_ProcessFriendsMatch(void) {
         lbl_805A0F88->match.unknown2C = 0;
     }
 }
+
+// Function bodies below are taken from https://github.com/jj-link/brawl.
+
+extern u8 *fn_80374C28(void *);
+
+u8 fn_8033AC84(void *p) {
+    return fn_80374C28(p)[1];
+}

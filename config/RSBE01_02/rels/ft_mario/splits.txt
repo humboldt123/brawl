@@ -34,12 +34,15 @@ mo_fighter/ft_mario/ft_mario_status_uniq_process_special_lw_shoot.cpp:
 mo_fighter/ft_mario/ft_mario_status_uniq_process_special_s.cpp:
 	.text       start:0x0000E3C4 end:0x0000E8B4
 	.ctors      start:0x0000000C end:0x00000010
-	.rodata     start:0x00000028 end:0x00000040
+	.rodata     start:0x00000028 end:0x00000030
 	.data       start:0x00007828 end:0x000078E8
 	.bss        start:0x000001F8 end:0x00000208
 
 mo_fighter/ft_mario/wn_mario_mantle.cpp:
 	.text       start:0x0000E8B4 end:0x000105E0
+	.rodata     start:0x00000030 end:0x00000038
+	.data       start:0x000078E8 end:0x000080A0
+	.bss        start:0x00000208 end:0x000002C4
 
 mo_fighter/ft_mario/wn_mario_pump.cpp:
 	.text       start:0x000105E0 end:0x000142CC
@@ -53,6 +56,9 @@ mo_fighter/ft_mario/wn_mario_pump_status_uniq_process_shoot.cpp:
 
 mo_fighter/ft_mario/wn_mario_pump_water.cpp:
 	.text       start:0x0001452C end:0x00016C80
+	.rodata     start:0x00000058 end:0x00000080
+	.data       start:0x00009378 end:0x000099C0
+	.bss        start:0x00000340 end:0x00000398
 
 mo_fighter/ft_mario/wn_mario_pump_water_status_uniq_process_regular.cpp:
 	.text       start:0x00016C80 end:0x00016DEC
@@ -63,6 +69,9 @@ mo_fighter/ft_mario/wn_mario_pump_water_status_uniq_process_regular.cpp:
 
 mo_fighter/ft_mario/wn_mario_huge_flame.cpp:
 	.text       start:0x00016DEC end:0x00019088
+	.rodata     start:0x00000088 end:0x00000098
+	.data       start:0x00009A40 end:0x00009FE8
+	.bss        start:0x000003A8 end:0x00000400
 
 mo_fighter/ft_mario/wn_mario_huge_flame_status_uniq_process_regular.cpp:
 	.text       start:0x00019088 end:0x000194DC

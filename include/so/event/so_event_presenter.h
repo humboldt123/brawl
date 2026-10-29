@@ -39,8 +39,9 @@ public:
     s32 getUnitId() const { return m_unitID; }
     s32 getManageId() const { return m_manageID; }
 
-#ifdef EM_ENEMY_BUILDER
-    // MATCH-ONLY: the Enemy unit calls the sora_melee copies of the constructor and of initialize.
+#if defined(EM_ENEMY_BUILDER) || defined(SO_EVENT_OBSERVER_CTOR_EXTERN)
+    // MATCH-ONLY: the Enemy unit calls the sora_melee copies of the constructor and of initialize (as does the enemy AI
+    // unit, which opts in with SO_EVENT_OBSERVER_CTOR_EXTERN).
     soEventObserver(s16 unitID);
 #else
     soEventObserver(s16 unitID) {
@@ -61,8 +62,10 @@ public:
         m_manageID = -1;
     }
 
-#ifdef FT_MODULE_BUILDER
-    ~soEventObserver(); // MATCH-ONLY: the fighter RELs call the sora_melee instance
+#if defined(FT_MODULE_BUILDER) || defined(SO_EVENT_OBSERVER_DTOR_EXTERN)
+    // MATCH-ONLY: the fighter RELs (and the enemy turn module unit, SO_EVENT_OBSERVER_DTOR_EXTERN) call the sora_melee
+    // instance; an inline body would also emit weak copies of the template's vtable and addObserver.
+    ~soEventObserver();
 #else
     ~soEventObserver() {
         removeObserver(m_manageID);
@@ -72,7 +75,7 @@ public:
     // doldecomp/brawl #152: the team module registers itself by reference.
     void addObserverSub(s32 manageId, T& obsvr, s8 p3) { addObserverSub(manageId, &obsvr, p3); }
 
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(SO_EVENT_OBSERVER_ADD_SUB_EXTERN)
     void addObserverSub(s32 manageId, T* obsvr, s8 p3); // MATCH-ONLY: a call into sora_melee in the fighter RELs
 #else
     void addObserverSub(s32 manageId, T* obsvr, s8 p3) {
@@ -163,7 +166,7 @@ public:
     }
 #endif
 
-#ifdef EM_ENEMY_BUILDER
+#if defined(EM_ENEMY_BUILDER) || defined(SO_EVENT_OBSERVER_CTOR_EXTERN)
     void initialize(s16 param1, s8 param2);
 #else
     void initialize(s16 param1, s8 param2) {

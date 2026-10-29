@@ -61,7 +61,7 @@ void wnYoshiFireCannon::activate(int founderTaskId, int resourceId, int team, co
     kinetic.changeKinetic(2, m_moduleAccesser);
     wnKineticEnergyNormal& normal = dynamic_cast<wnKineticEnergyNormal&>(*kinetic.getEnergy(0));
     Vec2f direction(1.0f, 0.0f);
-    direction.rot(&direction, 0.017453292f * angle);
+    direction.rot(0.017453292f * angle, &direction);
     Vec2f speed = direction * m_param->unk0;
     speed.m_x *= lr;
     normal.m_speed = speed;

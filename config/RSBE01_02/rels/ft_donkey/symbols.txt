@@ -697,7 +697,7 @@ deactivateDescendantForce__63wnWeaponBuilder<44wnDonkeyBarrelCongaModuleAccesser
 @100@notifyEventChangeStatus__6WeaponFiiP12soStatusDataP16soModuleAccesser = .text:0x00012CC8; // type:function size:0x8
 @112@notifyEventCollisionAttackCheck__6WeaponFUl = .text:0x00012CD0; // type:function size:0x8
 @112@notifyEventCollisionAttack__6WeaponFfP14soCollisionLogP16soModuleAccesser = .text:0x00012CD8; // type:function size:0x8
-@124@notifyEventCollisionHit2nd__6WeaponFffP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserb = .text:0x00012CE0; // type:function size:0x8
+@124@notifyEventCollisionHit2nd__6WeaponFP23soCollisionAttackModuleP14soCollisionLogUlffP16soModuleAccesserb = .text:0x00012CE0; // type:function size:0x8
 @124@notifyEventCollisionHit__6WeaponFfP21soCollisionAttackDataUliP16soModuleAccesserP14soCollisionLog = .text:0x00012CE8; // type:function size:0x8
 @144@__dt__19wnDonkeyBarrelCongaFv = .text:0x00012CF0; // type:function size:0x8
 @136@setAttackPowerMulPattern__6WeaponFf = .text:0x00012CF8; // type:function size:0x8

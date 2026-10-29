@@ -57,4 +57,5 @@ private:
 public:
     wnPopoIceBergWind(s32 articleId, const wnArticleBuildInfo& info, const wnPopoIceBergWindData* data);
     virtual ~wnPopoIceBergWind() { }
+    virtual bool notifyEventCollisionAttackCheck(u32 flags);
 };

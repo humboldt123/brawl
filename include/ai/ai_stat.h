@@ -8,6 +8,7 @@
 // One CPU character's view of the match (position, speed, floor, transition flags); 0x1C4 bytes, one per aiChrIdx.
 // HYPOTHESIS: only the offsets used so far are named, the rest is still unknown.
 class aiEnemy;
+struct aiJumpPar;
 
 class aiStat {
 public:
@@ -63,6 +64,7 @@ public:
     bool chk_transition(u32 mask);
     bool chk_chr_stat(u32 mask, int chrKind);
     int chk_over_ground1(aiChrIdx* target);
+    u32 chk_over_ground(Vec3f* pos); // HYPOTHESIS: the position is passed straight to aiMgr::get_under_floor
     bool chk_near_deadarea();
     Vec2f getNearFloorEdge();
     bool chk_stat_fpass();
@@ -76,6 +78,7 @@ public:
     float get_range(float scale, aiChrIdx* target);
     float get_distance(float scale, aiChrIdx* target);
     float get_range_floor(float scale, Vec3f* pos);
+    bool chkEnableAway(aiJumpPar* par); // HYPOTHESIS: the jump parameters handed to aiParam::get_jump_high/length
     bool chkDangerZoneAway();
 
     float calcArraiveFrameX(float dist);

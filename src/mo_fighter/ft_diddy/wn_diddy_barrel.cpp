@@ -98,7 +98,7 @@ void wnDiddyBarrelStatusUniqProcess::execStatus(soModuleAccesser* moduleAccesser
     }
 
     Vec2f rotated(0.0f, magnitude);
-    rotated.rot(&rotated, (360.0f - angle) * 0.01745329238f);
+    rotated.rot((360.0f - angle) * 0.01745329238f, &rotated);
     normal.m_speed.m_x = rotated.m_x;
     normal.m_speed.m_y = 0.0f;
     gravity.m_speedY = rotated.m_y;

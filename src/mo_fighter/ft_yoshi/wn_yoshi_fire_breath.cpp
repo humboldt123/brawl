@@ -65,7 +65,7 @@ void wnYoshiFireBreath::activate(int founderTaskId, int team, const Vec3f* posit
     Vec2f direction;
     direction.m_x = 1.0f;
     direction.m_y = 0.0f;
-    direction.rot(&direction, 0.017453292f * angle);
+    direction.rot(0.017453292f * angle, &direction);
     float speedScale = m_param->unk0;
     Vec2f speed = direction * speedScale;
     speed.m_x *= lr;

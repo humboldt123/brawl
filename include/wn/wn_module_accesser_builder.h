@@ -276,9 +276,7 @@ WN_DOL_INSTANCE_MANAGER(wnKineticEnergyPtr, 2);
 FT_DOL_POLY_BEGIN(soReflectModuleImpl, 0x40);
     soReflectModuleImpl(soModuleAccesser* acc, int kind);
 FT_DOL_POLY_END;
-FT_DOL_POLY_BEGIN(soGlowModuleSimple, 0x1C);
-    soGlowModuleSimple(soModuleAccesser* acc);
-FT_DOL_POLY_END;
+#include <so/glow/so_glow_module_simple.h>
 FT_DOL_POLY_BEGIN(soShakeModuleSimple, 0x8);
     soShakeModuleSimple(soModuleAccesser* acc, soArray<soShakeTerm>* terms, void* shakeData);
 FT_DOL_POLY_END;
@@ -307,7 +305,7 @@ extern char lbl_27_bss_598[];  // area
 extern char lbl_27_bss_5EC[];  // physics
 extern char lbl_27_bss_604[];  // slope
 extern char lbl_27_bss_614[];  // shadow
-extern char lbl_27_bss_628[];  // item manage
+extern char g_soItemManageModuleNull[];  // item manage
 extern char lbl_27_bss_640[];  // color blend
 extern char lbl_27_bss_654[];  // jostle
 extern char lbl_27_bss_66C[];  // abnormal
@@ -575,7 +573,7 @@ template <>
 class soItemManageModuleBuilder<soItemManageModuleBuildConfigNull> {
 public:
     soItemManageModuleBuilder(soModuleAccesser*, void*) { }
-    soItemManageModule* getModule() { return (soItemManageModule*)lbl_27_bss_628; }
+    soItemManageModule* getModule() { return (soItemManageModule*)g_soItemManageModuleNull; }
 };
 template <>
 class soColorBlendModuleBuilder<soColorBlendModuleBuildConfigNull> {
@@ -652,6 +650,15 @@ class soStopModuleBuilder<soStopModuleBuildConfigNull> {
 public:
     soStopModuleBuilder(soModuleAccesser*) { }
     soStopModule* getModule() { return (soStopModule*)lbl_27_bss_414; }
+};
+// The shared null sound module of the articles that own none (Ivysaur's vine).
+extern u8 lbl_27_bss_444[];
+struct soSoundModuleBuildConfigNull { };
+template <>
+class soSoundModuleBuilder<soSoundModuleBuildConfigNull> {
+public:
+    soSoundModuleBuilder(soModuleAccesser*, soSoundIdExchanger*, soEventObserverRegistrationDesc*) { }
+    soSoundModule* getModule() { return (soSoundModule*)lbl_27_bss_444; }
 };
 template <>
 class soAbnormalModuleBuilder<soAbnormalModuleBuildConfigNull> {

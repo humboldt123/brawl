@@ -1803,7 +1803,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub16(void* pools, soModuleAc
     }
     float angle = acc->getWorkManageModule().getFloat(0x21000000);
     if (angle != 0.0f) {
-        launch.rot(&launch, -angle);
+        launch.rot(-angle, &launch);
         if (launch.m_x * acc->getPostureModule().getLr() < 0.0f) {
             launch.m_x = 0.0f;
         }

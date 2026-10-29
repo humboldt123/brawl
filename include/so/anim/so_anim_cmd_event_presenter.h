@@ -30,6 +30,18 @@ public:
 };
 #endif
 
+// SO_ANIM_CMD_EVENT_OBSERVER_PURE (the enemy damage unit): isObserv and notifyEventAnimCmd are pure and addObserver is
+// inline, as in the original, whose weak copy of this vtable holds 0 in those two slots. Every observer class whose
+// definition such a unit sees must then override both with the observer's own third argument. The original has one
+// type for it everywhere; our headers still say int (WN_ARTICLE_ANIMCMD_INT units) or s32 (int and long give the same
+// code, only the mangled names differ). The s32 declarations of the classes em/enemy.h embeds use soAnimCmdEventS32,
+// which is s32 except in a pure-observer unit, so no other unit's names change.
+#ifdef SO_ANIM_CMD_EVENT_OBSERVER_PURE
+typedef int soAnimCmdEventS32;
+#else
+typedef s32 soAnimCmdEventS32;
+#endif
+
 class soAnimCmdEventObserver : public soEventObserver<soAnimCmdEventObserver> {
 public:
     soAnimCmdEventObserver(short unitID) : soEventObserver<soAnimCmdEventObserver>(unitID) {};
@@ -39,13 +51,19 @@ public:
     // HYPOTHESIS: constructor that also registers with the given manager (seen in soControllerModuleImpl ctor).
     soAnimCmdEventObserver(s16 unitID, s16 manageID) : soEventObserver<soAnimCmdEventObserver>(unitID) { addObserver(manageID, -1); }
 
-#if defined(FT_MODULE_BUILDER) || defined(YK_STAGE_FULL) || defined(SO_EVENT_OBSERVER_INLINE)
+#if defined(FT_MODULE_BUILDER) || defined(YK_STAGE_FULL) || defined(SO_EVENT_OBSERVER_INLINE) || defined(SO_ANIM_CMD_EVENT_OBSERVER_PURE)
     virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // MATCH-ONLY: inline in the REL
 #else
     virtual void addObserver(short param1, s8 param2);
 #endif
+#ifdef SO_ANIM_CMD_EVENT_OBSERVER_PURE
+    virtual bool isObserv(char unk1) = 0;
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, int unk3) = 0;
+#else
     virtual bool isObserv(char unk1);
-#ifdef WN_ARTICLE_ANIMCMD_INT
+#endif
+#if defined(SO_ANIM_CMD_EVENT_OBSERVER_PURE)
+#elif defined(WN_ARTICLE_ANIMCMD_INT)
     // The article tables share this callback with Weapon's int-index method.
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, int unk3);
 #else

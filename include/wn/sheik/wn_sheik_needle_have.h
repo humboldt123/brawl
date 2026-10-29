@@ -15,5 +15,7 @@ public:
     // The body lives in the module blob; declared so the class info createArray can construct articles.
     wnSheikNeedleHave(s32 articleId, const wnArticleBuildInfo& info, const wnSheikNeedleHaveData* data);
     virtual ~wnSheikNeedleHave();
+    // HYPOTHESIS: parameter names; the transactor passes the founder, resource and team as for the Pit arrow.
+    void activate(int founderTaskId, int resourceId, int team);
 };
 static_assert(sizeof(wnSheikNeedleHave) == 0x17F4, "Sheik held needle article extent");

@@ -1,4 +1,5 @@
 // SHADOW of BrawlHeaders/so/color/so_color_blend_module_impl.h: identical except for the FT_MODULE_BUILDER-guarded constructor declaration
+// and isEnableSubColor returning bool (soLinkModuleImpl::isParentEnableSubColor returns its result unconverted).
 #pragma once
 
 #include <StaticAssert.h>
@@ -31,7 +32,7 @@ public:
     virtual void offLight(bool) = 0;                                     // 0x40
     virtual void setPri(u32, bool) = 0;                                  // 0x44
     virtual void setSubColor(GXColor color, char enabled) = 0;           // 0x48
-    virtual char isEnableSubColor() = 0;                                 // 0x4C
+    virtual bool isEnableSubColor() = 0;                                 // 0x4C
     virtual GXColor getSubColor() = 0;                                   // 0x50
     virtual soColorBlend *getColorBlend() = 0;                                    // 0x54
     virtual s8 getLightSet() = 0;                                      // 0x58
@@ -77,7 +78,7 @@ public:
     virtual void offLight(bool);
     virtual void setPri(u32, bool);
     virtual void setSubColor(GXColor color, char enabled);
-    virtual char isEnableSubColor();
+    virtual bool isEnableSubColor();
     virtual GXColor getSubColor();
     virtual soColorBlend *getColorBlend();
     virtual s8 getLightSet();
@@ -106,7 +107,7 @@ class soColorBlendModuleNull: public soColorBlendModule {
     virtual void offLight(bool);
     virtual void setPri();
     virtual void setSubColor(GXColor color, char enabled);
-    virtual char isEnableSubColor();
+    virtual bool isEnableSubColor();
     virtual GXColor getSubColor();
     virtual soColorBlend *getColorBlend();
     virtual s8 getLightSet();

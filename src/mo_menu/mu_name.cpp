@@ -1327,11 +1327,21 @@ static inline nw4r::g3d::ScnObj* scnObjOf(nw4r::g3d::ScnMdl* mdl) {
         }                                                                                                                     \
     } while (0)
 
+// The merged status of all the pads, returned by value (the steps keep a copy of the whole status).
+static inline gfPadStatus getAllSysPadStatus() {
+    gfPadStatus status;
+    g_gfPadSystem->getSysPadStatus(GF_PAD_SYSTEM_GET_ALL_PADS, &status);
+    return status;
+}
+
 // Takes the models of the Wii Remote part off the scene.
 static void detachRemoteModels(muNameTask* task) {
     nw4r::g3d::ScnGroup* models = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
     while (models->sceneItemsCount != 0) {
-        models->Remove(static_cast<u32>(models->sceneItemsCount - 1));
+        // HYPOTHESIS: an inline "remove the last item" helper that checks for an empty group itself.
+        if (models->sceneItemsCount != 0) {
+            models->Remove(static_cast<u32>(models->sceneItemsCount - 1));
+        }
     }
     task->m_scnGroup->Remove(scnObjOf(task->m_scnMdls[2]));
 }
@@ -1635,13 +1645,15 @@ static int compareNameSlots(const void* a, const void* b) {
     if (nameB == -2) {
         return -1;
     }
-    char* dataA = static_cast<char*>(fn_8004D138(g_GameGlobal, nameA));
-    char* dataB = static_cast<char*>(fn_8004D138(g_GameGlobal, nameB));
+    GameGlobal* global = g_GameGlobal;
+    char* dataA = static_cast<char*>(fn_8004D138(global, nameA));
+    char* dataB = static_cast<char*>(fn_8004D138(global, nameB));
+    int result = nameA - nameB;
     int diff = *reinterpret_cast<int*>(dataB + 0xF0) - *reinterpret_cast<int*>(dataA + 0xF0);
-    if (diff == 0) {
-        return nameA - nameB;
+    if (diff != 0) {
+        result = diff;
     }
-    return diff;
+    return result;
 }
 
 // Makes the list of the names: the line of the new name and then a line for each name that was saved (a blank line is added when
@@ -1721,10 +1733,8 @@ void muNameTask::deleteName(int index) {
 // The number of the name that the cursor is on (-1: the line of the new name).
 int muNameTask::getCurNameIndex() {
     int id = m_slots[m_scroll + m_cursor].m_nameNo;
-    int result = -1;
-    if (id != -2 && id != -1) {
-        result = id;
-    }
+    // -1 (new name) and -2 (end of the list) are not names; the test is one unsigned range check.
+    int result = (u16)(id + 2) > 1 ? id : -1;
     if (result == -1) {
         return -1;
     }
@@ -2266,7 +2276,7 @@ void muNameTask::mainStepRemoteSimpleSyncStopInit(muNameTask* task) {
 }
 
 int muNameTask::mainStepRemoteSimpleSyncStopMain(muNameTask* task) {
-    if ((*(reinterpret_cast<u8*>(g_gfPadSystem) + 0x34) & 0x40) == 0) {
+    if (!g_gfPadSystem->m_flags34.f6) { // the simple sync callback has not fired yet
         return task->m_step;
     }
     if (task->m_remotePadNo >= 4) {
@@ -2375,8 +2385,7 @@ void muNameTask::mainStepRemoteNoNameInit(muNameTask* task) {
 
 // Tells that the Wii Remote has no name; the player can go back after half a second.
 int muNameTask::mainStepRemoteNoNameMain(muNameTask* task) {
-    gfPadStatus pad;
-    g_gfPadSystem->getSysPadStatus(GF_PAD_SYSTEM_GET_ALL_PADS, &pad);
+    gfPadStatus pad = getAllSysPadStatus();
     if (--task->m_timer >= 0) {
         return task->m_step;
     }
@@ -2598,8 +2607,7 @@ void muNameTask::mainStepRemoteRestoreCompleteInit(muNameTask* task) {
 
 // Waits half a second and then for a button.
 int muNameTask::mainStepRemoteRestoreCompleteMain(muNameTask* task) {
-    gfPadStatus pad;
-    g_gfPadSystem->getSysPadStatus(GF_PAD_SYSTEM_GET_ALL_PADS, &pad);
+    gfPadStatus pad = getAllSysPadStatus();
     if (--task->m_timer >= 0) {
         return task->m_step;
     }
@@ -2614,7 +2622,7 @@ int muNameTask::mainStepRemoteRestoreCompleteMain(muNameTask* task) {
 
 // Asks whether the name on the Wii Remote can be overwritten (when it has one).
 void muNameTask::mainStepRemoteStoreOverwriteConfirmInit(muNameTask* task) {
-    task->m_wnd = openNoticeWnd(task, 1, 2 - (task->m_remoteResult == 0 ? 1 : 0));
+    task->m_wnd = openNoticeWnd(task, 1, task->m_remoteResult == 0 ? 1 : 2);
 }
 
 int muNameTask::mainStepRemoteStoreOverwriteConfirmMain(muNameTask* task) {
@@ -2653,10 +2661,11 @@ int muNameTask::mainStepRemoteStoreWriteMain(muNameTask* task) {
         return task->m_step;
     }
     task->m_returnCallback.m_canReturn = true;
+    int next = Step_RemoteStoreComplete;
     if (result == 6) {
-        return Step_RemoteWriteError;
+        next = Step_RemoteWriteError;
     }
-    return Step_RemoteStoreComplete;
+    return next;
 }
 
 void muNameTask::mainStepRemoteWriteErrorInit(muNameTask* task) {
@@ -2696,8 +2705,7 @@ void muNameTask::mainStepRemoteStoreCompleteInit(muNameTask* task) {
 }
 
 int muNameTask::mainStepRemoteStoreCompleteMain(muNameTask* task) {
-    gfPadStatus pad;
-    g_gfPadSystem->getSysPadStatus(GF_PAD_SYSTEM_GET_ALL_PADS, &pad);
+    gfPadStatus pad = getAllSysPadStatus();
     if (--task->m_timer >= 0) {
         return task->m_step;
     }

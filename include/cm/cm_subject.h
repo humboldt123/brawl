@@ -13,8 +13,19 @@ public:
     // HYPOTHESIS: the stages switch these on and off (1 while the subject is out of the camera's reach).
     u32 m_state : 3;
     u32 m_stateB : 3;
-    u32 _8_rest : 26;
-    char _12[4];
+    // soCameraSubject setAdvPri/setPlayerNo and soCameraModuleImpl setDamageFly/setRun write these bits.
+    u32 m_advPri : 3;
+    // HYPOTHESIS: the player number that getSubjectByPlayerNo and the camera controllers compare.
+    u32 m_playerNo : 3;
+    u32 _8_bit12 : 4;
+    u32 m_isDamageFly : 1;
+    u32 _8_bit17 : 1;
+    // HYPOTHESIS: set while registered (soCameraSubject::unRegist only unregisters when it is set).
+    u32 m_isRegist : 1;
+    u32 m_isRun : 1;
+    u32 _8_rest : 12;
+    char _12[2];
+    s16 m_damage;
     Vec3f m_pos;
     char _28[16];
     Rect2D m_range;

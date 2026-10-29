@@ -18,14 +18,29 @@ struct soCollisionAttackAbsoluteData {
     float m_slipChance;
     float m_hitStopFrame;
     float m_hitStopDelay;
-    // The flags of the absolute attack; only the fields Enemy::processFixPositionPreAnimCmd writes are split out.
-    u32 unk20_0 : 7;
-    u32 unk20_7 : 5;
-    u32 unk20_12 : 3;
-    u32 unk20_15 : 1;
-    u32 unk20_16 : 1;
-    u32 unk20_17 : 6;
-    u32 : 9;
+    union {
+        // The flags of the absolute attack; only the fields Enemy::processFixPositionPreAnimCmd writes are split out.
+        struct {
+            u32 unk20_0 : 7;
+            u32 unk20_7 : 5;
+            u32 unk20_12 : 3;
+            u32 unk20_15 : 1;
+            u32 unk20_16 : 1;
+            u32 unk20_17 : 6;
+            u32 : 9;
+        };
+        // HYPOTHESIS: names of the soCollisionAttackData flags that the Metaknight Final statuses copy into these bits.
+        struct {
+            u32 m_attribute : 5;
+            u32 m_soundLevel : 2;
+            u32 m_soundAttribute : 5;
+            u32 m_lrCheck : 3;
+            u32 m_noHitStop : 1;
+            u32 m_noEffect : 1;
+            u32 : 6;
+            u32 : 9;
+        };
+    };
 };
 
 struct soCollisionAttackData {
@@ -181,6 +196,9 @@ struct soCollisionAttackData {
     float m_slipChance;       // trip chance
     float m_hitStopFrame;  // hitstop multiplier
     float m_hitStopDelay;  // sdi multiplier
+// Opt-in (the enemy damage unit): the bitfields are plain members, without the union and its unnamed twin. A copy of the
+// attack data then moves the four bitfield words one by one, as emDamageModuleImpl::reqCommonEffect's original does.
+#ifndef SO_COLLISION_ATTACK_DATA_PLAIN_BITFIELDS
     union {
         struct {
             unsigned int : 9;    // up to 0x1ff
@@ -229,14 +247,26 @@ struct soCollisionAttackData {
         };
 
         struct {
+#endif
             unsigned int m_nodeIndex : 9;                     // up to 0x1ff
             soCollision::CategoryMask m_targetCategory : 10;            // up to 0x3ff;
             soCollision::SituationMask m_targetSituation : 3;            // up to 0x7
             bool m_targetLr : 1;                          // up to 0x1 // unused in vBrawl?
             soCollision::PartMask m_targetPart : 4;                 // up to 0xf
+#ifdef SO_COLLISION_ATTACK_DATA_WORD_FIELDS
+            // MATCH-ONLY (opt-in, the enemy hit and attack module units): read unsigned from the word, as those units' originals do.
+            u32 m_attribute : 5;
+#else
             Attribute m_attribute : 5;     // up to 0x1f
+#endif
+#ifdef SO_COLLISION_ATTACK_DATA_SOUND_WORD_FIELDS
+            // MATCH-ONLY (opt-in, the so sound module unit): read unsigned from the word, as that unit's original does.
+            u32 m_soundLevel : 2;
+            u32 m_soundAttribute : 5;
+#else
             SoundLevel m_soundLevel : 2; // up to 0x3
             SoundAttribute m_soundAttribute : 5;   // up to 0x1f
+#endif
             SetOffKind m_setOffKind : 2; // up to 0x3
             bool m_noScale : 1;
             bool m_isShieldable : 1;
@@ -245,21 +275,36 @@ struct soCollisionAttackData {
             unsigned int m_subShield : 9; // up to 0x1ff added shield damage
             unsigned int field_0x34_9 : 10;     // ~up to 0x3ff
             unsigned int m_serialHitFrame : 16;    // up to 0xffff detectionRate
+#ifdef SO_COLLISION_ATTACK_DATA_WORD_FIELDS
+            u32 m_isDirect : 1;
+#else
             bool m_isDirect : 1;
+#endif
+#ifdef SO_COLLISION_ATTACK_DATA_WORD_FIELDS
+            u32 m_isInvalidInvincible : 1;
+            u32 m_isInvalidXlu : 1;
+#else
             bool m_isInvalidInvincible : 1;   // ignore invincibility
             bool m_isInvalidXlu : 1; // ignore intangibility
+#endif
             LrCheck m_lrCheck : 3; // up to 0x7
             bool m_isCatch : 1;  // only affect grabbed opponent
             bool m_noTeam : 1;    // friendly fire
             bool m_noHitStop : 1;    // no hitlag
             bool m_noEffect : 1; // disable gfx on hit
+#ifdef SO_COLLISION_ATTACK_DATA_WORD_FIELDS
+            u32 m_noTransaction : 1; // flinchless (the enemy damage unit reads it from the word)
+#else
             bool m_noTransaction : 1; // flinchless
+#endif
             Region m_region : 5; // up to 0x1f;
             soCollision::ShapeType m_shapeType : 1;
             bool m_isDeath100 : 1; // custom
             unsigned int field_0x3c_2 : 30; // ~up to 0x3fffffff
+#ifndef SO_COLLISION_ATTACK_DATA_PLAIN_BITFIELDS
         };
     };
+#endif
 
     // MATCH-ONLY: same default initialization, with the 1.0f value supplied
     // from the caller's original constant pool.
@@ -376,6 +421,8 @@ struct soCollisionAttackAbsolute {
 };
 
 class soCollisionAttackPart {
+    friend class soCollisionAttackModuleImpl;
+
     enum Status {
         Status_Inactive = 0x0,
         Status_Set = 0x1,
@@ -400,5 +447,8 @@ public:
 #endif
     soCollisionAttackPart(soCollision::Category, bool);
     ~soCollisionAttackPart();
+    void reset();
+    void resetStatus();
+    void setTargetCategory(soCollision::CategoryMask categoryMask);
 };
 static_assert(sizeof(soCollisionAttackPart) == 0x90, "Class is wrong size!");

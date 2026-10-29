@@ -122,7 +122,7 @@ void ftKirbyStatusUniqProcessFinalCutterJump::execStatus(soModuleAccesser* modul
         if (speedY > 0.0f) {
             scale = extend->unk8[0];
         }
-        motion.unk40 = scale;
+        motion.m_speedMul = scale;
     }
 }
 

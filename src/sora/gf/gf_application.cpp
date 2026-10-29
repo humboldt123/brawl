@@ -14,8 +14,6 @@ void VISetBlack(BOOL black);
 void VIFlush();
 void VIWaitForRetrace();
 void fn_801FF1AC();
-// HYPOTHESIS: fn_8003820C takes the object and a -1 mode argument
-void fn_8003820C(gfApplication* self, s32 arg);
 }
 
 extern f32 lbl_805A13C8;
@@ -30,9 +28,7 @@ struct gfApplicationFields {
     u16 unk8E;
 };
 
-gfApplication::~gfApplication() {
-    fn_8003820C(this, -1);
-}
+gfApplication::~gfApplication() { }
 
 void gfApplication::reset() {
     VISetBlack(TRUE);

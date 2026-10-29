@@ -1,3 +1,4 @@
+#include <types.h>
 // Havok translation unit hkPoweredChainSolverUtil.o (main.dol 0x80290594-0x80293CBC).
 // Not yet decompiled. Functions in address order (method names from the Havok TU map; classes still to be identified):
 //   0x80290594  1016  hkPoweredChainBuildJacobian   [map: hkPoweredChainSolverUtil__hkPoweredChainBuildJacobian]
@@ -21,3 +22,14 @@
 //   0x80292F3C   332  hkPoweredChain_SolveConstraintMatrix_ComputeVectorG   [map: hkPoweredChainSolverUtil__hkPoweredChain_SolveConstraintMatrix_ComputeVectorG]
 //   0x80293088   636  hkPoweredChain_ScanAndDisableMotors   [map: hkPoweredChainSolverUtil__hkPoweredChain_ScanAndDisableMotors]
 //   0x80293304  2488  hkPoweredChain_ScanAndEnableMotors   [map: hkPoweredChainSolverUtil__hkPoweredChain_ScanAndEnableMotors]
+
+// Function bodies below are taken from https://github.com/jj-link/brawl.
+
+namespace hkMath {
+float max2f(float a, float b) {
+    if (a > b) {
+        return a;
+    }
+    return b;
+}
+}

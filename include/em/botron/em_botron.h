@@ -11,9 +11,8 @@
 #include <types.h>
 #include <wn/wn_em_sw_holder.h>
 
-// The arrays below are classes of sora_melee: the Botron only calls their constructors and destructors.
-FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 22);
-FT_DOL_ARRAY_VECTOR(soAreaInstance, 11);
+// The Botron only calls the constructors and destructors of its arrays, classes of sora_melee that
+// em/em_module_arrays.h declares because other enemies share them.
 
 class emBotron;
 
@@ -33,7 +32,7 @@ class emBotron : public Enemy {
     // HYPOTHESIS: one 0x20-byte work entry per area instance, as for the Primid and the Hammer Bro.
     u8 m_areaWork[0x160];                                        // 0x58D4
     emTargetSearchUnit m_targetSearchUnits[4];                   // 0x5A34
-    emAIEntry m_aiEntries[20];                                   // 0x5A94, AI module
+    emAIUnit m_aiUnits[20];                                      // 0x5A94, AI module
     soArrayVector<soCameraSubject, 1> m_cameraSubjects;          // 0x5B34, camera module
     emBotronArticleMediator m_articleMediator;                   // 0x5B84, generate-article-manage module
 

@@ -11,7 +11,7 @@ class soModuleAccesser;
 
 class soAreaEnviromentElementChecker : public soNull, public soNullable {
 public:
-    virtual ~soAreaEnviromentElementChecker();
+    virtual ~soAreaEnviromentElementChecker() {}
     virtual void check(soModuleAccesser*);
     virtual void clearWaterInfo();
     virtual void clear();
@@ -28,9 +28,13 @@ public:
 static_assert(sizeof(soAreaEnviromentElementChecker) == 0xC, "Class is wrong size!");
 
 class soAreaEnviromentElementCheckerImpl : public soAreaEnviromentElementChecker, public soEnable {
-    char _0xd[15];
+    char _0xd[3];
+    int m_waterAreaId;
+    int m_waterAreaIndex;
+    u8 m_onMovementGroundArea;
+    char _0x19[3];
 public:
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(SO_AREA_ENVIROMENT_ELEMENT_CHECKER_IMPL_CT)
     soAreaEnviromentElementCheckerImpl(); // constructor lives in sora_melee
 #endif
     virtual ~soAreaEnviromentElementCheckerImpl();

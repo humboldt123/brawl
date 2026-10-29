@@ -39,6 +39,8 @@ class soGroundTracerImpl : public soGroundTracer {
     char _pad[3];
 
 public:
+    // Out of line in sora_melee (.text 0x311F8; the enemy ground module calls it).
+    soGroundTracerImpl();
     virtual ~soGroundTracerImpl();
     virtual bool isTraced();
     virtual bool canStart(u32, u8, soGroundModule* groundModule, u32 index, float);

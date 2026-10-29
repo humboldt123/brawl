@@ -13,7 +13,6 @@
 
 // The arrays below are classes of sora_melee: the Spar only calls their constructors and destructors.
 FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 39);
-FT_DOL_ARRAY_VECTOR(soAreaInstance, 10);
 
 class emSpar;
 
@@ -34,7 +33,7 @@ class emSpar : public Enemy {
     // HYPOTHESIS: one 0x20-byte work entry per area instance, as for the Primid and the Hammer Bro.
     u8 m_areaWork[0x140];                                        // 0x5BE0
     emTargetSearchUnit m_targetSearchUnits[3];                   // 0x5D20
-    emAIEntry m_aiEntries[24];                                   // 0x5D68, AI module
+    emAIUnit m_aiUnits[24];                                      // 0x5D68, AI module
     soArrayVector<soCameraSubject, 1> m_cameraSubjects;          // 0x5E28, camera module
     emSparArticleMediator m_articleMediator;                     // 0x5E78, generate-article-manage module
 

@@ -10,6 +10,9 @@ class aiStat;
 // HYPOTHESIS: layout recovered from the small accessors only; size from aiInput's allocation.
 class aiAct {
 public:
+    // HYPOTHESIS: action ids; 0x6031.. and 0x6034.. are the command ranges ai_act_id2cmd maps.
+    enum actId {};
+
     char unk0[0x60];
     void* m_script;      // 0x60: loaded AI script data
     char unk64[0xC];
@@ -32,3 +35,5 @@ public:
     void addDefendAirRate(float amount);
 };
 static_assert(sizeof(aiAct) == 0x114, "Class is wrong size!");
+
+int ai_act_id2cmd(aiAct::actId id);

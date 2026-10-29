@@ -1,3 +1,4 @@
+#define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define FT_FIGHTER_ANIMCMD_LONG // MATCH-ONLY: Fighter::notifyEventAnimCmd(long) overrides StageObject's slot (thunk at -0x48 for soAnimCmdEventObserver)
 #define FT_KINETIC_MEDIATOR_MODE_ARG // MATCH-ONLY: the REL passes (mode, pools, accesser) to the sora_melee dispatcher
 #define FT_MARTH_RUNTIME_HELPERS

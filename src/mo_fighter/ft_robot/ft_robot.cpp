@@ -1,3 +1,4 @@
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define SO_SLOW_GET_INSTANCE_OUT_OF_LINE
 // The constructor calls the status table's default constructor in sora_melee instead of inlining it.
@@ -384,6 +385,17 @@ void ftRobot::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* acc,
     Fighter::notifyEventLink(eventInfo, acc, object, unk4);
 }
 
+void ftRobot::notifyArticleEventRemove(int unk1, int* unk2) {
+    StageObject::notifyArticleEventRemove(unk1, unk2);
+}
+
+// HYPOTHESIS: a motion whose data has flag 8 set makes the physics module run its slot 0x4c with 1.
+void ftRobot::notifyEventChangeMotion(int motionKind, int prevMotionKind, void* motionData, soModuleAccesser* acc) {
+    if (static_cast<u8*>(motionData)[1] & 0x8) {
+        ftPhysicsModuleCall4C(m_moduleAccesser->m_enumerationStart->m_physicsModule, 1);
+    }
+}
+
 // HYPOTHESIS: layout of the seal record: a kind and a float amount.
 struct ftRobotSealInfo {
     s32 kind;
@@ -597,13 +609,14 @@ bool ftRobotArticleMediator::shoot(soModuleAccesser*, soArticle* article) {
 ftVirtualNodeMatrixPool::~ftVirtualNodeMatrixPool() { }
 #pragma dont_inline off
 
-#pragma dont_inline on
-soStatusModuleImpl::~soStatusModuleImpl() { }
-#pragma dont_inline off
-
+// Status teardown destroys its owned change-request queue before observers.
 #pragma dont_inline on
 soResourceIdAccesser::~soResourceIdAccesser() { }
+#ifndef FT_REL_LINK_EXTERN // with FT_REL_LINK_EXTERN the queue destructor is the sora_melee function (ft_dol_instances.h)
+template soArrayVector<s32, 8>::~soArrayVector();
+#endif
 #pragma dont_inline off
+soStatusModuleImpl::~soStatusModuleImpl() { }
 
 bool ftRobotArticleActivator<wnRobotGyro>::activate(wnRobotGyro* weapon, soModuleAccesser* acc) {
     Fighter& founder = dynamic_cast<Fighter&>(*acc->m_stageObject);

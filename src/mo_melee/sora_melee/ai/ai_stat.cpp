@@ -19,6 +19,11 @@ static inline float aiLengthOf(float lengthSq) {
     return length;
 }
 
+// HYPOTHESIS: aiMgr::get_under_floor and aiMgr::get_via_blk_team, still unnamed in the ai_mgr unit.
+extern "C" u32 fn_27_1ED8A4(aiMgr*, Vec3f*, AiClBlock**, void*, int, float, float, float);
+// HYPOTHESIS: argument order of get_via_blk_team taken from the register and evaluation order of its callers.
+extern "C" AiClBlock* fn_27_1EEAA8(aiMgr*, AiClBlock*, int, float, int, Vec2f*, int, int, float, float, float);
+
 // aiStat: the CPU AI's per-character state snapshot and helper queries.
 
 int aiStat::chk_over_ground() {
@@ -26,6 +31,10 @@ int aiStat::chk_over_ground() {
         return 1;
     }
     return ((m_flags >> 1) & 1) ^ 1;
+}
+
+u32 aiStat::chk_over_ground(Vec3f* pos) {
+    return fn_27_1ED8A4(g_aiMgr, pos, NULL, NULL, -1, -9999.9f, 0.0f, 0.0f);
 }
 
 bool aiStat::chk_stat_gr_free() {
@@ -333,11 +342,30 @@ float aiStat::get_range_floor(float scale, Vec3f* pos) {
     return range * sign;
 }
 
+bool aiStat::chkEnableAway(aiJumpPar* par) {
+    if (m_enableAway < 0) {
+        aiMgr* mgr = g_aiMgr;
+        if (mgr->m_unk358 <= 1) {
+            m_enableAway = 0;
+        } else {
+            Vec2f pos(m_pos.m_x, m_pos.m_y);
+            float high = aiParam::get_jump_high(par, this);
+            if (m_floor == fn_27_1EEAA8(mgr, m_floor, 0, pos.m_x, m_team, &pos, 1, 0, aiParam::get_jump_length(par, this), high, 0.125f)) {
+                m_enableAway = 0;
+            } else {
+                m_enableAway = 1;
+            }
+        }
+    }
+    return m_enableAway > 0;
+}
+
 bool aiStat::chkDangerZoneAway() {
-    AiClBlock* floor = m_floor;
     if (m_unkC0 == 0) {
         bool danger = false;
-        if ((floor->m_flags & 0x1000) != 0 || floor->chk_fl_danger(m_team)) {
+        AiClBlock* floor = m_floor;
+        int team = m_team;
+        if ((floor->m_flags & 0x1000) != 0 || floor->chk_fl_danger(team)) {
             danger = true;
         }
         if (danger) {

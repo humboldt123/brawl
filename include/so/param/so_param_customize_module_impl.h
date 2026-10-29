@@ -5,7 +5,7 @@
 #include <so/so_null.h>
 #include <types.h>
 
-class soParamCustomizeModule : soNullable {
+class soParamCustomizeModule : public soNullable {
 public:
     soParamCustomizeModule() : soNullable(false) { }
 #if defined(WN_WEAPON_BUILDER) && !defined(WN_PARAM_CUSTOMIZE_INLINE_DTOR)
@@ -33,7 +33,7 @@ public:
 };
 static_assert(sizeof(soParamCustomizeModule) == 8, "Class is wrong size!");
 
-class soParamCustomizeModuleImpl : soParamCustomizeModule {
+class soParamCustomizeModuleImpl : public soParamCustomizeModule {
     float m_attackPowerMulPattern;
     float m_attackPowerMulScale;
 
@@ -70,7 +70,7 @@ public:
 };
 static_assert(sizeof(soParamCustomizeModuleImpl) == 16, "Class is wrong size!");
 
-class soParamCustomizeModuleNull : soParamCustomizeModule {
+class soParamCustomizeModuleNull : public soParamCustomizeModule {
 public:
     virtual ~soParamCustomizeModuleNull() { }
     virtual void activate() { }

@@ -13,7 +13,7 @@ class gfGameFrameCounter {
     static const u32 ResetState = 0xFFFFFFFF;
 
 public:
-#ifdef EM_ENEMY_BUILDER
+#if defined(EM_ENEMY_BUILDER) || defined(GF_GAMEFRAME_COUNTER_INLINE_CTOR)
     gfGameFrameCounter() : m_startFrame(ResetState), m_latestStopFrame(0), m_stoppedFrames(0) { }
 #endif
     void reset();

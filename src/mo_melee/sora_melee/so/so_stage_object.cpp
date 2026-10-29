@@ -10,6 +10,7 @@
 #define MT_VEC3F_MUL_INLINE // paired-single Vec3f scale, as in the original code
 #define SO_INPUT_NULL_CTOR // IpNull is built here (StageObject::getInput), its constructor needs Input(bool)
 #include <so/stageobject.h>
+#include <so/item/so_item_manage_module_impl.h>
 #include <so/anim/so_anim_cmd_event_presenter.h>
 #include <so/link/so_link_event_presenter.h>
 #include <so/so_slow.h>

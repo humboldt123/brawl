@@ -29,7 +29,7 @@ struct ftPhysicsIface : ftPhysicsIfacePad {
     virtual void slot14();
     virtual void slot15();
     virtual void slot16();
-    virtual void slot17();
+    virtual void slot17(int arg);
     virtual void slot18();
     virtual void slot19(int arg);
     virtual void slot20();
@@ -52,6 +52,11 @@ struct ftPhysicsIface : ftPhysicsIfacePad {
 
 static inline void ftPhysicsModuleCall54(void* module, int arg) {
     static_cast<ftPhysicsIface*>(module)->slot19(arg);
+}
+
+// Same interface, slot 0x4c (HYPOTHESIS: a motion-change hook; R.O.B. calls it with 1 when the new motion's flag 8 is set).
+static inline void ftPhysicsModuleCall4C(void* module, int arg) {
+    static_cast<ftPhysicsIface*>(module)->slot17(arg);
 }
 
 // Same interface, slot 0x6c (HYPOTHESIS: selects a physics preset by number).

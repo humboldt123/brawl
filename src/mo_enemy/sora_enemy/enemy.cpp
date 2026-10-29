@@ -3,6 +3,8 @@
 #define YK_STAGE_FULL
 // YK_STAGE_FULL gives StageObject the long notifyEventAnimCmd slot; Weapon must override that same slot (see em_prim.cpp).
 #define WN_WEAPON_ANIMCMD_LONG
+// soAnimCmdModule::interpretCmd1 takes the frame last (see so/anim/so_anim_cmd_module_impl.h).
+#define SO_ANIM_CMD_INTERPRET_CMD1_FRAME_LAST
 // MATCH-ONLY: the unit calls its weak out-of-line copies of Vec3f(float, float, float), operator- and operator+=.
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_OPERATORS_NOINLINE
@@ -36,6 +38,9 @@
 // the vtable of soArrayFixed<soAnimCmdAddressPackConv>).
 #define IP_NULL_INPUT_CONT_NO
 #define SO_ARRAY_FIXED_PURE_IS_NULL
+// MATCH-ONLY: IpNull::getButton returns the one-word mask (li r3, 0; blr), as in Mario's Mantle; the ipPadButton struct
+// return keeps a dead stack store at -O2,s.
+#define IP_INPUT_BUTTON_RAW
 // MATCH-ONLY: the helpers the fighter RELs define out of line (ft_builder_noinline.h and each fighter's .cpp) are weak
 // copies of this unit: soNullable(bool), soGeneralWorkSimple's work-area constructor (with it the whole soGeneralWorkSimple /
 // soGeneralWorkAbstract vtable family) and the destructors of soGeneralWorkAbstract, soTransitionInfo, soResourceIdAccesser
@@ -47,6 +52,10 @@
 // soStatusEventObserver::notifyEventChangeStatus) and of soTransitionModuleImpl::getLastTransitionInfo.
 #define SO_EVENT_OBSERVER_DEFAULTS_INLINE
 #define SO_TRANSITION_LAST_INFO_INLINE
+// The unit emits weak copies of the empty attribute-flag destructors (soAttributeFlag, soKineticEnergy::AttributeFlag)
+// that no original object of the game defines. Trivial destructors remove them but cost three exact functions (the
+// temporaries then take other frame slots), so the original's flags did have destructors; the copies are unreferenced
+// and the linker drops them.
 #include <em/enemy.h>
 #include <em/em_info.h>
 #include <em/em_manager.h>
@@ -177,26 +186,40 @@ static inline void widenSide(float& side, float size, float strength) {
 
 // The camera subjects of the derived enemy, unless the enemy kind has no camera parameters or turns them off.
 static inline soArray<soCameraSubject>* selectCameraSubjects(soModuleAccesser* acc, soArray<soCameraSubject>* subjects) {
-    bool noCamera = false;
-    if (soValueAccesser::getConstantIndefinite(acc, 0xa811, 0) == NULL || soValueAccesser::getValueInt(acc, 0x59fb, 0) == 0) {
-        noCamera = true;
-    }
+    bool noCamera = soValueAccesser::getConstantIndefinite(acc, 0xa811, 0) == NULL ||
+                    soValueAccesser::getValueInt(acc, 0x59fb, 0) == 0;
     if (noCamera) {
         subjects = reinterpret_cast<soArray<soCameraSubject>*>(lbl_27_bss_A04);
     }
     return subjects;
 }
 
-// Registers an interpreter with the anim cmd module: the control unit (interpreter + address pack) and its attribute.
-// (A macro: the original expands this in the constructor, an inline function was kept out of line.)
-#define REGIST_INTERPRETER(interpreter, pack, attribute)                                                               \
-    do {                                                                                                               \
-        soAttributeFlag flag = attribute;                                                                              \
-        soAnimCmdControlUnit unit;                                                                                     \
-        unit.m_animCmdInterpreter = &interpreter;                                                                      \
-        unit.m_animCmdAddressPackArraySeparate = pack;                                                                 \
-        static_cast<soAnimCmdModule&>(m_animCmdModule).registInterpreter(unit, flag);                                 \
-    } while (0)
+// Registers an interpreter with the anim cmd module: the control unit (interpreter + address pack) under the attribute.
+// The attribute flag is the caller's temporary: a helper that owns a soAttributeFlag (a class with a destructor) is not
+// inlined at its eleven call sites, and the control units must be inline-expansion locals of the constructor (they sit
+// below the kinetic param desc temporary in its frame).
+static inline void registInterpreter(soAnimCmdModule& animCmd, soAnimCmdInterpreter* interpreter,
+                                     soAnimCmdAddressPackArraySeparate* pack, const soAttributeFlag& attribute) {
+    soAnimCmdControlUnit unit;
+    unit.m_animCmdInterpreter = interpreter;
+    unit.m_animCmdAddressPackArraySeparate = pack;
+    animCmd.registInterpreter(unit, attribute);
+}
+
+// The task category of the enemy's own task (gfTask has no inline accessor for its bit-field).
+static inline gfTask::Category getTaskCategory(const gfTask* task) {
+    return task->m_taskCategory;
+}
+
+// A shield shape as the constructor fills it: the six offsets as floats (the shared soCollisionShieldData keeps them as
+// words for the units that copy the struct). MATCH-ONLY: the chained clears store each triple z, y, x by element address.
+struct emShieldShapeDraft {
+    float m_offset[6];
+    float m_size;
+    u32 m_nodeIndex : 9;
+    u32 m_shapeType : 1;
+    u32 _1c_rest : 22;
+};
 
 // The task category of a collision log is a plain byte at 0x22; BrawlHeaders declares it as a bit-field of the word at
 // 0x20, which loads differently.
@@ -293,13 +316,12 @@ void Enemy::remove(Enemy* enemy) {
     }
 }
 
-// TODO(nonmatching): 98.43%, (a) non-semantic: every call, argument and constant agrees (masked diff). The rest is
-// the store order of the default shield shapes (indexed stores in the original), the evaluation order of the hit
-// module's task category (the original converts it through a signed temporary before the module accesser calls) and of
-// the resource and slope module arguments, the frame slots of the attribute temporaries and one register in
-// selectCameraSubjects.
+// TODO(nonmatching): 99.90%, (a) non-semantic: only the slope module's angle (20.0f) is loaded before its three integer
+// arguments in the original (ours loads it after them, in parameter order). Tried: a double literal, (float)20, a static
+// const, a static inline helper (folded), a helper with a named local (loads it before this/acc instead), the module
+// built through a builder-style wrapper, default arguments. Every other instruction agrees.
 Enemy::Enemy(u32 p1, emCreate* create, soArray<soInterpolation<Vec3f> >* interpolations, soArray<soAreaInstance>* areaInstances,
-             void* areaWork, emTargetSearchUnit* targetSearchUnits, emAIEntry* aiEntries, soArticleMediator* articleMediator,
+             void* areaWork, emTargetSearchUnit* targetSearchUnits, emAIUnit* aiEntries, soArticleMediator* articleMediator,
              void* wind, soArray<soCameraSubject>* cameraSubjects, soReflectModule* reflectModule) :
     StageObject("", 2, 7, 4, true, NULL),
     soStatusEventObserver(-1, -1),
@@ -352,7 +374,8 @@ Enemy::Enemy(u32 p1, emCreate* create, soArray<soInterpolation<Vec3f> >* interpo
     m_preloadArchive(emManager::getInstance()->getPreloadArchivePtrFromKind(m_enemyKind)),
     m_resourceIdAccesser(m_preloadArchive->brresResourceId, m_preloadArchive->brresResourceId,
                          m_preloadArchive->brresResourceId),
-    m_resourceModule(m_preloadArchive->paramResourceId, &m_resourceIdAccesser, m_preloadArchive->enmCommonResourceId, create),
+    m_resourceModule(m_preloadArchive->getParamResourceId(), &m_resourceIdAccesser, m_preloadArchive->getEnmCommonResourceId(),
+                     create),
     m_statusWork(m_statusIntWorks, 7, m_statusFloatWorks, 1, m_statusFlagWorks, 9),
     m_generalWork(m_intWorks, 27, m_floatWorks, 16, m_flagWorks, 20),
     m_workManageModule(&moduleAccesser, &g_soParamAccesserNull),
@@ -396,7 +419,7 @@ Enemy::Enemy(u32 p1, emCreate* create, soArray<soInterpolation<Vec3f> >* interpo
     m_hitParts(10, soCollisionHitPart(soCollision::Category_Enemy, 0x3ff), 0),
     m_hitGroups(1, 0),
     m_hitGroupInfos(1, 0),
-    m_collisionHitModule(&moduleAccesser, m_taskId, m_taskCategory, &m_hitParts, &m_hitGroups, &m_hitGroupInfos,
+    m_collisionHitModule(&moduleAccesser, getTaskId(), getTaskCategory(this), &m_hitParts, &m_hitGroups, &m_hitGroupInfos,
                          soValueAccesser::getConstantIndefinite(&moduleAccesser, 0xa7fe, 0),
                          soValueAccesser::getConstantIndefinite(&moduleAccesser, 0xa81b, 0)),
     m_searchParts(1, soCollisionSearchPart(soCollision::Category_Enemy), 0),
@@ -522,48 +545,42 @@ Enemy::Enemy(u32 p1, emCreate* create, soArray<soInterpolation<Vec3f> >* interpo
     workManage->setWork(1, &m_generalWork);
 
     // One interpreter per thread kind, with the attribute it is registered with and the address pack it reads.
-    REGIST_INTERPRETER(m_animCmdInterpreter1, &m_animCmdAddressPack0, 2);
-    REGIST_INTERPRETER(m_animCmdInterpreter2, &m_animCmdAddressPack1, 2);
-    REGIST_INTERPRETER(m_animCmdInterpreter3, &m_animCmdAddressPack2, 2);
-    REGIST_INTERPRETER(m_animCmdInterpreter0, &m_animCmdAddressPack3, 1);
-    REGIST_INTERPRETER(m_animCmdInterpreter4, reinterpret_cast<soAnimCmdAddressPackArraySeparate*>(g_soAnimCmdAddressPackArrayNull), 4);
-    REGIST_INTERPRETER(m_animCmdInterpreter5, &m_animCmdAddressPack4, 0x10);
-    REGIST_INTERPRETER(m_animCmdInterpreter6, reinterpret_cast<soAnimCmdAddressPackArraySeparate*>(g_soAnimCmdAddressPackArrayNull), 8);
-    REGIST_INTERPRETER(m_animCmdInterpreter7, reinterpret_cast<soAnimCmdAddressPackArraySeparate*>(g_soAnimCmdAddressPackArrayNull), 8);
-    REGIST_INTERPRETER(m_animCmdInterpreter8, &m_animCmdAddressPack0, 0x20);
-    REGIST_INTERPRETER(m_animCmdInterpreter9, &m_animCmdAddressPack1, 0x20);
-    REGIST_INTERPRETER(m_animCmdInterpreter10, &m_animCmdAddressPack2, 0x20);
+#define NULL_ADDRESS_PACK reinterpret_cast<soAnimCmdAddressPackArraySeparate*>(g_soAnimCmdAddressPackArrayNull)
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter1, &m_animCmdAddressPack0, 2);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter2, &m_animCmdAddressPack1, 2);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter3, &m_animCmdAddressPack2, 2);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter0, &m_animCmdAddressPack3, 1);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter4, NULL_ADDRESS_PACK, 4);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter5, &m_animCmdAddressPack4, 0x10);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter6, NULL_ADDRESS_PACK, 8);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter7, NULL_ADDRESS_PACK, 8);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter8, &m_animCmdAddressPack0, 0x20);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter9, &m_animCmdAddressPack1, 0x20);
+    registInterpreter(m_animCmdModule, &m_animCmdInterpreter10, &m_animCmdAddressPack2, 0x20);
+#undef NULL_ADDRESS_PACK
 
     static_cast<soJostleModule&>(m_jostleModule).setByte48(soValueAccesser::getValueInt(&moduleAccesser, 0x59ee, 0) != 0);
     static_cast<soJostleModule&>(m_jostleModule).setByte46(soValueAccesser::getValueInt(&moduleAccesser, 0x59f1, 0));
 
     // The absorber and the reflector get one shape each (a unit sphere at the origin, inactive until the enemy sets it).
-    soCollisionShieldData absorberShapes[1];
+    emShieldShapeDraft absorberShapes[1];
     for (int i = 0; i < 1; i++) {
-        absorberShapes[i].setOffset(0, 0.0f);
-        absorberShapes[i].setOffset(1, 0.0f);
-        absorberShapes[i].setOffset(2, 0.0f);
-        absorberShapes[i].setOffset(3, 0.0f);
-        absorberShapes[i].setOffset(4, 0.0f);
-        absorberShapes[i].setOffset(5, 0.0f);
+        absorberShapes[i].m_offset[0] = absorberShapes[i].m_offset[1] = absorberShapes[i].m_offset[2] = 0.0f;
+        absorberShapes[i].m_offset[3] = absorberShapes[i].m_offset[4] = absorberShapes[i].m_offset[5] = 0.0f;
         absorberShapes[i].m_size = 1.0f;
         absorberShapes[i].m_nodeIndex = 0;
         absorberShapes[i].m_shapeType = 1;
     }
     soCollisionShieldGroupData absorberGroup;
     absorberGroup.m_flags = 0;
-    absorberGroup.m_shieldDataSet = soSet<soCollisionShieldData>(absorberShapes, 1);
+    absorberGroup.m_shieldDataSet = soSet<soCollisionShieldData>(reinterpret_cast<soCollisionShieldData*>(absorberShapes), 1);
     m_moduleAccesser->getCollisionAbsorberModule().add(&absorberGroup, 0);
     m_moduleAccesser->getCollisionAbsorberModule().clearAll();
 
-    soCollisionShieldData reflectorShapes[1];
+    emShieldShapeDraft reflectorShapes[1];
     for (int i = 0; i < 1; i++) {
-        reflectorShapes[i].setOffset(0, 0.0f);
-        reflectorShapes[i].setOffset(1, 0.0f);
-        reflectorShapes[i].setOffset(2, 0.0f);
-        reflectorShapes[i].setOffset(3, 0.0f);
-        reflectorShapes[i].setOffset(4, 0.0f);
-        reflectorShapes[i].setOffset(5, 0.0f);
+        reflectorShapes[i].m_offset[0] = reflectorShapes[i].m_offset[1] = reflectorShapes[i].m_offset[2] = 0.0f;
+        reflectorShapes[i].m_offset[3] = reflectorShapes[i].m_offset[4] = reflectorShapes[i].m_offset[5] = 0.0f;
         reflectorShapes[i].m_size = 1.0f;
         reflectorShapes[i].m_nodeIndex = 0;
         reflectorShapes[i].m_shapeType = 1;
@@ -571,7 +588,7 @@ Enemy::Enemy(u32 p1, emCreate* create, soArray<soInterpolation<Vec3f> >* interpo
     ftReflectorGroupDraft reflectorGroup;
     FT_REFLECTOR_GROUP_CLEAR(reflectorGroup);
     memset(&reflectorGroup, 0, sizeof(reflectorGroup));
-    reflectorGroup.m_shapes = reflectorShapes;
+    reflectorGroup.m_shapes = reinterpret_cast<soCollisionShieldData*>(reflectorShapes);
     reflectorGroup.m_count = 1;
     reflectorGroup.m_f0 = 1.0f;
     reflectorGroup.m_f1 = 1.0f;
@@ -625,8 +642,6 @@ void Enemy::init() {
 
 // The level scale of the enemy (the strength table of its parameters by level and difficulty), written to
 // ValueFloat_LevelScale; 0 outside levels 1-5 and difficulties 0-14. The boss battle modes have their own tables.
-// TODO(nonmatching): 96.61%, (a) non-semantic: same calls, constants and table; we fold the level's -1 into the load
-// offset (lfs -0x3c) where the original subtracts and indexes with lfsx.
 float Enemy::initStrength() {
     soWorkManageModule& work = moduleAccesser.getWorkManageModule();
     float strength = 0.0f;
@@ -640,7 +655,8 @@ float Enemy::initStrength() {
         } else {
             table = static_cast<const float (*)[15]>(soValueAccesser::getConstantIndefinite(&moduleAccesser, 0xa7fa, 0));
         }
-        strength = table[m_level - 1][m_difficulty];
+        const float* row = table[m_level - 1];
+        strength = row[m_difficulty];
         work.setFloat(strength, ValueFloat_LevelScale);
     }
     return strength;
@@ -723,11 +739,9 @@ s32 Enemy::getNameMsgId() {
 }
 
 nw4r::g3d::ResFileData* Enemy::getFaceTexPtr(u32 p1) {
-    return m_resourceModule.getInfoTexFile(m_preloadArchive->faceTexBrresResourceId, p1);
+    return m_resourceModule.getInfoTexFile(m_preloadArchive->getFaceTexBrresResourceId(), p1);
 }
 
-// TODO(nonmatching): 90.87%, (a) non-semantic: same calls and arguments; the original loads the archive entry before it
-// computes the address of the resource module.
 nw4r::g3d::ResFileData* Enemy::getFaceTexPtr() {
     return getFaceTexPtr(moduleAccesser.getWorkManageModule().getInt(0x10000017));
 }
@@ -771,9 +785,10 @@ void Enemy::initCameraSubject() {
     }
 }
 
-// TODO(nonmatching): 98.98%, (a) non-semantic: same calls, arguments and constants; the original copies the 4th
-// argument of constructInstance as its own constant (li 1), loads the archive before the module pointers in the
-// ground collision block, and moves this before the floats for StageObject::activate.
+// TODO(nonmatching): 99.71%, (a) non-semantic, two spots: the original copies spawnPos into r4 before the two float
+// arguments of StageObject::activate (ours after them, in parameter order; the same shape in isolation, with a local
+// copy, an identity inline or a wrapper gives our order), and materializes constructInstance's 4th argument with its own
+// `li 1` where ours reuses the register of the `true` before it (an int, s8 or u8 parameter all reuse it here).
 // Activates the enemy at spawnPos with statusKind (createPost): the model and its shadow, the works, the strength, the
 // ground collision, the link to the parent, the anim cmd table and the first status. A status kind outside the
 // enemy kind's status table activates nothing.
@@ -905,12 +920,12 @@ void Enemy::activate(Vec3f* spawnPos, float lr, float unk, int statusKind) {
     }
 
     // The ground collision of the enemy kind's model, when it has one.
-    if (moduleAccesser.getResourceModule().getBinFile(m_preloadArchive->brresResourceId, 0, -1) != NULL) {
+    if (moduleAccesser.getResourceModule().getBinFile(m_preloadArchive->getBrresResourceId(), 0, -1) != NULL) {
         emGroundModuleImpl& ground = dynamic_cast<emGroundModuleImpl&>(moduleAccesser.getGroundModule());
         if (soValueAccesser::getConstantIndefinite(&moduleAccesser, 0xa813, 0) == NULL) {
-            ground.constructGrCollision(m_preloadArchive->brresResourceId, 0, Heaps::EnemyInstance, false, true, false);
+            ground.constructGrCollision(m_preloadArchive->getBrresResourceId(), 0, Heaps::EnemyInstance, false, true, false);
         } else {
-            ground.constructGrCollision(m_preloadArchive->brresResourceId, 0, Heaps::EnemyInstance, true, true, false);
+            ground.constructGrCollision(m_preloadArchive->getBrresResourceId(), 0, Heaps::EnemyInstance, true, true, false);
             ground.updateVtxFromNode(true);
         }
         ground.setGrCollisionMode(true);
@@ -933,7 +948,7 @@ void Enemy::activate(Vec3f* spawnPos, float lr, float unk, int statusKind) {
     void* animCmdTable = soValueAccesser::getConstantIndefinite(&moduleAccesser, 0xa810, 0);
     if (animCmdTable != NULL) {
         animCmd.resetInterpreter3(0, animCmdTable, &moduleAccesser);
-        animCmd.interpretCmd1(1.0f, 0, &moduleAccesser);
+        animCmd.interpretCmd1(0, &moduleAccesser, 1.0f);
         animCmd.resetInterpreter3(0, NULL, &moduleAccesser);
     }
     moduleAccesser.getStatusModule().changeStatusForce(statusKind, &moduleAccesser);
@@ -1059,7 +1074,6 @@ void Enemy::initRot(u32 nodeId) {
 
 // After the posture update, the kinetic energies finish the frame, and an enemy that would pass its goal this frame
 // stops on it (an axis without a goal is 35791).
-// TODO(nonmatching): 99.68%, (a) non-semantic: register allocation of the two fabs results only.
 void Enemy::updatePosture(bool update) {
     Vec3f prevPos = moduleAccesser.getPostureModule().getPos();
     StageObject::updatePosture(update);
@@ -1069,8 +1083,10 @@ void Enemy::updatePosture(bool update) {
     Vec3f pos = moduleAccesser.getPostureModule().getPos();
     if (35791.0f != m_goalPos.m_x) {
         Vec2f speed = moduleAccesser.getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(-1));
-        float distance = fabs(m_goalPos.m_x - prevPos.m_x);
-        float step = fabs(speed.m_x);
+        double wideDistance = fabs(m_goalPos.m_x - prevPos.m_x);
+        float distance = wideDistance;
+        double wideStep = fabs(speed.m_x);
+        float step = wideStep;
         if (0.1f + step >= distance) {
             pos.m_x = m_goalPos.m_x;
             moduleAccesser.getPostureModule().setPos(&pos);
@@ -1078,8 +1094,10 @@ void Enemy::updatePosture(bool update) {
     }
     if (35791.0f != m_goalPos.m_y) {
         Vec2f speed = moduleAccesser.getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(-1));
-        float distance = fabs(m_goalPos.m_y - prevPos.m_y);
-        float step = fabs(speed.m_y);
+        double wideDistance = fabs(m_goalPos.m_y - prevPos.m_y);
+        float distance = wideDistance;
+        double wideStep = fabs(speed.m_y);
+        float step = wideStep;
         if (0.1f + step >= distance) {
             pos.m_y = m_goalPos.m_y;
             moduleAccesser.getPostureModule().setPos(&pos);
@@ -1094,16 +1112,23 @@ void Enemy::resetGoalPos() {
 }
 
 // The enemy has arrived when it is within 0.1 of the goal on each axis that has a goal.
-// TODO(nonmatching): 99.24%, (a) non-semantic: same calls, constants and branches (masked diff: 0 lines); the original
-// loads the goal before the returned position, we load the position first (the operand that holds the call is evaluated
-// first; a named local for the position keeps the order but hoists the 0.1f literal).
 bool Enemy::isArriveGoalPos() {
     bool arrived = true;
-    if (35791.0f != m_goalPos.m_x && 0.1f < (float)fabs(m_goalPos.m_x - moduleAccesser.getPostureModule().getPos().m_x)) {
-        arrived = false;
+    if (35791.0f != m_goalPos.m_x) {
+        Vec3f pos = moduleAccesser.getPostureModule().getPos();
+        double wideDistance = fabs(m_goalPos.m_x - pos.m_x);
+        float distance = wideDistance;
+        if (0.1f < distance) {
+            arrived = false;
+        }
     }
-    if (35791.0f != m_goalPos.m_y && 0.1f < (float)fabs(m_goalPos.m_y - moduleAccesser.getPostureModule().getPos().m_y)) {
-        arrived = false;
+    if (35791.0f != m_goalPos.m_y) {
+        Vec3f pos = moduleAccesser.getPostureModule().getPos();
+        double wideDistance = fabs(m_goalPos.m_y - pos.m_y);
+        float distance = wideDistance;
+        if (0.1f < distance) {
+            arrived = false;
+        }
     }
     return arrived;
 }
@@ -1304,12 +1329,12 @@ void Enemy::processFixPosition() {
 
 // The top node's rotation about y for the facing rotYLr: the turn angle (work 0x11000006, or the parameter before the
 // enemy is activated) away from the camera, toward it for a front enemy.
-// TODO(nonmatching): 99.85%, (a) non-semantic: one register of the fabs of the turn parameter.
 Vec3f Enemy::getEmLrRot(float rotYLr, int front) {
     Vec3f rot(0.0f, 0.0f, 0.0f);
     float turn;
     if (unkD8 == false) {
-        turn = (float)fabs(soValueAccesser::getValueFloat(&moduleAccesser, 0xbe9, 0));
+        double wideTurn = fabs(soValueAccesser::getValueFloat(&moduleAccesser, 0xbe9, 0));
+        turn = wideTurn;
     } else {
         turn = moduleAccesser.getWorkManageModule().getFloat(0x11000006);
     }
@@ -1329,12 +1354,13 @@ Vec3f Enemy::getEmLrRot(float rotYLr, int front) {
 }
 
 // The top node's rotation: the posture's rotation turned by getEmLrRot, in degrees.
-// TODO(nonmatching): 99.75%, (a) non-semantic: the frame slots of the four vector temporaries differ.
 Vec3f Enemy::getEmTopNRot(float rotYLr, int front) {
     soPostureModule& posture = moduleAccesser.getPostureModule();
     Vec3f lrRot = getEmLrRot(rotYLr, front);
+    Vec3f postureRot = posture.getRot(0);
+    Vec3f angles;
     Vec3f rot;
-    rot = posture.getRot(0);
+    rot = postureRot;
     rot.scale(0.017453294f);
     Matrix rotation(true);
     fn_8003ECA0(&rotation, rot.m_x, rot.m_y, rot.m_z);
@@ -1342,7 +1368,6 @@ Vec3f Enemy::getEmTopNRot(float rotYLr, int front) {
     lrRotRad = lrRot;
     lrRotRad.scale(0.017453294f);
     fn_8003EA50(&rotation, &lrRotRad);
-    Vec3f angles;
     rotation.getRotate(&angles);
     Vec3f result = angles;
     result.scale(57.295776f);
@@ -1509,14 +1534,13 @@ float Enemy::getAtan2fAngle(Vec2f* from, Vec2f* to) {
 }
 
 // The offset of the damage position from a node (zero for a node id past the enemy kind's nodes).
-// TODO(nonmatching): 95.63%, (a) non-semantic: the original loads the model module before the address of the node
-// position temporary.
 Vec3f Enemy::getDamageOffsetFromNode(int nodeId) {
     if (nodeId >= emInfo::getInstance()->getNodeNum(m_enemyKind)) {
         return Vec3f(0.0f, 0.0f, 0.0f);
     }
     Vec3f damagePos = m_damageModule.getDamagePos();
-    Vec3f nodePos = moduleAccesser.getModelModule().getNodeGlobalPosition(nodeId, false);
+    soModelModule& model = moduleAccesser.getModelModule();
+    Vec3f nodePos = model.getNodeGlobalPosition(nodeId, false);
     Vec3f offset = damagePos - nodePos;
     return offset;
 }
@@ -2194,8 +2218,10 @@ u32 Enemy::getFrameCounter(int index) {
     return m_frameCounters[index].getCounter();
 }
 
-// TODO(nonmatching): 94.83%, (a) non-semantic: same calls, arguments, constants and branches; the 1.0f constant of
-// calcHitStopFrame and the copy of power before checkRebound are scheduled differently.
+// TODO(nonmatching): 94.83%, (a) non-semantic: the original copies acc into r3 before the power argument of
+// calcHitStopFrame and loads the 1.0 constant in parameter position (ours loads it first, then power, then acc); the
+// same difference is in wnNessYoyoHead's and wnWarioBike's copies of this function (both 95.3%), and no spelling of the
+// constant (local, literal, double, static const, register) or wrapper of the call changes it in isolation.
 // Keeps the largest attack power and hit stop of the frame; notifyEventCollisionAttackCheck applies them.
 void Enemy::notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* acc) {
     gfTask* task = gfTaskScheduler::getInstance()->getTaskById(getTaskCategory(collisionLog), collisionLog->m_taskId);
@@ -2302,8 +2328,6 @@ grGimmickMotionPath* Enemy::getMotionPathPtr() {
 // HYPOTHESIS: the model scale the enemy's figure is created with.
 static const u32 ValueFloat_FigureScale = 0xbf3;
 
-// TODO(nonmatching): 95.20%, (a) non-semantic: same calls and arguments; the original loads the owner task id into a
-// saved register before itManager::getInstance, ours loads it after (into the argument register).
 // Drops the trophy (figure) of the enemy at its center: the first call only preloads the figure archive.
 bool Enemy::emCreateFigure(int variation) {
     if (itManager::getInstance()->isCompItemKindArchive(Item_Figure, 0, true) == false) {
@@ -2312,8 +2336,12 @@ bool Enemy::emCreateFigure(int variation) {
     }
     Vec3f pos = moduleAccesser.getModelModule().getNodeGlobalPosition(
         soValueAccesser::getValueInt(&moduleAccesser, ValueInt_CenterNodeId, 0), false);
-    BaseItem* figure = itManager::getInstance()->createItem(&pos, 1.0f, Item_Figure, variation,
-                                                            moduleAccesser.getStageObject().m_taskId);
+    // MATCH-ONLY: the receiver declared before the owner task id keeps the id read before the singleton lookup (TIPS.md,
+    // section 6, item 1).
+    itManager* items;
+    int ownerTaskId = moduleAccesser.getStageObject().m_taskId;
+    items = itManager::getInstance();
+    BaseItem* figure = items->createItem(&pos, 1.0f, Item_Figure, variation, ownerTaskId);
     if (figure == NULL) {
         return false;
     }
@@ -2385,22 +2413,24 @@ bool Enemy::addParts(int articleId, u32 shotParamId, int) {
 // The shared article activators of the enemies: read the description of the shot being fired, compute its launch
 // position and flag, and launch the article from the enemy. Both always return false.
 bool Enemy::activeArticle(wnemSwHolder* article, soModuleAccesser* moduleAccesser) {
-    emShotParam* param = fn_41_473DC(moduleAccesser, moduleAccesser->getWorkManageModule().getInt(WorkInt_ShotParamId));
-    Vec3f pos = fn_41_47470(param, moduleAccesser);
+    emShotParam* param = emWeaponUtil::getSimpleWeaponData(moduleAccesser,
+            moduleAccesser->getWorkManageModule().getInt(WorkInt_ShotParamId));
+    Vec3f pos = emWeaponUtil::setWeaponStartPosition_Basic(param, moduleAccesser);
     emShotFlag flag;
-    fn_41_47544(&flag, param);
-    fn_41_47A2C(param, moduleAccesser, true);
-    fn_41_47D8C(&pos, flag.m_value, article, param, moduleAccesser);
+    emWeaponUtil::setWeaponConstraint_Basic(&flag, param);
+    emWeaponUtil::calcWeaponStartVector_Basic(param, moduleAccesser, true);
+    emWeaponUtil::activeSimpleWeaponHolder(&pos, flag.m_value, article, param, moduleAccesser);
     return false;
 }
 
 bool Enemy::activeArticle1(wnemSimple* article, soModuleAccesser* moduleAccesser) {
-    emShotParam* param = fn_41_473DC(moduleAccesser, moduleAccesser->getWorkManageModule().getInt(WorkInt_ShotParamId));
-    Vec3f pos = fn_41_47470(param, moduleAccesser);
+    emShotParam* param = emWeaponUtil::getSimpleWeaponData(moduleAccesser,
+            moduleAccesser->getWorkManageModule().getInt(WorkInt_ShotParamId));
+    Vec3f pos = emWeaponUtil::setWeaponStartPosition_Basic(param, moduleAccesser);
     emShotFlag flag;
-    fn_41_47544(&flag, param);
-    fn_41_47A2C(param, moduleAccesser, true);
-    fn_41_47E80(&pos, flag.m_value, article, param, moduleAccesser);
+    emWeaponUtil::setWeaponConstraint_Basic(&flag, param);
+    emWeaponUtil::calcWeaponStartVector_Basic(param, moduleAccesser, true);
+    emWeaponUtil::activeSimpleWeapon(&pos, flag.m_value, article, param, moduleAccesser);
     return false;
 }
 
@@ -2557,16 +2587,16 @@ float Enemy::getParentEnemyStrength() {
         ValueFloat_LevelScale);
 }
 
-// TODO(nonmatching): 99.76%, (a) non-semantic: the operands of the fmuls are swapped and the second integer-to-float
-// temporary gets its own stack slot; the conversions, compares and result agree.
 bool Enemy::canCreateEnemyFromEnemyKindAndNum(EnemyKind kind, u32 maxNum, float rate) {
     u32 count = emManager::getInstance()->getEnemyCount();
     u32 kindCount = emManager::getInstance()->getEnemyCountFromKind(kind);
-    float rest = (float)maxNum - (float)(count - kindCount) * rate;
+    u32 others = count - kindCount;
+    float rest = (float)maxNum - (float)others * rate;
     if (rest <= 0.0f) {
         return false;
     }
-    return !(rest <= (float)kindCount);
+    float limit = (float)kindCount;
+    return !(rest <= limit);
 }
 
 int Enemy::getCommunicationItemPortData() {

@@ -15,6 +15,7 @@
 #include <so/effect/so_effect_module_impl.h>
 #include <so/area/so_area_module_impl.h>
 #include <so/ground/so_ground_module_impl.h>
+#include <so/jostle/so_jostle_module.h>
 #include <so/model/so_model_module_impl.h>
 #include <so/motion/so_motion_module_impl.h>
 #include <so/posture/so_posture_module_impl.h>
@@ -32,11 +33,14 @@
 #include <so/link/so_link_module_impl.h>
 #include <so/visibility/so_visibility_module_impl.h>
 #include <so/capture/so_capture_module_impl.h>
-#include <so/item/so_item_manage_module_impl.h>
 #include <so/turn/so_turn_module_impl.h>
 #include <so/stop/so_stop_module_impl.h>
 #include <so/so_activate.h>
 #include <types.h>
+
+// The item manage module (and its event observer) is complete only after the enemy modules in the original (the
+// sora_enemy damage unit's type information order); a unit that calls it includes so/item/so_item_manage_module_impl.h.
+class soItemManageModule;
 
 class StageObject;
 class soGenerateArticleManageModule;
@@ -301,6 +305,10 @@ public:
     soPostureModule& getPostureModule() const
     {
         return *m_enumerationStart->m_postureModule;
+    }
+
+    soJostleModule& getJostleModule() const {
+        return *static_cast<soJostleModule*>(m_enumerationStart->m_jostleModule);
     }
 
     soGroundModule& getGroundModule() const

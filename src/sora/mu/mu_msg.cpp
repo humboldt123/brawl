@@ -11,7 +11,6 @@ extern "C" u8 fn_800B8648(void* mgr, u32 fontSetting, int p2, int p3);
 extern "C" void fn_800B881C(void* mgr, u8 fontId);
 
 class MuObject;
-extern "C" int lbl_805A0178;
 
 class MuMsg {
 public:
@@ -282,7 +281,7 @@ void MuMsg::beginPrint(u32 msgIndex) {
     default:
         {
             Message* msg = m_message;
-            if (lbl_805A0178 != 0) {
+            if (g_Normal12FontBuf != NULL) {
                 msg->setFace(8);
             } else {
                 msg->setFace(1);

@@ -77,9 +77,6 @@ void ftRobotStatusUniqProcessSpecialGyro::execStatus(soModuleAccesser* moduleAcc
     }
 }
 
-// HYPOTHESIS: this unnamed item launch routine applies facing, velocity and scale.
-extern "C" void fn_27_28E108(BaseItem* item, float lr, Vec3f* speed, float scale);
-
 // MATCH-ONLY: the original scales the launch speed in place with paired singles (inline asm in the shared vector code).
 static inline void ftRobotScaleVec3f(register Vec3f* v, register float c) {
     register float fr1, fr0;
@@ -104,8 +101,7 @@ void ftRobotStatusUniqProcessSpecialGyro::execFixPos(soModuleAccesser* moduleAcc
             float lr = moduleAccesser->getPostureModule().getLr();
             Vec3f offset(lr * soValueAccesser::getConstantFloat(moduleAccesser, 0xfd2, 0), soValueAccesser::getConstantFloat(moduleAccesser, 0xfd3, 0), 0.0f);
             Vec3f handPos = moduleAccesser->getModelModule().getNodeGlobalPosition(0xa2, &offset, false, false);
-            soGroundModule* ground = &moduleAccesser->getGroundModule();
-            Vec3f safePos(moduleAccesser->getGroundModule().getCenterPos(0).m_x, ground->getCenterPos(0).m_y, ground->getZ());
+            Vec3f safePos(moduleAccesser->getGroundModule().getCenterPos(0).m_x, moduleAccesser->getGroundModule().getCenterPos(0).m_y, moduleAccesser->getGroundModule().getZ());
             soResourceModule* resource = &moduleAccesser->getResourceModule();
             s32 taskId = moduleAccesser->getStageObject().m_taskId;
             int brresId = resource->getResourceIdAccesser()->getMdlResId();
@@ -119,7 +115,7 @@ void ftRobotStatusUniqProcessSpecialGyro::execFixPos(soModuleAccesser* moduleAcc
                 gyro->setOwnerScale(moduleAccesser->getPostureModule().getScale());
                 gyro->updateNodeSRT();
                 gyro->action(0, charge);
-                fn_27_28E108(gyro, lr, &speed, 1.0f);
+                gyro->throwAttack(lr, &speed, 1.0f);
             }
             moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x11000014);
             moduleAccesser->getWorkManageModule().offFlag(0x22000011);

@@ -62,7 +62,7 @@ void wnNessPKStarStorm::activate(int founderTaskId, int team, Vec3f* pos, float 
     Vec2f dir;
     dir.m_x = 0.0f;
     dir.m_y = -1.0f;
-    dir.rot(&dir, angle);
+    dir.rot(angle, &dir);
     Vec2f speedTemp;
     dir.scale(m_param->m_speed, &speedTemp);
     Vec2f speedUnused;

@@ -11,7 +11,7 @@ class soModuleAccesser;
 // soKineticEnergyNormal::init / updateEnergy (HYPOTHESIS names).
 class soKineticEnergyNormal : public soKineticEnergy {
 public:
-#ifdef WN_KINETIC_GENERIC_BUILDER
+#if defined(WN_KINETIC_GENERIC_BUILDER) || defined(FT_KINETIC_STOP_IMPLEMENTATION)
 #ifdef WN_KINETIC_NORMAL_EXTERN
     // MATCH-ONLY: the Pikmin Dolfin article calls the sora_melee constructor and assignment (declarations only).
     soKineticEnergyNormal(const Vec2f& speed, const Vec2f& accel,
@@ -32,12 +32,16 @@ public:
         m_unk32 = true;
     }
 #else
-    // Diddy's holders call the five-vector constructor as a separate function.
+    // Diddy's holders call the five-vector constructor as a separate function;
+    // stopping energy expands the same constructor inline.
     // HYPOTHESIS: the first byte flag retains its unknown source meaning.
     soKineticEnergyNormal(const Vec2f& speed, const Vec2f& accel,
                           const Vec2f& target, const Vec2f& brake,
                           const Vec2f& limit, bool unk30, bool friction)
-        __attribute__((never_inline)) : soKineticEnergy(false) {
+#ifndef FT_KINETIC_STOP_IMPLEMENTATION
+        __attribute__((never_inline))
+#endif
+        : soKineticEnergy(false) {
         Vec2f::copy(m_speed, speed);
         Vec2f::copy(m_accel, accel);
         Vec2f::copy(m_speedTarget, target);
@@ -144,5 +148,18 @@ inline Vec3f soKineticEnergyNormal::getRotation() {
 
 inline Vec2f soKineticEnergyNormal::getSpeed() {
     return m_speed;
+}
+#endif
+
+#if defined(SO_KINETIC_WIND_IMPLEMENTATION) && !defined(FT_MODULE_BUILDER)
+// This unit expands the normal-energy reset inline, as the fighter headers do.
+inline void soKineticEnergyNormal::init() {
+    Vec2f zero(0.0f, 0.0f);
+    m_speed = m_accel = m_brake = zero;
+    Vec2f negOne(-1.0f, -1.0f);
+    m_speedTarget = m_speedLimit = negOne;
+    m_considerGroundFriction = false;
+    m_unk30 = false;
+    m_unk32 = true;
 }
 #endif

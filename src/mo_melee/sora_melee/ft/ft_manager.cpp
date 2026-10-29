@@ -160,8 +160,8 @@ int ftManager::getScoreEntryId(int entryId) const {
     }
 }
 
-int ftManager::getEntryIdFromAreaId(int areaId) const {
-    return m_entryManager->getEntryIdFromAreaId(areaId);
+int ftManager::getEntryIdFromAreaId(int areaId, int* instanceIndex) const {
+    return m_entryManager->getEntryIdFromAreaId(areaId, instanceIndex);
 }
 
 int ftManager::getEntryIdFromTaskId(int taskId, int* outInstanceIndex) const {

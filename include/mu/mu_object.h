@@ -26,10 +26,13 @@ struct MuAnimIdxData {
 #include <nw4r/g3d/g3d_resmdl.h>
 #include <nw4r/g3d/g3d_scnobj.h>
 
+struct _GXTexObj;
+
 class MuObject {
 
 public:
-    char unk[0x4];
+    u32 m_flag : 1; // HYPOTHESIS: set while the object keeps its own node visibility (MenuRoot skips it)
+    u32 m_rest : 31;
     nw4r::g3d::ResFile m_resFile;
     nw4r::g3d::ResMdl m_resMdl;
     nw4r::g3d::ScnMdl* m_scnMdl;
@@ -80,7 +83,8 @@ public:
     void changeMaterialTex(int matNode, int texNode, nw4r::g3d::ResFile* textureSource = nullptr);
     // HYPOTHESIS: the first argument is the name of the material
     void changeMaterialTex(const char* matName, int texNode, nw4r::g3d::ResFile* textureSource);
-    void changeMaterialTex(int matNode, const char* textureName, nw4r::g3d::ResFile* textureSource = nullptr);
+    void changeMaterialTex(u32 matNode, const char* textureName, nw4r::g3d::ResFile* textureSource = nullptr);
+    void changeMaterialTex(const char* matName, _GXTexObj* texture);
     // void anmPlayPolicyOneTime(float, float, float);
 
     void getNode(int objNode);

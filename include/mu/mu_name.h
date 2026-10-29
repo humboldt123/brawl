@@ -75,7 +75,7 @@ public:
     virtual void processDefault();
     virtual ~muNameRemoteTask();
 
-    void read();
+    void read() __attribute__((never_inline)); // called out of line by the name menu steps
     int getReadStatus();
     void readProcess();
     void write(const muNameRemoteData* data);

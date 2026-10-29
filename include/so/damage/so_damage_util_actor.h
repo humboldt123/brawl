@@ -15,5 +15,6 @@ public:
     static int getDamageFlyStatus(soModuleAccesser* moduleAccesser, float reaction, float angle);
     // Callee takes three floating values, then accessor, collision attack data, and mode.
     static int calcHitStopFrame(double, double, double, soModuleAccesser*, soCollisionAttackData*, int);
-    static int getDamageHitStopFrame(soModuleAccesser* moduleAccesser, soDamage* damage, bool unk, float mul);
+    // The factor comes before the flag: every caller loads the float argument before the bool.
+    static int getDamageHitStopFrame(soModuleAccesser* moduleAccesser, soDamage* damage, float mul, bool unk);
 };

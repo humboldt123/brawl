@@ -163,13 +163,10 @@ void grPalutenaAshibaBreak::getTranslate_Delta(Vec3f* out) {
 }
 
 void grPalutenaAshibaBreak::requestBuild() {
-    if (m_state > 3) {
-        return;
+    int state = m_state;
+    if (state < 4 && state >= 2) {
+        m_state = 0;
     }
-    if (m_state < 2) {
-        return;
-    }
-    m_state = 0;
 }
 
 void grPalutenaAshibaBreak::requestBreak() {

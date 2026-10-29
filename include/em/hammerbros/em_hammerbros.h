@@ -11,9 +11,8 @@
 #include <types.h>
 #include <wn/wn_em_sw_holder.h>
 
-// The arrays below are classes of sora_melee: the Hammer Bro only calls their constructors and destructors.
-FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 32);
-FT_DOL_ARRAY_VECTOR(soAreaInstance, 8);
+// The Hammer Bro only calls the constructors and destructors of its arrays, classes of sora_melee that
+// em/em_module_arrays.h declares because other enemies share them.
 
 class emHammerbros;
 
@@ -34,7 +33,7 @@ class emHammerbros : public Enemy {
     // HYPOTHESIS: one 0x20-byte work entry per area instance, as for the Primid (8 instances, 0x100 bytes).
     u8 m_areaWork[0x100];                                        // 0x5A48
     emTargetSearchUnit m_targetSearchUnits[2];                   // 0x5B48
-    emAIEntry m_aiEntries[29];                                   // 0x5B78, AI module
+    emAIUnit m_aiUnits[29];                                      // 0x5B78, AI module
     soArrayVector<soCameraSubject, 1> m_cameraSubjects;          // 0x5C60, camera module
     emHammerbrosArticleMediator m_articleMediator;               // 0x5CB0, generate-article-manage module
 

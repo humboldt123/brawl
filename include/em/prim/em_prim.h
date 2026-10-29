@@ -35,7 +35,7 @@ class emPrim : public Enemy {
     // HYPOTHESIS: one 0x20-byte work entry per area instance; the enemy area module keeps the pointer (its +0x54).
     u8 m_areaWork[0x220];                                        // 0x5DCC
     emTargetSearchUnit m_targetSearchUnits[12];                  // 0x5FEC
-    emAIEntry m_aiEntries[92];                                   // 0x610C, AI module
+    emAIUnit m_aiUnits[92];                                      // 0x610C, AI module
     soArrayVector<soCameraSubject, 1> m_cameraSubjects;          // 0x63EC, camera module
     emPrimArticleMediator m_articleMediator;                     // 0x643C, generate-article-manage module
 

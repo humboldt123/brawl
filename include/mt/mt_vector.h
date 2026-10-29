@@ -24,6 +24,11 @@ public:
 #endif
 
     Vec2f() { }
+    // The map names it Vec2f::set; the one unit that uses it (wnem_proc_common.cpp) calls the weak copy out of line.
+    void set(float x, float y) __attribute__((never_inline)) {
+        m_x = x;
+        m_y = y;
+    }
     inline Vec2f(const Vec3f& xyz)
 #ifdef MT_VEC2F_FROM_VEC3_CTOR_NOINLINE
         __attribute__((never_inline)) // MATCH-ONLY: retain the native constructor call.
@@ -72,12 +77,17 @@ public:
         return res;
     }
 
-    friend Vec2f operator*(const Vec2f& lhs, const float c) {
+    friend Vec2f operator*(const Vec2f& lhs, const float c)
+#ifdef MT_VEC2F_MUL_OUT_OF_LINE
+        ; // MATCH-ONLY: the owning unit calls the weak copy another unit of the REL carries.
+#else
+    {
         Vec2f res;
         res.m_x = lhs.m_x * c;
         res.m_y = lhs.m_y * c;
         return res;
     }
+#endif
 
     friend Vec2f operator/(const Vec2f& lhs, float c) {
         return lhs * (1 / c);
@@ -122,6 +132,10 @@ public:
     float lengthSq()
 #ifdef MT_VEC2F_LENGTH_SQ_OUT_OF_LINE
         __attribute__((never_inline)); // MATCH-ONLY: retain the owning Vanish unit's helper calls.
+#elif defined(MT_VEC2F_LENGTH_SQ_SINGLE_EXPR)
+    { // MATCH-ONLY: the item kinetic energy units square both components in place (one expression).
+        return m_x * m_x + m_y * m_y;
+    }
 #else
     {
         float xSq = m_x * m_x;
@@ -130,7 +144,11 @@ public:
     }
 #endif
 
-    float length() {
+    float length()
+#ifdef MT_VEC2F_LENGTH_OUT_OF_LINE
+        ; // MATCH-ONLY: the owning unit calls the weak copy another unit of the REL carries.
+#else
+    {
         float lengthSquared = this->lengthSq();
         // MATCH-ONLY: retain the original fabs double temporary and frsp at
         // conversion. The ordered <= comparison also preserves NaN behavior.
@@ -139,6 +157,7 @@ public:
         if (magnitude <= 1.17549435e-38f) return 0.0f;
         return lengthSquared * rsqrtf(lengthSquared);
     }
+#endif
 
     // Writes this - v to out.
     void sub(const Vec2f* v, Vec2f* out)
@@ -167,7 +186,7 @@ public:
     void normalize();
     void normalize(Vec2f* input);
 
-    void rot(Vec2f *out, float rot);
+    void rot(float angle, Vec2f* out);
 
     // Writes this vector scaled by c to out (the weapon articles call the out-of-line copy: opt in with MT_VEC2F_SCALE_NOINLINE).
     void scale(float c, Vec2f* out)
@@ -245,6 +264,10 @@ public:
         return (Vec2f*)this;
     }
 
+    // True when all three components are finite numbers (the map's name); defined by the unit that uses it
+    // (wnem_proc_common.cpp), which calls it out of line.
+    bool testNormal() __attribute__((never_inline));
+
     Vec3f operator+(const Vec3f& v);
     Vec3f operator-(const Vec3f& v)
 #ifdef MT_VEC3F_OPERATORS_NOINLINE
@@ -256,12 +279,17 @@ public:
     // MATCH-ONLY: paired-single form preserves the verified inline vector add.
     friend void Vec3fAdd(register Vec3f* pOut, register const Vec3f* lhs,
                      register const Vec3f* rhs) {
+#ifdef MT_VEC3F_ADD_RHS_RESULT_XY_FIRST
+        // MATCH-ONLY: retain the native independent XY/Z input lifetimes.
+        register f32 fr2, fr3, fr1, fr0;
+#else
         register f32 fr3, fr2, fr1, fr0;
+#endif
 
         // clang-format off
         asm {
-#if defined(MT_VEC3F_BIKE_UTILITY_OPERATORS) || defined(MT_VEC3F_ADD_NATIVE_ORDER)
-            // MATCH-ONLY: the native bike Utility operators (and the Enemy unit's weak operator+=) use this register order.
+#if defined(MT_VEC3F_BIKE_UTILITY_OPERATORS) || defined(MT_VEC3F_ADD_NATIVE_ORDER) || defined(MT_VEC3F_ADD_RHS_RESULT_XY_FIRST)
+            // MATCH-ONLY: these native callers reuse the right operand registers for the result.
             psq_l  fr3, Vec3f.m_x(lhs), 0, 0
             psq_l  fr1, Vec3f.m_x(rhs), 0, 0
             psq_l  fr2, Vec3f.m_z(lhs), 1, 0
@@ -378,6 +406,20 @@ public:
     }
     // MATCH-ONLY: paired-single scale used by the generic article code (opt in with MT_VEC3F_MUL_INLINE).
     friend void Vec3fScale(register Vec3f* pOut, register const Vec3f* v, register float c) {
+#ifdef MT_VEC3F_SCALE_SPLIT_RESULT
+        // MATCH-ONLY: loaded Z and its product have distinct native lifetimes.
+        register f32 frOut, frZ, frXY;
+        // clang-format off
+        asm {
+            psq_l    frXY, Vec3f.m_x(v), 0, 0
+            psq_l    frZ, Vec3f.m_z(v), 1, 0
+            ps_muls0 frXY, frXY, c
+            ps_muls0 frOut, frZ, c
+            psq_st   frXY, Vec3f.m_x(pOut), 0, 0
+            psq_st   frOut, Vec3f.m_z(pOut), 1, 0
+        }
+        // clang-format on
+#else
         register f32 fr1, fr0;
 
         // clang-format off
@@ -390,7 +432,9 @@ public:
             psq_st   fr0, Vec3f.m_z(pOut), 1, 0
         }
         // clang-format on
+#endif
     }
+
 #else
     friend void Vec3fAdd(Vec3f* out, const Vec3f* lhs, const Vec3f* rhs) {
         out->m_x = lhs->m_x + rhs->m_x;
@@ -445,7 +489,17 @@ public:
         m_z = m_z * c;
     }
 
-    float lengthSq();
+    float lengthSq()
+#ifdef MT_VEC3F_LENGTH_SQ_INLINE
+    { // MATCH-ONLY: this unit expands the verified Z + (X + Y) grouping inline.
+        float xSq = m_x * m_x;
+        float ySq = m_y * m_y;
+        float zSq = m_z * m_z;
+        return zSq + (xSq + ySq);
+    }
+#else
+    ;
+#endif
     float length();
     float distance(Vec3f* v) {
         Vec3f disp = *this - *v;

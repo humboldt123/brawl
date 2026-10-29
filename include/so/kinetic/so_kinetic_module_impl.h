@@ -50,6 +50,11 @@ protected: // the generic article module (wnKineticModuleImpl) reads these
 
 public:
     soKineticModuleImpl(soModuleAccesser* acc, soInstanceManagerFullProperty<soKineticEnergy*>* energies, soKineticMediator* mediator);
+#ifdef SO_KINETIC_MODULE_IMPL_CTOR_2
+    // The constructor of sora_melee reads only the accesser and the energy pool (r6 is never read); the enemy kinetic
+    // module calls it with these two arguments.
+    soKineticModuleImpl(soModuleAccesser* acc, soInstanceManagerFullProperty<soKineticEnergy*>* energies);
+#endif
 #ifdef WN_ARTICLE_NATIVE_BUILDERS
     ~soKineticModuleImpl() { }
 #elif defined(FT_MODULE_BUILDER)

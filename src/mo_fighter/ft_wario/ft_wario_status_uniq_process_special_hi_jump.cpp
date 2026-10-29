@@ -31,7 +31,7 @@ void ftWarioStatusUniqProcessSpecialHiJump::initStatus(soModuleAccesser* a) {
     float radians = 0.017453292f * angle;
     ftKineticEnergyMotion& motion = dynamic_cast<ftKineticEnergyMotion&>(*kinetic.getEnergy(0));
     // HYPOTHESIS: this verified motion-energy field controls rotation of ascent.
-    motion.unk3C = -radians;
+    motion.m_rotation = -radians;
 }
 void ftWarioStatusUniqProcessSpecialHiJump::exitStatus(soModuleAccesser* a, int next) {
     if (next == Fighter::Status::Fall_Special) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ft/ft_common_data_accesser.h>
+#include <so/item/so_item_manage_module_impl.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>

@@ -1,3 +1,4 @@
+#include <ft/ft_change_succeed_work.h>
 #include <ft/ft_manager.h>
 #include <ft/wario/ft_wario.h>
 #include <ft/wario/ft_wario_common.h>
@@ -16,11 +17,6 @@
 #include <so/stageobject.h>
 #include <wn/wario/wn_wario_bike.h>
 #include <types.h>
-
-// HYPOTHESIS: the part of ftChangeSucceedWork the dummy fighter activation needs (only this call is recovered).
-struct ftChangeSucceedWork {
-    void activateDummyFighter(Vec3f* pos, Vec2f* speed, float* unk1, float* unk2, int flags, float scale, float lr);
-};
 
 // HYPOTHESIS: two (0xFF, flag) pairs that the unit's static initializer fills (nothing in this unit reads them).
 struct ftWarioCommonPair {
@@ -296,10 +292,7 @@ void ftWarioCommon::setupChangeSucceedWork(soModuleAccesser* acc, void* changeSu
         flags = 0x160015;
     }
     soKineticEnergy::AttributeFlag attribute(0xFFFF);
-    Vec2f speed = acc->getKineticModule().getSumSpeed(attribute);
+    Vec2f* speed = &acc->getKineticModule().getSumSpeed(attribute);
     soPostureModule& posture = acc->getPostureModule();
-    float lr = posture.getLr();
-    float scale = posture.getScale();
-    Vec3f pos = posture.getPos();
-    ((ftChangeSucceedWork*)changeSucceedWork)->activateDummyFighter(&pos, &speed, (float*)zeroA, (float*)zeroB, flags, scale, lr);
+    ((ftChangeSucceedWork*)changeSucceedWork)->activateDummyFighter(&posture.getPos(), speed, (float*)zeroA, (float*)zeroB, flags, posture.getScale(), posture.getLr());
 }

@@ -11,6 +11,10 @@
 #include <so/article/so_article_mediator.h>
 #include <so/so_value_accesser.h>
 #include <ft/poke/ft_poke_lizardon_transactor.h>
+#include <ft/ft_owner.h>
+#include <so/so_slow.h>
+
+#include <so/glow/so_glow_module_simple.h>
 
 #define FT_BC ftPokeLizardonBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
@@ -329,12 +333,209 @@ bool ftPokeLizardonArticleMediator::shoot(soModuleAccesser* acc, soArticle* arti
 }
 
 
-// FIXME: Test code present only to emit the shared builder functions; delete once ftPokeLizardon is done
-void testBuilder() {
-    soInsideEventManageModuleBuilder<ftPokeLizardonInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
-    soResourceIdAccesserImpl idAccImpl(0, 1, 2);
+// HYPOTHESIS: parameter types of the sora_melee Pokemon helpers (unnamed there; the trailing names are the module map's).
+extern "C" {
+float fn_27_112BEC(ftOwner* owner);                                                                   // ftOwner::getStaminaMaxAdd
+void fn_27_368988(ftPokemonStaminaModule* stamina, float staminaMaxAdd);                              // ftPokemonStaminaModule::activate
+void fn_27_3689A4(ftPokemonStaminaModule* stamina);                                                   // ftPokemonStaminaModule::initStamina
+void fn_27_368AAC(ftPokemonStaminaModule* stamina);                                                   // ftPokemonStaminaModule::decStaminaAttack
+void fn_27_368AE8(ftPokemonStaminaModule* stamina);                                                   // ftPokemonStaminaModule::incStaminaDead
+void fn_27_368B30(ftPokemonStaminaModule* stamina);                                                   // ftPokemonStaminaModule::update
+void fn_27_368D00(ftPokeLizardonTransactor* transactor, soModuleAccesser* moduleAccesser);            // ftPokeLizardonTransactor::initTransact
+void fn_27_368DAC(ftPokeLizardonTransactor* transactor, soModuleAccesser* moduleAccesser);            // ftPokeLizardonTransactor::processUpdateTransact
+void fn_27_3769FC(ftPokemonEventManageModule* eventManage);                                           // ftPokemonEventManageModule::activate
+void fn_27_376A58(ftPokemonEventManageModule* eventManage);                                           // ftPokemonEventManageModule::deactivate
+void fn_27_376A80(ftPokemonEventManageModule* eventManage, int statusKind, int prevStatusKind, soStatusData* statusData); // ::onChangeStatus
+void fn_27_377094(ftPokemonEventManageModule* eventManage);                                           // ftPokemonEventManageModule::onAttack
+void fn_27_3772A8(ftPokemonEventManageModule* eventManage);                                           // ftPokemonEventManageModule::onInflict
+void fn_27_3774AC(ftPokemonEventManageModule* eventManage);                                           // ftPokemonEventManageModule::onDamage
+void fn_27_3776C0(ftPokemonEventManageModule* eventManage);                                           // ::notifyEventPokemonTrainerUpdate
+bool fn_27_3776C8(ftPokemonEventManageModule* eventManage, Vec3f* pos, float* lr);                    // ::notifyEventPokemonRequestChange
+void fn_27_37794C(soModuleAccesser* moduleAccesser, int kind, int statusKind);                        // ftPokemonUtil::changeCommon
+void fn_27_377B30(soModuleAccesser* moduleAccesser, void* eventArg);                                  // ftPokemonUtil::finalEndCommon
 }
-soInsideEventManageModuleBuilder<ftPokeLizardonInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
+
+// HYPOTHESIS: the block the change hands over from the previous Pokemon (position, facing and damage).
+struct ftPokeLizardonChangeWork {
+    Vec3f m_pos;
+    float m_lr;
+    u8 unk10[0x5C - 0x10];
+    float m_damage;
+};
+
+// HYPOTHESIS: the motion data of the motion change; bit 3 of its second byte asks for the wing partial animations.
+struct ftPokeLizardonMotionDataView {
+    u8 unk0;
+    u8 m_flags;
+};
+
+struct ftPokeLizardonLinkEvent : soLinkEventArgs {
+    ftPokeLizardonLinkEvent(int kind) : soLinkEventArgs(kind) { }
+};
+
+void ftPokeLizardon::onActivate() {
+    fn_27_368988(&m_stamina, fn_27_112BEC(getOwner()));
+    fn_27_3769FC(&m_eventManage);
+}
+
+void ftPokeLizardon::onDeactivate() {
+    fn_27_376A58(&m_eventManage);
+}
+
+void ftPokeLizardon::onStart(int startKind) {
+    soModuleAccesser* acc = m_moduleAccesser;
+    fn_27_368D00(ftPokeLizardonTransactor::getInstance(), acc);
+    Fighter::onStart(startKind);
+    m_eventManage.notifyEventPokemonStart(m_taskId);
+    if (startKind != 6 && startKind != 7) {
+        fn_27_3689A4(&m_stamina);
+    }
+    float stamina = m_stamina.unkC;
+    acc->getWorkManageModule().setFloat(stamina, 0x11000013);
+    float staminaMax = m_stamina.unk14;
+    acc->getWorkManageModule().setFloat(staminaMax, 0x11000014);
+    if (!getOwner()->getSpycloak()) {
+        acc->getEffectModule().reqFollow(static_cast<EfID>(0x1e0001), 0x14, &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), 1.0f, true, 0x10, 0, -1);
+    }
+}
+
+void ftPokeLizardon::change(void* work, int kind) {
+    soModuleAccesser* acc = m_moduleAccesser;
+    ftPokeLizardonChangeWork* changeWork = static_cast<ftPokeLizardonChangeWork*>(work);
+    acc->getPostureModule().init(&changeWork->m_pos, changeWork->m_lr);
+    acc->getDamageModule().initDamage(changeWork->m_damage);
+    onStart(kind);
+    fn_27_37794C(m_moduleAccesser, kind, 0x118);
+    if (kind == 6) {
+        Fighter::changeSucceedCore(work, -1);
+    }
+}
+
+void ftPokeLizardon::processUpdate() {
+    Fighter::processUpdate();
+    fn_27_368DAC(ftPokeLizardonTransactor::getInstance(), m_moduleAccesser);
+    if (soSlow::getInstance()->isEstimate() == true) {
+        fn_27_368B30(&m_stamina);
+    }
+}
+
+// HYPOTHESIS: the original passes the second argument to the bool parameter without a conversion (the observer parameter may be
+// a bool); the int spelling of the shared observer declaration adds one.
+void ftPokeLizardon::notifyEventSetRumble(int kind, int unk2) {
+    m_moduleAccesser->getControllerModule().setRumble(kind, 0, unk2, -1);
+}
+
+void ftPokeLizardon::notifyEventStopRumble(int kind) {
+    m_moduleAccesser->getControllerModule().stopRumbleKind(kind, -1);
+}
+
+void ftPokeLizardon::onDeadEnd() {
+    fn_27_368AE8(&m_stamina);
+    Fighter::onDeadEnd();
+}
+
+void ftPokeLizardon::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) {
+    switch (statusKind) {
+    case 0x24: case 0x25: case 0x26: case 0x27: case 0x28: case 0x29: case 0x2a:
+    case 0x2d: case 0x30: case 0x33:
+    case 0x112: case 0x113: case 0x114:
+        fn_27_368AAC(&m_stamina);
+        break;
+    case 0x117:
+        m_eventManage.notifyEventPokemonCollect();
+        break;
+    }
+    fn_27_376A80(&m_eventManage, statusKind, prevStatusKind, statusData);
+    Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
+}
+
+void ftPokeLizardon::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4) {
+    switch (eventInfo->m_eventKind) {
+    case 0x455:
+        fn_27_377B30(moduleAccesser, eventInfo + 1);
+        endFinal(true, true, false);
+        break;
+    case 0x456:
+        if (moduleAccesser->getGenerateArticleManageModule().getActiveNum(1) < 2) {
+            moduleAccesser->getWorkManageModule().offFlag(0x22000013);
+            moduleAccesser->getGenerateArticleManageModule().shoot(1, 0, true);
+        }
+        break;
+    }
+    Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObject, unk4);
+}
+
+bool ftPokeLizardon::notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3) {
+    s8 group = acmd->getGroup();
+    if (!isObserv(group)) {
+        return false;
+    }
+    switch (acmd->getType()) {
+    case 0x22:
+        m_eventManage.notifyEventPokemonChangeCancel();
+        return true;
+    case 0x2c:
+        if (moduleAccesser->getGenerateArticleManageModule().isExist(1)) {
+            int taskId = moduleAccesser->getWorkManageModule().getInt(0x10000041);
+            ftPokeLizardonLinkEvent event(0x838);
+            moduleAccesser->getLinkModule().sendEventNodes(-1, taskId, event);
+            moduleAccesser->getWorkManageModule().onFlag(0x22000011);
+        }
+        return true;
+    }
+    return Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3);
+}
+
+bool ftPokeLizardon::isObserv(char kind) {
+    return kind == 12 || kind == 101;
+}
+
+void ftPokeLizardon::notifyEventChangeMotion(int motionKind, int unk2, void* motionData, soModuleAccesser* moduleAccesser) {
+    if (static_cast<ftPokeLizardonMotionDataView*>(motionData)->m_flags & 0x8) {
+        if (!m_unk17FD8) {
+            m_unk17FD8 = true;
+            moduleAccesser->getMotionModule().addPartialAnimChr(1, 0x1db, 0x10, false, 0.0f, 1.0f, false);
+            moduleAccesser->getMotionModule().addPartialAnimChr(2, 0x1dc, 0x2c, false, 0.0f, 1.0f, false);
+        }
+    } else if (m_unk17FD8 == true) {
+        m_unk17FD8 = false;
+        moduleAccesser->getMotionModule().removePartialAnimChr(1);
+        moduleAccesser->getMotionModule().removePartialAnimChr(2);
+    }
+}
+
+void ftPokeLizardon::notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
+    fn_27_377094(&m_eventManage);
+    Fighter::notifyEventCollisionAttack(power, collisionLog, moduleAccesser);
+}
+
+// HYPOTHESIS: the float at Fighter +0x114 (inside the unnamed block of the shared header) is nonzero after a hit.
+bool ftPokeLizardon::notifyEventCollisionAttackCheck(u32 flags) {
+    if (0.0f != *reinterpret_cast<float*>(&_272[4])) {
+        fn_27_3772A8(&m_eventManage);
+    }
+    return Fighter::notifyEventCollisionAttackCheck(flags);
+}
+
+void ftPokeLizardon::notifyEventOnDamage(soDamage* damage, bool unk2, soModuleAccesser* moduleAccesser) {
+    if (unk2 == true) {
+        fn_27_3774AC(&m_eventManage);
+    }
+    Fighter::notifyEventOnDamage(damage, unk2, moduleAccesser);
+}
+
+bool ftPokeLizardon::notifyEventPokemonRequestChange(Vec3f* pos, float* lr) {
+    return fn_27_3776C8(&m_eventManage, pos, lr);
+}
+
+void ftPokeLizardon::notifyEventPokemonTrainerUpdate() {
+    fn_27_3776C0(&m_eventManage);
+}
+
+#pragma dont_inline on
+ftPokeLizardon::~ftPokeLizardon() { }
+#pragma dont_inline off
+
 
 // Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
 extern "C" {
@@ -380,7 +581,6 @@ int fn_116_A5AC() { return 0x0; }
 void fn_116_A5B4() {}
 void fn_116_A5B8() {}
 void fn_116_A5BC() {}
-int fn_116_A5C0() { return 0x850; }
 void fn_116_A5C8() {}
 void fn_116_A5CC() {}
 void fn_116_A5D0() {}
@@ -429,7 +629,7 @@ void* fn_116_45E8(void* p, s16 flags);
 void* fn_116_4E4C(void* p, s16 flags);
 void* fn_116_4EB8(void* p, s16 flags);
 void* fn_116_3408(void* p, s16 flags);
-void* fn_27_C31CC(void* p, s16 flags);
+
 void* fn_27_63EBC(void* p, s16 flags);
 void* fn_27_5C674(void* p, s16 flags);
 void* fn_27_6880C(void* p, s16 flags);
@@ -448,8 +648,6 @@ void* fn_116_53D8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator de
 void* fn_116_5418(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_116_5458(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_116_4150(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_116_722C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_116_726C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 
 #pragma dont_inline reset
 
@@ -520,7 +718,7 @@ void* fn_116_6B20(void* p, s16 flags) {
 }
 void* fn_116_394C(void* p, s16 flags) {
     if (p != 0) {
-        fn_27_C31CC(p, -1);
+        static_cast<soGlowModuleSimple*>(p)->soGlowModuleSimple::~soGlowModuleSimple();
         if (flags > 0) { ::operator delete(p); }
     }
     return p;
@@ -581,25 +779,9 @@ void* fn_116_3FE4(void* p, s16 flags) {
 extern "C" {
 
 void* fn_116_B938(void* p, int flags);
-void* fn_116_A34C(void* p, int flags);
 void* fn_116_DB98(void* p, s16 flags) { return fn_116_53D8((u8*)p - 0x4, flags); }
 void* fn_116_DBA0(void* p, int flags) { return fn_116_B938((u8*)p - 0x4, flags); }
 void* fn_116_DBA8(void* p, s16 flags) { return fn_116_3254((u8*)p - 0x4, flags); }
-void* fn_116_DBF0(void* p, int flags) { return fn_116_A34C((u8*)p - 0x40, flags); }
-
-bool fn_116_9B9C(u8* p, acAnimCmd* a, soModuleAccesser* m, int u);
-bool fn_116_9D68(u8* p, int c);
-void fn_116_9A9C(u8* p, soLinkEventArgs* e, soModuleAccesser* m, StageObject* o, int u);
-void fn_116_995C(u8* p, int a, int b, soStatusData* s, soModuleAccesser* m);
-bool fn_116_9F2C(u8* p, u32 f);
-void fn_116_9EC8(u8* p, float pw, soCollisionLog* l, soModuleAccesser* m);
-
-bool fn_116_DBF8(u8* p, acAnimCmd* a, soModuleAccesser* m, int u) { return fn_116_9B9C((u8*)p - 0x48, a, m, u); }
-bool fn_116_DC00(u8* p, int c) { return fn_116_9D68((u8*)p - 0x48, c); }
-void fn_116_DC08(u8* p, soLinkEventArgs* e, soModuleAccesser* m, StageObject* o, int u) { fn_116_9A9C((u8*)p - 0x54, e, m, o, u); }
-void fn_116_DC10(u8* p, int a, int b, soStatusData* s, soModuleAccesser* m) { fn_116_995C((u8*)p - 0x64, a, b, s, m); }
-bool fn_116_DC20(u8* p, u32 f) { return fn_116_9F2C((u8*)p - 0x7C, f); }
-void fn_116_DC28(u8* p, float pw, soCollisionLog* l, soModuleAccesser* m) { fn_116_9EC8((u8*)p - 0x7C, pw, l, m); }
 
 bool fn_116_DBB8(u8* p, acAnimCmd* a, soModuleAccesser* m, int u) { return ((Fighter*)((u8*)p - 0x48))->Fighter::notifyEventAnimCmd(a, m, u); }
 // Non-inline Fighter::isObserv symbol (the header body is inline, so the member call cannot be used here)
@@ -786,12 +968,6 @@ void* fn_116_4C70(void* p, s16 flags) {
 
 // Remaining tail-call thunks into module-27 functions and a plain setter.
 void fn_116_BC60(u8* p, u8 v) { *(u8*)(p + 0xFD34) = v; }
-void fn_27_376A58(void* p);
-void fn_27_3776C8(void* p);
-void fn_27_3776C0(void* p);
-void fn_116_93A4(u8* p) { fn_27_376A58(p + 0x17FBC); }
-void fn_116_A334(u8* p) { fn_27_3776C8(p + 0x17FBC); }
-void fn_116_A340(u8* p) { fn_27_3776C0(p + 0x17FBC); }
 
 }
 
@@ -816,11 +992,6 @@ void* fn_116_BD58(u8* p, int i) {
     if (i == 1) { return p + 0x166C; }
     if (i == 0) { return p + 0x1C; }
     return 0;
-}
-// ftPokeLizardon::isObserv: true for the two character codes handled here.
-bool fn_116_9D68(u8* p, int c) {
-    char ch = (char)c;
-    return ch == 0xC || ch == 0x65;
 }
 extern int g_soValueVariation;
 int fn_116_AC5C() { return g_soValueVariation; }

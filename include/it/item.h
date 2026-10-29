@@ -2,7 +2,6 @@
 #pragma once
 
 #include <StaticAssert.h>
-#include <ft/fighter.h>
 #include <so/article/so_article.h>
 #include <so/stageobject.h>
 #include <types.h>
@@ -13,6 +12,8 @@
 #include <it/kinetic/it_kinetic_module_impl.h>
 
 class itCustomizerInterface;
+// BaseItem is complete before the Fighter in the original (the sora_enemy damage unit's type information order).
+class Fighter;
 
 class BaseItem : public StageObject, public soStatusEventObserver, public soSituationEventObserver, public soCollisionAttackEventObserver, public soCollisionShieldEventObserver, public soCollisionReflectorEventObserver, public soCollisionSearchEventObserver, public soGimmickEventObserver, public soArticle {
 protected:

@@ -35,9 +35,47 @@ mo_enemy/sora_enemy/em_create.cpp:
 	.rodata     start:0x00000BD8 end:0x00000BE0
 	.data       start:0x00001980 end:0x000019A0
 
+mo_enemy/sora_enemy/damage/em_damage_module_impl.cpp:
+	.text       start:0x0000F9AC end:0x000137B4
+	.ctors      start:0x00000008 end:0x0000000C
+	.rodata     start:0x00000BE0 end:0x00000C18
+	.data       start:0x000019A0 end:0x00002528
+	.bss        start:0x00000048 end:0x00000070
+
+mo_enemy/sora_enemy/term/em_general_term_decide_module_impl.cpp:
+	.text       start:0x000137B4 end:0x0001536C
+	.ctors      start:0x0000000C end:0x00000010
+	.rodata     start:0x00000C18 end:0x00000C38
+	.data       start:0x00002528 end:0x000026E0
+	.bss        start:0x00000070 end:0x00000088
+
+mo_enemy/sora_enemy/kinetic/em_kinetic_module_impl.cpp:
+	.text       start:0x0001536C end:0x0001AD14
+	.rodata     start:0x00000C38 end:0x00000C90
+	.data       start:0x000026E0 end:0x00002A38
+
+mo_enemy/sora_enemy/kinetic/em_kinetic_energy.cpp:
+	.text       start:0x0001AD14 end:0x0001F57C
+	.rodata     start:0x00000C90 end:0x00000D28
+	.data       start:0x00002A38 end:0x00002C18
+
 mo_enemy/sora_enemy/resource/em_resource_module_impl.cpp:
 	.text       start:0x0001F57C end:0x0001F82C
 	.data       start:0x00002C18 end:0x00002CF8
+
+mo_enemy/sora_enemy/switch/em_switch_decide_module_impl.cpp:
+	.text       start:0x0001F82C end:0x00021424
+	.ctors      start:0x00000010 end:0x00000014
+	.rodata     start:0x00000D28 end:0x00000D40
+	.data       start:0x00002CF8 end:0x00002DB0
+	.bss        start:0x00000088 end:0x000000A0
+
+mo_enemy/sora_enemy/em_value_accesser.cpp:
+	.text       start:0x00021424 end:0x00022C88
+	.ctors      start:0x00000014 end:0x00000018
+	.rodata     start:0x00000D40 end:0x00000D50
+	.data       start:0x00002DB0 end:0x00003190
+	.bss        start:0x000000A0 end:0x000000B8
 
 mo_enemy/sora_enemy/stop/em_stop_module_impl.cpp:
 	.text       start:0x00022C88 end:0x00022D94
@@ -48,6 +86,19 @@ mo_enemy/sora_enemy/em_extend_param_accesser.cpp:
 	.data       start:0x00003200 end:0x00003280
 	.bss        start:0x000000B8 end:0x000001B0
 
+mo_enemy/sora_enemy/area/em_area_module_impl.cpp:
+	.text       start:0x00022EE8 end:0x00027780
+	.rodata     start:0x00000D50 end:0x00000D88
+	.data       start:0x00003280 end:0x000033B0
+
+mo_enemy/sora_enemy/territory/em_territory_module_impl.cpp:
+	.text       start:0x00027780 end:0x000279B8
+	.data       start:0x000033B0 end:0x000034C8
+
+mo_enemy/sora_enemy/link/em_link_module_impl.cpp:
+	.text       start:0x000279B8 end:0x000285A8
+	.data       start:0x000034C8 end:0x000036B0
+
 mo_enemy/sora_enemy/em_external_value_accesser.cpp:
 	.text       start:0x000285A8 end:0x0002893C
 
@@ -55,6 +106,46 @@ mo_enemy/sora_enemy/em_target_search_unit.cpp:
 	.text       start:0x0002893C end:0x00028B30
 	.rodata     start:0x00000D88 end:0x00000D98
 	.data       start:0x000036B0 end:0x00003710
+
+mo_enemy/sora_enemy/ai/em_ai_module_impl.cpp:
+	.text       start:0x00028B30 end:0x0002A470
+	.ctors      start:0x00000018 end:0x0000001C
+	.rodata     start:0x00000D98 end:0x00000DB8
+	.data       start:0x00003710 end:0x00003780
+	.bss        start:0x000001B0 end:0x000001C8
+
+mo_enemy/sora_enemy/ai/em_ai_unit.cpp:
+	.text       start:0x0002A470 end:0x0002A724
+	.rodata     start:0x00000DB8 end:0x00000DC0
+
+mo_enemy/sora_enemy/turn/em_turn_module_impl.cpp:
+	.text       start:0x0002A724 end:0x0002B058
+	.rodata     start:0x00000DC0 end:0x00000DC8
+	.data       start:0x00003780 end:0x000038D8
+
+mo_enemy/sora_enemy/status/em_status_module_impl.cpp:
+	.text       start:0x0002B058 end:0x0002B43C
+	.data       start:0x000038D8 end:0x000039C0
+
+mo_enemy/sora_enemy/ground/em_ground_module_impl.cpp:
+	.text       start:0x0002B43C end:0x0002B8FC
+	.rodata     start:0x00000DC8 end:0x00000DD0
+	.data       start:0x000039C0 end:0x00003C70
+
+mo_enemy/sora_enemy/collision/em_collision_hit_module_impl.cpp:
+	.text       start:0x0002B8FC end:0x0002BE04
+	.rodata     start:0x00000DD0 end:0x00000DF8
+	.data       start:0x00003C70 end:0x00003D88
+
+mo_enemy/sora_enemy/weapon/em_weapon_manager.cpp:
+	.text       start:0x0002BE04 end:0x0002CA6C
+	.rodata     start:0x00000DF8 end:0x00000E18
+	.data       start:0x00003D88 end:0x00003E20
+	.bss        start:0x000001C8 end:0x000001D0
+
+mo_enemy/sora_enemy/weapon/em_weapon_register.cpp:
+	.text       start:0x0002CA6C end:0x0002CF98
+	.data       start:0x00003E20 end:0x00003E38
 
 mo_enemy/sora_enemy/wnem/wn_em_resource_module_impl.cpp:
 	.text       start:0x0002CF98 end:0x0002D038
@@ -66,12 +157,34 @@ mo_enemy/sora_enemy/wnem/wn_em_heap_module_impl.cpp:
 	.data       start:0x00006CD8 end:0x00006D50
 	.bss        start:0x00000260 end:0x00000280
 
+mo_enemy/sora_enemy/wnem/wn_em_damage_effector_impl.cpp:
+	.text       start:0x00034AE8 end:0x00034F30
+	.ctors      start:0x00000024 end:0x00000028
+	.rodata     start:0x00000E78 end:0x00000E80
+	.data       start:0x00006D50 end:0x00006E18
+	.bss        start:0x00000280 end:0x00000298
+
+mo_enemy/sora_enemy/wnem/wn_em_damage_transactor_impl.cpp:
+	.text       start:0x00034F30 end:0x00035204
+	.ctors      start:0x00000028 end:0x0000002C
+	.rodata     start:0x00000E80 end:0x00000E88
+	.data       start:0x00006E18 end:0x00006F20
+	.bss        start:0x00000298 end:0x000002A8
+
+mo_enemy/sora_enemy/boobas/em_boobas.cpp:
+	.text       start:0x00035204 end:0x00035410
+	.data       start:0x00006F20 end:0x00007170
+
 mo_enemy/sora_enemy/boobas/em_boobas_param_accesser.cpp:
 	.text       start:0x00035410 end:0x00035688
 	.ctors      start:0x0000002C end:0x00000030
 	.rodata     start:0x00000E88 end:0x00000E90
 	.data       start:0x00007170 end:0x000071D0
 	.bss        start:0x000002A8 end:0x000002C0
+
+mo_enemy/sora_enemy/siralamos/em_siralamos.cpp:
+	.text       start:0x00035688 end:0x00036B40
+	.data       start:0x000071D0 end:0x00007F08
 
 mo_enemy/sora_enemy/siralamos/em_siralamos_param_accesser.cpp:
 	.text       start:0x00036B40 end:0x00036DD8
@@ -80,12 +193,20 @@ mo_enemy/sora_enemy/siralamos/em_siralamos_param_accesser.cpp:
 	.data       start:0x00007F08 end:0x00007F98
 	.bss        start:0x000002C0 end:0x000002D8
 
+mo_enemy/sora_enemy/roada/em_roada.cpp:
+	.text       start:0x00036DD8 end:0x00036FCC
+	.data       start:0x00007F98 end:0x000081E8
+
 mo_enemy/sora_enemy/roada/em_roada_param_accesser.cpp:
 	.text       start:0x00036FCC end:0x00037258
 	.ctors      start:0x00000034 end:0x00000038
 	.rodata     start:0x00000E98 end:0x00000EA0
 	.data       start:0x000081E8 end:0x00008268
 	.bss        start:0x000002D8 end:0x000002F0
+
+mo_enemy/sora_enemy/killer/em_killer.cpp:
+	.text       start:0x00037258 end:0x00037464
+	.data       start:0x00008268 end:0x000084B8
 
 mo_enemy/sora_enemy/killer/em_killer_param_accesser.cpp:
 	.text       start:0x00037464 end:0x000376F4
@@ -94,12 +215,23 @@ mo_enemy/sora_enemy/killer/em_killer_param_accesser.cpp:
 	.data       start:0x000084B8 end:0x00008518
 	.bss        start:0x000002F0 end:0x00000308
 
+mo_enemy/sora_enemy/popperam/em_popperam.cpp:
+	.text       start:0x000376F4 end:0x00038C68
+	.ctors      start:0x0000003C end:0x00000040
+	.rodata     start:0x00000EA8 end:0x00000EB0
+	.data       start:0x00008518 end:0x00008F18
+	.bss        start:0x00000308 end:0x00000318
+
 mo_enemy/sora_enemy/popperam/em_popperam_param_accesser.cpp:
 	.text       start:0x00038C68 end:0x00038F7C
 	.ctors      start:0x00000040 end:0x00000044
 	.rodata     start:0x00000EB0 end:0x00000EB8
 	.data       start:0x00008F18 end:0x00008FB8
 	.bss        start:0x00000318 end:0x00000330
+
+mo_enemy/sora_enemy/pacci/em_pacci.cpp:
+	.text       start:0x00038F7C end:0x00039170
+	.data       start:0x00008FB8 end:0x00009208
 
 mo_enemy/sora_enemy/pacci/em_pacci_param_accesser.cpp:
 	.text       start:0x00039170 end:0x00039408
@@ -108,12 +240,23 @@ mo_enemy/sora_enemy/pacci/em_pacci_param_accesser.cpp:
 	.data       start:0x00009208 end:0x00009268
 	.bss        start:0x00000330 end:0x00000348
 
+mo_enemy/sora_enemy/jyakeel/em_jyakeel.cpp:
+	.text       start:0x00039408 end:0x000395FC
+	.data       start:0x00009268 end:0x000094B8
+
 mo_enemy/sora_enemy/jyakeel/em_jyakeel_param_accesser.cpp:
 	.text       start:0x000395FC end:0x0003986C
 	.ctors      start:0x00000048 end:0x0000004C
 	.rodata     start:0x00000EC0 end:0x00000EC8
 	.data       start:0x000094B8 end:0x00009518
 	.bss        start:0x00000348 end:0x00000360
+
+mo_enemy/sora_enemy/aroaros/em_aroaros.cpp:
+	.text       start:0x0003986C end:0x00039E6C
+	.ctors      start:0x0000004C end:0x00000050
+	.rodata     start:0x00000EC8 end:0x00000ED0
+	.data       start:0x00009518 end:0x00009768
+	.bss        start:0x00000360 end:0x00000370
 
 mo_enemy/sora_enemy/aroaros/em_aroaros_param_accesser.cpp:
 	.text       start:0x00039E6C end:0x0003A0F0
@@ -122,12 +265,20 @@ mo_enemy/sora_enemy/aroaros/em_aroaros_param_accesser.cpp:
 	.data       start:0x00009768 end:0x000097C8
 	.bss        start:0x00000370 end:0x00000388
 
+mo_enemy/sora_enemy/cymal/em_cymal.cpp:
+	.text       start:0x0003A0F0 end:0x0003A3E0
+	.data       start:0x000097C8 end:0x00009A18
+
 mo_enemy/sora_enemy/cymal/em_cymal_param_accesser.cpp:
 	.text       start:0x0003A3E0 end:0x0003A618
 	.ctors      start:0x00000054 end:0x00000058
 	.rodata     start:0x00000ED8 end:0x00000EE0
 	.data       start:0x00009A18 end:0x00009A78
 	.bss        start:0x00000388 end:0x000003A0
+
+mo_enemy/sora_enemy/deathpod/em_deathpod.cpp:
+	.text       start:0x0003A618 end:0x0003B9C8
+	.data       start:0x00009A78 end:0x0000A4E0
 
 mo_enemy/sora_enemy/deathpod/em_deathpod_param_accesser.cpp:
 	.text       start:0x0003B9C8 end:0x0003BC58
@@ -136,12 +287,21 @@ mo_enemy/sora_enemy/deathpod/em_deathpod_param_accesser.cpp:
 	.data       start:0x0000A4E0 end:0x0000A578
 	.bss        start:0x000003A0 end:0x000003B8
 
+mo_enemy/sora_enemy/dekakuribo/em_dekakuribo.cpp:
+	.text       start:0x0003BC58 end:0x0003BFE0
+	.data       start:0x0000A578 end:0x0000A7D0
+
 mo_enemy/sora_enemy/dekakuribo/em_dekakuribo_param_accesser.cpp:
 	.text       start:0x0003BFE0 end:0x0003C27C
 	.ctors      start:0x0000005C end:0x00000060
 	.rodata     start:0x00000EE8 end:0x00000EF0
 	.data       start:0x0000A7D0 end:0x0000A838
 	.bss        start:0x000003B8 end:0x000003D0
+
+mo_enemy/sora_enemy/bucyulus/em_bucyulus.cpp:
+	.text       start:0x0003C27C end:0x0003C7A0
+	.rodata     start:0x00000EF0 end:0x00000EF8
+	.data       start:0x0000A838 end:0x0000AA88
 
 mo_enemy/sora_enemy/bucyulus/em_bucyulus_param_accesser.cpp:
 	.text       start:0x0003C7A0 end:0x0003CA40
@@ -162,12 +322,27 @@ mo_enemy/sora_enemy/botron/em_botron_param_accesser.cpp:
 	.data       start:0x0000B3C8 end:0x0000B460
 	.bss        start:0x000003E8 end:0x00000400
 
+mo_enemy/sora_enemy/botron/wnem_proc_botron.cpp:
+	.text       start:0x0003DEF8 end:0x0003E238
+	.ctors      start:0x00000068 end:0x0000006C
+	.rodata     start:0x00000F10 end:0x00000F20
+	.data       start:0x0000B460 end:0x0000B4E8
+	.bss        start:0x00000400 end:0x00000410
+
+mo_enemy/sora_enemy/gyraan/em_gyraan.cpp:
+	.text       start:0x0003E238 end:0x0003F34C
+	.data       start:0x0000B4E8 end:0x0000BD18
+
 mo_enemy/sora_enemy/gyraan/em_gyraan_param_accesser.cpp:
 	.text       start:0x0003F34C end:0x0003F5D8
 	.ctors      start:0x0000006C end:0x00000070
 	.rodata     start:0x00000F20 end:0x00000F28
 	.data       start:0x0000BD18 end:0x0000BDA0
 	.bss        start:0x00000410 end:0x00000428
+
+mo_enemy/sora_enemy/mite/em_mite.cpp:
+	.text       start:0x0003F5D8 end:0x0003F7CC
+	.data       start:0x0000BDA0 end:0x0000BFF0
 
 mo_enemy/sora_enemy/mite/em_mite_param_accesser.cpp:
 	.text       start:0x0003F7CC end:0x0003FAB0
@@ -187,6 +362,15 @@ mo_enemy/sora_enemy/prim/em_prim_param_accesser.cpp:
 	.data       start:0x0000CFD8 end:0x0000D0E0
 	.bss        start:0x00000440 end:0x00000458
 
+mo_enemy/sora_enemy/prim/wnem_proc_prim.cpp:
+	.text       start:0x0004198C end:0x00042348
+	.rodata     start:0x00000F38 end:0x00000F70
+	.data       start:0x0000D0E0 end:0x0000D1E8
+
+mo_enemy/sora_enemy/cataguard/em_cataguard.cpp:
+	.text       start:0x00042348 end:0x00043C6C
+	.data       start:0x0000D1E8 end:0x0000E438
+
 mo_enemy/sora_enemy/cataguard/em_cataguard_param_accesser.cpp:
 	.text       start:0x00043C6C end:0x00043F68
 	.ctors      start:0x00000078 end:0x0000007C
@@ -194,8 +378,60 @@ mo_enemy/sora_enemy/cataguard/em_cataguard_param_accesser.cpp:
 	.data       start:0x0000E438 end:0x0000E4D8
 	.bss        start:0x00000458 end:0x00000470
 
+mo_enemy/sora_enemy/wnem/wnem_proc_common.cpp:
+	.text       start:0x00043F68 end:0x00044B80
+	.ctors      start:0x0000007C end:0x00000080
+	.rodata     start:0x00000F78 end:0x00000FA0
+	.data       start:0x0000E4D8 end:0x0000E628
+	.bss        start:0x00000470 end:0x00000488
+
+mo_enemy/sora_enemy/cataguard/wnem_proc_cataguard.cpp:
+	.text       start:0x00044B80 end:0x00045388
+	.rodata     start:0x00000FA0 end:0x00000FB8
+	.data       start:0x0000E628 end:0x0000E778
+
+mo_enemy/sora_enemy/wnem/wnem_proc_robo.cpp:
+	.text       start:0x00045388 end:0x00045918
+	.rodata     start:0x00000FB8 end:0x00000FC0
+	.data       start:0x0000E778 end:0x0000E8B0
+
+mo_enemy/sora_enemy/bosspackun/wnem_proc_bosspackun.cpp:
+	.text       start:0x00045918 end:0x00045CD4
+	.rodata     start:0x00000FC0 end:0x00000FD8
+	.data       start:0x0000E8B0 end:0x0000E8D8
+
+mo_enemy/sora_enemy/duon/wnem_proc_duon.cpp:
+	.text       start:0x00045CD4 end:0x00046850
+	.rodata     start:0x00000FD8 end:0x00000FE0
+	.data       start:0x0000E8D8 end:0x0000EA90
+
+mo_enemy/sora_enemy/porky/wnem_proc_porky.cpp:
+	.text       start:0x00046850 end:0x000470B0
+	.rodata     start:0x00000FE0 end:0x00001010
+	.data       start:0x0000EA90 end:0x0000EBB8
+
+mo_enemy/sora_enemy/bombhead/wnem_proc_bombhead.cpp:
+	.text       start:0x000470B0 end:0x000473DC
+	.rodata     start:0x00001010 end:0x00001018
+	.data       start:0x0000EBB8 end:0x0000ECC8
+
+mo_enemy/sora_enemy/wnem/em_weapon_util.cpp:
+	.text       start:0x000473DC end:0x00047FB4
+	.ctors      start:0x00000080 end:0x00000084
+	.rodata     start:0x00001018 end:0x00001030
+	.bss        start:0x00000488 end:0x00000538
+
+mo_enemy/sora_enemy/gyraan/wnem_proc_gyraan.cpp:
+	.text       start:0x00047FB4 end:0x0004833C
+	.rodata     start:0x00001030 end:0x00001038
+	.data       start:0x0000ECC8 end:0x0000ED38
+
 mo_enemy/sora_enemy/wnem/wn_em_report.cpp:
 	.text       start:0x0004833C end:0x0004838C
+
+mo_enemy/sora_enemy/kuribo/em_kuribo.cpp:
+	.text       start:0x0004838C end:0x000486AC
+	.data       start:0x0000ED38 end:0x0000EF88
 
 mo_enemy/sora_enemy/kuribo/em_kuribo_param_accesser.cpp:
 	.text       start:0x000486AC end:0x00048940
@@ -204,12 +440,20 @@ mo_enemy/sora_enemy/kuribo/em_kuribo_param_accesser.cpp:
 	.data       start:0x0000EF88 end:0x0000EFE8
 	.bss        start:0x00000538 end:0x00000550
 
+mo_enemy/sora_enemy/flows/em_flows.cpp:
+	.text       start:0x00048940 end:0x00048B34
+	.data       start:0x0000EFE8 end:0x0000F238
+
 mo_enemy/sora_enemy/flows/em_flows_param_accesser.cpp:
 	.text       start:0x00048B34 end:0x00048DD8
 	.ctors      start:0x00000088 end:0x0000008C
 	.rodata     start:0x00001040 end:0x00001048
 	.data       start:0x0000F238 end:0x0000F2B8
 	.bss        start:0x00000550 end:0x00000568
+
+mo_enemy/sora_enemy/tautau/em_tautau.cpp:
+	.text       start:0x00048DD8 end:0x00048FCC
+	.data       start:0x0000F2B8 end:0x0000F508
 
 mo_enemy/sora_enemy/tautau/em_tautau_param_accesser.cpp:
 	.text       start:0x00048FCC end:0x00049370
@@ -218,12 +462,20 @@ mo_enemy/sora_enemy/tautau/em_tautau_param_accesser.cpp:
 	.data       start:0x0000F508 end:0x0000F588
 	.bss        start:0x00000568 end:0x00000580
 
+mo_enemy/sora_enemy/shelly/em_shelly.cpp:
+	.text       start:0x00049370 end:0x00049564
+	.data       start:0x0000F588 end:0x0000F7D8
+
 mo_enemy/sora_enemy/shelly/em_shelly_param_accesser.cpp:
 	.text       start:0x00049564 end:0x000497D4
 	.ctors      start:0x00000090 end:0x00000094
 	.rodata     start:0x00001058 end:0x00001060
 	.data       start:0x0000F7D8 end:0x0000F838
 	.bss        start:0x00000580 end:0x00000598
+
+mo_enemy/sora_enemy/teckin/em_teckin.cpp:
+	.text       start:0x000497D4 end:0x000499C8
+	.data       start:0x0000F838 end:0x0000FA88
 
 mo_enemy/sora_enemy/teckin/em_teckin_param_accesser.cpp:
 	.text       start:0x000499C8 end:0x00049C24
@@ -271,12 +523,20 @@ mo_enemy/sora_enemy/kokkon/em_kokkon_param_accesser.cpp:
 	.data       start:0x00011B70 end:0x00011BF8
 	.bss        start:0x000005E0 end:0x000005F8
 
+mo_enemy/sora_enemy/bombhead/em_bombhead.cpp:
+	.text       start:0x0004E0A4 end:0x0004F538
+	.data       start:0x00011BF8 end:0x000127F8
+
 mo_enemy/sora_enemy/bombhead/em_bombhead_param_accesser.cpp:
 	.text       start:0x0004F538 end:0x0004F7DC
 	.ctors      start:0x000000A4 end:0x000000A8
 	.rodata     start:0x00001098 end:0x000010A0
 	.data       start:0x000127F8 end:0x00012878
 	.bss        start:0x000005F8 end:0x00000610
+
+mo_enemy/sora_enemy/ngagog/em_ngagog.cpp:
+	.text       start:0x0004F7DC end:0x0004F9D0
+	.data       start:0x00012878 end:0x00012AC8
 
 mo_enemy/sora_enemy/ngagog/em_ngagog_param_accesser.cpp:
 	.text       start:0x0004F9D0 end:0x0004FCAC
@@ -285,12 +545,20 @@ mo_enemy/sora_enemy/ngagog/em_ngagog_param_accesser.cpp:
 	.data       start:0x00012AC8 end:0x00012B70
 	.bss        start:0x00000610 end:0x00000628
 
+mo_enemy/sora_enemy/faulong/em_faulong.cpp:
+	.text       start:0x0004FCAC end:0x0004FEA0
+	.data       start:0x00012B70 end:0x00012DC0
+
 mo_enemy/sora_enemy/faulong/em_faulong_param_accesser.cpp:
 	.text       start:0x0004FEA0 end:0x00050108
 	.ctors      start:0x000000AC end:0x000000B0
 	.rodata     start:0x000010A8 end:0x000010B0
 	.data       start:0x00012DC0 end:0x00012E20
 	.bss        start:0x00000628 end:0x00000640
+
+mo_enemy/sora_enemy/bitan/em_bitan.cpp:
+	.text       start:0x00050108 end:0x00050354
+	.data       start:0x00012E20 end:0x00013070
 
 mo_enemy/sora_enemy/bitan/em_bitan_param_accesser.cpp:
 	.text       start:0x00050354 end:0x00050618
@@ -299,12 +567,23 @@ mo_enemy/sora_enemy/bitan/em_bitan_param_accesser.cpp:
 	.data       start:0x00013070 end:0x00013100
 	.bss        start:0x00000640 end:0x00000658
 
+mo_enemy/sora_enemy/patapata/em_patapata.cpp:
+	.text       start:0x00050618 end:0x00051038
+	.ctors      start:0x000000B4 end:0x000000B8
+	.rodata     start:0x000010B8 end:0x000010C0
+	.data       start:0x00013100 end:0x00013350
+	.bss        start:0x00000658 end:0x00000668
+
 mo_enemy/sora_enemy/patapata/em_patapata_param_accesser.cpp:
 	.text       start:0x00051038 end:0x000512D0
 	.ctors      start:0x000000B8 end:0x000000BC
 	.rodata     start:0x000010C0 end:0x000010C8
 	.data       start:0x00013350 end:0x000133D0
 	.bss        start:0x00000668 end:0x00000680
+
+mo_enemy/sora_enemy/jdus/em_jdus.cpp:
+	.text       start:0x000512D0 end:0x000514C4
+	.data       start:0x000133D0 end:0x00013620
 
 mo_enemy/sora_enemy/jdus/em_jdus_param_accesser.cpp:
 	.text       start:0x000514C4 end:0x00051734
@@ -313,12 +592,21 @@ mo_enemy/sora_enemy/jdus/em_jdus_param_accesser.cpp:
 	.data       start:0x00013620 end:0x000136A8
 	.bss        start:0x00000680 end:0x00000698
 
+mo_enemy/sora_enemy/ghamgha/em_ghamgha.cpp:
+	.text       start:0x00051734 end:0x00052A70
+	.rodata     start:0x000010D0 end:0x000010D8
+	.data       start:0x000136A8 end:0x00014098
+
 mo_enemy/sora_enemy/ghamgha/em_ghamgha_param_accesser.cpp:
 	.text       start:0x00052A70 end:0x00052CF0
 	.ctors      start:0x000000C0 end:0x000000C4
 	.rodata     start:0x000010D8 end:0x000010E0
 	.data       start:0x00014098 end:0x00014118
 	.bss        start:0x00000698 end:0x000006B0
+
+mo_enemy/sora_enemy/robobeam/em_robobeam.cpp:
+	.text       start:0x00052CF0 end:0x00053F00
+	.data       start:0x00014118 end:0x00014B08
 
 mo_enemy/sora_enemy/robobeam/em_robobeam_param_accesser.cpp:
 	.text       start:0x00053F00 end:0x0005416C
@@ -327,12 +615,20 @@ mo_enemy/sora_enemy/robobeam/em_robobeam_param_accesser.cpp:
 	.data       start:0x00014B08 end:0x00014B88
 	.bss        start:0x000006B0 end:0x000006C8
 
+mo_enemy/sora_enemy/robodistance/em_robodistance.cpp:
+	.text       start:0x0005416C end:0x00055080
+	.data       start:0x00014B88 end:0x00015340
+
 mo_enemy/sora_enemy/robodistance/em_robodistance_param_accesser.cpp:
 	.text       start:0x00055080 end:0x000552CC
 	.ctors      start:0x000000C8 end:0x000000CC
 	.rodata     start:0x000010E8 end:0x000010F0
 	.data       start:0x00015340 end:0x000153A8
 	.bss        start:0x000006C8 end:0x000006E0
+
+mo_enemy/sora_enemy/robohoming/em_robohoming.cpp:
+	.text       start:0x000552CC end:0x000565B0
+	.data       start:0x000153A8 end:0x00015DA0
 
 mo_enemy/sora_enemy/robohoming/em_robohoming_param_accesser.cpp:
 	.text       start:0x000565B0 end:0x000567FC
@@ -341,12 +637,21 @@ mo_enemy/sora_enemy/robohoming/em_robohoming_param_accesser.cpp:
 	.data       start:0x00015DA0 end:0x00015E08
 	.bss        start:0x000006E0 end:0x000006F8
 
+mo_enemy/sora_enemy/robopunch/em_robopunch.cpp:
+	.text       start:0x000567FC end:0x000569F0
+	.data       start:0x00015E08 end:0x00016058
+
 mo_enemy/sora_enemy/robopunch/em_robopunch_param_accesser.cpp:
 	.text       start:0x000569F0 end:0x00056C24
 	.ctors      start:0x000000D0 end:0x000000D4
 	.rodata     start:0x000010F8 end:0x00001100
 	.data       start:0x00016058 end:0x000160D8
 	.bss        start:0x000006F8 end:0x00000710
+
+mo_enemy/sora_enemy/arman/em_arman.cpp:
+	.text       start:0x00056C24 end:0x000585A8
+	.rodata     start:0x00001100 end:0x00001108
+	.data       start:0x000160D8 end:0x00016FA0
 
 mo_enemy/sora_enemy/arman/em_arman_param_accesser.cpp:
 	.text       start:0x000585A8 end:0x00058878
@@ -359,12 +664,20 @@ mo_enemy/sora_enemy/arman/wnem_proc_arman.cpp:
 	.text       start:0x00058878 end:0x00058B0C
 	.data       start:0x00017030 end:0x000170B8
 
+mo_enemy/sora_enemy/galfire/em_galfire.cpp:
+	.text       start:0x00058B0C end:0x00058DB0
+	.data       start:0x000170B8 end:0x00017308
+
 mo_enemy/sora_enemy/galfire/em_galfire_param_accesser.cpp:
 	.text       start:0x00058DB0 end:0x00059078
 	.ctors      start:0x000000D8 end:0x000000DC
 	.rodata     start:0x00001110 end:0x00001118
 	.data       start:0x00017308 end:0x00017368
 	.bss        start:0x00000728 end:0x00000740
+
+mo_enemy/sora_enemy/bosspackun/em_bosspackun.cpp:
+	.text       start:0x00059078 end:0x0005A678
+	.data       start:0x00017368 end:0x00017BA0
 
 mo_enemy/sora_enemy/bosspackun/em_bosspackun_param_accesser.cpp:
 	.text       start:0x0005A678 end:0x0005AA0C
@@ -373,12 +686,20 @@ mo_enemy/sora_enemy/bosspackun/em_bosspackun_param_accesser.cpp:
 	.data       start:0x00017BA0 end:0x00017C48
 	.bss        start:0x00000740 end:0x00000758
 
+mo_enemy/sora_enemy/ghamghabase/em_ghamghabase.cpp:
+	.text       start:0x0005AA0C end:0x0005AC00
+	.data       start:0x00017C48 end:0x00017EA0
+
 mo_enemy/sora_enemy/ghamghabase/em_ghamghabase_param_accesser.cpp:
 	.text       start:0x0005AC00 end:0x0005AE88
 	.ctors      start:0x000000E0 end:0x000000E4
 	.rodata     start:0x00001128 end:0x00001130
 	.data       start:0x00017EA0 end:0x00017F08
 	.bss        start:0x00000758 end:0x00000770
+
+mo_enemy/sora_enemy/galleom/em_galleom.cpp:
+	.text       start:0x0005AE88 end:0x0005C16C
+	.data       start:0x00017F08 end:0x000188F8
 
 mo_enemy/sora_enemy/galleom/em_galleom_param_accesser.cpp:
 	.text       start:0x0005C16C end:0x0005C4C8
@@ -387,12 +708,25 @@ mo_enemy/sora_enemy/galleom/em_galleom_param_accesser.cpp:
 	.data       start:0x000188F8 end:0x000189C0
 	.bss        start:0x00000770 end:0x00000788
 
+mo_enemy/sora_enemy/galleom/wnem_proc_galleom.cpp:
+	.text       start:0x0005C4C8 end:0x0005C7F0
+	.rodata     start:0x00001138 end:0x00001140
+	.data       start:0x000189C0 end:0x00018A68
+
+mo_enemy/sora_enemy/ridley/em_ridley.cpp:
+	.text       start:0x0005C7F0 end:0x0005C9FC
+	.data       start:0x00018A68 end:0x00018CB8
+
 mo_enemy/sora_enemy/ridley/em_ridley_param_accesser.cpp:
 	.text       start:0x0005C9FC end:0x0005CD04
 	.ctors      start:0x000000E8 end:0x000000EC
 	.rodata     start:0x00001140 end:0x00001148
 	.data       start:0x00018CB8 end:0x00018D50
 	.bss        start:0x00000788 end:0x000007A0
+
+mo_enemy/sora_enemy/rayquaza/em_rayquaza.cpp:
+	.text       start:0x0005CD04 end:0x0005E040
+	.data       start:0x00018D50 end:0x00019740
 
 mo_enemy/sora_enemy/rayquaza/em_rayquaza_param_accesser.cpp:
 	.text       start:0x0005E040 end:0x0005E3A4
@@ -406,12 +740,22 @@ mo_enemy/sora_enemy/rayquaza/wnem_proc_rayquaza.cpp:
 	.rodata     start:0x00001150 end:0x00001158
 	.data       start:0x00019810 end:0x00019890
 
+mo_enemy/sora_enemy/duon/em_duon.cpp:
+	.text       start:0x0005E588 end:0x0005FFF4
+	.rodata     start:0x00001158 end:0x00001160
+	.data       start:0x00019890 end:0x0001A788
+
 mo_enemy/sora_enemy/duon/em_duon_param_accesser.cpp:
 	.text       start:0x0005FFF4 end:0x00060434
 	.ctors      start:0x000000F0 end:0x000000F4
 	.rodata     start:0x00001160 end:0x00001168
 	.data       start:0x0001A788 end:0x0001A838
 	.bss        start:0x000007B8 end:0x000007D0
+
+mo_enemy/sora_enemy/porky/em_porky.cpp:
+	.text       start:0x00060434 end:0x00061C04
+	.rodata     start:0x00001168 end:0x00001178
+	.data       start:0x0001A838 end:0x0001B340
 
 mo_enemy/sora_enemy/porky/em_porky_param_accesser.cpp:
 	.text       start:0x00061C04 end:0x000620C4
@@ -420,6 +764,10 @@ mo_enemy/sora_enemy/porky/em_porky_param_accesser.cpp:
 	.data       start:0x0001B340 end:0x0001B430
 	.bss        start:0x000007D0 end:0x000007E8
 
+mo_enemy/sora_enemy/metaridley/em_metaridley.cpp:
+	.text       start:0x000620C4 end:0x00063F34
+	.data       start:0x0001B430 end:0x0001C698
+
 mo_enemy/sora_enemy/metaridley/em_metaridley_param_accesser.cpp:
 	.text       start:0x00063F34 end:0x0006427C
 	.ctors      start:0x000000F8 end:0x000000FC
@@ -427,12 +775,26 @@ mo_enemy/sora_enemy/metaridley/em_metaridley_param_accesser.cpp:
 	.data       start:0x0001C698 end:0x0001C760
 	.bss        start:0x000007E8 end:0x00000800
 
+mo_enemy/sora_enemy/metaridley/wnem_proc_metaridley.cpp:
+	.text       start:0x0006427C end:0x00064654
+	.rodata     start:0x00001188 end:0x00001190
+	.data       start:0x0001C760 end:0x0001C820
+
+mo_enemy/sora_enemy/falconflyer/em_falconflyer.cpp:
+	.text       start:0x00064654 end:0x00064848
+	.data       start:0x0001C820 end:0x0001CA78
+
 mo_enemy/sora_enemy/falconflyer/em_falconflyer_param_accesser.cpp:
 	.text       start:0x00064848 end:0x00064A98
 	.ctors      start:0x000000FC end:0x00000100
 	.rodata     start:0x00001190 end:0x00001198
 	.data       start:0x0001CA78 end:0x0001CAE0
 	.bss        start:0x00000800 end:0x00000818
+
+mo_enemy/sora_enemy/taboo/em_taboo.cpp:
+	.text       start:0x00064A98 end:0x00066D44
+	.rodata     start:0x00001198 end:0x000011A0
+	.data       start:0x0001CAE0 end:0x0001DD40
 
 mo_enemy/sora_enemy/taboo/em_taboo_param_accesser.cpp:
 	.text       start:0x00066D44 end:0x0006721C
@@ -446,6 +808,11 @@ mo_enemy/sora_enemy/taboo/wnem_proc_taboo.cpp:
 	.rodata     start:0x000011A8 end:0x000011B0
 	.data       start:0x0001DED8 end:0x0001DF88
 
+mo_enemy/sora_enemy/masterhand/em_masterhand.cpp:
+	.text       start:0x000674AC end:0x00068C74
+	.rodata     start:0x000011B0 end:0x000011B8
+	.data       start:0x0001DF88 end:0x0001EA10
+
 mo_enemy/sora_enemy/masterhand/em_masterhand_param_accesser.cpp:
 	.text       start:0x00068C74 end:0x00068FF0
 	.ctors      start:0x00000104 end:0x00000108
@@ -453,12 +820,22 @@ mo_enemy/sora_enemy/masterhand/em_masterhand_param_accesser.cpp:
 	.data       start:0x0001EA10 end:0x0001EB00
 	.bss        start:0x00000830 end:0x00000848
 
+mo_enemy/sora_enemy/crazyhand/em_crazyhand.cpp:
+	.text       start:0x00068FF0 end:0x0006B29C
+	.rodata     start:0x000011C0 end:0x000011C8
+	.data       start:0x0001EB00 end:0x0001FD68
+
 mo_enemy/sora_enemy/crazyhand/em_crazyhand_param_accesser.cpp:
 	.text       start:0x0006B29C end:0x0006B5F4
 	.ctors      start:0x00000108 end:0x0000010C
 	.rodata     start:0x000011C8 end:0x000011D0
 	.data       start:0x0001FD68 end:0x0001FE48
 	.bss        start:0x00000848 end:0x00000860
+
+mo_enemy/sora_enemy/crazyhand/wnem_proc_crazyhand.cpp:
+	.text       start:0x0006B5F4 end:0x0006B760
+	.rodata     start:0x000011D0 end:0x000011D4
+	.data       start:0x0001FE48 end:0x0001FE78
 
 mo_enemy/mo_enemy.cpp:
 	.text       start:0x0006B760 end:0x0006B7FC

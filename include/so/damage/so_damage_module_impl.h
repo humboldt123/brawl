@@ -4,12 +4,9 @@
 #include <so/collision/so_collision_attack_part.h>
 #include <so/damage/so_damage.h>
 #include <so/damage/so_damage_attacker_info.h>
-#include <so/damage/so_damage_effector_impl.h>
 #include <so/damage/so_damage_no_reaction_module.h>
-#include <so/damage/so_damage_transactor_actor.h>
 #include <so/so_array.h>
 #include <so/event/so_event_presenter.h>
-#include <so/damage/so_damage_event_presenter.h>
 #include <so/status/so_status_event_presenter.h>
 #include <so/collision/so_collision_hit_event_presenter.h>
 #include <so/anim/so_anim_cmd_event_presenter.h>
@@ -18,8 +15,22 @@
 
 class StageObject;
 class soModuleAccesser;
+// The type information of the sora_enemy damage unit (emitted in reverse class definition order) shows the original
+// definition order: soDamageModule, then soDamageTransactor, soDamageTransactorNull and soDamageEffector, then
+// soDamageModuleImpl; soDamageEventObserver is complete only after the enemy modules, so its presenter is not
+// included here (a unit that needs it includes so/damage/so_damage_event_presenter.h).
+class soDamageEventObserver;
+class soDamageEffector;
+class soDamageTransactor;
 
+// SO_DAMAGE_MODULE_PRIVATE_NULL_BASE (opt-in): the original type information of soDamageModule lists only soNullable
+// (the sora_enemy damage unit's copy); a private soNull keeps the layout and leaves it out of the base list, as for the
+// effector (SO_DAMAGE_EFFECTOR_PRIVATE_NULL_BASE).
+#ifdef SO_DAMAGE_MODULE_PRIVATE_NULL_BASE
+class soDamageModule : private soNull, public soNullable {
+#else
 class soDamageModule : public soNull, public soNullable {
+#endif
 public:
     virtual ~soDamageModule();
     virtual void activate(float damage);
@@ -29,7 +40,7 @@ public:
     virtual void initDamage(float damage);
     virtual void initInfo();
     virtual void setInfo();
-    virtual void storeDamage(float addedDamage, soDamage* damage);
+    virtual void storeDamage(soDamage* damage, float addedDamage);
     virtual bool check(bool);
     virtual float getDamageLr(float, float, void*, void*, int, int);
     virtual bool setForceDamage(StageObject* stageObject, Vec3f* pos, u32 collisionIndex, u32 damageIndex, bool getAbsolute, bool initInfo);
@@ -73,6 +84,10 @@ public:
 };
 static_assert(sizeof(soDamageModule) == 12, "Class is wrong size!");
 
+#include <so/damage/so_damage_transactor_actor.h>
+#include <so/damage/so_damage_transactor_null.h>
+#include <so/damage/so_damage_effector_impl.h>
+
 class soDamageModuleImpl : public soDamageModule, public soCollisionHitEventObserver, public soStatusEventObserver, public soEventPresenter<soDamageEventObserver>, public soAnimCmdEventObserver {
 
 public:
@@ -103,7 +118,7 @@ public:
     virtual void initDamage(float damage);
     virtual void initInfo();
     virtual void setInfo();
-    virtual void storeDamage(float addedDamage, soDamage* damage);
+    virtual void storeDamage(soDamage* damage, float addedDamage);
     virtual bool check(bool);
     virtual float getDamageLr(float, float, void*, void*, int, int);
     virtual bool setForceDamage(StageObject* stageObject, Vec3f* pos, u32 collisionIndex, u32 damageIndex, bool getAbsolute, bool initInfo);
@@ -160,7 +175,7 @@ public:
     virtual bool isObserv(char unk1);
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, int unk3);
     virtual void notifyEventCollisionHit(float power, soCollisionAttackData*, u32 index, int, soModuleAccesser* moduleAccesser, soCollisionLog*);
-    virtual void notifyEventCollisionHit2nd(float posX, float collisionLr, soCollisionAttackModule*, soCollisionLog*, u32 groupIndex, soModuleAccesser* moduleAccesser, bool);
+    virtual void notifyEventCollisionHit2nd(soCollisionAttackModule*, soCollisionLog*, u32 groupIndex, float posX, float collisionLr, soModuleAccesser* moduleAccesser, bool);
     virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
 };
 static_assert(sizeof(soDamageModuleImpl) == 172, "Class is wrong size!");

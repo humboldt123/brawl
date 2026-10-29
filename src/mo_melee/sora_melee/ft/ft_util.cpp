@@ -86,7 +86,7 @@ float ftUtil::setAngleWallNormal(soModuleAccesser* acc, float lr) {
     } else if (acc->getGroundModule().isTouch(static_cast<grCollStatus::TouchMask>(2), 0)) {
         normal = acc->getGroundModule().getTouchNormal(2, 0);
     }
-    normal.rot(&rotated, 0.017453292f * (90.0f * lr));
+    normal.rot(0.017453292f * (90.0f * lr), &rotated);
     float y = rotated.m_y;
     float x = rotated.m_x;
     float radians = atan2(x, y);
@@ -499,8 +499,8 @@ float ftUtil::getItemLiftMotionRateMul(soModuleAccesser* acc) {
     }
     if (mul < 0.5f) {
         mul = 0.5f;
-    } else if (mul > 2.0f) {
-        mul = 2.0f;
+    } else if (mul > 1.5f) {
+        mul = 1.5f;
     }
     return mul;
 }
@@ -599,8 +599,11 @@ void ftUtil::setCloudThroughCheck(soModuleAccesser* acc) {
 bool ftUtil::checkCloudThroughOut(soModuleAccesser* acc) {
     Vec2f entry;
     if (acc->getGroundModule().isCloudThrough(0) == true && acc->getGroundModule().isCloudThroughOut(&entry, 0) == true) {
+        Vec3f position;
         Vec3f rotation(0.0f, 0.0f, 0.0f);
-        Vec3f position(entry.m_x, entry.m_y, 0.0f);
+        position.m_x = entry.m_x;
+        position.m_y = entry.m_y;
+        position.m_z = 0.0f;
         acc->getEffectModule().req(static_cast<EfID>(0x4F0003), &position, &rotation, 1.0f, 0, -1);
         float slow = soValueAccesser::getConstantFloat(acc, 0xCDC, 0);
         Vec3f factor(slow, slow, 0.0f);
@@ -695,10 +698,13 @@ extern "C" void fn_27_195B34(const void* record, void* shapeOut, void* groupOut)
 // HYPOTHESIS: effect IDs 0x3E (ice) / 0x3C (ice break) and the meaning of the constants.
 void ftUtil::setIceEffect(soModuleAccesser* acc, u32 workIndex) {
     float scale = soValueAccesser::getConstantFloat(acc, 0xC26, 0);
+    Vec3f position;
     Vec3f rotation(0.0f, 0.0f, 0.0f);
     float z = soValueAccesser::getConstantFloat(acc, 0xC25, 0);
     float y = soValueAccesser::getConstantFloat(acc, 0xC24, 0);
-    Vec3f position(0.0f, y, z);
+    position.m_x = 0.0f;
+    position.m_y = y;
+    position.m_z = z;
     soEffectModule& effect = acc->getEffectModule();
     u32 handle = effect.reqFollow(static_cast<EfID>(0x3E), soValueAccesser::getConstantInt(acc, 0x59E6, 0), &position, &rotation,
                                   scale / 8.5f, false, 0, 0, -1);
@@ -708,10 +714,13 @@ void ftUtil::setIceEffect(soModuleAccesser* acc, u32 workIndex) {
 
 void ftUtil::setIceExitEffect(soModuleAccesser* acc) {
     float scale = soValueAccesser::getConstantFloat(acc, 0xC26, 0);
+    Vec3f position;
     Vec3f rotation(0.0f, 0.0f, 0.0f);
     float z = soValueAccesser::getConstantFloat(acc, 0xC25, 0);
     float y = soValueAccesser::getConstantFloat(acc, 0xC24, 0);
-    Vec3f position(0.0f, y, z);
+    position.m_x = 0.0f;
+    position.m_y = y;
+    position.m_z = z;
     soEffectModule& effect = acc->getEffectModule();
     effect.reqFollow(static_cast<EfID>(0x3C), soValueAccesser::getConstantInt(acc, 0x59E6, 0), &position, &rotation,
                      1.5f * (scale / 8.5f), false, 0, 0, -1);

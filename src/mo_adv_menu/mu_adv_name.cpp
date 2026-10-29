@@ -162,8 +162,8 @@ static const muAdvNameScnMdl sScnMdls[] = {
     {2, 2, 2, 1},
 };
 void muAdvNameTask::initProc(const muAdvNameTaskParam* param) {
-    m_unk34C = param->m_unkC;
     unk2C_b1 = false;
+    m_unk34C = param->m_unkC;
     m_pad0 = param->m_pad0;
     fn_800B96E8(&m_controller, param->m_pad0 & 0xFF);
     if (param->m_pad1 >= 0) {
@@ -663,15 +663,19 @@ int muAdvNameTask::mainStepLoadMain(muAdvNameTask* task) {
 
 // Attaches the models to the scene (and the models that are attached to the models) and ends the screen that was kept
 // while the menu was loaded.
-static void addModelsToScene(muAdvNameTask* task) {
+// HYPOTHESIS: a global function in the original whose unused out-of-line copy the linker dropped; as a global its
+// string literals come before those of the steps that inline it, as in the original pool.
+void addModelsToScene(muAdvNameTask* task) {
     if (task->m_step == muAdvNameTask::Step_StCont) {
         g_gfSceneRoot->add(gfSceneRoot::Layer_Info, task->m_objects[5]->m_sceneModel);
         g_gfSceneRoot->add(gfSceneRoot::Layer_Info, task->m_objects[6]->m_sceneModel);
         g_gfSceneRoot->add(gfSceneRoot::Layer_Info, task->m_objects[7]->m_sceneModel);
         g_gfSceneRoot->add(gfSceneRoot::Layer_Info, task->m_objects[8]->m_sceneModel);
     }
-    nw4r::g3d::G3dObj* scnMdl = task->m_scnMdls[0];
-    nw4r::g3d::G3dObj* attached = task->m_scnMdls[2];
+    nw4r::g3d::G3dObj* attached;
+    nw4r::g3d::G3dObj* scnMdl;
+    scnMdl = task->m_scnMdls[0];
+    attached = task->m_scnMdls[2];
     g_gfSceneRoot->add(gfSceneRoot::Layer_Info, reinterpret_cast<nw4r::g3d::ScnMdl*>(scnMdl));
     PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(scnMdl, attached, "pos00");
     PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[0], task->m_scnMdls[1], "pos01");
@@ -733,8 +737,10 @@ void muAdvNameTask::mainStepAppearInit(muAdvNameTask* task) {
     MuObject* frame = task->m_objects[0];
     MuObject* cursor2 = task->m_objects[2];
     MuObject* cursor1 = task->m_objects[1];
-    MuObject* list1 = task->m_objects[4];
-    MuObject* list2 = task->m_objects[3];
+    MuObject* list2;
+    MuObject* list1;
+    list1 = task->m_objects[4];
+    list2 = task->m_objects[3];
     if (!task->m_is2P) {
         PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(task->m_scnMdls[2], list1->m_sceneModel, "pos00");
         question->m_modelAnim->setUpdateRate(1.0f);

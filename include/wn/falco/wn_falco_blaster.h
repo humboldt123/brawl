@@ -14,6 +14,11 @@ class wnFalcoBlaster : public Weapon {
 public:
     // The body lives in the module blob; declared so the class info's createArray can construct articles.
     wnFalcoBlaster(s32 articleId, const wnArticleBuildInfo& info, const wnFalcoBlasterData* data);
+    // HYPOTHESIS: parameter types follow ftFalcoTransactor::activeArticle1, which forwards its model and texture
+    // resource ids and two flags; the founder task id comes first and the team last.
+    void activate(int founderTaskId, u32 mdlResId, u32 texResId, bool unk1, bool unk2, int team);
+    virtual void notifyEventLink(soLinkEventArgs* event, soModuleAccesser* moduleAccesser, StageObject* sender,
+                                 int selector);
     virtual ~wnFalcoBlaster();
 };
 static_assert(sizeof(wnFalcoBlaster) == 0x1D88, "Falco Blaster article extent");

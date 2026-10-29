@@ -6,8 +6,6 @@
 #include <nw4r/ut/ut_LinkList.h>
 #include <types.h>
 
-extern "C" void fn_800445FC(grCollisionManager::IndexBits* bits, u32 size);
-extern "C" int fn_8004465C(grCollisionManager::IndexBits* bits);
 extern "C" void fn_80110A40(grCollision* collision);
 extern "C" void fn_80110EA0(grCollision* collision, clAABBox2D* range);
 extern "C" void fn_80110F7C(grCollision* collision);
@@ -23,7 +21,7 @@ extern bool lbl_805A0358;
 
 grCollisionManager::grCollisionManager() :
     gfTask("GroundCollision", Category_GrCollision, 4, 13, true), unk41(0), m_nextIndex(0), unk44(0) {
-    fn_800445FC(&m_indexBits, 0x100);
+    m_indexBits.initilize(0x100);
     lbl_805A0360 = this;
     for (int i = 0; i < 256; i++) {
         m_collisions[i] = NULL;
@@ -149,7 +147,7 @@ void grCollisionManager::regist(grCollision* collision) {
         m_indexBits.m_bits[next >> 5] |= mask;
         m_nextIndex++;
     } else {
-        index = fn_8004465C(&m_indexBits);
+        index = m_indexBits.getUnsetBit();
         m_indexBits.m_bits[index >> 5] |= 1 << (index & 31);
         m_nextIndex = index + 1;
     }

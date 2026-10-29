@@ -41,6 +41,7 @@
 
 #include <havok/hkBoxBoxManifold.h>
 #include <havok/hkBoxBoxUtils.h>
+#include <types.h>
 
 void hkBoxBoxUtils::cmpAllGT3(const hkVector4& a, const hkVector4& b, int& out) {
     out = (a.x > b.x || a.y > b.x || a.z > b.x) ? 1 : 0;
@@ -62,4 +63,10 @@ void hkBoxBoxManifold::setComplete(const hkBool& complete) {
 
 hkBool hkBoxBoxManifold::isComplete() const {
     return m_complete;
+}
+
+// Function bodies below are taken from https://github.com/jj-link/brawl.
+
+extern "C" void fn_80305AD4(unsigned char* r3, unsigned char* r4) {
+    *r3 = *r4;
 }

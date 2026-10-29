@@ -16,6 +16,7 @@
 #include <revolution/MTX.h>
 #include <st/st_class_info.h>
 #include <st/st_melee.h>
+#include <ms/ms_tex_obj.h>
 #include <types.h>
 
 // The camera animation of a scene animation, and what it gives at one frame (main.dol; the shared g3d header knows
@@ -90,22 +91,6 @@ public:
     virtual void preload() { }
 };
 
-// A texture object that is filled from the frame buffer (main.dol; the functions have no names yet).
-class msTexObj {
-public:
-    GXTexObj m_texObj;              // 0x04
-    u8 m_hasTex;                    // 0x24
-    char _25[0xF];
-    int m_width;                    // 0x34
-    int m_height;                   // 0x38
-    char _3c[8];
-
-    msTexObj();
-    virtual ~msTexObj();
-    void freeTexObj();
-    void copyTexObjFromEFB(float x, float y, float width, float height, int format, int texFormat, int mipmap);
-};
-static_assert(sizeof(msTexObj) == 0x44, "Class is wrong size!");
 
 // The staff roll of Brawl ("Character Roll"): the credits stage that lists every fighter, assist trophy, Poke Ball
 // Pokemon, character item and trophy the player has unlocked. The names scroll by on panels; the player steers a

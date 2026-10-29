@@ -10,10 +10,12 @@
 class soStopModule;
 class soItemManageModule;
 class soCollisionShieldModule;
+class soCameraModule;
 
 class soExternalValueAccesser {
 public:
     static bool isIncludeRect(StageObject* stageObject, float* rect, Vec3f* out, float, float); // HYPOTHESIS: parameters
+    static Input* getInput(StageObject* stageObject);
     static int getTeamNo(StageObject* stageObject);
     static Vec3f getPos(StageObject* stageObject);
     static float getLr(StageObject* stageObject);
@@ -31,6 +33,7 @@ public:
     static soModuleAccesser* getModuleAccesser(StageObject* stageObject);
     static soCollisionHitModule* getCollisionHitModule(StageObject* stageObject);
     static soControllerModule* getControllerModule(StageObject* stageObject);
+    static soCameraModule* getCameraModule(StageObject* stageObject);
     static u32 getTeamOwnerId(StageObject* stageObject);
     static float getConstantFloat(StageObject* stageObject, u32 paramId);
     static float getSlowRate(StageObject* stageObject);

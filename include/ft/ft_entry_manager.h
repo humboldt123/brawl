@@ -31,7 +31,7 @@ public:
     int enumEntryId(int entryId);
     int enumIncludeEntryId(int entryId);
     int getEntryIdFromPlayerNo(int playerNo);
-    int getEntryIdFromAreaId(int areaId);
+    int getEntryIdFromAreaId(int areaId, int* instanceIndex);
     int getEntryIdFromTaskId(int taskId, int* outInstanceIndex);
 
     inline static ftEntryManager* getInstance() { return g_ftEntryManager; }

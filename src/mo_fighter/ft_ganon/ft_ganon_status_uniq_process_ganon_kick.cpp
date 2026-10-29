@@ -96,10 +96,10 @@ void ftGanonStatusUniqProcessGanonKick::onHit(soModuleAccesser* moduleAccesser) 
             if (hitsLeft >= 1) {
                 // HYPOTHESIS: the first float of group 4 is the speed multiplier applied per hit.
                 float* param = static_cast<float*>(fn_109_862C());
-                // HYPOTHESIS: ftKineticEnergyMotion::unk40 is a speed multiplier (shared with other fighters).
+                // Scale the animation-driven velocity for the kick.
                 float current = work.getFloat(0x21000004);
                 float speedMul = current * param[0];
-                dynamic_cast<ftKineticEnergyMotion&>(*moduleAccesser->getKineticModule().getEnergy(0)).unk40 = speedMul;
+                dynamic_cast<ftKineticEnergyMotion&>(*moduleAccesser->getKineticModule().getEnergy(0)).m_speedMul = speedMul;
                 work.setFloat(speedMul, 0x21000004);
                 work.setInt(hitsLeft - 1, 0x20000001);
             }

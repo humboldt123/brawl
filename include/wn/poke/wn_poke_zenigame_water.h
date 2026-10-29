@@ -15,5 +15,8 @@ public:
     // The body lives in the module blob; declared so the class info createArray can construct articles.
     wnPokeZenigameWater(s32 articleId, const wnArticleBuildInfo& info, const wnPokeZenigameWaterData* data);
     virtual ~wnPokeZenigameWater();
+    virtual void updateNodeSRT();
+    virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    virtual bool reflect();
 };
 static_assert(sizeof(wnPokeZenigameWater) == 0x1690, "Pokemon water gun article extent");

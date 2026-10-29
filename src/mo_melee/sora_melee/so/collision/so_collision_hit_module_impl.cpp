@@ -24,7 +24,7 @@ void soCollisionHitModuleImpl::event2nd(soCollisionAttackModule* attackModule, v
         float lr = m_collisionHitGroupArray->at(groupIndex).m_lr;
         soCollisionHitEventObserver* observer = observerList->atIndex(i);
         float posX = m_collision.getPosX(groupIndex);
-        observer->notifyEventCollisionHit2nd(posX, lr, attackModule, collisionLog, groupIndex, m_moduleAccesser, flag);
+        observer->notifyEventCollisionHit2nd(attackModule, collisionLog, groupIndex, posX, lr, m_moduleAccesser, flag);
     }
 }
 

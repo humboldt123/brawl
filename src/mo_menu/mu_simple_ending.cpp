@@ -50,12 +50,12 @@ struct muSimpleEndingMenuBits {
     u8 m_isWide : 1;
 };
 
-static inline int isWideScreen() {
+static inline u32 isWideScreen() {
     return reinterpret_cast<muSimpleEndingMenuBits*>(g_GameGlobal->getGlobalRecordMenuDatap())->m_isWide;
 }
 
 muEndPicTask* muEndPicTask::create() {
-    return new (Heaps::MenuInstance) muEndPicTask();
+    return new (Heaps::MenuInstance) muEndPicTask("EndPic");
 }
 
 muEndPicTask::~muEndPicTask() { }
@@ -163,7 +163,7 @@ void muEndPicTask::createData(gfArchive* archive) {
     m_msg->setEdgeEnable(0, true);
     m_msg->setEdge(0, 0, 0, 0, 3.0f);
     m_msg->printf(0, "");
-    if (isWideScreen()) {
+    if (isWideScreen() == 1) {
         void* node = getNode__8MuObjectFPCc(m_object, "dammy");
         ResNode_SetRotate__FPQ34nw4r3g3d7ResNodefff(&node, 1.2f, 1.2f, 1.0f);
     }
@@ -171,7 +171,7 @@ void muEndPicTask::createData(gfArchive* archive) {
 
 // Writes the clear time of a boss battle (minutes, seconds and hundredths) into the text; the longest time is 99:59 99.
 void muEndPicTask::setBossBattleClearTime(u32 frames) {
-    u32 framesPerSecond = *reinterpret_cast<u16*>(reinterpret_cast<u8*>(g_gfApplication) + 0xF8);
+    u32 framesPerSecond = g_gfApplication->m_frameRate;
     u32 minutes;
     u32 seconds;
     int hundredths;
@@ -184,7 +184,8 @@ void muEndPicTask::setBossBattleClearTime(u32 frames) {
         minutes = frames / framesPerMinute;
         frames = frames - minutes * framesPerMinute;
         seconds = frames / framesPerSecond;
-        hundredths = static_cast<int>(static_cast<float>(frames - seconds * framesPerSecond) * 100.0f / static_cast<float>(framesPerSecond));
+        frames = frames - seconds * framesPerSecond;
+        hundredths = static_cast<int>(static_cast<float>(frames) * 100.0f / static_cast<float>(framesPerSecond));
     }
     m_msg->printf(0, "%02d:%02d %02d", minutes, seconds, hundredths);
 }
@@ -268,17 +269,17 @@ void muEndMovieTask::processDefault() {
         break;
     case Step_Play: {
         u32 pressed = pad.m_buttonsPressedThisFrame.bits;
-        u32 isPressed;
+        bool isPressed;
         if ((pressed & 0x100) != 0) {
-            isPressed = 1;
+            isPressed = true;
         } else if ((pressed & 0x200) != 0) {
-            isPressed = 1;
+            isPressed = true;
         } else if ((pressed & 0x1000) != 0) {
-            isPressed = 1;
+            isPressed = true;
         } else {
             isPressed = (pressed >> 20) & 1;
         }
-        if (isPressed == 1) {
+        if (isPressed == true) {
             m_step = Step_Hide;
         }
         if (m_frameNum <= m_frameNo + 1) {
@@ -289,6 +290,9 @@ void muEndMovieTask::processDefault() {
     case Step_Hide:
         fn_8000D1B8(g_gfSceneRoot, 8, m_object->m_sceneModel);
         m_step = Step_Done;
+        break;
+    case Step_Done:
+    case 6:
         break;
     }
     m_frame++;

@@ -3,6 +3,8 @@
 // getTouchFlag and isAttachable also exchange a word-sized mask: the getter
 // builds bits 0..3 and Luigi forwards it without byte narrowing.
 // HYPOTHESIS: int models that ABI; the original mask typedef is unknown.
+// isTouch takes the same word mask (soGroundModuleImpl::isTouch tests it unnarrowed, and the enemy kinetic and damage
+// callers pass it without a clrlwi), and getTouchCount answers grCollStatus's word counter (callers compare it whole).
 #pragma once
 
 #include <StaticAssert.h>
@@ -84,8 +86,8 @@ public:
     virtual bool isNearCliff(float, float, u32 index);
     virtual bool isMissStepR(u32 index);
     virtual bool isMissStepL(u32 index);
-    virtual bool isTouch(grCollStatus::TouchMask, u32 index);
-    virtual u8 getTouchCount(u32 index);
+    virtual bool isTouch(int touchMask, u32 index);
+    virtual u32 getTouchCount(u32 index);
     virtual Vec2f getTouchNormal(int touchMask, u32 index);
     virtual Vec2f getTouchSpeed(grCollStatus::TouchMask, u32 index);
     virtual Vec2f getAttachMovementSpeed(u32 index);
@@ -269,8 +271,8 @@ public:
     virtual bool isNearCliff(float, float, u32 index);
     virtual bool isMissStepR(u32 index);
     virtual bool isMissStepL(u32 index);
-    virtual bool isTouch(grCollStatus::TouchMask, u32 index);
-    virtual u8 getTouchCount(u32 index);
+    virtual bool isTouch(int touchMask, u32 index);
+    virtual u32 getTouchCount(u32 index);
     virtual Vec2f getTouchNormal(int touchMask, u32 index);
     virtual Vec2f getTouchSpeed(grCollStatus::TouchMask, u32 index);
     virtual Vec2f getAttachMovementSpeed(u32 index);

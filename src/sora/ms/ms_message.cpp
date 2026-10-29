@@ -9,14 +9,12 @@
 #include <string.h>
 #include <types.h>
 
-extern int lbl_805A0174;
-extern int lbl_805A0178;
 
 static void drawCallbackProjection();
 
 Message::Message(u32 bufSize, Heaps::HeapType heapType) {
     SetTagProcessor(&m_tagProc);
-    SetFlags(0);
+    SetDrawFlag(0);
     EnableFixedWidth(true);
     SetFixedWidth(32.0f);
     m_numBufs = 0;
@@ -355,9 +353,9 @@ u8 Message::isEndDelayPrint() {
 
 void Message::init(bool raw, int fontId) {
     if (fontId == 9) {
-        if (lbl_805A0178 != 0) {
+        if (g_Normal12FontBuf != NULL) {
             SetFontResource(this, 8);
-        } else if (lbl_805A0174 != 0) {
+        } else if (g_NormalFontBuf != NULL) {
             SetFontResource(this, 1);
         } else {
             SetFontResource(this, 2);
@@ -365,7 +363,7 @@ void Message::init(bool raw, int fontId) {
     } else {
         SetFontResource(this, fontId);
     }
-    SetFlags(0);
+    SetDrawFlag(0);
     SetEdge(0.0f, nw4r::ut::Color(0xff));
     m_1c0 = 0;
     _84 = 0;
@@ -373,7 +371,7 @@ void Message::init(bool raw, int fontId) {
     SetCursor(0.0f, 0.0f, 0.0f);
     SetFixedWidth(32.0f);
     SetScale(1.0f);
-    SetParam8C(0.0f);
+    SetLineSpace(0.0f);
     SetAlpha(0xff);
     m_1c4 = m_cur->m_cb.m_enable;
     m_1b8 = 0.5f;
@@ -384,8 +382,8 @@ void Message::init(bool raw, int fontId) {
         SetTextColor(nw4r::ut::Color(col));
         SetupGX();
     }
-    *(int*)&m_tagProc.m_data[8] = 0;
-    m_tagProc.m_data[4] = 0;
+    m_tagProc.m_stackCount = 0;
+    m_tagProc.unk4 = 0;
     m_cur->m_data[m_cur->m_pos] = 1;
     GXSetCullMode(GX_CULL_BACK);
 }
@@ -422,7 +420,7 @@ void Message::printMsgBuf(FontData::FONT_RESOURCE fontId) {
                 u8 b = p[2];
                 u32 aLow = a & 3;
                 u32 bLow = b & 3;
-                SetFlags((GetFlags() & ~(((b << 4) & 0x300) + (bLow + ((b << 2) & 0x30)))) | (((a << 4) & 0x300) + (aLow + ((a << 2) & 0x30))));
+                SetDrawFlag((GetDrawFlag() & ~(((b << 4) & 0x300) + (bLow + ((b << 2) & 0x30)))) | (((a << 4) & 0x300) + (aLow + ((a << 2) & 0x30))));
                 if (bLow != 0 && aLow == 0) {
                     SetCursorX(0.0f);
                 }
@@ -464,13 +462,9 @@ void Message::printMsgBuf(FontData::FONT_RESOURCE fontId) {
                 p += 2;
                 int len = MsgParseChar(p, 0, 0, 0);
                 if (len != 0) {
-                    float r[4];
-                    r[0] = 0.0f;
-                    r[1] = 0.0f;
-                    r[2] = 0.0f;
-                    r[3] = 0.0f;
-                    GetCharRect(r, p, len);
-                    textWidth = r[2] - r[0];
+                    nw4r::ut::Rect r;
+                    CalcStringRect(&r, (const char*)p, len);
+                    textWidth = r.right - r.left;
                     if (m_rect.right - m_rect.left < textWidth) {
                         float scale = GetScaleH();
                         float ratio = (m_rect.right - m_rect.left) / textWidth;
@@ -484,18 +478,14 @@ void Message::printMsgBuf(FontData::FONT_RESOURCE fontId) {
         }
         int len = MsgParseChar(p, 0, 0, 0);
         if (len != 0) {
-            float r[4];
-            r[0] = 0.0f;
-            r[1] = 0.0f;
-            r[2] = 0.0f;
-            r[3] = 0.0f;
+            nw4r::ut::Rect r;
             if (textWidth == 0.0f) {
-                if ((GetFlags() & 0x100) || (GetFlags() & 0x200) || (GetFlags() & 2) || (GetFlags() & 1)) {
-                    GetCharRect(r, p, len);
-                    textWidth = r[2] - r[0];
+                if ((GetDrawFlag() & 0x100) || (GetDrawFlag() & 0x200) || (GetDrawFlag() & 2) || (GetDrawFlag() & 1)) {
+                    CalcStringRect(&r, (const char*)p, len);
+                    textWidth = r.right - r.left;
                 }
             }
-            if (GetFlags() & 2) {
+            if (GetDrawFlag() & 2) {
                 if (textWidth != 0.0f) {
                     float l = m_rect.left; float r = m_rect.right;
                     float x = (r - l) - textWidth;
@@ -504,8 +494,8 @@ void Message::printMsgBuf(FontData::FONT_RESOURCE fontId) {
                     }
                     SetCursorX(x);
                 }
-                PrintBytes((const char*)p, len);
-            } else if (GetFlags() & 1) {
+                Print((const char*)p, len);
+            } else if (GetDrawFlag() & 1) {
                 if (textWidth != 0.0f) {
                     float l = m_rect.left; float r = m_rect.right;
                     float x = (r - l) - textWidth;
@@ -514,9 +504,9 @@ void Message::printMsgBuf(FontData::FONT_RESOURCE fontId) {
                     }
                     SetCursorX(x * 0.5f);
                 }
-                PrintBytes((const char*)p, len);
+                Print((const char*)p, len);
             } else {
-                PrintBytes((const char*)p, len);
+                Print((const char*)p, len);
             }
             p += len;
         }
@@ -683,7 +673,7 @@ void Message::getPrintRect(float* rect, const u8* p) {
                 short b = p[2];
                 u32 bLow = b & 3;
                 u32 aLow = a & 3;
-                SetFlags((GetFlags() & ~(((b << 4) & 0x300) + (bLow + ((b << 2) & 0x30)))) | (((a << 4) & 0x300) + (aLow + ((a << 2) & 0x30))));
+                SetDrawFlag((GetDrawFlag() & ~(((b << 4) & 0x300) + (bLow + ((b << 2) & 0x30)))) | (((a << 4) & 0x300) + (aLow + ((a << 2) & 0x30))));
                 if (bLow != 0 && aLow == 0) {
                     SetCursorX(0.0f);
                 }
@@ -703,20 +693,16 @@ void Message::getPrintRect(float* rect, const u8* p) {
         }
         int len = MsgParseChar(p, 0, 0, 0);
         if (len != 0) {
-            float r[4];
-            r[0] = 0.0f;
-            r[1] = 0.0f;
-            r[2] = 0.0f;
-            r[3] = 0.0f;
-            GetCharRect(r, p, len);
+            nw4r::ut::Rect r;
+            CalcStringRect(&r, (const char*)p, len);
             p += len;
-            float v0 = r[0];
+            float v0 = r.left;
             rect[0] = (rect[0] > v0) ? v0 : rect[0];
-            float v1 = r[1];
+            float v1 = r.top;
             rect[1] = (rect[1] > v1) ? v1 : rect[1];
-            float v2 = r[2];
+            float v2 = r.right;
             rect[2] = (rect[2] < v2) ? v2 : rect[2];
-            float v3 = r[3];
+            float v3 = r.bottom;
             rect[3] = (rect[3] < v3) ? v3 : rect[3];
         }
     }

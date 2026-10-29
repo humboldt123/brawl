@@ -144,10 +144,25 @@ public:
     virtual void registInterpreter(const soAnimCmdControlUnit& unit, const soAttributeFlag& attr);
     virtual void interpretCmd();
     virtual void interpretCmdAdjust();
+#ifdef SO_ANIM_CMD_INTERPRET_CMD1_FRAME_LAST
+    // The frame is the last parameter: every unscheduled caller (the sora_enemy REL: Enemy::activate, the AI module and
+    // the AI units) loads the group and the accesser before the frame constant, with the frame's address register
+    // after the integer argument registers. The argument registers (r4, r5, f1) are the same either way, so the
+    // scheduled DOL callers (BaseItem) match with both orders. Opt-in until those callers are checked too.
+    virtual void interpretCmd1(int group, soModuleAccesser* moduleAccesser, float frame);
+#else
     // HYPOTHESIS: parameters read off BaseItem::requestAnimEvent (a frame count, the command group and the accesser).
     virtual void interpretCmd1(float frame, int group, soModuleAccesser* moduleAccesser);
+#endif
     virtual void resetInterpreter1();
+#ifdef SO_ANIM_CMD_RESET_INTERPRETER2_FRAME_LAST
+    // The frame is the last parameter here too: the Paratroopa's tread handler (sora_enemy) loads it after the integer
+    // arguments. Opt-in for the enemy units, like interpretCmd1's order above.
+#define SO_ANIM_CMD_RESET_INTERPRETER2_FRAME_LAST_DECLARED 1
+    virtual void resetInterpreter2(int group, soModuleAccesser* moduleAccesser, u32 unk, float frame);
+#else
     virtual void resetInterpreter2(float frame, int group, soModuleAccesser* moduleAccesser, u32 unk);
+#endif
     // HYPOTHESIS: parameters from Enemy::activate, which hands group 0 the anim cmd table of its parameters (constant
     // 0xA810), runs it once with interpretCmd1 and resets the group with NULL.
     virtual void resetInterpreter3(int group, void* animCmdTable, soModuleAccesser* moduleAccesser);
@@ -200,6 +215,11 @@ public:
 private:
 #endif
 public:
+#ifdef SO_ANIM_CMD_EVENT_OBSERVER_PURE
+    // The observer's slots are pure in such a unit (so/anim/so_anim_cmd_event_presenter.h): the overrides.
+    virtual bool isObserv(char group);
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, soAnimCmdEventS32 unk3);
+#endif
     soInstanceManagerFullPropertyVector<soAnimCmdControlUnit, soAnimCmdControlUnitKind::Count>* m_animCmdThreads; // 0x20
 };
 static_assert(sizeof(soAnimCmdModuleImpl) == 0x24, "Class is the wrong size!");

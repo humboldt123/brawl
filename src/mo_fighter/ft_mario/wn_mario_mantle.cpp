@@ -1,3 +1,4 @@
+#define SO_BUILD_DATA_SLOPE_LIMIT_EXTERNAL
 // MATCH-ONLY: retain the native one-word null-input result.
 #define IP_INPUT_BUTTON_RAW
 #define WN_WEAPON_BUILDER
@@ -12,6 +13,15 @@
 #include <wn/wn_activate_desc.h>
 #include <so/motion/so_motion_change_param.h>
 
+// The article inlines its work-storage setup; the fighter owns the weak copy.
+inline soGeneralWorkSimple::soGeneralWorkSimple(s32* ints, u32 numInts, float* floats, u32 numFloats,
+                                                u32* flags, u32 numFlags) :
+    soGeneralWorkAbstract(false), m_intWorks(ints), m_intWorkSize(numInts), m_floatWorks(floats),
+    m_floatWorkSize(numFloats), m_flagWorks(flags), m_flagWorkSize(numFlags) { }
+
+// MATCH-ONLY: this constructor uses separate singleton addresses rather than a pooled BSS anchor.
+#pragma push
+#pragma pool_data off
 wnMarioMantle::wnMarioMantle(s32 articleId, const wnArticleBuildInfo& info, const wnMarioMantleData* data) :
     wnWeaponBuilder<wnMarioMantleModuleAccesserBuildConfig>(
         "MarioMantle", articleId, info,
@@ -20,6 +30,8 @@ wnMarioMantle::wnMarioMantle(s32 articleId, const wnArticleBuildInfo& info, cons
                                   0, 0, 0, 0, 0, 0, 0)) {
     Weapon::deactivate(false);
 }
+
+#pragma pop
 
 void wnMarioMantle::activate(int founderTaskId, int resourceId, int team, int situationKind) {
     Vec3f origin(0.0f, 0.0f, 0.0f);
@@ -46,11 +58,16 @@ void wnMarioMantle::activate(int founderTaskId, int resourceId, int team, int si
     desc.unk40 = 0;
     desc.unk44 = 0x35F;
     desc.unk48 = 0;
-    desc.flagsHighPair = 3;
-    desc.flagsMidPair = 0;
-    desc.flagsBit3 = 1;
-    desc.flagsLow = 0;
-    desc.unk4DHigh = 0;
+    desc.flagBit7 = true;
+    desc.flagBit6 = true;
+    desc.flagBit5 = false;
+    desc.flagBit4 = false;
+    desc.flagBit3 = true;
+    desc.flagBit2 = false;
+    desc.flagBit1 = false;
+    desc.flagBit0 = false;
+    desc.flag4DBit7 = false;
+    desc.flag4DBit6 = false;
     Weapon::activate(&desc);
     soMotionChangeParam motion;
     motion.m_kind = situationKind != 0 ? 1 : 0;

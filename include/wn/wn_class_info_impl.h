@@ -42,6 +42,9 @@ extern "C" void* fn_27_149B70(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_148F64(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_147C9C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_148050(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
+extern "C" void* fn_27_147DDC(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
+extern "C" void* fn_27_1499D4(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
+extern "C" void* fn_27_149064(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
 // The article classes the dispatch below selects on; the instantiating unit includes its article
 // header, which declares the class with this name (the layout is not needed here, only the pointer type).
@@ -77,6 +80,9 @@ class wnPokeZenigameWater;
 class wnLucarioAuraBall;
 class wnDummyFighter;
 class wnPeachKinopio;
+class wnLinkBow;
+class wnToonLinkBow;
+class wnPitBow;
 
 // Article-type dispatch so the template below picks the right family's accesser: kinds 0 (Mario fireball)
 // and 149 (Luigi fireball) share wnMarioFireballData but their createArrays call different accessers,
@@ -178,11 +184,20 @@ inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, co
 inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPeachKinopio*) {
     return fn_27_148F64(&g_ftCommonDataAccesser, subKind, resourceGroup);
 }
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnLinkBow*) {
+    return fn_27_147DDC(&g_ftCommonDataAccesser, subKind, resourceGroup);
+}
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnToonLinkBow*) {
+    return fn_27_1499D4(&g_ftCommonDataAccesser, subKind, resourceGroup);
+}
+inline const void* wnFetchBlasterBulletData(s32 subKind, bool* resourceGroup, const wnPitBow*) {
+    return fn_27_149064(&g_ftCommonDataAccesser, subKind, resourceGroup);
+}
 
 // Class info for one article kind: registers itself in the class info table during static initialization
 // and builds the article array when the article manager asks for it.
 //   K: article kind (30/31 Fox, 35/36 Falco, 38/39 Wolf; blaster first, bullet second; plus 5 Link,
-//      83 Samus, 91 Pit, 140 Toon Link one-shot articles, 53/60/68/77/98/102/117/150 single-kind articles, 54 Diddy popgun, 149 Luigi fireball, 10 Pikachu thunder jolt 2, 64 Zerosuit paralyzer bullet, 69 Sheik held needle, 74/95 Pokemon seed and water gun, 99 Lucario aura ball, 109 Popo ice shot, 152 dummy fighter, 93 Peach Kinopio, 0 Mario fireball.
+//      83 Samus, 91 Pit, 140 Toon Link one-shot articles, 53/60/68/77/98/102/117/150 single-kind articles, 54 Diddy popgun, 149 Luigi fireball, 10 Pikachu thunder jolt 2, 64 Zerosuit paralyzer bullet, 69 Sheik held needle, 74/95 Pokemon seed and water gun, 99 Lucario aura ball, 109 Popo ice shot, 152 dummy fighter, 93 Peach Kinopio, 0 Mario fireball, 4 Link bow, 139 Toon Link bow, 90 Pit bow.
 //   T: article class, D: the data type its constructor consumes.
 // HYPOTHESIS: template spelling; the data strings prove the instantiation
 // wnClassInfoImpl<31, wnFoxBlasterBullet, wnFoxBlasterBulletData>.

@@ -27,6 +27,7 @@ static_assert(sizeof(wnWeaponBuilder<wnSnakeNikitaMissileModuleAccesserBuildConf
 
 class wnSnakeNikita : public wnWeaponBuilder<wnSnakeNikitaModuleAccesserBuildConfig> {
 public:
+    virtual void notifyArticleEventRemove(int unk1, int* unk2);
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser,
                                  StageObject* linkedObject, int unk4);
     virtual void onDeactivate();

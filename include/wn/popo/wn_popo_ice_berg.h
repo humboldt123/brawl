@@ -10,6 +10,9 @@
 #include <wn/wn_extend_param_accesser.h>
 #include <wn/wn_article_manage_module.h>
 #include <ft/builder/ft_module_accesser_builder.h>
+#include <so/link/so_link_event_presenter.h>
+
+class wnPopoIceBergWind;
 
 WN_STATUS_PROC_VECTOR_ARG_CTOR(4);
 // The array instances the sora_melee constructors build.
@@ -116,6 +119,15 @@ public:
     wnPopoIceBergParamAccesser m_paramAccesser; // +0x2718
     wnPopoIceBerg(s32 articleId, const wnArticleBuildInfo& info, const wnPopoIceBergData* data);
     virtual ~wnPopoIceBerg() { }
+    virtual void onDeactivate();
+    virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    void syncCapsuleSRT(u32 index); // HYPOTHESIS: the argument is the attack index handed to the attack module.
+    static bool activeArticle(wnPopoIceBergWind* wind, soModuleAccesser* acc);
+};
+
+// HYPOTHESIS: name; the link event the berg sends its parents when it is deactivated (kind 0x45C).
+struct wnPopoIceBergLinkEvent : public soLinkEventArgs {
+    wnPopoIceBergLinkEvent(int kind) : soLinkEventArgs(kind) { }
 };
 
 static_assert(sizeof(wnPopoIceBerg) == 0x277C, "Ice berg article extent");

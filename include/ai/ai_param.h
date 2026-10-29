@@ -17,7 +17,7 @@ struct tag_AI_ATK_DATA_HED {
     char unk8[8];
     tag_AI_ATK_DATA m_data[1];
 
-    tag_AI_ATK_DATA* searchAtkData(u32 id);
+    tag_AI_ATK_DATA* searchAtkData(int id); // HYPOTHESIS: int (the id is compared signed)
 };
 
 // Per-character AI parameter block loaded from the AIPD / ATKD data files.
@@ -28,6 +28,8 @@ struct aiParData {
     char unk164[4];
     u32 m_reviseCmds;   // 0x168
     u32 m_reflectCmds;  // 0x16C
+    char unk170[0x70];
+    int m_situationList[1]; // 0x1E0: offset of each situation entry from the start of the block; HYPOTHESIS: count unknown
 };
 
 // Jump parameters of one character (HYPOTHESIS: possibly a larger view of aiReferPar).
@@ -54,6 +56,7 @@ public:
     bool chkCmdFall(int cmd);
     bool chkCmdReflect(int cmd);
     void set_disable_cmd(int cmd);
+    int select_situation(int start, int end, aiChrIdx* chr, aiChrIdx* target); // HYPOTHESIS: parameter types from chk_situation's use
 
     static bool check_revision(char* data);
     static float get_down_atk_r(aiChrIdx* chr);
@@ -68,3 +71,5 @@ public:
     static float get_jump_high_sp(aiJumpPar* par, aiStat* stat);
     static float get_jump_length(aiJumpPar* par, aiStat* stat);
 };
+
+int get_motnum_chr(ftKind kind); // HYPOTHESIS: int return

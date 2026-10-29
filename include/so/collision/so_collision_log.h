@@ -1,0 +1,36 @@
+#pragma once
+
+// SHADOW of BrawlHeaders so/collision/so_collision_log.h (-I include comes first), with an opt-in byte view of the task
+// category for the units whose original reads it with lbz (SO_COLLISION_LOG_CATEGORY_BYTE, the enemy AI module).
+
+#include <StaticAssert.h>
+#include <types.h>
+#include <gf/gf_task.h>
+#include <mt/mt_vector.h>
+
+class soCollisionLog {
+public:
+    char _spacer[12];
+    int m_taskId;
+    Vec3f m_pos;
+    short m_life;
+    short m_30;
+    s8 m_teamNo;
+    char _33;
+#ifdef SO_COLLISION_LOG_CATEGORY_BYTE
+    u8 m_taskCategory; // MATCH-ONLY: the same byte, read unsigned (a gfTask::Category)
+#else
+    gfTask::Category m_taskCategory : 8;
+#endif
+    char _35;
+    u8 m_collsionIndex;
+    u8 m_damageIndex;
+    char _38;
+    bool m_isAbsolute;
+    char _40;
+    bool _41; // HYPOTHESIS: a flag (soSoundModuleImpl tests it against true)
+    char _42;
+    char _43[1];
+
+}; // size 44
+static_assert(sizeof(soCollisionLog) == 44, "Class is wrong size!"); // size 44

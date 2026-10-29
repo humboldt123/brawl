@@ -27,10 +27,10 @@ void wnemRayquazaProc::LightBallLanding(wnemSimple* wn) {
         }
         wn->executeAnimCmd(1);
         wn->SetDeadMode();
-        wn->unk2204 = 0.0f;
-        wn->unk2200 = 0.0f;
-        wn->unk21FC = 0.0f;
-        wn->unk21F8 = 0.0f;
+        wn->m_accel.m_y = 0.0f;
+        wn->m_accel.m_x = 0.0f;
+        wn->m_speed.m_y = 0.0f;
+        wn->m_speed.m_x = 0.0f;
         wn->setProcFnc_LifeZero(0x1F);
         wn->SetLifeLimit(*r31);
         wn->setProcFnc_TouchGround(-1);

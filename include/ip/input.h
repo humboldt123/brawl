@@ -76,25 +76,25 @@ public:
 #endif
     Input() : unk0(false) { }
     virtual ~Input() { }
-    virtual void update();
-    virtual Vec2f getStickMain() const;
-    virtual Vec2f getStickSub() const;
+    virtual void update() = 0;
+    virtual Vec2f getStickMain() const = 0;
+    virtual Vec2f getStickSub() const = 0;
 #ifdef IP_INPUT_BUTTON_RAW
     // HYPOTHESIS: original wrapper spelling; preserve the native one-word mask result.
-    virtual ipPadButton::Mask getButton() const;
+    virtual ipPadButton::Mask getButton() const = 0;
 #else
-    virtual ipPadButton getButton() const;
+    virtual ipPadButton getButton() const = 0;
 #endif
-    virtual ipPadTrigger getTrigger() const;
+    virtual ipPadTrigger getTrigger() const = 0;
 #if defined(WN_ARTICLE_NATIVE_BUILDERS) || defined(IP_NULL_INPUT_CONT_NO)
     virtual s32 getContNo() const { return -1; }
 #else
     virtual s32 getContNo() const;
 #endif
-    virtual void setRumble(u32, u32, s32, u8);   // TODO:: Verify parameters
-    virtual void stopRumble();
-    virtual void removeRumble();
-    virtual void removeRumbleId(s32, s32); // TODO:: Verify parameters
-    virtual void removeRumbleMask(u32);
+    virtual void setRumble(u32, u32, s32, u8) = 0;   // TODO:: Verify parameters
+    virtual void stopRumble() = 0;
+    virtual void removeRumble() = 0;
+    virtual void removeRumbleId(s32, s32) = 0; // TODO:: Verify parameters
+    virtual void removeRumbleMask(u32) = 0;
 };
 static_assert(sizeof(Input) == 8, "Class is wrong size!");

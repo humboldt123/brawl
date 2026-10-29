@@ -11,9 +11,8 @@
 #include <types.h>
 #include <wn/wn_em_sw_holder.h>
 
-// The arrays below are classes of sora_melee: the Kokkon only calls their constructors and destructors.
-FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 28);
-FT_DOL_ARRAY_VECTOR(soAreaInstance, 9);
+// The Kokkon only calls the constructors and destructors of its arrays, classes of sora_melee that
+// em/em_module_arrays.h declares because other enemies share them.
 
 class emKokkon;
 
@@ -33,7 +32,7 @@ class emKokkon : public Enemy {
     // HYPOTHESIS: one 0x20-byte work entry per area instance, as for the Primid and the Hammer Bro.
     u8 m_areaWork[0x120];                                        // 0x59AC
     emTargetSearchUnit m_targetSearchUnits[2];                   // 0x5ACC
-    emAIEntry m_aiEntries[18];                                   // 0x5AFC, AI module
+    emAIUnit m_aiUnits[18];                                      // 0x5AFC, AI module
     soArrayVector<soCameraSubject, 1> m_cameraSubjects;          // 0x5B8C, camera module
     emKokkonArticleMediator m_articleMediator;                   // 0x5BDC, generate-article-manage module
 

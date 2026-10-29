@@ -18,7 +18,7 @@ void ftKineticEnergyDisableAndClear(int, soModuleAccesser*);
 
 class ftMarioStatusUniqProcessSpecialS : public soStatusUniqProcess {
 public:
-    virtual ~ftMarioStatusUniqProcessSpecialS() { }
+    virtual ~ftMarioStatusUniqProcessSpecialS();
     virtual void initStatus(soModuleAccesser* moduleAccesser);
     virtual void execStatus(soModuleAccesser* moduleAccesser);
     virtual void exitStatus(soModuleAccesser* moduleAccesser, int);
@@ -52,8 +52,8 @@ void ftMarioStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccess
         if (moduleAccesser->getWorkManageModule().isFlag(0x22000011) == true) {
             if (moduleAccesser->getWorkManageModule().isFlag(0x22000012) == false) {
                 moduleAccesser->getWorkManageModule().onFlag(0x22000012);
-                const Vec2f speed = gravity.getSpeed();
-                float speedY;
+                // MATCH-ONLY: materialize the native vector return before the flag checks.
+                float speedY = gravity.getSpeed().m_y;
                 if (moduleAccesser->getWorkManageModule().isFlag(0x1200003D) == false) {
                     moduleAccesser->getWorkManageModule().onFlag(0x1200003D);
                     speedY = soValueAccesser::getConstantFloat(moduleAccesser, 4010, 0);
@@ -73,6 +73,14 @@ void ftMarioStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccess
 
 void ftMarioStatusUniqProcessSpecialS::exitStatus(soModuleAccesser* moduleAccesser, int) {
     moduleAccesser->getGenerateArticleManageModule().removeExist(0, 0);
+}
+
+inline ftMarioStatusUniqProcessSpecialS::~ftMarioStatusUniqProcessSpecialS() { }
+
+// MATCH-ONLY: name this weak destructor after exitStatus and before the static initializer.
+// This unused function is stripped; its first reference preserves the native code and RTTI order.
+static void nameCapeDestructorFirst(ftMarioStatusUniqProcessSpecialS* process) {
+    process->~ftMarioStatusUniqProcessSpecialS();
 }
 
 ftMarioStatusUniqProcessSpecialS g_ftMarioStatusUniqProcessSpecialS;

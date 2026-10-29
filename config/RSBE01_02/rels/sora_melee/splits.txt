@@ -31,6 +31,23 @@ mo_melee/sora_melee/so/model/so_model_module_impl_variable.cpp:
 	.text       start:0x0000F288 end:0x0000FED0
 	.data       start:0x00000A98 end:0x00000C78
 
+mo_melee/sora_melee/so/model/so_model_calc_world_callback.cpp:
+	.text       start:0x0000FED0 end:0x0000FFF8
+	.data       start:0x00000C78 end:0x00000CF0
+
+mo_melee/sora_melee/so/model/so_model_scn_obj_callback.cpp:
+	.text       start:0x0000FFF8 end:0x000100D8
+	.data       start:0x00000CF0 end:0x00000D68
+
+mo_melee/sora_melee/so/model/so_model_scene_root_event.cpp:
+	.text       start:0x000100D8 end:0x00010158
+	.data       start:0x00000D68 end:0x00000DE8
+
+mo_melee/sora_melee/so/physics/so_physics_module_impl.cpp:
+	.text       start:0x00010158 end:0x00013700
+	.rodata     start:0x00000320 end:0x00000340
+	.data       start:0x00000DE8 end:0x00001190
+
 mo_melee/sora_melee/so/so_array_base_soArrayFixed_20soAnimCmdAddressPack_1B5E0.cpp:
 	.text       start:0x0001B5E0 end:0x0001B614
 
@@ -128,6 +145,29 @@ mo_melee/sora_melee/so/anim/so_anim_chr.cpp:
 	.text       start:0x0001F2D0 end:0x0001F980
 	.rodata     start:0x00000360 end:0x00000370
 
+mo_melee/sora_melee/so/anim/so_anim_obj.cpp:
+	.text       start:0x0001F980 end:0x00020EBC
+	.rodata     start:0x00000370 end:0x00000380
+
+mo_melee/sora_melee/so/motion/so_motion_data_accesser.cpp:
+	.text       start:0x00020EBC end:0x000212D4
+	.rodata     start:0x00000380 end:0x00000388
+	.data       start:0x00002360 end:0x000024C0
+
+mo_melee/sora_melee/so/motion/so_motion_anim_obj_cache_module_impl.cpp:
+	.text       start:0x000212D4 end:0x00023364
+	.data       start:0x000024C0 end:0x00002550
+
+mo_melee/sora_melee/so/posture/so_posture_module_impl.cpp:
+	.text       start:0x00023364 end:0x0002520C
+	.rodata     start:0x00000388 end:0x000003B0
+	.data       start:0x00002550 end:0x00002708
+
+mo_melee/sora_melee/so/posture/so_posture_module_simple.cpp:
+	.text       start:0x0002520C end:0x0002556C
+	.rodata     start:0x000003B0 end:0x000003C0
+	.data       start:0x00002708 end:0x000027A0
+
 mo_melee/sora_melee/so/ground/so_ground_module_impl.cpp:
 	.text       start:0x0002556C end:0x0002E818
 
@@ -153,6 +193,25 @@ mo_melee/sora_melee/so/ground/so_ground_shape_operator_cliff.cpp:
 mo_melee/sora_melee/so/ground/so_ground_util.cpp:
 	.text       start:0x00030EC8 end:0x000311F8
 
+mo_melee/sora_melee/so/ground/so_ground_tracer_impl.cpp:
+	.text       start:0x000311F8 end:0x0003513C
+	.rodata     start:0x00000450 end:0x00000478
+	.data       start:0x000031B8 end:0x00003260
+
+mo_melee/sora_melee/so/situation/so_situation_module_impl.cpp:
+	.text       start:0x0003513C end:0x00035C3C
+	.data       start:0x00003260 end:0x000033F8
+
+mo_melee/sora_melee/so/collision/so_collision_attack_part.cpp:
+	.text       start:0x00038550 end:0x00039590
+	.rodata     start:0x00000490 end:0x00000498
+	.data       start:0x00003418 end:0x00003680
+
+mo_melee/sora_melee/so/collision/so_collision_attack_module_impl.cpp:
+	.text       start:0x00039590 end:0x0004148C
+	.rodata     start:0x00000498 end:0x000004B8
+	.data       start:0x00003680 end:0x00003AD8
+
 mo_melee/sora_melee/so/so_vtable_dt_vec_8clTarget_6_41988.cpp:
 	.text       start:0x00041988 end:0x000419F0
 
@@ -163,6 +222,31 @@ mo_melee/sora_melee/so/collision/so_collision_hit_module_impl.cpp:
 mo_melee/sora_melee/so/so_collision_shield_part.cpp:
 	.text       start:0x00046588 end:0x00046A74
 	.rodata     start:0x000004C8 end:0x000004E0
+
+mo_melee/sora_melee/so/collision/so_collision_shield_group.cpp:
+	.text       start:0x00046A74 end:0x00047220
+	.rodata     start:0x000004E0 end:0x000004E8
+
+mo_melee/sora_melee/so/collision/so_collision_shield_event_presenter_shield.cpp:
+	.text       start:0x00047220 end:0x00047B00
+	.data       start:0x00003F88 end:0x000040C8
+
+mo_melee/sora_melee/so/collision/so_collision_shield_event_presenter_reflector.cpp:
+	.text       start:0x00047B00 end:0x0004839C
+	.data       start:0x000040C8 end:0x000041D8
+
+mo_melee/sora_melee/so/collision/so_collision_shield_event_presenter_absorber.cpp:
+	.text       start:0x0004839C end:0x00048A1C
+	.data       start:0x000041D8 end:0x000042E8
+
+mo_melee/sora_melee/so/collision/so_collision_shield_module_impl.cpp:
+	.text       start:0x00048A1C end:0x0004AC40
+	.rodata     start:0x000004E8 end:0x000004F8
+	.data       start:0x000042E8 end:0x00004510
+
+mo_melee/sora_melee/so/collision/so_collision_catch_part.cpp:
+	.text       start:0x0004AC40 end:0x0004B184
+	.rodata     start:0x000004F8 end:0x00000508
 
 mo_melee/sora_melee/so/so_array_vector_accessors_soCollisionGroup_1.cpp:
 	.text       start:0x0004CB08 end:0x0004CBD0
@@ -269,6 +353,32 @@ mo_melee/sora_melee/so/so_array_vector_thunks_50soInstanceUnitFullProperty_P19so
 mo_melee/sora_melee/so/so_instance_manager_thunks_Vector_soTeamEventObserver_255.cpp:
 	.text       start:0x0005585C end:0x00055874
 
+mo_melee/sora_melee/so/collision/so_collision_util.cpp:
+	.text       start:0x00055874 end:0x00055F2C
+	.rodata     start:0x00000550 end:0x00000558
+
+mo_melee/sora_melee/so/collision/so_collision_log_group_share_module.cpp:
+	.text       start:0x00055F2C end:0x000561E0
+	.data       start:0x000057E8 end:0x00005820
+
+mo_melee/sora_melee/so/sound/so_sound_module_impl.cpp:
+	.text       start:0x000561E0 end:0x00057C88
+	.rodata     start:0x00000558 end:0x00000730
+	.data       start:0x00005820 end:0x00005B48
+
+mo_melee/sora_melee/so/sound/so_sound_manager.cpp:
+	.text       start:0x00057C88 end:0x00057EC4
+	.ctors      start:0x00000010 end:0x00000014
+	.data       start:0x00005B48 end:0x00005B98
+	.bss        start:0x000000C0 end:0x000000E8
+
+mo_melee/sora_melee/so/sound/so_sound_3d_generator_accesser_impl.cpp:
+	.text       start:0x00057EC4 end:0x00058120
+	.data       start:0x00005B98 end:0x00005C10
+
+mo_melee/sora_melee/so/sound/so_sound_util.cpp:
+	.text       start:0x00058120 end:0x00058264
+
 mo_melee/sora_melee/so/controller/so_controller_module_impl.cpp:
 	.text       start:0x00058264 end:0x000598CC
 	.rodata     start:0x00000730 end:0x00000748
@@ -283,6 +393,33 @@ mo_melee/sora_melee/so/controller/so_controller_impl.cpp:
 	.text       start:0x00059FD4 end:0x0005AB60
 	.rodata     start:0x00000750 end:0x000007B8
 	.data       start:0x00006050 end:0x00006168
+
+mo_melee/sora_melee/so/visibility/so_visibility_module_simple.cpp:
+	.text       start:0x0005AD88 end:0x0005B248
+	.data       start:0x00006168 end:0x00006248
+
+mo_melee/sora_melee/so/visibility/so_visibility_module_impl.cpp:
+	.text       start:0x0005B248 end:0x0005BC74
+	.data       start:0x00006248 end:0x00006300
+
+mo_melee/sora_melee/so/so_world.cpp:
+	.text       start:0x0005BC74 end:0x0005BCD0
+	.rodata     start:0x000007C0 end:0x000007C8
+
+mo_melee/sora_melee/so/so_slow.cpp:
+	.text       start:0x0005BCD0 end:0x0005BED0
+	.rodata     start:0x000007C8 end:0x000007D8
+	.data       start:0x00006300 end:0x00006388
+
+mo_melee/sora_melee/so/slow/so_slow_module_impl.cpp:
+	.text       start:0x0005BED0 end:0x0005C600
+	.rodata     start:0x000007D8 end:0x000007E8
+	.data       start:0x00006388 end:0x000064A0
+
+mo_melee/sora_melee/so/slow/so_slow_module_simple.cpp:
+	.text       start:0x0005C600 end:0x0005C7AC
+	.rodata     start:0x000007E8 end:0x000007F0
+	.data       start:0x000064A0 end:0x00006550
 
 mo_melee/sora_melee/so/damage/so_damage_module_impl.cpp:
 	.text       start:0x0005C7AC end:0x000605AC
@@ -301,6 +438,31 @@ mo_melee/sora_melee/so/so_heap_module_impl.cpp:
 mo_melee/sora_melee/so/so_module_accesser.cpp:
 	.text       start:0x0006821C end:0x000687F8
 	.data       start:0x00007898 end:0x000078D0
+
+mo_melee/sora_melee/so/shake/so_shake_module_simple.cpp:
+	.text       start:0x000687F8 end:0x00068888
+	.data       start:0x000078D0 end:0x00007940
+
+mo_melee/sora_melee/so/shake/so_shake_module_impl.cpp:
+	.text       start:0x00068888 end:0x000693F4
+	.rodata     start:0x00000928 end:0x00000930
+	.data       start:0x00007940 end:0x000079C8
+
+mo_melee/sora_melee/so/turn/so_turn_module_impl.cpp:
+	.text       start:0x000693F4 end:0x0006A244
+	.rodata     start:0x00000930 end:0x00000940
+	.data       start:0x000079C8 end:0x00007B40
+
+mo_melee/sora_melee/so/link/so_link_module_impl.cpp:
+	.text       start:0x0006A244 end:0x0006F30C
+	.rodata     start:0x00000940 end:0x00000968
+	.data       start:0x00007B40 end:0x00007FF8
+
+mo_melee/sora_melee/so/link/so_link_connection_server.cpp:
+	.text       start:0x0006F30C end:0x0006F850
+	.ctors      start:0x00000014 end:0x00000018
+	.data       start:0x00007FF8 end:0x00008028
+	.bss        start:0x00000100 end:0x00000120
 
 mo_melee/sora_melee/so/so_resource_module_impl.cpp:
 	.text       start:0x0006F850 end:0x0006FCF4
@@ -1140,6 +1302,10 @@ mo_melee/sora_melee/so/so_array_vector_thunks_PP15soKineticEnergy_24.cpp:
 mo_melee/sora_melee/so/so_array_base_soArrayVectorAbstract_PP15soKineticEnergy_894BC.cpp:
 	.text       start:0x000894BC end:0x000894C4
 
+mo_melee/sora_melee/so/so_kinetic_utility.cpp:
+	.text       start:0x000895B4 end:0x0008A098
+	.rodata     start:0x00000B90 end:0x00000BA8
+
 mo_melee/sora_melee/so/so_kinetic_energy_normal.cpp:
 	.text       start:0x0008A098 end:0x0008A674
 	.rodata     start:0x00000BA8 end:0x00000BB8
@@ -1190,6 +1356,28 @@ mo_melee/sora_melee/so/so_array_vector_abstract_independent_soInstanceUnit_soEve
 mo_melee/sora_melee/so/so_array_vector_thunks_33soInstanceUnit_P14soEventManager_500.cpp:
 	.text       start:0x00092EE0 end:0x00092F08
 
+mo_melee/sora_melee/so/article/so_generate_article_manage_module_impl.cpp:
+	.text       start:0x00092F10 end:0x0009747C
+	.rodata     start:0x00000C40 end:0x00000C58
+	.data       start:0x000142A8 end:0x00014490
+
+mo_melee/sora_melee/so/effect/so_effect_module_impl.cpp:
+	.text       start:0x0009747C end:0x0009FA44
+	.rodata     start:0x00000C58 end:0x00000CA8
+	.data       start:0x00014490 end:0x00015028
+	.bss        start:0x00002B70 end:0x00002B78
+
+mo_melee/sora_melee/so/effect/so_effect_continual.cpp:
+	.text       start:0x0009FA44 end:0x0009FB70
+	.rodata     start:0x00000CA8 end:0x00000CB0
+
+mo_melee/sora_melee/so/effect/so_effect_time.cpp:
+	.text       start:0x0009FB70 end:0x0009FC8C
+
+mo_melee/sora_melee/so/effect/so_effect_screen.cpp:
+	.text       start:0x0009FC8C end:0x000A068C
+	.rodata     start:0x00000CB0 end:0x00000CC0
+
 mo_melee/sora_melee/so/so_array_vector_destructor_efScreenHandle_1.cpp:
 	.text       start:0x000A0C34 end:0x000A0C74
 
@@ -1229,6 +1417,36 @@ mo_melee/sora_melee/so/anim/so_anim_cmd_interpreter_effect.cpp:
 
 mo_melee/sora_melee/so/so_work_manage_module_impl.cpp:
 	.text       start:0x000A1DA4 end:0x000A34D4
+
+mo_melee/sora_melee/so/area/so_area_module_impl.cpp:
+	.text       start:0x000A34D4 end:0x000A6948
+	.rodata     start:0x00000CE8 end:0x00000D18
+	.data       start:0x000155E0 end:0x00015780
+
+mo_melee/sora_melee/so/area/so_area_instance.cpp:
+	.text       start:0x000A6948 end:0x000A78C0
+	.rodata     start:0x00000D18 end:0x00000D28
+	.data       start:0x00015780 end:0x00015808
+
+mo_melee/sora_melee/so/area/so_area_enviroment_element_checker_impl.cpp:
+	.text       start:0x000A78C0 end:0x000A7CAC
+	.rodata     start:0x00000D28 end:0x00000D30
+	.data       start:0x00015808 end:0x00015898
+
+mo_melee/sora_melee/so/territory/so_territory_module_impl.cpp:
+	.text       start:0x000A7CAC end:0x000A9058
+	.rodata     start:0x00000D30 end:0x00000D40
+	.data       start:0x00015898 end:0x00015938
+
+mo_melee/sora_melee/so/so_target_search_unit.cpp:
+	.text       start:0x000A9058 end:0x000A9804
+	.rodata     start:0x00000D40 end:0x00000D60
+	.data       start:0x00015938 end:0x00015970
+
+mo_melee/sora_melee/so/so_target_search_module_impl.cpp:
+	.text       start:0x000A9804 end:0x000AA42C
+	.rodata     start:0x00000D60 end:0x00000D70
+	.data       start:0x00015970 end:0x00015A30
 
 mo_melee/sora_melee/so/so_array_vector_destructor_soGimmickEventObserver_12.cpp:
 	.text       start:0x000AA8E8 end:0x000AA928
@@ -1392,9 +1610,39 @@ mo_melee/sora_melee/so/so_array_vector_thunks_21soDisposeInstanceTerm_255.cpp:
 mo_melee/sora_melee/so/so_array_base_soArrayVectorAbstract_21soDisposeInstanceTerm_B144C.cpp:
 	.text       start:0x000B144C end:0x000B1454
 
+mo_melee/sora_melee/so/camera/so_camera_subject.cpp:
+	.text       start:0x000B15E8 end:0x000B215C
+	.rodata     start:0x00000DB0 end:0x00000DC0
+	.data       start:0x00016D08 end:0x00016D40
+
+mo_melee/sora_melee/so/camera/so_camera_module_impl.cpp:
+	.text       start:0x000B215C end:0x000B4698
+	.rodata     start:0x00000DC0 end:0x00000DE8
+	.data       start:0x00016D40 end:0x00016EB8
+
+mo_melee/sora_melee/so/camera/so_camera_module_simple.cpp:
+	.text       start:0x000B4698 end:0x000B5048
+	.rodata     start:0x00000DE8 end:0x00000E00
+	.data       start:0x00016EB8 end:0x00017020
+
 mo_melee/sora_melee/so/team/so_team_module_impl.cpp:
 	.text       start:0x000B5048 end:0x000B62E4
 	.data       start:0x00017020 end:0x000171D4
+
+mo_melee/sora_melee/so/so_kinetic_energy_ground_movement.cpp:
+	.text       start:0x000B7148 end:0x000B7634
+	.rodata     start:0x00000E28 end:0x00000E40
+	.data       start:0x000173C0 end:0x00017408
+
+mo_melee/sora_melee/so/so_kinetic_energy_wind_normal.cpp:
+	.text       start:0x000B7634 end:0x000B7B54
+	.rodata     start:0x00000E40 end:0x00000E58
+	.data       start:0x00017408 end:0x00017450
+
+mo_melee/sora_melee/so/so_kinetic_energy_jostle.cpp:
+	.text       start:0x000B7B54 end:0x000B7E20
+	.rodata     start:0x00000E58 end:0x00000E60
+	.data       start:0x000174A0 end:0x000174E4
 
 mo_melee/sora_melee/so/so_vtable_dt_ArrayNull_P9soArticle.cpp:
 	.text       start:0x000C3B58 end:0x000C3B98
@@ -4865,6 +5113,14 @@ mo_melee/sora_melee/so/so_array_base_soArrayVectorAbstract_Q216ftAreaModuleImpl1
 mo_melee/sora_melee/so/so_array_vector_thunks_l_32.cpp:
 	.text       start:0x0014FBB0 end:0x0014FBD8
 
+mo_melee/sora_melee/ft/ft_combo_module_impl.cpp:
+	.text       start:0x0014FBD8 end:0x00150320
+	.data       start:0x0002D598 end:0x0002D630
+
+mo_melee/sora_melee/ft/ft_controller_module_impl.cpp:
+	.text       start:0x00150320 end:0x00151140
+	.data       start:0x0002D630 end:0x0002D7E8
+
 mo_melee/sora_melee/ft/ft_damage_effector_impl.cpp:
 	.text       start:0x00151140 end:0x00151770
 	.ctors      start:0x00000080 end:0x00000084
@@ -4889,6 +5145,21 @@ mo_melee/sora_melee/ft/ft_kinetic_energy_controller.cpp:
 	.text       start:0x0015BD28 end:0x0015CFE0
 	.rodata     start:0x00001F50 end:0x00001F70
 	.data       start:0x0002E258 end:0x0002E388
+
+mo_melee/sora_melee/ft/ft_kinetic_energy_gravity.cpp:
+	.text       start:0x0015CFE0 end:0x0015D8F8
+	.rodata     start:0x00001F70 end:0x00001F80
+	.data       start:0x0002E388 end:0x0002E438
+
+mo_melee/sora_melee/ft/ft_kinetic_energy_motion.cpp:
+	.text       start:0x0015D8F8 end:0x0015E6C8
+	.rodata     start:0x00001F80 end:0x00001FA0
+	.data       start:0x0002E438 end:0x0002E4B8
+
+mo_melee/sora_melee/ft/ft_kinetic_energy_stop.cpp:
+	.text       start:0x0015E6C8 end:0x0015FA20
+	.rodata     start:0x00001FA0 end:0x00001FC0
+	.data       start:0x0002E4B8 end:0x0002E600
 
 mo_melee/sora_melee/ft/ft_status_uniq_process_walk.cpp:
 	.text       start:0x0016567C end:0x00165918
@@ -5113,6 +5384,57 @@ mo_melee/sora_melee/ft/ft_status_uniq_process_dead.cpp:
 mo_melee/sora_melee/ft/ft_status_uniq_process_rebirth.cpp:
 	.text       start:0x001733F8 end:0x0017437C
 	.ctors      start:0x00000128 end:0x0000012C
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick.cpp:
+	.text       start:0x0017437C end:0x00174F14
+	.data       start:0x0002F8E0 end:0x0002F9F8
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_barrel.cpp:
+	.text       start:0x00174F14 end:0x00175F10
+	.rodata     start:0x000022A0 end:0x000022B8
+	.data       start:0x0002F9F8 end:0x0002FAA0
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_door.cpp:
+	.text       start:0x00175F10 end:0x001768EC
+	.rodata     start:0x000022B8 end:0x000022E8
+	.data       start:0x0002FAA0 end:0x0002FB48
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_catapult.cpp:
+	.text       start:0x001768EC end:0x00176C68
+	.rodata     start:0x000022E8 end:0x000022F0
+	.data       start:0x0002FB48 end:0x0002FBF0
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_ladder.cpp:
+	.text       start:0x00176C68 end:0x0017754C
+	.rodata     start:0x000022F0 end:0x00002308
+	.data       start:0x0002FBF0 end:0x0002FC98
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_ladder_loop.cpp:
+	.text       start:0x0017754C end:0x00177B2C
+	.rodata     start:0x00002308 end:0x00002320
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_ladder_catch.cpp:
+	.text       start:0x00177B2C end:0x00177BB0
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_ladder_catch_bottom.cpp:
+	.text       start:0x00177BB0 end:0x00177CE8
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_ladder_end.cpp:
+	.text       start:0x00177CE8 end:0x00178034
+	.rodata     start:0x00002320 end:0x00002328
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_spring.cpp:
+	.text       start:0x00178034 end:0x0017835C
+	.data       start:0x0002FC98 end:0x0002FD40
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_truck.cpp:
+	.text       start:0x0017835C end:0x001788E4
+	.rodata     start:0x00002328 end:0x00002330
+	.data       start:0x0002FD40 end:0x0002FDE8
+
+mo_melee/sora_melee/ft/ft_status_uniq_process_gimmick_eaten.cpp:
+	.text       start:0x001788E4 end:0x00178AB8
+	.data       start:0x0002FDE8 end:0x0002FE90
 
 mo_melee/sora_melee/ft/ft_status_uniq_process_catch_pull.cpp:
 	.text       start:0x00178AB8 end:0x00178C04
@@ -10293,6 +10615,20 @@ mo_melee/sora_melee/so/so_array_list_members_Ul_32_part1.cpp:
 mo_melee/sora_melee/ai/ai_param.cpp:
 	.text       start:0x0021CD58 end:0x00220150
 
+mo_melee/sora_melee/st/st_positions.cpp:
+	.text       start:0x00225910 end:0x00227BEC
+	.rodata     start:0x000034C0 end:0x000036F0
+	.data       start:0x0004A430 end:0x0004A728
+
+mo_melee/sora_melee/st/st_shadow.cpp:
+	.text       start:0x002283F0 end:0x0022A914
+	.rodata     start:0x00003708 end:0x00003748
+	.data       start:0x0004A730 end:0x0004A818
+
+mo_melee/sora_melee/st/st_area_manager.cpp:
+	.text       start:0x0022A914 end:0x0022B544
+	.data       start:0x0004A818 end:0x0004A8B0
+
 mo_melee/sora_melee/st/st_result.cpp:
 	.text       start:0x0022B544 end:0x0022C2D0
 	.ctors      start:0x000002A4 end:0x000002A8
@@ -10304,6 +10640,16 @@ mo_melee/sora_melee/st/st_edit.cpp:
 mo_melee/sora_melee/st/st_trigger.cpp:
 	.text       start:0x002334B8 end:0x00234AF0
 	.ctors      start:0x000002AC end:0x000002B0
+
+mo_melee/sora_melee/st/st_trigger_observe.cpp:
+	.text       start:0x00234AF0 end:0x0023714C
+	.rodata     start:0x000038F0 end:0x00003920
+	.data       start:0x0004C218 end:0x0004C498
+
+mo_melee/sora_melee/st/st_trigger_actor_common.cpp:
+	.text       start:0x0023714C end:0x00237C00
+	.rodata     start:0x00003920 end:0x00003928
+	.data       start:0x0004C498 end:0x0004C748
 
 mo_melee/sora_melee/st/st_common_gimmick.cpp:
 	.text       start:0x00237C00 end:0x002381FC
@@ -10337,9 +10683,156 @@ mo_melee/sora_melee/st/st_loader_local_adventure.cpp:
 	.text       start:0x00241B14 end:0x00241E30
 	.ctors      start:0x000002D0 end:0x000002D4
 
+mo_melee/sora_melee/st/st_operator.cpp:
+	.text       start:0x00241E30 end:0x00241F50
+	.data       start:0x0004E038 end:0x0004E0C0
+
+mo_melee/sora_melee/st/st_operator_bgm.cpp:
+	.text       start:0x00241F50 end:0x00242474
+	.rodata     start:0x00003DB8 end:0x00003DC0
+	.data       start:0x0004E0C0 end:0x0004E160
+
+mo_melee/sora_melee/st/st_operator_adv_bgm.cpp:
+	.text       start:0x00242474 end:0x00242764
+	.rodata     start:0x00003DC0 end:0x00003E08
+	.data       start:0x0004E160 end:0x0004E250
+
+mo_melee/sora_melee/st/st_operator_appearance_fighter.cpp:
+	.text       start:0x00242764 end:0x00244240
+	.rodata     start:0x00003E08 end:0x00003EE0
+	.data       start:0x0004E250 end:0x0004E350
+
+mo_melee/sora_melee/st/st_operator_appearance_fighter_null.cpp:
+	.text       start:0x00244240 end:0x00244350
+	.rodata     start:0x00003EE0 end:0x00003EE8
+	.data       start:0x0004E350 end:0x0004E408
+
+mo_melee/sora_melee/st/st_operator_appearance_fighter_result.cpp:
+	.text       start:0x00244350 end:0x00244638
+	.data       start:0x0004E408 end:0x0004E4C0
+
+mo_melee/sora_melee/st/st_operator_appearance_fighter_kumite.cpp:
+	.text       start:0x00244638 end:0x00244B58
+	.rodata     start:0x00003EE8 end:0x00003F00
+	.data       start:0x0004E4C0 end:0x0004E578
+
+mo_melee/sora_melee/st/st_operator_appearance_helper.cpp:
+	.text       start:0x00244B58 end:0x002454E0
+	.rodata     start:0x00003F00 end:0x00003F30
+	.data       start:0x0004E578 end:0x0004E618
+
+mo_melee/sora_melee/st/st_operator_fighter_rebirth.cpp:
+	.text       start:0x002454E0 end:0x002456B0
+	.rodata     start:0x00003F30 end:0x00003F3C
+	.data       start:0x0004E618 end:0x0004E6D8
+
+mo_melee/sora_melee/st/st_operator_fighter_rebirth_adventure.cpp:
+	.text       start:0x002456B0 end:0x00246300
+	.rodata     start:0x00003F40 end:0x00003F80
+	.data       start:0x0004E6D8 end:0x0004E790
+
+mo_melee/sora_melee/st/st_operator_fighter_change.cpp:
+	.text       start:0x00246300 end:0x002464C8
+	.data       start:0x0004E790 end:0x0004E848
+
+mo_melee/sora_melee/st/st_operator_ready_go.cpp:
+	.text       start:0x002464C8 end:0x00246ACC
+	.rodata     start:0x00003F80 end:0x00003FA0
+	.data       start:0x0004E848 end:0x0004E9F0
+
+mo_melee/sora_melee/st/st_operator_ready_go_homerun.cpp:
+	.text       start:0x00246ACC end:0x00246E74
+	.rodata     start:0x00003FA0 end:0x00003FB0
+	.data       start:0x0004E9F0 end:0x0004EAA0
+
+mo_melee/sora_melee/st/st_operator_sudden_death.cpp:
+	.text       start:0x00247088 end:0x00247420
+	.rodata     start:0x00003FB8 end:0x00003FC0
+	.data       start:0x0004EB48 end:0x0004EC38
+
+mo_melee/sora_melee/st/st_operator_drop_item.cpp:
+	.text       start:0x00247420 end:0x002478EC
+	.ctors      start:0x000002D4 end:0x000002D8
+	.rodata     start:0x00003FC0 end:0x00003FF0
+	.data       start:0x0004EC38 end:0x0004ED10
+	.bss        start:0x00005980 end:0x00005990
+
+mo_melee/sora_melee/st/st_operator_drop_item_for_event.cpp:
+	.text       start:0x002478EC end:0x00247D98
+	.ctors      start:0x000002D8 end:0x000002DC
+	.rodata     start:0x00003FF0 end:0x00004008
+	.data       start:0x0004ED10 end:0x0004EDD8
+	.bss        start:0x00005990 end:0x000059A0
+
+mo_melee/sora_melee/st/st_operator_rule.cpp:
+	.text       start:0x00247D98 end:0x00248C90
+	.rodata     start:0x00004008 end:0x00004028
+	.data       start:0x0004EDD8 end:0x0004F050
+
+mo_melee/sora_melee/st/st_operator_rule_time.cpp:
+	.text       start:0x0024DFA4 end:0x0024E71C
+	.rodata     start:0x00004058 end:0x00004070
+	.data       start:0x0004F488 end:0x0004F570
+
+mo_melee/sora_melee/st/st_operator_rule_homerun.cpp:
+	.text       start:0x0024E71C end:0x0024F644
+	.rodata     start:0x00004070 end:0x00004090
+	.data       start:0x0004F570 end:0x0004F680
+
+mo_melee/sora_melee/st/st_operator_rule_stage_end_request.cpp:
+	.text       start:0x0024F644 end:0x0024F820
+	.data       start:0x0004F680 end:0x0004F778
+
+mo_melee/sora_melee/st/st_operator_rule_edit_protocol.cpp:
+	.text       start:0x0024F820 end:0x00250DB8
+	.rodata     start:0x00004090 end:0x000040C8
+	.data       start:0x0004F778 end:0x0004F920
+
+mo_melee/sora_melee/st/st_operator_rule_vsresult.cpp:
+	.text       start:0x00250DB8 end:0x00250F50
+	.data       start:0x0004F920 end:0x0004FA10
+
+mo_melee/sora_melee/st/st_operator_rule_adventure.cpp:
+	.text       start:0x00250F50 end:0x002525C0
+	.rodata     start:0x000040C8 end:0x000040E0
+	.data       start:0x0004FA10 end:0x0004FB38
+
+mo_melee/sora_melee/st/st_operator_rule_targetbreak.cpp:
+	.text       start:0x002525C0 end:0x002530D4
+	.rodata     start:0x000040E0 end:0x00004100
+	.data       start:0x0004FB38 end:0x0004FE60
+
+mo_melee/sora_melee/st/st_operator_rule_kumite.cpp:
+	.text       start:0x002530D4 end:0x002544C8
+	.rodata     start:0x00004100 end:0x00004108
+	.data       start:0x0004FE60 end:0x00052AC0
+
+mo_melee/sora_melee/st/st_operator_nocontest.cpp:
+	.text       start:0x002544C8 end:0x002544DC
+
 mo_melee/sora_melee/st/st_operator_debug_intrusion.cpp:
 	.text       start:0x002544DC end:0x0025458C
 	.ctors      start:0x000002E0 end:0x000002E4
+
+mo_melee/sora_melee/st/st_operator_debug_reset_fighter.cpp:
+	.text       start:0x0025458C end:0x00254598
+
+mo_melee/sora_melee/st/st_operator_debug_stage_pause.cpp:
+	.text       start:0x00254598 end:0x002545A4
+
+mo_melee/sora_melee/st/st_operator_end_production.cpp:
+	.text       start:0x002545A4 end:0x00254A74
+	.rodata     start:0x00004118 end:0x00004140
+	.data       start:0x00052AC0 end:0x00052B78
+
+mo_melee/sora_melee/st/st_operator_network.cpp:
+	.text       start:0x00254A74 end:0x00255420
+	.data       start:0x00052B78 end:0x00052E38
+	.bss        start:0x000059C0 end:0x000059C8
+
+mo_melee/sora_melee/st/st_operator_controller.cpp:
+	.text       start:0x00255420 end:0x00255808
+	.data       start:0x00052E38 end:0x00052F90
 
 mo_melee/sora_melee/st/st_operator_info.cpp:
 	.text       start:0x00255808 end:0x00256A08
@@ -10439,9 +10932,103 @@ mo_melee/sora_melee/so/so_array_vector_accessors_soAreaContactLog_8.cpp:
 mo_melee/sora_melee/so/so_array_vector_thunks_16soAreaContactLog_8.cpp:
 	.text       start:0x00268AB0 end:0x00268AD8
 
+mo_melee/sora_melee/gr/gr_yakumono_punch_slider.cpp:
+	.text       start:0x00268B18 end:0x00269C40
+	.rodata     start:0x000042E8 end:0x00004328
+	.data       start:0x00056078 end:0x000564F0
+	.bss        start:0x00005EA8 end:0x00005EB8
+
+mo_melee/sora_melee/gr/gr_yakumono_switch.cpp:
+	.text       start:0x00269C40 end:0x0026A314
+	.rodata     start:0x00004328 end:0x00004358
+	.data       start:0x000564F0 end:0x00056728
+
+mo_melee/sora_melee/gr/gr_gimmick.cpp:
+	.text       start:0x0026A314 end:0x0026E13C
+	.ctors      start:0x00000300 end:0x00000304
+	.rodata     start:0x00004358 end:0x000043A8
+	.data       start:0x00056728 end:0x00056D80
+	.bss        start:0x00005EB8 end:0x00005FE8
+
+mo_melee/sora_melee/gr/gr_gimmick_motion_path.cpp:
+	.text       start:0x0026E13C end:0x0026F06C
+	.rodata     start:0x000043A8 end:0x000043C8
+	.data       start:0x00056D80 end:0x00056F38
+
+mo_melee/sora_melee/yk/yk_damage_module_impl.cpp:
+	.text       start:0x0026F06C end:0x0026F200
+	.rodata     start:0x000043C8 end:0x000043D0
+	.data       start:0x00056F38 end:0x00057108
+
+mo_melee/sora_melee/yk/yk_damage_effector_impl.cpp:
+	.text       start:0x0026F200 end:0x0026F2D8
+	.ctors      start:0x00000304 end:0x00000308
+	.rodata     start:0x000043D0 end:0x000043E0
+	.data       start:0x00057108 end:0x00057180
+	.bss        start:0x00005FE8 end:0x00006000
+
+mo_melee/sora_melee/yk/yk_effect_module_impl.cpp:
+	.text       start:0x0026F2D8 end:0x0026F508
+	.rodata     start:0x000043E0 end:0x000043E8
+	.data       start:0x00057180 end:0x00057288
+
+mo_melee/sora_melee/yk/yk_value_accesser.cpp:
+	.text       start:0x0026F508 end:0x0026F604
+	.ctors      start:0x00000308 end:0x0000030C
+	.data       start:0x00057288 end:0x000572E0
+	.bss        start:0x00006000 end:0x00006018
+
 mo_melee/sora_melee/gr/gr_gimmick_spring.cpp:
 	.text       start:0x0026FC6C end:0x00270838
 	.ctors      start:0x0000030C end:0x00000310
+
+mo_melee/sora_melee/gr/gr_gimmick_area_common.cpp:
+	.text       start:0x00270838 end:0x002709D8
+	.data       start:0x00057A20 end:0x00057C28
+
+mo_melee/sora_melee/gr/gr_visible_production_fade.cpp:
+	.text       start:0x002709D8 end:0x00270EF4
+	.rodata     start:0x00004448 end:0x00004450
+	.data       start:0x00057C28 end:0x00057D18
+
+mo_melee/sora_melee/gr/gr_visible_production_effect.cpp:
+	.text       start:0x00270EF4 end:0x00271170
+	.rodata     start:0x00004450 end:0x00004460
+	.data       start:0x00057D18 end:0x00057DA8
+
+mo_melee/sora_melee/gr/gr_visible_production_sound_effect.cpp:
+	.text       start:0x00271170 end:0x002714A4
+	.rodata     start:0x00004460 end:0x00004470
+	.data       start:0x00057DA8 end:0x00057EE8
+
+mo_melee/sora_melee/gr/gr_visible_production_materiaal_motion.cpp:
+	.text       start:0x002714A4 end:0x00271748
+	.rodata     start:0x00004470 end:0x00004480
+	.data       start:0x00057EE8 end:0x00057F70
+
+mo_melee/sora_melee/gr/gr_hit_circle_observer.cpp:
+	.text       start:0x00271748 end:0x00271BF0
+	.data       start:0x00057F70 end:0x00058030
+
+mo_melee/sora_melee/gr/gr_hit_circle_observer_group.cpp:
+	.text       start:0x00271BF0 end:0x00271FFC
+	.rodata     start:0x00004480 end:0x00004488
+
+mo_melee/sora_melee/gr/gr_hit_circle_observer_team.cpp:
+	.text       start:0x00271FFC end:0x00272420
+	.rodata     start:0x00004488 end:0x00004490
+	.data       start:0x00058030 end:0x00058060
+
+mo_melee/sora_melee/gr/gr_hit_circle_subject.cpp:
+	.text       start:0x00272420 end:0x002725CC
+	.rodata     start:0x00004490 end:0x00004498
+	.data       start:0x00058060 end:0x000580C0
+	.bss        start:0x00006148 end:0x00006150
+
+mo_melee/sora_melee/gr/gr_adventure_move_ground.cpp:
+	.text       start:0x002725CC end:0x00272CF0
+	.rodata     start:0x00004498 end:0x000044C8
+	.data       start:0x000580C0 end:0x00058380
 
 mo_melee/sora_melee/gr/gr_adventure_motion_ground.cpp:
 	.text       start:0x00272CF0 end:0x00274078
@@ -10450,6 +11037,11 @@ mo_melee/sora_melee/gr/gr_adventure_motion_ground.cpp:
 mo_melee/sora_melee/gr/gr_gimmick_catapult.cpp:
 	.text       start:0x00274650 end:0x00275344
 	.ctors      start:0x00000314 end:0x00000318
+
+mo_melee/sora_melee/ml/ml_ft_event.cpp:
+	.text       start:0x0027CBE0 end:0x0027F4D8
+	.rodata     start:0x000045F0 end:0x00004610
+	.data       start:0x0005ACB8 end:0x0005B078
 
 mo_melee/sora_melee/it/it_item.cpp:
 	.text       start:0x0027F4D8 end:0x0029065C
@@ -10941,6 +11533,16 @@ mo_melee/sora_melee/so/so_instance_manager_thunks_UniqImpl_soKineticEnergy_11.cp
 mo_melee/sora_melee/it/it_switch_decide_module_impl.cpp:
 	.text       start:0x002BDF40 end:0x002BDFE4
 	.ctors      start:0x0000033C end:0x00000340
+
+mo_melee/sora_melee/it/it_kinetic_energy.cpp:
+	.text       start:0x002BDFE4 end:0x002BF178
+	.rodata     start:0x00005FB0 end:0x00005FC0
+	.data       start:0x0007A290 end:0x0007A400
+
+mo_melee/sora_melee/it/it_kinetic_energy_stop.cpp:
+	.text       start:0x002BF178 end:0x002BF61C
+	.rodata     start:0x00005FC0 end:0x00005FD8
+	.data       start:0x0007A400 end:0x0007A498
 
 mo_melee/sora_melee/it/it_value_accesser.cpp:
 	.text       start:0x002BF61C end:0x002C0904

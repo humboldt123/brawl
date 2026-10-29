@@ -1,3 +1,6 @@
+#define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
+#define FT_TEAM_TYPED_INTERFACE
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
 // MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #define FT_NOINLINE_SEARCH_BUILDER
@@ -20,8 +23,18 @@
 #include <mt/mt_matrix.h>
 #include <math.h>
 
+#include <so/glow/so_glow_module_simple.h>
+
 #define FT_BC ftSnakeBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// Status teardown destroys its owned change-request queue before observers.
+#pragma dont_inline on
+#ifndef FT_REL_LINK_EXTERN // with FT_REL_LINK_EXTERN the queue destructor is the sora_melee function (ft_dol_instances.h)
+template soArrayVector<s32, 8>::~soArrayVector();
+#endif
+#pragma dont_inline off
+soStatusModuleImpl::~soStatusModuleImpl() { }
 
 extern soStatusUniqProcess g_ftSnakeStatusUniqProcessCypherHang;
 extern soStatusUniqProcess g_ftSnakeStatusUniqProcessNikitaOperation;
@@ -1210,7 +1223,7 @@ void* fn_122_12BB4(void* p, s16 flags);
 void* fn_122_3320(void* p, s16 flags);
 void* fn_27_D3B50(void* p, s16 flags);
 void* fn_27_64874(void* p, s16 flags);
-void* fn_27_C31CC(void* p, s16 flags);
+
 void* fn_27_63EBC(void* p, s16 flags);
 void* fn_27_5C674(void* p, s16 flags);
 void* fn_27_5AE44(void* p, s16 flags);
@@ -1281,7 +1294,7 @@ void* fn_122_3958(void* p, s16 flags) {
 }
 void* fn_122_3BC4(void* p, s16 flags) {
     if (p != 0) {
-        fn_27_C31CC(p, -1);
+        static_cast<soGlowModuleSimple*>(p)->soGlowModuleSimple::~soGlowModuleSimple();
         if (flags > 0) {
             ::operator delete(p);
         }

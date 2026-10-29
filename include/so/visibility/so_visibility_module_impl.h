@@ -1,5 +1,5 @@
-// SHADOW of BrawlHeaders/so/visibility/so_visibility_module_impl.h: identical except for the FT_MODULE_BUILDER-guarded declarations
-// (constructors/destructors of sora_melee classes that fighter module builders call). Built only for fighter RELs.
+// SHADOW of BrawlHeaders/so/visibility/so_visibility_module_impl.h: adds the sora_melee constructor/destructor declarations
+// (fighter module builders without FT_REL_LINK_EXTERN keep the implicit inline destructor) and the dirty flag.
 #pragma once
 
 #include <StaticAssert.h>
@@ -8,19 +8,21 @@
 #include <types.h>
 
 class soVisibilityModuleImpl : public soVisibilityModuleSimple, public soStatusEventObserver {
-#ifdef FT_MODULE_BUILDER
 public:
     soVisibilityModuleImpl(soModuleAccesser* acc, soVisibilityData* data, int n);
-#ifdef FT_REL_LINK_EXTERN
-    virtual ~soVisibilityModuleImpl(); // MATCH-ONLY: the destructor is a sora_melee function (not an inline weak copy)
+#if !defined(FT_MODULE_BUILDER) || defined(FT_REL_LINK_EXTERN)
+    ~soVisibilityModuleImpl(); // MATCH-ONLY (fighter RELs): the destructor is a sora_melee function (not an inline weak copy)
 #endif
+#ifdef FT_MODULE_BUILDER
 private:
 #endif
     char _0x18[2];
     soVisibilityData* m_data;
     s8* m_setData;
     u32 m_numSets;
-    char _0x2c[4];
+    // HYPOTHESIS: set when a set or status default changed, so setDefaultAll re-applies the status defaults.
+    u8 unk2C;
+    char _0x2d[3];
 
 public:
     virtual void activate();
@@ -32,7 +34,7 @@ public:
     virtual void hideAll();
     virtual int get(u32);
 
-    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, int unk3);
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
     virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
 };
 static_assert(sizeof(soVisibilityModuleImpl) == 0x30, "Class is wrong size!");

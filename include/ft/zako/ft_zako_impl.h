@@ -36,8 +36,8 @@
     void ftZako##NAME::onActivate() {                                                       \
         soModuleAccesser* acc = m_moduleAccesser;                                           \
         float one = 1.0f;                                                                   \
-        acc->getMotionModule().addOtherAnim(0.0f, one, 1, 0x1CE, true);                     \
-        acc->getMotionModule().setOtherAnimRate(one, 1);                                    \
+        acc->getMotionModule().addOtherAnim(1, 0x1CE, true, 0.0f, one);                    \
+        acc->getMotionModule().setOtherAnimRate(1, one);                                   \
         acc->getWorkManageModule().onFlag(0x12000021);                                     \
         acc->getWorkManageModule().onFlag(0x12000022);                                     \
         acc->getWorkManageModule().onFlag(0x12000023);                                     \

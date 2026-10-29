@@ -9,14 +9,18 @@ namespace ms {
     template <class T>
     class TextWriterBase;
 
-    // HYPOTHESIS: the game's copy of nw4r::ut::PrintContext; only writer (0x0), str (0x4) and x (0x8) are used here.
+    // The game's copy of nw4r::ut::PrintContext with one extra float before the flags: the text writer fills it
+    // with the text block height computed by its cursor adjustment (ms_text_writer.cpp).
     template <typename T>
     struct PrintContext {
         TextWriterBase<T>* writer; // 0x0
         const T* str;              // 0x4
         f32 x;                     // 0x8
         f32 y;                     // 0xc
-        u32 flags;                 // 0x10
+        f32 textHeight;            // 0x10, HYPOTHESIS: only the writer stores it
+        u32 flags;                 // 0x14
+
+        enum { FLAGS_CHARSPACE = (1 << 0) };
     };
 
     template <typename T>
@@ -32,13 +36,15 @@ namespace ms {
             OPERATION_END_DRAW
         };
 
-        TagProcessorBase();
-        virtual ~TagProcessorBase();
+        // Called out of line by the derived constructor/destructor.
+        TagProcessorBase() __attribute__((never_inline));
+        virtual ~TagProcessorBase() __attribute__((never_inline));
 
         virtual Operation Process(u16 ch, ContextType* pCtx);
         virtual Operation CalcRect(nw4r::ut::Rect* pRect, u16 ch, ContextType* pCtx);
-        virtual void saveEnv();
-        virtual void restoreEnv();
+        // The text writer brackets every measurement and print with these, passing its context.
+        virtual void saveEnv(ContextType* pCtx);
+        virtual void restoreEnv(ContextType* pCtx);
 
     private:
         void ProcessTab(ContextType* pCtx);
@@ -46,8 +52,8 @@ namespace ms {
     };
 } // namespace ms
 
-// HYPOTHESIS: MsgTagProc in sora/ms_message.h is this object seen as raw bytes (Message+0xa4); its
-// constructor and destructor are still defined under that name.
+// The tag processor class Message carries at +0xa4: a stack of saved font states (color, scale, flags) for
+// the message tag commands, with a second copy for saveEnv/restoreEnv.
 class msTagProcessor : public ms::TagProcessorBase<char> {
 public:
     struct tagStack {
@@ -55,13 +61,21 @@ public:
         f32 m_scaleH;            // 0x4
         f32 m_scaleV;            // 0x8
         u8 m_flags;              // 0xc
+
+        tagStack();
+        ~tagStack();
     };
 
+    msTagProcessor();
     virtual ~msTagProcessor();
     virtual Operation Process(u16 ch, ContextType* pCtx);
     virtual Operation CalcRect(nw4r::ut::Rect* pRect, u16 ch, ContextType* pCtx);
-    virtual void saveEnv();
-    virtual void restoreEnv();
+    virtual void saveEnv(ContextType* pCtx);
+    virtual void restoreEnv(ContextType* pCtx);
+
+    // Number of UTF-8 characters in the first len bytes of str (stops at a NUL).
+    // HYPOTHESIS: parameter types; the map names it a member of this class.
+    static int strlenUtf8(const char* str, int len);
 
     // HYPOTHESIS: the flag byte is a u8 (the caller passes an unsigned byte of the tag string).
     bool pushFontTag(ContextType* pCtx, u8 flags);

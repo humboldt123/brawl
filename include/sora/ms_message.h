@@ -5,6 +5,7 @@
 // real layout and several members that the game code needs.
 
 #include <ms/ms_char_writer.h>
+#include <ms/ms_tag_processor.h>
 #include <nw4r/ut/ut_Color.h>
 #include <nw4r/ut/ut_Rect.h>
 #include <sr/sr_common.h>
@@ -18,19 +19,7 @@ namespace nw4r {
     } // namespace g3d
 } // namespace nw4r
 
-struct FontData {
-    enum FONT_RESOURCE {
-        FONT_SYSTEM = 0,
-        FONT_NORMAL = 1,
-        FONT_HIRAGANA = 2,
-        FONT_ENDING = 3,
-        FONT_MELEE = 4,
-        FONT_RESETSAN = 5,
-        FONT_FOX = 6,
-        FONT_ALERT = 7,
-        FONT_NORMAL2 = 8,
-    };
-};
+#include <ms/ms_resfont.h>
 
 class Message;
 
@@ -93,7 +82,11 @@ struct MsgBuf {
 };
 
 u8* floatToBytes(u8* out, float f);
-int MsgParseChar(const u8* p, int* kind, u8* out, int flag);
+// Walks the message command stream from p. With kind == NULL it skips the control commands and counts the
+// printable characters until the end of the string or an unknown command. With kind it stops after the first
+// line feed (kind 2) or printable character (kind 1, its UTF-8 bytes copied to out, "...." copied whole).
+// Returns the number of bytes consumed; count receives the number of printable characters when given.
+int MsgParseChar(const u8* p, int* kind, u8* out, int* count);
 int strncmp_(const char* a, const char* b, unsigned long n);
 void SetFontResource(ms::CharWriter* w, int id);
 void ScnObj_EnableCallbackTiming(nw4r::g3d::ScnObj* obj, u32 timing);
@@ -103,57 +96,13 @@ void ScnObj_DisableCallbackExecOp(nw4r::g3d::ScnObj* obj, u32 op);
 void G3DState_Invalidate(u32 flags);
 u8* floatToShortBytes(u8* out, float f);
 
-// Object at Message+0xa4 (tag/font set); constructed and destroyed by out-of-line code.
-class MsgTagProc {
-public:
-    u8 m_data[0x110];
-    MsgTagProc();
-    ~MsgTagProc();
-};
-
-namespace ms {
-    template <class T>
-    class TextWriterBase : public CharWriter {
-    public:
-        u8 m_70[4];
-        nw4r::ut::Rect m_rect; // 0x74, window rectangle (left, top, right, bottom)
-        void SetWindowRect(float l, float t, float r, float b) {
-            float h = b - t;
-            float w = r - l;
-            m_rect.top = nw4r::math::FSelect(h, t, b);
-            m_rect.left = nw4r::math::FSelect(w, l, r);
-            m_rect.right = nw4r::math::FSelect(w, r, l);
-            m_rect.bottom = nw4r::math::FSelect(h, b, t);
-        }
-        float m_84;
-        float m_88;
-        float m_8c;
-        int m_90;
-        u32 m_flags;           // 0x94
-        MsgTagProc* m_tagProcPtr; // 0x98
-        MsgBuf* m_curBuf;      // 0x9c
-
-        TextWriterBase();
-        ~TextWriterBase();
-
-        void SetParam8C(float f);
-        void SetParam88(float f);
-        float GetParam88();
-        int GetParam90();
-        void SetFlags(u32 flags);
-        u32 GetFlags();
-        void SetTagProcessor(MsgTagProc* p);
-        void GetCharRect(float* rect, const u8* str, int len);
-        void PrintBytes(const char* str, int len);
-        static int GetBufferSize();
-    };
-} // namespace ms
+#include <ms/ms_text_writer_base.h>
 
 class Message : public ms::TextWriterBase<char> {
 public:
     virtual ~Message();
 
-    MsgTagProc m_tagProc;  // 0xa4
+    msTagProcessor m_tagProc; // 0xa4
     GXColor m_1b4;        // 0x1b4
     float m_1b8;
     float m_1bc;

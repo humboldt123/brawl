@@ -1,6 +1,9 @@
 #pragma once
 #include <types.h>
 #include <so/situation/so_situation_module_impl.h>
+#include <so/status/so_status_event_presenter.h>
+#include <so/anim/so_anim_cmd_event_presenter.h>
+#include <so/link/so_link_event_presenter.h>
 #include <StaticAssert.h>
 class soArticle;
 class soModuleAccesser;
@@ -53,13 +56,40 @@ public:
 };
 
 static_assert(sizeof(soGenerateArticleManageModule) == 4, "Article interface layout is wrong!");
-// Primary base verified by implementation RTTI at offset zero. Existing R.O.B.
-// construction ABI retained; secondary observers and fields remain opaque.
-class soGenerateArticleManageModuleImpl : public soGenerateArticleManageModule {
-    u8 m_unreconstructed[0x38];
+// Primary base verified by implementation RTTI at offset zero; the observer bases and fields follow the constructor.
+class soGenerateArticleManageModuleImpl : public soGenerateArticleManageModule, public soStatusEventObserver,
+                                          public soAnimCmdEventObserver, public soLinkEventObserver {
 public:
+    soModuleAccesser* m_moduleAccesser;
+    soArray<soArticle*>* m_articles;
+    soArticleMediator* m_mediator;
+    soArray<soArticleEventObserver>* m_observers;
+    soArticleMediator* m_dynamicMediator;
+
     soGenerateArticleManageModuleImpl(soModuleAccesser*, soArray<soArticle*>*,
         soArticleMediator*, soArray<soArticleEventObserver>*);
     virtual ~soGenerateArticleManageModuleImpl();
+    virtual void activate();
+    virtual void changeMotion(int articleId, int motionKind, bool);
+    virtual void setFrame(int articleId, float);
+    virtual void setRate(int articleId, float);
+    virtual void setSituationKind(int articleId, SituationKind);
+    virtual void removeExist(int articleId, int selector);
+    virtual bool isExist(int articleId);
+    virtual int getNum(int articleId);
+    virtual bool isGeneratable(int articleId);
+    virtual int getActiveNum(int articleId);
+    virtual int getGenerateMaxNum(int articleId);
+    virtual int getGenerateRestNum(int articleId);
+    virtual soArticle* getArticle(int articleId);
+    virtual soArticle* getArticleFromNo(int articleId, int number);
+    virtual void setDynamicArticleMediator(soArticleMediator* mediator);
+    virtual void setAutoRecycle(bool);
+    virtual bool isObserv(char unk1);
+#ifdef SO_ANIM_CMD_EVENT_OBSERVER_PURE
+    // The observer's slots are pure in such a unit (so/anim/so_anim_cmd_event_presenter.h): the override.
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, soAnimCmdEventS32 unk3);
+#endif
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4);
 };
 static_assert(sizeof(soGenerateArticleManageModuleImpl) == 0x3c, "Article module layout is wrong!");

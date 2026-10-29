@@ -2,6 +2,7 @@
 // Local header (BrawlHeaders has no grCollisionManager): the stage collision task, with the
 // layout verified from its constructor, the ground-collision/status update passes and its users.
 
+#include <ut/ut_bit_array.h>
 #include <StaticAssert.h>
 #include <gf/gf_task.h>
 #include <mt/mt_vector.h>
@@ -21,12 +22,6 @@ public:
         CliffHangInfo() : m_lineId(0xFFFF) { }
     };
 
-    // HYPOTHESIS: inline layout of the 256-bit utBitArrayStatic that hands out collision indices.
-    struct IndexBits {
-        u32 unk0;
-        u32 m_bits[8];
-        u32 unk24;
-    };
 
     // HYPOTHESIS: the task flags are a member object; the constructor clears them before the members after it.
     struct Flags {
@@ -64,7 +59,7 @@ public:
     // 0x68
     CliffHangInfo m_cliffHangInfos[8];
     // 0xC8
-    IndexBits m_indexBits;
+    utBitArrayStatic<256> m_indexBits;
     // 0xF0
     grCollision* m_collisions[256];
     // 0x4F0

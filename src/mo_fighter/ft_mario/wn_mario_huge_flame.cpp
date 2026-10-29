@@ -16,7 +16,7 @@ extern soStatusUniqProcess g_wnMarioHugeFlameStatusUniqProcessRegular;
 
 wnMarioHugeFlame::wnMarioHugeFlame(s32 articleId, const wnArticleBuildInfo& info, const wnMarioHugeFlameData* data) :
     wnWeaponBuilder<wnMarioHugeFlameModuleAccesserBuildConfig>(
-        "wnMarioHugeFlame", articleId, info,
+        "MarioHugeFlame", articleId, info,
         wnModuleAccesserBuildData(0x4C, data, info.getHeapModule()->getInstanceHeap(), Heaps::FighterTechqniq,
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
                                   0, 0, 0, 0, 0, 0, 0)),

@@ -13,18 +13,35 @@
 //   flag  0x22000015  the burner is thrusting this frame
 //   flag  0x22000016  the thrust sound loop is playing (handle in int 0x20000003)
 
+// MATCH-ONLY: the native code builds the zero acceleration, the start speed and the stored vectors through these small
+// inline calls; with plain member calls the temporaries land in different stack slots.
+static inline void resetController(ftKineticEnergyController& controller, int mode, Vec3f* accel, const Vec2f& speed, soModuleAccesser* moduleAccesser) {
+    controller.resetEnergy(mode, const_cast<Vec2f*>(&speed), accel, moduleAccesser);
+}
+static inline void setControllerSpeed(ftKineticEnergyController& controller, const Vec2f& speed) {
+    controller.m_speed = speed;
+}
+static inline void setControllerTarget(ftKineticEnergyController& controller, const Vec2f& target) {
+    controller.m_speedTarget = target;
+}
+
+// MATCH-ONLY: the reset mode is kept in a saved register across the speed queries and vector construction, as in the
+// native register lifetime.
+#pragma push
+#pragma opt_propagation off
 void ftRobotStatusUniqProcessSpecialBurner::initStatus(soModuleAccesser* moduleAccesser) {
     ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
     // Cap the positive horizontal speed carried into the burner.
     Vec2f speed;
     Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    int mode = 0xb;
     if (speed.m_x > soValueAccesser::getConstantFloat(moduleAccesser, 0xfc2, 0)) {
         speed.m_x = soValueAccesser::getConstantFloat(moduleAccesser, 0xfc2, 0);
     }
-    controller.resetEnergy(0xb, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
-    controller.m_speed = Vec2f(speed.m_x, 0.0f);
+    resetController(controller, mode, &Vec3f(0.0f, 0.0f, 0.0f), Vec2f(speed.m_x, 0.0f), moduleAccesser);
+    setControllerSpeed(controller, Vec2f(speed.m_x, 0.0f));
     controller.m_unk40 = soValueAccesser::getConstantFloat(moduleAccesser, 0xfc7, 0);
-    controller.m_speedTarget = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xfc8, 0), 0.0f);
+    setControllerTarget(controller, Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xfc8, 0), 0.0f));
     controller.enable();
     execStatus(moduleAccesser);
     int flame = moduleAccesser->getEffectModule().reqFollow(static_cast<EfID>(0x240002), 0x60, &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, -90.0f), 1.0f, false, 1, 0, -1);
@@ -32,6 +49,7 @@ void ftRobotStatusUniqProcessSpecialBurner::initStatus(soModuleAccesser* moduleA
     moduleAccesser->getWorkManageModule().onFlag(0x22000013);
     moduleAccesser->getControllerModule().setRumble(2, 0, false, 7);
 }
+#pragma pop
 
 void ftRobotStatusUniqProcessSpecialBurner::execStatus(soModuleAccesser* moduleAccesser) {
     specialButtonPushCheck(moduleAccesser);

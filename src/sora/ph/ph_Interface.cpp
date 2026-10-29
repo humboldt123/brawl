@@ -142,16 +142,16 @@ hkArray<phIKController*>* phInterface::getArrayIKController() {
 }
 
 void phInterface::delete2ndaryController() {
-    if (m_2ndaryControllers.m_size == 0) {
-        if ((m_2ndaryControllers.m_capacityAndFlags & hkArrayBase::DONT_DEALLOCATE_FLAG) == 0) {
-            hkThreadMemory::s_instance->deallocateChunk(m_2ndaryControllers.m_data,
-                                                        m_2ndaryControllers.m_capacityAndFlags << 2, 0x15);
+    hkArray<ph2ndaryController*>* controllers = static_cast<hkArray<ph2ndaryController*>*>(&m_2ndaryControllers);
+    if (controllers->getSize() == 0) {
+        if (controllers->mustDeallocate()) {
+            hkThreadMemory::s_instance->deallocateChunk(controllers->m_data,
+                                                        (controllers->m_capacityAndFlags & hkArrayBase::CAPACITY_MASK) * 4, 0x15);
         }
-        m_2ndaryControllers.m_data = nullptr;
-        m_2ndaryControllers.m_size = 0;
-        m_2ndaryControllers.m_capacityAndFlags =
-            (m_2ndaryControllers.m_capacityAndFlags & hkArrayBase::FORCE_SIGN_FLAG) |
-            hkArrayBase::DONT_DEALLOCATE_FLAG;
+        controllers->m_data = nullptr;
+        controllers->m_size = 0;
+        controllers->m_capacityAndFlags =
+            (controllers->m_capacityAndFlags & hkArrayBase::FORCE_SIGN_FLAG) | hkArrayBase::DONT_DEALLOCATE_FLAG;
     }
 }
 

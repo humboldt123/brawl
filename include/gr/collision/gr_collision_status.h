@@ -184,7 +184,8 @@ public:
     void getPos(Vec2f*);
     u32 getTouchLineId(TouchId touchId);
     bool isOttotto(float f, int dir);
-    u8 getTouchCount();
+    // The number of touched sides: a plain word counter (no narrowing before the return).
+    u32 getTouchCount();
     bool getDownCorrectPos(Vec3f* a, Vec3f* b);
     void entryCliffHang();
     void leaveCliffHang();

@@ -1,3 +1,4 @@
+#include <ut/ut_bit_array.h>
 #include <gf/gf_file_io_manager.h>
 #include <gf/gf_file_io_request.h>
 #include <revolution/OS/OSMutex.h>
@@ -42,15 +43,13 @@ struct gfFileIOManagerView {
     gfFileIORequestPoolView* pool;
 };
 
-extern "C" s32 fn_80044248(u32* usedBits);
-extern "C" s32 fn_80044360(u32* usedBits);
 
 gfFileIORequest* gfFileIOManager::allocRequest() {
     gfFileIOManagerView* self = (gfFileIOManagerView*) this;
     gfFileIORequestPoolView* pool = self->pool;
     gfFileIORequest* req;
-    if (fn_80044248(pool->usedBits) != 0) {
-        s32 idx = fn_80044360(pool->usedBits);
+    if (reinterpret_cast<utBitArray*>(pool->usedBits)->hasUnsetBit()) {
+        s32 idx = reinterpret_cast<utBitArray*>(pool->usedBits)->getUnsetBit();
         // HYPOTHESIS: usedBits points at a header word, so the bit words start 4 bytes in.
         pool->usedBits[(idx >> 5) + 1] |= 1 << (idx & 0x1F);
         req = (gfFileIORequest*) ((u8*) pool->requests + idx * 0xA4);

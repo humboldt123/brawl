@@ -295,24 +295,24 @@ void muTourTable::setTableData(int playersPerMatch, int sizeIndex) {
 }
 
 // Shows or hides the whole table: mode 0 shows the lines (all the colors are on), mode 1 hides them.
+// HYPOTHESIS: an inline helper that sets both draw priorities of a model (one value, as in the original code).
+static inline void tourSetPriority(MuObject* obj, int priority) {
+    obj->m_scnMdl->SetPriorityDrawOpa(priority);
+    obj->m_scnMdl->SetPriorityDrawXlu(priority);
+}
+
 void muTourTable::clearTable(int mode) {
     switch (mode) {
-    case 1:
-        for (u32 i = 0; i < 0x5E; i++) {
-            m_objs[i]->setFrameMatCol(1.0f);
-            MuObject* obj = m_objs[i];
-            int priority = m_priority;
-            obj->m_scnMdl->SetPriorityDrawOpa(priority);
-            obj->m_scnMdl->SetPriorityDrawXlu(priority);
-        }
-        break;
     case 0:
         for (u32 i = 0; i < 0x5E; i++) {
+            m_objs[i]->setFrameMatCol(1.0f);
+            tourSetPriority(m_objs[i], m_priority);
+        }
+        break;
+    case 1:
+        for (u32 i = 0; i < 0x5E; i++) {
             m_objs[i]->setFrameMatCol(0.0f);
-            MuObject* obj = m_objs[i];
-            int priority = m_priority;
-            obj->m_scnMdl->SetPriorityDrawOpa(priority);
-            obj->m_scnMdl->SetPriorityDrawXlu(priority);
+            tourSetPriority(m_objs[i], m_priority);
         }
         break;
     }
@@ -321,36 +321,25 @@ void muTourTable::clearTable(int mode) {
 // Lets the fighter go one step on its way (the two lines of the step are colored), and returns true.
 bool muTourTable::winnerSet(int slot) {
     int step = m_paths[slot].m_step;
-    MuObject* lineA = m_objs[m_paths[slot].m_line[2 * step]];
-    lineA->setFrameMatCol((float)m_paths[slot].m_color[2 * step]);
-    int priority = m_priority + 1;
-    lineA->m_scnMdl->SetPriorityDrawOpa(priority);
-    lineA->m_scnMdl->SetPriorityDrawXlu(priority);
-
+    u8 lineA = m_paths[slot].m_line[2 * step];
     u8 lineB = m_paths[slot].m_line[2 * step + 1];
+    m_objs[lineA]->setFrameMatCol((float)m_paths[slot].m_color[2 * step]);
+    tourSetPriority(m_objs[lineA], m_priority + 1);
+
     m_objs[lineB]->setFrameMatCol((float)m_paths[slot].m_color[2 * m_paths[slot].m_step + 1]);
     if (m_paths[slot].m_color[2 * m_paths[slot].m_step + 1] == 1) {
-        MuObject* o = m_objs[lineB];
-        int p = m_priority;
-        o->m_scnMdl->SetPriorityDrawOpa(p);
-        o->m_scnMdl->SetPriorityDrawXlu(p);
+        tourSetPriority(m_objs[lineB], m_priority);
     } else {
-        int p = m_priority + 1;
-        MuObject* o = m_objs[lineB];
-        o->m_scnMdl->SetPriorityDrawOpa(p);
-        o->m_scnMdl->SetPriorityDrawXlu(p);
+        tourSetPriority(m_objs[lineB], m_priority + 1);
     }
 
     m_paths[slot].m_step++;
-    if (m_paths[slot].m_line[2 * m_paths[slot].m_step] == m_paths[slot].m_line[2 * m_paths[slot].m_step + 1]) {
+    if (m_paths[slot].m_line[2 * m_paths[slot].m_step] == m_paths[slot].m_line[2 * m_paths[slot].m_step + 2]) {
         m_paths[slot].m_step++;
     }
     if (m_shape.m_rounds == m_paths[slot].m_step) {
         m_objs[m_finalLine]->setFrameMatCol(2.0f);
-        MuObject* last = m_objs[m_finalLine];
-        int p = m_priority + 1;
-        last->m_scnMdl->SetPriorityDrawOpa(p);
-        last->m_scnMdl->SetPriorityDrawXlu(p);
+        tourSetPriority(m_objs[m_finalLine], m_priority + 1);
     }
     return true;
 }
@@ -359,7 +348,7 @@ bool muTourTable::winnerSet(int slot) {
 void muTourTable::setName() {
     muTourData* list = reinterpret_cast<muTourData*>(g_GameGlobal->m_tournamentData);
     const char* material = "lambert87";
-    for (int i = 0; i < list->m_count; i++) {
+    for (u32 i = 0; i < list->m_count; i++) {
         muTourEntrant* entrant = &list->m_entrants[i];
         PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_plateObjs[entrant->m_slot]->m_scnMdl, "MenTrnLine0000_TopN");
         PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_group, m_faceObjs[entrant->m_slot]->m_scnMdl, "MenTrnLine0000_TopN");
@@ -429,22 +418,21 @@ bool muTourTable::calcTablePos() {
 // Starts the walk of the fighters of a match to the node of the match: each walks from the end of its line to the node.
 void muTourTable::entrySet(const int* slots, int count, int frames) {
     m_moving = count;
-    for (int i = 0; i < m_moving; i++) {
+    for (u32 i = 0; i < m_moving; i++) {
         int slot = slots[i];
         m_slot[i] = slot;
         int step = m_paths[slot].m_step;
         u8 first = m_paths[slot].m_line[2 * step];
         u8 second = m_paths[slot].m_line[2 * step + 1];
+        Vec3f pos;
         if (first == 0) {
             m_from[i] = 0.0f;
         } else {
-            const Vec3f& t = m_objs[first]->m_trans;
-            Vec3f from(t.m_x, t.m_y, t.m_z);
-            m_from[i] = from.m_x;
+            tourGetTrans(m_objs[first], &pos);
+            m_from[i] = pos.m_x;
         }
-        const Vec3f& t2 = m_objs[second]->m_trans;
-        Vec3f to(t2.m_x, t2.m_y, t2.m_z);
-        m_to[i] = to.m_x;
+        tourGetTrans(m_objs[second], &pos);
+        m_to[i] = pos.m_x;
     }
     m_frames = frames;
     m_frame = 0;
@@ -452,8 +440,9 @@ void muTourTable::entrySet(const int* slots, int count, int frames) {
 
 // Moves the fighters on, and returns true when the walk is over.
 bool muTourTable::entryCalc() {
-    m_frame++;
+    Vec3f pos;
     float total = (float)(m_frames * m_frames * m_frames);
+    m_frame++;
     if (m_frame >= m_frames) {
         for (u32 i = 0; i < m_moving; i++) {
             Vec3f pos;
@@ -466,7 +455,6 @@ bool muTourTable::entryCalc() {
     }
     for (u32 i = 0; i < m_moving; i++) {
         float moved = (m_to[i] - m_from[i]) / total * (float)(m_frame * m_frame * m_frame);
-        Vec3f pos;
         tourGetTrans(m_faceObjs[m_slot[i]], &pos);
         pos.m_x = moved + m_from[i];
         m_faceObjs[m_slot[i]]->setTrans(&pos);
@@ -515,6 +503,7 @@ void muTourTable::winnerSetIcon(int winner, int frames) {
 
 // Moves the winner (up or down, the other fighters to the side), and returns true when it is over.
 bool muTourTable::winnerCalc() {
+    Vec3f pos;
     m_frame++;
     if (m_frame >= m_frames) {
         for (u32 i = 0; i < m_moving; i++) {
@@ -532,7 +521,6 @@ bool muTourTable::winnerCalc() {
     }
     for (u32 i = 0; i < m_moving; i++) {
         float moved = (float)m_frame * (m_to[i] - m_from[i]) / (float)m_frames;
-        Vec3f pos;
         tourGetTrans(m_faceObjs[m_slot[i]], &pos);
         if (i == (u32)m_winner) {
             pos.m_y = moved + m_from[i];
@@ -611,15 +599,17 @@ bool muTourTable::isLoadEnd() {
             m_texReady = true;
         }
 
+        void* data;
+        void* copy;
         int size;
-        void* data = m_archive->getData(static_cast<ARCNodeType>(2), 0, &size, 0xFFFE);
+        data = m_archive->getData(static_cast<ARCNodeType>(2), 0, &size, 0xFFFE);
         m_resLineA[0] = nw4r::g3d::ResFile(data);
         nw4r::g3d::ResFile::Init(&m_resLineA[0]);
         m_objs[0] = MuObject::create(&m_resLineA[0], "MenTrnLine0000_TopN", m_priority, NULL, Heaps::MenuInstance);
         m_objs[0]->changeClrAnimNIf("MenTrnLine0000_TopN__0");
         m_objs[0]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(0.0f);
-        for (int i = 1; i < 0x3F; i++) {
-            void* copy = gfHeapManager::alloc(Heaps::MenuResource, size);
+        for (u32 i = 1; i < 0x3F; i++) {
+            copy = gfHeapManager::alloc(Heaps::MenuResource, size);
             memcpy(copy, data, size);
             m_resLineA[i] = nw4r::g3d::ResFile(copy);
             nw4r::g3d::ResFile::Init(&m_resLineA[i]);
@@ -634,8 +624,8 @@ bool muTourTable::isLoadEnd() {
         m_objs[0x3F] = MuObject::create(&m_resLineB[0], "MenTrnLine0001_TopN", m_priority, NULL, Heaps::MenuInstance);
         m_objs[0x3F]->changeClrAnimNIf("MenTrnLine0001_TopN__0");
         m_objs[0x3F]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(0.0f);
-        for (int i = 1; i < 0x1F; i++) {
-            void* copy = gfHeapManager::alloc(Heaps::MenuResource, size);
+        for (u32 i = 1; i < 0x1F; i++) {
+            copy = gfHeapManager::alloc(Heaps::MenuResource, size);
             memcpy(copy, data, size);
             m_resLineB[i] = nw4r::g3d::ResFile(copy);
             nw4r::g3d::ResFile::Init(&m_resLineB[i]);
@@ -653,8 +643,8 @@ bool muTourTable::isLoadEnd() {
             m_texRes = &m_resTex;
         }
         for (int i = 0; i < 0x20; i++) {
-            m_plateObjs[i] = MuObject::create(&m_resPlate, "MenTrnName0000_TopN", m_priority, NULL, Heaps::MenuInstance);
-            m_faceObjs[i] = MuObject::create(&m_resPlate, "MenTrnFace0001_TopN", m_priority + (i % 2) + 2, m_texRes, Heaps::MenuInstance);
+            m_plateObjs[i] = MuObject::create(&m_resPlate, "MenTrnName0000_TopN", m_priority + 1, NULL, Heaps::MenuInstance);
+            m_faceObjs[i] = MuObject::create(&m_resPlate, "MenTrnFace0001_TopN", m_priority + ((i % 2) + 2), m_texRes, Heaps::MenuInstance);
             m_badgeObjs[i] = MuObject::create(&m_resPlate, "MenTrnName0001_TopN", m_priority + 4, NULL, Heaps::MenuInstance);
             m_badgeObjs[i]->changeAnimN(0, 2, false, false);
         }

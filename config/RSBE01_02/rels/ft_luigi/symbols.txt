@@ -212,7 +212,7 @@ setMdlResId__20soResourceIdAccesserFUl = .text:0x00008698; // type:function size
 addObserver__21soStatusEventObserverFsSc = .text:0x0000869C; // type:function size:0x14
 addObserver__24soSituationEventObserverFsSc = .text:0x000086B0; // type:function size:0x14
 addObserver__30soCollisionAttackEventObserverFsSc = .text:0x000086C4; // type:function size:0x14
-notifyEventCollisionHit2nd__27soCollisionHitEventObserverFffP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserb = .text:0x000086D8; // type:function size:0x4
+notifyEventCollisionHit2nd__27soCollisionHitEventObserverFP23soCollisionAttackModuleP14soCollisionLogUlffP16soModuleAccesserb = .text:0x000086D8; // type:function size:0x4
 setAnmResId__20soResourceIdAccesserFUl = .text:0x000086DC; // type:function size:0x4
 addObserver__27soCollisionHitEventObserverFsSc = .text:0x000086E0; // type:function size:0x14
 addObserver__30soCollisionShieldEventObserverFsSc = .text:0x000086F4; // type:function size:0x14
@@ -656,7 +656,7 @@ deactivateDescendantForce__63wnWeaponBuilder<44wnLuigiNegativeZoneModuleAccesser
 @100@notifyEventChangeStatus__6WeaponFiiP12soStatusDataP16soModuleAccesser = .text:0x00010C64; // type:function size:0x8
 @112@notifyEventCollisionAttackCheck__6WeaponFUl = .text:0x00010C6C; // type:function size:0x8
 @112@notifyEventCollisionAttack__6WeaponFfP14soCollisionLogP16soModuleAccesser = .text:0x00010C74; // type:function size:0x8
-@124@notifyEventCollisionHit2nd__6WeaponFffP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserb = .text:0x00010C7C; // type:function size:0x8
+@124@notifyEventCollisionHit2nd__6WeaponFP23soCollisionAttackModuleP14soCollisionLogUlffP16soModuleAccesserb = .text:0x00010C7C; // type:function size:0x8
 @124@notifyEventCollisionHit__6WeaponFfP21soCollisionAttackDataUliP16soModuleAccesserP14soCollisionLog = .text:0x00010C84; // type:function size:0x8
 @144@__dt__19wnLuigiNegativeZoneFv = .text:0x00010C8C; // type:function size:0x8
 @136@setAttackPowerMulPattern__6WeaponFf = .text:0x00010C94; // type:function size:0x8

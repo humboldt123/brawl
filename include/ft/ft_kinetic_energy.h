@@ -9,36 +9,48 @@
 // Only the members that the REL code touches directly are modelled; the rest of the
 // classes live in sora_melee.
 
+// Converts animation translation into planar fighter velocity.
 class ftKineticEnergyMotion : public soKineticEnergyNormal {
 public:
-#ifdef FT_MODULE_BUILDER
     ftKineticEnergyMotion(); // sora_melee
-#endif
-#ifdef FT_MODULE_BUILDER
+#ifdef FT_KINETIC_MOTION_IMPLEMENTATION
+    virtual ~ftKineticEnergyMotion();
+#elif defined(FT_MODULE_BUILDER)
     virtual ~ftKineticEnergyMotion() { }
 #endif
+    virtual void resetEnergy(int mode, Vec2f* speed, Vec3f*, soModuleAccesser*);
+    virtual void updateEnergy(soModuleAccesser*);
+
     int m_motionMode; // +0x34
-    u32 unk38;
-    float unk3C;
-    float unk40;
-    u8 unk44[0xc];
+    float m_facing; // +0x38; reset snapshots facing, selected modes read it live.
+    float m_rotation; // +0x3C; radians, also written by launch status processes.
+    float m_speedMul; // +0x40; scales all three animation-translation components.
+    Vec2f m_prevMotionSpeed; // +0x44; used to apply changes in animation velocity.
+    bool m_hasPrevMotionSpeed; // +0x4C
 };
+static_assert(sizeof(ftKineticEnergyMotion) == 0x50, "Motion energy extent");
 
 // MATCH-ONLY: declaration order keeps shared controller RTTI before motion RTTI.
 #include <ft/ft_kinetic_energy_controller.h>
 
+// Fighter braking modes share the normal energy's speed, brake and limit vectors.
 class ftKineticEnergyStop : public soKineticEnergyNormal {
 public:
-#ifdef FT_MODULE_BUILDER
     ftKineticEnergyStop(); // sora_melee
-#endif
-#ifdef FT_MODULE_BUILDER
+#ifdef FT_KINETIC_STOP_IMPLEMENTATION
+    virtual ~ftKineticEnergyStop();
+#elif defined(FT_MODULE_BUILDER)
     virtual ~ftKineticEnergyStop() { }
 #endif
-    void setBrake(Vec2f* v) { m_brakeX = v->m_x; m_brakeY = v->m_y; }
-    float m_brakeX;
-    float m_brakeY;
+    virtual void resetEnergy(int type, Vec2f* speed, Vec3f*, soModuleAccesser*);
+    virtual void updateEnergy(soModuleAccesser*);
+
+    s32 m_resetType; // +0x34; constructor/reset use -1 as the inactive mode.
+    // HYPOTHESIS: caller-facing meanings of these delayed speed-scale flags.
+    bool unk38;
+    bool unk39;
 };
+static_assert(sizeof(ftKineticEnergyStop) == 0x3C, "Stopping energy extent");
 
 class ftKineticEnergyDamage : public ftKineticEnergyStop {
 public:
@@ -52,58 +64,108 @@ public:
 
 class ftKineticEnergyGravity : public soKineticEnergy {
 public:
-#ifdef FT_MODULE_BUILDER
     ftKineticEnergyGravity(); // sora_melee
-#endif
-#ifdef FT_MODULE_BUILDER
     virtual ~ftKineticEnergyGravity() { }
-#endif
-    u8 unk8[4];
+    virtual void resetEnergy(int, Vec2f*, Vec3f*, soModuleAccesser*);
+    virtual void clearSpeed();
+    virtual void updateEnergy(soModuleAccesser*);
+    virtual void mulSpeed(Vec3f*);
+    virtual void mulAccel(Vec3f*);
+    virtual void reflectSpeed(Vec3f*);
+    virtual void reflectAccel(Vec3f*);
+    virtual void clearRotSpeed();
+    virtual Vec3f getRotation();
+    virtual Vec2f getSpeed();
+
+    s32 m_resetType;
     // Verified by ftKineticEnergyGravity::getSpeed: vertical speed at 0xC.
     float m_speedY;
     float m_gravity;
     float m_fallSpeedMax;
     // Yoshi kinetic mode 0x68 writes this offset as a scalar float.
     float unk18;
-    // HYPOTHESIS: updateEnergy uses this float for its speed-limit clamp.
+    // Vertical speed limit used when m_limitMode selects the current direction.
     float unk1C;
-    u8 m_unk20[8];
+    // Reset snapshots the owner's gravity multiplier; update applies it to speed and acceleration.
+    float m_gravityMul;
+    // -1 disables the limit; 0 limits falling, 1 rising, 2 both directions.
+    s32 m_limitMode;
 };
+static_assert(sizeof(ftKineticEnergyGravity) == 0x28, "Gravity energy extent");
 
-// HYPOTHESIS: the real layouts are unknown, only the sizes are (from the soKineticMediatorImpl pool layout).
 class soKineticEnergyWindNormal : public soKineticEnergyNormal {
 public:
-#ifdef FT_MODULE_BUILDER
-    soKineticEnergyWindNormal(); // sora_melee
-#endif
-#ifdef FT_MODULE_BUILDER
+    soKineticEnergyWindNormal();
+#ifdef SO_KINETIC_WIND_IMPLEMENTATION
+    virtual ~soKineticEnergyWindNormal();
+#elif defined(FT_MODULE_BUILDER)
     virtual ~soKineticEnergyWindNormal() { }
 #endif
-    u8 m_unk34[0xc];
+    virtual void updateEnergy(soModuleAccesser*);
+    virtual void init();
+
+    Vec2f m_windSpeed; // 0x34, accumulated external wind, consumed each update.
+    // HYPOTHESIS: original name. The stronger-wind blend retains this fraction of the old velocity.
+    float m_responseRetention; // 0x3C
 };
+static_assert(sizeof(soKineticEnergyWindNormal) == 0x40, "Wind energy extent");
 
 class soKineticEnergyGroundMovement : public soKineticEnergy {
 public:
-#ifdef FT_MODULE_BUILDER
-    soKineticEnergyGroundMovement(); // sora_melee
-#endif
-#ifdef FT_MODULE_BUILDER
+    soKineticEnergyGroundMovement();
+#ifdef SO_KINETIC_CONTACT_IMPLEMENTATION
+    virtual ~soKineticEnergyGroundMovement();
+#elif defined(FT_MODULE_BUILDER)
     virtual ~soKineticEnergyGroundMovement() { }
 #endif
-    void enableRot(Vec2f* normal); // sora_melee; angle from the ground normal.
-    u8 m_unk08[0x28];
+    virtual void updateEnergy(soModuleAccesser*);
+    virtual Vec2f getSpeed();
+    virtual Vec3f getRotation();
+    virtual void resetEnergy(int, Vec2f*, Vec3f*, soModuleAccesser*);
+    virtual void clearSpeed();
+    virtual void clearRotSpeed();
+    virtual void mulSpeed(Vec3f*);
+    virtual void mulAccel(Vec3f*);
+    virtual void reflectSpeed(Vec3f*);
+    virtual void reflectAccel(Vec3f*);
+    void enableRot(Vec2f* normal);
+
+    // HYPOTHESIS: names of the per-frame external movement inputs, cleared after update.
+    Vec2f m_outsideSpeed; // 0x08
+    Vec2f m_speed; // 0x10
+    float m_brake; // 0x18
+    float m_brakeThreshold; // 0x1C
+    float m_outsideRotation; // 0x20
+    float m_rotation; // 0x24, degrees this frame
+    float m_prevGroundAngle; // 0x28, radians
+    bool m_brakeEnabled; // 0x2C
+    bool m_rotationEnabled; // 0x2D
 };
+static_assert(sizeof(soKineticEnergyGroundMovement) == 0x30, "Ground movement energy extent");
 
 class soKineticEnergyJostle : public soKineticEnergy {
 public:
-#ifdef FT_MODULE_BUILDER
-    soKineticEnergyJostle(); // sora_melee
-#endif
-#ifdef FT_MODULE_BUILDER
+    soKineticEnergyJostle();
+#ifdef SO_KINETIC_CONTACT_IMPLEMENTATION
+    virtual ~soKineticEnergyJostle();
+#elif defined(FT_MODULE_BUILDER)
     virtual ~soKineticEnergyJostle() { }
 #endif
-    u8 m_unk08[0xc];
+    virtual void updateEnergy(soModuleAccesser*);
+    virtual Vec2f getSpeed();
+    virtual Vec3f getSpeed3f();
+    virtual Vec3f getRotation();
+    virtual void resetEnergy(int, Vec2f*, Vec3f*, soModuleAccesser*);
+    virtual void clearSpeed();
+    virtual void clearRotSpeed();
+    virtual void mulSpeed(Vec3f*);
+    virtual void mulAccel(Vec3f*);
+    virtual void reflectSpeed(Vec3f*);
+    virtual void reflectAccel(Vec3f*);
+
+    Vec3f m_speed; // 0x08: planar push plus correction to the jostle module's depth.
 };
+static_assert(sizeof(soKineticEnergyJostle) == 0x14, "Jostle energy extent");
 
 #include <so/so_module_accesser.h>
 

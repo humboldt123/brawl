@@ -27,12 +27,6 @@ public:
     virtual void preload() { }
 };
 
-// HYPOTHESIS: the title of the intro for Snake (main, unnamed fn_800F723C)
-class IfSnakeSmashAppearTask : public IfSmashAppearTask {
-public:
-    static IfSnakeSmashAppearTask* create(gfArchive* archive);
-};
-
 // The parameters of the stage (the stage data file). Nothing is named by the original; fields that match the published
 // stage parameter table (offset, type and use) carry descriptive names, the others are still offsets.
 struct stMetalgearData {

@@ -27,6 +27,8 @@ struct clTarget {
 };
 static_assert(sizeof(clTarget) == 0x8, "Class is wrong size!");
 
+class soCollisionLog;
+
 class soCollision {
 public:
     enum Category {
@@ -104,5 +106,14 @@ public:
     void setPosX(float posX, u32 groupIndex);
     float getPosX(u32 groupIndex);
     void* getLogList(u32 groupIndex);
+    // HYPOTHESIS: parameter types (from the soCollisionAttackModuleImpl calls).
+    void refLogGroup(u32 groupIndex, u32 logGroupIndex);
+    void unRefLogGroup(u32 groupIndex);
+    void invalidLog(soCollisionLog* collisionLog, u32 groupIndex);
+    void initLogAll();
+    void initPastLogAll(u32 groupIndex);
+    void initAbsolute(u32 groupIndex);
+    bool isRefLogGroup(u32 groupIndex);
+    void unUseLogGroup(u32 groupIndex);
 };
 static_assert(sizeof(soCollision) == 24, "Class is wrong size!");

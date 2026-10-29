@@ -1,7 +1,7 @@
 #pragma once
 
 // Supersedes include/lib/BrawlHeaders/Brawl/Include/gf/gf_scene.h (shadows it via -I include).
-// Adds registScene, registSequence and searchSequence, which the BrawlHeaders submodule lacks. Keep in sync.
+// Adds registScene, registSequence, searchSequence and the gfSequence constructor, which the BrawlHeaders submodule lacks. Keep in sync.
 
 #include <StaticAssert.h>
 #include <types.h>
@@ -26,6 +26,8 @@ public:
     virtual void start();
     virtual void setNext();
     virtual void exit();
+
+    gfSequence(const char* name) : m_sequenceName(name) { }
 };
 static_assert(sizeof(gfSequence) == 8, "Class is wrong size!");
 

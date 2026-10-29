@@ -37,5 +37,6 @@ public:
 
     ftLog();
     ~ftLog();
+    void setActionInfo(ftLogActionInfo info); // HYPOTHESIS: by value (map ftLog::setActionInfo in ft_owner.o)
 };
 static_assert(sizeof(ftLog) == 0x50C, "Class is wrong size!");

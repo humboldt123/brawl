@@ -14,6 +14,11 @@ class wnSZerosuitParalyzer : public Weapon {
 public:
     // The body lives in the module blob; declared so the class info's createArray can construct articles.
     wnSZerosuitParalyzer(s32 articleId, const wnArticleBuildInfo& info, const wnSZerosuitParalyzerData* data);
+    // HYPOTHESIS: parameter types follow the Samus bomb and missile activators (founder task, resource, team).
+    void activate(int founderTaskId, int resourceId, int team);
+    virtual void notifyEventLink(soLinkEventArgs* event, soModuleAccesser* moduleAccesser, StageObject* sender,
+                                 int selector);
+    virtual void processFixPosition();
     virtual ~wnSZerosuitParalyzer();
 };
 static_assert(sizeof(wnSZerosuitParalyzer) == 0x1B88, "Zero Suit paralyzer article extent");

@@ -6,18 +6,7 @@
 #include <StaticAssert.h>
 #include <so/so_instance_unit.h>
 
-class soEventUnit;
-// MATCH-ONLY: the array of event unit records (the event manager entity) is built with out-of-line record
-// constructors/destructors in the original (a call to __construct_array), and the pointer is left untouched.
-template <>
-class soInstanceUnit<soEventUnit*> {
-public:
-    soEventUnit* m_element;
-    int m_id;
-
-    soInstanceUnit();
-    ~soInstanceUnit();
-};
+#include <ft/ft_event_unit_instance.h>
 
 #include <ft/fighter.h>
 #include <ft/ft_owner.h>
@@ -54,6 +43,8 @@ class ftOutsideEventObserver : public soEventObserver<ftOutsideEventObserver> {
 public:
     ftOutsideEventObserver() : soEventObserver<ftOutsideEventObserver>(0) { initialize(-1, -1); }
     ftOutsideEventObserver(short unitID) : soEventObserver<ftOutsideEventObserver>(unitID) {};
+    // HYPOTHESIS: registers with the given manager on construction (mlFtEvent passes -1, 0).
+    ftOutsideEventObserver(s16 manageId, s8 param2) : soEventObserver<ftOutsideEventObserver>(0) { initialize(manageId, param2); }
 
     virtual void addObserver(short param1, s8 param2);
     // TODO: Verify params
@@ -191,7 +182,7 @@ public:
     bool isExistEntry() const;
     int enumEntryId(int entryId) const;
     int enumIncludeEntryId(int entryId) const;
-    int getEntryIdFromAreaId(int areaId) const;
+    int getEntryIdFromAreaId(int areaId, int* instanceIndex) const;
     bool isEnableDiscretionFinal() const;
     void start();
     void quitGame();

@@ -638,8 +638,9 @@ void stPlankton::makeHamon(Vec3f* pos, u8 kind) {
     u8 index = getHamonBlankDataIndex();
     if (index != 16) {
         stPlanktonHamon* hamon = &m_hamon[index];
+        float y = pos->m_y;
         hamon->m_x = pos->m_x;
-        hamon->m_y = pos->m_y;
+        hamon->m_y = y;
         hamon->m_state = 0;
         hamon->m_kind = kind;
     }

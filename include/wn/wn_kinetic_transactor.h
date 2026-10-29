@@ -13,8 +13,8 @@ public:
 #ifdef WN_KINETIC_GENERIC_BUILDER
     template <typename E>
     static void updateEnergy(E* energy, soModuleAccesser* acc) {
-        if (energy->isEnable() != true || energy->isSuspend()) return;
-        energy->updateEnergy(acc);
+        if (energy->isEnable() == true && !energy->isSuspend())
+            energy->updateEnergy(acc);
     }
 #endif
 };

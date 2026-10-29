@@ -73,8 +73,8 @@ void ftMarthStatusUniqProcessSpecialHi::execStatus(soModuleAccesser* moduleAcces
     if (moduleAccesser->getWorkManageModule().isFlag(ftMarthWork::SpecialHi_Launched)) {
         if (!moduleAccesser->getWorkManageModule().isFlag(ftMarthWork::SpecialHi_Falling)) {
             if (moduleAccesser->getMotionModule().getKind() == 0x1e9) {
-                // HYPOTHESIS: ftKineticEnergyMotion::unk40 is a speed multiplier and unk3C a rotation angle (shared with other fighters, so not renamed).
-                motion.unk40 = soValueAccesser::getConstantFloat(moduleAccesser, ftMarthParam::SpecialHi_MotionSpeedMul, 0);
+                // Scale the animation-driven velocity during this launch.
+                motion.m_speedMul = soValueAccesser::getConstantFloat(moduleAccesser, ftMarthParam::SpecialHi_MotionSpeedMul, 0);
             }
             // After the first active update, falling starts the gravity/control handoff.
             if (moduleAccesser->getWorkManageModule().isFlag(ftMarthWork::SpecialHi_Updated) && sumSpeed.m_y < 0.0f) {
@@ -101,7 +101,7 @@ void ftMarthStatusUniqProcessSpecialHi::execStatus(soModuleAccesser* moduleAcces
         moduleAccesser->getWorkManageModule().onFlag(ftMarthWork::SpecialHi_Updated);
     }
     if (moduleAccesser->getWorkManageModule().isFlag(ftMarthWork::SpecialHi_ApplyAngle)) {
-        motion.unk3C = moduleAccesser->getWorkManageModule().getFloat(ftMarthWork::SpecialHi_StickAngle);
+        motion.m_rotation = moduleAccesser->getWorkManageModule().getFloat(ftMarthWork::SpecialHi_StickAngle);
         moduleAccesser->getWorkManageModule().offFlag(ftMarthWork::SpecialHi_ApplyAngle);
     }
 }

@@ -105,6 +105,7 @@
 #include <havok/hkChainSolverInfo.h>
 #include <havok/hkVector8.h>
 #include <havok/hkVector4.h>
+#include <types.h>
 
 void hkSolver::hkSolveUpload() {}
 
@@ -319,4 +320,23 @@ void hkSolver::applyAngularImpulse(hkReal impulse, hkVector8* jac, hkVelocityAcc
     b->unk20.y += impulse * b->unk30.y * jac->m_v[5];
     b->unk20.z += impulse * b->unk30.z * jac->m_v[6];
     *sum += impulse;
+}
+
+// Function bodies below are taken from https://github.com/jj-link/brawl.
+
+extern "C" int fn_80296ED8(int arg0, int arg1) {
+    return arg0 + arg1;
+}
+
+extern "C" s32 fn_80297488(s32 arg0, s32 arg1) {
+    return arg0 + arg1 * 4;
+}
+
+extern "C" float fn_80297B40(float* table, int index)
+{
+    return table[index];
+}
+
+extern "C" int fn_802997F4(int arg0, int arg1) {
+    return arg0 + arg1;
 }

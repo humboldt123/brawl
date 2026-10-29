@@ -1,5 +1,8 @@
 // SHADOW of BrawlHeaders/so/link/so_link_module_impl.h: identical except for the FT_MODULE_BUILDER-guarded declarations
-// (constructors/destructors of sora_melee classes that fighter module builders call). Built only for fighter RELs.
+// (constructors/destructors of sora_melee classes that fighter module builders call, and the members the sora_enemy
+// link module reads), the SO_LINK_MODULE_IMPL_INLINE_VIRTUALS opt-in of that module, and the signatures recovered from
+// it (getModelConstraintFlag returns the u16 mask, adjustModelConstraintPosture(u16, Vec3f*, Vec3f*), the const event
+// of sendEventNodes).
 #pragma once
 
 #include <StaticAssert.h>
@@ -65,7 +68,9 @@ public:
     virtual StageObject* searchParentAttr(soLinkConnection::Attribute ) = 0;
     virtual StageObject *searchNode(int taskId) = 0;
     virtual void sendEventParents(s32 p1, soLinkEventArgs& p2) = 0;
-    virtual void sendEventNodes(s32, soLinkEventArgs &, u32 attributeMask) = 0;
+    // HYPOTHESIS: const. The sora_enemy link module passes a temporary event (it hands the constructor's result to the
+    // call), which only binds to a const reference; nothing else in the tree calls this overload.
+    virtual void sendEventNodes(s32, const soLinkEventArgs& args, u32 attributeMask) = 0;
     virtual void sendEventNodes(s32, int taskId, soLinkEventArgs &) = 0;
     virtual StageObject *getNode(u8) = 0;
     virtual int getNodeTaskId(u8) = 0;
@@ -129,7 +134,8 @@ public:
     virtual void setModelConstraintPosOrt(u32 modelConstraintNo, int modelConstraintNode, const char *modelConstraintTargetNode, u16 modelConstraintFlag, bool
                                           modelConstraintAttribute) = 0;
     virtual void setModelConstraintAttribute(u32 index, bool) = 0;
-    virtual ModelConstraintFlag getModelConstraintFlag() = 0;
+    // (The flag mask is returned as a halfword in r3, not as the union.)
+    virtual u16 getModelConstraintFlag() = 0;
     virtual void setModelConstraintFlag(u16) = 0;
     virtual void offModelConstraintFlag(u16) = 0;
     virtual int getModelConstraintNode() = 0;
@@ -139,7 +145,7 @@ public:
     // The callers (Enemy::notifyEventLink, ftStatusUniqProcessTread) pass two Vec3f.
     // HYPOTHESIS: a rotation and a position.
     virtual void adjustModelConstraintPosture(Vec3f* rot, Vec3f* pos) = 0;
-    virtual void adjustModelConstraintPosture(u16, Matrix*, Vec3f*) = 0;
+    virtual void adjustModelConstraintPosture(u16, Vec3f* rot, Vec3f* pos) = 0;
     virtual void removeModelConstraint(bool) = 0;
     virtual bool isModelConstraint() = 0;
     virtual bool isModelConstraintMutual() = 0;
@@ -190,7 +196,7 @@ public:
     virtual StageObject* searchParentAttr(soLinkConnection::Attribute );
     virtual StageObject *searchNode(int taskId);
     virtual void sendEventParents(s32 p1, soLinkEventArgs& p2);
-    virtual void sendEventNodes(s32, soLinkEventArgs &, u32 attributeMask);
+    virtual void sendEventNodes(s32, const soLinkEventArgs& args, u32 attributeMask);
     virtual void sendEventNodes(s32, int taskId, soLinkEventArgs &);
     virtual StageObject *getNode(u8);
     virtual int getNodeTaskId(u8);
@@ -254,7 +260,28 @@ public:
     virtual void setModelConstraintPosOrt(u32 modelConstraintNo, int modelConstraintNode, const char *modelConstraintTargetNode, u16 modelConstraintFlag, bool
                                           modelConstraintAttribute);
     virtual void setModelConstraintAttribute(u32 index, bool);
-    virtual ModelConstraintFlag getModelConstraintFlag();
+#ifdef SO_LINK_MODULE_IMPL_INLINE_VIRTUALS
+#ifndef FT_MODULE_BUILDER
+#error "SO_LINK_MODULE_IMPL_INLINE_VIRTUALS needs the FT_MODULE_BUILDER layout of soLinkModuleImpl"
+#endif
+    // Opt-in of the sora_enemy link module (em_link_module_impl.cpp), whose original has weak copies of these
+    // accessors (its vtable references them). The fighter units call sora_melee's and must not get the copies.
+    virtual u16 getModelConstraintFlag() { return m_modelConstraintFlag.m_mask; }
+    virtual void setModelConstraintFlag(u16 flag) { m_modelConstraintFlag.m_mask = flag; }
+    virtual void offModelConstraintFlag(u16 flag) { m_modelConstraintFlag.m_mask &= ~flag; }
+    virtual int getModelConstraintNode() { return m_modelConstraintNode; }
+    virtual void setModelConstraintNode(int);
+    virtual void setModelConstraintTargetNode(int);
+    virtual u32 getModelConstraintNo() { return m_modelConstraintNo; }
+    virtual void adjustModelConstraintPosture(Vec3f* rot, Vec3f* pos) {
+        adjustModelConstraintPosture(m_modelConstraintFlag.m_mask, rot, pos);
+    }
+    virtual void adjustModelConstraintPosture(u16, Vec3f* rot, Vec3f* pos);
+    virtual void removeModelConstraint(bool);
+    virtual bool isModelConstraint() { return m_modelConstraintNo != -1; }
+    virtual bool isModelConstraintMutual() { return m_isModelConstraintMutual; }
+#else
+    virtual u16 getModelConstraintFlag();
     virtual void setModelConstraintFlag(u16);
     virtual void offModelConstraintFlag(u16);
     virtual int getModelConstraintNode();
@@ -262,10 +289,11 @@ public:
     virtual void setModelConstraintTargetNode(int);
     virtual u32 getModelConstraintNo();
     virtual void adjustModelConstraintPosture(Vec3f* rot, Vec3f* pos);
-    virtual void adjustModelConstraintPosture(u16, Matrix*, Vec3f*);
+    virtual void adjustModelConstraintPosture(u16, Vec3f* rot, Vec3f* pos);
     virtual void removeModelConstraint(bool);
     virtual bool isModelConstraint();
     virtual bool isModelConstraintMutual();
+#endif
     virtual void getModelConstraintTargetNodeWorldMtx(Matrix*, bool);
     virtual Vec3f getModelConstraintTargetNodePosition();
     virtual Vec3f getModelConstraintNodeGlobalPosition(u32 nodeIndex);
@@ -293,6 +321,40 @@ public:
     virtual bool isObserv(char unk1);
 
 #ifdef FT_MODULE_BUILDER
-    char m_unkPad[0x3C]; // HYPOTHESIS: members of soLinkModuleImpl that are not reconstructed yet (sizeof is 0x50)
+    // The members the sora_enemy link module reads (offsets from the RTTI-recovered layout; the names follow the
+    // SO_LINK_MODULE_IMPL_FULL layout below). HYPOTHESIS: the builder view stops at 0x50, while the sora_melee
+    // setModelConstraintTargetNode stores to 0x50 (sizeof 0x54 there); the rest is not reconstructed yet.
+    u8 m_unk14[0x38 - 0x14];
+    u32 m_modelConstraintNo;                    // 0x38 (-1: no model constraint)
+    ModelConstraintFlag m_modelConstraintFlag;  // 0x3C
+    bool m_isModelConstraintMutual;               // 0x3E
+    u8 m_unk3F[0x44 - 0x3F];
+    soModuleAccesser* m_moduleAccesser;         // 0x44
+    u8 m_unk48[0x4C - 0x48];
+    int m_modelConstraintNode;                  // 0x4C
+#endif
+#if defined(SO_LINK_MODULE_IMPL_FULL) && !defined(FT_MODULE_BUILDER)
+    soLinkModuleImpl(soModuleAccesser* moduleAccesser, soArray<soLinkConnection>* connections);
+#endif
+#ifdef SO_LINK_MODULE_IMPL_FULL
+    // The layout of the sora_melee link units (verified against the constructor and the accessors).
+    StageObject* getOwner();
+    void onUnlink(int id);
+
+    utList m_nodes;                           // 0x14: the child ends linked to this module
+    utList m_parents;                         // 0x20: the parent ends this module is linked to
+    utListNode m_serverNode;                  // 0x2C: this module's entry in the connection server
+    soLinkModuleImpl* m_serverNodeOwner;      // 0x34
+    int m_modelConstraintNo;                  // 0x38
+    ModelConstraintFlag m_modelConstraintFlag; // 0x3C
+    bool m_isModelConstraintMutual;           // 0x3E
+    int m_anmFileTransactorLinkNo;            // 0x40
+    soModuleAccesser* m_moduleAccesser;       // 0x44
+    soArray<soLinkConnection>* m_connections; // 0x48
+    int m_modelConstraintNode;                // 0x4C
+    int m_modelConstraintTargetNode;          // 0x50
 #endif
 };
+#ifdef SO_LINK_MODULE_IMPL_FULL
+static_assert(sizeof(soLinkModuleImpl) == 0x54, "Class is wrong size!");
+#endif

@@ -721,7 +721,7 @@ deactivateDescendantForce__57wnWeaponBuilder<38wnPeachKassarModuleAccesserBuildC
 @100@notifyEventChangeStatus__6WeaponFiiP12soStatusDataP16soModuleAccesser = .text:0x000135D8; // type:function size:0x8
 @112@notifyEventCollisionAttackCheck__6WeaponFUl = .text:0x000135E0; // type:function size:0x8
 @112@notifyEventCollisionAttack__6WeaponFfP14soCollisionLogP16soModuleAccesser = .text:0x000135E8; // type:function size:0x8
-@124@notifyEventCollisionHit2nd__6WeaponFffP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserb = .text:0x000135F0; // type:function size:0x8
+@124@notifyEventCollisionHit2nd__6WeaponFP23soCollisionAttackModuleP14soCollisionLogUlffP16soModuleAccesserb = .text:0x000135F0; // type:function size:0x8
 @124@notifyEventCollisionHit__6WeaponFfP21soCollisionAttackDataUliP16soModuleAccesserP14soCollisionLog = .text:0x000135F8; // type:function size:0x8
 @144@__dt__13wnPeachKassarFv = .text:0x00013600; // type:function size:0x8
 @136@setAttackPowerMulPattern__6WeaponFf = .text:0x00013608; // type:function size:0x8

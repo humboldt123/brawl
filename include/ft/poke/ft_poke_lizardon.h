@@ -2,6 +2,7 @@
 
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
+#include <so/event/so_event_presenter.h>
 #include <types.h>
 
 ////////////////////////////////////////
@@ -50,15 +51,41 @@ public:
 
 // HYPOTHESIS: the Pokemon Trainer's party state; both modules are constructed in sora_melee from the first extend parameter block.
 class ftPokemonStaminaModule {
-    u8 unk0[0x18];
+    u8 unk0[0xC];
 public:
+    // HYPOTHESIS: unkC / unk14 are copied into the work floats 0x11000013 / 0x11000014 at the start.
+    float unkC;
+    float unk10;
+    float unk14;
     ftPokemonStaminaModule(const void* extendParam, soModuleAccesser* moduleAccesser);
+    ~ftPokemonStaminaModule() { }
 };
 
-class ftPokemonEventManageModule {
-    u8 unk0[0x1C];
+// HYPOTHESIS: the entry event presenter is the first base (the fighter walks the observer list at the address of the module).
+class ftPokemonEventManageModule : public soEventPresenter<ftEntryEventObserver> {
+    u8 unkC[0x1C - 0xC];
 public:
     ftPokemonEventManageModule(s32 entryId, soModuleAccesser* moduleAccesser, ftPokemonStaminaModule* stamina);
+    virtual ~ftPokemonEventManageModule() { }
+    // HYPOTHESIS: inline presenter helpers in the style of the trainer's ftEntryEventPresenter: each tells every observer.
+    void notifyEventPokemonStart(int taskId) {
+        soInstanceManagerFullProperty<ftEntryEventObserver*>* list = getObserverList();
+        for (int i = 0; i < (s32)list->size(); i++) {
+            list->atIndex(i)->notifyEventPokemonStart(taskId);
+        }
+    }
+    void notifyEventPokemonCollect() {
+        soInstanceManagerFullProperty<ftEntryEventObserver*>* list = getObserverList();
+        for (int i = 0; i < (s32)list->size(); i++) {
+            list->atIndex(i)->notifyEventPokemonCollect();
+        }
+    }
+    void notifyEventPokemonChangeCancel() {
+        soInstanceManagerFullProperty<ftEntryEventObserver*>* list = getObserverList();
+        for (int i = 0; i < (s32)list->size(); i++) {
+            list->atIndex(i)->notifyEventPokemonChangeCancel();
+        }
+    }
 };
 
 class wnPokeLizardonBreath;
@@ -77,6 +104,26 @@ public:
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftPokeLizardon();
+    virtual void processUpdate();
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
+    virtual bool isObserv(char kind);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4);
+    virtual void onDeadEnd();
+    virtual void onActivate();
+    virtual void onDeactivate();
+    virtual void onStart(int startKind);
+    virtual u32 getChangeSucceedOption() { return 0x850; }
+    virtual void change(void* work, int kind);
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    virtual void notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventChangeMotion(int motionKind, int unk2, void* motionData, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventOnDamage(soDamage* damage, bool unk2, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventSetRumble(int kind, int unk2);
+    virtual void notifyEventStopRumble(int kind);
+    virtual bool notifyEventPokemonRequestChange(Vec3f* pos, float* lr);
+    virtual void notifyEventPokemonTrainerUpdate();
     // The hooks the article mediator calls to start an article of the pool (HYPOTHESIS: names follow the module map).
     static bool activeArticle(wnPokeLizardonRock* weapon, soModuleAccesser* acc);
 };

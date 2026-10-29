@@ -98,3 +98,10 @@ void wnSnakeC4::shoot() {
         break;
     }
 }
+
+bool wnSnakeC4::notifyEventCollisionAttackCheck(u32 flags) {
+    if (flags & 6) {
+        return false;
+    }
+    return Weapon::notifyEventCollisionAttackCheck(flags);
+}

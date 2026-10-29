@@ -27,6 +27,10 @@ static_assert(sizeof(stActTriggerGimmickStatus) == 0x20, "Class is wrong size!")
 // two edge callbacks created for the trigger.
 class grAdventureNotifyGimmickTriggerStatus {
 public:
+    grAdventureNotifyGimmickTriggerStatus() : m_status(-1) {
+        m_triggers[0] = NULL;
+        m_triggers[1] = NULL;
+    }
     virtual ~grAdventureNotifyGimmickTriggerStatus() { }
     virtual void notifyEventOnTrigger(int flag) = 0;
     virtual void notifyEventOffTrigger(int flag) = 0;

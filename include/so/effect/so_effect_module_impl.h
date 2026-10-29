@@ -1,9 +1,10 @@
 // SHADOW of BrawlHeaders/so/effect/so_effect_module_impl.h: identical except for the FT_MODULE_BUILDER-guarded declarations
 // (constructors/destructors of sora_melee classes that fighter module builders call). Built only for fighter RELs.
+// Also: soEffectModule's destructor is inline (ykEffectModuleImpl's destructor does not call it).
 #pragma once
-#ifdef FT_MODULE_BUILDER
 struct soEffectContinual;
 struct soEffectTime;
+#ifdef FT_MODULE_BUILDER
 class efScreenHandle;
 #endif
 
@@ -23,7 +24,7 @@ class soModuleAccesser;
 
 class soEffectModule : public soNullable {
 public:
-    virtual ~soEffectModule();
+    virtual ~soEffectModule() { }
     virtual void activate();
     virtual void deactivate();
     virtual void begin();
@@ -86,9 +87,29 @@ private:
 #endif
 public:
     soModuleAccesser* m_moduleAccesser;
-    u8 unk48[0x8];
+    u32 m_groupId; // HYPOTHESIS: the ecMgr group of this module's effects
+    soArray<soEffectContinual>* m_continuals;
     s32 unk50;
-    u8 unk54[0xE4];
+    s32 unk54;
+    u8 unk58[0x4];
+    soArray<soEffectTime>* m_times;
+    u8 unk60[0x4];
+    s32 unk64;
+    int m_shieldEffect;
+    u8 unk6C[0x8];
+    s32 unk74;
+    u8 unk78[0xBC];
+    u8 unk134;
+    u8 unk135_0 : 1;
+    u8 unk135_1 : 1;
+    u8 unk135_2 : 1;
+    u8 m_isWhole : 1;
+    u8 m_isSyncVisibility : 1;
+    u8 m_isSyncScale : 1;
+    u8 unk135_6 : 2;
+    u8 unk136[0x2];
+
+    void pushGroup(u32 group); // HYPOTHESIS: parameter type from ecMgr::pushsetCurrentGroup
 
     virtual ~soEffectModuleImpl();
     virtual void activate();

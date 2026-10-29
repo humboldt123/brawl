@@ -1,5 +1,6 @@
 #include <ef/ef_screen.h>
 #include <ft/ft_manager.h>
+#include <ft/ft_owner.h>
 #include <gm/gm_global.h>
 #include <sora_adv_stage/gr_adventure_common.h>
 #include <sora_adv_stage/gr_adventure_gimmick_id.h>
@@ -7,12 +8,11 @@
 #include <sora_adv_stage/st_adventure2.h>
 #include <st/stage.h>
 
-// HYPOTHESIS: the running stAdventure2 instance (sora_adv_stage bss) and three of its members (map names, parameter
-// types unknown): stAdventure2::setFighterStartDamage, setFighterWarp; ftOwner::setSubFighterStartStandby.
+// HYPOTHESIS: the running stAdventure2 instance (sora_adv_stage bss) and two of its members (map names, parameter
+// types unknown): stAdventure2::setFighterStartDamage, setFighterWarp.
 extern "C" stAdventure2* lbl_40_bss_15C;
 extern "C" void fn_40_5CD8(stAdventure2* stage, int entryId);
 extern "C" void fn_40_5814(stAdventure2* stage, void* warpDest, u8 isSecondWarped);
-extern "C" void fn_27_112E0C(ftOwner* owner, int flag);
 // MATCH-ONLY: Stage::setStageOutEffectInit takes a flag that the shared header does not declare; vtable slots 113/114.
 static inline void stageSetStageOutEffectInit(Stage* stage, int flag) {
     typedef void (*Func)(Stage*, int);
@@ -52,13 +52,13 @@ void grAdventureWarpZone::processFixPosition() {
         startGimmickSE(0);
         startGimmickEffect(0);
         if (g_ftManager->isSubFighterDead(entryId1)) {
-            fn_27_112E0C(g_ftManager->getOwner(entryId1), 1);
+            g_ftManager->getOwner(entryId1)->setSubFighterStartStandby(true);
         }
         g_ftManager->standbyFighter(entryId1, 1);
         m_isSecondWarped = 0;
         if (entryId2 != -1 && g_ftManager->isFighterEnableWarp(entryId2)) {
             if (g_ftManager->isSubFighterDead(entryId2)) {
-                fn_27_112E0C(g_ftManager->getOwner(entryId2), 1);
+                g_ftManager->getOwner(entryId2)->setSubFighterStartStandby(true);
             }
             g_ftManager->standbyFighter(entryId2, 1);
             m_isSecondWarped = 1;

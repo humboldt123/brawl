@@ -62,7 +62,7 @@ bool soGroundModuleImpl::isNearCliff(float p0, float p1, u32 index) {
 }
 bool soGroundModuleImpl::isMissStepR(u32 index) { return m_groundShapeArray->at(index).m_collStatus->m_missStepR; }
 bool soGroundModuleImpl::isMissStepL(u32 index) { return m_groundShapeArray->at(index).m_collStatus->m_missStepL; }
-u8 soGroundModuleImpl::getTouchCount(u32 index) { return m_groundShapeArray->at(index).m_collStatus->getTouchCount(); }
+u32 soGroundModuleImpl::getTouchCount(u32 index) { return m_groundShapeArray->at(index).m_collStatus->getTouchCount(); }
 u32 soGroundModuleImpl::getDownLineId(u32 index) { return m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Down); }
 u32 soGroundModuleImpl::getRightLineId(u32 index) { return m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Right); }
 u32 soGroundModuleImpl::getLeftLineId(u32 index) { return m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Left); }
@@ -295,9 +295,9 @@ bool soGroundModuleImpl::isStCliff(u32 index) {
     return result;
 }
 
-bool soGroundModuleImpl::isTouch(grCollStatus::TouchMask p0, u32 index) {
+bool soGroundModuleImpl::isTouch(int touchMask, u32 index) {
     for (u32 i = 0, bit = 1; bit <= 0xFF; bit <<= 1, i++) {
-        if (p0 & bit) {
+        if (touchMask & bit) {
             if (m_groundShapeArray->at(index).m_collStatus->isTouch((grCollStatus::TouchId)i)) {
                 return true;
             }

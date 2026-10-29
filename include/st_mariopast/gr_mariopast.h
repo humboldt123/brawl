@@ -27,7 +27,7 @@ protected:
 
 public:
     grMarioPast(const char* taskName);
-    virtual ~grMarioPast();
+    virtual ~grMarioPast() __attribute__((never_inline)); // the derived destructors call it out of line
     static grMarioPast* create(int mdlIndex, const char* tgtNodeName, const char* taskName);
 };
 static_assert(sizeof(grMarioPast) == 0x158, "Class is wrong size!");

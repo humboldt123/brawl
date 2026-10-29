@@ -6,6 +6,9 @@
 #include <types.h>
 
 class soGeneralWorkSimple : public soGeneralWorkAbstract {
+    void clearInts(const u32& count);
+    void clearFloats(const u32& count);
+    void clearFlags(const u32& count);
     // (clearWorkAll: Marth's copy and the Enemy's (SO_GENERAL_WORK_CLEAR_RELOADS_SIZE) load each size twice and take the
     // minimum; the other fighters' copies load it once.)
     void clearInts() {
@@ -169,12 +172,41 @@ public:
     }
 
     virtual void clearWorkAll() {
+#ifdef SO_GENERAL_WORK_BOUNDED_CLEAR
+        clearInts(m_intWorkSize);
+        clearFloats(m_floatWorkSize);
+        clearFlags(m_flagWorkSize);
+#else
         clearInts();
         clearFloats();
         clearFlags();
+#endif
     }
 };
 static_assert(sizeof(soGeneralWorkSimple) == 0x24, "Class is wrong size!");
 
 
 extern soGeneralWorkSimple g_soGeneralWorkSimple;
+
+// HYPOTHESIS: the bounded helper boundary explains the capacity clamp in Mario.
+// Define these after their caller so MWCC preserves the two input snapshots.
+inline void soGeneralWorkSimple::clearInts(const u32& count) {
+    u32 size = count;
+    u32 capacity = m_intWorkSize;
+    if (size >= capacity) size = capacity;
+    for (s32 i = 0; i < (s32)size; ++i) m_intWorks[i] = 0;
+}
+
+inline void soGeneralWorkSimple::clearFloats(const u32& count) {
+    u32 size = count;
+    u32 capacity = m_floatWorkSize;
+    if (size >= capacity) size = capacity;
+    for (s32 i = 0; i < (s32)size; ++i) m_floatWorks[i] = 0.0f;
+}
+
+inline void soGeneralWorkSimple::clearFlags(const u32& count) {
+    u32 size = count;
+    u32 capacity = m_flagWorkSize;
+    if (size >= capacity) size = capacity;
+    for (s32 i = 0; i < (s32)size; ++i) m_flagWorks[i] = 0;
+}

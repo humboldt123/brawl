@@ -1,9 +1,7 @@
 // SHADOW of BrawlHeaders/so/collision/so_collision_shield_module_impl.h: identical except for the FT_MODULE_BUILDER-guarded declarations
 // (constructors/destructors of sora_melee classes that fighter module builders call). Built only for fighter RELs.
 #pragma once
-#ifdef FT_MODULE_BUILDER
 class soCollisionShieldPart;
-#endif
 
 #include <StaticAssert.h>
 #include <so/anim/so_anim_cmd_event_presenter.h>
@@ -28,23 +26,23 @@ public:
 	virtual void setReflectorData(soCollisionReflectorData*, u32 collisionShieldGroupIndex);
 	virtual void update(double, double, double, u32 collisionShieldGroupIndex);
 	virtual void update(double, double, double);
-	virtual u8 isShield(u32, u32 collisionShieldGroupIndex);
+	virtual bool isShield(u32, u32 collisionShieldGroupIndex);
 	virtual void setStatus(u32, u32, u32);
 	virtual void setStatusAll(u32, u32);
-	virtual u8 isTurn(u32 collisionShieldGroupIndex);
-	virtual u8 isFront(u32 collisionShieldGroupIndex);
-	virtual bool isHop(u32 collisionShieldGroupIndex);
-	virtual float getHopAngle(u32 collisionShieldGroupIndex);
-	virtual bool isNoHop(u32 collisionShieldGroupIndex);
-	virtual void setTurn(u32, u32 collisionShieldGroupIndex);
-	virtual void setFront(u32, u32 collisionShieldGroupIndex);
-	virtual void setHop(double, u32, u32 collisionShieldGroupIndex);
-	virtual double getAttackMul(u32 collisionShieldGroupIndex);
-	virtual double getSpeedMul(u32 collisionShieldGroupIndex);
-	virtual double getLifeMul(u32 collisionShieldGroupIndex);
-	virtual float getAttackLimit(u32 collisionShieldGroupIndex); // HYPOTHESIS: returns a float (the reflector power limit)
-	virtual u8 isNoMBall(u32 collisionShieldGroupIndex);
-	virtual int getPartSize(u32 collisionShieldGroupIndex);
+	virtual u8 isTurn(u32 collisionShieldGroupIndex) const;
+	virtual u8 isFront(u32 collisionShieldGroupIndex) const;
+	virtual bool isHop(u32 collisionShieldGroupIndex) const;
+	virtual float getHopAngle(u32 collisionShieldGroupIndex) const;
+	virtual bool isNoHop(u32 collisionShieldGroupIndex) const;
+	virtual void setTurn(bool isTurn, u32 collisionShieldGroupIndex);
+	virtual void setFront(bool isFront, u32 collisionShieldGroupIndex);
+	virtual void setHop(float hopAngle, bool isHop, u32 collisionShieldGroupIndex);
+	virtual double getAttackMul(u32 collisionShieldGroupIndex) const;
+	virtual double getSpeedMul(u32 collisionShieldGroupIndex) const;
+	virtual double getLifeMul(u32 collisionShieldGroupIndex) const;
+	virtual float getAttackLimit(u32 collisionShieldGroupIndex) const; // HYPOTHESIS: returns a float (the reflector power limit)
+	virtual u8 isNoMBall(u32 collisionShieldGroupIndex) const;
+	virtual int getPartSize(u32 collisionShieldGroupIndex) const;
 	virtual u32 getTeam();
 	virtual void checkLog();
 	virtual bool check();
@@ -52,9 +50,9 @@ public:
 	virtual void clearAll();
 	virtual void clearAll(u32 collisionShieldGroupIndex);
 	virtual Vec3f getCenterPos(u32, u32 collisionShieldGroupIndex);
-	virtual float getLR(u32 collisionShieldGroupIndex);
+	virtual float getLR(u32 collisionShieldGroupIndex) const;
 	virtual u32 getGroupNum();
-	virtual double getPosX(u32 collisionShieldGroupIndex);
+	virtual double getPosX(u32 collisionShieldGroupIndex) const;
 	virtual void setTargetProperty(u32, u32 collisionShieldGroupIndex);
 };
 
@@ -67,7 +65,7 @@ private:
 #endif
 public:
 	soModuleAccesser* m_moduleAccesser;
-	u32 _20;
+	soArray<soCollisionShieldPart>* m_partArray;
 	u32 _24;
 	soCollision m_collision;
 	u8 _40[0x8];
@@ -90,23 +88,23 @@ public:
 	virtual void setReflectorData(soCollisionReflectorData*, u32 collisionShieldGroupIndex);
 	virtual void update(double, double, double, u32 collisionShieldGroupIndex);
 	virtual void update(double, double, double);
-	virtual u8 isShield(u32, u32 collisionShieldGroupIndex);
+	virtual bool isShield(u32, u32 collisionShieldGroupIndex);
 	virtual void setStatus(u32, u32 status, u32 collisionShieldGroupIndex);
 	virtual void setStatusAll(u32 status, u32 collisionShieldGroupIndex);
-	virtual u8 isTurn(u32 collisionShieldGroupIndex);
-	virtual u8 isFront(u32 collisionShieldGroupIndex);
-	virtual bool isHop(u32 collisionShieldGroupIndex);
-	virtual float getHopAngle(u32 collisionShieldGroupIndex);
-	virtual bool isNoHop(u32 collisionShieldGroupIndex);
-	virtual void setTurn(u32, u32 collisionShieldGroupIndex);
-	virtual void setFront(u32, u32 collisionShieldGroupIndex);
-	virtual void setHop(double, u32, u32 collisionShieldGroupIndex);
-	virtual double getAttackMul(u32 collisionShieldGroupIndex);
-	virtual double getSpeedMul(u32 collisionShieldGroupIndex);
-	virtual double getLifeMul(u32 collisionShieldGroupIndex);
-	virtual float getAttackLimit(u32 collisionShieldGroupIndex);
-	virtual u8 isNoMBall(u32 collisionShieldGroupIndex);
-	virtual int getPartSize(u32 collisionShieldGroupIndex);
+	virtual u8 isTurn(u32 collisionShieldGroupIndex) const;
+	virtual u8 isFront(u32 collisionShieldGroupIndex) const;
+	virtual bool isHop(u32 collisionShieldGroupIndex) const;
+	virtual float getHopAngle(u32 collisionShieldGroupIndex) const;
+	virtual bool isNoHop(u32 collisionShieldGroupIndex) const;
+	virtual void setTurn(bool isTurn, u32 collisionShieldGroupIndex);
+	virtual void setFront(bool isFront, u32 collisionShieldGroupIndex);
+	virtual void setHop(float hopAngle, bool isHop, u32 collisionShieldGroupIndex);
+	virtual double getAttackMul(u32 collisionShieldGroupIndex) const;
+	virtual double getSpeedMul(u32 collisionShieldGroupIndex) const;
+	virtual double getLifeMul(u32 collisionShieldGroupIndex) const;
+	virtual float getAttackLimit(u32 collisionShieldGroupIndex) const;
+	virtual u8 isNoMBall(u32 collisionShieldGroupIndex) const;
+	virtual int getPartSize(u32 collisionShieldGroupIndex) const;
 	virtual u32 getTeam();
 	virtual void checkLog();
 	virtual bool check();
@@ -114,9 +112,9 @@ public:
 	virtual void clearAll();
 	virtual void clearAll(u32 collisionShieldGroupIndex);
 	virtual Vec3f getCenterPos(u32, u32 collisionShieldGroupIndex);
-	virtual float getLR(u32 collisionShieldGroupIndex);
+	virtual float getLR(u32 collisionShieldGroupIndex) const;
 	virtual u32 getGroupNum();
-	virtual double getPosX(u32 collisionShieldGroupIndex);
+	virtual double getPosX(u32 collisionShieldGroupIndex) const;
 	virtual void setTargetProperty(u32, u32 collisionShieldGroupIndex);
 
     virtual bool isObserv(char unk1);

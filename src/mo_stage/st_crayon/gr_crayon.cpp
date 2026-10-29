@@ -82,7 +82,8 @@ void grCrayon::changeNodeAnim(u32 chrIndex, u32 modelAnimIndex) {
 }
 
 void grCrayon::getRotate(Vec3f* rotate, nw4r::g3d::ScnMdl* model, u32 nodeIndex) {
-    nw4r::g3d::ResMdl resMdl = model->m_resMdl;
+    nw4r::g3d::ResMdl resMdl;
+    resMdl = model->m_resMdl;
     nw4r::g3d::ResNode node;
     if (resMdl.IsValid()) {
         node = resMdl.GetResNode(nodeIndex);
@@ -95,8 +96,9 @@ void grCrayon::getRotate(Vec3f* rotate, nw4r::g3d::ScnMdl* model, u32 nodeIndex)
 }
 
 void grCrayon::setRotate(Vec3f* rotate, nw4r::g3d::ScnMdl* model, u32 nodeIndex) {
-    nw4r::g3d::ResMdl resMdl = model->m_resMdl;
+    nw4r::g3d::ResMdl resMdl;
     nw4r::g3d::ResNode node;
+    resMdl = model->m_resMdl;
     if (resMdl.IsValid()) {
         node = resMdl.GetResNode(nodeIndex);
         if (node.IsValid()) {

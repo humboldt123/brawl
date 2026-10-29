@@ -1,3 +1,4 @@
+#include <ai/ai_act.h>
 #include <ai/ai_ip_buf.h>
 #include <ai/ai_param.h>
 
@@ -88,6 +89,59 @@ void aiParam::setRank(int rank, u32 force, int update) {
             par_work_update();
         }
     }
+}
+
+// HYPOTHESIS: aiParam::chk_situation (condition id, own and target character), still unnamed.
+extern "C" int fn_27_21E24C(aiParam*, u8, aiChrIdx*, aiChrIdx*);
+
+int aiParam::select_situation(int start, int end, aiChrIdx* chr, aiChrIdx* target) {
+    int i;
+    int skip = 0;
+    for (i = start; i < end; i++) {
+        u8* entry = (u8*)m_par + m_par->m_situationList[i];
+        if (skip > 0) {
+            if (entry[2] & 8) {
+                skip--;
+            }
+            if (skip > 0) {
+                if (entry[3] == 0) {
+                    skip++;
+                }
+                continue;
+            }
+        }
+        int result;
+        u8 flags;
+        for (u32 j = 0; j < 2; j++) {
+            result = fn_27_21E24C(this, entry[j], chr, target);
+            if (j == 0) {
+                flags = entry[2];
+                if (flags & 1) {
+                    result = !result;
+                }
+            } else {
+                flags = entry[2];
+                if (flags & 2) {
+                    result = !result;
+                }
+            }
+            if (result) {
+                if (flags & 4) {
+                    break;
+                }
+            } else if (!(flags & 4)) {
+                break;
+            }
+        }
+        if (entry[3] == 0) {
+            if (!result) {
+                skip = 1;
+            }
+        } else if (result) {
+            break;
+        }
+    }
+    return i;
 }
 
 bool aiParam::check_revision(char* data) {
@@ -201,15 +255,122 @@ bool aiParam::chkCmdReflect(int cmd) {
     return m_par->m_reflectCmds & (1 << cmd);
 }
 
-tag_AI_ATK_DATA* tag_AI_ATK_DATA_HED::searchAtkData(u32 id) {
-    int remaining = m_num;
-    tag_AI_ATK_DATA* data = m_data;
-    while (remaining != 0) {
-        if (id == data->m_id) {
-            return data;
+int ai_act_id2cmd(aiAct::actId id) {
+    if (id > 0x6030) {
+        if (id < 0x6040) {
+            return id - 0x6031;
         }
-        data++;
-        remaining--;
+        int cmd = id - 0x6034;
+        if (cmd < 0x16) {
+            return cmd;
+        }
+    }
+    return 0;
+}
+
+tag_AI_ATK_DATA* tag_AI_ATK_DATA_HED::searchAtkData(int id) {
+    for (u32 i = 0; i < m_num; i++) {
+        if (id == m_data[i].m_id) {
+            return &m_data[i];
+        }
     }
     return NULL;
+}
+
+int get_motnum_chr(ftKind kind) {
+    switch (kind) {
+    case Fighter_Mario:
+        return 0x1DE;
+    case Fighter_DonkeyKong:
+        return 0x204;
+    case Fighter_Link:
+        return 0x1E4;
+    case Fighter_Samus:
+        return 0x1EC;
+    case Fighter_Yoshi:
+        return 0x1E8;
+    case Fighter_Kirby:
+        return 0x31D;
+    case Fighter_Fox:
+        return 0x1F2;
+    case Fighter_Pikachu:
+        return 0x1E6;
+    case Fighter_Luigi:
+        return 0x1E2;
+    case Fighter_CaptainFalcon:
+        return 0x1EB;
+    case Fighter_Ness:
+        return 0x1EA;
+    case Fighter_Bowser:
+        return 0x1E3;
+    case Fighter_Peach:
+        return 0x1E1;
+    case Fighter_Zelda:
+        return 0x1E0;
+    case Fighter_Sheik:
+        return 0x1E6;
+    case Fighter_Popo:
+    case Fighter_Nana:
+        return 0x1F2;
+    case Fighter_Marth:
+        return 0x1F5;
+    case Fighter_MrGameAndWatch:
+        return 0x202;
+    case Fighter_Falco:
+        return 0x1EC;
+    case Fighter_Ganondorf:
+        return 0x1E8;
+    case Fighter_Wario:
+        return 0x213;
+    case Fighter_MetaKnight:
+        return 0x1EC;
+    case Fighter_Pit:
+        return 0x1F4;
+    case Fighter_ZeroSuitSamus:
+        return 0x1EB;
+    case Fighter_Olimar:
+        return 0x1E0;
+    case Fighter_Lucas:
+        return 0x1EB;
+    case Fighter_DiddyKong:
+        return 0x1FB;
+    case Fighter_Charizard:
+        return 0x1DD;
+    case Fighter_Squirtle:
+        return 0x1E4;
+    case Fighter_Ivysaur:
+        return 0x1DD;
+    case Fighter_KingDedede:
+        return 0x217;
+    case Fighter_Lucario:
+        return 0x1EB;
+    case Fighter_Ike:
+        return 0x1F4;
+    case Fighter_ROB:
+        return 0x1E7;
+    case Fighter_Jigglypuff:
+        return 0x1F5;
+    case Fighter_ToonLink:
+        return 0x1E4;
+    case Fighter_Wolf:
+        return 0x1EE;
+    case Fighter_Snake:
+        return 0x1FE;
+    case Fighter_Sonic:
+        return 0x1F1;
+    case Fighter_GigaBowser:
+        return 0x1E4;
+    case Fighter_WarioMan:
+        return 0x213;
+    case Fighter_Alloy_Red:
+        return 0x1CF;
+    case Fighter_Alloy_Blue:
+        return 0x1CF;
+    case Fighter_Alloy_Yellow:
+        return 0x1CF;
+    case Fighter_Alloy_Green:
+        return 0x1CF;
+    default:
+        return -1;
+    }
 }

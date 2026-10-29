@@ -1,5 +1,5 @@
 // SHADOW of BrawlHeaders/so/so_value_accesser.h: adds the soParamAccesser constructor (soNullable(false), out of line in the
-// fighter RELs) used by the article parameter accessers.
+// fighter RELs) used by the article parameter accessers, and the soValueAccesser constructor and table index.
 #pragma once
 
 #include <StaticAssert.h>
@@ -164,7 +164,17 @@ public:
         Var_Int_Stage_Default_Light_Set_Index = 20026,
     };
 
+    // HYPOTHESIS: the accesser registers itself in the static accesser table at this index.
+    soValueAccesser(int variation);
+    int m_variation;
+
+#ifdef SO_VALUE_ACCESSER_EXTEND_PARAM_TAKES_ACCESSER
+    // Opt-in (the enemy's value accesser): the enemy override reads the module accesser it is handed (r4).
+    // HYPOTHESIS: every accesser's slot takes it; the other overrides do not read it, so they keep the old declaration.
+    virtual soParamAccesser* getExtendParamAccesser(soModuleAccesser* moduleAccesser);
+#else
     virtual soParamAccesser* getExtendParamAccesser();
+#endif
     virtual ~soValueAccesser();
     virtual float getVariableFloatCore(soModuleAccesser* moduleAccesser, u32, u32 = 0);
     virtual int getVariableIntCore(soModuleAccesser* moduleAccesser, u32, u32 = 0);

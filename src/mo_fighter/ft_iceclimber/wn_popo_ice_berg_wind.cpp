@@ -22,3 +22,10 @@ wnPopoIceBergWind::wnPopoIceBergWind(s32 articleId, const wnArticleBuildInfo& in
     m_param(data->m_param), m_paramAccesser(data->m_param) {
     Weapon::deactivate(false);
 }
+
+bool wnPopoIceBergWind::notifyEventCollisionAttackCheck(u32 flags) {
+    if (flags & 6) {
+        return false;
+    }
+    return Weapon::notifyEventCollisionAttackCheck(flags);
+}

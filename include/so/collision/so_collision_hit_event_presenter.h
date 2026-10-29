@@ -25,7 +25,8 @@ public:
 #else
     virtual void notifyEventCollisionHit(float power, soCollisionAttackData*, u32 index, int, soModuleAccesser* moduleAccesser, soCollisionLog*);
 #endif
-    virtual void notifyEventCollisionHit2nd(float posX, float collisionLr, soCollisionAttackModule*, soCollisionLog*, u32 groupIndex, soModuleAccesser* moduleAccesser, bool) { }
+    // The floats come after the group index: the overrides' prologues save r4, r5, r6, f1, f2, r7, r8 in that order.
+    virtual void notifyEventCollisionHit2nd(soCollisionAttackModule*, soCollisionLog*, u32 groupIndex, float posX, float collisionLr, soModuleAccesser* moduleAccesser, bool) { }
 #ifdef WN_WEAPON_BUILDER // inline in the article RELs (weak copies)
     virtual void notifyEventChangeCollisionHit(int index, soModuleAccesser* moduleAccesser) { }
 #else

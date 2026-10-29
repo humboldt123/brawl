@@ -1,3 +1,6 @@
+#define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
+#define FT_TEAM_TYPED_INTERFACE
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR // MATCH-ONLY: call the shared table constructor used by this REL.
 #define FT_LUCAS_ARTICLE_POOLS
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
@@ -19,6 +22,14 @@
 #define FT_NO_REFLECTOR_INSTANTIATION
 #define FT_BC ftLucasBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// Status teardown destroys its owned change-request queue before observers.
+#pragma dont_inline on
+#ifndef FT_REL_LINK_EXTERN // with FT_REL_LINK_EXTERN the queue destructor is the sora_melee function (ft_dol_instances.h)
+template soArrayVector<s32, 8>::~soArrayVector();
+#endif
+#pragma dont_inline off
+soStatusModuleImpl::~soStatusModuleImpl() { }
 
 #pragma dont_inline on
 template soCollisionShieldModuleBuilder<ftLucasCollisionReflectorBaseModuleBuildConfig>::soCollisionShieldModuleBuilder(soModuleAccesser*, int, gfTask::Category);
@@ -540,10 +551,11 @@ bool ftLucas::activeArticle(wnLucasPKFire* weapon, soModuleAccesser* acc) {
 
 // PK Thunder: the head leaves from the hand and is linked to the fighter.
 bool ftLucas::activeArticle1(wnLucasPKThunder* weapon, soModuleAccesser* acc) {
+    s32 taskId;
     Fighter* founder = &dynamic_cast<Fighter&>(*acc->m_stageObject);
     Vec3f pos = acc->getModelModule().getNodeGlobalPosition(0x27, false);
     float lr = acc->getPostureModule().getLr();
-    s32 taskId = founder->m_taskId;
+    taskId = founder->m_taskId;
     weapon->activate(taskId, founder->getOwner()->getTeam(), &pos, lr);
     acc->getLinkModule().link(6, weapon->m_taskId);
     return true;

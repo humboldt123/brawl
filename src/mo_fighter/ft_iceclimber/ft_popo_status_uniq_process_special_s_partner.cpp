@@ -7,15 +7,20 @@
 #include <so/ground/so_ground_module_impl.h>
 #include <so/link/so_link_module_impl.h>
 #include <so/link/so_link_event_presenter.h>
+#include <so/model/so_model_module_simple.h>
 #include <so/motion/so_motion_change_param.h>
 #include <so/motion/so_motion_module_impl.h>
+#include <so/posture/so_posture_module_simple.h>
 #include <so/situation/so_situation_module_impl.h>
 #include <so/status/so_status_module_impl.h>
 #include <so/work/so_work_manage_module_impl.h>
 #include <types.h>
 
-// Helpers of the iceclimber REL that are not reconstructed yet.
-extern "C" void fn_105_BD50(soMotionChangeParam* param, int kind, float frame, float rate, u8 a, u8 b, u8 c, u8 d);
+// HYPOTHESIS: a local shell of ftPopo deriving Fighter directly; this unit only needs its RTTI and getPartner.
+class ftPopo : public Fighter {
+public:
+    virtual Fighter* getPartner();
+};
 
 // Link event carrying only its kind (HYPOTHESIS: kind 0x458 is the popo's partner release event).
 struct ftPopoSpecialSPartnerLinkEvent : soLinkEventArgs {
@@ -24,7 +29,7 @@ struct ftPopoSpecialSPartnerLinkEvent : soLinkEventArgs {
 
 
 class ftPopoStatusUniqProcessSpecialSPartner : public soStatusUniqProcess {
-    void detachConstraint(soModuleAccesser* moduleAccesser);
+    static void detachConstraint(soModuleAccesser* moduleAccesser);
 
 public:
     virtual ~ftPopoStatusUniqProcessSpecialSPartner() { }
@@ -33,26 +38,8 @@ public:
     virtual void exitStatus(soModuleAccesser* moduleAccesser, int nextStatus);
 };
 
-// UNVERIFIED: placeholder for the float constant lbl_105_rodata_40
-static const float s_partnerLrScale = 1.0f;
-
-// Partner-side motion change: the partner switches to the new kind when its motion is the expected kind.
-static void changeMotionOnPartner(soModuleAccesser* moduleAccesser, int expectKind, int newKind) {
-    // HYPOTHESIS: the default frame and rate are the constants lbl_105_rodata_44 and lbl_105_rodata_48 (unverified)
-    float frame = 0.0f;
-    u8 haveFrame = 0;
-    soMotionModule& motion = moduleAccesser->getMotionModule();
-    if (motion.getKind() == expectKind) {
-        frame = motion.getFrame();
-        haveFrame = 1;
-    }
-    soMotionChangeParam param;
-    fn_105_BD50(&param, newKind, frame, 1.0f, 0, 0, haveFrame, 0);
-    motion.changeMotionRequest(&param);
-}
-
 void ftPopoStatusUniqProcessSpecialSPartner::initStatus(soModuleAccesser* moduleAccesser) {
-    Fighter* self = dynamic_cast<Fighter*>(&moduleAccesser->getStageObject());
+    ftPopo* self = dynamic_cast<ftPopo*>(&moduleAccesser->getStageObject());
     if (self == 0) {
         return;
     }
@@ -65,26 +52,39 @@ void ftPopoStatusUniqProcessSpecialSPartner::initStatus(soModuleAccesser* module
         moduleAccesser->getLinkModule().setAttribute(6, soLinkConnection::Attribute(0), true);
         moduleAccesser->getLinkModule().setAttribute(6, soLinkConnection::Attribute(0xc), true);
     }
-    // UNVERIFIED: the partner's facing is scaled by lbl_105_rodata_40; the value is not checked yet
-    float partnerLr = soExternalValueAccesser::getLr(partner);
-    moduleAccesser->getPostureModule().setLr(s_partnerLrScale * partnerLr);
+    moduleAccesser->getPostureModule().setLr(-1.0f * soExternalValueAccesser::getLr(partner));
 }
 
+// HYPOTHESIS: the native soMotionChangeParam constructor takes this flag as a bool (the target passes it
+// unmasked); with the u8 declaration the call masks it, so this function stays fn_.
 void ftPopoStatusUniqProcessSpecialSPartner::execFixPos(soModuleAccesser* moduleAccesser) {
     if (moduleAccesser->getWorkManageModule().isFlag(0x22000010) == true) {
         moduleAccesser->getWorkManageModule().offFlag(0x22000010);
-        changeMotionOnPartner(moduleAccesser, 0x1d7, 0x1d6);
-    }
-    if (moduleAccesser->getWorkManageModule().isFlag(0x22000011) == true) {
+        float frame = 0.0f;
+        bool keepFrame = false;
+        if (moduleAccesser->getMotionModule().getKind() == 0x1d7) {
+            frame = moduleAccesser->getMotionModule().getFrame();
+            keepFrame = true;
+        }
+        soMotionChangeParam param(0x1d6, frame, 1.0f, 0, 0, keepFrame, 0);
+        moduleAccesser->getMotionModule().changeMotionRequest(&param);
+    } else if (moduleAccesser->getWorkManageModule().isFlag(0x22000011) == true) {
         moduleAccesser->getWorkManageModule().offFlag(0x22000011);
-        changeMotionOnPartner(moduleAccesser, 0x1d6, 0x1d7);
+        float frame = 0.0f;
+        bool keepFrame = false;
+        if (moduleAccesser->getMotionModule().getKind() == 0x1d6) {
+            frame = moduleAccesser->getMotionModule().getFrame();
+            keepFrame = true;
+        }
+        soMotionChangeParam param(0x1d7, frame, 1.0f, 0, 0, keepFrame, 0);
+        moduleAccesser->getMotionModule().changeMotionRequest(&param);
     }
     if (moduleAccesser->getMotionModule().isEnd() == true) {
         if (moduleAccesser->getLinkModule().isLink(6) == 1) {
             moduleAccesser->getLinkModule().setAttribute(6, soLinkConnection::Attribute(0), false);
         }
         detachConstraint(moduleAccesser);
-        Fighter* self = dynamic_cast<Fighter*>(&moduleAccesser->getStageObject());
+        ftPopo* self = dynamic_cast<ftPopo*>(&moduleAccesser->getStageObject());
         if (self == 0) {
             return;
         }
@@ -93,12 +93,12 @@ void ftPopoStatusUniqProcessSpecialSPartner::execFixPos(soModuleAccesser* module
             return;
         }
         if (soExternalValueAccesser::getSituationKind(partner) == 0 &&
-            moduleAccesser->getGroundModule().isStCliff(0) == true) {
+            moduleAccesser->getGroundModule().attachGround(0) == true) {
             moduleAccesser->getSituationModule().setKind(SituationKind(0), false);
-            moduleAccesser->getStatusModule().changeStatus(0, moduleAccesser);
+            moduleAccesser->getStatusModule().changeStatusRequest(0, moduleAccesser);
         } else {
             moduleAccesser->getSituationModule().setKind(SituationKind(2), false);
-            moduleAccesser->getStatusModule().changeStatus(0x10, moduleAccesser);
+            moduleAccesser->getStatusModule().changeStatusRequest(0x10, moduleAccesser);
         }
     }
 }
@@ -116,13 +116,16 @@ void ftPopoStatusUniqProcessSpecialSPartner::exitStatus(soModuleAccesser* module
     }
 }
 
-// HYPOTHESIS: detaches the partner's link constraint and re-attaches the posture; the link queries at slots
-// 0x168, 0x164 and the model query at 0x98 are not reconstructed yet.
 void ftPopoStatusUniqProcessSpecialSPartner::detachConstraint(soModuleAccesser* moduleAccesser) {
-    if (moduleAccesser->getLinkModule().isLink(6) == 1) {
+    if (moduleAccesser->getLinkModule().isModelConstraint()) {
+        Vec3f pos = moduleAccesser->getModelModule().getNodeGlobalPosition(2, false);
+        pos.m_z = moduleAccesser->getGroundModule().getZ();
+        moduleAccesser->getLinkModule().removeModelConstraint(true);
         moduleAccesser->getLinkModule().setAttribute(6, soLinkConnection::Attribute(0xd), true);
+        moduleAccesser->getPostureModule().setPos(&pos);
+        moduleAccesser->getStageObject().updateNodeSRT();
+        moduleAccesser->getLinkModule().setAttribute(6, soLinkConnection::Attribute(0xc), false);
     }
-    moduleAccesser->getLinkModule().setAttribute(6, soLinkConnection::Attribute(0xc), false);
 }
 
 ftPopoStatusUniqProcessSpecialSPartner g_ftPopoStatusUniqProcessSpecialSPartner;

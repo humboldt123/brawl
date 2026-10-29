@@ -21,14 +21,17 @@ struct soCollisionShieldData {
 };
 static_assert(sizeof(soCollisionShieldData) == 0x20, "Class is wrong size!");
 
+// HYPOTHESIS: layout read by soCollisionShieldGroup::setReflectorData; the first 8 bytes are not read there.
 struct soCollisionReflectorData {
-    char _0[0x4];
+    char _0[0x8];
+    float m_attackMul;
     float m_speedMul;
     float m_attackLimit;
     float m_lifeMul;
-    char _16[0x4];
+    u32 m_isNoMBall : 1;
+    u32 _18_rest : 31;
 };
-static_assert(sizeof(soCollisionReflectorData) == 0x14, "Class is wrong size!");
+static_assert(sizeof(soCollisionReflectorData) == 0x1C, "Class is wrong size!");
 
 struct soCollisionShieldGroupData {
     soSet<soCollisionShieldData> m_shieldDataSet;
@@ -44,9 +47,25 @@ struct soCollisionReflectorGroupData {
     soCollisionReflectorData* m_reflectorData;
 };
 
+class soCollisionShieldPart;
+
 class soCollisionShieldGroup {
 public:
-	u8 _00[0x90];
+	~soCollisionShieldGroup();
+	void init();
+	void set(soArray<soCollisionShieldPart>* parts, u32 index, soCollisionShieldData* data);
+	void setReflectorData(const soCollisionReflectorData* data);
+	bool isShield(soArray<soCollisionShieldPart>* parts, u32 index) const;
+	void setStatus(soArray<soCollisionShieldPart>* parts, u32 index, u32 status);
+	void clearAll(soArray<soCollisionShieldPart>* parts);
+	void setTargetProperty(soArray<soCollisionShieldPart>* parts, u32 property);
+
+	int unk0;
+	s16 m_partStart; // HYPOTHESIS: first index of the group's parts in the module's part array
+	s16 m_partSize;
+	float unk8;
+	float unkC;
+	u8 _10[0x80];
 	float m_posX;
 	u32 _94;
 	float m_Lr;
@@ -55,11 +74,11 @@ public:
 	float m_speedMul;
 	float m_attackLimit;
 	float m_lifeMul;
-	u8 m_isFront;
-	u8 m_isHop;
-	u8 m_isTurn;
+	bool m_isFront;
+	bool m_isHop;
+	bool m_isTurn;
 	u8 m_isNoMBall;
-	u8 m_isNoHop;
+	bool m_isNoHop;
 	u8 _b5[0x3];
 };
 static_assert(sizeof(soCollisionShieldGroup) == 0xB8, "Class is wrong size!");

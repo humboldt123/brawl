@@ -41,7 +41,7 @@ void ftFoxStatusUniqProcessReflector::execStatus(soModuleAccesser* moduleAccesse
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
     case 0x11a:
         // Pushing the stick against the facing turns the reflector around (unless a turn is already running).
-        if (!static_cast<soTurnModule*>(moduleAccesser->m_enumerationStart->m_turnModule)->isTurning()) {
+        if (!static_cast<soTurnModule*>(moduleAccesser->m_enumerationStart->m_turnModule)->isTurn()) {
             float turnLimit = soValueAccesser::getConstantFloat(moduleAccesser, 0xc31, 0);
             float stickX = moduleAccesser->getControllerModule().getStickX();
             if (stickX * moduleAccesser->getPostureModule().getLr() <= turnLimit) {

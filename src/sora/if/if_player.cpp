@@ -1,3 +1,4 @@
+#include <ms/ms_tex_obj.h>
 #include <gf/gf_loupe.h>
 #include <if/if_player.h>
 #include <math.h>
@@ -39,8 +40,6 @@ extern "C" void fn_800DF848(IfPlayerObjCallback* callback);
 // HYPOTHESIS: map names IfPlayer::updateStock, pluckDragoonParts
 extern "C" void fn_800E1AFC(IfPlayer* player, u32 count, int arg);
 extern "C" void fn_800E48F4(IfPlayer* player, int index);
-// HYPOTHESIS: map names msTexObj::freeTexObj
-extern "C" void fn_8007291C(void* texObj);
 
 struct IfPlayerStockFaceFunc {
     void (*m_init)(int index, IfPlayer* player);
@@ -117,10 +116,10 @@ void IfPlayer::disappear() {
             lbl_805A02DC->Remove(m_objects[i]->m_sceneModel);
         }
     }
-    fn_8007291C(m_texObj);
+    reinterpret_cast<msTexObj*>(m_texObj)->freeTexObj();
     unk3A0 = 0;
     for (i = 0; i < 4; i++) {
-        fn_8007291C(m_apealComments[i].m_texObj);
+        reinterpret_cast<msTexObj*>(m_apealComments[i].m_texObj)->freeTexObj();
         m_apealComments[i].unk44 = 0;
     }
     unk0_2 = false;

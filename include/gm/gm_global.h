@@ -39,6 +39,53 @@ public:
     char _6[0x8];                       // 0x48
 
     gmGlobalRecord::MenuData* getGlobalRecordMenuDatap();
+    // Accessors below: names from the sora map; return types are HYPOTHESIS.
+    gmGlobalRecord::NameData* getGlobalRecordNameDatap(u8 index); // HYPOTHESIS: u8 from the inlined use in InitBattleRecord; target symbol stays fn_8004D138 (called by that name from mu_name.cpp)
+    void initTournamentData();
+    void InitHiScore();
+    void InitBattleRecord();
+    u8* getBGMAppFlag();
+    u8* getClearGetAppFlag();
+    u8* getHideEtcAppFlag();
+    gmGlobalRecord* getGlobalRecordGameDatap();
+    gmGlobalRecord::CharaNumData* getGlobalRecordCharaNumDatap(int chara);
+    u8* getMovieAppFlag();
+    gmGlobalRecord::InfoAppFlagData* getInfoAppFlag();
+    u32* getGlobalRecordFigCoinDatap();
+    u32* getGlobalRecordGetFigCoinDatap();
+    u32* getGlobalRecordVsPartyPlayerCountDatap();
+    u32* getGlobalRecordVsMeleeTimeCountDatap();
+    u32* getGlobalRecordVsMeleeTimeTotalDatap();
+    u32* getGlobalRecordVsTimeMeleeCountDatap();
+    u32* getGlobalRecordVsStockMeleeCountDatap();
+    u32* getGlobalRecordVsCoinMeleeCountDatap();
+    u32* getGlobalRecordVsHpMeleeCountDatap();
+    u32* getGlobalRecordOnlineVsTimeMeleeCountDatap();
+    u32* getGlobalRecordOnlineVsStockMeleeCountDatap();
+    u32* getGlobalRecordOnlineVsCoinMeleeCountDatap();
+    u32* getGlobalRecordVsResetMeleeCountDatap();
+    u32* getGlobalRecordSingleMeleeTimeCountDatap();
+    u32* getGlobalRecordSingleMeleeTimeTotalDatap();
+    u32* getGlobalRecordOnlineFriendTimeCountDatap();
+    u32* getGlobalRecordOnlineAnybodyTimeCountDatap();
+    u32* getGlobalRecordOnlineAnybodyWatchCountDatap();
+    u32* getGlobalRecordBootCountDatap();
+    u32* getGlobalRecordWorkingTimeDatap();
+    u32* getGlobalRecordDamageTotalCountDatap();
+    u32* getGlobalRecordKillTotalCountDatap();
+    u32* getGlobalRecordSuicideTotalCountDatap();
+    u8* getGlobalRecordGetOpenedEventDatap(int index);
+    u8* getGlobalRecordGetStagePlayCountDatap(int stage);
+    bool checkHideMenuAllstar();
+    void unlockHideMenuAllstar();
+    bool checkHideMenuBossBattle();
+    void unlockHideMenuBossBattle();
+    void unlockHideMenuAdditionalRule();
+    void unlockHideMenuRandomStageSW();
+    void initGameFrame();
+    void initGameFrameForReplay();
+    float getGameFrameForPhysics() const;
+    u8 getDistributionType();
     float getGameFrame() const;
     void updateGameFrame();
     bool isJustGameFrame() const;

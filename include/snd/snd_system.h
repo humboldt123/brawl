@@ -1,4 +1,5 @@
-// Local BrawlHeaders shadow: add the verified Final sound-state cleanup entry.
+// Local BrawlHeaders shadow: add the verified Final sound-state cleanup entry and the
+// SE volume factor read by sndDoubutsugoTask.
 #pragma once
 
 #include <StaticAssert.h>
@@ -29,7 +30,10 @@ public:
     nw4r::snd::Sound3DManager m_3DManager;
     nw4r::snd::Sound3DListener m_3DListener;
     sndHeapSys* m_sndHeapSys;
-    char _2D4[0x8FC];
+    char _2D4[0x438];
+    // HYPOTHESIS: SE volume factor; sndDoubutsugoTask scales its voice volume by it.
+    float unk70C;
+    char _710[0x4C0];
 
     int loadSoundGroup(SndGroupID sndGroupId, int, bool isRequest);
     bool isSoundGroupLoaded(SndGroupID sndGroupId);

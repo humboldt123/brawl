@@ -1,6 +1,8 @@
 #pragma once
 
 #include <ft/fighter.h>
+#include <so/damage/so_damage_event_presenter.h>
+#include <so/item/so_item_manage_module_impl.h>
 #include <so/so_array.h>
 #include <ft/ft_common_data_accesser.h>
 #include <so/turn/so_turn_module.h>

@@ -88,10 +88,11 @@ public:
     virtual bool isLoopedPartial(int);
     virtual int getOtherAnimSize();
     virtual int getOtherAnimKind(int);
-    virtual void addOtherAnim(float, float, int, u32, bool);
+    // HYPOTHESIS: the native parameter order is (layer, motion, loop, startFrame, rate); MWCC evaluates the arguments in declared order, which fixes the integer-before-float load order.
+    virtual void addOtherAnim(int, u32, bool, float, float);
     virtual void addOtherAnim(float, float, int, int, int, bool);
     virtual void removeOtherAnim(int);
-    virtual void setOtherAnimRate(float rate, int);
+    virtual void setOtherAnimRate(int, float rate);
     virtual float getOtherAnimRate(int);
     virtual void setOtherAnimFrame(float frame, int);
     virtual float getOtherAnimFrame(int);
@@ -258,10 +259,11 @@ public:
     virtual bool isLoopedPartial(int);
     virtual int getOtherAnimSize();
     virtual int getOtherAnimKind(int);
-    virtual void addOtherAnim(float, float, int, u32, bool);
+    // HYPOTHESIS: the native parameter order is (layer, motion, loop, startFrame, rate); MWCC evaluates the arguments in declared order, which fixes the integer-before-float load order.
+    virtual void addOtherAnim(int, u32, bool, float, float);
     virtual void addOtherAnim(float, float, int, int, int, bool);
     virtual void removeOtherAnim(int);
-    virtual void setOtherAnimRate(float rate, int);
+    virtual void setOtherAnimRate(int, float rate);
     virtual float getOtherAnimRate(int);
     virtual void setOtherAnimFrame(float frame, int);
     virtual float getOtherAnimFrame(int);

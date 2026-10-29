@@ -17,7 +17,9 @@
 
 // ft_dol_array_list.h must come before any header that instantiates one of its arrays.
 #include <em/em_enemy_modules.h>
+#include <it/it_create.h> // itKind (emShootItem)
 #include <StaticAssert.h>
+#include <em/ai/em_ai_unit.h>
 #include <em/em_ai_module_impl.h>
 #include <em/em_area_module_impl.h>
 #include <em/em_archive.h>
@@ -72,16 +74,10 @@ class emTargetSearchUnit;
 extern char g_soReflectModuleNull[];
 // HYPOTHESIS: a null area object (0x10 bytes of sora_melee bss) for the enemy area module.
 extern char lbl_27_bss_A5C[];
+// HYPOTHESIS: the shared null article mediator of sora_melee (0x18 bytes of bss), which the enemies without articles of
+// their own hand to the Enemy constructor.
+extern char lbl_27_bss_1F0[];
 
-// One AI entry of an enemy (emInfo::getAINum of them), handed to emAIModuleImpl by the Enemy constructor. Constructed
-// and destroyed by functions of the Enemy unit; only the pointer and the byte it copies are known.
-// HYPOTHESIS: the pointer is the AI data the entry was set from (its byte +0x14 is copied into m_flag).
-struct emAIEntry {
-    void* m_data;
-    u8 m_flag;
-    emAIEntry();
-    ~emAIEntry();
-};
 
 // A posture of the enemy kept in its parameters (anim cmd 30, Enemy::setPostureFromParam): a position and a facing.
 // HYPOTHESIS: name; the layout comes from setPostureFromParam (x, y, lr) and isLrWithPostureParam (lr).
@@ -267,13 +263,16 @@ protected:
     gfGameFrameCounter m_frameCounters[4];                             // 0x52E0
 
 public:
+    // The value accesser (em_value_accesser.cpp) reads these for its constant ids.
+    int getConnectedTriggerId() const { return m_connectedTriggerId; }
+    u32 getLevel() const { return m_level; }
 
     // The storage of the modules whose capacity depends on the enemy is owned by the derived class: the posture
-    // interpolations, the area instances and their work, the target search units, the AI entries, the article mediator, the
-    // camera subjects and the reflect module.
+    // interpolations, the area instances and their work, the target search units, the AI units (emInfo::getAINum of
+    // them, handed to emAIModuleImpl), the article mediator, the camera subjects and the reflect module.
     // HYPOTHESIS: parameter types; areaWork is stored by the enemy area module, wind is a shared null object of sora_melee.
     Enemy(u32 p1, emCreate* create, soArray<soInterpolation<Vec3f> >* interpolations, soArray<soAreaInstance>* areaInstances,
-          void* areaWork, emTargetSearchUnit* targetSearchUnits, emAIEntry* aiEntries, soArticleMediator* articleMediator,
+          void* areaWork, emTargetSearchUnit* targetSearchUnits, emAIUnit* aiEntries, soArticleMediator* articleMediator,
           void* wind, soArray<soCameraSubject>* cameraSubjects, soReflectModule* reflectModule);
 
     struct Kinetic {
@@ -298,6 +297,7 @@ public:
 
     emAIModuleImpl& getAIModule() { return m_aiModule; }
     EnemyKind getEnemyKind() const { return m_enemyKind; }
+    u32 getCreateId() const { return m_createId; }
     float initStrength();
     // HYPOTHESIS: parameter type.
     float resetLevel(int level);

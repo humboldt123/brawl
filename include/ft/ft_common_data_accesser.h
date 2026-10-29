@@ -94,6 +94,32 @@ struct ftStatusFlagData {
 
 class ftCommonDataAccesser {
 public:
+    // HYPOTHESIS: parameter types of the methods below follow the register use and callers (the module map has none).
+    static void setupCommon(ftDataCommon* dataCommon);
+    static bool isValidDat(ftKind kind);
+    static void reset(ftKind kind);
+    static void reset();
+    ~ftCommonDataAccesser();
+    ftParam* getParam(ftKind kind, int variation) const;
+    float getParamCommonFloat(u32 variation, u32 id) const;
+    s32 getParamCommonInt(u32 variation, u32 id) const;
+    s32* getParamCommonIndefinite(u32 variation, u32 id) const;
+    u32 getResId(ftKind kind) const;
+    u32 getMotionResId(int slotNo, ftKind kind) const;
+    u32 getModelResId(int slotNo, ftKind kind, bool flag) const;
+    u32 getEtcResId(int slotNo, ftKind kind) const;
+    u32 getMotionEtcResId(int slotNo, ftKind kind) const;
+    u32 getEntryResId(ftKind kind, u8 colorNo) const;
+    u32 getResultResId(ftKind kind, u8 colorNo) const;
+    u32 getKirbyResId(int slotNo, ftKind kind, int copyKind) const;
+    void* getKirbyBinData(ftKind kind) const;
+    void* getKirbyStoneData() const;
+    void* getPikachuThunderData() const;
+    void* getPokeLizardonBreathParam(ftKind kind) const;
+    void* getSZerosuitArmorData() const;
+    void* getKoopaBreathParam(ftKind kind) const;
+    void* getGKoopaBreathParam(ftKind kind) const;
+    void* getGanonBeastData() const;
     const ftStatusFlagData* getFtStatusData(ftKind kind, int status) const;
     wnSimpleData* getSimpleData(ftKind kind, bool* resourceGroup) const;
     u32 getFinalResId(ftKind kind) const;

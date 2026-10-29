@@ -32,3 +32,23 @@ wnPopoIceBerg::wnPopoIceBerg(s32 articleId, const wnArticleBuildInfo& info, cons
     m_moduleAccesser->getCollisionHitModule().add(reinterpret_cast<soSet<soCollisionHitData>*>(const_cast<u8*>(data->unk38)), 0);
     Weapon::deactivate(false);
 }
+
+void wnPopoIceBerg::onDeactivate() {
+    wnPopoIceBergLinkEvent event(0x45c);
+    m_moduleAccesser->getLinkModule().sendEventParents(3, event);
+}
+
+bool wnPopoIceBerg::notifyEventCollisionAttackCheck(u32 flags) {
+    if (flags & 6) {
+        return false;
+    }
+    return Weapon::notifyEventCollisionAttackCheck(flags);
+}
+
+void wnPopoIceBerg::syncCapsuleSRT(u32 index) {
+    if (m_moduleAccesser->getCollisionAttackModule().isAttack(index, false) &&
+        m_moduleAccesser->getCollisionAttackModule().getData(index, false) != 0) {
+        m_moduleAccesser->getWorkManageModule().getFloat(0x11000001);
+        m_moduleAccesser->getWorkManageModule().getFloat(0x11000002);
+    }
+}

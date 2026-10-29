@@ -4,6 +4,7 @@
 
 #include <StaticAssert.h>
 #include <it/it_archive.h>
+#include <ft/fighter.h> // (it_customizer.h uses ftKind, the damage observer and the item manage module)
 #include <it/it_customizer.h>
 #include <it/it_gen_archive.h>
 #include <it/item.h>

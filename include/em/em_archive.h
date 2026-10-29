@@ -21,6 +21,13 @@ public:
     u32 faceTexBrresResourceId; // 0x10, the brres archive
     u32 extendBrresResourceId;  // 0x14, the Primid face brres (Primid kinds only)
 
+    // The Enemy reads the ids through these: as call arguments the original evaluates them before the trivial
+    // arguments (an accessor result is a temporary; a plain member read is deferred in parameter order).
+    u32 getEnmCommonResourceId() const { return enmCommonResourceId; }
+    u32 getBrresResourceId() const { return brresResourceId; }
+    u32 getParamResourceId() const { return paramResourceId; }
+    u32 getFaceTexBrresResourceId() const { return faceTexBrresResourceId; }
+
     emArchive(gfArchive* param, gfArchive* brres, gfArchive* enmCommon, gfArchive* primFaceBrres, EnemyKind kind);
     ~emArchive();
     // Whether every registered archive has finished loading.

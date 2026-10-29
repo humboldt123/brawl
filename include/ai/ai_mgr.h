@@ -43,7 +43,11 @@ struct aiChrIdx {
 class aiMgr : public gfTask, public ftOutsideEventObserver {
     // HYPOTHESIS: layout recovered from the accessors only; everything not listed is still opaque.
     aiInput* m_aiInput[14];    // 0x4C: the CPU input of each character slot (see aiChrIdx; NULL for humans)
-    char _132[772];
+    char _132[0x358 - 0x84];
+
+public:
+    u16 m_unk358;              // 0x358: HYPOTHESIS: floor block count (aiStat::chkEnableAway needs more than one)
+    char unk35A[0x388 - 0x35A];
 
 public:
     virtual void processBegin();

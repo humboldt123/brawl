@@ -15,5 +15,7 @@ public:
     // The body lives in the module blob; declared so the class info createArray can construct articles.
     wnPokeFushigisouSeed(s32 articleId, const wnArticleBuildInfo& info, const wnPokeFushigisouSeedData* data);
     virtual ~wnPokeFushigisouSeed();
+    virtual void onDeactivate();
+    virtual bool notifyEventCollisionAttackCheck(u32 flags);
 };
 static_assert(sizeof(wnPokeFushigisouSeed) == 0x16A8, "Pokemon seed article extent");

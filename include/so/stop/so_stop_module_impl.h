@@ -70,7 +70,7 @@ public:
     virtual void setHitStopFrameFix(s32);
 
     virtual bool isObserv(char unk1);
-    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, soAnimCmdEventS32 unk3);
 
     // HYPOTHESIS: hit-stop frames of a hit: power * mul + add, kept between the two bounds.
     static int calcHitStopFrame(float power, float mul, float add, float minFrame, float maxFrame);

@@ -5,12 +5,6 @@
 #include <ft/ft_kinetic_energy.h>
 #include <so/so_module_accesser.h>
 
-// MATCH-ONLY: the existing Vec2f::rot ABI takes source in r3, output in r4 and
-// angle in f1. Put angle before output in this call declaration to retain the
-// native argument setup. This adds no helper implementation or new symbol.
-#define rotateLaunchSpeed rot__5Vec2fFP5Vec2ff
-extern "C" void rotateLaunchSpeed(Vec2f* source, float angle, Vec2f* output);
-
 void ftWarioStatusUniqProcessSpecialSEscape::execFixPosCounter(soModuleAccesser* a) {
     // MATCH-ONLY: declaration order preserves native module and vector allocation.
     soGroundModule* ground;
@@ -50,7 +44,7 @@ void ftWarioStatusUniqProcessSpecialSEscape::execFixPosCounter(soModuleAccesser*
             link->unlink(6);
             a->getSituationModule().setKind(Situation_Air, false);
         }
-        rotateLaunchSpeed(&speed, 0.017453292f * (-angle * lr), &speed);
+        speed.rot(0.017453292f * (-angle * lr), &speed);
         a->getStageObject().updateNodeSRT();
         ftKineticEnergyStop& horizontal = dynamic_cast<ftKineticEnergyStop&>(*kinetic->getEnergy(3));
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic->getEnergy(1));

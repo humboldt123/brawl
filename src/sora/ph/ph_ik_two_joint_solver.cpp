@@ -13,6 +13,28 @@
 #include <math.h>
 #include <ph/phIkTwoJointSolver.h>
 
+// HYPOTHESIS: the static zero vector of hkVector4.o (copied there during static initialisation).
+extern hkVector4 lbl_80532550;
+
+void phIkTwoJointSolver::SetupInfo::init() {
+    unk00 = -1;
+    unk04[0] = -1;
+    unk04[1] = -1;
+    unk04[2] = -1;
+    unk04[3] = -1;
+    unk10 = hkVector4(-1.0f, 0.0f, 0.0f, 0.0f);
+    unk20[0] = -1.0f;
+    unk20[1] = 1.0f;
+    unk20[2] = 1.0f;
+    unk20[3] = 1.0f;
+    unk30 = lbl_80532550;
+    unk40 = lbl_80532550;
+    unk50[0] = 3.1415927f;
+    unk50[1] = 3.1415927f;
+    unk58[0] = 5.0f;
+    unk58[1] = 5.0f;
+}
+
 void phIkTwoJointSolver::init() {}
 
 void phIkTwoJointSolver::setSolverParamData(const f32* param) {

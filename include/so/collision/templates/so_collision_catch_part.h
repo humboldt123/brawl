@@ -17,5 +17,8 @@ class soCollisionCatchPart {
     soCollisionCatchData m_data;
     soArrayVector<clTarget, 6> m_targets;
     s32 unk58;
+
+public:
+    void reset();
 };
 static_assert(sizeof(soCollisionCatchPart) == 0x5C, "Class is wrong size!");

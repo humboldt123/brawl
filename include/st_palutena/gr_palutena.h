@@ -264,7 +264,7 @@ protected:
 
 public:
     grPalutenaAshibaKumo(const char* taskName);
-    virtual ~grPalutenaAshibaKumo();
+    virtual ~grPalutenaAshibaKumo() __attribute__((never_inline)); // the derived destructors call it out of line
     virtual void setPosGimmickWork(Vec3f* posGimmick) { m_posGimmick = posGimmick; }
     static grPalutenaAshibaKumo* create(int mdlIndex, const char* tgtNodeName, const char* taskName);
 };

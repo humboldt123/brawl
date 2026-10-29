@@ -15,5 +15,13 @@ public:
     // The body lives in the module blob; declared so the class info createArray can construct articles.
     wnPopoIceShot(s32 articleId, const wnArticleBuildInfo& info, const wnPopoIceShotData* data);
     virtual ~wnPopoIceShot();
+    // HYPOTHESIS: the parameter order and types follow the Popo transactor's call (founder task, resource, team,
+    // position, facing, extra id) and the Blizzard activation; the map gives none.
+    void activate(int founderTaskId, int resourceId, int team, const Vec3f* pos, float lr, int unk40);
+    void shoot();
+    virtual void processUpdate();
+    virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    virtual void updatePosture(bool);
 };
 static_assert(sizeof(wnPopoIceShot) == 0x23D0, "Popo ice shot article extent");

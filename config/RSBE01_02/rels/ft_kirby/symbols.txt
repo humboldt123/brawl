@@ -320,7 +320,7 @@ pop__32soArrayNull<17soPhysicsIKHandle>Fv = .text:0x0000F020; // type:function s
 addObserver__21soStatusEventObserverFsSc = .text:0x0000F024; // type:function size:0x14
 addObserver__24soSituationEventObserverFsSc = .text:0x0000F038; // type:function size:0x14
 addObserver__30soCollisionAttackEventObserverFsSc = .text:0x0000F04C; // type:function size:0x14
-notifyEventCollisionHit2nd__27soCollisionHitEventObserverFffP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserb = .text:0x0000F060; // type:function size:0x4
+notifyEventCollisionHit2nd__27soCollisionHitEventObserverFP23soCollisionAttackModuleP14soCollisionLogUlffP16soModuleAccesserb = .text:0x0000F060; // type:function size:0x4
 clear__32soArrayNull<17soPhysicsIKHandle>Fv = .text:0x0000F064; // type:function size:0x4
 addObserver__27soCollisionHitEventObserverFsSc = .text:0x0000F068; // type:function size:0x14
 addObserver__30soCollisionShieldEventObserverFsSc = .text:0x0000F07C; // type:function size:0x14
@@ -1048,7 +1048,7 @@ deactivateDescendantForce__62wnWeaponBuilder<43wnKirbyFinalCutterModuleAccesserB
 @100@notifyEventChangeStatus__6WeaponFiiP12soStatusDataP16soModuleAccesser = .text:0x00023F74; // type:function size:0x8
 @112@notifyEventCollisionAttackCheck__18wnKirbyFinalCutterFUl = .text:0x00023F7C; // type:function size:0x8
 @112@notifyEventCollisionAttack__6WeaponFfP14soCollisionLogP16soModuleAccesser = .text:0x00023F84; // type:function size:0x8
-@124@notifyEventCollisionHit2nd__6WeaponFffP23soCollisionAttackModuleP14soCollisionLogUlP16soModuleAccesserb = .text:0x00023F8C; // type:function size:0x8
+@124@notifyEventCollisionHit2nd__6WeaponFP23soCollisionAttackModuleP14soCollisionLogUlffP16soModuleAccesserb = .text:0x00023F8C; // type:function size:0x8
 @124@notifyEventCollisionHit__6WeaponFfP21soCollisionAttackDataUliP16soModuleAccesserP14soCollisionLog = .text:0x00023F94; // type:function size:0x8
 @144@__dt__18wnKirbyFinalCutterFv = .text:0x00023F9C; // type:function size:0x8
 @136@setAttackPowerMulPattern__6WeaponFf = .text:0x00023FA4; // type:function size:0x8

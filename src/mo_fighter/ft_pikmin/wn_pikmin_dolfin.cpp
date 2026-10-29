@@ -174,7 +174,7 @@ void wnPikminDolfin::activate(int founderTaskId, int kind, int team, Vec3f* pos)
     Weapon::activate(&desc);
     m_moduleAccesser->getWorkManageModule().onFlag(0x12000000);
     m_moduleAccesser->getMotionModule().removeOtherAnim(1);
-    m_moduleAccesser->getMotionModule().addOtherAnim(0.0f, 1.0f, 1, 7, false);
+    m_moduleAccesser->getMotionModule().addOtherAnim(1, 7, false, 0.0f, 1.0f);
     m_moduleAccesser->getLinkModule().setAttribute(3, static_cast<soLinkConnection::Attribute>(4), true);
     m_moduleAccesser->getLinkModule().setAttribute(3, static_cast<soLinkConnection::Attribute>(2), true);
 }

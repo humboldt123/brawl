@@ -4,8 +4,10 @@
 #define WN_ARTICLE_ANIMCMD_INT
 #define FT_REL_LINK_EXTERN
 #define MT_VEC2F_CTOR_NOINLINE
+#define WN_EXTEND_PARAM_ACCESSER_NOINLINE
 #include <wn/wn_module_accesser_builder.h>
 #include <wn/dedede/wn_dedede_star.h>
+#include <wn/dedede/wn_dedede_follower_param_accesser.h>
 #include <wn/wn_activate_desc.h>
 #include <so/so_module_accesser.h>
 #include <wn/wn_kinetic_energy_normal.h>
@@ -72,4 +74,137 @@ void wnDededeStar::activate(int founderTaskId, int unused, int team, const Vec3f
     normal.m_speed.m_x = velocity.m_x;
     normal.m_speed.m_y = velocity.m_y;
     m_moduleAccesser->getStatusModule().changeStatusForce(0, m_moduleAccesser);
+}
+
+wnDededeFollowerParamAccesser::wnDededeFollowerParamAccesser(const wnParamDededeFollower* param,
+                                                             const wnParamDededeFollowerCommon* common) :
+    wnExtendParamAccesser<3999, 27, 23999, 16, 0, 0>(0x33), m_common(common, 3) {
+    m_floats[0] = &param->unkC;
+    m_floats[1] = &param->unk10;
+    m_floats[2] = &param->unk14;
+    m_floats[3] = &param->unk18;
+    m_floats[4] = &param->unk24;
+    m_floats[5] = &param->unk28;
+    m_floats[6] = &param->unk30;
+    m_floats[7] = &param->unk34;
+    m_ints[0] = &param->unk0;
+    m_ints[1] = &param->unk4;
+    m_ints[2] = &param->unk8;
+    m_ints[3] = &param->unk1C;
+    m_ints[4] = &param->unk20;
+    m_ints[5] = &param->unk2C;
+}
+
+// MATCH-ONLY: the native queries call the const element accessor of the table.
+#define DEDEDE_FOLLOWER_COMMON(variation)     static_cast<const soArrayContractibleTable<const wnParamDededeFollowerCommon>&>(m_common).at(variation)
+
+float wnDededeFollowerParamAccesser::getParamFloat(soModuleAccesser* acc, s32 id, s32 index) {
+    float result;
+    if (id < 0xFA8) {
+        result = wnExtendParamAccesser<3999, 27, 23999, 16, 0, 0>::getParamFloat(acc, id, index);
+    } else {
+        u32 variation = acc->getWorkManageModule().getInt(0x10000005);
+        switch (id) {
+        case 0xFA9:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk0;
+            break;
+        case 0xFAA:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk4;
+            break;
+        case 0xFAB:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unkC;
+            break;
+        case 0xFAC:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk24;
+            break;
+        case 0xFAD:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk28;
+            break;
+        case 0xFAE:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk2C;
+            break;
+        case 0xFAF:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk30;
+            break;
+        case 0xFB0:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk34;
+            break;
+        case 0xFB1:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk38;
+            break;
+        case 0xFB2:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk3C;
+            break;
+        case 0xFB3:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk40;
+            break;
+        case 0xFB4:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk44;
+            break;
+        case 0xFB5:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk48;
+            break;
+        case 0xFB6:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk4C;
+            break;
+        case 0xFB7:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk50;
+            break;
+        case 0xFB8:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk54;
+            break;
+        case 0xFB9:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk5C;
+            break;
+        case 0xFBA:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk60;
+            break;
+        default:
+            result = 0.0f;
+            break;
+        }
+    }
+    return result;
+}
+
+s32 wnDededeFollowerParamAccesser::getParamInt(soModuleAccesser* acc, s32 id, s32 index) {
+    s32 result;
+    if (id < 0x5DC6) {
+        result = wnExtendParamAccesser<3999, 27, 23999, 16, 0, 0>::getParamInt(acc, id, index);
+    } else {
+        u32 variation = acc->getWorkManageModule().getInt(0x10000005);
+        switch (id) {
+        case 0x5DC7:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk8;
+            break;
+        case 0x5DC8:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk10;
+            break;
+        case 0x5DC9:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk14;
+            break;
+        case 0x5DCA:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk18;
+            break;
+        case 0x5DCB:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk1C;
+            break;
+        case 0x5DCC:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk20;
+            break;
+        case 0x5DCD:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk58;
+            break;
+        case 0x5DCE:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk64;
+            break;
+        case 0x5DCF:
+            result = DEDEDE_FOLLOWER_COMMON(variation).unk68;
+            break;
+        default:
+            result = 0;
+            break;
+        }
+    }
+    return result;
 }

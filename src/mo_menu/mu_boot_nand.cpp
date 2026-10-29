@@ -67,7 +67,7 @@ void muBootNandTask::processDefault() {
         // all the parts of the save data are in use until the player says no
         m_flags |= 0x1F;
         fn_8004EAE0(g_GameGlobal, m_flags);
-        fn_80030954(m_recorder, Heaps::MenuResource, 8);
+        m_recorder->requestCheck(Heaps::MenuResource, 8);
         m_step = 3;
         break;
     case 0x03:
@@ -121,7 +121,7 @@ void muBootNandTask::processDefault() {
         break;
     case 0x08: {
         openWnd(3, m_msgData, 1, -1);
-        fn_800309F8(m_recorder, Heaps::MenuResource, 8);
+        m_recorder->requestRenew(Heaps::MenuResource, 8);
         nw4r::g3d::ScnGroup* root = m_cameraTask->m_scnRoot;
         root->Insert(root->sceneItemsCount, reinterpret_cast<nw4r::g3d::ScnObj*>(m_object->m_scnMdl));
         m_object->setFrame(0.0f);
@@ -273,7 +273,7 @@ void muBootNandTask::processDefault() {
         break;
     case 0x1D: {
         openWnd(3, m_msgData, 1, -1);
-        fn_800309F8(m_recorder, Heaps::MenuResource, m_require[m_requireIndex].m_kind);
+        m_recorder->requestRenew(Heaps::MenuResource, m_require[m_requireIndex].m_kind);
         nw4r::g3d::ScnGroup* root = m_cameraTask->m_scnRoot;
         root->Insert(root->sceneItemsCount, reinterpret_cast<nw4r::g3d::ScnObj*>(m_object->m_scnMdl));
         m_object->setFrame(0.0f);
@@ -389,7 +389,7 @@ void muBootNandTask::processDefault() {
         void* msgData = m_msgData;
         openWnd(3, msgData, 1, -1);
         m_requireKind = 0;
-        fn_800309F8(m_recorder, Heaps::MenuResource, 7);
+        m_recorder->requestRenew(Heaps::MenuResource, 7);
         nw4r::g3d::ScnGroup* root = m_cameraTask->m_scnRoot;
         root->Insert(root->sceneItemsCount, reinterpret_cast<nw4r::g3d::ScnObj*>(m_object->m_scnMdl));
         m_object->setFrame(0.0f);
@@ -436,7 +436,7 @@ void muBootNandTask::processDefault() {
         break;
     case 0x33:
         // the banner is made new
-        fn_800309F8(m_recorder, Heaps::MenuResource, 4);
+        m_recorder->requestRenew(Heaps::MenuResource, 4);
         m_step = 0x34;
         break;
     case 0x34:
@@ -467,14 +467,14 @@ void muBootNandTask::processDefault() {
     case 0x37:
         // the parts of the save data that are in use are told to the game, then the system data is loaded
         fn_8004EAE0(g_GameGlobal, m_flags);
-        if (fn_800305B0(0) == 1) {
+        if (gfSysRecorder2::isEnable(0) == 1) {
             m_step = 0x38;
         } else {
             m_step = 0x3D;
         }
         break;
     case 0x38:
-        fn_80030F64(m_recorder, Heaps::MenuResource);
+        m_recorder->loadSystem(Heaps::MenuResource);
         m_step = 0x39;
         break;
     case 0x39:
@@ -523,11 +523,11 @@ void muBootNandTask::initialize() {
     m_answer = -1;
     m_step = 0;
     m_frame = 0;
-    m_recorder = fn_80030548(Heaps::MenuInstance);
+    m_recorder = gfSysRecorder2::createInstance(Heaps::MenuInstance);
 }
 
 void muBootNandTask::release() {
-    fn_800307B4();
+    gfSysRecorder2::dropInstance();
     m_recorder = NULL;
     closeWnd();
     m_cameraTask->exit();

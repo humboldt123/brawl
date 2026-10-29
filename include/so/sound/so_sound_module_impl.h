@@ -61,14 +61,14 @@ public:
     // implementation (pitch scaling and selection of the default sound source).
     virtual int playSE(SndID sndId, bool, bool, int);
     virtual int playSENo3d(SndID sndId, bool);
-    virtual int playSEPos(SndID sndId, Vec3f* pos, bool, int, int);
+    virtual int playSEPos(SndID sndId, Vec3f* pos, bool, bool, int);
     virtual int playStatusSE(SndID sndId, bool, int);
     virtual void stopStatusSE();
     virtual void setPlayHitSEFlag(bool);
     virtual bool getPlayHitSEFlag();
     virtual void playHitSE(float, void*);
     virtual void playDamageSE(u32 index1, u32 index2);
-    virtual void setSEVol(float, int, int);
+    virtual void setSEVol(int handle, float volume, int); // HYPOTHESIS: order from the argument evaluation in Ike Quick Draw.
     virtual float getSEVol(int);
     virtual void setSEPitch(float);
     virtual void setSEPitch(u32, double);
@@ -92,7 +92,8 @@ public:
     soSoundModuleImpl(soModuleAccesser* acc, soSound3dGeneratorAccesser* gen, soSoundIdExchanger* exchanger, bool b1, bool b2, soEventObserverRegistrationDesc* regDesc);
 private:
 #endif
-    char _52[8];
+    int m_seGroupId;       // 0x34: HYPOTHESIS: the sound-group id issued by sndSystem for ordinary SEs
+    int m_statusSEGroupId; // 0x38: HYPOTHESIS: the sound-group id issued by sndSystem for status SEs
     soSound3dGeneratorAccesser* m_soundGeneratorAccesser;
     soModuleAccesser* m_moduleAccesser;
     soSoundIdExchanger* m_soundIdExchanger;
@@ -113,14 +114,14 @@ public:
     virtual void setPos(Vec3f* pos, int);
     virtual int playSE(SndID sndId, bool, bool, int);
     virtual int playSENo3d(SndID sndId, bool);
-    virtual int playSEPos(SndID sndId, Vec3f* pos, bool, int, int);
+    virtual int playSEPos(SndID sndId, Vec3f* pos, bool, bool, int);
     virtual int playStatusSE(SndID sndId, bool, int);
     virtual void stopStatusSE();
     virtual void setPlayHitSEFlag(bool);
     virtual bool getPlayHitSEFlag();
     virtual void playHitSE(float, void*);
     virtual void playDamageSE(u32 index1, u32 index2);
-    virtual void setSEVol(float, int, int);
+    virtual void setSEVol(int handle, float volume, int); // HYPOTHESIS: order from the argument evaluation in Ike Quick Draw.
     virtual float getSEVol(int);
     virtual void setSEPitch(float);
     virtual void setSEPitch(u32, double);

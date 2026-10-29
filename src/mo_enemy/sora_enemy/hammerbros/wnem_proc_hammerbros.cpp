@@ -33,9 +33,9 @@ void wnemHammerbrosProc::HammerFly(wnemSimple* wn, soModuleAccesser* acc) {
     if (acc->getTeamModule().getTeam()->getNo() != TeamNo_None) {
         emShotParam* param = wn->m_shotWork.m_param;
         if (param != nullptr) {
-            // HYPOTHESIS: 0x2200/0x2204 are the article's x/y speed.
-            wn->unk2200 = 0.0f;
-            wn->unk2204 = param->m_flySpeedY;
+            // HYPOTHESIS: the hammer's vertical speed (m_flySpeedY) goes into the article's acceleration.
+            wn->m_accel.m_x = 0.0f;
+            wn->m_accel.m_y = param->m_flySpeedY;
         }
     }
 }

@@ -44,7 +44,7 @@ public:
     int m_step;                                 // 0x54
     int m_frame;                                // 0x58
 
-    muEndPicTask() : gfTask("EndPic", Category_Menu, 0xF, 8, true), m_resFile(static_cast<void*>(NULL)),
+    muEndPicTask(const char* name) : gfTask(name, Category_Menu, 0xF, 8, true), m_resFile(static_cast<void*>(NULL)),
                      m_resFileTex(static_cast<void*>(NULL)), m_cameraTask(NULL), m_object(NULL), m_msg(NULL), m_step(0), m_frame(0) { }
     static muEndPicTask* create();
 

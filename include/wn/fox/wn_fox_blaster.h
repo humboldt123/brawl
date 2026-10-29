@@ -14,6 +14,11 @@ class wnFoxBlaster : public Weapon {
 public:
     // The body lives in the module blob; declared so the class info's createArray can construct articles.
     wnFoxBlaster(s32 articleId, const wnArticleBuildInfo& info, const wnFoxBlasterData* data);
+    // HYPOTHESIS: parameter types follow ftFoxTransactor::activeArticle1, which forwards its model and texture
+    // resource ids and two flags; the founder task id comes first and the team last.
+    void activate(int founderTaskId, u32 mdlResId, u32 texResId, bool unk1, bool unk2, int team);
+    virtual void notifyEventLink(soLinkEventArgs* event, soModuleAccesser* moduleAccesser, StageObject* sender,
+                                 int selector);
     virtual ~wnFoxBlaster();
 };
 static_assert(sizeof(wnFoxBlaster) == 0x1D7C, "Fox Blaster article extent");
