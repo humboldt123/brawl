@@ -80,27 +80,15 @@ ftPokeLizardonTransactor* ftPokeLizardonTransactor::getInstance() {
 #pragma pool_data reset
 
 // ---- the article holders --------------------------------------------------------------------------------------------
-// What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind PokeLizardon, copied into the
-// descriptor), the heap module and the data block of the fighter kind.
-// HYPOTHESIS: the original builds these in the holder constructor itself.
-struct ftPokeLizardonArticleDataTag {
-    bool m_unused;
-    bool m_resourceGroup;
-    ftPokeLizardonArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
-};
+// Articles borrow the owner's kind record and heap while their constructors run.
+// The data lookup receives a separate snapshot of the owner's fighter kind.
+#include <ft/builder/ft_builder_article.h>
 
 struct ftPokeLizardonArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
     ftPokeLizardonArticleKind() {
         kind = 0;
         subKind = Fighter_PokeLizardon;
-    }
-};
-
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
-struct ftPokeLizardonArticleBuildInfo : wnArticleBuildInfo {
-    ftPokeLizardonArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
-        kindInfo = &kindArg;
-        heapModule = heap;
     }
 };
 
@@ -109,24 +97,10 @@ extern "C" void* fn_27_148198(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_148228(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_14823C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftPokeLizardonArticleTraits;
-#define FT_POKELIZARDON_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftPokeLizardonArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftPokeLizardonArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_PokeLizardon, &tag.m_resourceGroup)); \
-        } \
-    };
-
-FT_POKELIZARDON_TRAITS(wnPokeLizardonBreath, wnPokeLizardonBreathData, 0, fn_27_148198)
-FT_POKELIZARDON_TRAITS(wnPokeLizardonRock, wnPokeLizardonRockData, 1, fn_27_148228)
-FT_POKELIZARDON_TRAITS(wnPokeLizardonRockStone, wnPokeLizardonRockStoneData, 2, fn_27_14823C)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftPokeLizardonArticleTraits<W>::ArticleId, ftPokeLizardonArticleBuildInfo(ftPokeLizardonArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftPokeLizardonArticleTraits<W>::getData()) { }
+// Keep explicit holder bodies where the pool calls them out of line.
+FT_DEFINE_ARTICLE_HOLDER(, wnPokeLizardonBreath, wnPokeLizardonBreathData, 0, ftPokeLizardonArticleKind, fn_27_148198)
+FT_DEFINE_ARTICLE_HOLDER(, wnPokeLizardonRock, wnPokeLizardonRockData, 1, ftPokeLizardonArticleKind, fn_27_148228)
+FT_DEFINE_ARTICLE_HOLDER(, wnPokeLizardonRockStone, wnPokeLizardonRockStoneData, 2, ftPokeLizardonArticleKind, fn_27_14823C)
 
 // ---- the articles and their mediator --------------------------------------------------------------------------------
 

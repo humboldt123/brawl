@@ -260,51 +260,25 @@ void* fn_101_5D94(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator de
 } // extern "C"
 
 // ---- the article holders --------------------------------------------------------------------------------------------
-// What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Ness, copied into
-// the descriptor), the heap module and the data block of the fighter kind.
-// HYPOTHESIS: the original builds these in the holder constructor itself.
-struct ftNessArticleDataTag {
-    bool m_unused;
-    bool m_resourceGroup;
-    ftNessArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
-};
+// Articles borrow the owner's kind record and heap while their constructors run.
+// The data lookup receives a separate snapshot of the owner's fighter kind.
+#include <ft/builder/ft_builder_article.h>
 
 struct ftNessArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
     ftNessArticleKind() {
         kind = 0;
         subKind = Fighter_Ness;
     }
 };
 
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
-struct ftNessArticleBuildInfo : wnArticleBuildInfo {
-    ftNessArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
-        kindInfo = &kindArg;
-        heapModule = heap;
-    }
-};
-
-template <class W> struct ftNessArticleTraits;
-#define FT_NESS_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftNessArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static DATA* getData() { \
-            ftNessArticleDataTag tag; \
-            return static_cast<DATA*>(g_ftCommonDataAccesser.GETTER(Fighter_Ness, &tag.m_resourceGroup)); \
-        } \
-    };
-
-FT_NESS_TRAITS(wnNessPKFlash, void, 0, getWeaponData121)
-FT_NESS_TRAITS(wnNessPKFire, const wnNessPKFireData, 1, getWeaponData122)
-FT_NESS_TRAITS(wnNessPKThunder, const wnNessPKThunderData, 2, getWeaponData123)
-FT_NESS_TRAITS(wnNessPKStarStorm, const wnNessPKStarStormData, 3, getWeaponData125)
-FT_NESS_TRAITS(wnNessYoyo, const wnNessYoyoData, 4, getWeaponData126)
-FT_NESS_TRAITS(wnNessYoyoHead, const wnNessYoyoHeadData, 5, getWeaponData127)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftNessArticleTraits<W>::ArticleId, ftNessArticleBuildInfo(ftNessArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftNessArticleTraits<W>::getData()) { }
+// Keep explicit holder bodies where the pool calls them out of line.
+FT_DEFINE_ARTICLE_HOLDER_MEMBER(inline, wnNessPKFlash, void, 0, ftNessArticleKind, getWeaponData121)
+FT_DEFINE_ARTICLE_HOLDER_MEMBER(inline, wnNessPKFire, const wnNessPKFireData, 1, ftNessArticleKind, getWeaponData122)
+FT_DEFINE_ARTICLE_HOLDER_MEMBER(inline, wnNessPKThunder, const wnNessPKThunderData, 2, ftNessArticleKind, getWeaponData123)
+FT_DEFINE_ARTICLE_HOLDER_MEMBER(inline, wnNessPKStarStorm, const wnNessPKStarStormData, 3, ftNessArticleKind, getWeaponData125)
+FT_DEFINE_ARTICLE_HOLDER_MEMBER(inline, wnNessYoyo, const wnNessYoyoData, 4, ftNessArticleKind, getWeaponData126)
+FT_DEFINE_ARTICLE_HOLDER_MEMBER(inline, wnNessYoyoHead, const wnNessYoyoHeadData, 5, ftNessArticleKind, getWeaponData127)
 
 // ---- the articles of Ness and their mediator ------------------------------------------------------------------------------
 

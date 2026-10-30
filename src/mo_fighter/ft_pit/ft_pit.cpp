@@ -100,27 +100,15 @@ bool ftPit::activeArticle1(wnPitParthena* weapon, soModuleAccesser* acc) {
 }
 
 // ---- the article holders --------------------------------------------------------------------------------------------
-// What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Pit, copied into the
-// descriptor), the heap module and the data block of the fighter kind.
-// HYPOTHESIS: the original builds these in the holder constructor itself.
-struct ftPitArticleDataTag {
-    bool m_unused;
-    bool m_resourceGroup;
-    ftPitArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
-};
+// Articles borrow the owner's kind record and heap while their constructors run.
+// The data lookup receives a separate snapshot of the owner's fighter kind.
+#include <ft/builder/ft_builder_article.h>
 
 struct ftPitArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
     ftPitArticleKind() {
         kind = 0;
         subKind = Fighter_Pit;
-    }
-};
-
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
-struct ftPitArticleBuildInfo : wnArticleBuildInfo {
-    ftPitArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
-        kindInfo = &kindArg;
-        heapModule = heap;
     }
 };
 
@@ -129,24 +117,10 @@ extern "C" void* fn_27_149064(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_1490FC(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_1491AC(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftPitArticleTraits;
-#define FT_PIT_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftPitArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftPitArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_Pit, &tag.m_resourceGroup)); \
-        } \
-    };
-
-FT_PIT_TRAITS(wnPitBow, wnPitBowData, 0, fn_27_149064)
-FT_PIT_TRAITS(wnPitBowArrow, wnPitBowArrowData, 1, fn_27_1490FC)
-FT_PIT_TRAITS(wnPitParthena, wnPitParthenaData, 2, fn_27_1491AC)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftPitArticleTraits<W>::ArticleId, ftPitArticleBuildInfo(ftPitArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftPitArticleTraits<W>::getData()) { }
+// Keep explicit holder bodies where the pool calls them out of line.
+FT_DEFINE_ARTICLE_HOLDER(inline, wnPitBow, wnPitBowData, 0, ftPitArticleKind, fn_27_149064)
+FT_DEFINE_ARTICLE_HOLDER(, wnPitBowArrow, wnPitBowArrowData, 1, ftPitArticleKind, fn_27_1490FC)
+FT_DEFINE_ARTICLE_HOLDER(inline, wnPitParthena, wnPitParthenaData, 2, ftPitArticleKind, fn_27_1491AC)
 
 // ---- the articles and their mediator --------------------------------------------------------------------------------
 

@@ -127,27 +127,15 @@ bool ftLuigi::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, s32 inde
 
 
 // ---- the article holders --------------------------------------------------------------------------------------------
-// What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Luigi, copied into the
-// descriptor), the heap module and the data block of the fighter kind.
-// HYPOTHESIS: the original builds these in the holder constructor itself.
-struct ftLuigiArticleDataTag {
-    bool m_unused;
-    bool m_resourceGroup;
-    ftLuigiArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
-};
+// Articles borrow the owner's kind record and heap while their constructors run.
+// The data lookup receives a separate snapshot of the owner's fighter kind.
+#include <ft/builder/ft_builder_article.h>
 
 struct ftLuigiArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
     ftLuigiArticleKind() {
         kind = 0;
         subKind = Fighter_Luigi;
-    }
-};
-
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
-struct ftLuigiArticleBuildInfo : wnArticleBuildInfo {
-    ftLuigiArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
-        kindInfo = &kindArg;
-        heapModule = heap;
     }
 };
 
@@ -155,23 +143,9 @@ struct ftLuigiArticleBuildInfo : wnArticleBuildInfo {
 extern "C" void* fn_27_148DA4(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_148E3C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftLuigiArticleTraits;
-#define FT_LUIGI_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftLuigiArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftLuigiArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_Luigi, &tag.m_resourceGroup)); \
-        } \
-    };
-
-FT_LUIGI_TRAITS(wnLuigiFireball, wnMarioFireballData, 0, fn_27_148DA4)
-FT_LUIGI_TRAITS(wnLuigiNegativeZone, wnLuigiNegativeZoneData, 1, fn_27_148E3C)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftLuigiArticleTraits<W>::ArticleId, ftLuigiArticleBuildInfo(ftLuigiArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftLuigiArticleTraits<W>::getData()) { }
+// Keep explicit holder bodies where the pool calls them out of line.
+FT_DEFINE_ARTICLE_HOLDER(, wnLuigiFireball, wnMarioFireballData, 0, ftLuigiArticleKind, fn_27_148DA4)
+FT_DEFINE_ARTICLE_HOLDER(inline, wnLuigiNegativeZone, wnLuigiNegativeZoneData, 1, ftLuigiArticleKind, fn_27_148E3C)
 
 // ---- the articles of Luigi and their mediator -----------------------------------------------------------------------
 

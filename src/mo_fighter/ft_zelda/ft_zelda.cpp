@@ -119,27 +119,15 @@ bool ftZelda::activeArticle2(wnZeldaLightingBowArrow* weapon, soModuleAccesser* 
 }
 
 // ---- the article holders --------------------------------------------------------------------------------------------
-// What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Zelda, copied into the
-// descriptor), the heap module and the data block of the fighter kind.
-// HYPOTHESIS: the original builds these in the holder constructor itself.
-struct ftZeldaArticleDataTag {
-    bool m_unused;
-    bool m_resourceGroup;
-    ftZeldaArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
-};
+// Articles borrow the owner's kind record and heap while their constructors run.
+// The data lookup receives a separate snapshot of the owner's fighter kind.
+#include <ft/builder/ft_builder_article.h>
 
 struct ftZeldaArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
     ftZeldaArticleKind() {
         kind = 0;
         subKind = Fighter_Zelda;
-    }
-};
-
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
-struct ftZeldaArticleBuildInfo : wnArticleBuildInfo {
-    ftZeldaArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
-        kindInfo = &kindArg;
-        heapModule = heap;
     }
 };
 
@@ -149,25 +137,11 @@ extern "C" void* fn_27_148344(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_148358(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_14836C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftZeldaArticleTraits;
-#define FT_ZELDA_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftZeldaArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftZeldaArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_Zelda, &tag.m_resourceGroup)); \
-        } \
-    };
-
-FT_ZELDA_TRAITS(wnZeldaDein, wnZeldaDeinData, 0, fn_27_148330)
-FT_ZELDA_TRAITS(wnZeldaDeinS, wnZeldaDeinSData, 1, fn_27_148344)
-FT_ZELDA_TRAITS(wnZeldaLightingBow, wnZeldaLightingBowData, 2, fn_27_148358)
-FT_ZELDA_TRAITS(wnZeldaLightingBowArrow, wnZeldaLightingBowArrowData, 3, fn_27_14836C)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftZeldaArticleTraits<W>::ArticleId, ftZeldaArticleBuildInfo(ftZeldaArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftZeldaArticleTraits<W>::getData()) { }
+// Keep explicit holder bodies where the pool calls them out of line.
+FT_DEFINE_ARTICLE_HOLDER(, wnZeldaDein, wnZeldaDeinData, 0, ftZeldaArticleKind, fn_27_148330)
+FT_DEFINE_ARTICLE_HOLDER(, wnZeldaDeinS, wnZeldaDeinSData, 1, ftZeldaArticleKind, fn_27_148344)
+FT_DEFINE_ARTICLE_HOLDER(inline, wnZeldaLightingBow, wnZeldaLightingBowData, 2, ftZeldaArticleKind, fn_27_148358)
+FT_DEFINE_ARTICLE_HOLDER(inline, wnZeldaLightingBowArrow, wnZeldaLightingBowArrowData, 3, ftZeldaArticleKind, fn_27_14836C)
 
 // ---- the articles and their mediator --------------------------------------------------------------------------------
 
