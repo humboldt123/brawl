@@ -11706,21 +11706,64 @@ mo_melee/sora_melee/wn/wn_samus_bomb_status_uniq_process.cpp:
 	.text       start:0x002EBB5C end:0x002EBE4C
 	.ctors      start:0x0000036C end:0x00000370
 
+mo_melee/sora_melee/wn/wn_samus_missile.cpp:
+	.text       start:0x002EBE4C end:0x002EE21C
+	.rodata     start:0x00006448 end:0x00006470
+	.data       start:0x0007DCC0 end:0x0007E318
+	.bss        start:0x000074E8 end:0x000074F8
+
 mo_melee/sora_melee/wn/wn_samus_missile_status_uniq_process.cpp:
 	.text       start:0x002EE21C end:0x002EE980
 	.ctors      start:0x00000370 end:0x00000374
+
+mo_melee/sora_melee/wn/wn_samus_supermissile.cpp:
+	.text       start:0x002EE980 end:0x002F0768
+	.rodata     start:0x00006488 end:0x000064B0
+	.data       start:0x0007E390 end:0x0007E9F0
+	.bss        start:0x00007508 end:0x00007518
 
 mo_melee/sora_melee/wn/wn_samus_super_missile_status_uniq_process.cpp:
 	.text       start:0x002F0768 end:0x002F0BAC
 	.ctors      start:0x00000374 end:0x00000378
 
+mo_melee/sora_melee/wn/wn_samus_laser.cpp:
+	.text       start:0x002F0BAC end:0x002F2388
+	.rodata     start:0x000064C0 end:0x000064C8
+	.data       start:0x0007EA70 end:0x0007F0C0
+	.bss        start:0x00007528 end:0x00007538
+
 mo_melee/sora_melee/wn/wn_samus_laser_status_uniq_process.cpp:
 	.text       start:0x002F2388 end:0x002F26DC
 	.ctors      start:0x00000378 end:0x0000037C
 
+mo_melee/sora_melee/wn/wn_samus_laser2.cpp:
+	.text       start:0x002F26DC end:0x002F3D80
+	.rodata     start:0x000064D0 end:0x000064D8
+	.data       start:0x0007F138 end:0x0007F790
+	.bss        start:0x00007548 end:0x00007558
+
 mo_melee/sora_melee/wn/wn_samus_laser2_status_uniq_process.cpp:
 	.text       start:0x002F3D80 end:0x002F4100
 	.ctors      start:0x0000037C end:0x00000380
+
+mo_melee/sora_melee/wn/wn_samus_gun.cpp:
+	.text       start:0x002F4100 end:0x002F7A1C
+	.rodata     start:0x000064E0 end:0x000064F0
+	.data       start:0x0007F808 end:0x0007FE58
+	.bss        start:0x00007568 end:0x00007590
+
+mo_melee/sora_melee/wn/wn_samus_gbeam.cpp:
+	.text       start:0x002F7A1C end:0x002FAFD0
+	.rodata     start:0x000064F0 end:0x00006508
+	.data       start:0x0007FE58 end:0x00080568
+	.bss        start:0x00007590 end:0x000075B8
+
+mo_melee/sora_melee/ft/ft_samus_status_uniq_process_special_charge_shot.cpp:
+	.text       start:0x002FB5CC end:0x002FC784
+	.ctors      start:0x00000380 end:0x00000384
+	.rodata     start:0x00006520 end:0x00006530
+	.data       start:0x00080750 end:0x00081100
+	.bss        start:0x000075B8 end:0x00007608
 
 mo_melee/sora_melee/wn/wn_samus_cshot.cpp:
 	.text       start:0x002FC784 end:0x002FFF50
