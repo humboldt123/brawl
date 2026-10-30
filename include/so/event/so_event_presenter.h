@@ -263,6 +263,30 @@ class soEventPresenter {
 #endif
     }
 
+    // HYPOTHESIS: the lookup that getObserverList inlines; a failed lookup also clears the cached list.
+    soInstanceManagerFullProperty<T*>* findObserverList() {
+        s16 uid = m_unitID;
+        soEventManager* mgr = soEventSystem::getInstance()->getManager(m_manageID);
+
+        if (mgr->getObserverCapacity(uid) == 0)
+            return nullptr;
+        soEventUnitWrapper<T>* evtUnitWrapper =
+            dynamic_cast<soEventUnitWrapper<T>* >(mgr->getEventUnit(uid));
+        return (!evtUnitWrapper) ? NULL : evtUnitWrapper->getObserverListSub();
+    }
+
+    bool updateObserverList() {
+        const s16 manageId = m_manageID;
+        if (manageId <= -1 || !soEventSystem::getInstance()->getInstanceManager().isContain(manageId))
+            return false;
+        if (soEventSystem::getInstance()->getManager(m_manageID)->getObserverCapacity(m_unitID) == 0) {
+            m_obsrvrList = nullptr;
+            return false;
+        }
+        m_obsrvrList = findObserverList();
+        return m_obsrvrList;
+    }
+
     bool checkManageId() const {
         const s16 mId = m_manageID;
         return soEventSystem::getInstance()->getInstanceManager().isContain(mId);
@@ -370,11 +394,10 @@ public:
         }
     }
 
-    // NONMATCHING regswap
     soInstanceManagerFullProperty<T*>* getObserverList() {
         if (m_manageID <= -1)
             return &g_nullObserverList;
-        if (!(m_obsrvrList || getObserverListHelper()))
+        if (!(m_obsrvrList || updateObserverList()))
             return &g_nullObserverList;
         if (soEventSystem::getInstance()->
                            getManager(m_manageID)->
