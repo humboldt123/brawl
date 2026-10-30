@@ -39,6 +39,15 @@ Adapted from [decomp-triage](https://github.com/KakarottoCake/decomp-triage/tree
 - **Two identical immediate arguments replace the native load-and-copy pair:** after verifying the callee and values, function-scoped `opt_propagation off` can retain the copy. In Yoshi's kinetic dispatcher, an accesser local declared before the shared flag also preserved the native argument-load order; disabling propagation alone swapped two instructions. Bracket with `push`/`pop` and mark the policy `MATCH-ONLY`. Seen: `src/mo_fighter/ft_yoshi/ft_yoshi_kinetic_transactor.cpp`. **MED**
 
 ## 2. Inlining
+- **A `bl` to a main.dol `muMenu::...__6muMenuFiii` helper with only r3 set:** the REL callers pass one argument to the
+  three-int record-bank helpers (`isCharUsable`, `getInfoMsgID`, `exchangeMuCharKindToMuStockchkind`, ...); an
+  uninitialized local passed as the other two always materializes as `mr r4,rX` (tried at function scope, block scope,
+  one shared variable and an inline wrapper). Declare the symbol `extern "C" ... __6muMenuFiii(int)` in the unit as the
+  matched menu units do (`mu_event.cpp`, `mu_replay.cpp`). Seen: `mu_proc_info.cpp`, `mu_proc_count.cpp`. **HIGH**
+- **A function-pointer argument that is a constant at every call site gets its callee inlined through the pointer:** MWCC
+  inlined `makeCharRankList(list, getCharUseTime)` into `makeCharStatistics` and then the static getters through the
+  now-constant pointer, leaving no out-of-line getters at all. `__attribute__((never_inline))` on the member declaration
+  restores the native call set. Seen: `mu_proc_count.cpp`. **MED**
 - **A vector policy macro has no effect:** define `MT_VEC2F_CTOR_NOINLINE`, `MT_VEC2F_ASSIGN_NOINLINE` or `MT_VEC3F_CTOR_NOINLINE` before the first include that reaches `mt_vector.h`, including builder headers. Defining it afterward cannot change an already parsed declaration. Seen: `ft_yoshi_kinetic_transactor.cpp`. **HIGH**
 - A callee that our build inlines but the original calls with `bl`: verify the callee identity and inlining policy; use the documented `dont_inline` / `never_inline` controls when that boundary is supported. Do not add dead statements merely to exceed the inline threshold. The old dead-statement trick was observed in Melee, not evidence of Brawl source structure. **MED**
 - **A split blob that is really several source files (nwc24, so):** calls that crossed file boundaries in the original (`bl`) get inlined when everything shares one TU. `#pragma auto_inline off` for the whole file, then mark the helpers the original did inline within one file as `inline` by hand. A global that was both emitted and inlined into a sibling needs an `inline` helper plus a thin wrapper (`NWC24iRequestShutdown`, `NWC24iRegister`). `#pragma dont_inline on` around a definition also turns off inlining *inside* that function, and `__attribute__((never_inline))` is rejected by GC/3.0a3. Seen: `src/RVL_SDK/nwc24/nwc24.c`, `src/RVL_SDK/so/so.c`. **MED-HIGH**
@@ -118,6 +127,12 @@ Adapted from [decomp-triage](https://github.com/KakarottoCake/decomp-triage/tree
   `emLinkModuleImpl::getModelConstraintTargetNodePosition`. **MED**
 Things that moved registers, roughly in the order worth trying:
 1. **Reorder local declarations** (declaration order sets virtual register order). Fixed `hkArrayUtil::_reduce`. **HIGH**
+   The first-declared local gets the highest callee-saved register (r31), the next r30, and so on; parameters and the
+   compiler's own induction variables come after the locals. A loop counter in a higher register than the count it
+   feeds (`li r31,0 ... addi r31,r31,1; cmpwi r31,0x23` with the count in r30) therefore means `int i;` was declared
+   before `u32 count = 0;`, C89 style, not `for (int i ...)` after it. Nine functions of `mu_proc_count.cpp` went exact
+   from this alone (`getNumOfChara`, `getNumOfMap`, `makeCharRankList`, `makeCharStatistics`, `getCharNumOfBeat`,
+   `findRankChar`). **HIGH**
    A receiver pointer declared before an owner-ID snapshot can also keep that snapshot loaded before a singleton lookup. R.O.B.'s item cleanup matches with a predeclared `itManager*`, then the task-ID read, then `getInstance()` and `removeItem1(taskId)`; the chained receiver expression deferred the read. Seen: `src/mo_fighter/ft_robot/ft_robot.cpp`. **MED**
 2. **Reference temporaries**, the decomp-permuter's output style: `__typeof__(expr)& tmp0 = expr;`. Fixed several Havok functions. **HIGH**
    An argument the original reads *before* the receiver's inline module chain is a **converting** reference temporary:

@@ -56,10 +56,10 @@ void GameGlobal::InitBattleRecord() {
     gmGlobalRecord::CharaNumData* chara;
     for (int i = 0; i < 35; i++) {
         chara = &m_record->m_charaNumData[i];
-        memset(chara->unk0, 0, sizeof(chara->unk0));
-        memset(chara->unk48, 0, sizeof(chara->unk48));
+        memset(chara->m_beatCount, 0, sizeof(chara->m_beatCount));
+        memset(&chara->m_diagram, 0, sizeof(chara->m_diagram));
         chara->unk98 = 0;
-        chara->unk46 = 0;
+        chara->m_fallCount = 0;
     }
     for (int i = 0; i < 120; i++) {
         gmGlobalRecord::NameData* name = getGlobalRecordNameDatap(i);

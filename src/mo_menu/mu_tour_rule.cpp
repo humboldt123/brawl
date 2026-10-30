@@ -16,8 +16,6 @@
 // main.dol functions with names that the shared headers do not declare.
 // The loading of a pack (archive, path, heap, offset, size, id)
 extern "C" void fn_800151FC(gfArchive* archive, const char* path, Heaps::HeapType heap, int offset, int size, u32 id);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // The random numbers of main.dol: an integer from 0 up to the argument
 long randi(long max);
 // gmCharacterKind::gmCheckChKindUseEnable(kind): the fighter can be picked (it is unlocked)
@@ -302,11 +300,11 @@ muTourRuleTask::muTourRuleTask(int mode) : gfTask("muTourRuleTask", Category_Inf
     fn_800151FC(m_archiveB, "/menu/main/MenuRule.pac", Heaps::MenuResource, 0, 0, 0xFF);
     muMenu::loadMenuSound();
 
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(1, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x100, 0x13);
-    m_msgSlot = create__5MuMsgFUlQ25Heaps8HeapTypeUl(2, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msgSlot = MuMsg::create(2, Heaps::MenuInstance, Heaps::MenuResource);
     m_msgSlot->allocMsgBuf(0x40, 0x25);
-    m_msgCpu = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msgCpu = MuMsg::create(1, Heaps::MenuInstance, Heaps::MenuResource);
     m_msgCpu->allocMsgBuf(0x100, 1);
     fn_800B96E8(&m_ctrl, 0xF0);
 

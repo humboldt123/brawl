@@ -4,7 +4,6 @@
 #include <mu/mu_esrb.h>
 
 // MuMsg::create(): the real third argument is a number (the shared header has it as a heap type).
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 
 // HYPOTHESIS: the constructor takes the name of the task (it keeps the string first in the data of the unit).
 inline muESRBTask::muESRBTask(const char* name)
@@ -107,7 +106,7 @@ void muESRBTask::createData(gfArchive* archive) {
     m_boot->changeAnimN("MenBoot0000_TopN__0");
     m_boot->setFrame(0.0f);
     m_boot->m_modelAnim->setUpdateRate(0.0f);
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(8, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(8, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x200, 1);
     m_msg->setMsgData(archive->getData(static_cast<ARCNodeType>(1), 0, 0xFFFE));
     m_msg->attachScnMdlSimple(0, m_notice->m_sceneModel, 0, 0.0625f);

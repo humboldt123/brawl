@@ -27,7 +27,6 @@ public:
 extern "C" void fn_800B20B0(MuObject* object, bool enableSkip);
 extern "C" void fn_800B21C4(MuObject* object, bool enableSkip);
 // HYPOTHESIS: MuMsg::create with a third argument that is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // HYPOTHESIS: Message::setBufField34 on the private message of MuMsg
 extern "C" void setBufField34__7MessageFii(void* message, int index, int value);
 
@@ -82,7 +81,7 @@ IfAdvZako* IfAdvZako::create(int arg, void* msgData) {
 }
 
 IfAdvZako::IfAdvZako(int arg, void* msgData) : unk24(arg), unk30(0), m_msgData(msgData) {
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(8, Heaps::InfoInstance, Heaps::MenuInstance);
+    m_msg = MuMsg::create(8, Heaps::InfoInstance, Heaps::MenuInstance);
     m_msg->allocMsgBuf(0x100, 2);
     for (int i = 0; i < 5; i++) {
         m_objects[i] = NULL;

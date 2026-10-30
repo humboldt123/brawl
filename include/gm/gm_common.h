@@ -71,7 +71,7 @@ void gmRuleResetForNet();
 void gmIncMeleeCount(u32 rule, u8 decisionKind, bool isStamina, bool isOnline);
 void gmIncAnybodyWatchCount();
 void gmSetFriendCount(int count);
-u8 gmGetFriendCount();
+u32 gmGetFriendCount();
 void gmAddVsMeleeTimeAll(u32 time, u32 playerCount);
 void gmAddSingleTimeAll(u32 time, u32 playerCount);
 void gmAddOnlineFriendTimeCount(u32 time);

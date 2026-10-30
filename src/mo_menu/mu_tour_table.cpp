@@ -12,8 +12,6 @@
 
 // The loading of the pack with the lines of the table (archive, path, heap, offset, size, id).
 extern "C" void fn_800151FC(gfArchive* archive, const char* path, Heaps::HeapType heap, int offset, int size, u32 id);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model) and PushBack(object, node name)
 extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(MEMAllocator* allocator, u32* size,
                                                                                                          int capacity, void* scnMdl);
@@ -64,7 +62,7 @@ muTourTable::muTourTable(nw4r::g3d::ResFile* texRes, int priority) {
     } else {
         m_texReady = true;
     }
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(2, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(2, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x40, 0x20);
 }
 

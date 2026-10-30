@@ -13,8 +13,6 @@
 #include <types.h>
 
 // main.dol functions with names that the shared headers do not declare.
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // The random numbers of main.dol: an integer from 0 up to the argument
 long randi(long max);
 // CameraController::getInstance() and changeInput(kind)
@@ -125,7 +123,7 @@ muTourEntryTask::muTourEntryTask(int mode, int round, int match, int roundKind, 
     }
     m_resFace[0] = nw4r::g3d::ResFile(static_cast<void*>(NULL));
     loadResource();
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(1, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x100, 8);
     m_msgNames = NULL;
     fn_800B96E8(&m_ctrl, 0xF0);
@@ -513,7 +511,7 @@ void muTourEntryTask::initMdlData() {
         m_msg->setFontWidthModeAuto(i);
         m_msg->setFontColor(i, textColor[i][0], textColor[i][1], textColor[i][2], 0xFF);
     }
-    m_msgNames = create__5MuMsgFUlQ25Heaps8HeapTypeUl(2, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msgNames = MuMsg::create(2, Heaps::MenuInstance, Heaps::MenuResource);
     m_msgNames->allocMsgBuf(0x40, 10);
     m_msgNames->attachScnMdlSimple(0, m_objs[OBJ_ROUND_TEXT]->m_sceneModel, 0, 1.0f / 16.0f);
     for (int i = 0; i < 5; i++) {

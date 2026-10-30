@@ -26,9 +26,6 @@ extern "C" Vec2f fn_800BA0E0(int direction);
 // Vec2f::normalize()
 extern "C" void fn_8003DBA8(Vec2f* vec);
 // GameGlobal::getNameCount() and GameGlobal::getName(number, buffer): the names that were saved
-extern "C" int fn_8004D148(GameGlobal* global);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // gfSceneRoot::layerUpdateFrame(layer), gfSceneRoot::removeInfoCamResAnm() and gfSceneRoot::setInfoCamResAnm(animation)
 extern "C" void fn_8000DB40(gfSceneRoot* root, int layer);
 extern "C" void fn_8000D7B8(gfSceneRoot* root);
@@ -159,7 +156,7 @@ void muAdvSelmapTask::initProc(const muAdvSelmapTaskParam* param) {
     if (m_param4 >= 0) {
         m_has2P = true;
     }
-    int limit = fn_8004D148(g_GameGlobal) - 5;
+    int limit = g_GameGlobal->getNumName() - 5;
     if (m_param3 > 0) {
         m_count1 = m_param3;
         if (m_count1 > limit) {
@@ -208,7 +205,7 @@ static const muAdvSelmapTask::StepFunc sStepFuncs[muAdvSelmapTask::Step_Count] =
 // Makes the texts: the number of fighters and the names of the players.
 void muAdvSelmapTask::initMsg() {
     char name[0x15];
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(3, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(3, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x100, 0xC);
     m_msg->setMsgData(m_archive->getData(0, Data_Type_Misc, 2, 0xFFFE));
     m_msg->attachScnMdlSimple(1, m_objects[1]->m_sceneModel, 0, 0.0625f);

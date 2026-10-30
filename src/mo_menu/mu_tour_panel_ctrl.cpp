@@ -3,13 +3,11 @@
 #include <mu/mu_tour_panel_ctrl.h>
 #include <types.h>
 
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 
 muTourPanelCtrlTask::muTourPanelCtrlTask(MuObject* option, void* msgData) {
     m_option = option;
     unk2C_b1 = false;
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(1, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x200, 1);
     m_msg->setMsgData(msgData);
     m_msg->attachScnMdlSimple(0, m_option->m_sceneModel, 0, 1.0f / 16.0f);

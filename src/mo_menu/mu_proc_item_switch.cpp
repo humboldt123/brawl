@@ -13,8 +13,6 @@
 // main.dol functions with names that the shared headers do not declare.
 // nw4r::g3d::ScnMdlExpand::PushBack(object, node name): attaches the object to the node of the model
 extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* scnMdl, void* object, const char* name);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // MuMsg::setAlignMode(number, mode)
 
 // The animations of the icon of the frequency (the first is the one the screen starts with, the second the one it leaves
@@ -42,7 +40,7 @@ static inline u8* getMenuData() {
 }
 
 muProcItemSwitch::muProcItemSwitch(MuObject** objs, nw4r::g3d::G3dObj** mdls, void* msgData) : muProcMenu(objs, mdls) {
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, 0x2B);
+    m_msg = MuMsg::create(1, Heaps::MenuInstance, 0x2B);
     m_msg->allocMsgBuf(0x100, 3);
     m_msg->setMsgData(msgData);
     for (int i = 0; i < 3; i++) {

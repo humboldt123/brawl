@@ -21,10 +21,7 @@
 // muMenuController::getPadNo()
 extern "C" int fn_800BA3D8(muMenuController* controller);
 // GameGlobal::getNameCount() and GameGlobal::getName(number, buffer): the names that were saved
-extern "C" int fn_8004D148(GameGlobal* global);
 extern "C" void fn_8004D6C4(GameGlobal* global, int number, char* buffer);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model) and PushBack(object, node name)
 extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(MEMAllocator* allocator, u32* size, int capacity,
                                                                                                     void* scnMdl);
@@ -174,7 +171,7 @@ void muAdvNameTask::initProc(const muAdvNameTaskParam* param) {
     }
     m_players[0].m_unkA8 = 0;
     m_players[1].m_unkA8 = 0;
-    m_nameCount = fn_8004D148(g_GameGlobal);
+    m_nameCount = g_GameGlobal->getNumName();
     OSReport("MaxNameCount[%d]\n", m_nameCount);
     m_nameSel1 = 0;
     m_unk2E0 = 2;
@@ -182,7 +179,7 @@ void muAdvNameTask::initProc(const muAdvNameTaskParam* param) {
 }
 
 void muAdvNameTask::initMsg() {
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(3, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(3, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x100, 0xF);
     m_msg->setMsgData(m_handles[1].getBuffer());
     m_msg->attachScnMdlSimple(0xC, m_objects[6]->m_sceneModel, 0, 0.0625f);

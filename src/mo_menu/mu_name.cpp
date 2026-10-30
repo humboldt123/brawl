@@ -29,8 +29,6 @@ extern "C" int fn_8006CEEC(const char* text, int maxLetters);
 extern "C" void appendSubstr__7MessageFPcPCcii(char* dst, const char* src, int skip, int count);
 // Message::writeTagClear(destination): writes the tag that clears the format of the text, returns the size of the tag
 extern "C" int writeTagClear__7MessageFPc(char* dst);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // MuMsg::setFontWidthModeFixed(text number, width): the shared header does not have the width
 extern "C" void setFontWidthModeFixed__5MuMsgFUlf(MuMsg* msg, u32 index, float width);
 // qsort of the library of the program
@@ -49,7 +47,6 @@ extern "C" int fn_800BA2E0();
 // The name of the player that is given when there is no name (the "new name" line of the list).
 extern "C" const char* fn_800B96B0();
 // GameGlobal: the names that were saved
-extern "C" int fn_8004D148(GameGlobal* global);                                     // how many names there are
 extern "C" void* fn_8004D138(GameGlobal* global, int index);                        // the record of a name
 extern "C" void fn_8004D20C(GameGlobal* global, int index);                         // removes the last name
 extern "C" void fn_8004D334(GameGlobal* global, int index, const wchar_t* name, int color);  // makes a name
@@ -1589,7 +1586,7 @@ void muNameTask::createObjResFile(const muNameModel* models, int count, nw4r::g3
 static const u8 sRemoteItemBones[4] = {1, 2, 4, 0};
 
 void muNameTask::initMsg() {
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(3, Heaps::MenuInstance, 0x2B);
+    m_msg = MuMsg::create(3, Heaps::MenuInstance, 0x2B);
     m_msg->allocMsgBuf(0x100, 0xC);
     for (int i = 0; i < 5; i++) {
         m_msg->attachScnMdlSimple(i, reinterpret_cast<nw4r::g3d::ScnMdlSimple*>(m_objects[Obj_List]->m_sceneModel), i, 1.0f / 12.0f);
@@ -1661,7 +1658,7 @@ static int compareNameSlots(const void* a, const void* b) {
 void muNameTask::makeNameList() {
     m_slots[0].m_nameNo = -1;
     m_slotCount = 1;
-    int count = fn_8004D148(g_GameGlobal);
+    int count = g_GameGlobal->getNumName();
     for (int i = 0; i < count; i++) {
         m_slots[1 + i].m_nameNo = i;
         m_slotCount++;
@@ -1699,7 +1696,7 @@ void muNameTask::deleteName(int index) {
     if (nameNo == -2 || nameNo == -1) {
         nameNo = -1;
     }
-    int count = fn_8004D148(global);
+    int count = global->getNumName();
     for (int i = nameNo; i < count - 1; i++) {
         char* dst = static_cast<char*>(fn_8004D138(global, i));
         char* src = static_cast<char*>(fn_8004D138(global, i + 1));
@@ -1872,7 +1869,7 @@ int muNameTask::mainStepSelectNameMain(muNameTask* task) {
         return Step_Leave;
     }
     if (task->m_remote != NULL && (pressed & (0x00800000 | GF_PAD_BUTTON_BIT_START)) != 0) {
-        if (fn_8004D148(g_GameGlobal) <= 0) {
+        if (g_GameGlobal->getNumName() <= 0) {
             task->m_remoteNameNo = -1;
         } else {
             const muNameSlot* slot = &task->m_slots[task->m_scroll + task->m_cursor];
@@ -2026,7 +2023,7 @@ int muNameTask::mainStepNameEntryMain(muNameTask* task) {
             }
             wchar_t wide[8];
             Message::utf8to16(wide, name);
-            int index = fn_8004D148(global);
+            int index = global->getNumName();
             fn_8004D334(global, index, wide, color);
             task->addNameList(index);
             task->m_playerNo = fn_800BA2E0();
@@ -2205,7 +2202,7 @@ int muNameTask::registRimoName(const u16* name, bool flag, const u8* data, bool 
     }
     int index = found;
     if (found < 0) {
-        index = fn_8004D148(global);
+        index = global->getNumName();
     }
     if (index >= 0x78) {
         return -2;
@@ -2324,7 +2321,7 @@ int muNameTask::mainStepRemoteReadMain(muNameTask* task) {
     if (task->m_kind == Kind_TrnRule) {
         task->m_remoteFlags[1] = false;
     }
-    if (fn_8004D148(g_GameGlobal) <= 0) {
+    if (g_GameGlobal->getNumName() <= 0) {
         task->m_remoteFlags[1] = false;
     }
     if (result == 2) {

@@ -11,8 +11,6 @@
 // main.dol functions with names that the shared headers do not declare.
 // Creates the camera task that draws the menu models (the task keeps the scene group at +0x48)
 extern "C" muEndCameraTask* fn_800AFBFC(const char* name, int heap, gfArchive* archive, int unk);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // nw4r::g3d::ResFile::Release()
 extern "C" void Release__Q34nw4r3g3d7ResFileFv(nw4r::g3d::ResFile* resFile);
 
@@ -185,7 +183,7 @@ void muBootNetworkTask::createData(gfArchive* archive) {
     nw4r::g3d::ResFile::Init(&m_resFileMsg);
     nw4r::g3d::ResFile::Init(&m_resFileWait);
     m_cameraTask = fn_800AFBFC("BootNetworkTask", 0x10, archive, 0xA);
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(1, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x200, 1);
     m_msg->setMsgData(m_msgData);
     MuObject* object = MuObject::create(&m_resFileWait, "InfCmnWait_TopN", 1, NULL, Heaps::MenuInstance);

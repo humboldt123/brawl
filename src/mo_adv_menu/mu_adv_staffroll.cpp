@@ -15,8 +15,6 @@
 // main.dol functions with names that the shared headers do not declare.
 // the root of a group of models that the menu draws: name, layer and the camera pack (or NULL)
 extern "C" muAdvStaffRoot* fn_800AFB94(const char* name, int layer, const char* cameraPack);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 extern "C" void allocMsgBuf__5MuMsgFUlUl(MuMsg* msg, u32 size, u32 num);
 extern "C" void setMsgData__5MuMsgFPv(MuMsg* msg, void* data);
 extern "C" void* getMsgData__5MuMsgFUlPi(MuMsg* msg, u32 index, int* length);
@@ -473,7 +471,7 @@ void muAdvStaffrollTask::createData() {
     for (int i = 0; i < m_textNum; i++) {
         m_texts[i] = MuObject::create(&m_resFile, "TextTopN", 1, NULL, Heaps::MenuInstance);
     }
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, 0x2B);
+    m_msg = MuMsg::create(1, Heaps::MenuInstance, 0x2B);
     allocMsgBuf__5MuMsgFUlUl(m_msg, 0x400, m_textNum);
     setMsgData__5MuMsgFPv(m_msg, m_handleTexts.getBuffer());
     for (u32 i = 0; static_cast<int>(i) < m_textNum; i++) {

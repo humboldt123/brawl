@@ -13,7 +13,6 @@
 #include <ut/ut_relocate.h>
 
 // HYPOTHESIS: MuMsg::create takes its second heap as u32 (the symbol differs from the shared header).
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // HYPOTHESIS: MuMsg keeps its Message text writer at 0x8 (private in the shared header).
 class Message;
 extern "C" void setBufField34__7MessageFii(Message* message, int index, int value);
@@ -183,7 +182,7 @@ void IfMinigameTraining::initMsg(void* msgData) {
         { 0, 0, 1 }, { 0, 1, 1 }, { 0, 2, 1 }, { 0, 3, 1 }, { 0, 4, 1 }, { 0, 5, 1 }, { 0, 6, 1 },
         { 0, 7, 0 }, { 1, 0, 1 }, { 1, 1, 1 }, { 1, 2, 1 }, { 1, 3, 1 }, { 1, 4, 1 },
     };
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(8, Heaps::InfoInstance, 0x2A);
+    m_msg = MuMsg::create(8, Heaps::InfoInstance, 0x2A);
     m_msg->allocMsgBuf(0x100, 13);
     m_msg->setMsgData(msgData);
     IfMinigameTrainingMsgInfo* info = msgInfo;

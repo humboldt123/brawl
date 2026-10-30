@@ -11,8 +11,6 @@
 #include <mu/menu.h>
 #include <mu/mu_adv_comer.h>
 
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // MuMsg::printData(message, data, length)
 extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int length);
 
@@ -203,7 +201,7 @@ void muAdvComerTask::createWindow() {
     m_object = MuObject::create(&m_resComer, "MenAdvComer0000_TopN", 1, NULL, Heaps::MenuInstance);
     m_object->changeMaterialTex("Character_Face_Mat", 0, &m_resFace);
     m_menuRoot->scene->Insert(reinterpret_cast<u32*>(m_menuRoot->scene)[0xE4 / 4], m_object->m_scnMdl);
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(1, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x200, 1);
     m_msg->setMsgData(m_fileMsg.getBuffer());
     m_msg->attachScnMdlSimple(0, m_object->m_sceneModel, 0, 0.0625f);

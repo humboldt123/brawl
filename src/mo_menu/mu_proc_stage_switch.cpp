@@ -14,10 +14,6 @@
 // main.dol functions with names that the shared headers do not declare.
 // nw4r::g3d::ScnMdlExpand::PushBack(object, node name): attaches the object to the node of the model
 extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* scnMdl, void* object, const char* name);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
-// GameGlobal::getStageAppFlag(): the bits of the stages (and the other things) that were unlocked
-extern "C" u32* fn_8004E594(GameGlobal* global);
 
 // The animations of the cursor and of the header (the first appears with the screen, the second goes away with it).
 static MuAnimIdxData sAnims[3] = {
@@ -52,7 +48,7 @@ static inline u8* getMenuData() {
 }
 
 muProcStageSwitch::muProcStageSwitch(MuObject** objs, nw4r::g3d::G3dObj** mdls, void* msgData) : muProcMenu(objs, mdls) {
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, 0x2B);
+    m_msg = MuMsg::create(1, Heaps::MenuInstance, 0x2B);
     m_msg->allocMsgBuf(0x100, 1);
     m_msg->setMsgData(msgData);
     m_msg->attachScnMdlSimple(0, reinterpret_cast<nw4r::g3d::ScnMdlSimple*>(m_objs[0x54]->m_sceneModel), 0, 0.0625f);
@@ -89,7 +85,7 @@ void muProcStageSwitch::init(nw4r::g3d::ScnGroup* group, int from) {
         u32 count = 0;
         for (u32 i = 0; i < GridStageCount; i++) {
             int bit = gridUnlock[i];
-            if (bit < 0 || (fn_8004E594(g_GameGlobal)[bit / 32] & (1 << (bit % 32)))) {
+            if (bit < 0 || (g_GameGlobal->getStageAppFlag()[bit / 32] & (1 << (bit % 32)))) {
                 m_gridStages[count] = i;
                 count++;
             }
@@ -100,7 +96,7 @@ void muProcStageSwitch::init(nw4r::g3d::ScnGroup* group, int from) {
         u32 count = 0;
         for (u32 i = 0; i < ListStageCount; i++) {
             int bit = listUnlock[i];
-            if (bit < 0 || (fn_8004E594(g_GameGlobal)[bit / 32] & (1 << (bit % 32)))) {
+            if (bit < 0 || (g_GameGlobal->getStageAppFlag()[bit / 32] & (1 << (bit % 32)))) {
                 m_listStages[count] = i;
                 count++;
             }

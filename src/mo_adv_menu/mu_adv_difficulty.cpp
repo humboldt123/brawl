@@ -15,8 +15,6 @@
 #include <mu/mu_adv_difficulty.h>
 
 // main.dol functions with names that the shared headers do not declare.
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model) and PushBack(object, node name)
 extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(MEMAllocator* allocator, u32* size,
                                                                                                          int capacity, void* scnMdl);
@@ -244,7 +242,7 @@ int muAdvDifficultyTask::mainStepLoadMain(muAdvDifficultyTask* task) {
                 allocator, NULL, entry->m_capacity, task->m_objects[entry->m_objectNo + j]->m_sceneModel);
         }
     }
-    task->m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(2, Heaps::MenuInstance, Heaps::MenuResource);
+    task->m_msg = MuMsg::create(2, Heaps::MenuInstance, Heaps::MenuResource);
     task->m_msg->allocMsgBuf(0x100, 5);
     task->m_msg->setMsgData(task->m_handles[2].getBuffer());
     for (int i = 0; i < 5; i++) {

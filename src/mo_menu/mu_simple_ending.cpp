@@ -19,8 +19,6 @@ extern "C" muEndCameraTask* fn_800AFBFC(const char* name, int heap, gfArchive* a
 // MuObject::getNode(name) and ResNode::SetRotate(x, y, z)
 extern "C" void* getNode__8MuObjectFPCc(MuObject* object, const char* name);
 extern "C" void ResNode_SetRotate__FPQ34nw4r3g3d7ResNodefff(void* node, float x, float y, float z);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // MuObject::changeMaterialTex(material name, texture number, texture file)
 extern "C" void changeMaterialTex__8MuObjectFPCciPQ34nw4r3g3d7ResFile(MuObject* object, const char* material, int texture,
                                                                      nw4r::g3d::ResFile* resFile);
@@ -156,7 +154,7 @@ void muEndPicTask::createData(gfArchive* archive) {
     nw4r::g3d::ResFile::Init(&m_resFileTex);
     m_object = MuObject::create(&m_resFile, "MenEndpictures0000_TopN", 1, NULL, Heaps::MenuInstance);
     changeMaterialTex__8MuObjectFPCciPQ34nw4r3g3d7ResFile(m_object, "lambert37", 0, &m_resFileTex);
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(1, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(1, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x200, 1);
     m_msg->attachScnMdlSimple(0, m_object->m_sceneModel, 0, 0.0625f);
     m_msg->setFontColor(0, 0xFF, 0xFF, 0xFF, 0xFF);

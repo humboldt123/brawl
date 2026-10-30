@@ -22,8 +22,6 @@
 extern "C" void fn_80074ECC(sndSystem* system, int id, float volume, float pitch);
 // MuMsg::setFontWidthModeFixed(msg, width) and MuMsg::printData(msg, data, size): the shared header lacks the arguments
 extern "C" void setFontWidthModeFixed__5MuMsgFUlf(MuMsg* msg, u32 msgIndex, float width);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int size);
 
 // One model of the screen: the name, the slots of the task it fills (start, end), and the draw priority.
@@ -144,7 +142,7 @@ void muGameOverTask::createObjResFile(const muGameOverModel* models, int count, 
 // The four texts: the points, the coins, the cost and the extra line.
 void muGameOverTask::initMsg(void* msgData) {
     MuObject* object;
-    MuMsg* msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(3, Heaps::MenuInstance, Heaps::MenuResource);
+    MuMsg* msg = MuMsg::create(3, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg = msg;
     msg->setMsgData(msgData);
     msg->allocMsgBuf(0x100, 4);

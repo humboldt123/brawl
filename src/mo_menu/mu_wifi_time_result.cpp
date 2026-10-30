@@ -13,8 +13,6 @@
 #include <mu/wifi/mu_wifi_time_result.h>
 
 // main.dol functions with names that the shared headers do not declare.
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // MuObject::changeMaterialTex(texture name, node, resource file) and (material, texture name, resource file)
 extern "C" void changeMaterialTex__8MuObjectFPCciPQ34nw4r3g3d7ResFile(MuObject* object, const char* name, int node, nw4r::g3d::ResFile* resFile);
 extern "C" void changeMaterialTex__8MuObjectFUlPCcPQ34nw4r3g3d7ResFile(MuObject* object, u32 material, const char* name,
@@ -112,7 +110,7 @@ void muWifiTimeResultTask::createObjResFile(const muWifiTimeResultModel* models,
 
 void muWifiTimeResultTask::initMsg() {
     char buffer[10] = {0};
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(3, Heaps::MenuInstance, 0x2B);
+    m_msg = MuMsg::create(3, Heaps::MenuInstance, 0x2B);
     m_msg->allocMsgBuf(0x100, 7);
     m_msg->setMsgData(m_handles[4].getBuffer());
     MuObject* object = m_object;

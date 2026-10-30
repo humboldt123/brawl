@@ -26,8 +26,6 @@ extern "C" int fn_800BA3D8(muMenuController* controller);
 // GameGlobal::getName(number, buffer) and GameGlobal::isEventOpen(list, event)
 extern "C" void fn_8004D6C4(GameGlobal* global, int number, char* buffer);
 extern "C" bool fn_8004E7A0(GameGlobal* global, u8 list, u8 event);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // MuMsg::printData(message, data, length) and MuMsg::setFontWidthModeFixed(message, width)
 extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int length);
 extern "C" void setFontWidthModeFixed__5MuMsgFUlf(MuMsg* msg, u32 msgIndex, float width);
@@ -258,7 +256,7 @@ void muEventTask::createPanelExpMdl() {
 
 // Makes the texts of the menu.
 void muEventTask::initMsg() {
-    MuMsg* msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(3, Heaps::MenuInstance, Heaps::MenuResource);
+    MuMsg* msg = MuMsg::create(3, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg = msg;
     msg->allocMsgBuf(0x200, 0x12);
     msg->setMsgData(m_archive->getData(0, Data_Type_Misc, 0x1E, 0xFFFE));

@@ -7,6 +7,33 @@
 #include <stddef.h>
 #include <gm/gm_global_mode_melee.h>
 
+// The per-character (and per-name) match records that gmAddDiagramResultCommon accumulates.
+struct gmDiagramResult {
+    u16 m_suicide;       // 0x00
+    char _2[2];
+    u32 m_totalBeat;     // 0x04
+    u32 m_totalFall;     // 0x08
+    u32 m_giveDamage;    // 0x0C
+    u32 m_takeDamage;    // 0x10
+    u32 m_recoverDamage; // 0x14
+    u16 m_maxDamage;     // 0x18
+    u16 m_roundNum;      // 0x1A: matches played
+    u16 m_champNum;      // 0x1C: matches won
+    u16 m_ketsuNum;      // 0x1E: matches finished last
+    u32 m_playTime;      // 0x20: seconds
+    u32 m_joinTotal;     // 0x24: summed number of players in the matches
+    u32 m_walkDistance;  // 0x28
+    u32 m_jumpDistance;  // 0x2C
+    u32 m_fallDistance;  // 0x30
+    u32 m_blowDistance;  // 0x34
+    u32 m_getCoin;       // 0x38
+    u32 m_makeDropCoin;  // 0x3C
+    u32 m_dropCoin;      // 0x40
+    u32 m_fallButtocks;  // 0x44
+    u32 m_swimDistance;  // 0x48
+    u32 m_swimFall;      // 0x4C
+};
+
 struct gmGlobalRecord {
 
     struct InfoAppFlagData {
@@ -129,8 +156,13 @@ struct gmGlobalRecord {
         State m_gotAllFighters : 2;
         State m_cleared21CoOpEvents : 2;
         State m_cleared10CoOpEvents : 2;
+
+        // HYPOTHESIS: the Notices screen (muProcInfo) scans 117 two-bit states, so the block is eight words, and shows
+        // the time each notice arrived from the words that follow it.
+        u32 unk1C;
+        u32 m_recvTime[117];        // 0x20 gmGetCalendarTime count of the moment the notice was received
     };
-    static_assert(sizeof(InfoAppFlagData) == 28, "Class is wrong size!");
+    static_assert(sizeof(InfoAppFlagData) == 0x1F4, "Class is wrong size!");
 
     struct EventHiScoreData {
         u32 m_easyScores[51];
@@ -246,10 +278,12 @@ struct gmGlobalRecord {
     static_assert(sizeof(NameData) == 0x124, "Class is wrong size!");
 
     // HYPOTHESIS: one 0xE0-byte record per character slot (name from getGlobalRecordCharaNumDatap)
+    // HYPOTHESIS: the field names follow the getters of the Statistics screen (muProcCount: getCharUseTime,
+    // getCharNumOfChamp ...); the units are unknown.
     struct CharaNumData {
-        u8 unk0[0x46];
-        u16 unk46;
-        u8 unk48[0x50];
+        u16 m_beatCount[35];        // 0x00 KOs of each other character
+        u16 m_fallCount;            // 0x46
+        gmDiagramResult m_diagram;  // 0x48 the per-character records of the Chronicle diagrams
         u16 unk98;
         char _9A[0x2];
         u8 unk9C[0x44];
@@ -261,7 +295,7 @@ struct gmGlobalRecord {
 
     InfoAppFlagData m_infoAppFlagData;      // 0x1C
 
-    char _56[0x204];
+    char _210[0x2C];
     u8 m_movieAppFlag[0x10];                // 0x23C
     u8 m_bgmAppFlag[0x1C];                  // 0x24C
     u32 m_hideMenuFlags;                    // 0x268
@@ -298,7 +332,11 @@ struct gmGlobalRecord {
 
     EventHiScoreData m_eventHiScoreData[2];
 
-    char _2036[20];
+    // HYPOTHESIS: the Adventure play time in frames; the Statistics screen divides them by 60 and adds them to the
+    // single-player time count and total (the names follow muProcCount::getAdventureAllPlayTime / NobePlayTime).
+    u32 m_advTimeCount;                     // 0x7F4
+    u32 m_advTimeTotal;                     // 0x7F8
+    char _7FC[12];
     bool m_unk808_7 : 1;                    // 0x808; HYPOTHESIS: bit 7 is copied into the melee init data by gmInitMeleeDataDefault
     bool m_unk808_6 : 1;
     bool m_unk808_5 : 1;

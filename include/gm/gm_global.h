@@ -51,6 +51,8 @@ public:
     gmGlobalRecord::CharaNumData* getGlobalRecordCharaNumDatap(int chara);
     u8* getMovieAppFlag();
     gmGlobalRecord::InfoAppFlagData* getInfoAppFlag();
+    u32* getStageAppFlag();                 // the bits of the stages (and other things) that were unlocked
+    int getNumName();                       // how many names there are
     u32* getGlobalRecordFigCoinDatap();
     u32* getGlobalRecordGetFigCoinDatap();
     u32* getGlobalRecordVsPartyPlayerCountDatap();

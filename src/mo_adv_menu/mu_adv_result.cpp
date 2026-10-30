@@ -39,8 +39,6 @@ extern "C" void* GetResAnmScn__Q34nw4r3g3d7ResFileCFi(const nw4r::g3d::ResFile* 
 extern "C" void Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(void* self, void* anm);
 // sndSystem::stopSE(handle, fade frames)
 extern "C" void fn_80075F1C(sndSystem* system, s32 handle, int fade);
-// MuMsg::create(font setting, heap, heap): the third argument is not a HeapType in the symbol
-extern "C" MuMsg* create__5MuMsgFUlQ25Heaps8HeapTypeUl(u32 fontSetting, Heaps::HeapType heap, u32 heap2);
 // The random numbers of main.dol: a float from 0 to 1 and an integer from 0 up to the argument
 float randf();
 long randi(long max);
@@ -173,7 +171,7 @@ muAdvResultTask::~muAdvResultTask() {
 void muAdvResultTask::initMsg() {
     char buffer[0x18];
     memset(buffer, 0, sizeof(buffer));
-    m_msg = create__5MuMsgFUlQ25Heaps8HeapTypeUl(3, Heaps::MenuInstance, Heaps::MenuResource);
+    m_msg = MuMsg::create(3, Heaps::MenuInstance, Heaps::MenuResource);
     m_msg->allocMsgBuf(0x100, 8);
     m_unk118 = reinterpret_cast<int>(m_archive->getData(0, Data_Type_Misc, 0x28, 0xFFFE));
     m_unk120 = reinterpret_cast<int>(m_archive->getData(0, Data_Type_Misc, 0x32, 0xFFFE));

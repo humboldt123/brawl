@@ -46,7 +46,6 @@ extern const gmStageBgmData lbl_8042BF98[31];
 // The record sections hold bit sets; GameGlobal hands out their words (names from the sora map).
 // HYPOTHESIS: the return types are word pointers because the callers index them by 32-bit word.
 extern "C" u32* fn_8004E580(GameGlobal* global); // GameGlobal::getCharaAppFlag (also used by mu_menu.cpp, st_croll.cpp)
-extern "C" u32* fn_8004E594(GameGlobal* global); // GameGlobal::getStageAppFlag (also used by mu_proc_stage_switch.cpp)
 extern "C" u32* fn_8004E5A0(GameGlobal* global); // GameGlobal::getAssistAppFlag (also used by st_croll.cpp)
 
 // The menu's fighter numbering: muMenu::exchangeGmCharacterKindToMuCharKind (mu_menu.cpp). The native callers pass the
@@ -215,7 +214,7 @@ bool gmCheckSrStageKind(srStageKind stage) {
     bool usable = true;
     for (int i = 0; i < 12; i++) {
         if (stage == lbl_8042C0A0[i]) {
-            usable = gmCheckBit(fn_8004E594(g_GameGlobal), i);
+            usable = gmCheckBit(g_GameGlobal->getStageAppFlag(), i);
             break;
         }
     }
@@ -225,13 +224,13 @@ bool gmCheckSrStageKind(srStageKind stage) {
 void gmSetStageUseEnable(srStageKind stage) {
     for (int i = 0; i < 12; i++) {
         if (stage == lbl_8042C0A0[i]) {
-            gmSetBit(fn_8004E594(g_GameGlobal), i);
+            gmSetBit(g_GameGlobal->getStageAppFlag(), i);
         }
     }
 }
 
 void gmInitStageUseEnableAll() {
-    u32* flags = fn_8004E594(g_GameGlobal);
+    u32* flags = g_GameGlobal->getStageAppFlag();
     *flags = 0;
 }
 
@@ -580,7 +579,6 @@ extern "C" u16 fn_8005630C(u8 rareBits);
 // gmdatacollection::gmLotSealToCollection(rare bit set, rarity): picks a sticker id (HYPOTHESIS: parameter and return type).
 extern "C" u16 fn_80056518(u8 rareBits, u8 rarity);
 // GameGlobal::getStageAppFlag(): the bit set of the unlocked stages (the map names it getStageAppFlag).
-extern "C" u32* fn_8004E594(GameGlobal* global);
 
 // HYPOTHESIS: the item switch of a match is three bit tables. 0 is the item bit set (64 bits, the high word comes
 // first in memory), 1 the Pokemon word and 2 the assist trophy word. A switch bit of -1 means that the item has no switch.
@@ -956,7 +954,7 @@ u32 gmLotCD() {
         u32 available = 1;
         for (j = 0; j < 12; j++) {
             if (static_cast<int>(lbl_8042B858[0x1C0 + i - 0x30]) == static_cast<int>(lbl_8042B858[0x212 + j])) {
-                available = gmTestFlagBit(fn_8004E594(g_GameGlobal), j);
+                available = gmTestFlagBit(g_GameGlobal->getStageAppFlag(), j);
                 break;
             }
         }
@@ -991,7 +989,7 @@ extern "C" bool fn_80051A6C() {
         const srStageKind* stage = lbl_8042C0A0;
         for (j = 0; j < 12; j++, stage++) {
             if (lbl_8042BF58[i - 0x30] == *stage) {
-                available = gmTestFlagBit(fn_8004E594(g_GameGlobal), j);
+                available = gmTestFlagBit(g_GameGlobal->getStageAppFlag(), j);
                 break;
             }
         }
@@ -1728,7 +1726,7 @@ void gmSetFriendCount(int count) {
     *(reinterpret_cast<u8*>(g_GameGlobal->m_record) + 0x32B) = count;
 }
 
-u8 gmGetFriendCount() {
+u32 gmGetFriendCount() {
     return *(reinterpret_cast<u8*>(g_GameGlobal->m_record) + 0x32B);
 }
 
@@ -2242,31 +2240,6 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
 // HYPOTHESIS: the 0x50-byte block of lifetime battle statistics that the result adds into, one per character
 // (gmGlobalRecord::CharaNumData at 0x48) and one per name tag (NameData at 0x4). The field order follows the
 // diagram page getters of the menu (muDiagGet...), the players' source tallies are read by offset below.
-struct gmDiagramResult {
-    u16 m_suicide;       // 0x00
-    char _2[2];
-    u32 m_totalBeat;     // 0x04
-    u32 m_totalFall;     // 0x08
-    u32 m_giveDamage;    // 0x0C
-    u32 m_takeDamage;    // 0x10
-    u32 m_recoverDamage; // 0x14
-    u16 m_maxDamage;     // 0x18
-    u16 m_roundNum;      // 0x1A: matches played
-    u16 m_champNum;      // 0x1C: matches won
-    u16 m_ketsuNum;      // 0x1E: matches finished last
-    u32 m_playTime;      // 0x20: seconds
-    u32 m_joinTotal;     // 0x24: summed number of players in the matches
-    u32 m_walkDistance;  // 0x28
-    u32 m_jumpDistance;  // 0x2C
-    u32 m_fallDistance;  // 0x30
-    u32 m_blowDistance;  // 0x34
-    u32 m_getCoin;       // 0x38
-    u32 m_makeDropCoin;  // 0x3C
-    u32 m_dropCoin;      // 0x40
-    u32 m_fallButtocks;  // 0x44
-    u32 m_swimDistance;  // 0x48
-    u32 m_swimFall;      // 0x4C
-};
 static_assert(sizeof(gmDiagramResult) == 0x50, "Class is wrong size!");
 
 // Adds the result of one player (index) to its diagram block.
@@ -2384,13 +2357,13 @@ void gmAddDiagramResultChara(gmResultInfo* result) {
                 continue;
             }
             if (result->m_isTeams != 1 || player->m_teamNo != other->m_teamNo) {
-                u16* beaten = reinterpret_cast<u16*>(chara->unk0);
+                u16* beaten = chara->m_beatCount;
                 addMaxCheck(&beaten[(u8)exchangeGmCharacterKindToMuCharKind__6muMenuFiii(playerStat<u8>(other, 0))],
                             player->m_playerBeatCounts[j], 0xFFFF);
             }
-            addMaxCheck(&chara->unk46, other->m_playerBeatCounts[i], 0xFFFF);
+            addMaxCheck(&chara->m_fallCount, other->m_playerBeatCounts[i], 0xFFFF);
         }
-        gmAddDiagramResultCommon(result, i, reinterpret_cast<gmDiagramResult*>(chara->unk48));
+        gmAddDiagramResultCommon(result, i, &chara->m_diagram);
     }
 }
 
