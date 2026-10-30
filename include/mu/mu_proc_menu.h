@@ -86,7 +86,7 @@ public:
     void setAnimFrame(int obj, float frame, u32 flags);
     void setAnimUpdateRate(int obj, float rate, u32 flags);
     static int getFixedControllerID();
-    static int getSceneStartCode();
+    int getSceneStartCode();            // not static: the screens of the main menu pass this to it
     void exitScene(int code, bool force);
     void setComeAnim(bool keepFrame);
     void setSelectAnim(int item, bool selected);
