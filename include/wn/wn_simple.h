@@ -12,6 +12,8 @@ class wnSimple : public wnWeaponBuilder<wnSimpleModuleAccesserBuildConfig> {
     soAnimCmdAddressPackArraySeparate m_pack;
 public:
     wnSimple(s32 articleId, const wnSimpleConstructionInfo& info, wnSimpleData* data, bool unk);
+    // HYPOTHESIS: deactivate is the key function (declared first): the native vtable and its thunks sit in wn_simple.o.
+    virtual void deactivate(bool);
     virtual ~wnSimple();
     // Founder, resources and position feed Weapon::activate. Remaining selector
     // and flag meanings are unresolved; their integer/byte consumers are verified.

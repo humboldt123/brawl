@@ -251,6 +251,10 @@ public:
     bool unk169A;
     u8 unk169B;
     virtual ~wnWeaponBuilder() { }
+    // HYPOTHESIS: no own article generator; the descendants resolve to the shared null mediator.
+    virtual void deactivateDescendantForce() {
+        soSingletonHolder<soArticleMediatorNull>::getInstance()->deactivate();
+    }
 };
 static_assert(sizeof(wnWeaponBuilder<wnSimpleModuleAccesserBuildConfig>)==0x169C,"WN weapon builder extent");
 

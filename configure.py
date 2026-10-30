@@ -2835,6 +2835,7 @@ config.libs = [
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_lasso_status_uniq_process_exhaust.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_lasso_status_uniq_process_motion_pull.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_lasso_status_uniq_process_failure.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/wn/wn_simple.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_dummy_fighter.cpp"),
             Object(Matching, "mo_melee/sora_melee/wn/wn_class_info.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/st/st_positions.cpp"),
