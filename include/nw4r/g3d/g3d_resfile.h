@@ -51,6 +51,7 @@ namespace nw4r {
             void Release();
 
             ResMdl GetResMdl(const char* name) const;
+            ResMdl GetResMdl(int index) const;
             ResMdl GetResMdl(u32 index) const;
 
             u32 GetResMdlNumEntries() const;

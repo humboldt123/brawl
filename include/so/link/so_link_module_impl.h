@@ -157,7 +157,7 @@ public:
     virtual bool getNodeRotation(u32 index, u32 nodeIndex, Vec3f *rotation) = 0;
     virtual float getConstraintModelScale() = 0;
     virtual bool setUpModelConstraintTargetMtx() = 0;
-    virtual void calcModelConstraintNodeMtx(Matrix*) = 0;
+    virtual void calcModelConstraintNodeMtx(Matrix*, bool) = 0; // soModelModuleImpl passes the second argument; the map name lacks it
     virtual void setAttribute(u32 index, soLinkConnection::Attribute, bool) = 0;
     virtual bool chkAttribute(int index, soLinkConnection::Attribute) = 0;
     virtual bool chkLinkedAttribute(soLinkConnection::Attribute) = 0;
@@ -302,7 +302,7 @@ public:
     virtual bool getNodeRotation(u32 index, u32 nodeIndex, Vec3f *rotation);
     virtual float getConstraintModelScale();
     virtual bool setUpModelConstraintTargetMtx();
-    virtual void calcModelConstraintNodeMtx(Matrix*);
+    virtual void calcModelConstraintNodeMtx(Matrix*, bool);
     virtual void setAttribute(u32 index, soLinkConnection::Attribute, bool);
     virtual bool chkAttribute(int index, soLinkConnection::Attribute);
     virtual bool chkLinkedAttribute(soLinkConnection::Attribute);

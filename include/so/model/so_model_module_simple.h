@@ -112,6 +112,8 @@ public:
 };
 
 class soModelModuleSimple : public soModelModule {
+protected:
+    // soModelModuleImpl reads both directly.
     // 0xC
     nw4r::g3d::ScnMdl* m_scnMdl;
 
@@ -139,7 +141,9 @@ public:
     virtual void activate();
     virtual void deactivate();
     virtual void begin(bool);
-    virtual nw4r::g3d::ScnMdl* getScnMdl() const; // 0x3C
+    // The three inline virtuals are emitted as weak copies by the soModelModuleImpl unit (sora_melee 0x81D4, 0x9234,
+    // 0xE114), not by this class's own unit.
+    virtual nw4r::g3d::ScnMdl* getScnMdl() const { return m_scnMdl; } // 0x3C
     virtual nw4r::g3d::ScnMdl* getScnMdl(bool) const;
     virtual void setScnMdl(nw4r::g3d::ScnMdl*, void*, gfSceneRoot::LayerType);
     virtual void setScnMdlExtern(nw4r::g3d::ScnMdl *);
@@ -160,7 +164,7 @@ public:
     virtual void setNodeTranslate(u32 , Vec3f* xlate);
     virtual int getNodeId(const char *nodeName);
     virtual int getCorrectNodeId(u32);
-    virtual int getRealNodeId(u32) const;
+    virtual int getRealNodeId(u32 nodeId) const { return nodeId; }
     virtual const char* getNodeName(u32 p1);
     virtual Vec3f getNodeGlobalPosition(u32 correctNodeId, bool );
     virtual Vec3f getNodeGlobalPosition(u32 correctNodeId, const Vec3f* p2, bool, bool );
@@ -205,7 +209,7 @@ public:
     virtual bool isRefFB();
     virtual void preShadowCalcView();
     virtual Matrix *getWorldMtxArray();
-    virtual void setNodeConvertData(u32** convertData);
+    virtual void setNodeConvertData(u32** convertData) { }
     virtual void setShadowNode(int);
     virtual void setDisposeInstanceImm(bool);
     virtual ~soModelModuleSimple();

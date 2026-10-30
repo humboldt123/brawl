@@ -11,6 +11,7 @@ class soModelSceneRootEvent : public gfSceneRootEvent {
 public:
     soModelModuleImpl* m_modelModule; // 0xC
 
+    soModelSceneRootEvent(soModelModuleImpl* modelModule);
     ~soModelSceneRootEvent();
     virtual void notify(s32 p1);
 };

@@ -2,6 +2,8 @@
 #include <so/model/so_model_scene_root_event.h>
 #include <types.h>
 
+soModelSceneRootEvent::soModelSceneRootEvent(soModelModuleImpl* modelModule) : m_modelModule(modelModule) { }
+
 soModelSceneRootEvent::~soModelSceneRootEvent() { }
 
 void soModelSceneRootEvent::notify(s32 p1) {

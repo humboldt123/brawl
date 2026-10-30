@@ -45,7 +45,8 @@ namespace nw4r {
 
             char _spacer[12];
             ResMdl m_resMdl; // +0xE8
-            char _spacer2[48];
+            math::MTX34* m_worldMtxArray; // +0xEC (soModelModuleImpl::getWorldMtxArray)
+            char _spacer2[44];
             ICalcWorldCallBack* m_calcWorldCallBack;
             char _spacer3[2];
             short m_nodeIndex;

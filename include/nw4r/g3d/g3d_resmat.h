@@ -53,6 +53,7 @@ class ResFile;
             inline ResTexObj(void* data) : ResCommon(data) {}
 
             GXTexObj* GetTexObj(GXTexMapID);
+            bool IsValidTexObj(GXTexMapID) const;
         };
 
         struct GenModeData {

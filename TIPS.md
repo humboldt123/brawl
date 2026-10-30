@@ -794,3 +794,14 @@ Same source. These apply when the decomp is built for PC:
 ## Adding declarations to widely included headers
 
 Adding a declaration, inline helper or function-local static to a header that many units include shifts MWCC's `$NNNN` suffix on function-local statics in every unit that includes it (for example `sCharKinds$8314` becoming `$8322` in `mu_tour_rule`), which moves symbols and breaks matches far from your change. Put new helpers in narrowly included headers (the screen's own `mu_proc_*.h`, not `mu_object.h`), and rebuild the whole report after touching a shared header, not just your unit. **HIGH**
+
+## Recovering a class layout from one translation unit
+
+Method used for `soModelModuleImpl` (sora_melee 0x77DC-0xE268, `include/so/model/so_model_module_impl.h`): load the constructor, destructor, every accessor and the callers that cast into the class, write down one offset table with a type and a role for each member, then write the whole unit against that header and let the per-function compare judge. Lessons:
+
+- **Two vptrs under one class:** `so*Module : private soNull, public soNullable` puts a vptr at +0 and one at +8; a virtual call through `this` goes through the +8 one, and the flat index into the emitted vtable object is simply `offset / 4` (the two header words included). Count slots in the vtable asm, not in the header. **HIGH**
+- **The map's parameter list can be short:** `calcModelConstraintNodeMtx` is called with a second argument everywhere, although the map names it `FP6Matrix`. Trust the call sites (an `li r5` before the `bctrl`) and rename the symbol. **MED**
+- **A module reference is not cached:** `m_moduleAccesser->getLinkModule().f()` is re-evaluated at every call in the original; a `soLinkModule& link = ...` local moves the loads into a callee-saved register and shifts every later register. Re-fetch per use. **HIGH**
+- **Intrusive list records in a vector:** `soModelNodeSetUp` (0x34) carries a `nw4r::ut::Link`; the module keeps the records sorted by node id with the free (flag 0) records at the tail, and a lookup that inserts takes the tail record. The records sit in `soArrayVector` members of every fighter builder, so they must stay constructor-free (`Vec3f` has a constructor; use plain floats with an assignment operator). **HIGH**
+- **Inline virtuals emitted by a derived unit:** `getScnMdl() const`, `getRealNodeId` and `setNodeConvertData` of `soModelModuleSimple` live at 0x81D4/0x9234/0xE114 inside the Impl unit, not in the Simple unit: they are inline in the header and the Impl unit, which emits the vtable, emits the weak copies. **HIGH**
+- **`getCorrectNodeId` vs `getRealNodeId`:** the two neighbouring slots (0x8C/0x90) are easy to confuse; the Impl's callbacks call `getRealNodeId` (the Variable subclass remaps there). **MED**

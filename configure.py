@@ -3156,6 +3156,7 @@ config.libs = [
             Object(Matching, "mo_melee/sora_melee/so/so_array_vector_interpolation_1_destructor.cpp"),
             Object(Matching, "mo_melee/sora_melee/so/so_array_vector_interpolation_2_destructor.cpp"),
             Object(Matching, "mo_melee/sora_melee/so/so_array_vector_interpolation_106.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/so/model/so_model_module_impl.cpp"),
             Object(Matching, "mo_melee/sora_melee/so/model/so_model_module_simple.cpp"),
             Object(Matching, "mo_melee/sora_melee/so/model/so_model_virtual_node.cpp"),
             Object(Matching, "mo_melee/sora_melee/so/model/so_model_module_impl_variable.cpp"),

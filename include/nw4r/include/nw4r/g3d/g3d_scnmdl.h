@@ -22,6 +22,7 @@ namespace nw4r {
             public:
                 CopiedMatAccess(ScnMdl* scnMdl, u32 matID);
                 ResMatTevColor GetResMatTevColor(bool sync);
+                ResTexObj GetResTexObjEx();
             };
 
             class CopiedVisAccess {

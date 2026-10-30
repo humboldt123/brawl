@@ -7,8 +7,21 @@
 namespace nw4r {
 namespace g3d {
 
-class ChrAnmResult;
-class WorldMtxManip;
+// Declarations soModelModuleImpl's calc-world callbacks need (the anim result and the world matrix manipulator).
+class ChrAnmResult {
+public:
+    void SetScale(const math::VEC3* pScale);
+    void SetRotateDeg(const math::VEC3* pRotate);
+    void GetRotateDeg(math::VEC3* pRotate) const;
+    void SetTranslate(const math::VEC3* pTranslate);
+};
+
+class WorldMtxManip {
+public:
+    void SetScale(f32 x, f32 y, f32 z);
+
+    math::MTX34* m_mtx; // 0x0
+};
 class ICalcWorldCallback;
 
 class FuncObjCalcWorld {
