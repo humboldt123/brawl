@@ -19,7 +19,7 @@ class GameGlobal {
 public:
     /* data */
     gmAppData* m_appData;               // 0x00
-    char _0[0x4];                       // 0x04
+    s16* m_handicapCounts;              // 0x04 (HYPOTHESIS: four halfwords, cleared by gmInitVSMelee / gmResetHandiSetting)
     gmGlobalModeMelee* m_modeMelee;     // 0x08
     char _1[0x04];                      // 0x0C
     gmSelCharData* m_selCharData;       // 0x10

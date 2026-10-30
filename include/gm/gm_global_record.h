@@ -291,13 +291,23 @@ struct gmGlobalRecord {
     u32 m_damageTotalCount;                 // 0x2D8
     u32 m_killTotalCount;                   // 0x2DC
     u32 m_suicideTotalCount;                // 0x2E0
-    char _2E4[0x2];
+    u8 m_unk2E4;                            // HYPOTHESIS: copied into the melee init data by gmInitGlobalModeMelee
+    u8 m_unk2E5;
     u8 m_openedEvent[0x2];                  // 0x2E6
     u8 m_stagePlayCount[0x44];              // 0x2E8
 
     EventHiScoreData m_eventHiScoreData[2];
 
-    char _2036[28];
+    char _2036[20];
+    bool m_unk808_7 : 1;                    // 0x808; HYPOTHESIS: bit 7 is copied into the melee init data by gmInitMeleeDataDefault
+    bool m_unk808_6 : 1;
+    bool m_unk808_5 : 1;
+    bool m_unk808_4 : 1;
+    bool m_unk808_3 : 1;
+    bool m_unk808_2 : 1;
+    bool m_unk808_1 : 1;
+    bool m_unk808_0 : 1;
+    char _809[7];
 
     MenuData m_menuData; // 2064
 
