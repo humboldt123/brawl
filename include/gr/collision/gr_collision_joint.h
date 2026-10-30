@@ -86,7 +86,7 @@ public:
 
     u16 m_vtxLen;
 
-    u16 m_modelIndex; // role: index into the ground's scene models for getWorldMatrix
+    u16 _0x4E; // role: index into the ground's scene models (grCollisionJoint::getWorldMatrix reads it)
 
     // 80
     u16 m_nodeIndex;

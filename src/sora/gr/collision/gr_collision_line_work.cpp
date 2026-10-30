@@ -27,6 +27,11 @@ void grCollCollection::reset() {
     m_lineWorks.m_num = 0;
 }
 
+// MATCH-ONLY: the original passes the unextended 32-bit loop counters to these two (every caller in the dol does), so the index
+// parameters of grCollision::getJoint / getLine1 are probably not u16; the stand-ins keep the symbols of the members.
+extern "C" grCollisionJoint* getJoint__11grCollisionFUs(grCollision* collision, u32 index);
+extern "C" grCollisionLine* getLine1__11grCollisionFUs(grCollision* collision, u32 index);
+
 // MATCH-ONLY: the original measures a returned vector temporary through a by-value copy.
 static inline float getLength(Vec2f vec) {
     return vec.length();
@@ -67,10 +72,14 @@ static inline void mergeBounds(register Vec2f* outMin, register Vec2f* outMax, r
     // clang-format on
 }
 
+static inline bool segmentsEqual(const clSegment2D& a, const clSegment2D& b) {
+    return a.m_p0Pos.m_x == b.m_p0Pos.m_x && a.m_p0Pos.m_y == b.m_p0Pos.m_y && a.m_p1Pos.m_x == b.m_p1Pos.m_x &&
+           a.m_p1Pos.m_y == b.m_p1Pos.m_y;
+}
+
 static inline bool segmentsDiffer(const clSegment2D& a, const clSegment2D& b) {
     bool differ = true;
-    if (a.m_p0Pos.m_x == b.m_p0Pos.m_x && a.m_p0Pos.m_y == b.m_p0Pos.m_y && a.m_p1Pos.m_x == b.m_p1Pos.m_x &&
-        a.m_p1Pos.m_y == b.m_p1Pos.m_y) {
+    if (segmentsEqual(a, b)) {
         differ = false;
     }
     return differ;
@@ -83,26 +92,29 @@ bool grCollCollection::addSegment(grCollision* collision) {
     u32 jointLen = collision->m_jointLen;
     u32 jointLineId = 0;
     for (u32 i = 0; i < jointLen; i++, jointLineId += 0x10000) {
-        grCollisionJoint* joint = collision->getJoint(i);
+        grCollisionJoint* joint = getJoint__11grCollisionFUs(collision, i);
         if (joint->m_0x54_6 && joint->m_0x54_4) {
             u32 lineStart = joint->m_lineStart;
             u32 lineLen = joint->m_lineLen;
             if (joint->m_aabBox.checkIntersect1(m_aabb)) {
                 for (u32 index = lineStart; index < lineStart + lineLen; index++) {
-                    grCollisionLine* line = collision->getLine1(index);
+                    grCollisionLine* line = getLine1__11grCollisionFUs(collision, index);
                     u16 attr = *(u16*)((char*)line + 0x10);
                     if ((attr & m_unk10) == 0 && (line->m_unkE & categoryBits) != 0) {
                         grCollSegmentEx segment;
                         clSegment2D trace;
                         collision->getSegmentTrace1(&segment, &trace, line, jointLineId | index);
-                        if (!(getLength(segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos) < 0.01f)) {
+                        if (getLength(segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos) < 0.01f) {
+                            continue;
+                        }
+                        {
                             bool hit = false;
                             if (!segmentsDiffer(segment.m_segment, trace)) {
                                 hit = m_aabb.checkIntersect(segment.m_segment);
                             } else {
                                 clAABBox2D sweep;
-                                Vec2f traceLo;
                                 Vec2f traceHi;
+                                Vec2f traceLo;
                                 segmentBounds(&segment.m_segment, (Vec2f*)&sweep, (Vec2f*)&sweep.m_unk3);
                                 segmentBounds(&trace, &traceLo, &traceHi);
                                 mergeBounds((Vec2f*)&sweep, (Vec2f*)&sweep.m_unk3, &traceLo, &traceHi);

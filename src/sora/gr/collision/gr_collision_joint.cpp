@@ -88,7 +88,7 @@ void grCollisionJoint::getWorldMatrix(Matrix* out) {
     }
     bool found = false;
     if (m_ground != NULL && m_ground->isEnableCalcCollision()) {
-        nw4r::g3d::ScnMdl* model = m_ground->m_sceneModels[m_modelIndex];
+        nw4r::g3d::ScnMdl* model = m_ground->m_sceneModels[_0x4E];
         if (m_nodeIndex != 0xFFFF) {
             found = model->GetScnMtxPos(out, nw4r::g3d::ScnObj::MTX_WORLD, m_nodeIndex);
         }
