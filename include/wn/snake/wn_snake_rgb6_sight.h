@@ -8,4 +8,6 @@ class wnSnakeRgb6Sight : public Weapon {
 public:
     void enableOperate();
     void unableOperate();
+    virtual void renderDebug();
+    virtual ~wnSnakeRgb6Sight();
 };

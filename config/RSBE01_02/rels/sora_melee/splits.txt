@@ -12356,6 +12356,36 @@ mo_melee/sora_melee/wn/wn_toon_link_bow_arrow_status_uniq_process.cpp:
 	.text       start:0x003AA35C end:0x003AA6D8
 	.ctors      start:0x00000500 end:0x00000504
 
+mo_melee/sora_melee/wn/wn_snake_trenchmortar_bullet.cpp:
+	.text       start:0x003AEEEC end:0x003B0DC4
+	.rodata     start:0x00007F78 end:0x00007F90
+	.data       start:0x0009F730 end:0x0009FC40
+	.bss        start:0x00008B58 end:0x00008B78
+
+mo_melee/sora_melee/wn/wn_snake_rgb6sight.cpp:
+	.text       start:0x003B1050 end:0x003B3280
+	.rodata     start:0x00007FA0 end:0x00007FD0
+	.data       start:0x0009FCC8 end:0x000A0268
+	.bss        start:0x00008B78 end:0x00008BA0
+
+mo_melee/sora_melee/wn/wn_snake_rgb6bullet.cpp:
+	.text       start:0x003B48BC end:0x003B6680
+	.rodata     start:0x00007FE0 end:0x00008010
+	.data       start:0x000A0930 end:0x000A0FF8
+	.bss        start:0x00008BB0 end:0x00008BC0
+
+mo_melee/sora_melee/wn/wn_snake_ladder.cpp:
+	.text       start:0x003B6680 end:0x003B92A0
+	.rodata     start:0x00008010 end:0x00008020
+	.data       start:0x000A0FF8 end:0x000A16B8
+	.bss        start:0x00008BC0 end:0x00008BD0
+
+mo_melee/sora_melee/wn/wn_snake_rgb6.cpp:
+	.text       start:0x003B92A0 end:0x003BAB9C
+	.rodata     start:0x00008020 end:0x00008030
+	.data       start:0x000A16B8 end:0x000A1D90
+	.bss        start:0x00008BD0 end:0x00008BE0
+
 mo_melee/sora_melee/ft/ft_snake_status_uniq_process_grenade.cpp:
 	.text       start:0x003BAB9C end:0x003BAEF0
 	.ctors      start:0x00000504 end:0x00000508
