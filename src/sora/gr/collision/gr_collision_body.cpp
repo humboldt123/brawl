@@ -973,23 +973,16 @@ void grCollisionTest::updateTouchLine(int touchId, grCollisionLineWork* lineWork
 
 // HYPOTHESIS: grCollisionLineWork::getPrevNoVLink / getNextNoVLink (like getPrev / getNext, but they do not follow the
 // virtual link to another collision).
-extern "C" bool fn_80113F88(const grCollisionLineWork* self, grCollisionLineWork* out);
-extern "C" bool fn_80114024(const grCollisionLineWork* self, grCollisionLineWork* out);
 // HYPOTHESIS: grCollision::getSegment, the variant with an extra int argument (gr_collision.o 0x80111968; the shape
 // tests pass 0), used where the circle unit also calls it.
 // HYPOTHESIS: grCollisionLineWork::getPosYLeftLine / getPosYRightLine (the line further along the chain at the same
 // height, used to find where a wall continues); (self, out) -> found.
-extern "C" bool fn_80115E44(const grCollisionLineWork* self, grCollisionLineWork* out);
-extern "C" bool fn_801162F4(const grCollisionLineWork* self, grCollisionLineWork* out);
 // HYPOTHESIS: grCollStatus::reconstructIgnoreLine (re-collects the status' ignore lines inside the box).
 extern "C" void fn_801373E8(grCollStatus* status, const clAABBox2D* box);
 // HYPOTHESIS: grCollStatus::setStGroundInternal (goes to the ground setting without resetting the touch lines).
 extern "C" void fn_801340A0(grCollStatus* status);
 // HYPOTHESIS: grCollisionLineWork::getPosXDownLine(float x, out): the line below/next to this one at height x.
-extern "C" bool fn_801150D0(const grCollisionLineWork* self, float x, grCollisionLineWork* out);
 // HYPOTHESIS: grCollisionLineWork::isLinkPrev / isLinkNext (target is linked to this line on the left / right).
-extern "C" bool fn_801142C0(const grCollisionLineWork* self, const grCollisionLineWork* target);
-extern "C" bool fn_80114498(const grCollisionLineWork* self, const grCollisionLineWork* target);
 // HYPOTHESIS: grCollStatus::getTouchLine (the line work of a touch id).
 // HYPOTHESIS: grCollStatus::clearTouchLine (empties the touch line work of the touch id).
 // HYPOTHESIS: grCollStatus::isIgnoreLine (the line work is on the status' ignore list).
@@ -1038,10 +1031,10 @@ int grCollisionTest::isIgnoreLine(grCollisionLineWork* lineWork) {
         line = lineWork->m_collisionLine;
         if (line->m_isUnder && !line->m_isThroughable) {
             grCollisionLineWork neighbor;
-            if (fn_80113F88(lineWork, &neighbor) && neighbor.m_collisionLine->m_isRight) {
+            if (lineWork->getPrevNoVLink(&neighbor) && neighbor.m_collisionLine->m_isRight) {
                 break;
             }
-            if (fn_80114024(lineWork, &neighbor) && neighbor.m_collisionLine->m_isLeft) {
+            if (lineWork->getNextNoVLink(&neighbor) && neighbor.m_collisionLine->m_isLeft) {
                 break;
             }
             if (lineWork->getPrev(&neighbor) && neighbor.m_collisionLine->m_isRight) {
@@ -1513,7 +1506,7 @@ int grCollisionTest::testGround() {
             calcOffsetVector(&ground, addressOf(m_unk2bc->getDownPos()), &offsetPos, &offset);
             Vec2f::copy(offsetPos, m_unk2bc->getDownPos());
             grCollisionLineWork lower;
-            if (fn_801150D0(&ground, offsetPos.m_x, &lower)) {
+            if (ground.getPosXDownLine(offsetPos.m_x, &lower)) {
                 clSegment2D lowerSegment;
                 Vec2f projected;
                 lower.m_collision->getSegment(&lowerSegment, lower.m_collisionLine);
@@ -1731,13 +1724,13 @@ int grCollisionTest::testGround() {
                 if (isValid3(previous) && hitLine->m_collisionLine == previous.m_collisionLine) {
                     done = true;
                 } else {
-                    if (fn_80114498(&ground, hitLine)) {
+                    if (ground.isLinkNext(hitLine)) {
                         if (hitLine->getNext(&linked) && linked.m_collisionLine->m_isRight) {
                             done = true;
                             goto joined;
                         }
                     }
-                    if (fn_801142C0(&ground, hitLine)) {
+                    if (ground.isLinkPrev(hitLine)) {
                         if (hitLine->getPrev(&linked) && linked.m_collisionLine->m_isLeft) {
                             done = true;
                         }
@@ -1770,7 +1763,7 @@ finished:
         grCollisionLineWork* cur = &m_touch[3].m_lineWork;
         Vec2f downPos;
         Vec2f::copy(downPos, m_unk2bc->getDownPos());
-        if (!fn_801150D0(cur, downPos.m_x, &lower)) {
+        if (!cur->getPosXDownLine(downPos.m_x, &lower)) {
             grCollisionLineWork neighbor;
             clSegment2D curSegment;
             cur->m_collision->getSegment(&curSegment, cur->m_collisionLine);
@@ -1845,7 +1838,7 @@ int grCollisionTest::testGroundLRWallCorrect(grCollisionLineWork* lineWork, int 
                         m_unk2bc->setRightPos(pos);
                         result = 1;
                     }
-                } else if (fn_801162F4(&neighbor, &other)) {
+                } else if (neighbor.getPosYRightLine(right.m_y, &other)) {
                     other.m_collision->getSegment(&segment, other.m_collisionLine);
                     Vec2f proj;
                     if (segment.projectionY(right, proj)) {
@@ -1882,7 +1875,7 @@ int grCollisionTest::testGroundLRWallCorrect(grCollisionLineWork* lineWork, int 
                         m_unk2bc->setLeftPos(pos);
                         result = 1;
                     }
-                } else if (fn_80115E44(&neighbor, &other)) {
+                } else if (neighbor.getPosYLeftLine(left.m_y, &other)) {
                     other.m_collision->getSegment(&segment, other.m_collisionLine);
                     Vec2f proj;
                     if (segment.projectionY(left, proj)) {
@@ -1951,8 +1944,6 @@ extern grCollisionManager* lbl_805A0360; // the collision manager singleton
 // HYPOTHESIS: grCollision::getPreSegment (0x801119F8): the segment of a line one frame ago.
 extern "C" void fn_801119F8(grCollision* collision, clSegment2D* out, grCollisionLine* line);
 // HYPOTHESIS: grCollisionLineWork::getUpRightLine / getUpLeftLine (0x80116B1C / 0x80116CD8): the line above that continues to the right / left.
-extern "C" int fn_80116B1C(const grCollisionLineWork* lineWork, grCollisionLineWork* out);
-extern "C" int fn_80116CD8(const grCollisionLineWork* lineWork, grCollisionLineWork* out);
 
 // HYPOTHESIS: grCollStatus::getCliffCheckBoxPre / getCliffCheckBoxCur (0x80135BA0 / 0x80135B94): the box the cliff check covers before / now.
 extern "C" void fn_80135BA0(grCollStatus* status, clAABBox2D* out);
@@ -2556,7 +2547,7 @@ int grCollisionTest::testCliff() {
                                     grCollisionLineWork* touchLine = &m_collStatus->m_collLineWorkArray[sCliffRightTouch[i]];
                                     if (isActiveLineWork(touchLine) && touchLine->m_collisionLine->m_isRight &&
                                         lineWork.m_collisionJoint != touchLine->m_collisionJoint &&
-                                        (!fn_80116B1C(touchLine, &upLine) || !upLine.getNext(&nextLine) ||
+                                        (!touchLine->getUpRightLine(&upLine) || !upLine.getNext(&nextLine) ||
                                          nextLine.m_collisionLine != cliffLine.m_collisionLine)) {
                                         blocked = true;
                                         goto cliffDone;
@@ -2586,7 +2577,7 @@ int grCollisionTest::testCliff() {
                                     grCollisionLineWork* touchLine = &m_collStatus->m_collLineWorkArray[sCliffLeftTouch[i]];
                                     if (isActiveLineWork(touchLine) && touchLine->m_collisionLine->m_isLeft &&
                                         lineWork.m_collisionJoint != touchLine->m_collisionJoint &&
-                                        (!fn_80116CD8(touchLine, &upLine) || !upLine.getPrev(&nextLine) ||
+                                        (!touchLine->getUpLeftLine(&upLine) || !upLine.getPrev(&nextLine) ||
                                          nextLine.m_collisionLine != cliffLine.m_collisionLine)) {
                                         blocked = true;
                                         goto cliffDone;
@@ -2864,7 +2855,7 @@ int grCollisionTest::checkCliffRayReach(const Vec2f* origin, grCollCliffInfo* in
                 break;
             }
             if (otherLine->m_isRight) {
-                fn_80116B1C(other, &up);
+                other->getUpRightLine(&up);
                 up.getNext(&next);
                 if (!isLinkedLineWork(&next)) {
                     continue;
@@ -2885,7 +2876,7 @@ int grCollisionTest::checkCliffRayReach(const Vec2f* origin, grCollCliffInfo* in
                 break;
             }
             if (otherLine->m_isLeft) {
-                fn_80116CD8(other, &up);
+                other->getUpLeftLine(&up);
                 up.getPrev(&next);
                 if (!isLinkedLineWork(&next)) {
                     continue;
@@ -2913,8 +2904,6 @@ int grCollisionTest::checkCliffRayReach(const Vec2f* origin, grCollCliffInfo* in
 
 // HYPOTHESIS: grCollStatus::isIgnoreLine (the line work is on the status' ignore list).
 // HYPOTHESIS: grCollisionLineWork::isLinkPrevSameDirFlag / isLinkNextSameDirFlag (walk the left / right links of the same attribute).
-extern "C" bool fn_80114670(const grCollisionLineWork* self, grCollisionLineWork* target);
-extern "C" bool fn_80114868(const grCollisionLineWork* self, grCollisionLineWork* target);
 // HYPOTHESIS: grCollisionLineWork::getUpRightLine / getUpLeftLine (the line above-right / above-left of the end of the line).
 // HYPOTHESIS: grCollStatus::addIgnoreLine (puts the line work on the status' ignore list).
 extern "C" void fn_80137074(grCollStatus* status, grCollisionLineWork* lineWork);
@@ -3151,10 +3140,10 @@ int grCollisionTest::initialCorrectionLR() {
                 if (m_collStatus->m_setting == grCollStatus::Setting_Ground) {
                     if (line->m_isRight) {
                         SKIP_IF_GROUND_NEIGHBOR(lineWork->getNext(&neighbor))
-                        SKIP_IF_GROUND_NEIGHBOR(fn_80114024(lineWork, &neighbor))
+                        SKIP_IF_GROUND_NEIGHBOR(lineWork->getNextNoVLink(&neighbor))
                     } else if (line->m_isLeft) {
                         SKIP_IF_GROUND_NEIGHBOR(lineWork->getPrev(&neighbor))
-                        SKIP_IF_GROUND_NEIGHBOR(fn_80113F88(lineWork, &neighbor))
+                        SKIP_IF_GROUND_NEIGHBOR(lineWork->getPrevNoVLink(&neighbor))
                     }
                 }
                 if (testStaticCorrection(lineWork)) {
@@ -3330,10 +3319,10 @@ int grCollisionTest::lastCorrectionLR() {
                 if (m_collStatus->m_setting == grCollStatus::Setting_Ground) {
                     if (line->m_isRight) {
                         SKIP_IF_GROUND_NEIGHBOR(lineWork->getNext(&neighbor))
-                        SKIP_IF_GROUND_NEIGHBOR(fn_80114024(lineWork, &neighbor))
+                        SKIP_IF_GROUND_NEIGHBOR(lineWork->getNextNoVLink(&neighbor))
                     } else if (line->m_isLeft) {
                         SKIP_IF_GROUND_NEIGHBOR(lineWork->getPrev(&neighbor))
-                        SKIP_IF_GROUND_NEIGHBOR(fn_80113F88(lineWork, &neighbor))
+                        SKIP_IF_GROUND_NEIGHBOR(lineWork->getPrevNoVLink(&neighbor))
                     }
                 }
                 if (testStaticCorrection(lineWork)) {
@@ -3892,48 +3881,48 @@ int grCollisionTest::testCollisionMainGround() {
                 }
                 u8 dir = m_unkE;
                 if ((dir & DIR_RIGHT) && lineWork->m_collisionLine->m_isRight) {
-                    fn_80116B1C(lineWork, &lineA);
+                    lineWork->getUpRightLine(&lineA);
                     lineA.getNext(&lineD);
                     if (isActiveLineWorkIf(lineD) && lineD.m_collisionLine->m_isUnder) {
                         bool same = false;
                         if (lineA.m_collisionLine == m_unk224.m_collisionLine) {
                             same = true;
                         }
-                        if (same || fn_80114868(&m_unk224, &lineD)) {
+                        if (same || m_unk224.isLinkNextSameDirFlag(&lineD)) {
                             lineWork->m_unkC |= 2;
                             continue;
                         }
                     }
                 } else if ((dir & DIR_LEFT) && lineWork->m_collisionLine->m_isLeft) {
-                    fn_80116CD8(lineWork, &lineA);
+                    lineWork->getUpLeftLine(&lineA);
                     lineA.getPrev(&lineD);
                     if (isActiveLineWorkIf(lineD) && lineD.m_collisionLine->m_isUnder) {
                         bool same = false;
                         if (lineA.m_collisionLine == m_unk224.m_collisionLine) {
                             same = true;
                         }
-                        if (same || fn_80114670(&m_unk224, &lineD)) {
+                        if (same || m_unk224.isLinkPrevSameDirFlag(&lineD)) {
                             lineWork->m_unkC |= 1;
                             continue;
                         }
                     }
                 } else if (lineWork->m_collisionLine->m_isUpper) {
-                    if (fn_80113F88(lineWork, &lineB) && lineB.m_collisionLine->m_isUnder) {
+                    if (lineWork->getPrevNoVLink(&lineB) && lineB.m_collisionLine->m_isUnder) {
                         bool same = false;
                         if (lineB.m_collisionLine == m_unk224.m_collisionLine) {
                             same = true;
                         }
-                        if (same || fn_80114670(&m_unk224, &lineB)) {
+                        if (same || m_unk224.isLinkPrevSameDirFlag(&lineB)) {
                             lineWork->m_unkC |= 4;
                             continue;
                         }
                     }
-                    if (fn_80114024(lineWork, &lineB) && lineB.m_collisionLine->m_isUnder) {
+                    if (lineWork->getNextNoVLink(&lineB) && lineB.m_collisionLine->m_isUnder) {
                         bool same = false;
                         if (lineB.m_collisionLine == m_unk224.m_collisionLine) {
                             same = true;
                         }
-                        if (same || fn_80114868(&m_unk224, &lineB)) {
+                        if (same || m_unk224.isLinkNextSameDirFlag(&lineB)) {
                             lineWork->m_unkC |= 4;
                             continue;
                         }

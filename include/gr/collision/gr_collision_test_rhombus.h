@@ -170,18 +170,9 @@ void fn_801119F8(grCollision* collision, clSegment2D* out, grCollisionLine* line
 // (Ghidra drops the fourth argument `line`.)
 void fn_80111A38(grCollision* collision, clSegment2D* out, clSegment2D* trace, grCollisionLine* line);
 // grCollisionLineWork::getPrevNoVLink / getNextNoVLink. 0x80113F88 / 0x80114024
-bool fn_80113F88(const grCollisionLineWork* self, grCollisionLineWork* out);
-bool fn_80114024(const grCollisionLineWork* self, grCollisionLineWork* out);
 // grCollisionLineWork::getPosXDownLine / getPosXDownLinePre: float x is in f1 (Ghidra drops it). 0x801150D0 / 0x8011557C
-bool fn_801150D0(const grCollisionLineWork* self, float x, grCollisionLineWork* out);
-bool fn_8011557C(const grCollisionLineWork* self, float x, grCollisionLineWork* out);
 // grCollisionLineWork::getPosXUpLine / getPosYLeftLine / getPosYRightLine (no float argument). 0x80115A28 / 0x80115E44 / 0x801162F4
-bool fn_80115A28(const grCollisionLineWork* self, grCollisionLineWork* out);
-bool fn_80115E44(const grCollisionLineWork* self, grCollisionLineWork* out);
-bool fn_801162F4(const grCollisionLineWork* self, grCollisionLineWork* out);
 // grCollisionLineWork::getLeftDownLine / getRightDownLine. 0x801167A4 / 0x80116960
-bool fn_801167A4(const grCollisionLineWork* self, grCollisionLineWork* out);
-bool fn_80116960(const grCollisionLineWork* self, grCollisionLineWork* out);
 // grCollStatus::addIgnoreLine / isIgnoreLine / removeIgnoreLine / removeIgnoreLineWithNeighbor. 0x80137074 / 0x80137114 / 0x801371D8 / 0x80137298
 void fn_80137074(grCollStatus* status, grCollisionLineWork* lineWork);
 int fn_80137114(grCollStatus* status, grCollisionLineWork* lineWork);

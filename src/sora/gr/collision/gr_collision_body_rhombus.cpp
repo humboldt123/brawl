@@ -192,8 +192,8 @@ void grCollisionTestRhombus::updateIgnoreLine() {
                 if (segment.m_segment.m_p0Pos.m_x < downX && downX < segment.m_segment.m_p1Pos.m_x &&
                     segment.m_segment.projectionX(rhombus->m_downPos, projected) && rhombus->m_downPos.m_y < projected.m_y &&
                     projected.m_y < rhombus->m_upPos.m_y) {
-                    if ((!fn_80113F88(work, &lineWork) || !lineWork.m_collisionLine->m_isRight) &&
-                        (!fn_80114024(work, &lineWork) || !lineWork.m_collisionLine->m_isLeft) &&
+                    if ((!work->getPrevNoVLink(&lineWork) || !lineWork.m_collisionLine->m_isRight) &&
+                        (!work->getNextNoVLink(&lineWork) || !lineWork.m_collisionLine->m_isLeft) &&
                         (!work->getPrev(&lineWork) || !lineWork.m_collisionLine->m_isRight) &&
                         (!work->getNext(&lineWork) || !lineWork.m_collisionLine->m_isLeft)) {
                         fn_80137074(m_collStatus, work);
@@ -268,7 +268,7 @@ void grCollisionTestRhombus::calcSpace(const Vec2f* pos, Vec2f* outSpace) {
                     if (lineWork.getPrev(&neighbor) && isActiveLineWork(&neighbor) && neighbor.m_collisionLine == groundLine) {
                         continue;
                     }
-                    if (fn_80113F88(&lineWork, &neighbor) && isActiveLineWork(&neighbor) && neighbor.m_collisionLine == groundLine) {
+                    if (lineWork.getPrevNoVLink(&neighbor) && isActiveLineWork(&neighbor) && neighbor.m_collisionLine == groundLine) {
                         continue;
                     }
                 }
@@ -300,7 +300,7 @@ void grCollisionTestRhombus::calcSpace(const Vec2f* pos, Vec2f* outSpace) {
                     if (lineWork.getNext(&neighbor) && isActiveLineWork(&neighbor) && neighbor.m_collisionLine == groundLine) {
                         continue;
                     }
-                    if (fn_80114024(&lineWork, &neighbor) && isActiveLineWork(&neighbor) && neighbor.m_collisionLine == groundLine) {
+                    if (lineWork.getNextNoVLink(&neighbor) && isActiveLineWork(&neighbor) && neighbor.m_collisionLine == groundLine) {
                         continue;
                     }
                 }
@@ -485,7 +485,7 @@ int grCollisionTestRhombus::testStaticCorrection(grCollisionLineWork* lineWork) 
         grCollisionLineWork below;
         grCollisionLineWork neighbor;
         bool ignore = true;
-        if (!fn_801150D0(lineWork, m_shape1.m_rhombus.m_downPos.m_x, &below)) {
+        if (!lineWork->getPosXDownLine(m_shape1.m_rhombus.m_downPos.m_x, &below)) {
             ignore = false;
         } else if (lineWork->m_collisionLine == below.m_collisionLine) {
             clSegment2D belowSegment;
@@ -494,9 +494,9 @@ int grCollisionTestRhombus::testStaticCorrection(grCollisionLineWork* lineWork) 
             if (belowSegment.projectionX(m_shape1.m_rhombus.m_downPos, projected) && projected.m_y < m_shape1.m_rhombus.m_downPos.m_y) {
                 ignore = false;
             }
-            if (fn_801167A4(lineWork, &below) && below.getPrev(&neighbor)) {
+            if (lineWork->getLeftDownLine(&below) && below.getPrev(&neighbor)) {
                 ignore = false;
-            } else if (fn_80116960(lineWork, &below) && below.getNext(&neighbor)) {
+            } else if (lineWork->getRightDownLine(&below) && below.getNext(&neighbor)) {
                 ignore = false;
             }
         } else {
@@ -1124,7 +1124,7 @@ int grCollisionTestRhombus::testStaticDown(grCollisionLineWork* lineWork, u8 fla
                                 reach = true;
                             }
                         }
-                        if (!reach && fn_8011557C(lineWork, m_savedRhombus.m_downPos.m_x, &found)) {
+                        if (!reach && lineWork->getPosXDownLinePre(m_savedRhombus.m_downPos.m_x, &found)) {
                             clSegment2D foundPre;
                             fn_801119F8(found.m_collision, &foundPre, found.m_collisionLine);
                             if (pre.m_segment.projectionX(m_savedRhombus.m_downPos, preProjected) &&
@@ -1156,7 +1156,7 @@ int grCollisionTestRhombus::testStaticDown(grCollisionLineWork* lineWork, u8 fla
     }
     if (moved == 0 && wall.m_segment.m_p0Pos.m_x <= rhombus->m_downPos.m_x && rhombus->m_downPos.m_x <= wall.m_segment.m_p1Pos.m_x &&
         wall.m_segment.projectionX(rhombus->m_downPos, projected) && rhombus->m_downPos.m_y < projected.m_y &&
-        fn_801150D0(lineWork, m_savedRhombus.m_downPos.m_x, &found)) {
+        lineWork->getPosXDownLine(m_savedRhombus.m_downPos.m_x, &found)) {
         clSegment2D foundSegment;
         found.m_collision->getSegment(&foundSegment, found.m_collisionLine);
         Vec2f foundProjected;
@@ -1577,13 +1577,13 @@ int grCollisionTestRhombus::testDown(grCollisionLineWork* lineWork, float* rate)
             grCollisionLineWork edge;
             grCollisionLineWork neighbor;
             if (dir.m_x > 0.0f) {
-                if (fn_801167A4(lineWork, &edge)) {
+                if (lineWork->getLeftDownLine(&edge)) {
                     if (isEnabledLineWork(&edge) && !edge.getPrev(&neighbor)) {
                         ignore = 1;
                     }
                 }
             } else if (dir.m_x < 0.0f) {
-                if (fn_80116960(lineWork, &edge)) {
+                if (lineWork->getRightDownLine(&edge)) {
                     if (isEnabledLineWork(&edge) && !edge.getNext(&neighbor)) {
                         ignore = 1;
                     }
@@ -2229,7 +2229,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightDown(grCollis
         const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
         fetchSegment(&nextSeg, &next);
         if (nextSeg.m_segment.m_p1Pos.m_x < to.m_segment.m_p0Pos.m_x) {
-            fn_801150D0(&next, to.m_segment.m_p0Pos.m_x, &search);
+            next.getPosXDownLine(to.m_segment.m_p0Pos.m_x, &search);
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&nextSeg, &search);
             }
@@ -2305,7 +2305,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightUp(grCollisio
         const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
         fetchSegment(&nextSeg, &next);
         if (nextSeg.m_segment.m_p0Pos.m_x < to.m_segment.m_p0Pos.m_x) {
-            fn_80115A28(&next, &search);
+            next.getPosXUpLine(to.m_segment.m_p0Pos.m_x, &search);
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&nextSeg, &search);
             }
@@ -2380,7 +2380,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeftDown(grCollisi
         const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
         fetchSegment(&nextSeg, &next);
         if (to.m_segment.m_p0Pos.m_x < nextSeg.m_segment.m_p0Pos.m_x) {
-            fn_801150D0(&next, to.m_segment.m_p0Pos.m_x, &search);
+            next.getPosXDownLine(to.m_segment.m_p0Pos.m_x, &search);
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&nextSeg, &search);
             }
@@ -2456,7 +2456,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeftUp(grCollision
         const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
         fetchSegment(&nextSeg, &next);
         if (to.m_segment.m_p0Pos.m_x < nextSeg.m_segment.m_p1Pos.m_x) {
-            fn_80115A28(&next, &search);
+            next.getPosXUpLine(to.m_segment.m_p0Pos.m_x, &search);
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&nextSeg, &search);
             }
@@ -2578,7 +2578,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpRight(grCollisio
         bool usable = false;
         if (to.m_segment.m_p0Pos.m_x <= seg.m_segment.m_p0Pos.m_x) {
             usable = true;
-        } else if (fn_80115A28(lineWork, &search)) {
+        } else if (lineWork->getPosXUpLine(to.m_segment.m_p0Pos.m_x, &search)) {
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&seg, &search);
                 usable = true;
@@ -2649,7 +2649,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpLeft(grCollision
         bool usable = false;
         if (seg.m_segment.m_p1Pos.m_x <= to.m_segment.m_p0Pos.m_x) {
             usable = true;
-        } else if (fn_80115A28(lineWork, &search)) {
+        } else if (lineWork->getPosXUpLine(to.m_segment.m_p0Pos.m_x, &search)) {
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&seg, &search);
                 usable = true;
@@ -2771,7 +2771,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownRight(grCollis
         bool usable = false;
         if (to.m_segment.m_p0Pos.m_x <= seg.m_segment.m_p1Pos.m_x) {
             usable = true;
-        } else if (fn_801150D0(lineWork, to.m_segment.m_p0Pos.m_x, &search)) {
+        } else if (lineWork->getPosXDownLine(to.m_segment.m_p0Pos.m_x, &search)) {
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&seg, &search);
                 usable = true;
@@ -2842,7 +2842,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownLeft(grCollisi
         bool usable = false;
         if (seg.m_segment.m_p0Pos.m_x <= to.m_segment.m_p0Pos.m_x) {
             usable = true;
-        } else if (fn_801150D0(lineWork, to.m_segment.m_p0Pos.m_x, &search)) {
+        } else if (lineWork->getPosXDownLine(to.m_segment.m_p0Pos.m_x, &search)) {
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&seg, &search);
                 usable = true;
@@ -3107,7 +3107,7 @@ void grCollisionTestRhombus::NAME(grCollisionLineWork* lineWork, float* rate) { 
                 const Vec2f& corner = to.m_segment.m_p1Pos; \
                 if (to.m_segment.m_p1Pos.m_y >= segment.m_segment.FAR_END.m_y) { \
                     use = true; \
-                } else if (SEARCH(lineWork, &next)) { \
+                } else if (lineWork->SEARCH(corner.m_y, &next)) { \
                     if (isEnabledLineWork(next)) { \
                         fn_80111968(next.m_collision, &segment, next.m_collisionLine, 0); \
                         use = true; \
@@ -3160,7 +3160,7 @@ void grCollisionTestRhombus::NAME(grCollisionLineWork* lineWork, float* rate) { 
             } else { \
                 const Vec2f& corner = to.m_segment.m_p1Pos; \
                 if (segment.m_segment.SIDE_END.m_y < to.m_segment.m_p1Pos.m_y) { \
-                    SEARCH(lineWork, &next); \
+                    lineWork->SEARCH(corner.m_y, &next); \
                     if (isEnabledLineWork(next)) { \
                         fn_80111968(next.m_collision, &segment, next.m_collisionLine, 0); \
                     } \
@@ -3183,10 +3183,10 @@ void grCollisionTestRhombus::NAME(grCollisionLineWork* lineWork, float* rate) { 
     } \
 }
 
-MOVE_SLATING_Y_DOWN(testCollisionMoveSlatingLineMoveYRightDown, m_rightPos, m_p1Pos, m_p0Pos, -0.01f, <, fn_801162F4, 7, , grCollisionLineWork next; int hit = 0;)
-MOVE_SLATING_Y_UP(testCollisionMoveSlatingLineMoveYRightUp, m_rightPos, m_p1Pos, m_p0Pos, -0.01f, <, fn_801162F4, 5)
-MOVE_SLATING_Y_DOWN(testCollisionMoveSlatingLineMoveYLeftDown, m_leftPos, m_p0Pos, m_p1Pos, 0.01f, >, fn_80115E44, 6, grCollisionLineWork next; int hit = 0;, )
-MOVE_SLATING_Y_UP(testCollisionMoveSlatingLineMoveYLeftUp, m_leftPos, m_p0Pos, m_p1Pos, 0.01f, >, fn_80115E44, 4)
+MOVE_SLATING_Y_DOWN(testCollisionMoveSlatingLineMoveYRightDown, m_rightPos, m_p1Pos, m_p0Pos, -0.01f, <, getPosYRightLine, 7, , grCollisionLineWork next; int hit = 0;)
+MOVE_SLATING_Y_UP(testCollisionMoveSlatingLineMoveYRightUp, m_rightPos, m_p1Pos, m_p0Pos, -0.01f, <, getPosYRightLine, 5)
+MOVE_SLATING_Y_DOWN(testCollisionMoveSlatingLineMoveYLeftDown, m_leftPos, m_p0Pos, m_p1Pos, 0.01f, >, getPosYLeftLine, 6, grCollisionLineWork next; int hit = 0;, )
+MOVE_SLATING_Y_UP(testCollisionMoveSlatingLineMoveYLeftUp, m_leftPos, m_p0Pos, m_p1Pos, 0.01f, >, getPosYLeftLine, 4)
 
 // 0x80132000: a 4-byte tail branch (the compound test of the rhombus is the plain not-moving test).
 int grCollisionTestRhombus::testCollisionCompound(grCollisionLineWork* lineWork) {
@@ -3233,7 +3233,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUpRight(grCollisio
                     bool use = false;
                     if (pos->m_x <= segment2.m_segment.m_p1Pos.m_x) {
                         use = true;
-                    } else if (fn_801162F4(&neighbor, &next)) {
+                    } else if (neighbor.getPosYRightLine(pos->m_y, &next)) {
                         if (isEnabledLineWork(next)) {
                             fn_80111968(next.m_collision, &segment2, next.m_collisionLine, 0);
                             use = true;
@@ -3300,7 +3300,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUpLeft(grCollision
                     bool use = false;
                     if (segment2.m_segment.m_p1Pos.m_x <= pos.m_x) {
                         use = true;
-                    } else if (fn_80115E44(&neighbor, &next)) {
+                    } else if (neighbor.getPosYLeftLine(pos.m_y, &next)) {
                         if (isEnabledLineWork(next)) {
                             fn_80111968(next.m_collision, &segment2, next.m_collisionLine, 0);
                             use = true;
@@ -3369,7 +3369,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYDownRight(grCollis
                     if (segment2.m_segment.m_p0Pos.m_y <= pos.m_y && pos.m_y <= segment2.m_segment.m_p1Pos.m_y) {
                         use = true;
                     }
-                } else if (fn_801162F4(&neighbor, &next)) {
+                } else if (neighbor.getPosYRightLine(pos.m_y, &next)) {
                     if (isEnabledLineWork(next)) {
                         fn_80111968(next.m_collision, &segment2, next.m_collisionLine, 0);
                         use = true;
@@ -3437,7 +3437,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYDownLeft(grCollisi
                     if (segment2.m_segment.m_p1Pos.m_y <= pos.m_y && pos.m_y <= segment2.m_segment.m_p0Pos.m_y) {
                         use = true;
                     }
-                } else if (fn_80115E44(&neighbor, &next)) {
+                } else if (neighbor.getPosYLeftLine(pos.m_y, &next)) {
                     if (isEnabledLineWork(next)) {
                         fn_80111968(next.m_collision, &segment2, next.m_collisionLine, 0);
                         use = true;

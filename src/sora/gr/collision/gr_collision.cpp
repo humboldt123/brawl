@@ -202,7 +202,7 @@ grCollisionJoint* grCollision::searchJoint(Ground* ground, u16 modelIndex, u16 n
     grCollisionJoint* joint;
     for (u32 i = 0; i < m_jointLen; i++) {
         joint = &m_joints[i];
-        if (joint->m_ground == ground && joint->m_modelIndex == modelIndex && joint->m_nodeIndex == nodeIndex) {
+        if (joint->m_ground == ground && joint->_0x4E == modelIndex && joint->m_nodeIndex == nodeIndex) {
             return joint;
         }
     }

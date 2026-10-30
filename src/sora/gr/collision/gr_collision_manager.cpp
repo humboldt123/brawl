@@ -21,6 +21,11 @@ extern grCollStatusNodeList lbl_8049E594;
 extern grCollisionManager* lbl_805A0360;
 extern bool lbl_805A0358;
 
+// MATCH-ONLY: the original passes the unextended 32-bit loop counters to these two (every caller in the dol does), so the index
+// parameters of grCollision::getJoint / grCollisionJoint::getLine are probably not u16; the stand-ins keep the symbols of the members.
+extern "C" grCollisionJoint* getJoint__11grCollisionFUs(grCollision* collision, u32 index);
+extern "C" grCollisionLine* getLine__16grCollisionJointFUs(grCollisionJoint* joint, u32 index);
+
 // MATCH-ONLY: the original takes the minimum and maximum of two floats with a paired-single subtract and select.
 static inline float psMin(register float a, register float b) {
     register float diff, result;
@@ -119,18 +124,18 @@ void grCollisionManager::calcFloorRange() {
     for (grCollisionNodeList::Iterator it = list.GetBeginIter(); it != list.GetEndIter(); it++) {
         grCollision* collision = &*it;
         if (collision->m_isEnabled && collision->m_isDynamic != 1 && collision->m_isEnabledLatch) {
-            u16 jointLen = collision->m_jointLen;
-            for (u16 i = 0; i < jointLen; i++) {
-                grCollisionJoint* joint = collision->getJoint(i);
+            u32 jointLen = collision->m_jointLen;
+            for (u32 i = 0; i < jointLen; i++) {
+                grCollisionJoint* joint = getJoint__11grCollisionFUs(collision, i);
                 if (joint->m_0x54_6) {
-                    u16 lineLen = joint->m_lineLen;
-                    for (u16 j = 0; j < lineLen; j++) {
-                        grCollisionLine* line = joint->getLine(j);
+                    u32 lineLen = joint->m_lineLen;
+                    for (u32 j = 0; j < lineLen; j++) {
+                        grCollisionLine* line = getLine__16grCollisionJointFUs(joint, j);
                         if (line->m_isUnder) {
                             clSegment2D segment;
                             collision->getSegment(&segment, line);
-                            Vec2f dir = segment.m_p1Pos - segment.m_p0Pos;
-                            if (getLength(dir) > 0.01f) {
+                            float length = getLength(segment.m_p1Pos - segment.m_p0Pos);
+                            if (length > 0.01f) {
                                 float lineMinY = psMin(segment.m_p0Pos.m_y, segment.m_p1Pos.m_y);
                                 float lineMaxY = psMax(segment.m_p0Pos.m_y, segment.m_p1Pos.m_y);
                                 float lineMinX = psMin(segment.m_p0Pos.m_x, segment.m_p1Pos.m_x);
@@ -142,10 +147,14 @@ void grCollisionManager::calcFloorRange() {
                                     maxY = lineMaxY;
                                     maxX = lineMaxX;
                                 } else {
-                                    minY = psMin(minY, lineMinY);
-                                    minX = psMin(minX, lineMinX);
-                                    maxY = psMax(maxY, lineMaxY);
-                                    maxX = psMax(maxX, lineMaxX);
+                                    float newMinY = psMin(minY, lineMinY);
+                                    float newMinX = psMin(minX, lineMinX);
+                                    float newMaxY = psMax(maxY, lineMaxY);
+                                    float newMaxX = psMax(maxX, lineMaxX);
+                                    minY = newMinY;
+                                    minX = newMinX;
+                                    maxY = newMaxY;
+                                    maxX = newMaxX;
                                 }
                             }
                         }
