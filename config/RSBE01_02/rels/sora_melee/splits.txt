@@ -435,14 +435,34 @@ mo_melee/sora_melee/so/damage/so_damage_module_impl.cpp:
 	.rodata     start:0x000007F0 end:0x00000868
 	.data       start:0x00006550 end:0x000068A0
 
+mo_melee/sora_melee/so/damage/so_damage_module_actor.cpp:
+	.text       start:0x00061454 end:0x00061EE8
+	.rodata     start:0x000008B0 end:0x000008B8
+	.data       start:0x00006F30 end:0x00007100
+
 mo_melee/sora_melee/so/damage/so_damage_transactor_actor.cpp:
 	.text       start:0x00061EE8 end:0x00063438
 	.rodata     start:0x000008B8 end:0x000008DC
 	.data       start:0x00007100 end:0x000071A0
 
+mo_melee/sora_melee/so/reflect/so_reflect_module_impl.cpp:
+	.text       start:0x00063B94 end:0x000649FC
+	.rodata     start:0x000008F0 end:0x000008F8
+	.data       start:0x000071A0 end:0x00007328
+
 mo_melee/sora_melee/so/so_heap_module_impl.cpp:
 	.text       start:0x000649FC end:0x00064A90
 	.data       start:0x00007328 end:0x000073A8
+
+mo_melee/sora_melee/so/catch/so_catch_module_impl.cpp:
+	.text       start:0x00064C8C end:0x00065EE4
+	.rodata     start:0x000008F8 end:0x00000910
+	.data       start:0x00007438 end:0x000075C8
+
+mo_melee/sora_melee/so/capture/so_capture_module_impl.cpp:
+	.text       start:0x00065EE4 end:0x00067260
+	.rodata     start:0x00000910 end:0x00000920
+	.data       start:0x000075C8 end:0x00007788
 
 mo_melee/sora_melee/so/so_module_accesser.cpp:
 	.text       start:0x0006821C end:0x000687F8

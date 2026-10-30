@@ -10,12 +10,12 @@ public:
     virtual void activate();
     virtual void deactivate();
     virtual void setNodes(int, int, float);
-    virtual void unk18();
+    virtual void initInfo();                          // 0x18
     virtual bool isCapture();                         // 0x1C
-    virtual void unk20();
+    virtual int getCatchTaskId();                     // 0x20
     virtual bool capture(int taskId, int node, bool); // 0x24
     virtual void unk28();
-    virtual void unk2C();
+    virtual float getCatchPosY();                     // 0x2C
     virtual void captureCut(bool, bool constrained);  // 0x30
     virtual void unk34();
     virtual void unk38();
