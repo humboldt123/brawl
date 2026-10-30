@@ -87,9 +87,14 @@ struct wnGameWatchNormalWeaponData;
 
 // HYPOTHESIS: leading flag word of a common fighter status's data (the bit with mask 0x8 marks statuses that cannot be trodden on).
 struct ftStatusFlagData {
-    u32 : 28;
+    u32 : 5;
+    u32 unk0_5 : 1; // HYPOTHESIS: in these statuses Fighter::processUpdate sets the ground cloud-through from the stick
+    u32 : 22;
     u32 noTread : 1;
     u32 : 3;
+    u32 : 8;
+    u32 unk4_8 : 1; // HYPOTHESIS: in these statuses Fighter::processUpdate skips the shield regeneration
+    u32 : 23;
 };
 
 class ftCommonDataAccesser {

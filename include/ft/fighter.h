@@ -1505,6 +1505,9 @@ public:
     virtual void dropItemCheck(soDamage *, bool);
     virtual bool isHeartSwapEnableCondition();
     void activateControllerLog(bool active); // sora_melee fn_27_12AE90
+    void activateController(bool active);
+    void processDamageFlySe();
+    bool isAcceptFinal();
     bool isEnableWarp(); // sora_melee fn_27_13C984
     void attachItemHoldAnim(int holdKind, u32 index); // sora_melee fn_27_13C530
     void detachItemHoldAnim(bool detachItem); // sora_melee fn_27_13C684

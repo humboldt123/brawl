@@ -5052,6 +5052,13 @@ mo_melee/sora_melee/ft/ft_class_info.cpp:
 	.data       start:0x00029210 end:0x000292A0
 	.bss        start:0x00003040 end:0x00003138
 
+mo_melee/sora_melee/ft/fighter.cpp:
+	.text       start:0x001257EC end:0x0013F330
+	.ctors      start:0x00000060 end:0x00000064
+	.rodata     start:0x00001018 end:0x000010B0
+	.data       start:0x000292A0 end:0x0002A9C0
+	.bss        start:0x00003138 end:0x00003148
+
 mo_melee/sora_melee/ft/ft_change_succeed_work.cpp:
 	.text       start:0x0013F330 end:0x001400D4
 	.ctors      start:0x00000064 end:0x0000006C

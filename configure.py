@@ -5381,6 +5381,7 @@ config.libs = [
             Object(Matching, "mo_melee/sora_melee/so/so_photo_call_back.cpp"),
             Object(Matching, "mo_melee/sora_melee/so/so_common_data_accesser.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_class_info.cpp"),
+            Object(NonMatching, "mo_melee/sora_melee/ft/fighter.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_extend_param_accesser.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/ft/ft_info.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/ft/ft_kinetic_energy_controller.cpp"),
