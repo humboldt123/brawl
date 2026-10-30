@@ -51,7 +51,15 @@ extern "C" int exchangeGmCharacterKindToMuCharKind__6muMenuFiii(int kind);
 // HYPOTHESIS: parameter and return types come from the call sites only.
 extern "C" void fn_8004D674(GameGlobal* global, int nameNo, wchar_t* buffer); // the player name tag as UTF-16
 extern "C" u16* fn_8004DA14(GameGlobal* global, int slot, int nameNo);        // the handicap stored for a name tag, 0 if none
-extern "C" gmCharaFlagWords fn_80051F28();                                    // gmCharaFlag::setGlobalCharaData
+// The result of gmCharaFlag::setGlobalCharaData: a class with a copy constructor, so it comes back through a hidden pointer.
+struct gmCharaFlagResult : gmCharaFlagWords {
+    gmCharaFlagResult() {}
+    gmCharaFlagResult(const gmCharaFlagResult& other) {
+        m_word0 = other.m_word0;
+        m_word1 = other.m_word1;
+    }
+};
+extern "C" gmCharaFlagResult fn_80051F28();                                   // gmCharaFlag::setGlobalCharaData
 
 // HYPOTHESIS: gmAppData flag byte 0x28; bit 7 is a one-shot request that gmInitMeleeDataDefault moves into the melee data.
 struct gmAppDataFlags {
@@ -335,20 +343,12 @@ void gmInitPlayerDataDefault(gmPlayerInitData* player, int playerNo) {
 // HYPOTHESIS: the defaults of one match: 2 minute time limit, four players, all items on, medium item frequency.
 void gmInitMeleeDataDefault(gmMeleeInitData* melee) {
     memset(melee, 0, sizeof(gmMeleeInitData));
+    melee->m_0x2_7 = true;
+    melee->m_0x2_1 = false;
     melee->m_gameRule = Game_Rule_Time;
     melee->m_numPlayers = 4;
     melee->m_0x1_1 = true;
     melee->m_0x1_0 = false;
-    melee->m_0x2_7 = true;
-    melee->m_0x2_1 = false;
-    melee->m_allowPause = true;
-    melee->m_0x3_2 = true;
-    melee->m_hideDamageGauge = false;
-    melee->m_0x3_0 = false;
-    melee->m_scoreDisplay = false;
-    melee->m_0x5_5 = false;
-    melee->m_0x5_4 = false;
-    melee->m_0x5_3 = false;
     melee->m_timeLimitFrames = 7200;
     melee->m_isTeams = false;
     melee->m_stageKind = 0;
@@ -356,7 +356,15 @@ void gmInitMeleeDataDefault(gmMeleeInitData* melee) {
     melee->m_damageRatio = 1.0f;
     melee->m_suicideScoreMultiplier = -1;
     melee->m_gameSpeed = 1.0f;
+    melee->m_0x5_5 = false;
+    melee->m_0x5_4 = false;
+    melee->m_0x5_3 = false;
     melee->m_corpsKind = Corps_None;
+    melee->m_allowPause = true;
+    melee->m_0x3_2 = true;
+    melee->m_hideDamageGauge = false;
+    melee->m_0x3_0 = false;
+    melee->m_scoreDisplay = false;
     // MATCH-ONLY: the native code sets the three item switches as one doubleword and two words.
     *reinterpret_cast<u64*>(&melee->m_itSwitch.m_item) = 0xFFFFFFFFFFFFFFFFULL;
     *reinterpret_cast<u32*>(&melee->m_itSwitch.m_pokemon) = 0xFFFFFFFF;
@@ -365,8 +373,7 @@ void gmInitMeleeDataDefault(gmMeleeInitData* melee) {
     melee->m_itemFrequency = gmItSwitch::Frequency_Medium;
     melee->m_0x10 = 0x78;
     melee->m_cameraShakeScale = 1.0f;
-    GameGlobal* global = g_GameGlobal;
-    melee->m_0x5a_7 = ((gmGlobalRecord*)global->getGlobalRecordGameDatap())->m_unk808 >> 7;
+    melee->m_0x5a_7 = g_GameGlobal->getGlobalRecordGameDatap()->m_unk808_7;
     gmAppDataFlags* app = reinterpret_cast<gmAppDataFlags*>(g_GameGlobal->m_appData);
     melee->m_0x5a_6 = app->m_oneShot28_7;
     app = reinterpret_cast<gmAppDataFlags*>(g_GameGlobal->m_appData);
@@ -381,14 +388,15 @@ static inline void gmInitPlayersFromSelect(gmGlobalModeMelee* global) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         gmPlayerInitData* player = &global->m_playersInitData[i];
         gmInitPlayerDataDefault(player, i);
-        player->m_cpuType = 0;
-        player->m_cpuRank = lbl_8042B858[select->m_playersInitData[i].m_cpuRank];
-        player->m_playerId = i;
-        player->m_startPointIdx = i;
-        player->m_controllerNo = select->m_playersInitData[i].m_controllerNo;
-        player->m_nameIndex = select->m_playersInitData[i].m_nameIndex;
-        if (player->m_nameIndex != 0x78) {
-            fn_8004D674(g_GameGlobal, player->m_nameIndex, player->m_name);
+        global->m_playersInitData[i].m_cpuType = 0;
+        global->m_playersInitData[i].m_cpuRank = lbl_8042B858[select->m_playersInitData[i].m_cpuRank];
+        global->m_playersInitData[i].m_playerId = i;
+        global->m_playersInitData[i].m_startPointIdx = i;
+        global->m_playersInitData[i].m_controllerNo = select->m_playersInitData[i].m_controllerNo;
+        u8 nameIndex = select->m_playersInitData[i].m_nameIndex;
+        global->m_playersInitData[i].m_nameIndex = nameIndex;
+        if (nameIndex != 0x78) {
+            fn_8004D674(g_GameGlobal, nameIndex, player->m_name);
         }
     }
     gmGlobalRecord* record = g_GameGlobal->getGlobalRecordGameDatap();
@@ -432,10 +440,15 @@ void gmInitGlobalModeMelee(gmGlobalModeMelee* global) {
 void gmSetRuleToGlobalModeMelee(gmGlobalModeMelee* global) {
     gmGlobalRecord::MenuData* menu = g_GameGlobal->getGlobalRecordMenuDatap();
     gmSetRule* rule = g_GameGlobal->m_setRule;
-    gmPlayerInitData* select = g_GameGlobal->m_selCharData->m_playersInitData;
+    gmSelCharData* select = g_GameGlobal->m_selCharData;
     gmMeleeInitData* melee = &global->m_meleeInitData;
     melee->m_gameRule = rule->m_rule;
     switch (melee->m_gameRule) {
+    case Game_Rule_Time:
+    default:
+        melee->m_0x1_1 = true;
+        melee->m_timeLimitFrames = rule->m_timeMinutes * 3600;
+        break;
     case Game_Rule_Stock:
         melee->m_0x1_1 = true;
         melee->m_timeLimitFrames = rule->m_stockTimeMinutes * 3600;
@@ -444,29 +457,25 @@ void gmSetRuleToGlobalModeMelee(gmGlobalModeMelee* global) {
         melee->m_0x1_1 = true;
         melee->m_timeLimitFrames = rule->m_timeMinutes * 3600;
         break;
-    default:
-        melee->m_0x1_1 = true;
-        melee->m_timeLimitFrames = rule->m_timeMinutes * 3600;
-        break;
     }
     melee->m_0x2_7 = melee->m_timeLimitFrames != 0;
     for (int i = 0; i < 4; i++) {
-        gmPlayerInitData* player = &global->m_playersInitData[i];
         switch (rule->m_handicap) {
+        case 0:
+        default:
+            global->m_playersInitData[i].m_handicap = 0;
+            break;
         case 1: {
-            u16* handicap = fn_8004DA14(g_GameGlobal, i, select->m_nameIndex);
-            player->m_handicap = handicap != nullptr ? *handicap : 0;
+            u16* handicap = fn_8004DA14(g_GameGlobal, i, select->m_playersInitData[i].m_nameIndex);
+            global->m_playersInitData[i].m_handicap = handicap != nullptr ? *handicap : 0;
             break;
         }
         case 2:
-            player->m_handicap = select->m_handicap;
-            break;
-        default:
-            player->m_handicap = 0;
+            global->m_playersInitData[i].m_handicap = select->m_playersInitData[i].m_handicap;
             break;
         }
-        player->m_startDamage = player->m_handicap;
-        select++;
+        u16 handicap = global->m_playersInitData[i].m_handicap;
+        global->m_playersInitData[i].m_startDamage = handicap;
     }
     float ratio = rule->m_damageRatio / 10.0f;
     melee->m_damageRatio = ratio;
@@ -477,6 +486,11 @@ void gmSetRuleToGlobalModeMelee(gmGlobalModeMelee* global) {
     melee->m_isTeamAttack = rule->m_isTeamAttack;
     melee->m_allowPause = rule->m_allowPause;
     switch (melee->m_gameRule) {
+    case Game_Rule_Time:
+    default:
+        melee->m_0x3_2 = true;
+        melee->m_scoreDisplay = rule->m_showScoreDisplay;
+        break;
     case Game_Rule_Stock:
         melee->m_0x3_2 = false;
         melee->m_scoreDisplay = true;
@@ -484,10 +498,6 @@ void gmSetRuleToGlobalModeMelee(gmGlobalModeMelee* global) {
     case Game_Rule_Coin:
         melee->m_0x3_2 = true;
         melee->m_scoreDisplay = true;
-        break;
-    default:
-        melee->m_0x3_2 = true;
-        melee->m_scoreDisplay = rule->m_showScoreDisplay;
         break;
     }
     melee->m_hideDamageGauge = !rule->m_showDamageGauge;

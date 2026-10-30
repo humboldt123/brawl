@@ -458,7 +458,7 @@ public:
     short m_hitPointMax;                 // 0x24
     union {
         char _0x26[0x02];                   // 0x26
-        short m_handicap;                   // HYPOTHESIS: the handicap that is copied to m_startDamage
+        u16 m_handicap;                     // HYPOTHESIS: the handicap that is copied to m_startDamage
     };
     short m_glowAttack;                  // 0x28
     short m_glowDefense;                 // 0x2A

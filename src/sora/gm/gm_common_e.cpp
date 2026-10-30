@@ -446,9 +446,12 @@ int gmSetRuleSelStage() {
     gmSetRule* rule = global->m_setRule;
     gmStageChooseWork* work = reinterpret_cast<gmStageChooseWork*>(global->m_modeMelee);
     gmSelCharData* sel = global->m_selCharData;
-    gmPlayerInitData* players = sel->m_playersInitData;
 
     switch (rule->m_stageChoice) {
+    case 0:
+    default:
+        work->m_chooser = -1;
+        return 0;
     case 1:
         work->m_chooser = -1;
         return 1;
@@ -460,7 +463,7 @@ int gmSetRuleSelStage() {
         bool found = false;
         for (int i = 0; i < 4; i++) {
             int index = (start + i) % 4;
-            if (players[index].m_state == 0) {
+            if (sel->m_playersInitData[index].m_state == 0) {
                 next = index;
                 found = true;
                 break;
@@ -479,15 +482,12 @@ int gmSetRuleSelStage() {
         // loser: the loser of the last match, if that is still a human
         s8 loser = work->m_loser;
         int next = -1;
-        if (loser != -1 && players[loser].m_state == 0) {
+        if (loser != -1 && sel->m_playersInitData[loser].m_state == 0) {
             next = loser;
         }
         work->m_chooser = next;
         return 0;
     }
-    default:
-        work->m_chooser = -1;
-        return 0;
     }
 }
 
@@ -859,29 +859,16 @@ extern int lbl_8059CE40;
 extern int lbl_8059CE44;
 extern unsigned char lbl_805A00E8[1];
 
-// HYPOTHESIS: the lottery tables sit behind the figure table in the same data object (lbl_8042D180), and the code
-// reaches them from its address: the sticker table at +0x440, the figure class counts at +0x9B8 and their draw
-// order at +0xA58 (6 entries), the sticker class counts [class][set] at +0x9DC and their draw order at +0xA80.
-// The figure table is sorted by rarity class: the first counts[0] + counts[1] entries are not drawn by the
-// lottery, then come the classes in draw order, each with counts[class] figures. The sticker table is grouped by
-// sticker set, within a set class 4 (empty) comes first, then the classes in draw order (-1 skips a slot).
-static inline const int* gmFigClassCounts() {
-    return reinterpret_cast<const int*>(reinterpret_cast<const u8*>(lbl_8042D180) + 0x9B8);
-}
-
-static inline const int* gmFigClassOrder() {
-    return reinterpret_cast<const int*>(reinterpret_cast<const u8*>(lbl_8042D180) + 0xA58);
-}
-
-typedef int gmSealClassCounts[5][5];
-
-static inline const gmSealClassCounts& gmSealCounts() {
-    return *reinterpret_cast<const gmSealClassCounts*>(reinterpret_cast<const u8*>(lbl_8042D180) + 0x9DC);
-}
-
-static inline const int* gmSealClassOrder() {
-    return reinterpret_cast<const int*>(reinterpret_cast<const u8*>(lbl_8042D180) + 0xA80);
-}
+// HYPOTHESIS: the figure table is sorted by rarity class: the first counts[0] + counts[1] entries are not drawn by
+// the lottery, then come the classes of the draw order in turn, each with counts[class] figures. The sticker table
+// is grouped by sticker set; within a set class 4 (empty) comes first, then the classes in draw order (-1 skips a
+// slot). NOTE: the original reaches these tables as fixed offsets of the figure table (+0x9B8, +0xA58 for
+// figures; +0x440 sticker table, +0x9DC, +0xA80 for stickers), i.e. it addresses them through one base register;
+// declaring them separately as here does not reproduce that and keeps the two lotteries from matching.
+extern const int lbl_8042DB38[9];
+extern const int lbl_8042DBD8[6];
+extern const int lbl_8042DB5C[5][5];
+extern const int lbl_8042DC00[6];
 
 // MATCH-ONLY: gm_data_collection.o was its own translation unit in the original, so gm_lib.o calls these out of line.
 #pragma push
@@ -907,19 +894,17 @@ u16 gmLotFigureToCollection(u32 rarityMask) {
     if (lbl_805A00E8[0] == 0) {
         return 0;
     }
-    const int* counts = gmFigClassCounts();
-    const int* order = gmFigClassOrder();
     int total = 0;
     for (int i = 0; i < 6; i++) {
         if (rarityMask & (1 << i)) {
-            total += counts[order[i]];
+            total += lbl_8042DB38[lbl_8042DBD8[i]];
         }
     }
     int pick = randi(total);
-    int index = counts[0] + counts[1];
+    int index = lbl_8042DB38[0] + lbl_8042DB38[1];
     int sum = 0;
     for (int i = 0; i < 6; i++) {
-        int count = counts[order[i]];
+        int count = lbl_8042DB38[lbl_8042DBD8[i]];
         if (rarityMask & (1 << i)) {
             if (sum + count > pick) {
                 break;
@@ -936,14 +921,12 @@ u16 gmLotSealToCollection(u32 rarityMask, int set) {
     if (lbl_805A00E8[0] == 0) {
         return 0;
     }
-    const gmSealClassCounts& counts = gmSealCounts();
-    const int* order = gmSealClassOrder();
     int column = set - 1;
     int total = 0;
     for (int i = 0; i < 6; i++) {
-        int rarity = order[i];
+        int rarity = lbl_8042DC00[i];
         if (rarity != -1 && (rarityMask & (1 << i))) {
-            total += counts[rarity][column];
+            total += lbl_8042DB5C[rarity][column];
         }
     }
     int pick = randi(total);
@@ -953,17 +936,17 @@ u16 gmLotSealToCollection(u32 rarityMask, int set) {
             break;
         }
         for (int r = 0; r < 5; r++) {
-            index += counts[r][s];
+            index += lbl_8042DB5C[r][s];
         }
     }
-    index += counts[4][column];
+    index += lbl_8042DB5C[4][column];
     int sum = 0;
     for (int i = 0; i < 6; i++) {
-        int rarity = order[i];
+        int rarity = lbl_8042DC00[i];
         if (rarity == -1) {
             continue;
         }
-        int count = counts[rarity][column];
+        int count = lbl_8042DB5C[rarity][column];
         if (rarityMask & (1 << i)) {
             if (sum + count > pick) {
                 break;

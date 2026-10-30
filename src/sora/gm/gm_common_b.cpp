@@ -6,11 +6,12 @@
 #include <mt/mt_prng.h>
 #include <stdio.h>
 
-// gm_common_b: gmlib coin counters, melee item switch lookup, collection rarity bits and the figure, sticker and CD
-// lotteries (0x80050BB0-0x80051F28 of main.dol).
+// gm_common_b: gmlib melee item switch lookup, trophy coin counters, collection rarity bits and the trophy, sticker and
+// CD lotteries (0x80050BB0-0x80051F28 of main.dol). The tables that are read here are in the data of gm_common.cpp:
+// lbl_8042B858 is a larger data block of which the song ids start at word 0x15A, the hidden-song stage keys at 0x1C0 and
+// the stage list at 0x212 (the offsets are what the original code adds to that base).
 
 extern const u32 lbl_8042B858[];
-extern const u32 lbl_8042BDC0[];
 extern const int lbl_8042BF58[];
 extern const int lbl_8042C0A0[];
 
@@ -222,7 +223,8 @@ bool gmCheckItemSwitch(gmItSwitchWords itemSwitch, itKind kind) {
     return enabled;
 }
 
-// Whether the item may appear in the match that is being set up (the item switch of the melee settings).
+// gmCheckGlobalItemSwitch: whether the item may appear in the match that is being set up (the item switch of the melee
+// settings).
 extern "C" bool fn_8005136C(itKind kind) {
     return gmCheckItemSwitch(*reinterpret_cast<gmItSwitchWords*>(&g_GameGlobal->m_modeMelee->m_meleeInitData.m_itSwitch), kind);
 }
@@ -232,8 +234,8 @@ u32 gmGetCoinNum() {
     return *g_GameGlobal->getGlobalRecordFigCoinDatap();
 }
 
-// Sets the coin balance and raises the highest balance on record if needed (HYPOTHESIS: the second counter keeps the
-// highest value / the total that was gained).
+// Sets the coin balance. HYPOTHESIS: the second counter is the highest balance reached, so it is raised when the new
+// balance is above it.
 u32 gmSetCoinNum(u32 num) {
     u32* coin = g_GameGlobal->getGlobalRecordFigCoinDatap();
     u32* gotCoin = g_GameGlobal->getGlobalRecordGetFigCoinDatap();
@@ -244,8 +246,8 @@ u32 gmSetCoinNum(u32 num) {
     return num;
 }
 
-// Adds coins: the balance stops at 99999 and the total at the maximum of a u32 (HYPOTHESIS: names, see gmSetCoinNum).
-// gmAddCoin
+// gmAddCoin: adds coins to the balance (it stops at 99999) and to the second counter (it stops at the u32 maximum).
+// HYPOTHESIS: the second counter is the total of all coins gained. Callers declare this as fn_80051440.
 extern "C" u32 fn_80051440(u32 num) {
     u32* coin = g_GameGlobal->getGlobalRecordFigCoinDatap();
     u32* gotCoin = g_GameGlobal->getGlobalRecordGetFigCoinDatap();
@@ -274,8 +276,8 @@ u32 gmCountMeleeCoin(int kind, int playerCount) {
     return 10.0f * (r * (0.11f * playerCount));
 }
 
-// HYPOTHESIS: the two bytes after the Pokemon-like flags at 0x2E4 of the record are rarity bit sets for the trophy and
-// for the sticker lottery; the melee settings keep a copy of each (0x60 and 0x61 of the melee data).
+// HYPOTHESIS: the bytes 0x2E4 and 0x2E5 of the record are rarity bit sets for the trophy and for the sticker lottery;
+// the melee settings keep a copy of each (bytes 0x60 and 0x61 of the melee data). They are not declared in the headers.
 static inline u8& gmRecordFigureRareBit(gmGlobalRecord* record) {
     return reinterpret_cast<u8*>(record)[0x2E4];
 }
@@ -296,8 +298,8 @@ u8 gmGetRecFigureRareBit() {
     return gmRecordFigureRareBit(g_GameGlobal->getGlobalRecordGameDatap());
 }
 
-// Copies the rarity bits of the record to the melee settings.
-extern "C" void fn_800515E8() { // gmSetupMeleeFigureRareBit
+// gmSetupMeleeFigureRareBit: copies the trophy rarity bits of the record to the melee settings.
+extern "C" void fn_800515E8() {
     u8 bits = gmRecordFigureRareBit(g_GameGlobal->getGlobalRecordGameDatap());
     gmMeleeFigureRareBit(g_GameGlobal->m_modeMelee) = bits;
 }
@@ -310,7 +312,8 @@ u8 gmGetRecSealRareBit() {
     return gmRecordSealRareBit(g_GameGlobal->getGlobalRecordGameDatap());
 }
 
-extern "C" void fn_80051680() { // gmSetupMeleeSealRareBit
+// gmSetupMeleeSealRareBit: the same for the sticker rarity bits.
+extern "C" void fn_80051680() {
     u8 bits = gmRecordSealRareBit(g_GameGlobal->getGlobalRecordGameDatap());
     gmMeleeSealRareBit(g_GameGlobal->m_modeMelee) = bits;
 }
@@ -319,8 +322,8 @@ void gmSetRecSealRareBit(u8 bit) {
     gmRecordSealRareBit(g_GameGlobal->getGlobalRecordGameDatap()) |= bit;
 }
 
-// Lotteries a trophy of the rarity bits of the match.
-extern "C" u16 fn_800516F0() { // gmLotFigure
+// gmLotFigure: lotteries a trophy with the rarity bits of the match.
+extern "C" u16 fn_800516F0() {
     return fn_8005630C(gmMeleeFigureRareBit(g_GameGlobal->m_modeMelee));
 }
 
@@ -359,8 +362,8 @@ u16 gmLotSealToBitset(u8 rareBits, u8 kind) {
     return fn_80056518(rareBits, rarity + 1);
 }
 
-// Lotteries a sticker with the rarity bits of the match.
-extern "C" u16 fn_80051844(u8 kind) { // gmLotSeal
+// gmLotSeal: lotteries a sticker with the rarity bits of the match.
+extern "C" u16 fn_80051844(u8 kind) {
     return gmLotSealToBitset(gmMeleeSealRareBit(g_GameGlobal->m_modeMelee), kind);
 }
 
@@ -378,31 +381,31 @@ u32 gmLotCD() {
     int freeIds[102];
     int freeCount = 0;
     int allCount = 0;
+    int* freeNext = freeIds;
+    int* allNext = allIds;
     int i;
     int j;
-    const u32* songIds = &lbl_8042B858[0x15A];
     for (i = 0; i <= 0x2F; i++) {
         if (!gmTestFlagBit(reinterpret_cast<u32*>(g_GameGlobal->getBGMAppFlag()), i * 2)) {
-            freeIds[freeCount++] = songIds[i];
+            *freeNext++ = lbl_8042B858[0x15A + i];
+            freeCount++;
         }
-        allIds[allCount++] = songIds[i];
+        *allNext++ = lbl_8042B858[0x15A + i];
+        allCount++;
     }
-    const int* stageKeys = reinterpret_cast<const int*>(&lbl_8042B858[0x1C0 - 0x30]);
-    songIds = &lbl_8042B858[0x15A];
     for (i = 0x30; i <= 0x3F; i++) {
         u32 available = 1;
-        const int* stageList = reinterpret_cast<const int*>(&lbl_8042B858[0x212]);
         for (j = 0; j < 12; j++) {
-            if (stageKeys[i] == stageList[j]) {
+            if (static_cast<int>(lbl_8042B858[0x1C0 + i - 0x30]) == static_cast<int>(lbl_8042B858[0x212 + j])) {
                 available = gmTestFlagBit(fn_8004E594(g_GameGlobal), j);
                 break;
             }
         }
         if (available == 1) {
             if (!gmTestFlagBit(reinterpret_cast<u32*>(g_GameGlobal->getBGMAppFlag()), i * 2)) {
-                freeIds[freeCount++] = songIds[i];
+                freeIds[freeCount++] = lbl_8042B858[0x15A + i];
             }
-            allIds[allCount++] = songIds[i];
+            allIds[allCount++] = lbl_8042B858[0x15A + i];
         }
     }
     if (freeCount != 0) {
@@ -412,7 +415,8 @@ u32 gmLotCD() {
 }
 
 // Whether every CD that can be found has been acquired (hidden songs of locked stages do not count).
-extern "C" bool fn_80051A6C() { // gmCheckRandomCDAllAcquired
+// gmCheckRandomCDAllAcquired
+extern "C" bool fn_80051A6C() {
     int i;
     int j;
     int bit = 0;
