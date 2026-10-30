@@ -297,12 +297,33 @@ void gmSetAutoHandiModeResult() {
     }
 }
 
+// gmGlobalModeMelee seen from its start: the rule is stored in the top three bits of the byte at +0x9 (unsigned).
+struct gmMeleeRuleView {
+    char _0[9];
+    u8 m_gameRule : 3;
+};
+
+// strcmp of a name against the name of the scene manager's current sequence.
+static inline int gmCmpCurrentSequence(const char* name) {
+    return strcmp(name, gfSceneManager::getInstance()->m_currentSequence->m_sequenceName);
+}
+
+// HYPOTHESIS: u16 totals with a halfword of padding each, starting at +0xC of the character selection data.
+struct gmSelCharTotalView {
+    char _0[0xC];
+    struct {
+        u16 m_total;
+        u16 _2;
+    } m_totals[4];
+};
+
 // HYPOTHESIS: the first parameter selects the stamina (HP) counter in gmIncMeleeCount, the second marks online matches.
 // Books the finished match into the global record: coins, match counters per rule, character and stage play counts,
 // play time and the kill/suicide/damage totals.
-void gmMeleeDest(int isStamina, int isOnline) {
+void gmMeleeDest(bool isStamina, bool isOnline) {
     gmResultInfo* result = g_GameGlobal->m_resultInfo;
     gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
+    gmPlayerResultView* view = reinterpret_cast<gmPlayerResultView*>(result);
     u8 decisionKind = result->m_decisionKind;
 
     if (decisionKind != 9 && decisionKind != 10) {
@@ -323,10 +344,11 @@ void gmMeleeDest(int isStamina, int isOnline) {
         gmAddMeleeCoin();
         if (!isOnline) {
             if (decisionKind != 9 && decisionKind != 10) {
-                for (int i = 0; i < 4; i++) {
-                    gmPlayerInitData* player = &melee->m_playersInitData[i];
-                    if (player->m_state == 0 && decisionKind != 9 && decisionKind != 10) {
-                        int muKind = exchangeGmCharacterKindToMuCharKind__6muMenuFiii(player->m_characterKind);
+                // MATCH-ONLY: the players are addressed from the start of the melee data.
+                u8* player = reinterpret_cast<u8*>(melee);
+                for (int i = 0; i < 4; i++, player += sizeof(gmPlayerInitData)) {
+                    if (player[0x99] == 0 && decisionKind != 9 && decisionKind != 10) {
+                        int muKind = exchangeGmCharacterKindToMuCharKind__6muMenuFiii(player[0x98]);
                         gmGlobalRecord::CharaNumData* chara = g_GameGlobal->getGlobalRecordCharaNumDatap(muKind);
                         if (chara->unk98 < 0xFFFF) {
                             chara->unk98++;
@@ -335,51 +357,58 @@ void gmMeleeDest(int isStamina, int isOnline) {
                 }
                 // HYPOTHESIS: the u16 at +0xC of the result is the stage kind that was played.
                 u8* stagePlayCount = g_GameGlobal->getGlobalRecordGetStagePlayCountDatap(*reinterpret_cast<u16*>(reinterpret_cast<u8*>(result) + 0xC));
-                *stagePlayCount = *stagePlayCount < 0xFF ? *stagePlayCount + 1 : 0xFF;
-                if (strcmp("sqVsMelee", gfSceneManager::getInstance()->m_currentSequence->m_sequenceName) == 0) {
+                *stagePlayCount = *stagePlayCount <= 0xFE ? *stagePlayCount + 1 : 0xFF;
+                if (gmCmpCurrentSequence("sqVsMelee") == 0) {
                     fn_80055058(result);
                     fn_800551C8(result);
                 }
             }
 
+            u32* partyPlayerCount = g_GameGlobal->getGlobalRecordVsPartyPlayerCountDatap();
             u32 humans = 0;
             for (int i = 0; i < 4; i++) {
-                if (result->m_playersResultInfo[i].m_state == 0) {
+                if (view[i].m_state == 0) {
                     humans++;
                 }
             }
-            gmAddTotal(g_GameGlobal->getGlobalRecordVsPartyPlayerCountDatap(), humans);
-            u32 seconds = result->m_framesElapsed / 60;
+            gmAddTotal(partyPlayerCount, humans);
+            u32 seconds = (u32)result->m_framesElapsed / 60;
             gmAddVsMeleeTimeAll(seconds, humans);
         }
-        gmIncMeleeCount(melee->m_meleeInitData.m_gameRule, decisionKind, isStamina, isOnline);
+        gmIncMeleeCount(reinterpret_cast<gmMeleeRuleView*>(melee)->m_gameRule, decisionKind, isStamina, isOnline);
     }
 
-    if (strcmp("sqToMelee", gfSceneManager::getInstance()->m_currentSequence->m_sequenceName) != 0 &&
-        strcmp("sqQuMelee", gfSceneManager::getInstance()->m_currentSequence->m_sequenceName) != 0) {
+    if (gmCmpCurrentSequence("sqToMelee") != 0 &&
+        gmCmpCurrentSequence("sqQuMelee") != 0) {
         // HYPOTHESIS: per-player accumulated KO counts (u16, stride 4 from +0xC) of the character selection data.
+        GameGlobal* global = g_GameGlobal;
+        gmResultInfo* res = global->m_resultInfo;
+        gmPlayerResultView* resView = reinterpret_cast<gmPlayerResultView*>(res);
+        gmSelCharTotalView* sel = reinterpret_cast<gmSelCharTotalView*>(global->m_selCharData);
         for (int i = 0; i < 4; i++) {
-            gmPlayerResultInfo* player = &g_GameGlobal->m_resultInfo->m_playersResultInfo[i];
-            if (player->m_state == 0) {
-                u16* total = reinterpret_cast<u16*>(reinterpret_cast<u8*>(g_GameGlobal->m_selCharData) + 0xC + i * 4);
-                int add = (u16)player->m_koCount;
-                *total = *total > 0xFFFF - add ? 0xFFFF : *total + add;
+            if (resView[i].m_state == 0) {
+                u16* total = &sel->m_totals[i].m_total;
+                int add = (u16)resView[i].m_koCount;
+                bool overflow = true;
+                if (*total <= 0xFFFF - add) {
+                    overflow = false;
+                }
+                *total = overflow ? 0xFFFF : (u16)(*total + add);
             }
         }
     }
 
-    if (decisionKind != 9 && decisionKind != 10 &&
-        strcmp("sqVsMelee", gfSceneManager::getInstance()->m_currentSequence->m_sequenceName) == 0) {
+    if (decisionKind != 9 && decisionKind != 10 && gmCmpCurrentSequence("sqVsMelee") == 0) {
         gmResultInfo* res = g_GameGlobal->m_resultInfo;
+        gmPlayerResultView* resView = reinterpret_cast<gmPlayerResultView*>(res);
         for (int i = 0; i < 4; i++) {
-            gmPlayerResultInfo* player = &res->m_playersResultInfo[i];
-            if (player->m_state == 0) {
+            if (resView[i].m_state == 0) {
                 u32* kills = g_GameGlobal->getGlobalRecordKillTotalCountDatap();
                 u32* suicides = g_GameGlobal->getGlobalRecordSuicideTotalCountDatap();
                 u32* damage = g_GameGlobal->getGlobalRecordDamageTotalCountDatap();
-                gmAddTotal(kills, player->m_koCount);
-                gmAddTotal(suicides, player->m_suicideCount);
-                gmAddTotal(damage, gmResultUnk1D0(player));
+                gmAddTotal(kills, resView[i].m_koCount);
+                gmAddTotal(suicides, resView[i].m_suicideCount);
+                gmAddTotal(damage, resView[i].m_unk1F4);
             }
         }
     }

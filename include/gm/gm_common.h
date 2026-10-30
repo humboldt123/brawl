@@ -60,3 +60,17 @@ void gmRuleResetForNet();
 // Callers still use these by their fn_ names (extern "C" in gm_common_c.cpp):
 //   fn_80052250 = gmGetCharaAccept, fn_80052694 = gmSetUseDragoon, fn_800526E4 = gmCheckDragoon,
 //   fn_80052704 = gmAddFigure(int id, int num), fn_80052AC0 = gmAddSeal(int id, int num).
+
+// Cluster D (gm_common_d.cpp): record counters and the end-of-match bookkeeping.
+// HYPOTHESIS: parameter types come from the register use; the map has no signatures.
+void gmIncMeleeCount(u32 rule, u8 decisionKind, bool isStamina, bool isOnline);
+void gmIncAnybodyWatchCount();
+void gmSetFriendCount(int count);
+u8 gmGetFriendCount();
+void gmAddVsMeleeTimeAll(u32 time, u32 playerCount);
+void gmAddSingleTimeAll(u32 time, u32 playerCount);
+void gmAddOnlineFriendTimeCount(u32 time);
+void gmAddOnlineAnybodyTimeCount(u32 time);
+void gmAddMeleeCoin();
+void gmMeleeDest(bool isStamina, bool isOnline);
+void gmSetAutoHandiModeResult();

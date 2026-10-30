@@ -562,19 +562,24 @@ bool gmIsAutosaveDirtyFlag() {
     return reinterpret_cast<gmAppFlags*>(g_GameGlobal->m_appData)->m_autosaveDirty;
 }
 
-// HYPOTHESIS: the event high scores as a [difficulty][event] table of 51 events; the top two bits of a score
-// word are the clear state.
+// HYPOTHESIS: the event high scores of one mode as a row of 51 events for each of the three difficulties; the top
+// two bits of a score word are the clear state of the event.
+struct gmEventScoreRow {
+    u32 m_events[51];
+};
+
 struct gmEventScoreTable {
-    u32 m_scores[3][51];
+    gmEventScoreRow m_rows[3];
 };
 
 // Whether an event was cleared on the given difficulty or a harder one (type 1 = solo, 2 = co-op).
 bool gmCheckEventClearFlag(int type, int index, int difficulty) {
     for (int d = difficulty; d < 3; d++) {
         gmGlobalRecord* record = g_GameGlobal->getGlobalRecordGameDatap();
-        gmEventScoreTable* table = reinterpret_cast<gmEventScoreTable*>(record->m_eventHiScoreData);
-        u32* scores = table[type - 1].m_scores[d];
-        if ((scores[index] >> 30) != 0) {
+        gmEventScoreTable* tables = reinterpret_cast<gmEventScoreTable*>(record->m_eventHiScoreData);
+        gmEventScoreTable* table = &tables[type - 1];
+        gmEventScoreRow* row = &table->m_rows[d];
+        if ((row->m_events[index] >> 30) != 0) {
             return true;
         }
     }
@@ -598,49 +603,72 @@ void gmAddStageEditCount(u32 count) {
     addMaxCheck(&record->m_stagePlayCount[0x42], count, 0xFF);
 }
 
+// HYPOTHESIS: the item switch record (gmItSwitch) as the four words the game copies it by: items, items,
+// Pokemon, assist trophies. The first bit of a gmItSwitch field list is the most significant bit of its word.
+struct gmItSwitchWords {
+    u32 m_item[2];
+    u32 m_pokemon;
+    u32 m_assist;
+};
+
+// Bits of gmItSwitch in the words above: m_item.m_teamHealer, then the assist trophies m_assist.m_rayMKII,
+// m_isaac, m_infantryTank, m_barbara, m_grayFox and m_shadow.
+enum {
+    ITEM_TEAM_HEALER = 0x00004000,
+    ASSIST_RAY_MKII = 0x00000008,
+    ASSIST_ISAAC = 0x00080000,
+    ASSIST_INFANTRY_TANK = 0x00800000,
+    ASSIST_BARBARA = 0x00000002,
+    ASSIST_GRAY_FOX = 0x00000004,
+    ASSIST_SHADOW = 0x00200000,
+};
+
 // The item switch settings handed out below live in one shared buffer (lbl_804977E0 of the data unit).
-extern gmItSwitch lbl_804977E0;
+extern gmItSwitchWords lbl_804977E0;
 
 // HYPOTHESIS: each table holds one default item switch (16 bytes) per stage / event / challenge.
-extern const gmItSwitch lbl_8042C4B8[43];
-extern const gmItSwitch lbl_8042C768[12];
-extern const gmItSwitch lbl_8042C828[19];
-extern const gmItSwitch lbl_8042C958[51];
-extern const gmItSwitch lbl_8042CC88[51];
-extern const gmItSwitch lbl_8042CFB8[14];
-extern const gmItSwitch lbl_8042D098[1];
+extern const gmItSwitchWords lbl_8042C4B8[43];
+extern const gmItSwitchWords lbl_8042C768[12];
+extern const gmItSwitchWords lbl_8042C828[19];
+extern const gmItSwitchWords lbl_8042C958[51];
+extern const gmItSwitchWords lbl_8042CC88[51];
+extern const gmItSwitchWords lbl_8042CFB8[14];
+extern const gmItSwitchWords lbl_8042D098[1];
 
 // HYPOTHESIS: stand-in for gmCheckAssistKindUseEnable (gmlib), true once the assist trophy is unlocked.
 extern "C" bool fn_8004F3BC(int kind);
 
 // Takes the unlocked state into account: the team healer needs a team battle, and each assist trophy needs its unlock.
-static void gmRestrictItemSwitch() {
+static inline void gmRestrictItemSwitch(gmItSwitchWords* data) {
     if (g_GameGlobal->m_modeMelee->m_meleeInitData.m_isTeams != 1) {
-        lbl_804977E0.m_item.m_teamHealer = false;
+        data->m_item[0] &= ~ITEM_TEAM_HEALER;
     }
     if (!fn_8004F3BC(0)) {
-        lbl_804977E0.m_assist.m_rayMKII = false;
+        data->m_assist &= ~ASSIST_RAY_MKII;
     }
     if (!fn_8004F3BC(1)) {
-        lbl_804977E0.m_assist.m_isaac = false;
+        data->m_assist &= ~ASSIST_ISAAC;
     }
     if (!fn_8004F3BC(2)) {
-        lbl_804977E0.m_assist.m_infantryTank = false;
+        data->m_assist &= ~ASSIST_INFANTRY_TANK;
     }
     if (!fn_8004F3BC(3)) {
-        lbl_804977E0.m_assist.m_barbara = false;
+        data->m_assist &= ~ASSIST_BARBARA;
     }
     if (!fn_8004F3BC(4)) {
-        lbl_804977E0.m_assist.m_grayFox = false;
+        data->m_assist &= ~ASSIST_GRAY_FOX;
     }
     if (!fn_8004F3BC(5)) {
-        lbl_804977E0.m_assist.m_shadow = false;
+        data->m_assist &= ~ASSIST_SHADOW;
     }
 }
 
 gmItSwitch* gmGetItemSwitchData_NormalStage(int stage) {
     int index;
     switch (stage) {
+    default:
+        index = 0;
+        break;
     case 0x1: // Stages::BattleField
         index = 1;
         break;
@@ -767,51 +795,54 @@ gmItSwitch* gmGetItemSwitchData_NormalStage(int stage) {
     case 0x35: // Stages::Builder
         index = 42;
         break;
-    default:
-        index = 0;
-        break;
     }
-    lbl_804977E0 = lbl_8042C4B8[index];
-    gmRestrictItemSwitch();
-    return &lbl_804977E0;
+    gmItSwitchWords* data = &lbl_804977E0;
+    *data = lbl_8042C4B8[index];
+    gmRestrictItemSwitch(data);
+    return reinterpret_cast<gmItSwitch*>(data);
 }
 
 gmItSwitch* gmGetItemSwitchData_Simple(int kind) {
     // HYPOTHESIS: maps the simple mode kind to its row of the table
     int rows[14] = { 0, 1, 2, 3, 4, 4, 5, 6, 7, 8, 9, 10, 10, 11 };
-    lbl_804977E0 = lbl_8042C768[rows[kind]];
-    gmRestrictItemSwitch();
-    return &lbl_804977E0;
+    gmItSwitchWords* data = &lbl_804977E0;
+    *data = lbl_8042C768[rows[kind]];
+    gmRestrictItemSwitch(data);
+    return reinterpret_cast<gmItSwitch*>(data);
 }
 
 gmItSwitch* gmGetItemSwitchData_Allstar(int stage) {
-    lbl_804977E0 = lbl_8042C828[stage];
-    gmRestrictItemSwitch();
-    return &lbl_804977E0;
+    gmItSwitchWords* data = &lbl_804977E0;
+    *data = lbl_8042C828[stage];
+    gmRestrictItemSwitch(data);
+    return reinterpret_cast<gmItSwitch*>(data);
 }
 
 // kind 1 = solo events, 2 = co-op events
 gmItSwitch* gmGetItemSwitchData_Event(int event, int kind) {
+    gmItSwitchWords* data = &lbl_804977E0;
     if (kind == 1) {
-        lbl_804977E0 = lbl_8042C958[event];
+        *data = lbl_8042C958[event];
     }
     if (kind == 2) {
-        lbl_804977E0 = lbl_8042CC88[event];
+        *data = lbl_8042CC88[event];
     }
-    gmRestrictItemSwitch();
-    return &lbl_804977E0;
+    gmRestrictItemSwitch(data);
+    return reinterpret_cast<gmItSwitch*>(data);
 }
 
 gmItSwitch* gmGetItemSwitchData_Challenger(int challenger) {
-    lbl_804977E0 = lbl_8042CFB8[challenger];
-    gmRestrictItemSwitch();
-    return &lbl_804977E0;
+    gmItSwitchWords* data = &lbl_804977E0;
+    *data = lbl_8042CFB8[challenger];
+    gmRestrictItemSwitch(data);
+    return reinterpret_cast<gmItSwitch*>(data);
 }
 
 gmItSwitch* gmGetItemSwitchData_Kumite() {
-    lbl_804977E0 = lbl_8042D098[0];
-    gmRestrictItemSwitch();
-    return &lbl_804977E0;
+    gmItSwitchWords* data = &lbl_804977E0;
+    *data = lbl_8042D098[0];
+    gmRestrictItemSwitch(data);
+    return reinterpret_cast<gmItSwitch*>(data);
 }
 
 // HYPOTHESIS: a collection record packs the figure or sticker id and its rarity into one halfword.
@@ -828,13 +859,29 @@ extern int lbl_8059CE40;
 extern int lbl_8059CE44;
 extern unsigned char lbl_805A00E8[1];
 
-// HYPOTHESIS: the figure table is sorted by rarity class: the first lbl_8042DB38[0] + lbl_8042DB38[1] entries are
-// not drawn by the lottery, then come the classes of lbl_8042DBD8 in order, each with lbl_8042DB38[class] figures.
-extern const int lbl_8042DB38[];
-extern const int lbl_8042DBD8[6];
-// HYPOTHESIS: the sticker table is grouped by sticker set (5 sets of 5 classes); counts are [class][set].
-extern const int lbl_8042DB5C[5][5];
-extern const int lbl_8042DC00[6];
+// HYPOTHESIS: the lottery tables sit behind the figure table in the same data object (lbl_8042D180), and the code
+// reaches them from its address: the sticker table at +0x440, the figure class counts at +0x9B8 and their draw
+// order at +0xA58 (6 entries), the sticker class counts [class][set] at +0x9DC and their draw order at +0xA80.
+// The figure table is sorted by rarity class: the first counts[0] + counts[1] entries are not drawn by the
+// lottery, then come the classes in draw order, each with counts[class] figures. The sticker table is grouped by
+// sticker set, within a set class 4 (empty) comes first, then the classes in draw order (-1 skips a slot).
+static inline const int* gmFigClassCounts() {
+    return reinterpret_cast<const int*>(reinterpret_cast<const u8*>(lbl_8042D180) + 0x9B8);
+}
+
+static inline const int* gmFigClassOrder() {
+    return reinterpret_cast<const int*>(reinterpret_cast<const u8*>(lbl_8042D180) + 0xA58);
+}
+
+typedef int gmSealClassCounts[5][5];
+
+static inline const gmSealClassCounts& gmSealCounts() {
+    return *reinterpret_cast<const gmSealClassCounts*>(reinterpret_cast<const u8*>(lbl_8042D180) + 0x9DC);
+}
+
+static inline const int* gmSealClassOrder() {
+    return reinterpret_cast<const int*>(reinterpret_cast<const u8*>(lbl_8042D180) + 0xA80);
+}
 
 // MATCH-ONLY: gm_data_collection.o was its own translation unit in the original, so gm_lib.o calls these out of line.
 #pragma push
@@ -860,17 +907,19 @@ u16 gmLotFigureToCollection(u32 rarityMask) {
     if (lbl_805A00E8[0] == 0) {
         return 0;
     }
+    const int* counts = gmFigClassCounts();
+    const int* order = gmFigClassOrder();
     int total = 0;
     for (int i = 0; i < 6; i++) {
         if (rarityMask & (1 << i)) {
-            total += lbl_8042DB38[lbl_8042DBD8[i]];
+            total += counts[order[i]];
         }
     }
     int pick = randi(total);
-    int index = lbl_8042DB38[0] + lbl_8042DB38[1];
+    int index = counts[0] + counts[1];
     int sum = 0;
     for (int i = 0; i < 6; i++) {
-        int count = lbl_8042DB38[lbl_8042DBD8[i]];
+        int count = counts[order[i]];
         if (rarityMask & (1 << i)) {
             if (sum + count > pick) {
                 break;
@@ -887,12 +936,14 @@ u16 gmLotSealToCollection(u32 rarityMask, int set) {
     if (lbl_805A00E8[0] == 0) {
         return 0;
     }
+    const gmSealClassCounts& counts = gmSealCounts();
+    const int* order = gmSealClassOrder();
     int column = set - 1;
     int total = 0;
     for (int i = 0; i < 6; i++) {
-        int rarity = lbl_8042DC00[i];
+        int rarity = order[i];
         if (rarity != -1 && (rarityMask & (1 << i))) {
-            total += lbl_8042DB5C[rarity][column];
+            total += counts[rarity][column];
         }
     }
     int pick = randi(total);
@@ -902,17 +953,17 @@ u16 gmLotSealToCollection(u32 rarityMask, int set) {
             break;
         }
         for (int r = 0; r < 5; r++) {
-            index += lbl_8042DB5C[r][s];
+            index += counts[r][s];
         }
     }
-    index += lbl_8042DB5C[4][column];
+    index += counts[4][column];
     int sum = 0;
     for (int i = 0; i < 6; i++) {
-        int rarity = lbl_8042DC00[i];
+        int rarity = order[i];
         if (rarity == -1) {
             continue;
         }
-        int count = lbl_8042DB5C[rarity][column];
+        int count = counts[rarity][column];
         if (rarityMask & (1 << i)) {
             if (sum + count > pick) {
                 break;

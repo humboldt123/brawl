@@ -374,23 +374,26 @@ static inline bool gmTestFlagBit(const u32* flags, int bit) {
 // and the stage list gives the bit of that stage in the stage app flags.
 // Picks a random CD for the CD item: one that the player does not have yet; when all are there, any one.
 u32 gmLotCD() {
-    int freeIds[102];
     int allIds[102];
+    int freeIds[102];
     int freeCount = 0;
     int allCount = 0;
+    int i;
+    int j;
     const u32* songIds = &lbl_8042B858[0x15A];
-    const int* stageKeys = reinterpret_cast<const int*>(&lbl_8042B858[0x1C0]);
-    const int* stageList = reinterpret_cast<const int*>(&lbl_8042B858[0x212]);
-    for (int i = 0; i <= 0x2F; i++) {
+    for (i = 0; i <= 0x2F; i++) {
         if (!gmTestFlagBit(reinterpret_cast<u32*>(g_GameGlobal->getBGMAppFlag()), i * 2)) {
             freeIds[freeCount++] = songIds[i];
         }
         allIds[allCount++] = songIds[i];
     }
-    for (int i = 0x30; i <= 0x3F; i++) {
+    const int* stageKeys = reinterpret_cast<const int*>(&lbl_8042B858[0x1C0 - 0x30]);
+    songIds = &lbl_8042B858[0x15A];
+    for (i = 0x30; i <= 0x3F; i++) {
         u32 available = 1;
-        for (int j = 0; j < 12; j++) {
-            if (stageKeys[i - 0x30] == stageList[j]) {
+        const int* stageList = reinterpret_cast<const int*>(&lbl_8042B858[0x212]);
+        for (j = 0; j < 12; j++) {
+            if (stageKeys[i] == stageList[j]) {
                 available = gmTestFlagBit(fn_8004E594(g_GameGlobal), j);
                 break;
             }
@@ -413,6 +416,7 @@ extern "C" bool fn_80051A6C() { // gmCheckRandomCDAllAcquired
     int i;
     int j;
     int bit = 0;
+    u32 available;
     for (i = 0; i <= 0x2F; i++, bit += 2) {
         if (!gmTestFlagBit(reinterpret_cast<u32*>(g_GameGlobal->getBGMAppFlag()), bit)) {
             return false;
@@ -420,9 +424,10 @@ extern "C" bool fn_80051A6C() { // gmCheckRandomCDAllAcquired
     }
     bit = 0x60;
     for (i = 0x30; i <= 0x3F; i++, bit += 2) {
-        u32 available = 1;
-        for (j = 0; j < 12; j++) {
-            if (lbl_8042BF58[i - 0x30] == lbl_8042C0A0[j]) {
+        available = 1;
+        const int* stage = lbl_8042C0A0;
+        for (j = 0; j < 12; j++, stage++) {
+            if (lbl_8042BF58[i - 0x30] == *stage) {
                 available = gmTestFlagBit(fn_8004E594(g_GameGlobal), j);
                 break;
             }

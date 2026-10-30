@@ -1,6 +1,7 @@
 // Local shadow of BrawlHeaders' gm/gm_global_mode_melee.h (see AGENTS.md section 6): names the melee/player init fields
-// that gm_common.cpp writes (gmInitMeleeDataDefault, gmInitPlayerDataDefault, gmSetRuleToGlobalModeMelee). Existing
-// names are unchanged; only unnamed padding and unnamed bit fields were split up. Roles are HYPOTHESIS unless noted.
+// that gm_common.cpp writes (gmInitMeleeDataDefault, gmInitPlayerDataDefault, gmSetRuleToGlobalModeMelee). Padding that
+// was split up is kept as an anonymous union with its original array, so every old name still works. Roles are
+// HYPOTHESIS unless noted.
 #pragma once
 
 #include <StaticAssert.h>
@@ -265,17 +266,19 @@ public:
 };
 static_assert(sizeof(gmItSwitch) == 0x10, "Class is wrong size!");
 
-// HYPOTHESIS: the 8-byte value gmCharaFlag::setGlobalCharaData (0x80051F28) returns: a bit set of 64 fighters.
+// HYPOTHESIS: the 8-byte value gmCharaFlag::setGlobalCharaData (0x80051F28) returns: a bit set of 64 fighters. It is
+// returned through a hidden pointer, so the type is not a plain aggregate.
 struct gmCharaFlagWords {
     u32 m_word0;
     u32 m_word1;
+    gmCharaFlagWords() {}
 };
 
 class gmMeleeInitData {
 public:
     GameMode m_gameMode : 6;
     char _0x0_0 : 2;
-    GameRule m_gameRule : 3;
+    u8 m_gameRule : 3; // GameRule; a plain byte bit field here, the native code reads and writes this byte directly
     u8 m_numPlayers : 3;
     bool m_0x1_1 : 1; // set once the time limit is configured (gmSetRuleToGlobalModeMelee)
     bool m_0x1_0 : 1;
@@ -303,15 +306,20 @@ public:
     bool m_0x4_2 : 1;
     bool m_0x4_1 : 1;
     bool m_0x4_0 : 1;
-    bool m_0x5_7 : 1; // 0x05
-    bool m_0x5_6 : 1;
-    bool m_0x5_5 : 1;
-    bool m_0x5_4 : 1;
-    bool m_0x5_3 : 1;
-    bool m_0x5_2 : 1;
-    bool m_0x5_1 : 1;
-    bool m_0x5_0 : 1;
-    char _0x6;        // 0x06
+    union {
+        char _0x5[0x2]; // 0x05
+        struct {
+            bool m_0x5_7 : 1;
+            bool m_0x5_6 : 1;
+            bool m_0x5_5 : 1;
+            bool m_0x5_4 : 1;
+            bool m_0x5_3 : 1;
+            bool m_0x5_2 : 1;
+            bool m_0x5_1 : 1;
+            bool m_0x5_0 : 1;
+            char _0x6;
+        };
+    };
     bool m_0x7_7 : 1; // 0x07
     bool m_0x7_6 : 1;
     bool m_0x7_5 : 1;
@@ -325,13 +333,18 @@ public:
     u8 m_scoreToWin;                           // custom
     char _0xA[0x1];                            // 0x0A
     bool m_isTeams;                            // 0x0B
-    gmCorpsKind m_corpsKind : 8;               // 0x0C
+    u8 m_corpsKind;                            // 0x0C (gmCorpsKind; a plain byte, see m_gameRule)
     char _0xd[0x1];                            // 0x09
-    gmItSwitch::Frequency m_itemFrequency : 8; // 0x0E
+    u8 m_itemFrequency;                        // 0x0E (gmItSwitch::Frequency; a plain byte, see m_gameRule)
     s8 m_suicideScoreMultiplier;               // 0x0F
-    u8 m_0x10;                                 // 0x10
-    char _0x11;                                // 0x11
-    srStageKind m_stageKind : 16;              // 0x12
+    union {
+        char _0x10[0x02]; // 0x10
+        struct {
+            u8 m_0x10;
+            char _0x11;
+        };
+    };
+    u16 m_stageKind;                           // 0x12 (srStageKind; a plain halfword, see m_gameRule)
     u8 m_subStageKind;                         // 0x14
     char _0x15[0x3];                           // 0x15
     s32 m_timeLimitFrames;                     // 0x18
@@ -347,24 +360,34 @@ public:
     char _0x22[6];
 
     gmItSwitch m_itSwitch;      // 0x28
-    gmCharaFlagWords m_charaFlags; // 0x38
+    union {
+        char _0x38[0x08];        // 0x38
+        gmCharaFlagWords m_charaFlags;
+    };
     float m_cameraShakeScale;   // 0x40
-    float m_damageRatio;        // 0x44 (the rule's damage ratio, 1.0 by default)
+    union {
+        char _0x44[0x04];        // 0x44
+        float m_damageRatio;     // the rule's damage ratio, 1.0 by default
+    };
     float m_gameSpeed;          // 0x48
-    char _0x4c[0x04];           // 0x4C
-    u8 m_0x50;                  // 0x50
-    char _0x51[0x07];           // 0x51
-    u8 m_0x58;                  // 0x58 (copied from the record)
-    u8 m_0x59;                  // 0x59 (copied from the record)
-    bool m_0x5a_7 : 1;          // 0x5A
-    bool m_0x5a_6 : 1;
-    bool m_0x5a_5 : 1;
-    bool m_0x5a_4 : 1;
-    bool m_0x5a_3 : 1;
-    bool m_0x5a_2 : 1;
-    bool m_0x5a_1 : 1;
-    bool m_0x5a_0 : 1;
-    char _0x5b[0x1D];           // 0x5B
+    union {
+        char _0x4c[0x2C];        // 0x4C
+        struct {
+            char _0x4c_pad[0x04];
+            u8 m_0x50;           // 0x50
+            char _0x51[0x07];
+            u8 m_0x58;           // 0x58 (copied from the record)
+            u8 m_0x59;           // 0x59 (copied from the record)
+            bool m_0x5a_7 : 1;   // 0x5A
+            bool m_0x5a_6 : 1;
+            bool m_0x5a_5 : 1;
+            bool m_0x5a_4 : 1;
+            bool m_0x5a_3 : 1;
+            bool m_0x5a_2 : 1;
+            bool m_0x5a_1 : 1;
+            bool m_0x5a_0 : 1;
+        };
+    };
     short m_globalOffenseRatio; // 0x78
     short m_globalDefenseRatio; // 0x7A
     char _0x7c[0x05];           // 0x7C
@@ -384,8 +407,13 @@ public:
     s8 m_colorNo;                      // 0x06
     s8 m_controllerNo;                    // 0x07
     s8 m_startPointIdx;                  // 0x08
-    u8 m_0x9;                              // 0x09
-    u8 m_0xA;                              // 0x0A
+    union {
+        char _0x9[0x02];                   // 0x09
+        struct {
+            u8 m_0x9;
+            u8 m_0xA;
+        };
+    };
     s8 m_teamNo;                         // 0x0B
     wchar_t m_name[5];                   // 0x0c
     char _0x16[2];                          // 0x16
@@ -422,26 +450,42 @@ public:
     char _0x1D[1];
     u8 m_cpuType;                        // 0x1E
     u8 m_cpuRank;                        // 0x1F
-    short m_0x20;                           // 0x20
+    union {
+        char _0x20[0x02];                   // 0x20
+        short m_0x20;
+    };
     short m_startDamage;                 // 0x22
     short m_hitPointMax;                 // 0x24
-    short m_handicap;                       // 0x26 (HYPOTHESIS: the handicap that is copied to m_startDamage)
+    union {
+        char _0x26[0x02];                   // 0x26
+        short m_handicap;                   // HYPOTHESIS: the handicap that is copied to m_startDamage
+    };
     short m_glowAttack;                  // 0x28
     short m_glowDefense;                 // 0x2A
     float m_attackRatio;                 // 0x2C
     float m_damageRatio;                 // 0x30
     float m_attackReactionMul;           // 0x34
     float m_damageReactionMul;           // 0x38
-    u8 m_0x3C;                              // 0x3C
-    char _0x3D[0x02];                       // 0x3D
-    u8 m_0x3F;                              // 0x3F (the player number it was initialised with)
+    union {
+        char _0x3C[0x04];                   // 0x3C
+        struct {
+            u8 m_0x3C;
+            char _0x3D[0x02];
+            u8 m_0x3F;                      // the player number it was initialised with
+        };
+    };
     float m_scale;                       // 0x40
     float m_visibilityScale;             // 0x44
     float m_gravity;                     // 0x48
-    char _0x4C[0x04];                       // 0x4C
-    float m_0x50;                           // 0x50
-    float m_0x54;                           // 0x54
-    float m_0x58;                           // 0x58
+    union {
+        char _0x4C[0x10];                   // 0x4C
+        struct {
+            char _0x4C_pad[0x04];
+            float m_0x50;                   // 0x50
+            float m_0x54;                   // 0x54
+            float m_0x58;                   // 0x58
+        };
+    };
 };
 static_assert(sizeof(gmPlayerInitData) == 0x5C, "Class is wrong size!");
 

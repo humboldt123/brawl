@@ -293,7 +293,9 @@ u32 gmCountBGMOpend() {
 
 void gmInitPlayerDataDefault(gmPlayerInitData* player, int playerNo) {
     memset(player, 0, sizeof(gmPlayerInitData));
-    player->m_characterKind = Character_SelectNone;
+    u8 noName = 0x78;
+    // MATCH-ONLY: the native code stores the fighter slot as a plain byte, not as an enum bit field.
+    *reinterpret_cast<u8*>(player) = Character_SelectNone;
     player->m_state = 3;
     player->m_name[0] = 0;
     player->m_teamNo = 0;
@@ -311,23 +313,23 @@ void gmInitPlayerDataDefault(gmPlayerInitData* player, int playerNo) {
     player->m_hitPointMax = 0;
     player->m_0x3C = 0;
     player->m_gravity = 1.0f;
-    player->m_isStamina = false;
-    player->m_isRebirthXlu = true;
-    player->m_isRabbitCap = false;
-    player->m_isFlower = false;
-    player->m_isCurry = false;
-    player->m_isReflector = false;
     player->m_isMetal = false;
     player->m_0x1B_3 = false;
     player->m_isSpycloak = false;
     player->m_0x1B_6 = false;
+    player->m_isStamina = false;
+    player->m_isRabbitCap = false;
+    player->m_isFlower = false;
+    player->m_isCurry = false;
+    player->m_isReflector = false;
+    player->m_isRebirthXlu = true;
     player->m_0x3F = playerNo;
     player->m_cpuType = 0;
     player->m_cpuRank = 100;
     player->m_playerId = 0;
     player->m_startPointIdx = 0;
     player->m_controllerNo = 0;
-    player->m_nameIndex = 0x78;
+    player->m_nameIndex = noName;
 }
 
 // HYPOTHESIS: the defaults of one match: 2 minute time limit, four players, all items on, medium item frequency.
@@ -349,17 +351,16 @@ void gmInitMeleeDataDefault(gmMeleeInitData* melee) {
     melee->m_0x5_3 = false;
     melee->m_timeLimitFrames = 7200;
     melee->m_isTeams = false;
-    melee->m_stageKind = (srStageKind)0;
+    melee->m_stageKind = 0;
     melee->m_subStageKind = 0;
     melee->m_damageRatio = 1.0f;
     melee->m_suicideScoreMultiplier = -1;
     melee->m_gameSpeed = 1.0f;
     melee->m_corpsKind = Corps_None;
-    u32* items = reinterpret_cast<u32*>(&melee->m_itSwitch);
-    items[0] = 0xFFFFFFFF;
-    items[1] = 0xFFFFFFFF;
-    items[2] = 0xFFFFFFFF;
-    items[3] = 0xFFFFFFFF;
+    // MATCH-ONLY: the native code sets the three item switches as one doubleword and two words.
+    *reinterpret_cast<u64*>(&melee->m_itSwitch.m_item) = 0xFFFFFFFFFFFFFFFFULL;
+    *reinterpret_cast<u32*>(&melee->m_itSwitch.m_pokemon) = 0xFFFFFFFF;
+    *reinterpret_cast<u32*>(&melee->m_itSwitch.m_assist) = 0xFFFFFFFF;
     melee->m_charaFlags = fn_80051F28();
     melee->m_itemFrequency = gmItSwitch::Frequency_Medium;
     melee->m_0x10 = 0x78;
