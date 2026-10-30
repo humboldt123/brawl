@@ -59,9 +59,6 @@ grCollisionTest::grCollisionTest(grCollStatus* status)
 // HYPOTHESIS: grCollision::getSegment with a fourth argument (main.dol 0x80111968): fills the segment of a line.
 extern "C" void fn_80111968(grCollision* collision, grCollSegmentEx* out, grCollisionLine* line, int unk);
 
-// HYPOTHESIS: clSegment2D::projection1 (mt_coll2d.o, main.dol 0x800407A0): the point of the segment's line nearest to pos.
-extern "C" void fn_800407A0(const clSegment2D* segment, const Vec2f* pos, Vec2f* out);
-
 // MATCH-ONLY: the original computes min/max of two floats with a paired-single subtract and select.
 static inline float psMax(register float a, register float b) {
     register float diff, result;
@@ -159,9 +156,6 @@ static inline void clearTouchRecords(grCollisionTest* test) {
     clearTouchRecord(&test->m_hit);
 }
 
-// HYPOTHESIS: clAABBox2D::logicalOR (mt_coll2d.o, main.dol 0x80041F44): out = the box enclosing a and b.
-extern "C" void fn_80041F44(const clAABBox2D* a, const clAABBox2D* b, clAABBox2D* out);
-
 // HYPOTHESIS: the fsel based clamp helper (the same shape as the glide / mansion ones).
 static inline float clampFloat(float value, float lo, float hi) {
     value = nw4r::math::FSelect(value - lo, value, lo);
@@ -205,7 +199,7 @@ void grCollisionTest::getAABBox(clAABBox2D* out) {
     float left = psMin(minLeft + minCenterX, right - maxWidth);
     curBox.m_unk1 = left;
     curBox.m_unk3 = right;
-    fn_80041F44(&curBox, &tgtBox, out);
+    curBox.logicalOR(tgtBox, *out);
     out->m_unk3 = out->m_unk3 + 1.0f;
     out->m_unk4 = out->m_unk4 + 1.0f;
     out->m_unk1 = out->m_unk1 - 1.0f;
@@ -399,7 +393,7 @@ int grCollisionTest::checkMoveLenXDown(const Vec2f* pos, grCollisionLineWork* li
     grCollSegmentEx segment;
     fn_80111968(lineWork->m_collision, &segment, lineWork->m_collisionLine, 0);
     Vec2f foot;
-    fn_800407A0(&segment.m_segment, pos, &foot);
+    segment.m_segment.projection1(*pos, foot);
     float length = getLength(segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos);
     float slopeCos;
     float moveLen = m_unk10C;
@@ -1963,9 +1957,6 @@ extern "C" int fn_80116CD8(const grCollisionLineWork* lineWork, grCollisionLineW
 // HYPOTHESIS: grCollStatus::getCliffCheckBoxPre / getCliffCheckBoxCur (0x80135BA0 / 0x80135B94): the box the cliff check covers before / now.
 extern "C" void fn_80135BA0(grCollStatus* status, clAABBox2D* out);
 extern "C" void fn_80135B94(grCollStatus* status, clAABBox2D* out);
-// HYPOTHESIS: clAABBox2D::logicalOR (0x80041F44): out = the box enclosing a and b.
-// HYPOTHESIS: the clAABBox2D::checkInclude overload for a point (0x800418D0).
-extern "C" int fn_800418D0(const clAABBox2D* box, const Vec2f* point);
 
 // HYPOTHESIS: clRay2D::checkIntersect1 (0x800403C4) and clSegment2D::projection1 (0x800407A0): the ray (start, direction)
 // against a segment; the foot of a point on a segment.
@@ -1973,7 +1964,6 @@ struct grCollRay2D {
     Vec2f m_pos;
     Vec2f m_vec;
 };
-extern "C" void fn_800407A0(const clSegment2D* segment, const Vec2f* point, Vec2f* out);
 
 // Touch ids (grCollStatus::TouchId) of the left and right sides: Left, UpLeft, DownLeft / Right, UpRight, DownRight.
 static const int sCliffLeftTouch[3] = { 1, 4, 6 };
@@ -2683,9 +2673,9 @@ int grCollisionTest::testCliffCheck() {
     grCollSegmentEx lineSeg;
     fn_80135BA0(m_collStatus, &preBox);
     fn_80135B94(m_collStatus, &curBox);
-    fn_80041F44(&preBox, &curBox, &unionBox);
+    preBox.logicalOR(curBox, unionBox);
     m_unk2bc->getAABBox(preBox);
-    fn_80041F44(&preBox, &unionBox, &sweepBox);
+    preBox.logicalOR(unionBox, sweepBox);
     grCollCollection* collection = m_collection;
     updateCollection(&sweepBox);
     rightInfo.m_valid = 0;
@@ -2728,33 +2718,33 @@ int grCollisionTest::testCliffCheck() {
                                 Vec2f* p1 = &lineSeg.m_segment.m_p1Pos;
                                 if (facing == 1) {
                                     if (checkSides == 0) {
-                                        if (rightEnd != 0 && fn_800418D0(&unionBox, p0)) {
+                                        if (rightEnd != 0 && unionBox.checkInclude(*p0)) {
                                             updateCliffInfo(&rightInfo, lineWork, 1, p0);
                                         }
                                     } else if (checkSides == 1) {
-                                        if (leftEnd != 0 && fn_800418D0(&unionBox, p1)) {
+                                        if (leftEnd != 0 && unionBox.checkInclude(*p1)) {
                                             updateCliffInfo(&leftInfo, lineWork, 0, p1);
                                         }
                                     } else if (checkSides == 2) {
-                                        if (rightEnd != 0 && fn_800418D0(&unionBox, p0)) {
+                                        if (rightEnd != 0 && unionBox.checkInclude(*p0)) {
                                             updateCliffInfo(&rightInfo, lineWork, 1, p0);
-                                        } else if (cliffSide != 1 && leftEnd != 0 && fn_800418D0(&unionBox, p1)) {
+                                        } else if (cliffSide != 1 && leftEnd != 0 && unionBox.checkInclude(*p1)) {
                                             updateCliffInfo(&leftInfo, lineWork, 0, p1);
                                         }
                                     }
                                 } else if (facing == 0) {
                                     if (checkSides == 0) {
-                                        if (leftEnd != 0 && fn_800418D0(&unionBox, p1)) {
+                                        if (leftEnd != 0 && unionBox.checkInclude(*p1)) {
                                             updateCliffInfo(&rightInfo, lineWork, 0, p1);
                                         }
                                     } else if (checkSides == 1) {
-                                        if (rightEnd != 0 && fn_800418D0(&unionBox, p0)) {
+                                        if (rightEnd != 0 && unionBox.checkInclude(*p0)) {
                                             updateCliffInfo(&leftInfo, lineWork, 1, p0);
                                         }
                                     } else if (checkSides == 2) {
-                                        if (leftEnd != 0 && fn_800418D0(&unionBox, p1)) {
+                                        if (leftEnd != 0 && unionBox.checkInclude(*p1)) {
                                             updateCliffInfo(&rightInfo, lineWork, 0, p1);
-                                        } else if (cliffSide != 0 && rightEnd != 0 && fn_800418D0(&unionBox, p0)) {
+                                        } else if (cliffSide != 0 && rightEnd != 0 && unionBox.checkInclude(*p0)) {
                                             updateCliffInfo(&leftInfo, lineWork, 1, p0);
                                         }
                                     }
@@ -2812,7 +2802,7 @@ int grCollisionTest::checkCliffRayReach(const Vec2f* origin, grCollCliffInfo* in
             prev.m_collision->getSegment(&prevSeg, prev.m_collisionLine);
             Vec2f down(0.0f, -0.5f);
             Vec2f onPrev;
-            fn_800407A0(&prevSeg, addressOf(seg.m_p0Pos + down), &onPrev);
+            prevSeg.projection1(seg.m_p0Pos + down, onPrev);
             vec = onPrev - *origin;
         } else {
             Vec2f down(0.0f, -0.5f);
@@ -2823,7 +2813,7 @@ int grCollisionTest::checkCliffRayReach(const Vec2f* origin, grCollCliffInfo* in
             next.m_collision->getSegment(&nextSeg, next.m_collisionLine);
             Vec2f down(0.0f, -0.5f);
             Vec2f onNext;
-            fn_800407A0(&nextSeg, addressOf(seg.m_p1Pos + down), &onNext);
+            nextSeg.projection1(seg.m_p1Pos + down, onNext);
             vec = onNext - *origin;
         } else {
             Vec2f down(0.0f, -0.5f);

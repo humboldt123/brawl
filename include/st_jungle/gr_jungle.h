@@ -34,8 +34,6 @@
 // gfCamera::getScreenPosition2WorldVector (main, unnamed): the vector from the camera through a place of the screen
 // Vec3f::normalize1 (main, unnamed): the unit vector (and its length) of a vector
 extern "C" void fn_8003DEE0(Vec3f* out, Vec3f* in);
-// clLine3D::checkIntersectXYPlane (main, unnamed): where the line (from the origin and the direction) meets the plane z = 0
-extern "C" int fn_80043898(Vec3f* lineAndDir, Vec3f* hit);
 
 // The value is brought into the range (the original has it as fsel).
 static inline float grJungleClamp(float value, float low, float high) {

@@ -4,6 +4,7 @@
 #include <gf/gf_camera.h>
 #include <gr/gr_calc_world_callback.h>
 #include <memory.h>
+#include <mt/mt_coll2d.h>
 #include <mt/mt_prng.h>
 #include <string.h>
 #include <st_dxonett/gr_dxonett.h>
@@ -135,8 +136,6 @@ bool grDxOnettBg::setNode() {
 // HYPOTHESIS: gfCamera::getScreenPosition2WorldVector (the world direction of a point of the screen, in pixels)
 // normalize (out = in / length)
 extern "C" void fn_8003DEE0(Vec3f* out, const Vec3f* in);
-// clLine3D::checkIntersectXYPlane: where the line meets the plane z = 0
-extern "C" int fn_80043898(Vec3f* line, Vec3f* out);
 
 // HYPOTHESIS: the part of the camera object that holds the size of the screen.
 struct dxOnettCameraView {
@@ -239,7 +238,7 @@ void grDxOnettWarning::updateCallBack(float deltaFrame) {
                     lineStart = manager->m_cameras[0].m_centerPos;
                     lineEnd = lineStart;
                     fn_8003DEE0(&direction, &screen);
-                    if (fn_80043898(&lineEnd, &lineStart) != 0) {
+                    if (reinterpret_cast<clLine3D*>(&lineEnd)->checkIntersectXYPlane(lineStart)) {
                         grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
                         data->m_pos = lineStart;
                     }

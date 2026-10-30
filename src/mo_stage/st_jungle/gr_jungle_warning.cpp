@@ -1,4 +1,5 @@
 #include <memory.h>
+#include <mt/mt_coll2d.h>
 #include <types.h>
 
 #include <st_jungle/gr_jungle.h>
@@ -138,7 +139,7 @@ void grJungleWarning::updateCallBack(float deltaFrame) {
                     line.origin.m_y = hit.m_y;
                     line.origin.m_z = hit.m_z;
                     fn_8003DEE0(&line.direction, &dir);
-                    if (fn_80043898(&line.origin, &hit)) {
+                    if (reinterpret_cast<clLine3D*>(&line.origin)->checkIntersectXYPlane(hit)) {
                         grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
                         data->m_pos.m_x = hit.m_x;
                         data->m_pos.m_y = hit.m_y;

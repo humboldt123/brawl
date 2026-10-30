@@ -4,8 +4,6 @@
 #include <mt/mt_coll2d.h>
 #include <types.h>
 
-// HYPOTHESIS: clCircle2D::interpolate (mt_coll2d.o): out = a + (b - a) * rate for the center and radius.
-extern "C" void fn_80041884(const clCircle2D* a, const clCircle2D* b, clCircle2D* out, float rate);
 // HYPOTHESIS: grCollision::getSegment (gr_collision.o) fills the segment of a line.
 extern "C" void fn_80111968(grCollision* collision, void* out, grCollisionLine* line, int unk);
 extern "C" int fn_80132468(grCollisionTestCircle* test, const clCircle2D* start, const clCircle2D* end, void* segment, float* rate);
@@ -42,11 +40,11 @@ void grCollisionTestCircle::resetWork() {
 }
 
 void grCollisionTestCircle::updateCurrent(float rate) {
-    fn_80041884(&m_shape1.m_circle, &m_shape2.m_circle, &m_shape1.m_circle, rate);
+    m_shape1.m_circle.interpolate(m_shape2.m_circle, m_shape1.m_circle, rate);
 }
 
 void grCollisionTestCircle::updateTarget(float rate) {
-    fn_80041884(&m_shape1.m_circle, &m_shape3.m_circle, &m_shape2.m_circle, rate);
+    m_shape1.m_circle.interpolate(m_shape3.m_circle, m_shape2.m_circle, rate);
 }
 
 void grCollisionTestCircle::testStaticCorrectionSetup() { }

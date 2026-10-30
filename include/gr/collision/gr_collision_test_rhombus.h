@@ -187,15 +187,4 @@ void fn_80137074(grCollStatus* status, grCollisionLineWork* lineWork);
 int fn_80137114(grCollStatus* status, grCollisionLineWork* lineWork);
 void fn_801371D8(grCollStatus* status, grCollisionLineWork* lineWork);
 void fn_80137298(grCollStatus* status, grCollisionLineWork* lineWork);
-// clRhombus2D::interpolate(a, b, out, rate): out = a + (b - a) * rate for every corner and the aabb (the rhombus counterpart of the
-// circle's fn_80041884; updateCurrent/updateTarget are a plain tail call into it). 0x800435E8
-void fn_800435E8(const clRhombus2D* a, const clRhombus2D* b, clRhombus2D* out, float rate);
-// clSegment2D::isLeftArea(const Vec2f*) (r3 = a 0x10-byte segment, r4 = point). 0x8004104C
-int fn_8004104C(clSegment2D* segment, const Vec2f* point);
-// clQuad2D::set(quad, a, b) builds the quad (4 Vec2f, 0x20 bytes) between two vertex pairs (0x800429C8); clQuad2D::checkIntersect
-// (quad, segment) (0x80042FB4); clQuad2D::checkInclude(quad, point) (0x80042C74). The quad is an uninitialised local (clQuad2D has only the
-// two-segment constructor, 0x80042998, which testStaticChangeDownLineCheck uses); the vertex pairs are 0x14-byte locals {4 floats, 0}.
-void fn_800429C8(void* quad, const void* segA, const void* segB);
-int fn_80042FB4(void* quad, const clSegment2D* segment);
-int fn_80042C74(void* quad, const Vec2f* point);
 }

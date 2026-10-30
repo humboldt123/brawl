@@ -46,13 +46,13 @@ u8 grCollisionTestRhombus::checkIntersect(clRhombus2D* rhombus, clSegment2D* seg
         if (result == 0) {
             // no edge is crossed: the segment is inside when both end points are on the inner side of all four edges
             clSegment2D edge(rhombus->m_upPos, rhombus->m_rightPos);
-            if (!fn_8004104C(&edge, &segment->m_p0Pos) && !fn_8004104C(&edge, &segment->m_p1Pos)) {
+            if (!edge.isLeftArea(segment->m_p0Pos) && !edge.isLeftArea(segment->m_p1Pos)) {
                 setEdge(&edge, rhombus->m_rightPos, rhombus->m_downPos);
-                if (!fn_8004104C(&edge, &segment->m_p0Pos) && !fn_8004104C(&edge, &segment->m_p1Pos)) {
+                if (!edge.isLeftArea(segment->m_p0Pos) && !edge.isLeftArea(segment->m_p1Pos)) {
                     setEdge(&edge, rhombus->m_downPos, rhombus->m_leftPos);
-                    if (!fn_8004104C(&edge, &segment->m_p0Pos) && !fn_8004104C(&edge, &segment->m_p1Pos)) {
+                    if (!edge.isLeftArea(segment->m_p0Pos) && !edge.isLeftArea(segment->m_p1Pos)) {
                         setEdge(&edge, rhombus->m_leftPos, rhombus->m_upPos);
-                        if (!fn_8004104C(&edge, &segment->m_p0Pos) && !fn_8004104C(&edge, &segment->m_p1Pos)) {
+                        if (!edge.isLeftArea(segment->m_p0Pos) && !edge.isLeftArea(segment->m_p1Pos)) {
                             result = 0x10;
                         }
                     }
@@ -151,11 +151,11 @@ void grCollisionTestRhombus::resetWork() {
 }
 
 void grCollisionTestRhombus::updateCurrent(float rate) {
-    fn_800435E8(&m_shape1.m_rhombus, &m_shape2.m_rhombus, &m_shape1.m_rhombus, rate);
+    m_shape1.m_rhombus.interpolate(m_shape2.m_rhombus, m_shape1.m_rhombus, rate);
 }
 
 void grCollisionTestRhombus::updateTarget(float rate) {
-    fn_800435E8(&m_shape1.m_rhombus, &m_shape3.m_rhombus, &m_shape2.m_rhombus, rate);
+    m_shape1.m_rhombus.interpolate(m_shape3.m_rhombus, m_shape2.m_rhombus, rate);
 }
 
 // A line work whose line, joint and collision are all set, whose joint is active and whose collision is enabled.
@@ -995,9 +995,9 @@ int grCollisionTestRhombus::testStaticUp(grCollisionLineWork* lineWork, u8 flags
             unchanged = true;
         }
         if (!unchanged) {
-            u32 quad[8];
-            fn_800429C8(quad, &pre, &wall);
-            if (fn_80042C74(quad, &rhombus->m_upPos) && wall.m_segment.projectionX(rhombus->m_upPos, projected)) {
+            clQuad2D quad;
+            quad.set(pre.m_segment, wall.m_segment);
+            if (quad.checkInclude(rhombus->m_upPos) && wall.m_segment.projectionX(rhombus->m_upPos, projected)) {
                 push = (projected - rhombus->m_upPos) + Vec2f(0.0f, 0.01f);
                 if (0.0f < push.m_y) {
                     rhombus->move(push);
@@ -1088,9 +1088,9 @@ int grCollisionTestRhombus::testStaticDown(grCollisionLineWork* lineWork, u8 fla
                     reach = true;
                 }
             } else {
-                u32 quad[8];
-                fn_800429C8(quad, &pre, &wall);
-                if (!fn_80042C74(quad, &rhombus->m_downPos)) {
+                clQuad2D quad;
+                quad.set(pre.m_segment, wall.m_segment);
+                if (!quad.checkInclude(rhombus->m_downPos)) {
                     float downX = rhombus->m_downPos.m_x;
                     float downY = rhombus->m_downPos.m_y;
                     Vec2f below;
@@ -1287,7 +1287,7 @@ int grCollisionTestRhombus::testStaticChangeDownLineCheck(grCollisionLineWork* l
     Vec2f push;
     if (lineMoved != 0) {
         clQuad2D quad(pre.m_segment, wall.m_segment);
-        if (fn_80042C74(&quad, &rhombus->m_downPos)) {
+        if (quad.checkInclude(rhombus->m_downPos)) {
             Vec2f preProjected;
             pre.m_segment.projectionX(rhombus->m_downPos, preProjected);
             wall.m_segment.projectionX(rhombus->m_downPos, projected);
@@ -2180,7 +2180,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeft(grCollisionLin
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightDown(grCollisionLineWork* lineWork, float* rate) {
     bool hit = false;
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    Vec2f quad[4];
+    clQuad2D quad;
     grCollSegmentEx seg;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -2210,11 +2210,11 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightDown(grCollis
     if (unchanged) {
         return;
     }
-    fn_800429C8(quad, &from, &to);
-    if (fn_80042FB4(quad, &seg.m_segment) == 0) {
+    quad.set(from.m_segment, to.m_segment);
+    if (quad.checkIntersect(seg.m_segment) == 0) {
         return;
     }
-    if (fn_80042C74(quad, &seg.m_segment.m_p1Pos) == 0) {
+    if (quad.checkInclude(seg.m_segment.m_p1Pos) == 0) {
         return;
     }
     hit = false;
@@ -2256,7 +2256,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightDown(grCollis
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightUp(grCollisionLineWork* lineWork, float* rate) {
     bool hit = false;
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    Vec2f quad[4];
+    clQuad2D quad;
     grCollSegmentEx seg;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -2286,11 +2286,11 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightUp(grCollisio
     if (unchanged) {
         return;
     }
-    fn_800429C8(quad, &from, &to);
-    if (fn_80042FB4(quad, &seg.m_segment) == 0) {
+    quad.set(from.m_segment, to.m_segment);
+    if (quad.checkIntersect(seg.m_segment) == 0) {
         return;
     }
-    if (fn_80042C74(quad, &seg.m_segment.m_p0Pos) == 0) {
+    if (quad.checkInclude(seg.m_segment.m_p0Pos) == 0) {
         return;
     }
     hit = false;
@@ -2331,7 +2331,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightUp(grCollisio
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeftDown(grCollisionLineWork* lineWork, float* rate) {
     bool hit = false;
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    Vec2f quad[4];
+    clQuad2D quad;
     grCollSegmentEx seg;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -2361,11 +2361,11 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeftDown(grCollisi
     if (unchanged) {
         return;
     }
-    fn_800429C8(quad, &from, &to);
-    if (fn_80042FB4(quad, &seg.m_segment) == 0) {
+    quad.set(from.m_segment, to.m_segment);
+    if (quad.checkIntersect(seg.m_segment) == 0) {
         return;
     }
-    if (fn_80042C74(quad, &seg.m_segment.m_p0Pos) == 0) {
+    if (quad.checkInclude(seg.m_segment.m_p0Pos) == 0) {
         return;
     }
     hit = false;
@@ -2407,7 +2407,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeftDown(grCollisi
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeftUp(grCollisionLineWork* lineWork, float* rate) {
     bool hit = false;
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    Vec2f quad[4];
+    clQuad2D quad;
     grCollSegmentEx seg;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -2437,11 +2437,11 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeftUp(grCollision
     if (unchanged) {
         return;
     }
-    fn_800429C8(quad, &from, &to);
-    if (fn_80042FB4(quad, &seg.m_segment) == 0) {
+    quad.set(from.m_segment, to.m_segment);
+    if (quad.checkIntersect(seg.m_segment) == 0) {
         return;
     }
-    if (fn_80042C74(quad, &seg.m_segment.m_p1Pos) == 0) {
+    if (quad.checkInclude(seg.m_segment.m_p1Pos) == 0) {
         return;
     }
     hit = false;
@@ -2531,7 +2531,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUp(grCollisionLineW
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpRight(grCollisionLineWork* lineWork, float* rate) {
     bool sameFirst = false;
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    Vec2f quad[4];
+    clQuad2D quad;
     grCollSegmentEx seg;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -2558,11 +2558,11 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpRight(grCollisio
     if (unchanged) {
         return;
     }
-    fn_800429C8(quad, &from, &to);
-    if (fn_80042FB4(quad, &seg.m_segment) == 0) {
+    quad.set(from.m_segment, to.m_segment);
+    if (quad.checkIntersect(seg.m_segment) == 0) {
         return;
     }
-    if (fn_80042C74(quad, &seg.m_segment.m_p1Pos) == 0) {
+    if (quad.checkInclude(seg.m_segment.m_p1Pos) == 0) {
         return;
     }
     bool hit = false;
@@ -2602,7 +2602,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpRight(grCollisio
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpLeft(grCollisionLineWork* lineWork, float* rate) {
     bool sameFirst = false;
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    Vec2f quad[4];
+    clQuad2D quad;
     grCollSegmentEx seg;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -2629,11 +2629,11 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpLeft(grCollision
     if (unchanged) {
         return;
     }
-    fn_800429C8(quad, &from, &to);
-    if (fn_80042FB4(quad, &seg.m_segment) == 0) {
+    quad.set(from.m_segment, to.m_segment);
+    if (quad.checkIntersect(seg.m_segment) == 0) {
         return;
     }
-    if (fn_80042C74(quad, &seg.m_segment.m_p0Pos) == 0) {
+    if (quad.checkInclude(seg.m_segment.m_p0Pos) == 0) {
         return;
     }
     bool hit = false;
@@ -2722,7 +2722,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDown(grCollisionLin
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownRight(grCollisionLineWork* lineWork, float* rate) {
     bool hit = false;
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    Vec2f quad[4];
+    clQuad2D quad;
     grCollSegmentEx seg;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -2752,11 +2752,11 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownRight(grCollis
     if (unchanged) {
         return;
     }
-    fn_800429C8(quad, &from, &to);
-    if (fn_80042FB4(quad, &seg.m_segment) == 0) {
+    quad.set(from.m_segment, to.m_segment);
+    if (quad.checkIntersect(seg.m_segment) == 0) {
         return;
     }
-    if (fn_80042C74(quad, &seg.m_segment.m_p0Pos) == 0) {
+    if (quad.checkInclude(seg.m_segment.m_p0Pos) == 0) {
         return;
     }
     if (to.m_segment.m_p0Pos.m_x < seg.m_segment.m_p0Pos.m_x) {
@@ -2795,7 +2795,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownRight(grCollis
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownLeft(grCollisionLineWork* lineWork, float* rate) {
     bool sameFirst = false;
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    Vec2f quad[4];
+    clQuad2D quad;
     grCollSegmentEx seg;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -2822,11 +2822,11 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownLeft(grCollisi
     if (unchanged) {
         return;
     }
-    fn_800429C8(quad, &from, &to);
-    if (fn_80042FB4(quad, &seg.m_segment) == 0) {
+    quad.set(from.m_segment, to.m_segment);
+    if (quad.checkIntersect(seg.m_segment) == 0) {
         return;
     }
-    if (fn_80042C74(quad, &seg.m_segment.m_p1Pos) == 0) {
+    if (quad.checkInclude(seg.m_segment.m_p1Pos) == 0) {
         return;
     }
     bool hit = false;
@@ -3081,7 +3081,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYDown(grCollisionLin
 #define MOVE_SLATING_Y_DOWN(NAME, SIDE_CORNER, SIDE_END, FAR_END, MARGIN, PUSHED, SEARCH, TOUCH_ID, NEXT_FIRST, NEXT_LATER) \
 void grCollisionTestRhombus::NAME(grCollisionLineWork* lineWork, float* rate) { \
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus; \
-    char quad[0x20]; \
+    clQuad2D quad; \
     NEXT_FIRST \
     grCollSegmentEx segment; \
     fn_80111968(lineWork->m_collision, &segment, lineWork->m_collisionLine, 0); \
@@ -3091,8 +3091,8 @@ void grCollisionTestRhombus::NAME(grCollisionLineWork* lineWork, float* rate) { 
     grCollSegmentEx to; \
     setCornerPair(to, rhombus2->m_downPos, rhombus2->SIDE_CORNER); \
     if (!isSamePos(from.m_segment.m_p0Pos, to.m_segment.m_p0Pos) && !isSamePos(from.m_segment.m_p1Pos, to.m_segment.m_p1Pos)) { \
-        fn_800429C8(quad, &from, &to); \
-        if (fn_80042FB4(quad, &segment.m_segment) && fn_80042C74(quad, &segment.m_segment.SIDE_END)) { \
+        quad.set(from.m_segment, to.m_segment); \
+        if (quad.checkIntersect(segment.m_segment) && quad.checkInclude(segment.m_segment.SIDE_END)) { \
             Vec2f onLine; \
             Vec2f move; \
             if (segment.m_segment.SIDE_END.m_y < to.m_segment.m_p1Pos.m_y) { \
@@ -3136,7 +3136,7 @@ void grCollisionTestRhombus::NAME(grCollisionLineWork* lineWork, float* rate) { 
 #define MOVE_SLATING_Y_UP(NAME, SIDE_CORNER, SIDE_END, FAR_END, MARGIN, PUSHED, SEARCH, TOUCH_ID) \
 void grCollisionTestRhombus::NAME(grCollisionLineWork* lineWork, float* rate) { \
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus; \
-    char quad[0x20]; \
+    clQuad2D quad; \
     grCollisionLineWork next; \
     int hit = 0; \
     grCollSegmentEx segment; \
@@ -3146,8 +3146,8 @@ void grCollisionTestRhombus::NAME(grCollisionLineWork* lineWork, float* rate) { 
     grCollSegmentEx to; \
     setCornerPair(to, rhombus2->m_upPos, rhombus2->SIDE_CORNER); \
     if (!isSamePos(from.m_segment.m_p0Pos, to.m_segment.m_p0Pos) && !isSamePos(from.m_segment.m_p1Pos, to.m_segment.m_p1Pos)) { \
-        fn_800429C8(quad, &from, &to); \
-        if (fn_80042FB4(quad, &segment.m_segment) && fn_80042C74(quad, &segment.m_segment.FAR_END)) { \
+        quad.set(from.m_segment, to.m_segment); \
+        if (quad.checkIntersect(segment.m_segment) && quad.checkInclude(segment.m_segment.FAR_END)) { \
             Vec2f onLine; \
             Vec2f move; \
             if (segment.m_segment.FAR_END.m_y > to.m_segment.m_p1Pos.m_y) { \
@@ -3195,7 +3195,7 @@ int grCollisionTestRhombus::testCollisionCompound(grCollisionLineWork* lineWork)
 
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUpRight(grCollisionLineWork* lineWork, float* rate) {
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    char quad[0x20];
+    clQuad2D quad;
     grCollSegmentEx segment;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -3208,8 +3208,8 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUpRight(grCollisio
     setCornerPair(from, m_shape1.m_rhombus.m_upPos, m_shape1.m_rhombus.m_rightPos);
     setCornerPair(to, rhombus2->m_upPos, rhombus2->m_rightPos);
     if (!isSamePos(from.m_segment.m_p0Pos, to.m_segment.m_p0Pos) && !isSamePos(from.m_segment.m_p1Pos, to.m_segment.m_p1Pos)) {
-        fn_800429C8(quad, &from, &to);
-        if (fn_80042FB4(quad, &segment.m_segment) && fn_80042C74(quad, &segment.m_segment.m_p1Pos)) {
+        quad.set(from.m_segment, to.m_segment);
+        if (quad.checkIntersect(segment.m_segment) && quad.checkInclude(segment.m_segment.m_p1Pos)) {
             Vec2f onLine;
             Vec2f move;
             if (segment.m_segment.m_p1Pos.m_y > to.m_segment.m_p1Pos.m_y) {
@@ -3260,7 +3260,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUpRight(grCollisio
 
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUpLeft(grCollisionLineWork* lineWork, float* rate) {
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    char quad[0x20];
+    clQuad2D quad;
     grCollSegmentEx segment;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -3273,8 +3273,8 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUpLeft(grCollision
     setCornerPair(from, m_shape1.m_rhombus.m_upPos, m_shape1.m_rhombus.m_leftPos);
     setCornerPair(to, rhombus2->m_upPos, rhombus2->m_leftPos);
     if (!isSamePos(from.m_segment.m_p0Pos, to.m_segment.m_p0Pos) && !isSamePos(from.m_segment.m_p1Pos, to.m_segment.m_p1Pos)) {
-        fn_800429C8(quad, &from, &to);
-        if (fn_80042FB4(quad, &segment.m_segment) && fn_80042C74(quad, &segment.m_segment.m_p0Pos)) {
+        quad.set(from.m_segment, to.m_segment);
+        if (quad.checkIntersect(segment.m_segment) && quad.checkInclude(segment.m_segment.m_p0Pos)) {
             Vec2f onLine;
             Vec2f move;
             if (segment.m_segment.m_p0Pos.m_y > to.m_segment.m_p1Pos.m_y) {
@@ -3327,7 +3327,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUpLeft(grCollision
 
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYDownRight(grCollisionLineWork* lineWork, float* rate) {
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    char quad[0x20];
+    clQuad2D quad;
     grCollSegmentEx segment;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -3341,8 +3341,8 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYDownRight(grCollis
     setCornerPair(from, m_shape1.m_rhombus.m_downPos, m_shape1.m_rhombus.m_rightPos);
     setCornerPair(to, rhombus2->m_downPos, rhombus2->m_rightPos);
     if (!isSamePos(from.m_segment.m_p0Pos, to.m_segment.m_p0Pos) && !isSamePos(from.m_segment.m_p1Pos, to.m_segment.m_p1Pos)) {
-        fn_800429C8(quad, &from, &to);
-        if (fn_80042FB4(quad, &segment.m_segment) && fn_80042C74(quad, &segment.m_segment.m_p0Pos)) {
+        quad.set(from.m_segment, to.m_segment);
+        if (quad.checkIntersect(segment.m_segment) && quad.checkInclude(segment.m_segment.m_p0Pos)) {
             Vec2f onLine;
             Vec2f move;
             if (to.m_segment.m_p1Pos.m_y > segment.m_segment.m_p0Pos.m_y) {
@@ -3395,7 +3395,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYDownRight(grCollis
 
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYDownLeft(grCollisionLineWork* lineWork, float* rate) {
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
-    char quad[0x20];
+    clQuad2D quad;
     grCollSegmentEx segment;
     grCollSegmentEx from;
     grCollSegmentEx to;
@@ -3409,8 +3409,8 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYDownLeft(grCollisi
     setCornerPair(from, m_shape1.m_rhombus.m_downPos, m_shape1.m_rhombus.m_leftPos);
     setCornerPair(to, rhombus2->m_downPos, rhombus2->m_leftPos);
     if (!isSamePos(from.m_segment.m_p0Pos, to.m_segment.m_p0Pos) && !isSamePos(from.m_segment.m_p1Pos, to.m_segment.m_p1Pos)) {
-        fn_800429C8(quad, &from, &to);
-        if (fn_80042FB4(quad, &segment.m_segment) && fn_80042C74(quad, &segment.m_segment.m_p1Pos)) {
+        quad.set(from.m_segment, to.m_segment);
+        if (quad.checkIntersect(segment.m_segment) && quad.checkInclude(segment.m_segment.m_p1Pos)) {
             Vec2f onLine;
             Vec2f move;
             if (segment.m_segment.m_p1Pos.m_y < to.m_segment.m_p1Pos.m_y) {

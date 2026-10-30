@@ -5,21 +5,6 @@
 #include <mt/mt_coll2d.h>
 #include <types.h>
 
-// HYPOTHESIS: unnamed mt_coll2d entry points (map: clAABBox2D/clCircle2D/clTriangle2D checkIntersect/checkInclude/getAABBox/draw); parameter types from register use.
-extern "C" bool fn_80041D64(const clAABBox2D* box, const clAABBox2D* other);
-extern "C" bool fn_80041DCC(const clAABBox2D* box, const clCircle2D* circle);
-extern "C" bool fn_800418D0(const clAABBox2D* box, const Vec2f* pos);
-extern "C" void fn_80041F70(const clAABBox2D* box, GXColor color, float width, bool fill);
-extern "C" bool fn_800414C0(const clCircle2D* circle, const clCircle2D* other);
-extern "C" bool fn_80041528(const clCircle2D* circle, const clTriangle2D* triangle);
-extern "C" bool fn_80041538(const clCircle2D* circle, const Vec2f* pos);
-extern "C" void fn_800415E8(const clCircle2D* circle, GXColor color, float width, bool fill);
-extern "C" void fn_80042034(const clTriangle2D* triangle, clAABBox2D* box);
-extern "C" bool fn_80042088(const clTriangle2D* triangle, const clAABBox2D* box);
-extern "C" bool fn_8004231C(const clTriangle2D* triangle, const clCircle2D* circle);
-extern "C" bool fn_80042584(const clTriangle2D* triangle, const clTriangle2D* other);
-extern "C" void fn_800428E8(const clTriangle2D* triangle, GXColor color, float width, bool fill);
-
 int lbl_8059C428 = 1;
 gfAreaEventReciverNull lbl_8059FF88;
 nw4r::ut::Color lbl_8059FF8C(0x80, 0x80, 0x80, 0x60);
@@ -74,7 +59,7 @@ void gfArea::test(gfArea* other) {
         isOtherHit = ((1 << m_group) & other->m_checkTargetLocalGroup) != 0;
     }
     if (isHit || isOtherHit) {
-        if (fn_80041D64(&m_aabBox, &other->m_aabBox) && testIntersectShape(other)) {
+        if (m_aabBox.checkIntersect1(other->m_aabBox) && testIntersectShape(other)) {
             if (isHit) {
                 notifyIntersect(other);
             }
@@ -87,7 +72,7 @@ void gfArea::test(gfArea* other) {
 
 bool gfArea::testIntersect(gfArea* other) {
     bool result = false;
-    if (fn_80041D64(&m_aabBox, &other->m_aabBox) && testIntersectShape(other)) {
+    if (m_aabBox.checkIntersect1(other->m_aabBox) && testIntersectShape(other)) {
         result = true;
     }
     return result;
@@ -103,7 +88,7 @@ void gfArea::notifyIntersect(gfArea* other) {
 
 void gfArea::debugDrawImp() {
     if (!m_isNoDraw) {
-        fn_80041F70(&m_aabBox, m_debugColor, 1.0f, false);
+        m_aabBox.draw(m_debugColor, 1.0f, false);
     }
 }
 
@@ -141,7 +126,7 @@ bool gfAreaRectangle::testIntersectShape(gfArea* other) {
         shape.m_centerPos.m_x = circle->m_circle.m_centerPos.m_x + circle->m_pos.m_x;
         shape.m_centerPos.m_y = circle->m_circle.m_centerPos.m_y + circle->m_pos.m_y;
         shape.m_radius = circle->m_circle.m_radius;
-        result = fn_80041DCC(&m_aabBox, &shape);
+        result = m_aabBox.checkIntersect2(shape);
         break;
     }
     }
@@ -149,15 +134,15 @@ bool gfAreaRectangle::testIntersectShape(gfArea* other) {
 }
 
 bool gfAreaRectangle::testIncludePos(Vec2f* pos) {
-    return fn_800418D0(&m_aabBox, pos);
+    return m_aabBox.checkInclude(*pos);
 }
 
 void gfAreaRectangle::debugDrawImp() {
     if (!m_isNoDraw) {
         if (m_isDrawFill) {
-            fn_80041F70(&m_aabBox, m_debugColor, 1.0f, true);
+            m_aabBox.draw(m_debugColor, 1.0f, true);
         } else {
-            fn_80041F70(&m_aabBox, lbl_8059FF8C, 1.0f, false);
+            m_aabBox.draw(lbl_8059FF8C, 1.0f, false);
         }
     }
 }
@@ -184,7 +169,7 @@ bool gfAreaCircle::testIntersectShape(gfArea* other) {
     shape.m_radius = m_circle.m_radius;
     switch (other->m_shapeType) {
     case Shape_Rectangle:
-        result = fn_80041DCC(&dynamic_cast<gfAreaRectangle*>(other)->m_aabBox, &shape);
+        result = dynamic_cast<gfAreaRectangle*>(other)->m_aabBox.checkIntersect2(shape);
         break;
     case Shape_Circle: {
         gfAreaCircle* circle = static_cast<gfAreaCircle*>(other);
@@ -192,7 +177,7 @@ bool gfAreaCircle::testIntersectShape(gfArea* other) {
         otherShape.m_centerPos.m_x = circle->m_circle.m_centerPos.m_x + circle->m_pos.m_x;
         otherShape.m_centerPos.m_y = circle->m_circle.m_centerPos.m_y + circle->m_pos.m_y;
         otherShape.m_radius = circle->m_circle.m_radius;
-        result = fn_800414C0(&shape, &otherShape);
+        result = shape.checkIntersect1(otherShape);
         break;
     }
     case Shape_Triangle: {
@@ -204,7 +189,7 @@ bool gfAreaCircle::testIntersectShape(gfArea* other) {
         otherShape.m_vertices[1].m_y = otherShape.m_vertices[1].m_y + triangle->m_pos.m_y;
         otherShape.m_vertices[2].m_x = otherShape.m_vertices[2].m_x + triangle->m_pos.m_x;
         otherShape.m_vertices[2].m_y = otherShape.m_vertices[2].m_y + triangle->m_pos.m_y;
-        result = fn_80041528(&shape, &otherShape);
+        result = shape.checkIntersect2(otherShape);
         break;
     }
     }
@@ -213,12 +198,12 @@ bool gfAreaCircle::testIntersectShape(gfArea* other) {
 
 bool gfAreaCircle::testIncludePos(Vec2f* pos) {
     bool result = false;
-    if (fn_800418D0(&m_aabBox, pos)) {
+    if (m_aabBox.checkInclude(*pos)) {
         clCircle2D shape;
         shape.m_centerPos.m_x = m_circle.m_centerPos.m_x + m_pos.m_x;
         shape.m_centerPos.m_y = m_circle.m_centerPos.m_y + m_pos.m_y;
         shape.m_radius = m_circle.m_radius;
-        result = fn_80041538(&shape, pos);
+        result = shape.checkInclude(*pos);
     }
     return result;
 }
@@ -229,9 +214,9 @@ void gfAreaCircle::debugDrawImp() {
     shape.m_centerPos.m_y = m_circle.m_centerPos.m_y + m_pos.m_y;
     shape.m_radius = m_circle.m_radius;
     if (m_isDrawFill) {
-        fn_800415E8(&shape, m_debugColor, 1.0f, true);
+        shape.draw(m_debugColor, 1.0f, true);
     } else {
-        fn_800415E8(&shape, lbl_8059FF8C, 1.0f, false);
+        shape.draw(lbl_8059FF8C, 1.0f, false);
     }
 }
 
@@ -243,7 +228,7 @@ void gfAreaTriangle::update() {
     shape.m_vertices[1].m_y = shape.m_vertices[1].m_y + m_pos.m_y;
     shape.m_vertices[2].m_x = shape.m_vertices[2].m_x + m_pos.m_x;
     shape.m_vertices[2].m_y = shape.m_vertices[2].m_y + m_pos.m_y;
-    fn_80042034(&shape, &m_aabBox);
+    shape.getAABBox(m_aabBox);
 }
 
 bool gfAreaTriangle::testIntersectShape(gfArea* other) {
@@ -257,7 +242,7 @@ bool gfAreaTriangle::testIntersectShape(gfArea* other) {
     shape.m_vertices[2].m_y = shape.m_vertices[2].m_y + m_pos.m_y;
     switch (other->m_shapeType) {
     case Shape_Rectangle:
-        result = fn_80042088(&shape, &dynamic_cast<gfAreaRectangle*>(other)->m_aabBox);
+        result = shape.checkIntersect(dynamic_cast<gfAreaRectangle*>(other)->m_aabBox);
         break;
     case Shape_Circle: {
         gfAreaCircle* circle = static_cast<gfAreaCircle*>(other);
@@ -265,7 +250,7 @@ bool gfAreaTriangle::testIntersectShape(gfArea* other) {
         otherShape.m_centerPos.m_x = circle->m_circle.m_centerPos.m_x + circle->m_pos.m_x;
         otherShape.m_centerPos.m_y = circle->m_circle.m_centerPos.m_y + circle->m_pos.m_y;
         otherShape.m_radius = circle->m_circle.m_radius;
-        result = fn_8004231C(&shape, &otherShape);
+        result = shape.checkIntersect1(otherShape);
         break;
     }
     case Shape_Triangle: {
@@ -277,7 +262,7 @@ bool gfAreaTriangle::testIntersectShape(gfArea* other) {
         otherShape.m_vertices[1].m_y = otherShape.m_vertices[1].m_y + triangle->m_pos.m_y;
         otherShape.m_vertices[2].m_x = otherShape.m_vertices[2].m_x + triangle->m_pos.m_x;
         otherShape.m_vertices[2].m_y = otherShape.m_vertices[2].m_y + triangle->m_pos.m_y;
-        result = fn_80042584(&shape, &otherShape);
+        result = shape.checkIntersect2(otherShape);
         break;
     }
     }
@@ -285,7 +270,7 @@ bool gfAreaTriangle::testIntersectShape(gfArea* other) {
 }
 
 bool gfAreaTriangle::testIncludePos(Vec2f* pos) {
-    if (fn_800418D0(&m_aabBox, pos)) {
+    if (m_aabBox.checkInclude(*pos)) {
         clTriangle2D shape = m_triangle;
         shape.m_vertices[0].m_x = shape.m_vertices[0].m_x + m_pos.m_x;
         shape.m_vertices[0].m_y = shape.m_vertices[0].m_y + m_pos.m_y;
@@ -306,8 +291,8 @@ void gfAreaTriangle::debugDrawImp() {
     shape.m_vertices[2].m_x = shape.m_vertices[2].m_x + m_pos.m_x;
     shape.m_vertices[2].m_y = shape.m_vertices[2].m_y + m_pos.m_y;
     if (m_isDrawFill) {
-        fn_800428E8(&shape, m_debugColor, 1.0f, true);
+        shape.draw(m_debugColor, 1.0f, true);
     } else {
-        fn_800428E8(&shape, lbl_8059FF8C, 1.0f, false);
+        shape.draw(lbl_8059FF8C, 1.0f, false);
     }
 }
