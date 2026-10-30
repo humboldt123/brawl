@@ -10686,6 +10686,12 @@ mo_melee/sora_melee/so/so_array_list_members_Ul_32_part1.cpp:
 mo_melee/sora_melee/ai/ai_param.cpp:
 	.text       start:0x0021CD58 end:0x00220150
 
+mo_melee/sora_melee/st/stage.cpp:
+	.text       start:0x00221A24 end:0x002257BC
+	.rodata     start:0x000033D0 end:0x000034C0
+	.data       start:0x0004A158 end:0x0004A408
+	.bss        start:0x00005668 end:0x00005670
+
 mo_melee/sora_melee/st/st_positions.cpp:
 	.text       start:0x00225910 end:0x00227BEC
 	.rodata     start:0x000034C0 end:0x000036F0
@@ -10725,6 +10731,13 @@ mo_melee/sora_melee/st/st_trigger_actor_common.cpp:
 mo_melee/sora_melee/st/st_common_gimmick.cpp:
 	.text       start:0x00237C00 end:0x002381FC
 	.data       start:0x0004C748 end:0x0004C96C
+
+mo_melee/sora_melee/st/st_melee.cpp:
+	.text       start:0x00238BDC end:0x0023A164
+	.ctors      start:0x000002B0 end:0x000002B4
+	.rodata     start:0x00003930 end:0x00003970
+	.data       start:0x0004C9C0 end:0x0004CCC0
+	.bss        start:0x000058E0 end:0x00005900
 
 mo_melee/sora_melee/st/st_loader_manager.cpp:
 	.text       start:0x0023A410 end:0x0023AAC4
@@ -10931,6 +10944,11 @@ mo_melee/sora_melee/so/so_array_list_members_Ul_32_part2.cpp:
 mo_melee/sora_melee/so/so_array_list_members_Ul_32_part3.cpp:
 	.text       start:0x0025EBF8 end:0x0025F3C4
 
+mo_melee/sora_melee/gr/ground.cpp:
+	.text       start:0x0025F3C4 end:0x00261EAC
+	.rodata     start:0x000042A0 end:0x000042B8
+	.data       start:0x000547E0 end:0x000549E8
+
 mo_melee/sora_melee/so/so_event_unit_work_area_soCollisionHitEventObserver_1_263D70.cpp:
 	.text       start:0x00263D70 end:0x00263E2C
 
@@ -11108,6 +11126,12 @@ mo_melee/sora_melee/gr/gr_adventure_motion_ground.cpp:
 mo_melee/sora_melee/gr/gr_gimmick_catapult.cpp:
 	.text       start:0x00274650 end:0x00275344
 	.ctors      start:0x00000314 end:0x00000318
+
+mo_melee/sora_melee/gr/gr_madein.cpp:
+	.text       start:0x00275778 end:0x0027A8DC
+	.rodata     start:0x00004520 end:0x00004548
+	.data       start:0x00059070 end:0x0005A250
+	.bss        start:0x000063B0 end:0x000063C8
 
 mo_melee/sora_melee/ml/ml_ft_event.cpp:
 	.text       start:0x0027CBE0 end:0x0027F4D8

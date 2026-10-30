@@ -228,6 +228,7 @@ public:
     void setStageAttackData(grGimmickDamageFloor* attackData, u32 index);
     void removeGround(Ground*);
     bool isPokemonTrainer();
+    void clearShadow();
 
     Stage(const char* name, srStageKind stageKind);
     virtual void processBegin();
