@@ -12,6 +12,7 @@
 #include <so/so_array.h>
 
 class soModuleAccesser;
+class soCollisionSearchPart;
 
 class soCollisionSearchModule {
 public:
@@ -45,7 +46,7 @@ private:
 #endif
 public:
     soModuleAccesser* m_moduleAccesser;
-    void* m_collisionSearchPartArray;
+    soArray<soCollisionSearchPart>* m_collisionSearchPartArray;
     float m_48;
     soArrayVector<soCollisionGroup,1> m_collisionGroupArrayVector;
     soCollision m_collision;
@@ -54,7 +55,11 @@ public:
     Vec3f m_endOffsetPos;
     int m_nodeIndex;
     int m_isInflict;
-    char _252[12];
+    int m_checkInterval;
+    int unk100;
+    u8 unk104;
+    u8 unk105;
+    char _106[2];
 
     virtual ~soCollisionSearchModuleImpl();
     virtual void activate(float, int taskId);

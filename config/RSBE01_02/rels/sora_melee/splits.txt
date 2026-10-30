@@ -215,6 +215,10 @@ mo_melee/sora_melee/so/collision/so_collision_attack_module_impl.cpp:
 mo_melee/sora_melee/so/so_vtable_dt_vec_8clTarget_6_41988.cpp:
 	.text       start:0x00041988 end:0x000419F0
 
+mo_melee/sora_melee/so/collision/so_collision_hit_group.cpp:
+	.text       start:0x00041AE0 end:0x00042AA4
+	.rodata     start:0x000004B8 end:0x000004C0
+
 mo_melee/sora_melee/so/collision/so_collision_hit_module_impl.cpp:
 	.text       start:0x00045510 end:0x00046588
 	.data       start:0x00003BC0 end:0x00003CC0
@@ -262,6 +266,11 @@ mo_melee/sora_melee/so/so_array_vector_thunks_16soCollisionGroup_1.cpp:
 
 mo_melee/sora_melee/so/so_array_base_soArrayVectorAbstract_16soCollisionGroup_4D7D8.cpp:
 	.text       start:0x0004D7D8 end:0x0004D7E0
+
+mo_melee/sora_melee/so/collision/so_collision_search_module_impl.cpp:
+	.text       start:0x0004DCA4 end:0x0004FAB4
+	.rodata     start:0x00000530 end:0x00000548
+	.data       start:0x00004908 end:0x00004B00
 
 mo_melee/sora_melee/so/so_array_vector_destructor_soInstanceUnitFullProperty_ptr_soTeamEventObserver_255.cpp:
 	.text       start:0x000504AC end:0x00050514

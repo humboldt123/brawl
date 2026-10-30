@@ -11,7 +11,7 @@ public:
 #ifdef YK_STAGE_FULL
     short unk4; // MATCH-ONLY: the stage RELs' array instantiations copy these as a half / a float instead of bytes
 #else
-    char _4[2];
+    s16 m_partStart; // HYPOTHESIS: first index of the group's parts in the module's part array
 #endif
     short m_partSize;
     float m_posX;
@@ -45,9 +45,28 @@ public:
     char _53[3];
 #endif
 
-    // NOTE: shadows the BrawlHeaders copy to add getCenterPos.
-    Vec3f getCenterPos(soCollision* collision, u16 index);
+    // NOTE: shadows the BrawlHeaders copy to add getCenterPos and the recovered part/global-status operations.
+    // HYPOTHESIS: parameter types of the part operations follow soCollisionHitModule's (the map has none).
+    void init();
+    void resetStatusAll(soArray<soCollisionHitPart>* parts);
+    void setStatus(soArray<soCollisionHitPart>* parts, u32 index, int status);
+    void setStatusNode(soArray<soCollisionHitPart>* parts, int nodeIndex, int status);
+    void setStatusNodeDefault(soArray<soCollisionHitPart>* parts, int nodeIndex, int status);
+    void setStatusAll(soArray<soCollisionHitPart>* parts, int status);
+    void setWhole(int whole);
+    int getWhole();
+    void resetStatusGlobal();
+    void setXluGlobal();
+    void cancelXluGlobal();
+    void setXluFrameGlobal(int xluFrameGlobal);
     void setInvincibleGlobal();
+    void cancelInvincibleGlobal();
+    void setInvincibleFrameGlobal(int invincibleFrameGlobal, bool override);
+    void updateStatusGlobal();
+    int getGlobal();
+    int getPartStatus(soArray<soCollisionHitPart>* parts, u32 index);
+    void initMultiSituation();
+    Vec3f getCenterPos(soCollision* collision, u16 index);
 
     soCollisionHitGroup();
     ~soCollisionHitGroup();

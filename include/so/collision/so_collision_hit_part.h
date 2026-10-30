@@ -44,8 +44,10 @@ struct soCollisionHitData {
 static_assert(sizeof(soCollisionHitData) == 32, "Class is wrong size!");
 
 class soCollisionHitPart {
+    friend class soCollisionHitGroup;
+
     int m_status;
-    char _0x4[4];
+    int unk4; // HYPOTHESIS: the status that soCollisionHitGroup::resetStatusAll restores
     soCollisionHitData m_hitData;
     soArrayVector<clTarget, 6> m_clTargetArrayVector;
     char _0x64[4];
