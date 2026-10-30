@@ -230,27 +230,15 @@ bool ftMario::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, s32 inde
 }
 
 // ---- the article holders --------------------------------------------------------------------------------------------
-// What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Mario, copied into the
-// descriptor), the heap module and the data block of the fighter kind.
-// HYPOTHESIS: the original builds these in the holder constructor itself.
-struct ftMarioArticleDataTag {
-    bool m_unused;
-    bool m_resourceGroup;
-    ftMarioArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
-};
+// Articles borrow the owner's kind record and heap while their constructors run.
+// The data lookup receives a separate snapshot of the owner's fighter kind.
+#include <ft/builder/ft_builder_article.h>
 
 struct ftMarioArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
     ftMarioArticleKind() {
         kind = 0;
         subKind = Fighter_Mario;
-    }
-};
-
-// Keep the temporary kind record alive through the enclosing article construction.
-struct ftMarioArticleBuildInfo : wnArticleBuildInfo {
-    ftMarioArticleBuildInfo(const wnArticleKindInfo& kindArg, soHeapModule* heap) {
-        kindInfo = &kindArg;
-        heapModule = heap;
     }
 };
 
@@ -260,25 +248,11 @@ extern "C" void* fn_27_147D34(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_147D4C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_147D7C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftMarioArticleTraits;
-#define FT_MARIO_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftMarioArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftMarioArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_Mario, &tag.m_resourceGroup)); \
-        } \
-    };
-
-FT_MARIO_TRAITS(wnMarioMantle, wnMarioMantleData, 0, fn_27_147D34)
-FT_MARIO_TRAITS(wnMarioFireball, wnMarioFireballData, 1, fn_27_147C9C)
-FT_MARIO_TRAITS(wnMarioPump, wnMarioPumpData, 2, fn_27_147D4C)
-FT_MARIO_TRAITS(wnMarioHugeFlame, wnMarioHugeFlameData, 3, fn_27_147D7C)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftMarioArticleTraits<W>::ArticleId, ftMarioArticleBuildInfo(ftMarioArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftMarioArticleTraits<W>::getData()) { }
+// Keep explicit holder bodies where the pool calls them out of line.
+FT_DEFINE_ARTICLE_HOLDER(inline, wnMarioMantle, wnMarioMantleData, 0, ftMarioArticleKind, fn_27_147D34)
+FT_DEFINE_ARTICLE_HOLDER(, wnMarioFireball, wnMarioFireballData, 1, ftMarioArticleKind, fn_27_147C9C)
+FT_DEFINE_ARTICLE_HOLDER(inline, wnMarioPump, wnMarioPumpData, 2, ftMarioArticleKind, fn_27_147D4C)
+FT_DEFINE_ARTICLE_HOLDER(inline, wnMarioHugeFlame, wnMarioHugeFlameData, 3, ftMarioArticleKind, fn_27_147D7C)
 
 // ---- the articles of Mario and their mediator -----------------------------------------------------------------------
 

@@ -223,27 +223,15 @@ bool ftPeach::activeArticle(wnPeachKassar* weapon, soModuleAccesser* acc) {
 }
 
 // ---- the article holders --------------------------------------------------------------------------------------------
-// What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Peach, copied into the
-// descriptor), the heap module and the data block of the fighter kind.
-// HYPOTHESIS: the original builds these in the holder constructor itself.
-struct ftPeachArticleDataTag {
-    bool m_unused;
-    bool m_resourceGroup;
-    ftPeachArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
-};
+// Articles borrow the owner's kind record and heap while their constructors run.
+// The data lookup receives a separate snapshot of the owner's fighter kind.
+#include <ft/builder/ft_builder_article.h>
 
 struct ftPeachArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
     ftPeachArticleKind() {
         kind = 0;
         subKind = Fighter_Peach;
-    }
-};
-
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
-struct ftPeachArticleBuildInfo : wnArticleBuildInfo {
-    ftPeachArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
-        kindInfo = &kindArg;
-        heapModule = heap;
     }
 };
 
@@ -251,23 +239,9 @@ struct ftPeachArticleBuildInfo : wnArticleBuildInfo {
 extern "C" void* fn_27_148F4C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_148F64(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftPeachArticleTraits;
-#define FT_PEACH_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftPeachArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftPeachArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_Peach, &tag.m_resourceGroup)); \
-        } \
-    };
-
-FT_PEACH_TRAITS(wnPeachKassar, wnPeachKassarData, 0, fn_27_148F4C)
-FT_PEACH_TRAITS(wnPeachKinopio, wnPeachKinopioData, 1, fn_27_148F64)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftPeachArticleTraits<W>::ArticleId, ftPeachArticleBuildInfo(ftPeachArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftPeachArticleTraits<W>::getData()) { }
+// Keep explicit holder bodies where the pool calls them out of line.
+FT_DEFINE_ARTICLE_HOLDER(inline, wnPeachKassar, wnPeachKassarData, 0, ftPeachArticleKind, fn_27_148F4C)
+FT_DEFINE_ARTICLE_HOLDER(inline, wnPeachKinopio, wnPeachKinopioData, 1, ftPeachArticleKind, fn_27_148F64)
 
 // ---- the articles and their mediator --------------------------------------------------------------------------------
 

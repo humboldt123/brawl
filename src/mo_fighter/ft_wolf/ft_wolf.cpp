@@ -248,27 +248,15 @@ bool ftWolf::notifyEventCollisionReflectorCheck() {
 }
 
 // ---- the article holders --------------------------------------------------------------------------------------------
-// What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Wolf, copied into the
-// descriptor), the heap module and the data block of the fighter kind.
-// HYPOTHESIS: the original builds these in the holder constructor itself.
-struct ftWolfArticleDataTag {
-    bool m_unused;
-    bool m_resourceGroup;
-    ftWolfArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
-};
+// Articles borrow the owner's kind record and heap while their constructors run.
+// The data lookup receives a separate snapshot of the owner's fighter kind.
+#include <ft/builder/ft_builder_article.h>
 
 struct ftWolfArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
     ftWolfArticleKind() {
         kind = 0;
         subKind = Fighter_Wolf;
-    }
-};
-
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
-struct ftWolfArticleBuildInfo : wnArticleBuildInfo {
-    ftWolfArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
-        kindInfo = &kindArg;
-        heapModule = heap;
     }
 };
 
@@ -279,25 +267,11 @@ extern "C" void* fn_27_1486C8(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_14875C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_1487F0(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftWolfArticleTraits;
-#define FT_WOLF_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftWolfArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftWolfArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_Wolf, &tag.m_resourceGroup)); \
-        } \
-    };
-
-FT_WOLF_TRAITS(wnWolfBlaster, wnWolfBlasterData, 0, fn_27_1486C8)
-FT_WOLF_TRAITS(wnWolfBlasterBullet, wnWolfBlasterBulletData, 1, fn_27_14875C)
-FT_WOLF_TRAITS(wnWolfIllusion, wnWolfIllusionData, 2, fn_27_1487F0)
-FT_WOLF_TRAITS(wnFoxLandMaster, wnFoxLandMasterData, 3, fn_27_1484BC)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftWolfArticleTraits<W>::ArticleId, ftWolfArticleBuildInfo(ftWolfArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftWolfArticleTraits<W>::getData()) { }
+// Keep explicit holder bodies where the pool calls them out of line.
+FT_DEFINE_ARTICLE_HOLDER(inline, wnWolfBlaster, wnWolfBlasterData, 0, ftWolfArticleKind, fn_27_1486C8)
+FT_DEFINE_ARTICLE_HOLDER(, wnWolfBlasterBullet, wnWolfBlasterBulletData, 1, ftWolfArticleKind, fn_27_14875C)
+FT_DEFINE_ARTICLE_HOLDER(, wnWolfIllusion, wnWolfIllusionData, 2, ftWolfArticleKind, fn_27_1487F0)
+FT_DEFINE_ARTICLE_HOLDER(inline, wnFoxLandMaster, wnFoxLandMasterData, 3, ftWolfArticleKind, fn_27_1484BC)
 
 // ---- the articles of Wolf and their mediator -----------------------------------------------------------------------
 
