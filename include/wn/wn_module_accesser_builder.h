@@ -27,6 +27,7 @@
 #include <so/damage/so_damage_transactor_null.h>
 #include <so/damage/so_damage_effector_null.h>
 #include <so/kinetic/so_kinetic_mediator_null.h>
+#include <so/status/so_status_proc_vector.h>
 #include <so/article/so_article_mediator_null.h>
 #include <so/sound/so_sound_3d_generator_accesser_impl.h>
 #include <so/stop/so_stop_module_impl.h>
@@ -52,29 +53,7 @@ FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 8);
 // An article whose status unique process vector is built by the sora_melee constructor without a size argument: declares the
 // vector of N entries and the status holder that default-constructs it (the singleton null-array flavour).
 #define WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(N)                                                                              \
-    template <>                                                                                                            \
-    class soArrayVector<soStatusUniqProcess*, N> : public soArrayVectorAbstract<soStatusUniqProcess*> {                    \
-        s32 m_topIndex : sizeof(bit_width<N>) + 1;                                                                        \
-        s32 m_lastIndex : sizeof(bit_width<N>) + 1;                                                                       \
-        s32 m_size : sizeof(bit_width<N>) + 1;                                                                            \
-        u32 m_isFull : 1;                                                                                                  \
-        soStatusUniqProcess* m_elements[N];                                                                                \
-    public:                                                                                                                \
-        soArrayVector();                                                                                                   \
-        virtual s32 size() const;                                                                                          \
-        virtual ~soArrayVector();                                                                                          \
-        virtual s32 capacity() const;                                                                                      \
-        virtual bool isFull() const;                                                                                       \
-        virtual soStatusUniqProcess*& atFastAbstractSub(s32 index) const;                                                  \
-        virtual soStatusUniqProcess*& getArrayValueConst(s32 index);                                                       \
-        virtual s32 getTopIndex() const;                                                                                   \
-        virtual s32 getLastIndex() const;                                                                                  \
-        virtual void setSize(s32 size);                                                                                    \
-        virtual void setTopIndex(s32 topIndex);                                                                            \
-        virtual void setLastIndex(s32 lastIndex);                                                                          \
-        virtual void onFull();                                                                                             \
-        virtual void offFull();                                                                                            \
-    };                                                                                                                     \
+    SO_DECLARE_STATUS_PROC_VECTOR(N, ()) \
     template <>                                                                                                            \
     class soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, N>, soSingletonHolder<soArrayNull<soStatusUniqProcess*> > > { \
     public:                                                                                                                \
@@ -84,8 +63,7 @@ FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 8);
         soArrayVector<soStatusUniqProcess*, N>* get() { return &m_array; }                                                 \
     }
 
-// Same, for the vector whose sora_melee constructor is called with a second, unused argument (the caller loads 0 into r4
-// before the call; the constructor ignores it): the status vector of the Jet Hammer.
+// Same, for empty-vector constructors whose callers pass an unused zero word.
 // MATCH-ONLY: selected fighter-owned article teardowns retain this holder call.
 #ifdef WN_STATUS_PROC_ARG_HOLDER_DTOR_NOINLINE
 #define WN_STATUS_PROC_ARG_HOLDER_DTOR_ATTR __attribute__((never_inline))
@@ -94,29 +72,7 @@ FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 8);
 #endif
 
 #define WN_STATUS_PROC_VECTOR_ARG_CTOR(N)                                                                              \
-    template <>                                                                                                            \
-    class soArrayVector<soStatusUniqProcess*, N> : public soArrayVectorAbstract<soStatusUniqProcess*> {                    \
-        s32 m_topIndex : sizeof(bit_width<N>) + 1;                                                                        \
-        s32 m_lastIndex : sizeof(bit_width<N>) + 1;                                                                       \
-        s32 m_size : sizeof(bit_width<N>) + 1;                                                                            \
-        u32 m_isFull : 1;                                                                                                  \
-        soStatusUniqProcess* m_elements[N];                                                                                \
-    public:                                                                                                                \
-        soArrayVector(s32);                                                                                                \
-        virtual s32 size() const;                                                                                          \
-        virtual ~soArrayVector();                                                                                          \
-        virtual s32 capacity() const;                                                                                      \
-        virtual bool isFull() const;                                                                                       \
-        virtual soStatusUniqProcess*& atFastAbstractSub(s32 index) const;                                                  \
-        virtual soStatusUniqProcess*& getArrayValueConst(s32 index);                                                       \
-        virtual s32 getTopIndex() const;                                                                                   \
-        virtual s32 getLastIndex() const;                                                                                  \
-        virtual void setSize(s32 size);                                                                                    \
-        virtual void setTopIndex(s32 topIndex);                                                                            \
-        virtual void setLastIndex(s32 lastIndex);                                                                          \
-        virtual void onFull();                                                                                             \
-        virtual void offFull();                                                                                            \
-    };                                                                                                                     \
+    SO_DECLARE_STATUS_PROC_VECTOR(N, (s32)) \
     template <>                                                                                                            \
     class soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, N>, soSingletonHolder<soArrayNull<soStatusUniqProcess*> > > { \
     public:                                                                                                                \

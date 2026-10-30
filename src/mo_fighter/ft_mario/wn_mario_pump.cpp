@@ -26,25 +26,35 @@ extern "C" const wnMarioPumpWaterData* fn_27_147D64(const ftCommonDataAccesser*,
 // Owner-kind words copied from wnArticleBuildInfo by Weapon construction.
 // HYPOTHESIS: original view spelling; the two words at C4/C8 are verified by construction and this holder.
 struct wnMarioPumpOwnerKindView { u8 unk0[0xC4]; wnArticleKindInfo kindInfo; };
+// HYPOTHESIS: original helper spelling for the owner-kind snapshot.
+static inline ftKind waterOwnerKind(soModuleAccesser* acc) {
+    return static_cast<ftKind>(reinterpret_cast<wnMarioPumpOwnerKindView*>(
+        &dynamic_cast<Weapon&>(acc->getStageObject()))->kindInfo.subKind);
+}
 struct wnMarioPumpWaterArgs {
     wnArticleBuildInfo info;
-    wnMarioPumpWaterArgs(soModuleAccesser* acc) __attribute__((always_inline)) {
-        info.kindInfo = &reinterpret_cast<wnMarioPumpOwnerKindView*>(&dynamic_cast<Weapon&>(acc->getStageObject()))->kindInfo;
-        info.heapModule = static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule);
+    wnMarioPumpWaterArgs(const wnArticleKindInfo& kind, soHeapModule* heap) {
+        info.kindInfo = &kind;
+        info.heapModule = heap;
     }
 };
+// HYPOTHESIS: the lookup flags form this two-byte record; only the second byte's role is known.
 struct wnMarioPumpWaterDataArgs {
+    bool unk0;
     bool resourceGroup;
-    wnMarioPumpWaterDataArgs() : resourceGroup(false) { }
-    const wnMarioPumpWaterData* getData(soModuleAccesser* acc) __attribute__((always_inline)) {
-        ftKind kind = static_cast<ftKind>(reinterpret_cast<wnMarioPumpOwnerKindView*>(&dynamic_cast<Weapon&>(acc->getStageObject()))->kindInfo.subKind);
-        return fn_27_147D64(&g_ftCommonDataAccesser, kind, &resourceGroup);
-    }
+    // MATCH-ONLY: keep the full-expression temporary addressable without saving its member pointer.
+    wnMarioPumpWaterDataArgs& get() { return *this; }
+    wnMarioPumpWaterDataArgs() : unk0(false), resourceGroup(false) { }
 };
 
 template <>
 wnArticleHolder<wnMarioPumpWater>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(0, wnMarioPumpWaterArgs(acc).info, wnMarioPumpWaterDataArgs().getData(acc)) { }
+    m_instance(0,
+        wnMarioPumpWaterArgs(
+            reinterpret_cast<wnMarioPumpOwnerKindView*>(&dynamic_cast<Weapon&>(acc->getStageObject()))->kindInfo,
+            &acc->getHeapModule()).info,
+        fn_27_147D64(&g_ftCommonDataAccesser, waterOwnerKind(acc),
+                    &wnMarioPumpWaterDataArgs().get().resourceGroup)) { }
 
 
 #pragma dont_inline on

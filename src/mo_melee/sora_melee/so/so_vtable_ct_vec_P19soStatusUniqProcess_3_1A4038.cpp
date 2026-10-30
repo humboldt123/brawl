@@ -1,15 +1,18 @@
 #pragma force_active off
-#include <so/so_array.h>
-class soStatusUniqProcess;
+#include <so/status/so_status_proc_vector.h>
 #include <new>
 
-typedef soStatusUniqProcess* VelaElm;
-typedef soArrayVector<VelaElm, 3> VelaVec;
+// Native article builders pass a zero word; the constructor ignores it and
+// leaves all counts empty. Keep the vector's shared virtual methods external.
+// MATCH-ONLY: retain the original out-of-line constructor call.
+SO_DECLARE_STATUS_PROC_VECTOR(3, (s32) __attribute__((never_inline)))
 
-// MATCH-ONLY: constructing the vector forces its vtable and special members into this unit.
+inline soArrayVector<soStatusUniqProcess*, 3>::soArrayVector(s32) :
+    m_topIndex(0), m_lastIndex(0), m_size(0), m_isFull(false) { }
+
+typedef soArrayVector<soStatusUniqProcess*, 3> VelaVec;
+
+// MATCH-ONLY: require the weak constructor; this unused caller is stripped.
 #pragma dont_inline on
-void vela_a(void* p) { new (p) VelaVec(); }
-void vela_b(void* p) { new (p) VelaVec(1, 0); }
-void vela_c(void* p, const VelaElm& e) { new (p) VelaVec(1, e, 0); }
-void vela_del(VelaVec* p) { delete p; }
+void vela_a(void* p) { new (p) VelaVec(0); }
 #pragma dont_inline reset
