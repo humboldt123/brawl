@@ -51,6 +51,7 @@ extern "C" int exchangeGmCharacterKindToMuCharKind__6muMenuFiii(int kind);
 // HYPOTHESIS: parameter and return types come from the call sites only.
 extern "C" void fn_8004D674(GameGlobal* global, int nameNo, wchar_t* buffer); // the player name tag as UTF-16
 extern "C" u16* fn_8004DA14(GameGlobal* global, int slot, int nameNo);        // the handicap stored for a name tag, 0 if none
+
 // The result of gmCharaFlag::setGlobalCharaData: a class with a copy constructor, so it comes back through a hidden pointer.
 struct gmCharaFlagResult : gmCharaFlagWords {
     gmCharaFlagResult() {}
@@ -301,10 +302,11 @@ u32 gmCountBGMOpend() {
 
 void gmInitPlayerDataDefault(gmPlayerInitData* player, int playerNo) {
     memset(player, 0, sizeof(gmPlayerInitData));
-    u8 noName = 0x78;
     // MATCH-ONLY: the native code stores the fighter slot as a plain byte, not as an enum bit field.
     *reinterpret_cast<u8*>(player) = Character_SelectNone;
     player->m_state = 3;
+    player->m_nameIndex = 0x78;
+    player->m_playerId = 0;
     player->m_name[0] = 0;
     player->m_teamNo = 0;
     player->m_colorFileNo = 0;
@@ -334,10 +336,8 @@ void gmInitPlayerDataDefault(gmPlayerInitData* player, int playerNo) {
     player->m_0x3F = playerNo;
     player->m_cpuType = 0;
     player->m_cpuRank = 100;
-    player->m_playerId = 0;
     player->m_startPointIdx = 0;
     player->m_controllerNo = 0;
-    player->m_nameIndex = noName;
 }
 
 // HYPOTHESIS: the defaults of one match: 2 minute time limit, four players, all items on, medium item frequency.
@@ -421,8 +421,9 @@ void gmResetHandiSetting() {
     for (int i = 0; i < 4; i++) {
         g_GameGlobal->m_handicapCounts[i] = 0;
         gmPlayerInitData* select = &g_GameGlobal->m_selCharData->m_playersInitData[i];
-        if (select->m_nameIndex != 0x78) {
-            u16* handicap = fn_8004DA14(g_GameGlobal, i, select->m_nameIndex);
+        int nameIndex = select->m_nameIndex;
+        if (nameIndex != 0x78) {
+            u16* handicap = fn_8004DA14(g_GameGlobal, i, nameIndex);
             if (handicap != nullptr) {
                 *handicap = 0;
             }
@@ -438,6 +439,7 @@ void gmInitGlobalModeMelee(gmGlobalModeMelee* global) {
 // Copies the rule screen's settings (gmSetRule) into the global melee setup.
 // HYPOTHESIS: rule 1 is stock, 2 is coin and everything else is time; stock matches have their own time limit.
 void gmSetRuleToGlobalModeMelee(gmGlobalModeMelee* global) {
+    // The native code calls this accessor and drops the result (a leftover of a removed use of the menu data).
     gmGlobalRecord::MenuData* menu = g_GameGlobal->getGlobalRecordMenuDatap();
     gmSetRule* rule = g_GameGlobal->m_setRule;
     gmSelCharData* select = g_GameGlobal->m_selCharData;

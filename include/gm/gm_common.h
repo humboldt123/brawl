@@ -74,3 +74,30 @@ void gmAddOnlineAnybodyTimeCount(u32 time);
 void gmAddMeleeCoin();
 void gmMeleeDest(bool isStamina, bool isOnline);
 void gmSetAutoHandiModeResult();
+
+// Cluster A (gm_common.cpp, 0x8004F294-0x80050BB0): unlock bit sets, play/melee initial data and total counters.
+// HYPOTHESIS: parameter types come from the register use; the map has no signatures.
+class gmGlobalModeMelee;
+bool gmCheckAssistKindUseEnable(int kind);
+void gmInitAssistKindUseEnable();
+void gmInitEventOpened();
+bool gmCheckChKindUseEnable(gmCharacterKind kind);
+void gmSetChKindUseEnable(gmCharacterKind kind);
+bool gmCheckChKindUseEnableAll();
+void gmInitChKindUseEnableAll();
+bool gmCheckSrStageKind(srStageKind stage);
+void gmSetStageUseEnable(srStageKind stage);
+void gmInitStageUseEnableAll();
+bool gmCheckBGMIDUseEnable(u32 bgmId);
+void gmSetBGMIDUseEnable(u32 bgmId);
+void gmResetBGMIDUseEnable(u32 bgmId);
+u32 gmCountHideBGMOpend();
+u32 gmCountBGMOpend();
+void gmInitVSMelee(gmGlobalModeMelee* global);
+void gmResetHandiSetting();
+void gmInitGlobalModeMelee(gmGlobalModeMelee* global);
+void gmSetRuleToGlobalModeMelee(gmGlobalModeMelee* global);
+u32 gmGetAllMeleeTimeTotal();
+u32 gmGetVsMeleeTotalCount();
+u32 gmGetOfflineVsMeleeTotalCount();
+u32 gmGetOnlineVsMeleeTotalCount();

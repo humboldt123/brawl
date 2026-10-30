@@ -48,7 +48,12 @@ static inline gmTeamResultInfo* gmTeamResults(gmResultInfo* result) {
     return reinterpret_cast<gmTeamResultInfo*>(reinterpret_cast<u8*>(result) + 0x12D8);
 }
 
-// Last place ("ketsu", slang for the bottom): the worst rank number among the players or teams that took part.
+static inline u8 teamRank(gmResultInfo* result, int team) {
+    return reinterpret_cast<u8*>(result)[team * sizeof(gmTeamResultInfo) + 0x1304];
+}
+
+// HYPOTHESIS: "ketsu" (slang for the bottom) is last place; this is the worst rank number among the players or
+// teams that took part (the diagram pages call the matches finished last "ketsu num").
 int gmRetKetsuRankFromResult(gmResultInfo* result) {
     int rank = 0;
     if (result->m_isTeams == 1) {
@@ -73,14 +78,14 @@ int gmRetKetsuRankFromResult(gmResultInfo* result) {
 // falls, then two more tallies of the result record; if they are still tied the lowest port wins.
 int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
     int rank = gmRetKetsuRankFromResult(result);
+    gmPlayerResultInfo* players = result->m_playersResultInfo;
     int first = 4;
     bool tied = false;
     bool candidate[4];
     if (result->m_isTeams == 1) {
-        gmTeamResultInfo* teams = gmTeamResults(result);
         for (int i = 0; i < 4; i++) {
-            gmPlayerResultInfo* player = &result->m_playersResultInfo[i];
-            if (player->m_state != 3 && teams[player->m_teamNo].m_rank == rank) {
+            gmPlayerResultInfo* player = &players[i];
+            if (player->m_state != 3 && teamRank(result, player->m_teamNo) == rank) {
                 tied = true;
                 first = i;
                 candidate[i] = true;
@@ -90,7 +95,7 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
         }
     } else {
         for (int i = 0; i < 4; i++) {
-            gmPlayerResultInfo* player = &result->m_playersResultInfo[i];
+            gmPlayerResultInfo* player = &players[i];
             if (player->m_state != 3 && player->m_rank == rank) {
                 if (first != 4) {
                     tied = true;
@@ -115,7 +120,7 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
         if (candidate[i]) {
             if (best == 4) {
                 best = i;
-            } else if (result->m_playersResultInfo[best].m_koCount > result->m_playersResultInfo[i].m_koCount) {
+            } else if (result->m_playersResultInfo[best].m_koCount > players[i].m_koCount) {
                 best = i;
             }
             bestPlayer = &result->m_playersResultInfo[best];
@@ -124,7 +129,7 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
     int same = 0;
     for (int i = 0; i < 4; i++) {
         if (candidate[i] && best != i) {
-            if (result->m_playersResultInfo[i].m_koCount == bestPlayer->m_koCount) {
+            if (players[i].m_koCount == bestPlayer->m_koCount) {
                 same++;
             } else {
                 candidate[i] = false;
@@ -141,7 +146,7 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
         if (candidate[i]) {
             if (best == 4) {
                 best = i;
-            } else if (result->m_playersResultInfo[best].m_deadCount < result->m_playersResultInfo[i].m_deadCount) {
+            } else if (result->m_playersResultInfo[best].m_deadCount < players[i].m_deadCount) {
                 best = i;
             }
             bestPlayer = &result->m_playersResultInfo[best];
@@ -150,7 +155,7 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
     same = 0;
     for (int i = 0; i < 4; i++) {
         if (candidate[i] && best != i) {
-            if (result->m_playersResultInfo[i].m_deadCount == bestPlayer->m_deadCount) {
+            if (players[i].m_deadCount == bestPlayer->m_deadCount) {
                 same++;
             } else {
                 candidate[i] = false;
@@ -168,7 +173,7 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
             if (best == 4) {
                 best = i;
             } else if (playerStat<u32>(&result->m_playersResultInfo[best], 0x1D0) >
-                       playerStat<u32>(&result->m_playersResultInfo[i], 0x1D0)) {
+                       playerStat<u32>(&players[i], 0x1D0)) {
                 best = i;
             }
             bestPlayer = &result->m_playersResultInfo[best];
@@ -177,7 +182,7 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
     same = 0;
     for (int i = 0; i < 4; i++) {
         if (candidate[i] && best != i) {
-            if (playerStat<u32>(&result->m_playersResultInfo[i], 0x1D0) == playerStat<u32>(bestPlayer, 0x1D0)) {
+            if (playerStat<u32>(&players[i], 0x1D0) == playerStat<u32>(bestPlayer, 0x1D0)) {
                 same++;
             } else {
                 candidate[i] = false;
@@ -195,7 +200,7 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
             if (best == 4) {
                 best = i;
             } else if (playerStat<u32>(&result->m_playersResultInfo[best], 0x28C) <
-                       playerStat<u32>(&result->m_playersResultInfo[i], 0x28C)) {
+                       playerStat<u32>(&players[i], 0x28C)) {
                 best = i;
             }
             bestPlayer = &result->m_playersResultInfo[best];
@@ -204,7 +209,7 @@ int gmRetKetsuPlayerFromResult(gmResultInfo* result) {
     same = 0;
     for (int i = 0; i < 4; i++) {
         if (candidate[i] && best != i) {
-            if (playerStat<u32>(&result->m_playersResultInfo[i], 0x28C) == playerStat<u32>(bestPlayer, 0x28C)) {
+            if (playerStat<u32>(&players[i], 0x28C) == playerStat<u32>(bestPlayer, 0x28C)) {
                 same++;
             } else {
                 candidate[i] = false;
@@ -365,7 +370,7 @@ void gmAddDiagramResultChara(gmResultInfo* result) {
             continue;
         }
         gmGlobalRecord::CharaNumData* chara = g_GameGlobal->getGlobalRecordCharaNumDatap(
-            (u8)exchangeGmCharacterKindToMuCharKind__6muMenuFiii(player->m_characterKind));
+            (u8)exchangeGmCharacterKindToMuCharKind__6muMenuFiii(playerStat<u8>(player, 0)));
         for (int j = 0; j < 4; j++) {
             gmPlayerResultInfo* other = &result->m_playersResultInfo[j];
             if (i == j || other->m_state == 3) {
@@ -376,7 +381,7 @@ void gmAddDiagramResultChara(gmResultInfo* result) {
             }
             if (result->m_isTeams != 1 || player->m_teamNo != other->m_teamNo) {
                 u16* beaten = reinterpret_cast<u16*>(chara->unk0);
-                addMaxCheck(&beaten[(u8)exchangeGmCharacterKindToMuCharKind__6muMenuFiii(other->m_characterKind)],
+                addMaxCheck(&beaten[(u8)exchangeGmCharacterKindToMuCharKind__6muMenuFiii(playerStat<u8>(other, 0))],
                             player->m_playerBeatCounts[j], 0xFFFF);
             }
             addMaxCheck(&chara->unk46, other->m_playerBeatCounts[i], 0xFFFF);
@@ -413,7 +418,7 @@ void gmAddDiagramResultName(gmResultInfo* result) {
             addMaxCheck(&name->unk2, other->m_playerBeatCounts[i], 0xFFFF);
         }
         u32 seconds = result->m_framesElapsed / 60;
-        u8 charaIndex = exchangeGmCharacterKindToMuCharKind__6muMenuFiii(player->m_characterKind);
+        u8 charaIndex = exchangeGmCharacterKindToMuCharKind__6muMenuFiii(playerStat<u8>(player, 0));
         addMaxCheck(&name->unk54[charaIndex], seconds, 359999999);
         gmAddDiagramResultCommon(result, i, reinterpret_cast<gmDiagramResult*>(name->unk4));
     }
@@ -916,12 +921,13 @@ u16 gmLotFigureToCollection(u32 rarityMask) {
     return lbl_8042D180[index + (pick - sum)].m_id;
 }
 
-// Same for stickers of one sticker set (1-based).
-u16 gmLotSealToCollection(u32 rarityMask, int set) {
+// Same for stickers. HYPOTHESIS: the second argument is the 1-based column of the count table (the caller in
+// gmLotSealToBitset passes rarity + 1).
+u16 gmLotSealToCollection(u32 rarityMask, int column1) {
     if (lbl_805A00E8[0] == 0) {
         return 0;
     }
-    int column = set - 1;
+    int column = column1 - 1;
     int total = 0;
     for (int i = 0; i < 6; i++) {
         int rarity = lbl_8042DC00[i];
