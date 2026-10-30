@@ -431,14 +431,11 @@ sora/ip/ip_replay.cpp:
 	.sdata      start:0x8059C800 end:0x8059C808
 
 sora/gm/gm_global.cpp:
-	.text       start:0x8004C1A4 end:0x8004DAC4
+	.text       start:0x8004C1A4 end:0x8004F294
 	.rodata     start:0x80406938 end:0x80406968
 	.sdata      start:0x8059C808 end:0x8059C810
 	.sbss       start:0x805A00E0 end:0x805A00E8
 	.sdata2     start:0x805A1860 end:0x805A1888
-
-sora/gm/gm_global_b.cpp:
-	.text       start:0x8004DAC4 end:0x8004F294
 
 sora/gm/gm_common.cpp:
 	.text       start:0x8004F294 end:0x800568C8

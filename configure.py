@@ -1259,7 +1259,6 @@ config.libs = [
             Object(NonMatching, "sora/if/if_utility.cpp"),
             Object(NonMatching, "sora/ip/ip_replay.cpp"),
             Object(NonMatching, "sora/gm/gm_global.cpp"),
-            Object(NonMatching, "sora/gm/gm_global_b.cpp"),
             Object(NonMatching, "sora/gm/gm_common.cpp"),
             Object(NonMatching, "sora/snd/snd_sound_handle.cpp"),
             Object(NonMatching, "sora/gf/gf_3d_scene.cpp"),
