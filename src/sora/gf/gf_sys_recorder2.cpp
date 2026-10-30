@@ -10,7 +10,6 @@
 // HYPOTHESIS: stand-ins for callees that are not named yet; the map gives GameGlobal::setEnableSaveLoad (the
 // save/load switches), getSaveDataSize, checkSaveData and getAdventureSaveDataSize, and the nteExchange destructor.
 extern "C" u8 fn_8004EAD4(GameGlobal* global);
-extern "C" u32 fn_8004EAEC();
 extern "C" u32 fn_8004EFA0();
 extern "C" bool fn_8004EAF8(void* data);
 extern "C" void fn_8014E520(nteExchange* exchange, int del);
@@ -239,7 +238,7 @@ void* gfSysRecorder2::getBuffer(int kind) {
     }
     u32 size = 0;
     if (kind == 0) {
-        u32 dataSize = fn_8004EAEC();
+        u32 dataSize = GameGlobal::getSaveDataSize();
         size = 0;
         if (kind == 0 || kind == 2) {
             size = dataSize + 4;
