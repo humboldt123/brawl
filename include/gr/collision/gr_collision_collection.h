@@ -43,5 +43,8 @@ public:
     grCollCollection(int capacity); // HYPOTHESIS: parameter type (used unmasked for the allocation size)
     ~grCollCollection();
     void reset();
+    // HYPOTHESIS: signatures of the query members; the map has no parameter types.
+    bool collect(u16 excludedAttr, grCollision* only);
+    bool addSegment(grCollision* collision);
 };
 static_assert(sizeof(grCollCollection) == 0x20, "Class is wrong size!");

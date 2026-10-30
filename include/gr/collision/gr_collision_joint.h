@@ -11,15 +11,25 @@
 
 class grCollision;
 class Ground;
+struct grCollSegmentEx;
 
 class grCollisionJoint {
 public:
     // 0
-    char _spacer[16];
+    u16 m_lineStart; // role: index of the joint's first line in the collision's line array (grCollisionJoint::getLine adds it)
+    // 2
+    u16 m_lineLen; // HYPOTHESIS: number of lines in the joint (grCollisionLineWork bounds its link walks with it)
+    // 4
+    u16 m_unk4; // role: copied from the joint data by the constructor (m_unk4 to m_unkE)
+    u16 m_unk6;
+    u16 m_unk8;
+    u16 m_unkA;
+    u16 m_unkC;
+    u16 m_unkE;
     // 16
     clAABBox2D m_aabBox;
     // 32
-    char _spacer2[16];
+    clAABBox2D m_prevAabBox; // role: the box around the previous-frame vertex positions, built by updatePos
     // 48
     grCollision* m_collision;
     // 52
@@ -27,8 +37,14 @@ public:
     // 56
     grCollData::VtxData* m_vtxDatas;
     // 60
-    char _spacer3[12];
+    Vec2f* m_vtxPositions; // role: the collision's work vertices, 16 bytes each (current position, then the previous one)
+    // 64
+    grCollData::VtxData* m_unk40; // HYPOTHESIS: the constructor sets these two from the line start index
+    // 68
+    Vec2f* m_unk44;
     // 72
+    union {
+    struct {
     bool m_0x48_31 : 1;
     bool m_0x48_30 : 1;
     bool m_0x48_29 : 1;
@@ -61,10 +77,16 @@ public:
     bool m_0x48_2 : 1;
     bool m_0x48_1 : 1;
     bool m_0x48_0 : 1;
+    };
+    struct {
+        u32 m_0x48 : 16; // role: the flag halfword the constructor clears
+        u16 m_vtxStart; // role: first vertex of the joint in the collision's vertex arrays (grCollision::getSrcVtx adds it)
+    };
+    };
 
     u16 m_vtxLen;
 
-    u16 _0x4E;
+    u16 m_modelIndex; // role: index into the ground's scene models for getWorldMatrix
 
     // 80
     u16 m_nodeIndex;
@@ -123,7 +145,17 @@ public:
     // 92
     Matrix* m_matrix;
 
+    grCollisionJoint(grCollision* collision, grCollData::JointData* data);
     u8 getCollisionId(); // HYPOTHESIS: return type (the low byte of grCollision::m_index)
     grCollisionLine* getLine(u16 index);
+    // HYPOTHESIS: signatures of the update members; the map has no parameter types.
+    void updatePosNormal(Matrix* matrix) __attribute__((never_inline)); // MATCH-ONLY: the original calls it out of line from updatePos
+    void updatePosInit(Matrix* matrix) __attribute__((never_inline)); // MATCH-ONLY: the original calls it out of line from updatePos
+    void updateAABB() __attribute__((never_inline)); // MATCH-ONLY: the original calls it out of line from updatePos
+    void updatePos(bool init);
+    void clearVLink();
+    void updateStatus();
+    void getWorldMatrix(Matrix* out) __attribute__((never_inline)); // MATCH-ONLY: the original calls it out of line from updatePos
+    void getSegment(u16 index, grCollSegmentEx* out);
 };
 static_assert(sizeof(grCollisionJoint) == 96, "Class is wrong size!");
