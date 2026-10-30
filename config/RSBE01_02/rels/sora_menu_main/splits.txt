@@ -21,6 +21,26 @@ mo_menu/mu_proc_data.cpp:
 	.rodata     start:0x00000548 end:0x00000558
 	.data       start:0x00001C00 end:0x00001C78
 
+mo_menu/mu_proc_option.cpp:
+	.text       start:0x000146F4 end:0x00014E4C
+	.rodata     start:0x00000558 end:0x000005A8
+	.data       start:0x00001C78 end:0x00001DB0
+
+mo_menu/mu_proc_vs.cpp:
+	.text       start:0x0001563C end:0x0001616C
+	.rodata     start:0x000005C0 end:0x000005D0
+	.data       start:0x00001E58 end:0x00001F00
+
+mo_menu/mu_proc_wifi_friend.cpp:
+	.text       start:0x0002DDB8 end:0x0002E4F8
+	.rodata     start:0x00000F70 end:0x00000F80
+	.data       start:0x00003A08 end:0x00003A98
+
+mo_menu/mu_proc_wifi_anybody.cpp:
+	.text       start:0x0002E4F8 end:0x0002ED68
+	.rodata     start:0x00000F80 end:0x00000F90
+	.data       start:0x00003A98 end:0x00003B18
+
 mo_menu/mo_menu.cpp:
 	.text       start:0x0003D1B8 end:0x0003D254
 	.data       start:0x000052E8 end:0x000052F4

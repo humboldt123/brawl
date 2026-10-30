@@ -18,6 +18,11 @@ gmCharacterKind gmRetHideKindToCharacterKind(u32 hideKind);
 u32 gmRetIfKindMenukind(int ifKind);
 u32 gmGetBgmIDToHideBGMKind(GmHideBGMKind kind);
 u32 gmGetDateCount();
+
+// The autosave dirty flag: an option or a name changed and the system save has to be written.
+void gmSetAutosaveDirtyFlag();
+void gmResetAutosaveDirtyFlag();
+bool gmIsAutosaveDirtyFlag();
 void gmGetCalendarTime(OSCalendarTime* time, u32 count);
 u32 gmCountMeleeCoin(int kind, int playerCount);
 u16 gmCheckFigureRarity(u32 id);
