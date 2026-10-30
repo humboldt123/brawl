@@ -438,26 +438,14 @@ sora/gm/gm_global.cpp:
 	.sdata2     start:0x805A1860 end:0x805A1888
 
 sora/gm/gm_common.cpp:
-	.text       start:0x8004F294 end:0x80050BB0
+	.text       start:0x8004F294 end:0x800568C8
+	.ctors      start:0x8040651C end:0x80406520
 	.rodata     start:0x80406968 end:0x80406E28
 	.data       start:0x8042B858 end:0x8042DC18
 	.bss        start:0x804977E0 end:0x80497800
 	.sdata      start:0x8059C810 end:0x8059CE48
 	.sbss       start:0x805A00E8 end:0x805A00F0
 	.sdata2     start:0x805A1888 end:0x805A18B0
-
-sora/gm/gm_common_b.cpp:
-	.text       start:0x80050BB0 end:0x80051F28
-
-sora/gm/gm_common_c.cpp:
-	.text       start:0x80051F28 end:0x80053078
-
-sora/gm/gm_common_d.cpp:
-	.text       start:0x80053078 end:0x80053F4C
-
-sora/gm/gm_common_e.cpp:
-	.text       start:0x80053F4C end:0x800568C8
-	.ctors      start:0x8040651C end:0x80406520
 
 sora/gm/gm_unk_800568C8.cpp:
 	.text       start:0x800568C8 end:0x8005A0E4

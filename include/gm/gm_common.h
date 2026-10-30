@@ -78,7 +78,8 @@ void gmSetAutoHandiModeResult();
 // Cluster A (gm_common.cpp, 0x8004F294-0x80050BB0): unlock bit sets, play/melee initial data and total counters.
 // HYPOTHESIS: parameter types come from the register use; the map has no signatures.
 class gmGlobalModeMelee;
-bool gmCheckAssistKindUseEnable(int kind);
+// MATCH-ONLY: callers in gm_common.cpp call it out of line (it is defined earlier in the same unit).
+bool gmCheckAssistKindUseEnable(int kind) __attribute__((never_inline));
 void gmInitAssistKindUseEnable();
 void gmInitEventOpened();
 bool gmCheckChKindUseEnable(gmCharacterKind kind);
