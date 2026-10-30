@@ -1,5 +1,7 @@
-// SHADOW of BrawlHeaders/so/shadow/so_shadow_module_impl.h: identical except for the FT_MODULE_BUILDER-guarded declarations
-// (constructors/destructors of sora_melee classes that fighter module builders call). Built only for fighter RELs.
+// SHADOW of BrawlHeaders/so/shadow/so_shadow_module_impl.h: adds the soShadowModuleImpl constructor (fighter module
+// builders call it; so_shadow_module_impl.cpp defines it).
+// Local BrawlHeaders shadow: also the verified setSize parameter (float, stored at 0x2C), setNode (HYPOTHESIS: int,
+// the constructor's int argument that also initializes 0x40) and the 0x44 flag bits.
 #pragma once
 
 #include <StaticAssert.h>
@@ -9,14 +11,15 @@
 
 class soShadowModule {
 public:
-    virtual ~soShadowModule();
+    // Inline: the game has no out-of-line soShadowModule destructor; soShadowModuleImpl's inlines it.
+    virtual ~soShadowModule() { }
     virtual void activate();
     virtual void deactivate();
     virtual void setActive(bool);
     virtual void setActiveStatus(int status);
     virtual void update();
-    virtual void setSize(int);
-    virtual void setNode(void*);
+    virtual void setSize(float);
+    virtual void setNode(int node);
     virtual void setSizeMinMax(float, float);
     virtual void setYOffset(float);
     virtual void setGroundRef(int);
@@ -28,11 +31,8 @@ public:
 };
 
 class soShadowModuleImpl: public soShadowModule, public soStatusEventObserver, public soAnimCmdEventObserver, public soModelEventObserver {
-#ifdef FT_MODULE_BUILDER
 public:
     soShadowModuleImpl(soModuleAccesser* acc, float f, int n);
-private:
-#endif
 public:
     virtual ~soShadowModuleImpl();
     virtual void activate();
@@ -40,8 +40,8 @@ public:
     virtual void setActive(bool);
     virtual void setActiveStatus(int status);
     virtual void update();
-    virtual void setSize(int);
-    virtual void setNode(void*);
+    virtual void setSize(float);
+    virtual void setNode(int node);
     virtual void setSizeMinMax(float, float);
     virtual void setYOffset(float);
     virtual void setGroundRef(int);
@@ -68,7 +68,14 @@ public:
     float _0x38;
     float _0x3C;
     int _0x40;
-    char _0x44; // looks like a bitfield of some kind.
+    // HYPOTHESIS: names from the setters that write each bit; 0x40 is set by activate() and setActiveStatus().
+    u8 m_active : 1;         // 0x44 & 0x80
+    u8 m_activeStatus : 1;   // 0x44 & 0x40
+    u8 m_groundRef : 1;      // 0x44 & 0x20
+    u8 m_groundPokemon : 1;  // 0x44 & 0x10
+    u8 m_ignoreMode : 2;     // 0x44 & 0x0C
+    u8 m_dispProjection : 1; // 0x44 & 0x02
+    u8 unk44_1 : 1;          // 0x44 & 0x01
 };
 // Class is actually 0x45, but the extra space is padded out in Brawl anyway.
 static_assert(sizeof(soShadowModuleImpl) == 0x48, "Class is wrong size!");
@@ -81,8 +88,8 @@ public:
     virtual void setActive(bool);
     virtual void setActiveStatus(int status);
     virtual void update();
-    virtual void setSize(int);
-    virtual void setNode(void*);
+    virtual void setSize(float);
+    virtual void setNode(int node);
     virtual void setSizeMinMax(float, float);
     virtual void setYOffset(float);
     virtual void setGroundRef(int);

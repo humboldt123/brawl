@@ -46,16 +46,18 @@ static_assert(sizeof(soAnimCmdInterpreter) == 0x28, "Class is the wrong size!");
 class soAnimCmdInterpreter : public acCmdInterpreter, public soEventPresenter<soAnimCmdEventObserver> {
 public:
     int m_kind; // 0x40
-    u32 unk44;
+    soModuleAccesser* m_moduleAccesser; // 0x44: set by interpretCmd, read by dispatchCmdIf
     u32 unk48;
     u32 unk4C;
 
     soAnimCmdInterpreter(s16 manageId, soArrayVector<acCmdInterpreterStackData, 8>* stack, int kind, int mode, float fixedTimeStep, const u8* resetMode) :
         acCmdInterpreter(stack, mode, nullptr, resetMode, fixedTimeStep),
         soEventPresenter<soAnimCmdEventObserver>(manageId, 5, soEventPresenterLocalStore),
-        m_kind(kind), unk44(0), unk48(0), unk4C(0) { }
+        m_kind(kind), m_moduleAccesser(nullptr), unk48(0), unk4C(0) { }
     ~soAnimCmdInterpreter() { }
     virtual bool dispatchCmdIf(const acAnimCmd* cmd);
+    virtual bool isSleepStackData(s32 kind) const;
+    void interpretCmd(soModuleAccesser* moduleAccesser, float timeStep);
 };
 static_assert(sizeof(soAnimCmdInterpreter) == 0x50, "Class is the wrong size!");
 #endif
