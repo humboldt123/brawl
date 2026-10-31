@@ -877,13 +877,22 @@ sora/if/if_center.cpp:
 	.sdata2     start:0x805A2368 end:0x805A23A8
 
 sora/if/if_player.cpp:
-	.text       start:0x800DF7DC end:0x800E5858
+	.text       start:0x800DF7DC end:0x800E08A0
 	.rodata     start:0x80408708 end:0x804088C0
 	.data       start:0x8045A018 end:0x8045A3C8
 	.bss        start:0x8049DEDC end:0x8049E0D0
 	.sdata      start:0x8059E238 end:0x8059E280
 	.sbss       start:0x805A02D8 end:0x805A02E8
 	.sdata2     start:0x805A23A8 end:0x805A2468
+
+sora/if/if_player_b.cpp:
+	.text       start:0x800E08A0 end:0x800E244C
+
+sora/if/if_player_c.cpp:
+	.text       start:0x800E244C end:0x800E3274
+
+sora/if/if_player_d.cpp:
+	.text       start:0x800E3274 end:0x800E5858
 
 sora/if/if_vs_result_task.cpp:
 	.text       start:0x800E5858 end:0x800ED474
