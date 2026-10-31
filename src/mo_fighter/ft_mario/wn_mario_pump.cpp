@@ -139,8 +139,22 @@ void wnMarioPump::setCharge(float charge) {
 // Spray leaves node 7 along its Z axis, with randomized vertical muzzle spread.
 #pragma push
 #pragma pool_data on
+// HYPOTHESIS: original helper boundary/name for the pump's shot-input snapshot.
+static inline void activateWaterShot(wnMarioPumpWater* water, soModuleAccesser* acc, Vec3f& position, Vec3f& launchDirection) {
+    int ownerTaskId;
+    // MATCH-ONLY: materialize both pointer snapshots, loading link before team.
+    // The cast gives link its own pointer temporary instead of borrowing linkStorage.
+    soLinkModule* linkStorage;
+    soTeamModule* const& teams =
+        (linkStorage = &acc->getLinkModule(), &acc->getTeamModule());
+    soLinkModule* const& link = static_cast<soLinkModule*>(linkStorage);
+    soWorkManageModule& work = acc->getWorkManageModule();
+    ownerTaskId = acc->getStageObject().m_taskId;
+    water->activate(ownerTaskId, work.getInt(0x10000005), teams->getTeam()->getNo(),
+                    &position, link->getParentLr(3), work.getFloat(0x11000001), &launchDirection);
+}
+
 bool wnMarioPump::activeArticle(wnMarioPumpWater* water, soModuleAccesser* acc) {
-    float lr;
     Vec3f offset;
     offset.m_z = 0.0f;
     offset.m_x = 0.0f;
@@ -157,17 +171,7 @@ bool wnMarioPump::activeArticle(wnMarioPumpWater* water, soModuleAccesser* acc) 
     direction.m_z = 0.0f;
     direction.normalize();
     Vec3f launchDirection = direction;
-    int ownerTaskId;
-    int team;
-    soLinkModule& link = acc->getLinkModule();
-    soTeamModule& teams = acc->getTeamModule();
-    soWorkManageModule& work = acc->getWorkManageModule();
-    ownerTaskId = acc->getStageObject().m_taskId;
-    float charge = work.getFloat(0x11000001);
-    lr = link.getParentLr(3);
-    team = teams.getTeam()->getNo();
-    int resource = work.getInt(0x10000005);
-    water->activate(ownerTaskId, resource, team, &position, lr, charge, &launchDirection);
+    activateWaterShot(water, acc, position, launchDirection);
     return false;
 }
 
