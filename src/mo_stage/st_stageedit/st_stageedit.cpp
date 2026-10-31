@@ -24,13 +24,10 @@
 
 // Unnamed helpers of other modules the stage calls directly.
 extern "C" {
-// grCollision members (main): removeLink, removeLinkTarget, updateLinkVirtual1, setVLinkClearStatus,
-// setVLinkUpdateStatus, getLine1.
+// grCollision members (main): removeLink, removeLinkTarget, updateLinkVirtual1, getLine1.
 void fn_80111224(grCollision* collision);
 void fn_801112FC(grCollision* collision, grCollision* target);
 void fn_8011135C(grCollision* collision, grCollision* target);
-void fn_8011176C(grCollision* collision, bool status);
-void fn_801117A4(grCollision* collision, bool status);
 grCollisionLine* fn_80111B60(grCollision* collision, u16 index);
 
 // sora_melee: grCollision::createHeap(Stage*, grCollData*, Ground*, int, int)
@@ -397,8 +394,8 @@ void stEdit::createObj() {
         grCollision* collision = fn_27_2753FC(this, collData, pokeBase, 1, Heaps::StageInstance);
         m_pokeTrainerBaseColl = collision;
         setCollision(collision);
-        fn_8011176C(collision, false);
-        fn_801117A4(collision, false);
+        collision->setVLinkClearStatus(false);
+        collision->setVLinkUpdateStatus(false);
         fn_80111224(collision);
         collision->setDisable();
         delete collData;
@@ -1588,8 +1585,8 @@ void stEdit::update(float deltaFrame) {
             for (i = 0; i < count; i++) {
                 collision = block->m_collision;
                 if (collision != NULL) {
-                    fn_8011176C(collision, false);
-                    fn_801117A4(collision, false);
+                    collision->setVLinkClearStatus(false);
+                    collision->setVLinkUpdateStatus(false);
                 }
                 block++;
             }
@@ -1611,7 +1608,7 @@ void stEdit::update(float deltaFrame) {
             grCollision** pColl = collA;
             for (u32 i = 0; i < countA; i++) {
                 if (*pColl != NULL) {
-                    fn_801117A4(*pColl, true);
+                    (*pColl)->setVLinkUpdateStatus(true);
                 }
                 pColl++;
             }
@@ -1643,7 +1640,7 @@ void stEdit::update(float deltaFrame) {
             for (u32 i = 0; i < countB; i++) {
                 grCollision* first = *collB;
                 if (first != NULL) {
-                    fn_801117A4(first, true);
+                    first->setVLinkUpdateStatus(true);
                     u32 mask = *maskB;
                     grCollision** qColl = collA;
                     u32* qMask = maskA;
@@ -1658,14 +1655,14 @@ void stEdit::update(float deltaFrame) {
                         qColl++;
                         qMask++;
                     }
-                    fn_801117A4(first, false);
+                    first->setVLinkUpdateStatus(false);
                 }
                 collB++;
                 maskB++;
             }
             for (u32 i = 0; i < countA; i++) {
                 if (*collA != NULL) {
-                    fn_801117A4(*collA, false);
+                    (*collA)->setVLinkUpdateStatus(false);
                 }
                 collA++;
             }

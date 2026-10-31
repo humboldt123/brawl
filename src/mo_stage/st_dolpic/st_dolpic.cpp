@@ -20,9 +20,8 @@
 #include <st_dolpic/gr_dolpic.h>
 #include <st_dolpic/st_dolpic.h>
 
-// grCollision::setJointStatus / setJointAILowPriority (unnamed functions of main)
+// grCollision::setJointStatus (unnamed function of main)
 extern "C" void fn_80110B98(grCollision* collision, int status, int unk);
-extern "C" void fn_80110C40(grCollision* collision, int unk);
 // sndSystem::setVol / setPitch / setPan / stopSE (unnamed functions of main)
 extern "C" void fn_800777DC(sndSystem* system, float volume, int handle, int fadeFrames);
 extern "C" void fn_800778CC(sndSystem* system, float pitch, int handle);
@@ -1219,7 +1218,7 @@ void stDolpic::updateCollision(float deltaFrame) {
             if (m_collisionTimer == 0.0f) {
                 if (m_collision[m_collisionScenePrev] != NULL) {
                     m_collision[m_collisionScenePrev]->setDisable();
-                    fn_80110C40(m_collision[m_collisionScenePrev], 0);
+                    m_collision[m_collisionScenePrev]->setJointAILowPriority(false);
                 }
                 if (m_collision[m_collisionScene] != NULL) {
                     m_collision[m_collisionScene]->setEnable();

@@ -511,7 +511,7 @@ int grCollisionTestRhombus::testStaticCorrection(grCollisionLineWork* lineWork) 
     if (hitInfo == 0 && lineWork->m_collisionLine->m_isUpper) {
         clSegment2D line;
         clSegment2D trace;
-        fn_80111A38(lineWork->m_collision, &line, &trace, lineWork->m_collisionLine);
+        lineWork->m_collision->getSegmentTrace(&line, &trace, lineWork->m_collisionLine);
         Vec2f up = m_shape1.m_rhombus.m_upPos;
         if (line.m_p1Pos.m_x <= up.m_x && up.m_x <= line.m_p0Pos.m_x) {
             Vec2f projected;
@@ -609,7 +609,7 @@ int grCollisionTestRhombus::testStaticRight(grCollisionLineWork* lineWork, u8 fl
             hit = true;
         } else {
             clSegment2D pre;
-            fn_801119F8(lineWork->m_collision, &pre, lineWork->m_collisionLine);
+            lineWork->m_collision->getPreSegment(&pre, lineWork->m_collisionLine);
             if (rhombus->m_rightPos.m_y < pre.m_p0Pos.m_y || pre.m_p1Pos.m_y < rhombus->m_rightPos.m_y) {
                 if (pre.m_p0Pos.m_y <= rhombus->m_rightPos.m_y) {
                     if (rhombus->m_rightPos.m_x < pre.m_p1Pos.m_x) {
@@ -1126,7 +1126,7 @@ int grCollisionTestRhombus::testStaticDown(grCollisionLineWork* lineWork, u8 fla
                         }
                         if (!reach && lineWork->getPosXDownLinePre(m_savedRhombus.m_downPos.m_x, &found)) {
                             clSegment2D foundPre;
-                            fn_801119F8(found.m_collision, &foundPre, found.m_collisionLine);
+                            found.m_collision->getPreSegment(&foundPre, found.m_collisionLine);
                             if (pre.m_segment.projectionX(m_savedRhombus.m_downPos, preProjected) &&
                                 preProjected.m_y < m_savedRhombus.m_downPos.m_y) {
                                 reach = true;
@@ -1327,7 +1327,7 @@ int grCollisionTestRhombus::testStaticChangeDownLineCheck(grCollisionLineWork* l
                 if (wall.m_segment.m_p0Pos.m_x <= rhombus->m_downPos.m_x && rhombus->m_downPos.m_x <= wall.m_segment.m_p1Pos.m_x) {
                     clSegment2D groundSegment;
                     clSegment2D groundTrace;
-                    fn_80111A38(m_unk224.m_collision, &groundSegment, &groundTrace, m_unk224.m_collisionLine);
+                    m_unk224.m_collision->getSegmentTrace(&groundSegment, &groundTrace, m_unk224.m_collisionLine);
                     Vec2f groundProjected;
                     Vec2f traceProjected;
                     groundSegment.projectionX(rhombus->m_downPos, groundProjected);

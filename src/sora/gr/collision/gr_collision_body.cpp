@@ -102,9 +102,6 @@ static inline int isFinite(float f) {
     return res;
 }
 
-// HYPOTHESIS: grCollision::getReferenceGround (main.dol 0x80111E78): the Ground that owns the joint of a line work.
-extern "C" Ground* fn_80111E78(grCollisionLineWork* lineWork);
-
 // A line work whose line, joint and collision are all set.
 static inline bool hasLine(grCollisionLineWork* lineWork) {
     bool valid = false;
@@ -161,9 +158,6 @@ static inline float clampFloat(float value, float lo, float hi) {
     value = nw4r::math::FSelect(value - lo, value, lo);
     return nw4r::math::FSelect(value - hi, hi, value);
 }
-
-// HYPOTHESIS: grCollCollection::collect (gr_collision_collection.o): gathers the line works of the box into the collection.
-extern "C" void fn_8011728C(grCollCollection* collection, u16 exclusiveLineAttr, int unk);
 
 // The box swept by the shape between its current and its target position, 1 unit larger on every side. The current box is first
 // widened to cover the extents of both shapes around the movement of their centres (and made at least as wide / high as the
@@ -278,7 +272,7 @@ void grCollisionTest::updateCollection(const clAABBox2D* box) {
         updated->m_unk12 = m_collStatus->m_targetLineCategory;
         updated->m_unk14 = m_collStatus->m_collision;
         updated->m_unk13 = m_collStatus->m_testDynamicCollision;
-        fn_8011728C(updated, m_exclusiveLineAttr, 0);
+        updated->collect(m_exclusiveLineAttr, 0);
     }
 }
 
@@ -622,14 +616,14 @@ void grCollisionTest::callbackExec(int mode, grCollisionLineWork* prevGround) {
         bool valid = hasLine(lineWork);
         if (valid) {
             grCollisionJoint* joint = lineWork->m_collisionJoint;
-            Ground* ground = fn_80111E78(lineWork);
+            Ground* ground = grCollision::getReferenceGround(lineWork);
             if (ground != NULL) {
                 if (mode == 2) {
                     changed = 1;
                 } else if (mode == 1) {
                     if (!hasLine(prevGround)) {
                         changed = 1;
-                    } else if (fn_80111E78(prevGround) != ground) {
+                    } else if (grCollision::getReferenceGround(prevGround) != ground) {
                         changed = 1;
                     }
                 }
@@ -703,7 +697,7 @@ int grCollisionTest::initPos() {
     collection.m_unk12 = m_collStatus->m_targetLineCategory;
     collection.m_unk14 = m_collStatus->m_collision;
     collection.m_unk13 = m_collStatus->m_testDynamicCollision;
-    fn_8011728C(&collection, m_exclusiveLineAttr, 0);
+    collection.collect(m_exclusiveLineAttr, 0);
 
     grCollisionLineWork* floor = NULL;
     bool onGround = true;
@@ -1941,8 +1935,6 @@ int grCollisionTest::stopEdgeCorrect(grCollisionLineWork* lineWork) {
 extern grCollisionManager* lbl_805A0360; // the collision manager singleton
 
 
-// HYPOTHESIS: grCollision::getPreSegment (0x801119F8): the segment of a line one frame ago.
-extern "C" void fn_801119F8(grCollision* collision, clSegment2D* out, grCollisionLine* line);
 // HYPOTHESIS: grCollisionLineWork::getUpRightLine / getUpLeftLine (0x80116B1C / 0x80116CD8): the line above that continues to the right / left.
 
 // HYPOTHESIS: grCollStatus::getCliffCheckBoxPre / getCliffCheckBoxCur (0x80135BA0 / 0x80135B94): the box the cliff check covers before / now.
@@ -2533,7 +2525,7 @@ int grCollisionTest::testCliff() {
                         bool movedAway = false;
                         grCollision* collision = lineWork.m_collision;
                         collision->getSegment(&seg, lineWork.m_collisionLine);
-                        fn_801119F8(collision, &preSeg, lineWork.m_collisionLine);
+                        collision->getPreSegment(&preSeg, lineWork.m_collisionLine);
                         // HYPOTHESIS: the average horizontal speed of the line; the original adds (seg.x1 - seg.x1) (always 0)
                         float speed = 0.5f * ((seg.m_p0Pos.m_x - preSeg.m_p0Pos.m_x) + (seg.m_p1Pos.m_x - seg.m_p1Pos.m_x));
                         if (m_unk20 == 1 && speed < -0.1f) {
@@ -2559,7 +2551,7 @@ int grCollisionTest::testCliff() {
                                     grCollisionLineWork* touchLine = &m_collStatus->m_collLineWorkArray[sCliffLeftTouch[i]];
                                     if (isActiveLineWork(touchLine) && touchLine->m_collisionLine->m_isLeft) {
                                         touchLine->m_collision->getSegment(&seg, touchLine->m_collisionLine);
-                                        fn_801119F8(touchLine->m_collision, &preSeg, touchLine->m_collisionLine);
+                                        touchLine->m_collision->getPreSegment(&preSeg, touchLine->m_collisionLine);
                                         if (0.5f * ((seg.m_p0Pos.m_x - preSeg.m_p0Pos.m_x) + (seg.m_p1Pos.m_x - seg.m_p1Pos.m_x)) > 0.1f) {
                                             blocked = true;
                                             break;
@@ -2589,7 +2581,7 @@ int grCollisionTest::testCliff() {
                                     grCollisionLineWork* touchLine = &m_collStatus->m_collLineWorkArray[sCliffRightTouch[i]];
                                     if (isActiveLineWork(touchLine) && touchLine->m_collisionLine->m_isRight) {
                                         touchLine->m_collision->getSegment(&seg, touchLine->m_collisionLine);
-                                        fn_801119F8(touchLine->m_collision, &preSeg, touchLine->m_collisionLine);
+                                        touchLine->m_collision->getPreSegment(&preSeg, touchLine->m_collisionLine);
                                         if (0.5f * ((seg.m_p0Pos.m_x - preSeg.m_p0Pos.m_x) + (seg.m_p1Pos.m_x - seg.m_p1Pos.m_x)) > 0.1f) {
                                             blocked = true;
                                             break;
