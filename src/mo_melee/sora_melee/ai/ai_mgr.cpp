@@ -220,8 +220,8 @@ void aiMgr::clearDangerZone(int index) {
     if (index == 0 && (m_flags & 0x100) != 0) {
         return;
     }
-    int last = 0x18;
     int first = 0;
+    int last = 0x18;
     switch (index) {
     case 0:
         last = 8;
@@ -230,8 +230,8 @@ void aiMgr::clearDangerZone(int index) {
         first = 8;
         break;
     }
-    for (int i = first; i < last; i++) {
-        delDangerZone(i);
+    for (; first < last; first++) {
+        delDangerZone(first);
     }
 }
 
@@ -555,10 +555,10 @@ AiClBlock* aiMgr::get_top_block(int team) {
                 value -= 100000.0f;
             } else {
                 bool danger;
-                if ((flags & 0x800) == 0 || (team >= 0 && team < 8 && (block->m_teamMask & (1 << team)) == 0)) {
-                    danger = false;
-                } else {
+                if ((flags & 0x800) != 0 && (team < 0 || team >= 8 || (block->m_teamMask & (1 << team)) != 0)) {
                     danger = true;
+                } else {
+                    danger = false;
                 }
                 if (danger) {
                     value -= 1000.0f;
@@ -588,10 +588,10 @@ AiClBlock* aiMgr::get_right_block(int team) {
                 value -= 100000.0f;
             } else {
                 bool danger;
-                if ((flags & 0x800) == 0 || (team >= 0 && team < 8 && (block->m_teamMask & (1 << team)) == 0)) {
-                    danger = false;
-                } else {
+                if ((flags & 0x800) != 0 && (team < 0 || team >= 8 || (block->m_teamMask & (1 << team)) != 0)) {
                     danger = true;
+                } else {
+                    danger = false;
                 }
                 if (danger) {
                     value -= 1000.0f;
@@ -630,10 +630,10 @@ AiClBlock* aiMgr::get_center_block(int team) {
                 score += 100000.0f;
             } else {
                 bool danger;
-                if ((flags & 0x800) == 0 || (team >= 0 && team < 8 && (block->m_teamMask & (1 << team)) == 0)) {
-                    danger = false;
-                } else {
+                if ((flags & 0x800) != 0 && (team < 0 || team >= 8 || (block->m_teamMask & (1 << team)) != 0)) {
                     danger = true;
+                } else {
+                    danger = false;
                 }
                 if (danger) {
                     score += 1000.0f;
@@ -707,10 +707,7 @@ aiStat* aiMgr::get_aiStatFinal() {
         idx.m_idx = i;
         aiStat* stat = get_aiStat(&idx);
         if ((stat->m_flags & 0x8000) == 0) {
-            if ((stat->m_flags & 0xC00) != 0) {
-                return stat;
-            }
-            if (stat->chk_chr_stat(2, 0x12)) {
+            if ((stat->m_flags & 0xC00) != 0 || stat->chk_chr_stat(2, 0x12)) {
                 return stat;
             }
         }
