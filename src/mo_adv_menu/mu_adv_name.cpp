@@ -21,7 +21,6 @@
 // muMenuController::getPadNo()
 extern "C" int fn_800BA3D8(muMenuController* controller);
 // GameGlobal::getNameCount() and GameGlobal::getName(number, buffer): the names that were saved
-extern "C" void fn_8004D6C4(GameGlobal* global, int number, char* buffer);
 // nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model) and PushBack(object, node name)
 extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(MEMAllocator* allocator, u32* size, int capacity,
                                                                                                     void* scnMdl);
@@ -237,7 +236,7 @@ void muAdvNameTask::dispStr(int player) {
                     m_msg->printIndex(5, 3, NULL);
                 }
             } else {
-                fn_8004D6C4(g_GameGlobal, i + m_scroll[player], buffer);
+                g_GameGlobal->getName(i + m_scroll[player], buffer);
                 int line = i + base + 1;
                 m_msg->setFontType(line, 1);
                 m_msg->setFontColor(line, 0, 0, 0, 0xFF);
@@ -255,7 +254,7 @@ void muAdvNameTask::dispStr(int player) {
         }
     } else {
         for (int i = 0; i < 5; i++) {
-            fn_8004D6C4(g_GameGlobal, i + m_scroll[player] - 1, buffer);
+            g_GameGlobal->getName(i + m_scroll[player] - 1, buffer);
             int line = i + base;
             m_msg->setFontType(line, 1);
             m_msg->setFontColor(line, 0, 0, 0, 0xFF);

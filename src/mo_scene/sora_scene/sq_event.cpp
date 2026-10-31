@@ -5,14 +5,13 @@
 #include <sr/sr_common.h>
 #include <types.h>
 
-extern "C" void fn_8004D010(GameGlobal* global);
 
 void sqEvent::start() {
     if (gfSceneManager::getInstance()->unk31C == 0xff) {
         unk8 = 0xa;
     } else {
         unk8 = 0;
-        fn_8004D010(g_GameGlobal);
+        g_GameGlobal->initSelCharData();
         unk18 = g_gfApplication->unk110[0] != 0;
     }
 }

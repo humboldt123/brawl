@@ -12,7 +12,6 @@
 // nw4r::g3d::ScnMdlExpand::PushBack(object, node name): attaches the object to the node of the model
 extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* scnMdl, void* object, const char* name);
 // GameGlobal::checkHideMenuRandomStageSW()
-extern "C" u8 fn_8004E834(GameGlobal* global);
 
 // The animations of each entry of the screen, one row for each icon (see muProcRule1).
 static MuAnimNameData sAnims[6][6] = {
@@ -122,7 +121,7 @@ inline void muProcRule2::setMessage() {
 void muProcRule2::init(nw4r::g3d::ScnGroup* group, int from) {
     m_group = group;
     u8* setting = getRuleBytes();
-    m_hideRandomStage = fn_8004E834(g_GameGlobal);
+    m_hideRandomStage = g_GameGlobal->checkHideMenuRandomStageSW();
     for (int i = 0; i < Entry_Count; i++) {
         m_enabled[i] = true;
     }

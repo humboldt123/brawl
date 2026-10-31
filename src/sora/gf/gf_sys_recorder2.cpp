@@ -10,8 +10,6 @@
 // HYPOTHESIS: stand-ins for callees that are not named yet; the map gives GameGlobal::setEnableSaveLoad (the
 // save/load switches), getSaveDataSize, checkSaveData and getAdventureSaveDataSize, and the nteExchange destructor.
 extern "C" u8 fn_8004EAD4(GameGlobal* global);
-extern "C" u32 fn_8004EFA0();
-extern "C" bool fn_8004EAF8(void* data);
 extern "C" void fn_8014E520(nteExchange* exchange, int del);
 // HYPOTHESIS: this unit's request workers gfSysRecorder2::_processCheck, _processRenew and _processLoad (not matched
 // yet).
@@ -259,7 +257,7 @@ void* gfSysRecorder2::getBuffer(int kind) {
             size = 0x7F9A0;
         }
     } else if (kind == 1) {
-        size = fn_8004EFA0() + 4;
+        size = GameGlobal::getAdventureSaveDataSize() + 4;
     }
     if (size == 0) {
         return NULL;

@@ -9,7 +9,6 @@
 
 extern "C" void fn_8005D558();
 extern "C" void fn_8005D5A8();
-extern "C" float fn_8004E94C(GameGlobal* global);
 
 using namespace nw4r::ef;
 
@@ -138,7 +137,7 @@ void efManager::processBegin() {
     }
     lbl_805A0100 = 1.0f / g_GameGlobal->getSlowRate();
     unk40.m_gameFrame = g_GameGlobal->getGameFrame();
-    unk40.m_gameFrameDelta = fn_8004E94C(g_GameGlobal);
+    unk40.m_gameFrameDelta = g_GameGlobal->getGameFrameDelta();
     if (0.0f == unk40.m_gameFrame) {
         unk40.unk40_b6 = true;
     }

@@ -45,8 +45,6 @@ extern const gmStageBgmData lbl_8042BF98[31];
 
 // The record sections hold bit sets; GameGlobal hands out their words (names from the sora map).
 // HYPOTHESIS: the return types are word pointers because the callers index them by 32-bit word.
-extern "C" u32* fn_8004E580(GameGlobal* global); // GameGlobal::getCharaAppFlag (also used by mu_menu.cpp, st_croll.cpp)
-extern "C" u32* fn_8004E5A0(GameGlobal* global); // GameGlobal::getAssistAppFlag (also used by st_croll.cpp)
 
 // The menu's fighter numbering: muMenu::exchangeGmCharacterKindToMuCharKind (mu_menu.cpp). The native callers pass the
 // fighter in r3 only (the mangled name says three ints), so this stand-in is declared with one parameter.
@@ -55,8 +53,6 @@ extern "C" int exchangeGmCharacterKindToMuCharKind__6muMenuFiii(int kind);
 
 // Callees that belong to other units / clusters (names from the sora map).
 // HYPOTHESIS: parameter and return types come from the call sites only.
-extern "C" void fn_8004D674(GameGlobal* global, int nameNo, wchar_t* buffer); // the player name tag as UTF-16
-extern "C" u16* fn_8004DA14(GameGlobal* global, int slot, int nameNo);        // the handicap stored for a name tag, 0 if none
 
 // The result of gmCharaFlag::setGlobalCharaData: a class with a copy constructor, so it comes back through a hidden pointer.
 struct gmCharaFlagResult : gmCharaFlagWords {
@@ -148,11 +144,11 @@ u32 gmRetIfKindMenukind(int ifKind) {
 }
 
 bool gmCheckAssistKindUseEnable(int kind) {
-    return gmCheckBit(fn_8004E5A0(g_GameGlobal), kind);
+    return gmCheckBit(g_GameGlobal->getAssistAppFlag(), kind);
 }
 
 void gmInitAssistKindUseEnable() {
-    u32* flags = fn_8004E5A0(g_GameGlobal);
+    u32* flags = g_GameGlobal->getAssistAppFlag();
     *flags = 0;
 }
 
@@ -176,7 +172,7 @@ static inline u8 gmGetHideKindFromChKind(gmCharacterKind kind) {
 }
 
 bool gmCheckChKindUseEnable(gmCharacterKind kind) {
-    u32* bits = fn_8004E580(g_GameGlobal);
+    u32* bits = g_GameGlobal->getCharaAppFlag();
     u8 hide = gmGetHideKindFromChKind(kind);
     if (hide == 14 || gmCheckBit(bits, hide * 3 + 1)) {
         return true;
@@ -185,7 +181,7 @@ bool gmCheckChKindUseEnable(gmCharacterKind kind) {
 }
 
 void gmSetChKindUseEnable(gmCharacterKind kind) {
-    u32* bits = fn_8004E580(g_GameGlobal);
+    u32* bits = g_GameGlobal->getCharaAppFlag();
     u8 hide = gmGetHideKindFromChKind(kind);
     if (hide != 14) {
         gmSetBit(bits, hide * 3 + 1);
@@ -193,7 +189,7 @@ void gmSetChKindUseEnable(gmCharacterKind kind) {
 }
 
 bool gmCheckChKindUseEnableAll() {
-    u32* bits = fn_8004E580(g_GameGlobal);
+    u32* bits = g_GameGlobal->getCharaAppFlag();
     for (int i = 0; i < 14; i++) {
         if (!gmCheckBit(bits, i * 3 + 1)) {
             return false;
@@ -203,7 +199,7 @@ bool gmCheckChKindUseEnableAll() {
 }
 
 void gmInitChKindUseEnableAll() {
-    u32* bits = fn_8004E580(g_GameGlobal);
+    u32* bits = g_GameGlobal->getCharaAppFlag();
     bits[0] = 0;
     bits[1] = 0;
 }
@@ -402,7 +398,7 @@ static inline void gmInitPlayersFromSelect(gmGlobalModeMelee* global) {
         u8 nameIndex = select->m_playersInitData[i].m_nameIndex;
         global->m_playersInitData[i].m_nameIndex = nameIndex;
         if (nameIndex != 0x78) {
-            fn_8004D674(g_GameGlobal, nameIndex, player->m_name);
+            g_GameGlobal->getNameUTF16(nameIndex, player->m_name);
         }
     }
     gmGlobalRecord* record = g_GameGlobal->getGlobalRecordGameDatap();
@@ -429,7 +425,7 @@ void gmResetHandiSetting() {
         gmPlayerInitData* select = &g_GameGlobal->m_selCharData->m_playersInitData[i];
         int nameIndex = select->m_nameIndex;
         if (nameIndex != 0x78) {
-            u16* handicap = fn_8004DA14(g_GameGlobal, i, nameIndex);
+            u16* handicap = g_GameGlobal->getVsModeAutoHandiPlayerVal(i, nameIndex);
             if (handicap != nullptr) {
                 *handicap = 0;
             }
@@ -474,7 +470,7 @@ void gmSetRuleToGlobalModeMelee(gmGlobalModeMelee* global) {
             global->m_playersInitData[i].m_handicap = 0;
             break;
         case 1: {
-            u16* handicap = fn_8004DA14(g_GameGlobal, i, select->m_playersInitData[i].m_nameIndex);
+            u16* handicap = g_GameGlobal->getVsModeAutoHandiPlayerVal(i, select->m_playersInitData[i].m_nameIndex);
             global->m_playersInitData[i].m_handicap = handicap != nullptr ? *handicap : 0;
             break;
         }
@@ -1066,7 +1062,6 @@ u8 gmGetMeleeCPULevel(u8 level) {
 // ---- gmlib 0x80051F28-0x80053078 ----
 
 // HYPOTHESIS: stand-in for GameGlobal::getCharaAppFlag (sora.map 8004e580): the character unlock bitset, 3 bits per hidden fighter.
-extern "C" u32* fn_8004E580(GameGlobal*);
 
 // Copy of the exact definition in gm_common.cpp (cluster A's file): used inline below.
 static inline gmCharacterKind hideKindToCharacterKind(u32 hideKind) {
@@ -1098,7 +1093,7 @@ void gmCharaFlag::setGlobalCharaData() {
     for (int i = 0; i < 50; i++) {
         set(i);
     }
-    u32* unlocked = fn_8004E580(g_GameGlobal);
+    u32* unlocked = g_GameGlobal->getCharaAppFlag();
     for (int i = 0; i < 14; i++) {
         int bit = 1 + i * 3;
         if (!(unlocked[bit / 32] & (1 << (bit % 32)))) {
@@ -1823,7 +1818,7 @@ void gmSetAutoHandiModeResult() {
     for (int i = 0; i < 4; i++) {
         if (view[i].m_state != 3) {
             players++;
-            handi[i] = fn_8004DA14(g_GameGlobal, i, view[i].m_unk29);
+            handi[i] = g_GameGlobal->getVsModeAutoHandiPlayerVal(i, view[i].m_unk29);
             if (view[i].m_unk33 != 0) {
                 *orderEnd++ = i;
             }

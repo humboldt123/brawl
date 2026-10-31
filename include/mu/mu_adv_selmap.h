@@ -21,7 +21,6 @@
 // GameGlobal::getLanguage(): a member function (the shared header declares it static)
 extern "C" int getLanguage__10GameGlobalFv(GameGlobal* global);
 // GameGlobal::getName(number, buffer): the names that were saved
-extern "C" void fn_8004D6C4(GameGlobal* global, int number, char* buffer);
 
 // What the scene gives to the task.
 struct muAdvSelmapTaskParam {
@@ -149,7 +148,7 @@ public:
     // Writes the name of a player (the number of the name is given by the scene) with the label of the player ("1P: ", "P2: " ...,
     // by the language) in the text of the slot, or the text of the message when the name was not set.
     void showPlayerName(int player, int number, char* name, int slot, int textNo, char* dst) {
-        fn_8004D6C4(g_GameGlobal, number - 1, name);
+        g_GameGlobal->getName(number - 1, name);
         char noName[6] = {0x7F, 0x7E, 0x7D, 0x7C, 0x7B, 0};
         char label1[0x1C];
         char label2[0x1C];
