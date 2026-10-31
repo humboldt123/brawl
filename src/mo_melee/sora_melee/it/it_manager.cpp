@@ -1435,12 +1435,6 @@ u8 itManager::getItemKindArchiveGroup(int kind, u8 group) {
     return lbl_27_rodata_4A90[kind] + group;
 }
 
-// HYPOTHESIS: the byte at +9 of the melee init data packs the game rule (time / stock / coin) in its top 3 bits.
-struct gmGameRuleByte {
-    u8 rule : 3;
-    u8 rest : 5;
-};
-
 // Arms the Smash Ball timers at the start of a match (HYPOTHESIS: 0x148C/0x1490 are the first-drop and re-drop frame
 // counts, derived from the item parameter floats at 0x64/0x70 when still unset; 0x1488 is the latest drop frame, a
 // fraction (param 0x68) of the match length).
@@ -1457,7 +1451,7 @@ void itManager::initializeSmashBallFlags() {
     gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
     if (melee != NULL) {
         u32 timeLimit = melee->m_meleeInitData.m_timeLimitFrames;
-        switch (((gmGameRuleByte*)((u8*)melee + 9))->rule) {
+        switch (melee->m_meleeInitData.m_gameRule) {
         case 1:
         case 2:
             timeLimit = 0x1C20;
@@ -1488,7 +1482,7 @@ void itManager::initializeDragoonFlags(int forced, bool disabled) {
         itManagerField<u8>(this, 0x149C) = 0;
         if (itManagerField<int>(this, 0x50) != 4 && !disabled && (forced != 0 || fn_800526E4() == 0)) {
             float rate = itManagerField<float>(this, 0x74);
-            int rule = ((gmGameRuleByte*)((u8*)melee + 9))->rule;
+            int rule = melee->m_meleeInitData.m_gameRule;
             u32 frames = melee->m_meleeInitData.m_timeLimitFrames;
             switch (rule) {
             case 1: {
@@ -1665,7 +1659,7 @@ void itManager::start(int mode) {
     gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
     u32 stageKind;
     if (melee != NULL) {
-        stageKind = *(u16*)((u8*)melee + 0x1A);
+        stageKind = melee->m_meleeInitData.m_stageKind;
     } else {
         stageKind = 0xFF;
     }

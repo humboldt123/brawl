@@ -144,7 +144,8 @@ void stBattleField::update(float deltaFrame) {
     }
 }
 
-// MATCH-ONLY: the original reads the game mode of gmMeleeInitData with a byte load.
+// BYTES: the original reads the game mode of gmMeleeInitData with a byte load (an unsigned u8 bitfield); reading the
+// typed gmMeleeInitData::m_gameMode instead was compiled and changes getFighterStartPos (97.9%).
 struct stBattleModeByte {
     u8 m_mode : 6;
     u8 : 2;

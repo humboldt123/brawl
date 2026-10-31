@@ -18,7 +18,7 @@ grFzeroBg* grFzeroBg::create(int mdlIndex, const char* nodeName, const char* tas
     return ground;
 }
 
-// MATCH-ONLY: the original reads the game mode of gmGlobalModeMelee's init data (bits 7..2 of byte 8) with a byte load.
+// BYTES (the typed gmMeleeInitData::m_gameMode was compiled and drops the constructor to 98.7%): the original reads the game mode of gmGlobalModeMelee's init data (bits 7..2 of byte 8) with a byte load.
 struct fzeroBgModeByte {
     u8 m_mode : 6;
     u8 : 2;

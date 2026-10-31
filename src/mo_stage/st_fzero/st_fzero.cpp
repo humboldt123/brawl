@@ -70,7 +70,7 @@ bool stFzero::loading() {
     return true;
 }
 
-// MATCH-ONLY: the game mode is the first six bits of byte 0 (read as an unsigned bitfield)
+// BYTES (the typed gmMeleeInitData::m_gameMode was compiled and drops createObj to 99.4%): the game mode is the first six bits of byte 0 (read as an unsigned bitfield)
 struct fzeroMeleeMode {
     unsigned char mode : 6;
     unsigned char rest : 2;
