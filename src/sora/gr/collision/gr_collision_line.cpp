@@ -4,15 +4,10 @@
 #include <types.h>
 
 extern grCollisionManager* lbl_805A0360;
-// HYPOTHESIS: grCollision::getPreSegment (the segment of the line before the last vertex update; gr_collision.o).
-extern "C" void fn_801119F8(grCollision* collision, clSegment2D* out, grCollisionLine* line);
-// HYPOTHESIS: grCollision::getLine(u16) (gr_collision.o).
-extern "C" grCollisionLine* fn_80111B60(grCollision* collision, int index);
-// HYPOTHESIS: grCollision::getRightLine (gr_collision.o).
-extern "C" grCollisionLine* fn_80111B70(grCollision* collision, grCollisionLine* line);
-// HYPOTHESIS: grCollision::getLeftLine (gr_collision.o).
-extern "C" grCollisionLine* fn_80111B94(grCollision* collision, grCollisionLine* line);
 // HYPOTHESIS: grCollision::getJointByLineId (gr_collision.o).
+// HYPOTHESIS: grCollision::getLine1(u16) (gr_collision.o). Kept as a stand-in: the original callers pass the s16 line id
+// without the clrlwi that a call through the u16 member would add.
+extern "C" grCollisionLine* fn_80111B60(grCollision* collision, int index);
 extern "C" grCollisionJoint* fn_80111BF0(grCollision* collision, int lineId);
 // HYPOTHESIS: grCollision::getLineId (gr_collision.o).
 extern "C" u32 fn_80111C70(grCollision* collision, grCollisionLine* line);
@@ -100,7 +95,7 @@ bool grCollisionLineWork::getNext(grCollisionLineWork* out) const {
         result = getNextVirtual(out);
     }
     if (!result) {
-        grCollisionLine* line = fn_80111B70(m_collision, m_collisionLine);
+        grCollisionLine* line = m_collision->getRightLine(m_collisionLine);
         if (line != NULL) {
             out->m_collisionLine = line;
             out->m_collisionJoint = m_collisionJoint;
@@ -119,7 +114,7 @@ bool grCollisionLineWork::getPrev(grCollisionLineWork* out) const {
         result = getPrevVirtual(out);
     }
     if (!result) {
-        grCollisionLine* line = fn_80111B94(m_collision, m_collisionLine);
+        grCollisionLine* line = m_collision->getLeftLine(m_collisionLine);
         if (line != NULL) {
             out->m_collisionLine = line;
             out->m_collisionJoint = m_collisionJoint;
@@ -134,7 +129,7 @@ bool grCollisionLineWork::getPrev(grCollisionLineWork* out) const {
 
 bool grCollisionLineWork::getPrevNoVLink(grCollisionLineWork* out) const {
     bool result = false;
-    grCollisionLine* line = fn_80111B94(m_collision, m_collisionLine);
+    grCollisionLine* line = m_collision->getLeftLine(m_collisionLine);
     if (line != NULL) {
         result = true;
         out->m_collisionLine = line;
@@ -153,7 +148,7 @@ bool grCollisionLineWork::getPrevNoVLink(grCollisionLineWork* out) const {
 
 bool grCollisionLineWork::getNextNoVLink(grCollisionLineWork* out) const {
     bool result = false;
-    grCollisionLine* line = fn_80111B70(m_collision, m_collisionLine);
+    grCollisionLine* line = m_collision->getRightLine(m_collisionLine);
     if (line != NULL) {
         result = true;
         out->m_collisionLine = line;
@@ -446,7 +441,7 @@ bool grCollisionLineWork::getPosXDownLine(float x, grCollisionLineWork* out) con
 bool grCollisionLineWork::getPosXDownLinePre(float x, grCollisionLineWork* out) const {
     clSegment2D segment;
     grCollisionLineWork next;
-    fn_801119F8(m_collision, &segment, m_collisionLine);
+    m_collision->getPreSegment(&segment, m_collisionLine);
     if (segment.m_p0Pos.m_x <= x && x <= segment.m_p1Pos.m_x) {
         *out = *this;
         return true;
@@ -467,7 +462,7 @@ bool grCollisionLineWork::getPosXDownLinePre(float x, grCollisionLineWork* out) 
             if (!active) {
                 break;
             }
-            fn_801119F8(next.m_collision, &segment, next.m_collisionLine);
+            next.m_collision->getPreSegment(&segment, next.m_collisionLine);
             if (x <= segment.m_p1Pos.m_x) {
                 *out = next;
                 return true;
@@ -492,7 +487,7 @@ bool grCollisionLineWork::getPosXDownLinePre(float x, grCollisionLineWork* out) 
             if (!active) {
                 break;
             }
-            fn_801119F8(next.m_collision, &segment, next.m_collisionLine);
+            next.m_collision->getPreSegment(&segment, next.m_collisionLine);
             if (segment.m_p0Pos.m_x <= x) {
                 *out = next;
                 return true;

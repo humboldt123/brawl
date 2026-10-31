@@ -164,11 +164,6 @@ extern "C" {
 void fn_80111968(grCollision* collision, grCollSegmentEx* out, grCollisionLine* line, int unk);
 // grCollision::getPreSegment1 (same shape, the line's segment one frame ago). 0x80111AF4
 void fn_80111AF4(grCollision* collision, grCollSegmentEx* out, grCollisionLine* line, int unk);
-// grCollision::getPreSegment (3 arguments). 0x801119F8
-void fn_801119F8(grCollision* collision, clSegment2D* out, grCollisionLine* line);
-// grCollision::getSegmentTrace: out = the segment now, trace = the segment from the previous vertex positions. 0x80111A38
-// (Ghidra drops the fourth argument `line`.)
-void fn_80111A38(grCollision* collision, clSegment2D* out, clSegment2D* trace, grCollisionLine* line);
 // grCollisionLineWork::getPrevNoVLink / getNextNoVLink. 0x80113F88 / 0x80114024
 // grCollisionLineWork::getPosXDownLine / getPosXDownLinePre: float x is in f1 (Ghidra drops it). 0x801150D0 / 0x8011557C
 // grCollisionLineWork::getPosXUpLine / getPosYLeftLine / getPosYRightLine (no float argument). 0x80115A28 / 0x80115E44 / 0x801162F4
