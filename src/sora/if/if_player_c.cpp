@@ -212,7 +212,7 @@ static inline void setChanAlpha(IfPlayer::PortraitChan* chan, int alpha) {
 static inline int isHit(IfPlayer* player, Rect2D* rects, int count) {
     int bad = player->m_portraitRectPending;
     if (!bad) {
-        bad = !count;
+        bad = count <= 0;
     }
     if (bad) {
         return 0;

@@ -266,14 +266,9 @@ void IfPlayer::createPlayerLocator(nw4r::g3d::ResFile* res, int frameOffset) {
     strcat(animName, "__0");
     lbl_805A02D8->changeAnimN(animName);
     lbl_805A02D8->m_modelAnim->setUpdateRate(0.0f);
-    float conv = (float)frameOffset;
-    float base;
-    if (g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen) {
-        base = 10.0f;
-    } else {
-        base = 0.0f;
-    }
-    lbl_805A02D8->setFrame(base + conv);
+    float frame = g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen ? 10.0f : 0.0f;
+    frame += (float)frameOffset;
+    lbl_805A02D8->setFrame(frame);
     lbl_805A02DC = nw4r::g3d::ScnMdlExpand::Construct(gfHeapManager::getMEMAllocator(Heaps::InfoInstance), NULL, 0x100,
                                                       lbl_805A02D8->m_sceneModel);
     nw4r::g3d::ResTex tex = res->GetResTex("InfLoupeEff");

@@ -344,13 +344,11 @@ int IfPlayer::damageRiseMain(IfPlayer* player) {
 
 // State 4: the damage digits are taken off the HUD.
 void IfPlayer::damageAbsentInit(IfPlayer* player, int prevState) {
-    int i = 2;
-    MuObject** p = &player->m_objects[0];
-    for (; i < 6; i++) {
-        lbl_805A02DC->Remove(p[i]->m_sceneModel);
+    for (int i = 2; i < 6; i++) {
+        lbl_805A02DC->Remove(player->m_objects[i]->m_sceneModel);
     }
-    for (int j = 6; j < 24; j++) {
-        lbl_805A02DC->Remove(player->m_objects[j]->m_sceneModel);
+    for (int i = 6; i < 24; i++) {
+        lbl_805A02DC->Remove(player->m_objects[i]->m_sceneModel);
     }
 }
 
@@ -466,18 +464,19 @@ void IfPlayer::dragoonPartsMain() {
     }
 }
 
+// The first slot that has no part, -1 if all three are used.
+static inline int findFreeDragoonSlot(IfPlayer* player) {
+    for (int i = 0; i < 3; i++) {
+        if (player->m_dragoonParts[i].m_state == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 // Puts a part of the dragoon (the part number picks the visible part of the model) in the first free slot.
 bool IfPlayer::addDragoonParts(u32 part) {
-    int slot;
-    if (m_dragoonParts[0].m_state == 0) {
-        slot = 0;
-    } else if (m_dragoonParts[1].m_state == 0) {
-        slot = 1;
-    } else if (m_dragoonParts[2].m_state == 0) {
-        slot = 2;
-    } else {
-        slot = -1;
-    }
+    int slot = findFreeDragoonSlot(this);
     if (slot < 0) {
         return false;
     }
@@ -507,18 +506,22 @@ int IfPlayer::deleteDragoonParts(u32 part) {
 // Takes the part of a slot out, closes the gap by shifting the later parts forward and returns the part number
 // (0xFF if the slot is empty).
 u8 IfPlayer::pluckDragoonParts(int index) {
+    u8 part;
     nw4r::g3d::ScnMdlExpand* group = m_groups[1];
     if (m_dragoonParts[index].m_state == 0) {
         return 0xFF;
     }
-    u8 part = m_dragoonParts[index].m_part;
+    part = m_dragoonParts[index].m_part;
     for (int i = 0; i < 3; i++) {
         if (m_dragoonParts[i].m_state == 0) {
             break;
         }
         group->Remove(m_dragoonParts[i].m_object->m_sceneModel);
     }
-    DragoonPart plucked = m_dragoonParts[index];
+    DragoonPart plucked;
+    plucked.m_state = m_dragoonParts[index].m_state;
+    plucked.m_part = m_dragoonParts[index].m_part;
+    plucked.m_object = m_dragoonParts[index].m_object;
     for (int i = index; i < 2; i++) {
         m_dragoonParts[i] = m_dragoonParts[i + 1];
     }
