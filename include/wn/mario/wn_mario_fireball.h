@@ -62,7 +62,12 @@ public:
         Weapon::deactivate(false);
     }
 #endif
+#ifdef WN_MARIO_FIREBALL_CTOR_OUTLINE
+    // This view borrows the shared Fireball implementation, including teardown.
+    virtual ~wnMarioFireball();
+#else
     virtual ~wnMarioFireball() { }
+#endif
 };
 
 static_assert(sizeof(soModuleAccesserBuilder<wnMarioFireballModuleAccesserBuildConfig>) == 0x1848,

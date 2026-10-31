@@ -5,6 +5,35 @@
 WN_STATUS_PROC_VECTOR_ARG_CTOR(3);
 typedef soTypeList<soIntToType<4>, soTypeListNullType> wnMarioPumpWaterStatusTransitionTypeList;
 
+// Three statuses without a private work bank. Keep the singleton-backed process
+// holder independent of whether fighter or article headers were included first.
+template <>
+class soStatusModuleBuilder<wnStatusModuleBuildConfig<3, soGeneralWorkBuildConfigNull, 3, soTransitionModuleBuildConfig<wnMarioPumpWaterStatusTransitionTypeList> > > {
+    typedef wnStatusModuleBuildConfig<3, soGeneralWorkBuildConfigNull, 3, soTransitionModuleBuildConfig<wnMarioPumpWaterStatusTransitionTypeList> > BC;
+    soArrayContractibleTable<const soStatusData> m_statusTable; // +0x00
+    soGeneralWorkBuilder<typename BC::GeneralWorkBuildConfig> m_generalWorkBuilder; // +0x10
+    soTransitionModuleBuilder<typename BC::TransitionBuildConfig> m_transitionBuilder; // +0x14
+    soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, 3>,
+        soSingletonHolder<soArrayNull<soStatusUniqProcess*> > > m_uniqProcs; // +0x98
+    soArrayQueueImpl<soArrayVector<s32, 1> > m_changeRequests; // +0xB0
+    soStatusModuleImpl m_module; // +0xC4
+    u32 unk170; // +0x170
+public:
+    soStatusModuleBuilder(soModuleAccesser* acc, const soStatusData* statusData, void* preCheckData) :
+        m_statusTable(statusData, BC::DataCount),
+        m_generalWorkBuilder(),
+        m_transitionBuilder(),
+        m_uniqProcs(),
+        m_changeRequests(-1),
+        m_module(acc, &m_statusTable, (soArray<soStatusUniqProcess*>*)m_uniqProcs.get(), m_generalWorkBuilder.getModule(),
+                 m_transitionBuilder.getModule(), &m_changeRequests, preCheckData, BC::StatusKindCap, 1) { }
+    soStatusModule* getModule() { return &m_module; }
+};
+
+static_assert(sizeof(soStatusModuleBuilder<wnStatusModuleBuildConfig<3, soGeneralWorkBuildConfigNull, 3,
+                  soTransitionModuleBuildConfig<wnMarioPumpWaterStatusTransitionTypeList> > >) == 0x174,
+              "Water status builder extent");
+
 // Six float and two integer parameters; roles follow activation and kinetic setup.
 // HYPOTHESIS: original field spelling.
 struct wnMarioPumpWaterParam {
