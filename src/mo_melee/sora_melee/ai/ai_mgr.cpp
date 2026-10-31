@@ -529,6 +529,50 @@ void aiMgr::CrearWork() {
     gfMemFill(m_work, 0, sizeof(m_work));
 }
 
+// Turns the CPU of one player (and of its sub-character) on or off. On re-enable the controllers re-apply their
+// rank; on disable with removeRefer set, the other CPUs drop the player as a target.
+// HYPOTHESIS: aiStat flag 0x40000000 marks a character whose CPU is switched off; the third parameter's name follows
+// its only effect.
+void aiMgr::setEnablePlayer(int player, int enable, int removeRefer) {
+    if (player < 0 || player >= NumPlayers) {
+        return;
+    }
+    if (g_aiMgr->m_aiInput[player] != NULL) {
+        g_aiMgr->m_aiInput[player]->setEnable(enable);
+    }
+    // BYTES: indexing the sub-character half from its start folds the slot into the offset (0x68 + player * 4, sharing
+    // player * 4 with the line above); m_aiInput[player + NumPlayers] recomputes (player + 7) * 4.
+    if ((g_aiMgr->m_aiInput + NumPlayers)[player] != NULL) {
+        (g_aiMgr->m_aiInput + NumPlayers)[player]->setEnable(enable);
+    }
+    if (enable != 0) {
+        aiChrIdx idx;
+        idx.m_idx = player;
+        get_aiStat(&idx)->m_flags &= ~0x40000000;
+        aiChrIdx child;
+        child.m_idx = player + NumPlayers;
+        get_aiStat(&child)->m_flags &= ~0x40000000;
+        aiInput* input = g_aiMgr->m_aiInput[player];
+        if (input != NULL) {
+            aiInput* childInput = input->m_child;
+            // BYTES: the rank is loaded as an unsigned byte and sign-extended into the argument (lbz r0; extsb r4, r0),
+            // as aiParam::setRank's own (s8) compare does; the plain s8 member loads straight into r4.
+            input->m_par.setRank((s8)(u8)input->m_par.m_rank, 1, 1);
+            if (childInput != NULL) {
+                childInput->m_par.setRank((s8)(u8)childInput->m_par.m_rank, 1, 1);
+            }
+        }
+    } else if (removeRefer != 0) {
+        aiChrIdx idx;
+        idx.m_idx = player;
+        get_aiStat(&idx)->m_flags |= 0x40000000;
+        aiChrIdx child;
+        child.m_idx = player + NumPlayers;
+        get_aiStat(&child)->m_flags |= 0x40000000;
+        g_aiMgr->removeTgtRefer(player, 0);
+    }
+}
+
 void aiMgr::set_ai_player(int player, s8 state, aiInput* input, int ftKind) {
     if (m_aiInput != NULL && player >= 0 && player < NumPlayers) {
         m_chrState[player] = state;
@@ -889,6 +933,52 @@ void aiMgr::removePlayer(aiChrIdx* idx) {
 
 AiClBlock* aiMgr::get_via_blk(AiClBlock* from, int unk1, float x, Vec2f* pos, int unk2, int unk3, float f1, float f2, float f3) {
     return get_via_blk_team(from, unk1, x, -1, pos, unk2, unk3, f1, f2, f3);
+}
+
+// One step of the route search between floor blocks: every block still in the table that can be reached from
+// `from` is taken out of it and searched from in turn. Returns the block to go to first, or goal when there is no
+// route (the caller compares the result with goal).
+AiClBlock* aiMgr::get_via_blk2_core(AiClBlock* goal, AiClBlock* from, AiClBlock** blocks, int team, float f1, float f2, float f3) {
+    AiClBlock** next;
+    int numReached = 0;
+    int i;
+    AiClBlock** reached = (AiClBlock**)gfHeapManager::alloc(Heaps::Tmp, m_numBlocks * sizeof(AiClBlock*));
+    if (reached == NULL) {
+        return goal;
+    }
+    next = reached;
+    for (i = 0; i < m_numBlocks; i++) {
+        if (blocks[i] != NULL && chk_goto_blk(blocks[i], from, team, f1, f2, f3)) {
+            if (blocks[i] == goal) {
+                if (reached != NULL) {
+                    gfHeapManager::free(reached);
+                }
+                return from;
+            }
+            *next++ = blocks[i];
+            numReached++;
+            blocks[i] = NULL;
+        }
+    }
+    if (numReached == 0) {
+        if (reached != NULL) {
+            gfHeapManager::free(reached);
+        }
+        return goal;
+    }
+    for (i = 0; i < numReached; i++) {
+        AiClBlock* via = get_via_blk2_core(goal, reached[i], blocks, team, f1, f2, f3);
+        if (via != goal) {
+            if (reached != NULL) {
+                gfHeapManager::free(reached);
+            }
+            return via;
+        }
+    }
+    if (reached != NULL) {
+        gfHeapManager::free(reached);
+    }
+    return goal;
 }
 
 bool aiMgr::chk_cl_cross(Vec2f* from, Vec2f* to, u32 mask, Vec2f* hitPos, AiClBlock* ignore) {

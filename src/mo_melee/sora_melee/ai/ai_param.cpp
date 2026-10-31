@@ -144,6 +144,23 @@ int aiParam::select_situation(int start, int end, aiChrIdx* chr, aiChrIdx* targe
     return i;
 }
 
+// Binds the parameter block of a character's AI pac. The attack data is only taken when its block starts with the
+// "ATKD" tag.
+void aiParam::init_par(aiParData* par, int kind, char* atkData) {
+    if (kind == -1 || par == NULL) {
+        m_par = NULL;
+        m_atkData = NULL;
+        return;
+    }
+    m_par = par;
+    m_atkData = NULL;
+    if (atkData != NULL && atkData[0] == 'A' && atkData[1] == 'T' && atkData[2] == 'K' && atkData[3] == 'D') {
+        m_atkData = atkData;
+        get_motnum_chr((ftKind)kind);
+    }
+    par_work_update();
+}
+
 bool aiParam::check_revision(char* data) {
     if (data != NULL && data[0] == 'A' && data[1] == 'I' && data[2] == 'P' && data[3] == 'D'
         && *(u32*)(data + 4) == 12) {

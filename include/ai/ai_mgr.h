@@ -143,7 +143,7 @@ public:
     void setCpuType(int player, int type);
     void setCpuRank(int player, s8 rank);
     void regist_ai_child(int player, aiInput* input, int chrKind);
-    static void setEnablePlayer(int player, int enable, int unk);
+    static void setEnablePlayer(int player, int enable, int removeRefer);
     void removeTgtRefer(int player, int onlySelf);
 
     void* searchAtkData(int ftKind, u32 id);
@@ -164,6 +164,10 @@ public:
     u32 get_under_floor(Vec3f* pos, AiClBlock** block, void* unk1, int team, float f1, float f2, float f3);
     AiClBlock* get_via_blk(AiClBlock* from, int unk1, float x, Vec2f* pos, int unk2, int unk3, float f1, float f2, float f3);
     AiClBlock* get_via_blk_team(AiClBlock* from, int unk1, float x, int team, Vec2f* pos, int unk2, int unk3, float f1, float f2, float f3);
+    // HYPOTHESIS: the float parameters are the ones get_via_blk passes on (aiStat passes the jump length and height);
+    // the int is the team that get_via_blk2_team forwards.
+    AiClBlock* get_via_blk2_core(AiClBlock* goal, AiClBlock* from, AiClBlock** blocks, int team, float f1, float f2, float f3);
+    bool chk_goto_blk(AiClBlock* to, AiClBlock* from, int team, float f1, float f2, float f3); // HYPOTHESIS: bool return
 
     static bool isReady();
     static bool isReadyUpdate();
