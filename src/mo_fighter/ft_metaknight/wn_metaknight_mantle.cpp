@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define WN_WEAPON_BUILDER
 #define WN_TRANSITION_CTOR_INLINE
 #define WN_ARTICLE_NATIVE_BUILDERS
@@ -31,12 +32,7 @@ void wnMetaknightMantle::activate(int founderTaskId, int resourceId, int unkC, i
     desc.unk8 = resourceId;
     desc.unk18 = 0;
     desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, &position, sizeof(Vec3f));
-#else
     desc.pos = position;
-#endif
     desc.lr = 0.0f;
     desc.team = team;
     desc.life = 0;

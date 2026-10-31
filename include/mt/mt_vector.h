@@ -239,6 +239,11 @@ public:
 #endif
         : m_x(xy.m_x), m_y(xy.m_y), m_z(z) { }
 
+    // MT_VEC3F_IMPLICIT_ASSIGN: units whose Vec3f copies are aggregate word moves (lwz/stw: the article activations
+    // that copy the position into wnActivateDesc) see the implicit copy assignment instead of this float one.
+    // HYPOTHESIS: the original Vec3f has no user-declared assignment there; units that also call an out-of-line
+    // __as__5Vec3f (the boomerangs, the aura ball, the Pit arrow) keep this one.
+#ifndef MT_VEC3F_IMPLICIT_ASSIGN
     Vec3f& operator=(const Vec3f& orig)
 #ifdef MT_VEC3F_ASSIGN_NOINLINE
         __attribute__((never_inline)) // MATCH-ONLY: verified R.O.B. article assignment calls.
@@ -249,6 +254,7 @@ public:
         m_z = orig.m_z;
         return *this;
     }
+#endif
 
     void set(float x, float y, float z)
 #ifdef MT_VEC3F_SET_NOINLINE

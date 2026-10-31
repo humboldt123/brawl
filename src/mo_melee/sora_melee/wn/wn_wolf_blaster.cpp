@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #include <wn/wolf/wn_wolf_blaster.h>
 #include <wn/wn_class_info_impl.h>
 #include <wn/wn_activate_desc.h>
@@ -14,12 +15,7 @@ void wnWolfBlaster::activate(int founderTaskId, u32 mdlResId, u32 texResId, bool
     desc.unk8 = mdlResId;
     desc.unk18 = 0;
     desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, &origin, sizeof(Vec3f));
-#else
     desc.pos = origin;
-#endif
     desc.lr = 0.0f;
     desc.team = team;
     desc.life = 0;
