@@ -46,7 +46,7 @@ namespace nw4r {
             inline ResFile(void* data) : ResCommon(data) {}
 
             static void Init(void* arg);
-            void Bind(ResFile file);
+            bool Bind(ResFile file); // returns whether every reference was resolved (Ground::bindData tests it)
             void Bind() { Bind(*this); }
             void Release();
 

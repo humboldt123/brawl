@@ -155,7 +155,10 @@ public:
     // 60
     stTriggerMng* m_triggerMng;
     // 64
-    char _spacer4[0x18];
+    char _spacer4[8];
+    // 6C
+    bool unkAC; // HYPOTHESIS: set while the camera clips grounds; Ground::processUpdate then calls invalidatedByCameraClipping
+    char _spacer4b[0xF];
     // 7C
     Vec3f* m_pokeTrainerPos;
     // 80
