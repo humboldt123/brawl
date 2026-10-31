@@ -468,8 +468,7 @@ template <> struct ftMarioArticleActivator<wnMarioHugeFlame> {
     { \
         wnArticleSlotTag tag; \
         soArticleDeactivateChecker checker; \
-        volatile u8 findTag = 0; /* MATCH-ONLY: the native traversal keeps a one-byte marker */ \
-        W* weapon = POOL##_BASE.find(checker); \
+        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
         if (weapon == NULL) { \
             weapon = static_cast<W*>(checker.getCandidate()); \
             if (weapon == NULL) { \

@@ -141,8 +141,7 @@ soArticle* wnNessPKThunderMediator::generate(s32 articleId, soModuleAccesser* ac
     case 0: {
         wnArticleSlotTag tag;
         soArticleDeactivateChecker checker;
-        volatile u8 findTag = 0; // MATCH-ONLY: the native traversal keeps a one-byte marker
-        wnNessPKThunderChild* weapon = m_pools.find(checker);
+        wnNessPKThunderChild* weapon = m_pools.find(checker, soIntToType<0>());
         if (weapon == NULL) {
             weapon = static_cast<wnNessPKThunderChild*>(checker.getCandidate());
             if (weapon == NULL) {

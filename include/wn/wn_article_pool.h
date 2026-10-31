@@ -105,6 +105,11 @@ public:
     wnArticleSubPool<W, N>& getSub() { return m_sub; }
     template <class Predicate>
     W* find(Predicate& predicate) { return m_sub.find(predicate); }
+    // HYPOTHESIS: the mediators select the pool to search with an empty soIntToType<N> tag (the instance pools are
+    // soInstancePool<soInstancePoolInfo<..., soIntToType<Id> > > levels); the value-initialized one-byte tag temporary
+    // is the zero byte the native generate() stores before the newest-first search. N is not yet tied to the pool id.
+    template <class Predicate, int N>
+    W* find(Predicate& predicate, const soIntToType<N>&) { return m_sub.find(predicate); }
 };
 
 template <class W, int N, class Base>

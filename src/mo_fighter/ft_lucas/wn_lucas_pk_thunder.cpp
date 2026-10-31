@@ -141,8 +141,7 @@ soArticle* wnLucasPKThunderMediator::generate(s32 articleId, soModuleAccesser* a
     case 0: {
         wnArticleSlotTag tag;
         soArticleDeactivateChecker checker;
-        volatile u8 findTag = 0; // MATCH-ONLY: the native traversal keeps a one-byte marker
-        wnLucasPKThunderChild* weapon = m_pools.find(checker);
+        wnLucasPKThunderChild* weapon = m_pools.find(checker, soIntToType<0>());
         if (weapon == NULL) {
             weapon = static_cast<wnLucasPKThunderChild*>(checker.getCandidate());
             if (weapon == NULL) {
