@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/builder/ft_builder_article.h>
 #include <so/article/so_article_mediator.h>
 #include <so/article/so_article_array.h>
 #include <so/article/so_generate_article_manage_module.h>
@@ -110,12 +111,10 @@ public:
 };
 static_assert(sizeof(ftPurinArticleManageModuleBuilder) == 0x1760, "Puff article builder");
 
-static inline wnSimpleData* ftPurinSimpleConstructionData() {
-    bool resourceGroup = false;
-    return g_ftCommonDataAccesser.getSimpleData(Fighter_Purin, &resourceGroup);
-}
-
+// The data lookup and the borrowed descriptor each use their own kind snapshot.
 inline ftPurinArticleHolder::ftPurinArticleHolder(soModuleAccesser* acc) :
     m_instance(0, wnSimpleConstructionInfo(wnSimpleKindInfo(Fighter_Purin),
                    acc->m_enumerationStart->m_heapModule),
-               ftPurinSimpleConstructionData(), false) { }
+               g_ftCommonDataAccesser.getSimpleData(
+                   static_cast<ftKind>(wnSimpleKindInfo(Fighter_Purin).subKind),
+                   &ftArticleDataFlags().get().resourceGroup), false) { }
