@@ -176,7 +176,7 @@ __ct__72soCameraModuleBuilder<47soCameraModuleBuildConfig<18soCameraModuleImpl>>
 __ct__78soAnimCmdModuleBuilder<52soAnimCmdModuleBuildConfig<11,19soAnimCmdModuleImpl>>Fs = .text:0x00006EBC; // type:function size:0x44
 __ct__794soStatusModuleBuilder<768soStatusModuleBuildConfig<285,33soGeneralWorkBuildConfig<18,14,2>,274,71,691soTransitionModuleBuildConfig<657soTypeList<15soIntToType<25>,624soTypeList<14soIntToType<6>,592soTypeList<14soIntToType<2>,560soTypeList<14soIntToType<1>,528soTypeList<15soIntToType<17>,495soTypeList<14soIntToType<3>,463soTypeList<14soIntToType<1>,431soTypeList<14soIntToType<2>,399soTypeList<14soIntToType<8>,367soTypeList<14soIntToType<2>,335soTypeList<14soIntToType<1>,303soTypeList<14soIntToType<6>,271soTypeList<14soIntToType<3>,239soTypeList<14soIntToType<1>,207soTypeList<14soIntToType<1>,175soTypeList<14soIntToType<2>,143soTypeList<14soIntToType<3>,111soTypeList<14soIntToType<2>,80soTypeList<14soIntToType<6>,49soTypeList<14soIntToType<1>,18soTypeListNullType>>>>>>>>>>>>>>>>>>>>>>>FP16soModuleAccesserPC12soStatusDataPv = .text:0x00006F00; // type:function size:0x388
 __ct__19soGeneralWorkSimpleFPlUlPfUlPUlUl = .text:0x00007288; // type:function size:0x80
-fn_99_7308 = .text:0x00007308; // type:function size:0xB0
+clearWorkAll__19soGeneralWorkSimpleFv = .text:0x00007308; // type:function size:0xB0 scope:weak
 __ct__82soKineticModuleBuilder<56soKineticModuleBuildConfig<26soKineticModuleGenericImpl>>FP16soModuleAccesser = .text:0x000073B8; // type:function size:0x3D0
 __ct__57soGeneralWorkBuilder<33soGeneralWorkBuildConfig<77,32,3>>Fv = .text:0x00007788; // type:function size:0x60
 __ct__56wnArticleManageModuleBuilder<22ftLuigiArticleMediator,5>FP16soModuleAccesser = .text:0x000077E8; // type:function size:0x14C
@@ -323,7 +323,7 @@ isEnableCancel__38ftFighterBuilder<18ftLuigiBuildConfig>Fv = .text:0x00009C44; /
 getVirtualNodeMatrixPool__38ftFighterBuilder<18ftLuigiBuildConfig>Fv = .text:0x00009C58; // type:function size:0xC
 getStatusGimmickUniqProcessPool__38ftFighterBuilder<18ftLuigiBuildConfig>Fv = .text:0x00009C64; // type:function size:0xC
 isEmpty__40soArrayFixed<24soAnimCmdAddressPackConv>CFv = .text:0x00009C70; // type:function size:0x34
-fn_99_9CA4 = .text:0x00009CA4; // type:function size:0x10
+wnArticleIsActive__FP9soArticle = .text:0x00009CA4; // type:function size:0x10
 getInstanceAt__143soInstancePoolSub<100soInstancePoolInfo<21ftKineticEnergyDamage,1,21soKineticEnergyHolder,28soKineticEnergyInitInfo<4,2>>,18soTypeListNullType>Fi = .text:0x00009CB4; // type:function size:0x18
 getInstanceAt__37wnArticleSubPool<15wnLuigiFireball,2>Fl = .text:0x00009CCC; // type:function size:0x28
 __dt__25soKineticEnergyWindNormalFv = .text:0x00009CF4; // type:function size:0x60

@@ -4,6 +4,7 @@
 
 #include <StaticAssert.h>
 #include <ft/ft_manager.h>
+#include <gf/gf_file_io_handle.h>
 #include <gf/gf_task.h>
 #include <mt/mt_vector.h>
 #include <types.h>
@@ -11,6 +12,7 @@
 class aiInput;
 class aiStat;
 struct AiClBlock;
+struct tag_AiClJointList;
 class aiWeaponMgr;
 class aiEnemyMgr;
 class IpHuman;
@@ -33,6 +35,8 @@ static_assert(sizeof(aiReferPar) == 0x20, "Class is wrong size!");
 // Identifies a CPU character slot: 0..6 are the players' fighters, 7..13 their sub-characters (Nana).
 struct aiChrIdx {
     s8 m_idx;
+
+    aiChrIdx() : m_idx(-1) { }
 
     static int GetPlayerNo(const aiChrIdx* idx);
     static int GetFighterNo(const aiChrIdx* idx);
@@ -80,21 +84,24 @@ public:
     u8 m_unk11C;                        // 0x11C
     char unk11D[0xB];
     u8 m_unk128;                        // 0x128
-    char unk129[0xF];
+    char unk129[0xB];
+    int m_unk134;                       // 0x134: cleared by the constructor
     aiReferPar* m_referPar;             // 0x138: the 0x36 rows of the refer parameter table
     void* m_systemPar;                  // 0x13C: aiSystemPar
-    char unk140[9];
+    gfFileIOHandle m_fileHandle;        // 0x140: HYPOTHESIS: the read of the common AI pac
+    void* m_pacData;                    // 0x144: the loaded common AI pac
+    u8 m_pacOwned;                      // 0x148: 1 = m_pacData was allocated here and is freed by the destructor
     u8 m_numDangerZones;                // 0x149: the zones in use
     char unk14A[2];
     aiDangerZone m_dangerZone[NumDangerZones]; // 0x14C
     u8 m_dangerAttr[NumDangerZones];    // 0x32C: per zone, bit 0 = in use, the rest an attribute mask
     int m_unk344;                       // 0x344
-    char unk348[4];
-    AiClBlock* m_blocks;                // 0x34C
+    tag_AiClJointList* m_jointLists;    // 0x348: m_maxJointLists entries, allocated by the constructor
+    AiClBlock* m_blocks;                // 0x34C: m_maxBlocks entries, allocated by the constructor
     u16 m_numBlocks;                    // 0x350
-    char unk352[2];
+    u16 m_maxBlocks;                    // 0x352
     u16 m_unk354;                       // 0x354
-    char unk356[2];
+    u16 m_maxJointLists;                // 0x356
     u16 m_unk358;                       // 0x358: HYPOTHESIS: floor block count (aiStat::chkEnableAway needs more than one)
     u16 m_unk35A;                       // 0x35A
     u16 m_unk35C;                       // 0x35C
@@ -138,6 +145,10 @@ public:
     AiClBlock* get_center_block(int team);
     bool chkUnderFloor(float slope, Vec2f* pos);
     AiClBlock* search_blk1(u32* key);
+    // HYPOTHESIS: the segment from -> to against the floor blocks whose flags match mask, skipping ignore; returns the
+    // block that is crossed (and the crossing point in hitPos when given).
+    AiClBlock* chk_cl_cross2(Vec2f* from, Vec2f* to, u32 mask, Vec2f* hitPos, AiClBlock* ignore);
+    bool chk_cl_cross(Vec2f* from, Vec2f* to, u32 mask, Vec2f* hitPos, AiClBlock* ignore);
     // HYPOTHESIS: parameter meaning; the types follow the register use of the original and of its callers.
     // HYPOTHESIS: the parameters follow the call sites (position, found block, unused, team, then three limits).
     u32 get_under_floor(Vec3f* pos, AiClBlock** block, void* unk1, int team, float f1, float f2, float f3);
@@ -158,6 +169,10 @@ public:
     int getAiCpuTarget(int player);
     bool chkNanaForceMove(int player);
     bool chkIpHumanUpdate(aiChrIdx* idx);
+    // HYPOTHESIS: whether the player's sub-character (Nana) follows its own option mode (md 0x79) and its aiStat lets it.
+    bool chkChildOptionMd(int player);
+    // HYPOTHESIS: registers the CPU input of a player slot; the parameter names follow how the function uses them.
+    void set_ai_player(int player, s8 state, aiInput* input, int ftKind);
     static aiWeaponMgr* getWeaponMgr();
     static void* getAiSystemPar();
     static aiReferPar* getAiReferPar(int index);

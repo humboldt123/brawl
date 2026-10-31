@@ -1,3 +1,4 @@
+#define SO_GENERAL_WORK_BOUNDED_CLEAR
 // MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
 #define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
@@ -12,6 +13,15 @@
 // definitions (the linker kept the first copy of every weak function).
 #define FT_BC ftZakoBoyBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// The matrix pool owns the shared base teardown retained by the REL.
+#pragma dont_inline on
+ftVirtualNodeMatrixPool::~ftVirtualNodeMatrixPool() { }
+#pragma dont_inline off
+
+// The owned status-change queue uses sora_melee's destructor.
+template <> soArrayVector<s32, 8>::~soArrayVector();
+soStatusModuleImpl::~soStatusModuleImpl() { }
 
 ftZakoBoyExtendParamAccesser g_ftZakoBoyExtendParamAccesser;
 
@@ -69,3 +79,16 @@ extern "C" {
 void* fn_126_4EB4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void fn_126_8EFC() {}
 } // extern "C"
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
+
+// Zero-fill of a three-float member (Vec3f-sized), as in ft_mario.cpp.
+extern "C" void fn_126_88EC(float* p) {
+    p[0] = 0.0f;
+    p[1] = 0.0f;
+    p[2] = 0.0f;
+}
