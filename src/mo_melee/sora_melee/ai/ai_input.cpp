@@ -4,12 +4,87 @@
 #include <ai/ai_stat.h>
 #include <gf/gf_heap_manager.h>
 
+aiInput::aiInput(u32 contNo, int unk2C, int player, int ftKind, s8 state, aiInput* parent, Heaps::HeapType heap)
+    : IpHuman(contNo) {
+    m_unk2C = unk2C;
+    m_ftKind = ftKind;
+    m_chrIdx.m_idx = player + (parent != NULL) * aiMgr::NumPlayers;
+    m_unk43.m_idx = 0;
+    m_unk112 = g_aiMgr->m_adventureMd;
+    m_cpuType = 0;
+    m_unk114 = 1;
+    m_unk116 = 0x2FF;
+    m_flags = 0x8000;
+    m_target.m_idx = m_chrIdx.m_idx;
+    m_unk58 = 0;
+    m_unk5A = 0;
+    m_unk6A = 0;
+    m_unk6C = 1;
+    m_unk74 = 0;
+    m_unk60 = 0;
+    m_unk61 = 0;
+    m_unk62 = 0;
+    m_unk63 = 0;
+    m_unk64 = 0;
+    m_unk65 = 0;
+    m_unk66 = 0;
+    m_unk68 = 0;
+    m_unk67 = -1;
+    m_unk75 = 0;
+    m_child = NULL;
+    m_unk84 = 0;
+    m_unk88 = 0;
+    if (parent == NULL) {
+        aiMgr* mgr = g_aiMgr;
+        s8 current;
+        if (player < 0 || (u32)player >= 14) {
+            current = -1;
+        } else {
+            current = mgr->m_chrState[player];
+        }
+        if (current == -1) {
+            current = state;
+        }
+        mgr->set_ai_player(player, current, this, ftKind);
+    } else {
+        parent->m_child = this;
+        aiSystemPar* systemPar = (aiSystemPar*)aiMgr::getAiSystemPar();
+        m_par.setRank(systemPar->m_childRank, 0, 1);
+        aiMgr* mgr = g_aiMgr;
+        mgr->regist_ai_child(aiChrIdx::GetPlayerNo(&parent->m_chrIdx), this, ftKind);
+    }
+    m_act = new (heap) aiAct(this, aiMgr::get_aiStat(&m_chrIdx));
+    s8 target[16];
+    target[0] = -1;
+    m_act->act_change(0, target, 0, 0);
+    m_md = m_mdNext = parent == NULL ? 1 : 0x79;
+    m_unk50 = 0;
+    m_unk54 = 0;
+    m_unk5C = 0;
+    m_unk5E = 0;
+    m_unk8A = 0;
+    m_unk111 = 0;
+    m_pacData = NULL;
+    m_unk70 = 0;
+    m_unk3E = 0;
+    m_unk3F = 0;
+    m_unk8C = 0.0f;
+    m_unk118 = 0.0f;
+    m_swingChr.m_idx = -1;
+    m_swingState = 0;
+    m_unk78 = 0.0f;
+    m_unk7C = 0.0f;
+    m_unk80 = 0.0f;
+    m_unk77 = 0;
+    m_unk76 = 0;
+}
+
 void aiInput::reset() {
     s8 target[16];
     target[0] = -1;
     change_md(0, target, 0, 0);
     m_md = 0;
-    m_target = m_chrIdx.m_idx;
+    m_target.m_idx = m_chrIdx.m_idx;
     m_unk58 = 0;
     m_unk5A = 0;
     m_unk6A = 0;
@@ -24,7 +99,7 @@ void aiInput::reset() {
     m_unk68 = 0;
     m_unk67 = 0xFF;
     m_unk88 = 0;
-    m_swingChr = -1;
+    m_swingChr.m_idx = -1;
     m_swingState = 0;
     m_unk8C = 0.0f;
     m_unk78 = 0.0f;
@@ -38,7 +113,7 @@ void aiInput::swingChkReset(int force) {
     if (force == 0 && m_swingState >= 2) {
         return;
     }
-    m_swingChr = -1;
+    m_swingChr.m_idx = -1;
     m_swingState = 0;
 }
 

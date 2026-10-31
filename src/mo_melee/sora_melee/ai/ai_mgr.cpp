@@ -130,7 +130,7 @@ int aiMgr::getCpuRank(int player) {
 
 int aiMgr::getAiCpuTarget(int player) {
     if (player >= 0 && player < 7 && m_aiInput != NULL && m_aiInput[player] != NULL) {
-        return m_aiInput[player]->m_target;
+        return m_aiInput[player]->m_target.m_idx;
     }
     return -1;
 }
@@ -685,6 +685,18 @@ bool aiMgr::chkIpHumanUpdate(aiChrIdx* idx) {
         int player = aiChrIdx::GetPlayerNo(idx);
         if (m_jointLists == NULL || m_chrState[player] <= 0) {
             return true;
+        }
+    }
+    return false;
+}
+
+bool aiMgr::chkChildOptionMd(int player) {
+    if (player >= 0 && player < 7 && m_aiInput != NULL && m_aiInput[player] != NULL) {
+        aiInput* child = m_aiInput[player]->m_child;
+        if (child != NULL && child->m_md == 0x79) {
+            if ((get_aiStat(&child->m_chrIdx)->m_flags & 0x8000) == 0) {
+                return true;
+            }
         }
     }
     return false;
