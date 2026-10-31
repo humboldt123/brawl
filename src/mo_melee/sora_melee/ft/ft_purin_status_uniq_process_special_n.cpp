@@ -15,6 +15,26 @@ void ftKineticEnergyDisableAndClear(int, soModuleAccesser*);
 extern float lbl_27_data_A2010[4];
 extern float lbl_27_data_A2020[4];
 
+// Keep the reset rotation in caller-owned storage while snapshotting horizontal speed.
+// HYPOTHESIS: original shared ground-turn kinetic-reset helper boundary/name.
+static inline void resetPurinTurnGround(soModuleAccesser* acc, Vec3f& resetRotation) {
+    ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
+    (void)dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
+    Vec2f currentSpeed;
+    Vec2f::copy(currentSpeed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    stop.offConsiderGroundFriction();
+    resetRotation.m_x = 0.0f;
+    resetRotation.m_y = 0.0f;
+    resetRotation.m_z = 0.0f;
+    stop.resetEnergy(0, &Vec2f(currentSpeed.m_x, 0.0f), &resetRotation, acc);
+    stop.m_accel = Vec2f(0.0f, 0.0f);
+    stop.m_speedTarget = Vec2f(0.0f, 0.0f);
+    stop.m_brake = Vec2f(0.0f, 0.0f);
+    stop.m_speedLimit = Vec2f(-1.0f, -1.0f);
+    stop.enable();
+    ftKineticEnergyDisableAndClear(1, acc);
+}
+
 void ftPurinStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
     float direction = acc->getPostureModule().getLr();
     acc->getWorkManageModule().setFloat(direction, 0x2100000a);
@@ -478,7 +498,7 @@ void ftPurinStatusUniqProcessSpecialNRoll::initStatus(soModuleAccesser* acc) {
         stop.m_speedTarget = Vec2f(0.0f, 0.0f);
         stop.m_brake = Vec2f(0.0f, 0.0f);
         stop.m_speedLimit = Vec2f(-1.0f, -1.0f);
-        stop.offConsiderGroundFriction();
+        stop.onConsiderGroundFriction();
         stop.enable();
         ftKineticEnergyDisableAndClear(1, acc);
         // Re-entering Rollout after a turn starts a new action-log entry.
@@ -506,7 +526,7 @@ void ftPurinStatusUniqProcessSpecialNRoll::initStatus(soModuleAccesser* acc) {
         stop.m_speedTarget = Vec2f(0.0f, 0.0f);
         stop.m_brake = Vec2f(0.0f, 0.0f);
         stop.m_speedLimit = Vec2f(-1.0f, -1.0f);
-        stop.offConsiderGroundFriction();
+        stop.onConsiderGroundFriction();
         stop.enable();
         ftKineticEnergyDisableAndClear(1, acc);
     }
@@ -600,7 +620,7 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
             stop.m_speedTarget = Vec2f(0.0f, 0.0f);
             stop.m_brake = Vec2f(0.0f, 0.0f);
             stop.m_speedLimit = Vec2f(-1.0f, -1.0f);
-            stop.offConsiderGroundFriction();
+            stop.onConsiderGroundFriction();
             stop.enable();
             ftKineticEnergyDisableAndClear(1, acc);
         }
@@ -944,7 +964,7 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
             stop.m_speedTarget = Vec2f(0.0f, 0.0f);
             stop.m_brake = Vec2f(0.0f, 0.0f);
             stop.m_speedLimit = Vec2f(-1.0f, -1.0f);
-            stop.offConsiderGroundFriction();
+            stop.onConsiderGroundFriction();
             stop.enable();
             ftKineticEnergyDisableAndClear(1, acc);
         }
@@ -1190,18 +1210,8 @@ void ftPurinStatusUniqProcessSpecialNTurn::initStatus(soModuleAccesser* acc) {
     acc->getWorkManageModule().setFloat(speed.m_x * -0.05f, 0x21000008);
     (void)dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
     if (acc->getSituationModule().getKind() == Situation_Ground) {
-        ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-        (void)dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
-        Vec2f currentSpeed;
-        Vec2f::copy(currentSpeed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-        stop.offConsiderGroundFriction();
-        stop.resetEnergy(0, &Vec2f(currentSpeed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);
-        stop.m_accel = Vec2f(0.0f, 0.0f);
-        stop.m_speedTarget = Vec2f(0.0f, 0.0f);
-        stop.m_brake = Vec2f(0.0f, 0.0f);
-        stop.m_speedLimit = Vec2f(-1.0f, -1.0f);
-        stop.enable();
-        ftKineticEnergyDisableAndClear(1, acc);
+        Vec3f resetRotation;
+        resetPurinTurnGround(acc, resetRotation);
     } else {
         setKineticTurnAir(acc);
     }
@@ -1265,19 +1275,8 @@ void ftPurinStatusUniqProcessSpecialNTurn::execStatus(soModuleAccesser* acc) {
     }
     if (situation == Situation_Ground) {
         if (situation != previous) {
-            ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-            (void)dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
-            Vec2f currentSpeed;
-            Vec2f::copy(currentSpeed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-            stop.offConsiderGroundFriction();
-            Vec3f resetRotation(0.0f, 0.0f, 0.0f);
-            stop.resetEnergy(0, &Vec2f(currentSpeed.m_x, 0.0f), &resetRotation, acc);
-            stop.m_accel = Vec2f(0.0f, 0.0f);
-            stop.m_speedTarget = Vec2f(0.0f, 0.0f);
-            stop.m_brake = Vec2f(0.0f, 0.0f);
-            stop.m_speedLimit = Vec2f(-1.0f, -1.0f);
-            stop.enable();
-            ftKineticEnergyDisableAndClear(1, acc);
+            Vec3f resetRotation;
+            resetPurinTurnGround(acc, resetRotation);
         }
         updateKineticTurnGround(acc);
         Vec2f speed;
