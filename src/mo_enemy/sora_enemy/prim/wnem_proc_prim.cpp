@@ -67,6 +67,28 @@ static inline void setSpeed(wnemSimple* wn, float x, float y) {
     wn->m_speed.m_y = y;
 }
 
+// HYPOTHESIS: the bounce reflects the speed through two inline levels, as itKineticEnergy::reflectSpeed does through
+// its reflectVec helper. The frame says so: MWCC lists an inlined body's temporaries in reverse once per inline level,
+// and only two levels put the reflection's four Vec2f temporaries in the original's slots, below the acceleration's.
+// Writes v reflected about the unit normal n to out.
+static inline void reflectVec(Vec2f& out, const Vec2f& v, const Vec2f& n) {
+    float dot = n.m_x * v.m_x + n.m_y * v.m_y;
+    out = v - n * 2.0f * dot;
+}
+
+// Reflects the speed about the unit normal n.
+static inline void reflectSpeed(wnemSimple* wn, const Vec2f& n) {
+    reflectVec(wn->m_speed, wn->m_speed, n);
+}
+
+// The speed the wall-angle checks measure against. MATCH-ONLY: the named local matters. A bare `&wn->m_speed` argument
+// is a simple operand that MWCC emits in parameter order, after `&normal`; through this accessor it is a non-simple
+// operand and is evaluated first (right to left), as the original computes it before the normal's address.
+static inline Vec2f* speedPtr(wnemSimple* wn) {
+    Vec2f* speed = &wn->m_speed;
+    return speed;
+}
+
 void wnemPrimProc::BoomerangHave(wnemSimple* wn, soModuleAccesser* acc) {
     bool isFirstFrame = wn->unk2214;
     wn->unk2214 = false;
@@ -77,20 +99,37 @@ void wnemPrimProc::BoomerangHave(wnemSimple* wn, soModuleAccesser* acc) {
     }
 }
 
-// TODO(nonmatching): 98.75%, (a): with registers masked, the calls, arguments, constants and branches agree. What is left
-// is the saved-register assignment (the original keeps the string base in r31, wn in r29, the parameters in r30 and
-// the literal base in r28), where the speed's address is computed (twice before the vec2fAngle call, once around the
-// reflection), and the stack slot of the acceleration's return temporary (0x10 here, 0x28 in the original).
+// The boomerang's outward flight, run once per frame until something sends it back:
+// - First frame: arm the erase proc for when its life runs out, start its anim commands and put it in the air.
+// - If its team's number is anything but TeamNo_None, it stops accelerating, is set to be erased on touching the ground,
+//   and the frame ends. HYPOTHESIS: this is the reflected-by-an-opponent case; the code only shows the team test.
+// - On a touch: with mask 4 when facing right (lr 1) or mask 2 otherwise, an angle between the touch normal and the speed
+//   of at least 90 degrees plus param's bounce angle turns it back (Proc_BoomerangTurn) with zero speed. Any other touch
+//   reflects the speed about the touch normal and points the acceleration along the new direction, with the shot's
+//   acceleration magnitude.
+// - Hitting something, or slowing to param's minimum fly speed, also turns it back; both only change the proc, so the
+//   rest of this frame's logic still runs.
+//
+// TODO(nonmatching): 99.24%, (a): with registers masked, the calls, arguments, constants, branches and stack slots agree.
+// One instruction is left: the original emits `li param, 0` after the first-frame block, where it is first needed; we
+// emit it in front of the block. Declaring param in front of the block is the only form found that gives the
+// original's saved registers (string base r31, param r30, wn r29, literal base r28, acc r27): the colouring follows
+// the position of param's first definition (a definition after the block, by any shape tried, gives wn r31, literal
+// r30, string r29, param r28; one before isFirstFrame's load gives param r31, wn r30 and the zero shared with the
+// `false` store). The original therefore looks like a zero defined before the block whose `li` is re-materialised
+// after the calls; no source shape found makes MWCC do that (tried: declare/assign after the block, declare before
+// and assign after, if/else and ternary forms, inline getters with a local, an early return or a ternary, a redundant
+// re-assignment, a folded use in the block, int/u8 isFirstFrame, const pointee, the block as an inline helper).
 void wnemPrimProc::BoomerangFly(wnemSimple* wn, soModuleAccesser* acc) {
     bool isFirstFrame = wn->unk2214;
     wn->unk2214 = false;
+    wnemPrimBoomerangParam* param = NULL;
     if (isFirstFrame) {
         wnemCommonProc::Report("call wnemPrimProc::BoomerangFly  \n");
         wn->setProcFnc_LifeZero(Proc_BoomerangErase);
         wn->executeAnimCmd(0u);
         acc->getSituationModule().setKind(Situation_Air, true);
     }
-    wnemPrimBoomerangParam* param = NULL;
     if (wn->unk2234 != NULL) {
         param = reinterpret_cast<wnemPrimBoomerangParam*>(wn->unk2234);
     }
@@ -106,7 +145,7 @@ void wnemPrimProc::BoomerangFly(wnemSimple* wn, soModuleAccesser* acc) {
         if (acc->getPostureModule().getLr() == 1.0f) {
             if (acc->getGroundModule().isTouch(grCollStatus::TouchMask(4), 0) == true) {
                 normal = acc->getGroundModule().getTouchNormal(4, 0);
-                if (vec2fAngle(&normal, &wn->m_speed) >= 1.5707964f + bounceAngle) {
+                if (vec2fAngle(&normal, speedPtr(wn)) >= 1.5707964f + bounceAngle) {
                     wn->changeProcFnc(Proc_BoomerangTurn, 1);
                     wn->m_speed.m_x = wn->m_speed.m_y = 0.0f;
                     return;
@@ -115,7 +154,7 @@ void wnemPrimProc::BoomerangFly(wnemSimple* wn, soModuleAccesser* acc) {
         } else {
             if (acc->getGroundModule().isTouch(grCollStatus::TouchMask(2), 0) == true) {
                 normal = acc->getGroundModule().getTouchNormal(2, 0);
-                if (vec2fAngle(&normal, &wn->m_speed) >= 1.5707964f + bounceAngle) {
+                if (vec2fAngle(&normal, speedPtr(wn)) >= 1.5707964f + bounceAngle) {
                     wn->changeProcFnc(Proc_BoomerangTurn, 1);
                     wn->m_speed.m_x = wn->m_speed.m_y = 0.0f;
                     return;
@@ -124,8 +163,7 @@ void wnemPrimProc::BoomerangFly(wnemSimple* wn, soModuleAccesser* acc) {
         }
         // Otherwise it bounces off the ground: the speed is reflected about the touch normal.
         normal = acc->getGroundModule().getTouchNormal(0xff, 0);
-        float dot = normal.m_x * wn->m_speed.m_x + normal.m_y * wn->m_speed.m_y;
-        wn->m_speed = wn->m_speed - normal * 2.0f * dot;
+        reflectSpeed(wn, normal);
         emShotParam* shotParam = wn->m_shotWork.m_param;
         float speed = wn->m_speed.length();
         if (speed > 0.00001f) {
