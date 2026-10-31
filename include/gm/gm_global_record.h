@@ -248,7 +248,14 @@ struct gmGlobalRecord {
         u8 m_itemFrequency;
         char _1[7];
         gmItSwitch::ItemSwitch m_itemSwitch;
-        char _16[10];
+        union {
+            char _16[10];
+            struct {
+                u8 m_unk10[8];   // HYPOTHESIS: eight on/off settings that start on (set to 1 by InitAllRecord)
+                u8 m_volBalance; // 0x18: balance of the music and the sound effects, 0-100 (starts at 50); applied with sndSystem::setVolBalance
+                u8 m_deflicker;  // 0x19: the video deflicker setting (1 = on); applied with gfVideo::setDeflicker
+            };
+        };
         u8 m_language;
         char _27[5];
         StageSwitch m_stageSwitch;
@@ -270,10 +277,25 @@ struct gmGlobalRecord {
         u16 unk2;
         u8 unk4[0x50];
         u32 unk54[35];
-        u16 unkE0;
-        char _E2[0xC];
-        u16 unkEE;
-        char _F0[0x34];
+        union {
+            struct {
+                u16 unkE0;
+                char _E2[0xC];
+                u16 unkEE;
+                char _F0[0x34];
+            };
+            // Roles from the name accessors in gm_global.cpp (setName1, getNameUTF16, getNameRumbleSwitch,
+            // getVsModeAutoHandiPlayerVal, setButtonConfig). The old names above overlay the same bytes.
+            struct {
+                wchar_t m_name[6];        // 0xE0 UTF-16 text of the name tag; a zero first character marks an unused slot
+                u8 m_rumble;              // 0xEC rumble switch of the name tag (1 = on)
+                char _ED;
+                u16 m_handicap;           // 0xEE handicap kept for the tag (see getVsModeAutoHandiPlayerVal)
+                u32 m_date;               // 0xF0 gmGetDateCount() at the moment the tag was made
+                u8 m_buttonConfig[0x2D];  // 0xF4 the ipButtonConfig of the tag
+                char _121[3];
+            };
+        };
     };
     static_assert(sizeof(NameData) == 0x124, "Class is wrong size!");
 

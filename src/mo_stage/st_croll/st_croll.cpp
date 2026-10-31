@@ -36,8 +36,6 @@
 extern "C" void fn_80018778(void* camera);
 // gfCamera::getScreenPosition2WorldVector(): the vector from the camera through a place of the screen
 // GameGlobal::getCharaAppFlag() / getAssistAppFlag(): bit sets of the fighters / assist trophies that appeared
-extern "C" u32* fn_8004E580(GameGlobal* global);
-extern "C" u32* fn_8004E5A0(GameGlobal* global);
 // gmAddCoin(): adds coins to the coins of the player
 extern "C" void fn_80051440(int coins);
 // efScreen::cancelFill(frames, handle)
@@ -1709,8 +1707,8 @@ bool stCharacterRoll::isResTexEnable(int kind, int index) {
 int stCharacterRoll::initResTexFlags() {
     int total = 0;
     int bit = 0;
-    u32* charaFlags = fn_8004E580(g_GameGlobal);
-    u32* assistFlags = fn_8004E5A0(g_GameGlobal);
+    u32* charaFlags = g_GameGlobal->getCharaAppFlag();
+    u32* assistFlags = g_GameGlobal->getAssistAppFlag();
     for (int kind = 0; kind < 5; kind++) {
         int shown = 0;
         char name[0x80];

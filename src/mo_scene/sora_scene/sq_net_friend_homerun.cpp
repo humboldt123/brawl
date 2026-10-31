@@ -4,7 +4,6 @@
 #include <sr/sr_common.h>
 #include <types.h>
 
-extern "C" void fn_8004D010(GameGlobal* global);
 
 sqNetFriendHomerun* sqNetFriendHomerun::create() {
     return new (Heaps::GlobalMode) sqNetFriendHomerun("sqNetFriendHomerun");
@@ -12,7 +11,7 @@ sqNetFriendHomerun* sqNetFriendHomerun::create() {
 
 void sqNetFriendHomerun::start() {
     unk8 = 0;
-    fn_8004D010(g_GameGlobal);
+    g_GameGlobal->initSelCharData();
 }
 
 void sqNetFriendHomerun::exit() { }

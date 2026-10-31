@@ -48,16 +48,7 @@ extern "C" int fn_800BA2E0();
 extern "C" const char* fn_800B96B0();
 // GameGlobal: the names that were saved
 extern "C" void* fn_8004D138(GameGlobal* global, int index);                        // the record of a name
-extern "C" void fn_8004D20C(GameGlobal* global, int index);                         // removes the last name
-extern "C" void fn_8004D334(GameGlobal* global, int index, const wchar_t* name, int color);  // makes a name
-extern "C" void fn_8004D674(GameGlobal* global, int nameNo, wchar_t* buffer);           // the name in UTF-16
-extern "C" void fn_8004D6C4(GameGlobal* global, int nameNo, char* buffer);          // the name in UTF-8
-extern "C" int fn_8004D740(GameGlobal* global);                                     // how many names can still be made
-extern "C" int fn_8004D808(GameGlobal* global, const char* name);                   // the number of the name that has that text (-1: none)
-extern "C" void fn_8004D97C(GameGlobal* global, int nameNo, int value);
 extern "C" int fn_8004D9A8(GameGlobal* global, int nameNo);
-extern "C" void fn_8004DA60(GameGlobal* global, int nameNo, const u8* data);
-extern "C" const u8* fn_8004DA80(GameGlobal* global, int nameNo);                   // the 45 bytes that a name keeps next to the text
 // GameGlobal::getLanguage(): a member function (the shared header declares it static)
 extern "C" int getLanguage__10GameGlobalFv(GameGlobal* global);
 // gfPadSystem::getSysPadStatus, WPADProbe(channel, type), the sound of the Wii Remote, gfPadSystem::fn_8002B504()
@@ -1702,7 +1693,7 @@ void muNameTask::deleteName(int index) {
         char* src = static_cast<char*>(fn_8004D138(global, i + 1));
         memcpy(dst, src, 0x124);
     }
-    fn_8004D20C(global, count - 1);
+    global->delName(count - 1);
     for (int i = index; i < m_slotCount - 1; i++) {
         m_slots[i] = m_slots[i + 1];
     }
@@ -1757,7 +1748,7 @@ void muNameTask::dispUpdate(int cursor, int scroll) {
                 } else {
                     colorKind = i == cursor ? 6 : 5;
                 }
-            } else if (fn_8004D740(g_GameGlobal) > 0) {
+            } else if (g_GameGlobal->getNameCapacityRest() > 0) {
                 colorKind = i == cursor ? 3 : 2;
             } else {
                 colorKind = 4;
@@ -1768,7 +1759,7 @@ void muNameTask::dispUpdate(int cursor, int scroll) {
                 m_msg->printf(i, fn_800B96B0());
             } else {
                 char name[0x20];
-                fn_8004D6C4(g_GameGlobal, nameNo, name);
+                g_GameGlobal->getName(nameNo, name);
                 m_msg->printf(i, name);
             }
         } else {
@@ -1896,7 +1887,7 @@ int muNameTask::mainStepSelectNameMain(muNameTask* task) {
                 nameNo = id;
             }
             if (nameNo == -1) {
-                if (fn_8004D740(g_GameGlobal) <= 0) {
+                if (g_GameGlobal->getNameCapacityRest() <= 0) {
                     playSE(3);
                     return Step_NameFull;
                 }
@@ -2014,7 +2005,7 @@ int muNameTask::mainStepNameEntryMain(muNameTask* task) {
     int result = task->m_entry.main(pad, name, allowRandom, true);
     if (result == MuSelctChrNameEntry::Result_Decided) {
         GameGlobal* global = g_GameGlobal;
-        if (fn_8004D808(global, name) >= 0 || !MuSelctChrNameEntry::isNameValid(name) || fn_8004D740(global) <= 0) {
+        if (global->getNameNum(name) >= 0 || !MuSelctChrNameEntry::isNameValid(name) || global->getNameCapacityRest() <= 0) {
             playSE(3);
         } else {
             int color = fn_800BA2E0();
@@ -2024,7 +2015,7 @@ int muNameTask::mainStepNameEntryMain(muNameTask* task) {
             wchar_t wide[8];
             Message::utf8to16(wide, name);
             int index = global->getNumName();
-            fn_8004D334(global, index, wide, color);
+            global->setName(index, wide, color);
             task->addNameList(index);
             task->m_playerNo = fn_800BA2E0();
             task->updateAll();
@@ -2196,7 +2187,7 @@ int muNameTask::registRimoName(const u16* name, bool flag, const u8* data, bool 
     char nameUtf8[0x18];
     Message::utf16to8(nameUtf8, reinterpret_cast<const wchar_t*>(name));
     GameGlobal* global = g_GameGlobal;
-    int found = fn_8004D808(global, nameUtf8);
+    int found = global->getNameNum(nameUtf8);
     if (!overwrite && found >= 0) {
         return -1;
     }
@@ -2208,10 +2199,10 @@ int muNameTask::registRimoName(const u16* name, bool flag, const u8* data, bool 
         return -2;
     }
     if (found < 0) {
-        fn_8004D334(global, index, reinterpret_cast<const wchar_t*>(name), 0);
+        global->setName(index, reinterpret_cast<const wchar_t*>(name), 0);
     }
-    fn_8004D97C(global, index, flag);
-    fn_8004DA60(global, static_cast<u8>(index), data);
+    global->setNameRumbleSwitch(index, flag);
+    global->setButtonConfig(static_cast<u8>(index), reinterpret_cast<const ipButtonConfig*>(data));
     if (found < 0) {
         addNameList(static_cast<s16>(index));
     }
@@ -2427,7 +2418,7 @@ void muNameTask::mainStepRemoteMenuAppearInit(muNameTask* task) {
         reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2])->Remove(scnObjOf(task->m_objects[Obj_RemoteLine]));
     } else {
         wchar_t wide[8];
-        fn_8004D674(g_GameGlobal, task->m_remoteNameNo, wide);
+        g_GameGlobal->getNameUTF16(task->m_remoteNameNo, wide);
         nw4r::g3d::ScnGroup* group = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
         MuObject* line = task->m_objects[Obj_RemoteLine];
         group->Remove(scnObjOf(line));
@@ -2501,7 +2492,7 @@ int muNameTask::mainStepRemoteMenuMain(muNameTask* task) {
             reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2])->Remove(scnObjOf(task->m_objects[Obj_RemoteLine]));
         } else {
             wchar_t wide[8];
-            fn_8004D674(g_GameGlobal, task->m_remoteNameNo, wide);
+            g_GameGlobal->getNameUTF16(task->m_remoteNameNo, wide);
             nw4r::g3d::ScnGroup* group = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
             MuObject* line = task->m_objects[Obj_RemoteLine];
             group->Remove(scnObjOf(line));
@@ -2644,9 +2635,9 @@ void muNameTask::mainStepRemoteStoreWriteInit(muNameTask* task) {
     task->m_objects[Obj_RemoteWindow]->setFrameVisible(0.0f);
     muNameRemoteData data;
     memset(&data, 0, sizeof(data));
-    fn_8004D674(global, task->m_remoteNameNo, reinterpret_cast<wchar_t*>(data.m_name));
+    global->getNameUTF16(task->m_remoteNameNo, reinterpret_cast<wchar_t*>(data.m_name));
     data.m_flag = fn_8004D9A8(global, task->m_remoteNameNo);
-    memcpy(data.m_data, fn_8004DA80(global, static_cast<u8>(task->m_remoteNameNo)), sizeof(data.m_data));
+    memcpy(data.m_data, global->getButtonConfig(static_cast<u8>(task->m_remoteNameNo)), sizeof(data.m_data));
     task->m_returnCallback.m_canReturn = false;
     task->m_remote->write(&data);
     task->m_objects[Obj_RemoteWindow]->changeAnimN(3, 0x11, true, false);
@@ -2683,7 +2674,7 @@ void muNameTask::mainStepRemoteStoreCompleteInit(muNameTask* task) {
     MuObject* item2 = task->m_objects[Obj_RemoteItem2];
     playSE(0x27);
     wchar_t wide[8];
-    fn_8004D674(global, task->m_remoteNameNo, wide);
+    global->getNameUTF16(task->m_remoteNameNo, wide);
     task->printBaseNameHelp(4, reinterpret_cast<const u16*>(wide), 5, true);
     task->m_timer = 30;
     MuObject* cursor = task->m_objects[Obj_RemoteCursor];

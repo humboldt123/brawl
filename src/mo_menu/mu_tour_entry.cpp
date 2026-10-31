@@ -35,7 +35,6 @@ extern "C" void appendSubstr__7MessageFPcPCcii(char* dst, const char* src, int s
 extern "C" void utf8to16__7MessageFPwPCc(wchar_t* dst, const char* src);
 // GameGlobal: the settings of the rumble of a player and of a saved name
 extern "C" int fn_8004D9A8(GameGlobal* global, int nameTag);
-extern "C" int fn_8004DA94(GameGlobal* global, int player);
 // The instance of the sound system that the menus ask for the music
 extern void* lbl_805A01D8;
 // nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model)
@@ -396,7 +395,7 @@ void muTourEntryTask::setVsState() {
         int rumble;
         if (fighter->m_nameTag == 0x78) {
             if (player->m_state == 0) {
-                rumble = fn_8004DA94(g_GameGlobal, raw[7] - 1);
+                rumble = g_GameGlobal->getRumbleSetting(raw[7] - 1);
                 raw[0x1B] = (raw[0x1B] & ~0x40) | ((rumble << 6) & 0x40);
             } else {
                 raw[0x1B] = raw[0x1B] & ~0x40;

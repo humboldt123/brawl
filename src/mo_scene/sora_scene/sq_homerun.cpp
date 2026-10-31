@@ -5,7 +5,6 @@
 #include <sr/sr_common.h>
 #include <types.h>
 
-extern "C" void fn_8004D010(GameGlobal* global);
 
 sqHomerun* sqHomerun::create() {
     return new (Heaps::GlobalMode) sqHomerun("sqHomerun");
@@ -16,7 +15,7 @@ void sqHomerun::start() {
         unk8 = 7;
     } else {
         unk8 = 0;
-        fn_8004D010(g_GameGlobal);
+        g_GameGlobal->initSelCharData();
         unk11 = g_gfApplication->unk110[0] != 0;
     }
     unk12 = 0;

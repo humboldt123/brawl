@@ -24,8 +24,6 @@ extern "C" void fn_800B9804(muMenuController* controller, int pad);
 extern "C" void fn_800BA364(muMenuController* controller, int buttons);
 extern "C" int fn_800BA3D8(muMenuController* controller);
 // GameGlobal::getName(number, buffer) and GameGlobal::isEventOpen(list, event)
-extern "C" void fn_8004D6C4(GameGlobal* global, int number, char* buffer);
-extern "C" bool fn_8004E7A0(GameGlobal* global, u8 list, u8 event);
 // MuMsg::printData(message, data, length) and MuMsg::setFontWidthModeFixed(message, width)
 extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int length);
 extern "C" void setFontWidthModeFixed__5MuMsgFUlf(MuMsg* msg, u32 msgIndex, float width);
@@ -324,7 +322,7 @@ void muEventTask::initDisp() {
         if (name >= 0) {
             char buffer[0x20];
             m_objects[sNameSlots[i].m_object]->setFrameVisible(1.0f);
-            fn_8004D6C4(g_GameGlobal, name, buffer);
+            g_GameGlobal->getName(name, buffer);
             m_msg->printf(sNameSlots[i].m_msg, buffer);
         }
     }
@@ -484,7 +482,7 @@ bool muEventTask::nameSelectMainPlayer(int player) {
             char buffer[0x20];
             m_name[player] = m_wnds[player]->m_value;
             m_objects[sNameSlots[player].m_object]->setFrameVisible(1.0f);
-            fn_8004D6C4(g_GameGlobal, m_wnds[player]->m_value, buffer);
+            g_GameGlobal->getName(m_wnds[player]->m_value, buffer);
             m_msg->printf(sNameSlots[player].m_msg, buffer);
             if (m_wnds[player]->m_state == 1) {
                 g_sndSystem->playSE(static_cast<SndID>(1), -1, 0, 0, -1);
@@ -559,7 +557,7 @@ void muEventTask::makeEventList(muEventList* lists) {
         muEventEntry* dst = lists[set].m_entries;
         int count = 0;
         for (int i = 0; src->m_msgNo != -1; i++, src++) {
-            if (i > 0 && !fn_8004E7A0(g_GameGlobal, set, i)) {
+            if (i > 0 && !g_GameGlobal->isGlobalRecordEventOpened(set, i)) {
                 continue;
             }
             dst->m_msgNo = src->m_msgNo;

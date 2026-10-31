@@ -10,7 +10,6 @@ extern "C" void fn_801077D8(IfAdvMngr* mngr, stAdventureInfoDisp disp);
 extern "C" void fn_800DCEA8(IfMngr* mngr, stAdventureInfoDisp disp);
 extern "C" void fn_800E08A0(IfPlayer* player, stLoaderSandBagAppearInfo* info, u8 unk);
 extern "C" void fn_800E14A4(IfPlayer* player, u32 value, int a);
-extern "C" void fn_800E3684(IfPlayer* player, int state);
 
 void stAdventureInfoContact::sendToBossInfo(stAdventureInfoIconParam param, bool isStamina) {
     if (g_IfAdvMngr != NULL) {
@@ -68,10 +67,10 @@ void stAdventureInfoContact::sendToDestroyBossInfo(int index, bool isStamina) {
             g_IfMngr->setBossDeathDisp(index);
         } else {
             if (index == 0 && g_IfMngr->m_ifPlayers[1] != NULL) {
-                fn_800E3684(g_IfMngr->m_ifPlayers[g_IfMngr->unk68[1]], 2);
+                g_IfMngr->m_ifPlayers[g_IfMngr->unk68[1]]->setDamageState(2);
             }
             if (index == 1 && g_IfMngr->m_ifPlayers[2] != NULL) {
-                fn_800E3684(g_IfMngr->m_ifPlayers[g_IfMngr->unk68[2]], 2);
+                g_IfMngr->m_ifPlayers[g_IfMngr->unk68[2]]->setDamageState(2);
             }
         }
     }

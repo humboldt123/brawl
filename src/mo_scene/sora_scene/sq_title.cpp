@@ -7,7 +7,6 @@
 #include <sr/sr_common.h>
 #include <types.h>
 
-extern "C" void fn_8004D010(GameGlobal* global);
 
 sqTitle* sqTitle::create() {
     return new (Heaps::GlobalMode) sqTitle("sqTitle");

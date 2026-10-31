@@ -4,10 +4,9 @@
 #include <types.h>
 
 // HYPOTHESIS: GameGlobal::getGameFrameDelta (main.dol, unnamed).
-extern "C" float fn_8004E94C(GameGlobal* global);
 
 void Stage::processBegin() {
-    g_stGameFrame.m_frameDelta = fn_8004E94C(g_GameGlobal);
+    g_stGameFrame.m_frameDelta = g_GameGlobal->getGameFrameDelta();
     g_stGameFrame.m_isJust = g_GameGlobal->isJustGameFrame();
     if (m_shadow) {
         m_shadow->clearShadowObject();

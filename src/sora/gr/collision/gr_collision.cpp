@@ -33,10 +33,7 @@ struct grCollLineDataRaw {
 // Unnamed helpers of grCollisionJoint and grCollStatus that this unit calls (owned by their units).
 extern "C" {
 void fn_80112EBC(grCollisionJoint* joint, grCollision* collision, grCollData::JointData* jointData); // grCollisionJoint::grCollisionJoint
-void fn_801139E4(grCollisionJoint* joint); // grCollisionJoint::updateStatus
-void fn_80113724(grCollisionJoint* joint, bool firstUpdate); // grCollisionJoint::updatePos
 void fn_80113824(grCollisionJoint* joint); // grCollisionJoint::clearVLink
-void fn_80113BA8(grCollisionJoint* joint, u16 lineIndex, clSegment2D* out); // grCollisionJoint::getSegment
 void fn_801361F0(grCollStatus* status, grCollision* collision); // HYPOTHESIS: the status lets go of a collision that is being disabled
 void fn_80112D64(grCollisionManager* manager, grCollision* collision); // grCollisionManager::release
 // nw4r::ut::detail::LinkListImpl::Erase(LinkListNode*) (private in the header)
@@ -255,9 +252,9 @@ void grCollision::update() {
         clAABBox2D* box = &m_aabBox;
         for (u32 i = 0; i < m_jointLen; i++) {
             joint = &m_joints[i];
-            fn_801139E4(joint);
+            joint->updateStatus();
             if (joint->m_0x54_6) {
-                fn_80113724(joint, firstUpdate);
+                joint->updatePos(firstUpdate);
                 if (joint->m_0x55_6) {
                     fn_80113824(joint);
                 }
@@ -442,8 +439,9 @@ int grCollision::updateLinkVirtual2(grCollisionJoint* jointA, grCollisionJoint* 
     u32 collisionB = jointB->getCollisionId();
     for (u16 i = 0; i < lenA; i++, lineIdA++) {
         grCollisionLine* lineA = jointA->getLine(i);
-        clSegment2D segmentA;
-        fn_80113BA8(jointA, i, &segmentA);
+        grCollSegmentEx segmentExA;
+        jointA->getSegment(i, &segmentExA);
+        clSegment2D& segmentA = segmentExA.m_segment;
         // the box around segment A, grown by the link tolerance
         clAABBox2D boxA;
         boxA.m_unk1 = psMin(segmentA.m_p0Pos.m_x, segmentA.m_p1Pos.m_x) - margin.m_x;
@@ -465,8 +463,9 @@ int grCollision::updateLinkVirtual2(grCollisionJoint* jointA, grCollisionJoint* 
                     u32 mask = maskA | freeB;
                     if (mask != 0) {
                         u32 maskB = freeB | sameDir;
-                        clSegment2D segmentB;
-                        fn_80113BA8(jointB, j, &segmentB);
+                        grCollSegmentEx segmentExB;
+                        jointB->getSegment(j, &segmentExB);
+                        clSegment2D& segmentB = segmentExB.m_segment;
                         if (boxA.checkIntersect(segmentB)) {
                             if (mask & 1) {
                                 Vec2f diff;

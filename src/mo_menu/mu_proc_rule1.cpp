@@ -12,7 +12,6 @@
 // nw4r::g3d::ScnMdlExpand::PushBack(object, node name): attaches the object to the node of the model
 extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* scnMdl, void* object, const char* name);
 // GameGlobal::checkHideMenuAdditionalRule()
-extern "C" u8 fn_8004E810(GameGlobal* global);
 // Tells the game that the handicap of the rules changed
 extern "C" void fn_80050294();
 
@@ -108,7 +107,7 @@ muProcRule1::muProcRule1(MuObject** objs, nw4r::g3d::G3dObj** mdls, int mode, in
     for (int i = 0; i < Entry_Count; i++) {
         m_enabled[i] = true;
     }
-    m_hideAdditionalRule = fn_8004E810(g_GameGlobal);
+    m_hideAdditionalRule = g_GameGlobal->checkHideMenuAdditionalRule();
 }
 
 void muProcRule1::init(nw4r::g3d::ScnGroup* group, int from) {

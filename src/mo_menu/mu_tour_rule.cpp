@@ -21,9 +21,7 @@ long randi(long max);
 // gmCharacterKind::gmCheckChKindUseEnable(kind): the fighter can be picked (it is unlocked)
 extern "C" int fn_8004F4A0(int kind);
 // GameGlobal::checkHideMenuRandomStageSW(): the random stage switch of the menus is hidden
-extern "C" u8 fn_8004E834(GameGlobal* global);
 // GameGlobal::getName(number, buffer)
-extern "C" void fn_8004D6C4(GameGlobal* global, int number, char* buffer);
 // muMenuController::getAButtonPushedControllerID(): the pad that pushed A
 extern "C" int fn_800BA2E0();
 // CameraController::getInstance() and changeInput(kind)
@@ -1224,7 +1222,7 @@ void muTourRuleTask::initMdlData() {
         m_msg->setAlignMode(i + 14, MuMsg::Align_Center);
         m_msg->setFontWidthModeAuto(i + 14);
     }
-    if (fn_8004E834(g_GameGlobal) == 0) {
+    if (g_GameGlobal->checkHideMenuRandomStageSW() == 0) {
         m_msg->printf(13, "");
     }
     m_msg->attachScnMdlSimple(0x12, m_objs[OBJ_RULE_CONFIRM]->m_sceneModel, 0, 1.0f / 16.0f);
@@ -1396,7 +1394,7 @@ void muTourRuleTask::initMdlData() {
     tourPushBack(m_mdls[4], m_objs[OBJ_COLOR_CURSOR + 1]->m_scnMdl, "pos01");
     m_objs[OBJ_STAGE_MODE]->changeAnimN(0, 3, false, false);
     m_objs[OBJ_STAGE_MODE]->changeAnimN(0, 0x10, true, false);
-    if (fn_8004E834(g_GameGlobal) == 0) {
+    if (g_GameGlobal->checkHideMenuRandomStageSW() == 0) {
         m_objs[OBJ_STAGE_MODE]->setFrameVisible(0.0f);
     } else {
         m_objs[OBJ_STAGE_MODE]->setFrameVisible(1.0f);
@@ -2208,7 +2206,7 @@ void muTourRuleTask::processAnim() {
                 if (!m_nameDone) {
                     m_slots[m_slotCursor].m_named = 1;
                     m_slots[m_slotCursor].m_nameTag = m_nameWnd->m_resultNameNo;
-                    fn_8004D6C4(g_GameGlobal, m_nameWnd->m_resultNameNo, m_slots[m_slotCursor].m_name);
+                    g_GameGlobal->getName(m_nameWnd->m_resultNameNo, m_slots[m_slotCursor].m_name);
                     setPlayerWindow(m_slotCursor);
                     m_nameWnd->m_step = muNameTask::Step_Leave;
                     m_edited = 1;
@@ -2423,7 +2421,7 @@ void muTourRuleTask::processAnim() {
                 moved = true;
                 m_stageMode--;
             } else if (repeat & PAD_DOWN) {
-                u32 last = fn_8004E834(g_GameGlobal) ? 3 : 2;
+                u32 last = g_GameGlobal->checkHideMenuRandomStageSW() ? 3 : 2;
                 if ((u32)m_stageMode < last) {
                     moved = true;
                     m_stageMode++;
