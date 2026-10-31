@@ -39,6 +39,8 @@ typedef wnArticleHierarchy<wnDonkeyBarrelConga, 1, ftDonkeySoundEffectPool> ftDo
 class ftDonkeyArticleMediator : public soArticleMediator {
     ftDonkeyBarrelCongaPool m_pools;
     u8 m_autoRecycle;
+    // The slot members (wnArticleSlot*, wn/wn_article_pool.h) read the pool chain.
+    WN_ARTICLE_SLOT_FRIENDS
 public:
     ftDonkeyArticleMediator(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~ftDonkeyArticleMediator();

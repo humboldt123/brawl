@@ -284,8 +284,8 @@ void ftCaptainArticleMediator::deactivate() {
 
 s32 ftCaptainArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_CAPTAIN_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -298,54 +298,19 @@ struct ftCaptainActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_CAPTAIN_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftCaptainActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftCaptainActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftCaptainArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_CAPTAIN_COUNT_ACTIVE(FT_CAPTAIN_POOL_BLUEFALCON, 1)
-    case 1: FT_CAPTAIN_COUNT_ACTIVE(FT_CAPTAIN_POOL_FINALBG, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnCaptainBlueFalcon, 1, ftCaptainFinalBgPool>, ftCaptainActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnCaptainFinalBg, 1, soInstancePoolRoot>, ftCaptainActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_CAPTAIN_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_CAPTAIN_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftCaptainArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_CAPTAIN_CAN_GENERATE(FT_CAPTAIN_POOL_BLUEFALCON, 1, 0)
-    case 1: FT_CAPTAIN_CAN_GENERATE(FT_CAPTAIN_POOL_FINALBG, 1, 1)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnCaptainBlueFalcon, 1, ftCaptainFinalBgPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnCaptainFinalBg, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_CAPTAIN_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -359,29 +324,10 @@ template <> struct ftCaptainArticleActivator<wnCaptainFinalBg> {
     static bool activate(wnCaptainFinalBg* weapon, soModuleAccesser* acc) { return ftCaptain::activeArticle1(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_CAPTAIN_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftCaptainArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftCaptainArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_CAPTAIN_GENERATE(wnCaptainBlueFalcon, FT_CAPTAIN_POOL_BLUEFALCON)
-    case 1: FT_CAPTAIN_GENERATE(wnCaptainFinalBg, FT_CAPTAIN_POOL_FINALBG)
+    case 0: return wnArticleSlotGenerate<ftCaptainArticleActivator<wnCaptainBlueFalcon> >(static_cast<wnArticlePool<wnCaptainBlueFalcon, 1, ftCaptainFinalBgPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftCaptainArticleActivator<wnCaptainFinalBg> >(static_cast<wnArticlePool<wnCaptainFinalBg, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_CAPTAIN_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -389,8 +335,8 @@ soArticle* ftCaptainArticleMediator::generate(s32 articleId, soModuleAccesser* a
 
 bool ftCaptainArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnCaptainBlueFalcon&>(*article); return true; }
-    case 1: { wnArticleSlotTag tag; (void)dynamic_cast<wnCaptainFinalBg&>(*article); return true; }
+    case 0: return wnArticleSlotShoot<wnCaptainBlueFalcon>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnCaptainFinalBg>(article, WN_ARTICLE_SLOT_TAGS);
     FT_CAPTAIN_UNUSED_SLOTS(true)
     default: return false;
     }

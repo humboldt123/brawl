@@ -41,6 +41,8 @@ typedef wnArticleHierarchy<wnLuigiFireball, 2, ftLuigiNegativeZonePool> ftLuigiF
 class ftLuigiArticleMediator : public soArticleMediator {
     ftLuigiFireballPool m_pools;
     u8 m_autoRecycle;
+    // The slot members (wnArticleSlot*, wn/wn_article_pool.h) read the pool chain.
+    WN_ARTICLE_SLOT_FRIENDS
 public:
     ftLuigiArticleMediator(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~ftLuigiArticleMediator();

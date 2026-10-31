@@ -376,10 +376,10 @@ void ftMarioArticleMediator::deactivate() {
 
 s32 ftMarioArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 5; }
-    case 2: { wnArticleSlotTag tag; return 1; }
-    case 3: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(5, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_MARIO_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -392,58 +392,23 @@ struct ftMarioActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_MARIO_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftMarioActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftMarioActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftMarioArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_MARIO_COUNT_ACTIVE(FT_MARIO_POOL_MANTLE, 1)
-    case 1: FT_MARIO_COUNT_ACTIVE(FT_MARIO_POOL_FIREBALL, 5)
-    case 2: FT_MARIO_COUNT_ACTIVE(FT_MARIO_POOL_PUMP, 1)
-    case 3: FT_MARIO_COUNT_ACTIVE(FT_MARIO_POOL_HUGE_FLAME, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnMarioMantle, 1, ftMarioFireballPool>, ftMarioActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnMarioFireball, 5, ftMarioPumpPool>, ftMarioActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnMarioPump, 1, ftMarioHugeFlamePool>, ftMarioActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnMarioHugeFlame, 1, soInstancePoolRoot>, ftMarioActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_MARIO_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_MARIO_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftMarioArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_MARIO_CAN_GENERATE(FT_MARIO_POOL_MANTLE, 1, 0)
-    case 1: FT_MARIO_CAN_GENERATE(FT_MARIO_POOL_FIREBALL, 5, 1)
-    case 2: FT_MARIO_CAN_GENERATE(FT_MARIO_POOL_PUMP, 1, 2)
-    case 3: FT_MARIO_CAN_GENERATE(FT_MARIO_POOL_HUGE_FLAME, 1, 3)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnMarioMantle, 1, ftMarioFireballPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnMarioFireball, 5, ftMarioPumpPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnMarioPump, 1, ftMarioHugeFlamePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnMarioHugeFlame, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_MARIO_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -463,49 +428,32 @@ template <> struct ftMarioArticleActivator<wnMarioHugeFlame> {
     static bool activate(wnMarioHugeFlame* weapon, soModuleAccesser* acc) { return ftMario::activeArticle3(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_MARIO_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftMarioArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftMarioArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_MARIO_GENERATE(wnMarioMantle, FT_MARIO_POOL_MANTLE)
-    case 1: FT_MARIO_GENERATE(wnMarioFireball, FT_MARIO_POOL_FIREBALL)
-    case 2: FT_MARIO_GENERATE(wnMarioPump, FT_MARIO_POOL_PUMP)
-    case 3: FT_MARIO_GENERATE(wnMarioHugeFlame, FT_MARIO_POOL_HUGE_FLAME)
+    case 0: return wnArticleSlotGenerate<ftMarioArticleActivator<wnMarioMantle> >(static_cast<wnArticlePool<wnMarioMantle, 1, ftMarioFireballPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftMarioArticleActivator<wnMarioFireball> >(static_cast<wnArticlePool<wnMarioFireball, 5, ftMarioPumpPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftMarioArticleActivator<wnMarioPump> >(static_cast<wnArticlePool<wnMarioPump, 1, ftMarioHugeFlamePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftMarioArticleActivator<wnMarioHugeFlame> >(static_cast<wnArticlePool<wnMarioHugeFlame, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_MARIO_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
 // Shooting only type-checks the articles, except the Final Smash flame, which flies off from the position of the fighter.
+template <int S, int L>
+inline bool ftMarioShootSlot3(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    wnMarioHugeFlame& flame = dynamic_cast<wnMarioHugeFlame&>(*article);
+    Vec3f pos = acc->getPostureModule().getPos();
+    flame.toFly(&pos);
+    return true;
+}
+
 bool ftMarioArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnMarioMantle&>(*article); return true; }
-    case 1: { wnArticleSlotTag tag; (void)dynamic_cast<wnMarioFireball&>(*article); return true; }
-    case 2: { wnArticleSlotTag tag; (void)dynamic_cast<wnMarioPump&>(*article); return true; }
-    case 3: {
-        wnArticleSlotTag tag;
-        wnMarioHugeFlame& flame = dynamic_cast<wnMarioHugeFlame&>(*article);
-        Vec3f pos = acc->getPostureModule().getPos();
-        flame.toFly(&pos);
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnMarioMantle>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnMarioFireball>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnMarioPump>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftMarioShootSlot3(acc, article, WN_ARTICLE_SLOT_TAGS);
     FT_MARIO_UNUSED_SLOTS(true)
     default: return false;
     }

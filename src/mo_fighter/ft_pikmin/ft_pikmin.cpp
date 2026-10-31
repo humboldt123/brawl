@@ -233,9 +233,9 @@ void ftPikminArticleMediator::deactivate() {
 
 s32 ftPikminArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 6; }
-    case 1: { wnArticleSlotTag tag; return 1; }
-    case 2: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(6, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_PIKMIN_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -248,56 +248,21 @@ struct ftPikminActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_PIKMIN_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftPikminActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftPikminActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftPikminArticleMediator::getActiveNum(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_PIKMIN_COUNT_ACTIVE(FT_PIKMIN_POOL_PIKMIN, 6)
-    case 1: FT_PIKMIN_COUNT_ACTIVE(FT_PIKMIN_POOL_DOLFIN, 1)
-    case 2: FT_PIKMIN_COUNT_ACTIVE(FT_PIKMIN_POOL_CHAIN, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnPikminPikmin, 6, ftPikminDolfinPool>, ftPikminActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnPikminDolfin, 1, ftPikminChainPool>, ftPikminActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnPikminChain, 1, soInstancePoolRoot>, ftPikminActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_PIKMIN_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_PIKMIN_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftPikminArticleMediator::isGeneratable(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_PIKMIN_CAN_GENERATE(FT_PIKMIN_POOL_PIKMIN, 6, 0)
-    case 1: FT_PIKMIN_CAN_GENERATE(FT_PIKMIN_POOL_DOLFIN, 1, 1)
-    case 2: FT_PIKMIN_CAN_GENERATE(FT_PIKMIN_POOL_CHAIN, 1, 2)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnPikminPikmin, 6, ftPikminDolfinPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnPikminDolfin, 1, ftPikminChainPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnPikminChain, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_PIKMIN_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -314,30 +279,11 @@ template <> struct ftPikminArticleActivator<wnPikminChain> {
     static bool activate(wnPikminChain* weapon, soModuleAccesser* acc) { return ftPikminUtility::activeArticle2(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_PIKMIN_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftPikminArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftPikminArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_PIKMIN_GENERATE(wnPikminPikmin, FT_PIKMIN_POOL_PIKMIN)
-    case 1: FT_PIKMIN_GENERATE(wnPikminDolfin, FT_PIKMIN_POOL_DOLFIN)
-    case 2: FT_PIKMIN_GENERATE(wnPikminChain, FT_PIKMIN_POOL_CHAIN)
+    case 0: return wnArticleSlotGenerate<ftPikminArticleActivator<wnPikminPikmin> >(static_cast<wnArticlePool<wnPikminPikmin, 6, ftPikminDolfinPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftPikminArticleActivator<wnPikminDolfin> >(static_cast<wnArticlePool<wnPikminDolfin, 1, ftPikminChainPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftPikminArticleActivator<wnPikminChain> >(static_cast<wnArticlePool<wnPikminChain, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_PIKMIN_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -345,9 +291,9 @@ soArticle* ftPikminArticleMediator::generate(s32 articleId, soModuleAccesser* ac
 
 bool ftPikminArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnPikminPikmin&>(*article); return true; }
-    case 1: { wnArticleSlotTag tag; (void)dynamic_cast<wnPikminDolfin&>(*article); return true; }
-    case 2: { wnArticleSlotTag tag; (void)dynamic_cast<wnPikminChain&>(*article); return true; }
+    case 0: return wnArticleSlotShoot<wnPikminPikmin>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnPikminDolfin>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnPikminChain>(article, WN_ARTICLE_SLOT_TAGS);
     FT_PIKMIN_UNUSED_SLOTS(true)
     default: return false;
     }

@@ -720,19 +720,19 @@ void ftSnakeArticleMediator::deactivate() {
 
 s32 ftSnakeArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 1; }
-    case 2: { wnArticleSlotTag tag; return 1; }
-    case 3: { wnArticleSlotTag tag; return 1; }
-    case 4: { wnArticleSlotTag tag; return 1; }
-    case 5: { wnArticleSlotTag tag; return 1; }
-    case 6: { wnArticleSlotTag tag; return 1; }
-    case 7: { wnArticleSlotTag tag; return 1; }
-    case 8: { wnArticleSlotTag tag; return 1; }
-    case 9: { wnArticleSlotTag tag; return 1; }
-    case 10: { wnArticleSlotTag tag; return 1; }
-    case 11: { wnArticleSlotTag tag; return 1; }
-    case 12: { wnArticleSlotTag tag; return 2; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 8: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 9: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 10: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 11: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 12: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOT(13, 0)
     WN_ARTICLE_UNUSED_SLOT(14, 0)
     FT_SNAKE_UNUSED_SLOTS(0)
@@ -747,80 +747,65 @@ struct ftSnakeActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_SNAKE_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftSnakeActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftSnakeActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
+template <int S, int L>
+inline s32 ftSnakeGetActiveNumSlot13(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+        return 2 - acc->getGenerateArticleManageModule().getNum(13);
+}
+
+template <int S, int L>
+inline s32 ftSnakeGetActiveNumSlot14(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+        return 1 - acc->getGenerateArticleManageModule().getNum(14);
+}
 
 s32 ftSnakeArticleMediator::getActiveNum(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_MINE, 1)
-    case 1: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_TRENCHMORTAR, 1)
-    case 2: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_RPG7, 1)
-    case 3: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_CYPHER, 1)
-    case 4: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_C4, 1)
-    case 5: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_C4SWITCH, 1)
-    case 6: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_NIKITA, 1)
-    case 7: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_LADDER, 1)
-    case 8: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_RGB6, 1)
-    case 9: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_RGB6SIGHT, 1)
-    case 10: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_RGB6CLIP, 1)
-    case 11: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_RGB6BULLET, 1)
-    case 12: FT_SNAKE_COUNT_ACTIVE(FT_SNAKE_POOL_SIMPLE, 2)
-    case 13: { wnArticleSlotTag tag; return 2 - acc->getGenerateArticleManageModule().getNum(13); }
-    case 14: { wnArticleSlotTag tag; return 1 - acc->getGenerateArticleManageModule().getNum(14); }
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeMine, 1, ftSnakeTrenchMortarPool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeTrenchMortar, 1, ftSnakeRpg7Pool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeRpg7, 1, ftSnakeCypherPool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeCypher, 1, ftSnakeC4Pool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeC4, 1, ftSnakeC4SwitchPool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeC4Switch, 1, ftSnakeNikitaPool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeNikita, 1, ftSnakeLadderPool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeLadder, 1, ftSnakeRgb6Pool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 8: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeRgb6, 1, ftSnakeRgb6SightPool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 9: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeRgb6Sight, 1, ftSnakeRgb6ClipPool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 10: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeRgb6Clip, 1, ftSnakeRgb6BulletPool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 11: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeRgb6Bullet, 1, ftSnakeSimplePool>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 12: return wnArticleSlotActiveNum<wnArticlePool<wnSimple, 2, soInstancePoolRoot>, ftSnakeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 13: return ftSnakeGetActiveNumSlot13(acc, WN_ARTICLE_SLOT_TAGS);
+    case 14: return ftSnakeGetActiveNumSlot14(acc, WN_ARTICLE_SLOT_TAGS);
     FT_SNAKE_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_SNAKE_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
+template <int S, int L>
+inline bool ftSnakeIsGeneratableSlot13(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+        return acc->getGenerateArticleManageModule().getNum(13) < 2;
+}
+
+template <int S, int L>
+inline bool ftSnakeIsGeneratableSlot14(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+        return acc->getGenerateArticleManageModule().getNum(14) < 1;
+}
 
 bool ftSnakeArticleMediator::isGeneratable(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_MINE, 1, 0)
-    case 1: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_TRENCHMORTAR, 1, 1)
-    case 2: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_RPG7, 1, 2)
-    case 3: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_CYPHER, 1, 3)
-    case 4: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_C4, 1, 4)
-    case 5: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_C4SWITCH, 1, 5)
-    case 6: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_NIKITA, 1, 6)
-    case 7: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_LADDER, 1, 7)
-    case 8: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_RGB6, 1, 8)
-    case 9: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_RGB6SIGHT, 1, 9)
-    case 10: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_RGB6CLIP, 1, 10)
-    case 11: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_RGB6BULLET, 1, 11)
-    case 12: FT_SNAKE_CAN_GENERATE(FT_SNAKE_POOL_SIMPLE, 2, 12)
-    case 13: { wnArticleSlotTag tag; return acc->getGenerateArticleManageModule().getNum(13) < 2; }
-    case 14: { wnArticleSlotTag tag; return acc->getGenerateArticleManageModule().getNum(14) < 1; }
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeMine, 1, ftSnakeTrenchMortarPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeTrenchMortar, 1, ftSnakeRpg7Pool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeRpg7, 1, ftSnakeCypherPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeCypher, 1, ftSnakeC4Pool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeC4, 1, ftSnakeC4SwitchPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeC4Switch, 1, ftSnakeNikitaPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeNikita, 1, ftSnakeLadderPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeLadder, 1, ftSnakeRgb6Pool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 8: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeRgb6, 1, ftSnakeRgb6SightPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 9: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeRgb6Sight, 1, ftSnakeRgb6ClipPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 10: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeRgb6Clip, 1, ftSnakeRgb6BulletPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 11: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeRgb6Bullet, 1, ftSnakeSimplePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 12: return wnArticleSlotIsGeneratable<wnArticlePool<wnSimple, 2, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 13: return ftSnakeIsGeneratableSlot13(acc, WN_ARTICLE_SLOT_TAGS);
+    case 14: return ftSnakeIsGeneratableSlot14(acc, WN_ARTICLE_SLOT_TAGS);
     FT_SNAKE_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -867,67 +852,55 @@ template <> struct ftSnakeArticleActivator<wnSimple> {
     static bool activate(wnSimple* weapon, soModuleAccesser* acc) { return ftSnake::activeArticle12(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_SNAKE_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftSnakeArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
+template <int S, int L>
+inline soArticle* ftSnakeGenerateSlot13(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    if (acc->getGenerateArticleManageModule().getNum(13) >= 2) {
+        return wnGetNullArticle();
     }
+    BaseItem* item = soArticleMediatorHelper::createItem(0x59, 13, acc->getStageObject().m_taskId);
+    if (item == NULL) {
+        return wnGetNullArticle();
+    }
+    return soArticleMediatorHelper::castArticle(item);
+}
+
+template <int S, int L>
+inline soArticle* ftSnakeGenerateSlot14(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    if (acc->getGenerateArticleManageModule().getNum(14) >= 1) {
+        return wnGetNullArticle();
+    }
+    BaseItem* item = soArticleMediatorHelper::createItem(0x53, 14, acc->getStageObject().m_taskId);
+    if (item == NULL) {
+        return wnGetNullArticle();
+    }
+    return soArticleMediatorHelper::castArticle(item);
+}
 
 soArticle* ftSnakeArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_SNAKE_GENERATE(wnSnakeMine, FT_SNAKE_POOL_MINE)
-    case 1: FT_SNAKE_GENERATE(wnSnakeTrenchMortar, FT_SNAKE_POOL_TRENCHMORTAR)
-    case 2: FT_SNAKE_GENERATE(wnSnakeRpg7, FT_SNAKE_POOL_RPG7)
-    case 3: FT_SNAKE_GENERATE(wnSnakeCypher, FT_SNAKE_POOL_CYPHER)
-    case 4: FT_SNAKE_GENERATE(wnSnakeC4, FT_SNAKE_POOL_C4)
-    case 5: FT_SNAKE_GENERATE(wnSnakeC4Switch, FT_SNAKE_POOL_C4SWITCH)
-    case 6: FT_SNAKE_GENERATE(wnSnakeNikita, FT_SNAKE_POOL_NIKITA)
-    case 7: FT_SNAKE_GENERATE(wnSnakeLadder, FT_SNAKE_POOL_LADDER)
-    case 8: FT_SNAKE_GENERATE(wnSnakeRgb6, FT_SNAKE_POOL_RGB6)
-    case 9: FT_SNAKE_GENERATE(wnSnakeRgb6Sight, FT_SNAKE_POOL_RGB6SIGHT)
-    case 10: FT_SNAKE_GENERATE(wnSnakeRgb6Clip, FT_SNAKE_POOL_RGB6CLIP)
-    case 11: FT_SNAKE_GENERATE(wnSnakeRgb6Bullet, FT_SNAKE_POOL_RGB6BULLET)
-    case 12: FT_SNAKE_GENERATE(wnSimple, FT_SNAKE_POOL_SIMPLE)
-    case 13: {
-        wnArticleSlotTag tag;
-        if (acc->getGenerateArticleManageModule().getNum(13) >= 2) {
-            return wnGetNullArticle();
-        }
-        BaseItem* item = soArticleMediatorHelper::createItem(0x59, 13, acc->getStageObject().m_taskId);
-        if (item == NULL) {
-            return wnGetNullArticle();
-        }
-        return soArticleMediatorHelper::castArticle(item);
-    }
-    case 14: {
-        wnArticleSlotTag tag;
-        if (acc->getGenerateArticleManageModule().getNum(14) >= 1) {
-            return wnGetNullArticle();
-        }
-        BaseItem* item = soArticleMediatorHelper::createItem(0x53, 14, acc->getStageObject().m_taskId);
-        if (item == NULL) {
-            return wnGetNullArticle();
-        }
-        return soArticleMediatorHelper::castArticle(item);
-    }
+    case 0: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeMine> >(static_cast<wnArticlePool<wnSnakeMine, 1, ftSnakeTrenchMortarPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeTrenchMortar> >(static_cast<wnArticlePool<wnSnakeTrenchMortar, 1, ftSnakeRpg7Pool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeRpg7> >(static_cast<wnArticlePool<wnSnakeRpg7, 1, ftSnakeCypherPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeCypher> >(static_cast<wnArticlePool<wnSnakeCypher, 1, ftSnakeC4Pool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeC4> >(static_cast<wnArticlePool<wnSnakeC4, 1, ftSnakeC4SwitchPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeC4Switch> >(static_cast<wnArticlePool<wnSnakeC4Switch, 1, ftSnakeNikitaPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeNikita> >(static_cast<wnArticlePool<wnSnakeNikita, 1, ftSnakeLadderPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeLadder> >(static_cast<wnArticlePool<wnSnakeLadder, 1, ftSnakeRgb6Pool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 8: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeRgb6> >(static_cast<wnArticlePool<wnSnakeRgb6, 1, ftSnakeRgb6SightPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 9: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeRgb6Sight> >(static_cast<wnArticlePool<wnSnakeRgb6Sight, 1, ftSnakeRgb6ClipPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 10: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeRgb6Clip> >(static_cast<wnArticlePool<wnSnakeRgb6Clip, 1, ftSnakeRgb6BulletPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 11: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSnakeRgb6Bullet> >(static_cast<wnArticlePool<wnSnakeRgb6Bullet, 1, ftSnakeSimplePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 12: return wnArticleSlotGenerate<ftSnakeArticleActivator<wnSimple> >(static_cast<wnArticlePool<wnSimple, 2, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 13: return ftSnakeGenerateSlot13(acc, WN_ARTICLE_SLOT_TAGS);
+    case 14: return ftSnakeGenerateSlot14(acc, WN_ARTICLE_SLOT_TAGS);
     FT_SNAKE_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+// shoot() still uses the slot marker (wnArticleSlotTag, see its tag) in every case: the two item cases store a third
+// marker byte whose source form is not found yet (a trailing third tag argument stores it in the right order but in the
+// caller's frame area), and spelling only the other cases with tag arguments moves their stack slots.
 bool ftSnakeArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
     case 0: {
@@ -1007,8 +980,8 @@ bool ftSnakeArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
         bool flag = false;
         return ftSnake::shootItem1(article, &flag, acc);
     }
-    WN_ARTICLE_UNUSED_SLOT(15, true)
-    WN_ARTICLE_UNUSED_SLOT(16, true)
+    case 15: { wnArticleSlotTag tag; return true; }
+    case 16: { wnArticleSlotTag tag; return true; }
     default: return false;
     }
 }

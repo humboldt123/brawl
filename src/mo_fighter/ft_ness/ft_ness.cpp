@@ -397,12 +397,12 @@ void ftNessArticleMediator::deactivate() {
 
 s32 ftNessArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 2; }
-    case 2: { wnArticleSlotTag tag; return 2; }
-    case 3: { wnArticleSlotTag tag; return 16; }
-    case 4: { wnArticleSlotTag tag; return 1; }
-    case 5: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(16, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_NESS_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -415,108 +415,59 @@ struct ftNessActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_NESS_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftNessActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftNessActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftNessArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_NESS_COUNT_ACTIVE(FT_NESS_POOL_FLASH, 1)
-    case 1: FT_NESS_COUNT_ACTIVE(FT_NESS_POOL_FIRE, 2)
-    case 2: FT_NESS_COUNT_ACTIVE(FT_NESS_POOL_THUNDER, 2)
-    case 3: FT_NESS_COUNT_ACTIVE(FT_NESS_POOL_STAR_STORM, 16)
-    case 4: FT_NESS_COUNT_ACTIVE(FT_NESS_POOL_YOYO, 1)
-    case 5: FT_NESS_COUNT_ACTIVE(FT_NESS_POOL_YOYO_HEAD, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnNessPKFlash, 1, ftNessFirePool>, ftNessActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnNessPKFire, 2, ftNessThunderPool>, ftNessActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnNessPKThunder, 2, ftNessStarStormPool>, ftNessActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnNessPKStarStorm, 16, ftNessYoyoPool>, ftNessActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotActiveNum<wnArticlePool<wnNessYoyo, 1, ftNessYoyoHeadPool>, ftNessActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotActiveNum<wnArticlePool<wnNessYoyoHead, 1, soInstancePoolRoot>, ftNessActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_NESS_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_NESS_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftNessArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_NESS_CAN_GENERATE(FT_NESS_POOL_FLASH, 1, 0)
-    case 1: FT_NESS_CAN_GENERATE(FT_NESS_POOL_FIRE, 2, 1)
-    case 2: FT_NESS_CAN_GENERATE(FT_NESS_POOL_THUNDER, 2, 2)
-    case 3: FT_NESS_CAN_GENERATE(FT_NESS_POOL_STAR_STORM, 16, 3)
-    case 4: FT_NESS_CAN_GENERATE(FT_NESS_POOL_YOYO, 1, 4)
-    case 5: FT_NESS_CAN_GENERATE(FT_NESS_POOL_YOYO_HEAD, 1, 5)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnNessPKFlash, 1, ftNessFirePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnNessPKFire, 2, ftNessThunderPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnNessPKThunder, 2, ftNessStarStormPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnNessPKStarStorm, 16, ftNessYoyoPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotIsGeneratable<wnArticlePool<wnNessYoyo, 1, ftNessYoyoHeadPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotIsGeneratable<wnArticlePool<wnNessYoyoHead, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_NESS_UNUSED_SLOTS(false)
     default: return false;
     }
 }
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_NESS_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftNessArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftNessArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_NESS_GENERATE(wnNessPKFlash, FT_NESS_POOL_FLASH)
-    case 1: FT_NESS_GENERATE(wnNessPKFire, FT_NESS_POOL_FIRE)
-    case 2: FT_NESS_GENERATE(wnNessPKThunder, FT_NESS_POOL_THUNDER)
-    case 3: FT_NESS_GENERATE(wnNessPKStarStorm, FT_NESS_POOL_STAR_STORM)
-    case 4: FT_NESS_GENERATE(wnNessYoyo, FT_NESS_POOL_YOYO)
-    case 5: FT_NESS_GENERATE(wnNessYoyoHead, FT_NESS_POOL_YOYO_HEAD)
+    case 0: return wnArticleSlotGenerate<ftNessArticleActivator<wnNessPKFlash> >(static_cast<wnArticlePool<wnNessPKFlash, 1, ftNessFirePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftNessArticleActivator<wnNessPKFire> >(static_cast<wnArticlePool<wnNessPKFire, 2, ftNessThunderPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftNessArticleActivator<wnNessPKThunder> >(static_cast<wnArticlePool<wnNessPKThunder, 2, ftNessStarStormPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftNessArticleActivator<wnNessPKStarStorm> >(static_cast<wnArticlePool<wnNessPKStarStorm, 16, ftNessYoyoPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerate<ftNessArticleActivator<wnNessYoyo> >(static_cast<wnArticlePool<wnNessYoyo, 1, ftNessYoyoHeadPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerate<ftNessArticleActivator<wnNessYoyoHead> >(static_cast<wnArticlePool<wnNessYoyoHead, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_NESS_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
 // Shooting only type-checks the article; the unused slots accept anything.
+template <int S, int L>
+inline bool ftNessShootSlot0(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+        return ftNessTransactor::getInstance()->shootArticle1(&dynamic_cast<wnNessPKFlash&>(*article), acc);
+}
+
 bool ftNessArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; return ftNessTransactor::getInstance()->shootArticle1(&dynamic_cast<wnNessPKFlash&>(*article), acc); }
-    case 1: { wnArticleSlotTag tag; (void)dynamic_cast<wnNessPKFire&>(*article); return true; }
-    case 2: { wnArticleSlotTag tag; (void)dynamic_cast<wnNessPKThunder&>(*article); return true; }
-    case 3: { wnArticleSlotTag tag; (void)dynamic_cast<wnNessPKStarStorm&>(*article); return true; }
-    case 4: { wnArticleSlotTag tag; (void)dynamic_cast<wnNessYoyo&>(*article); return true; }
-    case 5: { wnArticleSlotTag tag; (void)dynamic_cast<wnNessYoyoHead&>(*article); return true; }
+    case 0: return ftNessShootSlot0(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnNessPKFire>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnNessPKThunder>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnNessPKStarStorm>(article, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotShoot<wnNessYoyo>(article, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotShoot<wnNessYoyoHead>(article, WN_ARTICLE_SLOT_TAGS);
     FT_NESS_UNUSED_SLOTS(true)
     default: return false;
     }

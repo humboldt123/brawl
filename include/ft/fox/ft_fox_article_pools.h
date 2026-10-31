@@ -45,6 +45,7 @@ typedef wnArticleHierarchy<wnFoxBlaster, 1, ftFoxBulletPool> ftFoxBlasterPool;
 class ftFoxArticleMediator : public soArticleMediator {
     ftFoxBlasterPool m_pools;
     u8 m_autoRecycle;
+    WN_ARTICLE_SLOT_FRIENDS
 public:
     ftFoxArticleMediator(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~ftFoxArticleMediator();

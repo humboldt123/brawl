@@ -227,8 +227,8 @@ void ftLuigiArticleMediator::deactivate() {
 
 s32 ftLuigiArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 2; }
-    case 1: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_LUIGI_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -241,54 +241,19 @@ struct ftLuigiActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_LUIGI_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftLuigiActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftLuigiActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftLuigiArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_LUIGI_COUNT_ACTIVE(FT_LUIGI_POOL_FIREBALL, 2)
-    case 1: FT_LUIGI_COUNT_ACTIVE(FT_LUIGI_POOL_NEGATIVE_ZONE, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnLuigiFireball, 2, ftLuigiNegativeZonePool>, ftLuigiActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnLuigiNegativeZone, 1, soInstancePoolRoot>, ftLuigiActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_LUIGI_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_LUIGI_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftLuigiArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_LUIGI_CAN_GENERATE(FT_LUIGI_POOL_FIREBALL, 2, 0)
-    case 1: FT_LUIGI_CAN_GENERATE(FT_LUIGI_POOL_NEGATIVE_ZONE, 1, 1)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnLuigiFireball, 2, ftLuigiNegativeZonePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnLuigiNegativeZone, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_LUIGI_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -302,45 +267,28 @@ template <> struct ftLuigiArticleActivator<wnLuigiNegativeZone> {
     static bool activate(wnLuigiNegativeZone* weapon, soModuleAccesser* acc) { return ftLuigi::activeArticle1(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_LUIGI_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftLuigiArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftLuigiArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_LUIGI_GENERATE(wnLuigiFireball, FT_LUIGI_POOL_FIREBALL)
-    case 1: FT_LUIGI_GENERATE(wnLuigiNegativeZone, FT_LUIGI_POOL_NEGATIVE_ZONE)
+    case 0: return wnArticleSlotGenerate<ftLuigiArticleActivator<wnLuigiFireball> >(static_cast<wnArticlePool<wnLuigiFireball, 2, ftLuigiNegativeZonePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftLuigiArticleActivator<wnLuigiNegativeZone> >(static_cast<wnArticlePool<wnLuigiNegativeZone, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_LUIGI_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
 // Shooting the fireball only type-checks it; the Negative Zone flies off from the position of the fighter.
+template <int S, int L>
+inline bool ftLuigiShootSlot1(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    wnLuigiNegativeZone& zone = dynamic_cast<wnLuigiNegativeZone&>(*article);
+    Vec3f pos = acc->getPostureModule().getPos();
+    zone.toFly(&pos);
+    return true;
+}
+
 bool ftLuigiArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnLuigiFireball&>(*article); return true; }
-    case 1: {
-        wnArticleSlotTag tag;
-        wnLuigiNegativeZone& zone = dynamic_cast<wnLuigiNegativeZone&>(*article);
-        Vec3f pos = acc->getPostureModule().getPos();
-        zone.toFly(&pos);
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnLuigiFireball>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftLuigiShootSlot1(acc, article, WN_ARTICLE_SLOT_TAGS);
     FT_LUIGI_UNUSED_SLOTS(true)
     default: return false;
     }

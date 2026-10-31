@@ -368,10 +368,10 @@ void ftWolfArticleMediator::deactivate() {
 
 s32 ftWolfArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 5; }
-    case 2: { wnArticleSlotTag tag; return 2; }
-    case 3: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(5, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_WOLF_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -384,88 +384,34 @@ struct ftWolfActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_WOLF_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftWolfActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftWolfActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftWolfArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_WOLF_COUNT_ACTIVE(FT_WOLF_POOL_BLASTER, 1)
-    case 1: FT_WOLF_COUNT_ACTIVE(FT_WOLF_POOL_BULLET, 5)
-    case 2: FT_WOLF_COUNT_ACTIVE(FT_WOLF_POOL_ILLUSION, 2)
-    case 3: FT_WOLF_COUNT_ACTIVE(FT_WOLF_POOL_LAND_MASTER, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnWolfBlaster, 1, ftWolfBulletPool>, ftWolfActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnWolfBlasterBullet, 5, ftWolfIllusionPool>, ftWolfActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnWolfIllusion, 2, ftWolfLandMasterPool>, ftWolfActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnFoxLandMaster, 1, soInstancePoolRoot>, ftWolfActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_WOLF_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_WOLF_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftWolfArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_WOLF_CAN_GENERATE(FT_WOLF_POOL_BLASTER, 1, 0)
-    case 1: FT_WOLF_CAN_GENERATE(FT_WOLF_POOL_BULLET, 5, 1)
-    case 2: FT_WOLF_CAN_GENERATE(FT_WOLF_POOL_ILLUSION, 2, 2)
-    case 3: FT_WOLF_CAN_GENERATE(FT_WOLF_POOL_LAND_MASTER, 1, 3)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnWolfBlaster, 1, ftWolfBulletPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnWolfBlasterBullet, 5, ftWolfIllusionPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnWolfIllusion, 2, ftWolfLandMasterPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnFoxLandMaster, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_WOLF_UNUSED_SLOTS(false)
     default: return false;
     }
 }
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_WOLF_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftWolfArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftWolfArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_WOLF_GENERATE(wnWolfBlaster, FT_WOLF_POOL_BLASTER)
-    case 1: FT_WOLF_GENERATE(wnWolfBlasterBullet, FT_WOLF_POOL_BULLET)
-    case 2: FT_WOLF_GENERATE(wnWolfIllusion, FT_WOLF_POOL_ILLUSION)
-    case 3: FT_WOLF_GENERATE(wnFoxLandMaster, FT_WOLF_POOL_LAND_MASTER)
+    case 0: return wnArticleSlotGenerate<ftWolfArticleActivator<wnWolfBlaster> >(static_cast<wnArticlePool<wnWolfBlaster, 1, ftWolfBulletPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftWolfArticleActivator<wnWolfBlasterBullet> >(static_cast<wnArticlePool<wnWolfBlasterBullet, 5, ftWolfIllusionPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftWolfArticleActivator<wnWolfIllusion> >(static_cast<wnArticlePool<wnWolfIllusion, 2, ftWolfLandMasterPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftWolfArticleActivator<wnFoxLandMaster> >(static_cast<wnArticlePool<wnFoxLandMaster, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_WOLF_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -474,10 +420,10 @@ soArticle* ftWolfArticleMediator::generate(s32 articleId, soModuleAccesser* acc)
 // Shooting only type-checks the article; the unused slots accept anything.
 bool ftWolfArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnWolfBlaster&>(*article); return true; }
-    case 1: { wnArticleSlotTag tag; (void)dynamic_cast<wnWolfBlasterBullet&>(*article); return true; }
-    case 2: { wnArticleSlotTag tag; (void)dynamic_cast<wnWolfIllusion&>(*article); return true; }
-    case 3: { wnArticleSlotTag tag; (void)dynamic_cast<wnFoxLandMaster&>(*article); return true; }
+    case 0: return wnArticleSlotShoot<wnWolfBlaster>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnWolfBlasterBullet>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnWolfIllusion>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnFoxLandMaster>(article, WN_ARTICLE_SLOT_TAGS);
     FT_WOLF_UNUSED_SLOTS(true)
     default: return false;
     }

@@ -118,6 +118,8 @@ typedef wnArticleHierarchy<wnSamusCShot, 4, ftSamusBombPool> ftSamusCShotPool;
 class ftSamusArticleMediator : public soArticleMediator {
     ftSamusCShotPool m_pools;
     u8 m_autoRecycle;
+    // The slot members (wnArticleSlot*, wn/wn_article_pool.h) read the pool chain.
+    WN_ARTICLE_SLOT_FRIENDS
 public:
     ftSamusArticleMediator(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~ftSamusArticleMediator();

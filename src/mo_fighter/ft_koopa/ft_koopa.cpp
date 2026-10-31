@@ -192,7 +192,7 @@ void ftKoopaArticleMediator::deactivate() {
 
 s32 ftKoopaArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 6; }
+    case 0: return wnArticleSlotGenerateMaxNum(6, WN_ARTICLE_SLOT_TAGS);
     FT_KOOPA_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -205,52 +205,17 @@ struct ftKoopaActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_KOOPA_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftKoopaActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftKoopaActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftKoopaArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_KOOPA_COUNT_ACTIVE(FT_KOOPA_POOL_BREATH, 6)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnKoopaBreath, 6, soInstancePoolRoot>, ftKoopaActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_KOOPA_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_KOOPA_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftKoopaArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_KOOPA_CAN_GENERATE(FT_KOOPA_POOL_BREATH, 6, 0)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnKoopaBreath, 6, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_KOOPA_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -261,28 +226,9 @@ template <> struct ftKoopaArticleActivator<wnKoopaBreath> {
     static bool activate(wnKoopaBreath* weapon, soModuleAccesser* acc) { return ftKoopa::activeArticle(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_KOOPA_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftKoopaArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftKoopaArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_KOOPA_GENERATE(wnKoopaBreath, FT_KOOPA_POOL_BREATH)
+    case 0: return wnArticleSlotGenerate<ftKoopaArticleActivator<wnKoopaBreath> >(static_cast<wnArticlePool<wnKoopaBreath, 6, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_KOOPA_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -290,7 +236,7 @@ soArticle* ftKoopaArticleMediator::generate(s32 articleId, soModuleAccesser* acc
 
 bool ftKoopaArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnKoopaBreath&>(*article); return true; }
+    case 0: return wnArticleSlotShoot<wnKoopaBreath>(article, WN_ARTICLE_SLOT_TAGS);
     FT_KOOPA_UNUSED_SLOTS(true)
     default: return false;
     }

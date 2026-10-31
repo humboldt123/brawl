@@ -205,8 +205,8 @@ void ftLucarioArticleMediator::deactivate() {
 
 s32 ftLucarioArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 3; }
-    case 1: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(3, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_LUCARIO_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -219,54 +219,19 @@ struct ftLucarioActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_LUCARIO_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftLucarioActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftLucarioActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftLucarioArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_LUCARIO_COUNT_ACTIVE(FT_LUCARIO_POOL_AURABALL, 3)
-    case 1: FT_LUCARIO_COUNT_ACTIVE(FT_LUCARIO_POOL_QIGONG, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnLucarioAuraBall, 3, ftLucarioQigongPool>, ftLucarioActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnLucarioQigong, 1, soInstancePoolRoot>, ftLucarioActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_LUCARIO_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_LUCARIO_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftLucarioArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_LUCARIO_CAN_GENERATE(FT_LUCARIO_POOL_AURABALL, 3, 0)
-    case 1: FT_LUCARIO_CAN_GENERATE(FT_LUCARIO_POOL_QIGONG, 1, 1)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnLucarioAuraBall, 3, ftLucarioQigongPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnLucarioQigong, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_LUCARIO_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -280,47 +245,32 @@ template <> struct ftLucarioArticleActivator<wnLucarioQigong> {
     static bool activate(wnLucarioQigong* weapon, soModuleAccesser* acc) { return ftLucario::activeArticle(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_LUCARIO_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftLucarioArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftLucarioArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_LUCARIO_GENERATE(wnLucarioAuraBall, FT_LUCARIO_POOL_AURABALL)
-    case 1: FT_LUCARIO_GENERATE(wnLucarioQigong, FT_LUCARIO_POOL_QIGONG)
+    case 0: return wnArticleSlotGenerate<ftLucarioArticleActivator<wnLucarioAuraBall> >(static_cast<wnArticlePool<wnLucarioAuraBall, 3, ftLucarioQigongPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftLucarioArticleActivator<wnLucarioQigong> >(static_cast<wnArticlePool<wnLucarioQigong, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_LUCARIO_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftLucarioShootSlot0(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    ftLucarioTransactor* transactor = ftLucarioTransactor::getInstance();
+    wnLucarioAuraBall* ball = dynamic_cast<wnLucarioAuraBall*>(article);
+    return transactor->shootArticle(ball, acc);
+}
+
+template <int S, int L>
+inline bool ftLucarioShootSlot1(soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    (void)dynamic_cast<wnLucarioQigong&>(*article);
+    return false;
+}
+
 bool ftLucarioArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        ftLucarioTransactor* transactor = ftLucarioTransactor::getInstance();
-        wnLucarioAuraBall* ball = dynamic_cast<wnLucarioAuraBall*>(article);
-        return transactor->shootArticle(ball, acc);
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnLucarioQigong&>(*article);
-        return false;
-    }
+    case 0: return ftLucarioShootSlot0(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftLucarioShootSlot1(article, WN_ARTICLE_SLOT_TAGS);
     FT_LUCARIO_UNUSED_SLOTS(true)
     default: return false;
     }

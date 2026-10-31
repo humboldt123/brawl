@@ -181,7 +181,7 @@ s32 wnMarioPumpMediator::getMediateNum() { return 1; }
 void wnMarioPumpMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
 s32 wnMarioPumpMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 12; }
+    case 0: return wnArticleSlotGenerateMaxNum(12, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOTS_FROM_1(0)
     default: return 0;
     }
@@ -225,27 +225,22 @@ bool wnMarioPumpMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     default: return false;
     }
 }
+
+// The pool activates the article through its owner.
+struct wnMarioPumpActivator {
+    static bool activate(wnMarioPumpWater* weapon, soModuleAccesser* acc) { return wnMarioPump::activeArticle(weapon, acc); }
+};
+
 soArticle* wnMarioPumpMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: {
-        wnArticleSlotTag tag;
-        soArticleDeactivateChecker checker;
-        wnMarioPumpWater* water = m_pools.find(checker, soIntToType<0>());
-        if (!water) {
-            water = static_cast<wnMarioPumpWater*>(checker.getCandidate());
-            if (!water) return wnGetNullArticle();
-            water->deactivateArticle();
-        }
-        if (wnMarioPump::activeArticle(water, acc) == true) return &static_cast<soArticle&>(*water);
-        return wnGetNullArticle();
-    }
+    case 0: return wnArticleSlotGenerate<wnMarioPumpActivator>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOTS_FROM_1(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 bool wnMarioPumpMediator::shoot(soModuleAccesser*, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnMarioPumpWater&>(*article); return true; }
+    case 0: return wnArticleSlotShoot<wnMarioPumpWater>(article, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOTS_FROM_1(true)
     default: return false;
     }

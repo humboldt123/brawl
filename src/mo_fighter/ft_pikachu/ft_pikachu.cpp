@@ -217,10 +217,10 @@ void ftPikachuArticleMediator::deactivate() {
 
 s32 ftPikachuArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 3; }
-    case 1: { wnArticleSlotTag tag; return 2; }
-    case 2: { wnArticleSlotTag tag; return 1; }
-    case 3: { wnArticleSlotTag tag; return 3; }
+    case 0: return wnArticleSlotGenerateMaxNum(3, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(3, WN_ARTICLE_SLOT_TAGS);
     FT_PIKACHU_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -233,58 +233,23 @@ struct ftPikachuActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_PIKACHU_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftPikachuActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftPikachuActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftPikachuArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_PIKACHU_COUNT_ACTIVE(FT_PIKACHU_POOL_THUNDERJOLT, 3)
-    case 1: FT_PIKACHU_COUNT_ACTIVE(FT_PIKACHU_POOL_CLOUD, 2)
-    case 2: FT_PIKACHU_COUNT_ACTIVE(FT_PIKACHU_POOL_VORTEX, 1)
-    case 3: FT_PIKACHU_COUNT_ACTIVE(FT_PIKACHU_POOL_THUNDER, 3)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnPikachuThunderJolt, 3, ftPikachuCloudPool>, ftPikachuActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnPikachuCloud, 2, ftPikachuVortexPool>, ftPikachuActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnPikachuVortex, 1, ftPikachuThunderPool>, ftPikachuActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnPikachuThunder, 3, soInstancePoolRoot>, ftPikachuActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_PIKACHU_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_PIKACHU_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftPikachuArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_PIKACHU_CAN_GENERATE(FT_PIKACHU_POOL_THUNDERJOLT, 3, 0)
-    case 1: FT_PIKACHU_CAN_GENERATE(FT_PIKACHU_POOL_CLOUD, 2, 1)
-    case 2: FT_PIKACHU_CAN_GENERATE(FT_PIKACHU_POOL_VORTEX, 1, 2)
-    case 3: FT_PIKACHU_CAN_GENERATE(FT_PIKACHU_POOL_THUNDER, 3, 3)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnPikachuThunderJolt, 3, ftPikachuCloudPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnPikachuCloud, 2, ftPikachuVortexPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnPikachuVortex, 1, ftPikachuThunderPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnPikachuThunder, 3, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_PIKACHU_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -304,31 +269,12 @@ template <> struct ftPikachuArticleActivator<wnPikachuThunder> {
     static bool activate(wnPikachuThunder* weapon, soModuleAccesser* acc) { return weapon->activeArticle(acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_PIKACHU_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftPikachuArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftPikachuArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_PIKACHU_GENERATE(wnPikachuThunderJolt, FT_PIKACHU_POOL_THUNDERJOLT)
-    case 1: FT_PIKACHU_GENERATE(wnPikachuCloud, FT_PIKACHU_POOL_CLOUD)
-    case 2: FT_PIKACHU_GENERATE(wnPikachuVortex, FT_PIKACHU_POOL_VORTEX)
-    case 3: FT_PIKACHU_GENERATE(wnPikachuThunder, FT_PIKACHU_POOL_THUNDER)
+    case 0: return wnArticleSlotGenerate<ftPikachuArticleActivator<wnPikachuThunderJolt> >(static_cast<wnArticlePool<wnPikachuThunderJolt, 3, ftPikachuCloudPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftPikachuArticleActivator<wnPikachuCloud> >(static_cast<wnArticlePool<wnPikachuCloud, 2, ftPikachuVortexPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftPikachuArticleActivator<wnPikachuVortex> >(static_cast<wnArticlePool<wnPikachuVortex, 1, ftPikachuThunderPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftPikachuArticleActivator<wnPikachuThunder> >(static_cast<wnArticlePool<wnPikachuThunder, 3, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_PIKACHU_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -336,26 +282,10 @@ soArticle* ftPikachuArticleMediator::generate(s32 articleId, soModuleAccesser* a
 
 bool ftPikachuArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPikachuThunderJolt&>(*article);
-        return true;
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPikachuCloud&>(*article);
-        return true;
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPikachuVortex&>(*article);
-        return true;
-    }
-    case 3: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPikachuThunder&>(*article);
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnPikachuThunderJolt>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnPikachuCloud>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnPikachuVortex>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnPikachuThunder>(article, WN_ARTICLE_SLOT_TAGS);
     FT_PIKACHU_UNUSED_SLOTS(true)
     default: return false;
     }

@@ -10,7 +10,8 @@
 #include <so/article/so_article_mediator.h>
 #include <so/article/so_generate_article_manage_module.h>
 
-// Marker the mediator builds on the stack in every one of its 17 slot cases (one two-byte object per case).
+// Marker the mediator builds on the stack in every one of its 17 slot cases (one two-byte object per case). Only the
+// slot cases not yet spelled as calls to the wnArticleSlot* members below still use it.
 struct wnArticleSlotTag {
     // MATCH-ONLY: keeps the native per-case marker stores, which MWCC would otherwise eliminate.
     volatile u8 m_pad0;
@@ -101,6 +102,8 @@ private:
 #endif
     wnArticleSubPool<W, N> m_sub;
 public:
+    typedef W Article;
+    enum { Num = N };
     wnArticlePool(soModuleAccesser* acc) : Base(acc), m_sub(acc) { }
     wnArticleSubPool<W, N>& getSub() { return m_sub; }
     template <class Predicate>
@@ -135,10 +138,7 @@ public:
 // Dispatch over the 17 article slots of a mediator: slots without an article answer with the neutral value. R.O.B. spells
 // the unused cases out one by one; this macro is the same list.
 #define WN_ARTICLE_UNUSED_SLOT(n, value) \
-    case n: { \
-        wnArticleSlotTag tag; \
-        return value; \
-    }
+    case n: return wnArticleSlotUnused(value, WN_ARTICLE_SLOT_TAGS);
 #define WN_ARTICLE_UNUSED_SLOTS_FROM_1(value) \
     WN_ARTICLE_UNUSED_SLOT(1, value) WN_ARTICLE_UNUSED_SLOT(2, value) WN_ARTICLE_UNUSED_SLOT(3, value) \
     WN_ARTICLE_UNUSED_SLOT(4, value) WN_ARTICLE_UNUSED_SLOT(5, value) WN_ARTICLE_UNUSED_SLOT(6, value) \
@@ -186,6 +186,91 @@ bool wnCanGenerateArticle(wnArticleSubPool<W, N>& pool) {
 }
 
 inline soArticle* wnGetNullArticle() { return reinterpret_cast<soArticle*>(g_ftRobotNullArticleStorage); }
+
+// The per-slot members of a mediator. HYPOTHESIS: the original mediator is soArticleMediatorImpl over the pool type list,
+// whose switch hands every slot case to a member template overloaded on two empty soIntToType tags (the slot and the
+// pool level); the two value-initialized one-byte tag temporaries are the two zero bytes the native code stores at the
+// top of each of the 17 cases, and a temporary the slot body makes (the find() tag) gets a frame slot of its own because
+// it lives in the inlined callee. The members re-derive the pool from the mediator on every access (the native loops
+// recompute the pool address from `this`), so they take the mediator, which exposes its pool chain through getPools().
+// Which ints the tags carry is not known; WN_ARTICLE_SLOT_TAGS passes zero for both. Pool is the wnArticlePool level of
+// the slot.
+#define WN_ARTICLE_SLOT_TAGS soIntToType<0>(), soIntToType<0>()
+// Declared in a mediator class: the slot members read its pool chain.
+#define WN_ARTICLE_SLOT_FRIENDS \
+    template <class Pool, class Counter, class Mediator, int S, int L> \
+    friend s32 wnArticleSlotActiveNum(Mediator* mediator, const soIntToType<S>& slot, const soIntToType<L>& level); \
+    template <class Pool, class Mediator, int S, int L> \
+    friend bool wnArticleSlotIsGeneratable(Mediator* mediator, const soIntToType<S>& slot, const soIntToType<L>& level);
+
+// A slot without an article answers with the neutral value of the call.
+template <class T, int S, int L>
+inline T wnArticleSlotUnused(T value, const soIntToType<S>&, const soIntToType<L>&) { return value; }
+
+template <int S, int L>
+inline s32 wnArticleSlotGenerateMaxNum(s32 num, const soIntToType<S>&, const soIntToType<L>&) { return num; }
+
+// The article is checked against the type of its slot (the reference cast throws on a mismatch).
+template <class W, int S, int L>
+inline bool wnArticleSlotShoot(soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    (void)dynamic_cast<W&>(*article);
+    return true;
+}
+
+// Counts the active articles of a slot with the counter functor of the unit (Counter has wnArticleActiveCounter's
+// layout and is filled member by member).
+template <class Pool, class Counter, class Mediator, int S, int L>
+inline s32 wnArticleSlotActiveNum(Mediator* mediator, const soIntToType<S>& slot, const soIntToType<L>& level) {
+    Counter counter;
+    counter.m_isActive = wnArticleIsActive;
+    counter.m_activeNum = 0;
+    counter.m_inactiveNum = 0;
+    for (s32 i = 0; i < Pool::Num; ++i) {
+        Counter* c = &counter;
+        if (c->m_isActive(&static_cast<soArticle&>(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i))) == true) {
+            ++c->m_activeNum;
+        } else {
+            ++c->m_inactiveNum;
+        }
+    }
+    return counter.m_activeNum;
+}
+
+// Generatable while any article of the slot is inactive.
+template <class Pool, class Mediator, int S, int L>
+inline bool wnArticleSlotIsGeneratable(Mediator* mediator, const soIntToType<S>& slot, const soIntToType<L>& level) {
+    bool allActive;
+    s32 i;
+    for (i = 0; i < Pool::Num; ++i) {
+        if (static_cast<soArticle&>(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i)).isActiveArticle() == false) {
+            allActive = false;
+            goto done;
+        }
+    }
+    allActive = true;
+done:
+    return allActive == false;
+}
+
+// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it; Activator
+// sets the article up.
+template <class Activator, class Pool, int S, int L>
+inline soArticle* wnArticleSlotGenerate(Pool& pool, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    typedef typename Pool::Article W;
+    soArticleDeactivateChecker checker;
+    W* weapon = pool.find(checker, soIntToType<0>());
+    if (weapon == NULL) {
+        weapon = static_cast<W*>(checker.getCandidate());
+        if (weapon == NULL) {
+            return wnGetNullArticle();
+        }
+        weapon->deactivateArticle();
+    }
+    if (Activator::activate(weapon, acc) == true) {
+        return &static_cast<soArticle&>(*weapon);
+    }
+    return wnGetNullArticle();
+}
 
 // Picks the article a mediator hands out: the first inactive one (newest first), else the oldest active one, which is
 // deactivated first; the activator of the article then sets it up.

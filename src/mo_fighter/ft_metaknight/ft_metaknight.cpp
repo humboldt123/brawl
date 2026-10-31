@@ -215,7 +215,7 @@ void ftMetaknightArticleMediator::deactivate() {
 
 s32 ftMetaknightArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_METAKNIGHT_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -228,52 +228,17 @@ struct ftMetaknightActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_METAKNIGHT_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftMetaknightActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftMetaknightActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftMetaknightArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_METAKNIGHT_COUNT_ACTIVE(FT_METAKNIGHT_POOL_MANTLE, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnMetaknightMantle, 1, soInstancePoolRoot>, ftMetaknightActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_METAKNIGHT_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_METAKNIGHT_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftMetaknightArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_METAKNIGHT_CAN_GENERATE(FT_METAKNIGHT_POOL_MANTLE, 1, 0)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnMetaknightMantle, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_METAKNIGHT_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -284,28 +249,9 @@ template <> struct ftMetaknightArticleActivator<wnMetaknightMantle> {
     static bool activate(wnMetaknightMantle* weapon, soModuleAccesser* acc) { return ftMetaknight::activeArticle(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_METAKNIGHT_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftMetaknightArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftMetaknightArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_METAKNIGHT_GENERATE(wnMetaknightMantle, FT_METAKNIGHT_POOL_MANTLE)
+    case 0: return wnArticleSlotGenerate<ftMetaknightArticleActivator<wnMetaknightMantle> >(static_cast<wnArticlePool<wnMetaknightMantle, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_METAKNIGHT_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -314,7 +260,7 @@ soArticle* ftMetaknightArticleMediator::generate(s32 articleId, soModuleAccesser
 // Shooting only type-checks the article.
 bool ftMetaknightArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnMetaknightMantle&>(*article); return true; }
+    case 0: return wnArticleSlotShoot<wnMetaknightMantle>(article, WN_ARTICLE_SLOT_TAGS);
     FT_METAKNIGHT_UNUSED_SLOTS(true)
     default: return false;
     }

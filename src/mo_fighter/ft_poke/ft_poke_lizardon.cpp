@@ -172,9 +172,9 @@ void ftPokeLizardonArticleMediator::deactivate() {
 
 s32 ftPokeLizardonArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 5; }
-    case 1: { wnArticleSlotTag tag; return 2; }
-    case 2: { wnArticleSlotTag tag; return 4; }
+    case 0: return wnArticleSlotGenerateMaxNum(5, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(4, WN_ARTICLE_SLOT_TAGS);
     FT_POKELIZARDON_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -187,56 +187,21 @@ struct ftPokeLizardonActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_POKELIZARDON_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftPokeLizardonActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftPokeLizardonActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftPokeLizardonArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_POKELIZARDON_COUNT_ACTIVE(FT_POKELIZARDON_POOL_BREATH, 5)
-    case 1: FT_POKELIZARDON_COUNT_ACTIVE(FT_POKELIZARDON_POOL_ROCK, 2)
-    case 2: FT_POKELIZARDON_COUNT_ACTIVE(FT_POKELIZARDON_POOL_ROCKSTONE, 4)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnPokeLizardonBreath, 5, ftPokeLizardonRockPool>, ftPokeLizardonActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnPokeLizardonRock, 2, ftPokeLizardonRockStonePool>, ftPokeLizardonActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnPokeLizardonRockStone, 4, soInstancePoolRoot>, ftPokeLizardonActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_POKELIZARDON_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_POKELIZARDON_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftPokeLizardonArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_POKELIZARDON_CAN_GENERATE(FT_POKELIZARDON_POOL_BREATH, 5, 0)
-    case 1: FT_POKELIZARDON_CAN_GENERATE(FT_POKELIZARDON_POOL_ROCK, 2, 1)
-    case 2: FT_POKELIZARDON_CAN_GENERATE(FT_POKELIZARDON_POOL_ROCKSTONE, 4, 2)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnPokeLizardonBreath, 5, ftPokeLizardonRockPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnPokeLizardonRock, 2, ftPokeLizardonRockStonePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnPokeLizardonRockStone, 4, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_POKELIZARDON_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -253,53 +218,28 @@ template <> struct ftPokeLizardonArticleActivator<wnPokeLizardonRockStone> {
     static bool activate(wnPokeLizardonRockStone* weapon, soModuleAccesser* acc) { return wnPokeLizardonRock::activeArticle(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_POKELIZARDON_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftPokeLizardonArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftPokeLizardonArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_POKELIZARDON_GENERATE(wnPokeLizardonBreath, FT_POKELIZARDON_POOL_BREATH)
-    case 1: FT_POKELIZARDON_GENERATE(wnPokeLizardonRock, FT_POKELIZARDON_POOL_ROCK)
-    case 2: FT_POKELIZARDON_GENERATE(wnPokeLizardonRockStone, FT_POKELIZARDON_POOL_ROCKSTONE)
+    case 0: return wnArticleSlotGenerate<ftPokeLizardonArticleActivator<wnPokeLizardonBreath> >(static_cast<wnArticlePool<wnPokeLizardonBreath, 5, ftPokeLizardonRockPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftPokeLizardonArticleActivator<wnPokeLizardonRock> >(static_cast<wnArticlePool<wnPokeLizardonRock, 2, ftPokeLizardonRockStonePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftPokeLizardonArticleActivator<wnPokeLizardonRockStone> >(static_cast<wnArticlePool<wnPokeLizardonRockStone, 4, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_POKELIZARDON_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftPokeLizardonShootSlot1(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    wnPokeLizardonRock& rock = dynamic_cast<wnPokeLizardonRock&>(*article);
+    rock.shoot(acc->getWorkManageModule().isFlag(0x22000013));
+    return false;
+}
+
 bool ftPokeLizardonArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPokeLizardonBreath&>(*article);
-        return true;
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        wnPokeLizardonRock& rock = dynamic_cast<wnPokeLizardonRock&>(*article);
-        rock.shoot(acc->getWorkManageModule().isFlag(0x22000013));
-        return false;
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPokeLizardonRockStone&>(*article);
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnPokeLizardonBreath>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftPokeLizardonShootSlot1(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnPokeLizardonRockStone>(article, WN_ARTICLE_SLOT_TAGS);
     FT_POKELIZARDON_UNUSED_SLOTS(true)
     default: return false;
     }

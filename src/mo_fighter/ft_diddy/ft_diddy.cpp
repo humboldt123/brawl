@@ -393,10 +393,10 @@ void ftDiddyArticleMediator::deactivate() {
 
 s32 ftDiddyArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 2; }
-    case 1: { wnArticleSlotTag tag; return 2; }
-    case 2: { wnArticleSlotTag tag; return 10; }
-    case 3: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(10, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_DIDDY_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -409,58 +409,23 @@ struct ftDiddyActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_DIDDY_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftDiddyActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftDiddyActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftDiddyArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_DIDDY_COUNT_ACTIVE(FT_DIDDY_POOL_GUN, 2)
-    case 1: FT_DIDDY_COUNT_ACTIVE(FT_DIDDY_POOL_BARREL, 2)
-    case 2: FT_DIDDY_COUNT_ACTIVE(FT_DIDDY_POOL_PEANUTS, 10)
-    case 3: FT_DIDDY_COUNT_ACTIVE(FT_DIDDY_POOL_EXPLOSION, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnDiddyGun, 2, ftDiddyBarrelPool>, ftDiddyActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnDiddyBarrel, 2, ftDiddyPeanutsPool>, ftDiddyActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnDiddyPeanuts, 10, ftDiddyExplosionPool>, ftDiddyActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnDiddyExplosion, 1, soInstancePoolRoot>, ftDiddyActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_DIDDY_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_DIDDY_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftDiddyArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_DIDDY_CAN_GENERATE(FT_DIDDY_POOL_GUN, 2, 0)
-    case 1: FT_DIDDY_CAN_GENERATE(FT_DIDDY_POOL_BARREL, 2, 1)
-    case 2: FT_DIDDY_CAN_GENERATE(FT_DIDDY_POOL_PEANUTS, 10, 2)
-    case 3: FT_DIDDY_CAN_GENERATE(FT_DIDDY_POOL_EXPLOSION, 1, 3)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnDiddyGun, 2, ftDiddyBarrelPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnDiddyBarrel, 2, ftDiddyPeanutsPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnDiddyPeanuts, 10, ftDiddyExplosionPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnDiddyExplosion, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_DIDDY_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -480,57 +445,28 @@ template <> struct ftDiddyArticleActivator<wnDiddyExplosion> {
     static bool activate(wnDiddyExplosion* weapon, soModuleAccesser* acc) { return ftDiddy::activeArticle3(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_DIDDY_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftDiddyArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftDiddyArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_DIDDY_GENERATE(wnDiddyGun, FT_DIDDY_POOL_GUN)
-    case 1: FT_DIDDY_GENERATE(wnDiddyBarrel, FT_DIDDY_POOL_BARREL)
-    case 2: FT_DIDDY_GENERATE(wnDiddyPeanuts, FT_DIDDY_POOL_PEANUTS)
-    case 3: FT_DIDDY_GENERATE(wnDiddyExplosion, FT_DIDDY_POOL_EXPLOSION)
+    case 0: return wnArticleSlotGenerate<ftDiddyArticleActivator<wnDiddyGun> >(static_cast<wnArticlePool<wnDiddyGun, 2, ftDiddyBarrelPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftDiddyArticleActivator<wnDiddyBarrel> >(static_cast<wnArticlePool<wnDiddyBarrel, 2, ftDiddyPeanutsPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftDiddyArticleActivator<wnDiddyPeanuts> >(static_cast<wnArticlePool<wnDiddyPeanuts, 10, ftDiddyExplosionPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftDiddyArticleActivator<wnDiddyExplosion> >(static_cast<wnArticlePool<wnDiddyExplosion, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_DIDDY_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftDiddyShootSlot1(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftDiddy::shootArticle(&dynamic_cast<wnDiddyBarrel&>(*article), acc);
+}
+
 bool ftDiddyArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnDiddyGun&>(*article);
-        return true;
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        return ftDiddy::shootArticle(&dynamic_cast<wnDiddyBarrel&>(*article), acc);
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnDiddyPeanuts&>(*article);
-        return true;
-    }
-    case 3: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnDiddyExplosion&>(*article);
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnDiddyGun>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftDiddyShootSlot1(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnDiddyPeanuts>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnDiddyExplosion>(article, WN_ARTICLE_SLOT_TAGS);
     FT_DIDDY_UNUSED_SLOTS(true)
     default: return false;
     }

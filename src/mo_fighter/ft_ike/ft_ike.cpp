@@ -212,7 +212,7 @@ void ftIkeArticleMediator::deactivate() {
 
 s32 ftIkeArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_IKE_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -225,52 +225,17 @@ struct ftIkeActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_IKE_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftIkeActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftIkeActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftIkeArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_IKE_COUNT_ACTIVE(FT_IKE_POOL_SWORD, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnIkeSword, 1, soInstancePoolRoot>, ftIkeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_IKE_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_IKE_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftIkeArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_IKE_CAN_GENERATE(FT_IKE_POOL_SWORD, 1, 0)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnIkeSword, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_IKE_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -281,39 +246,22 @@ template <> struct ftIkeArticleActivator<wnIkeSword> {
     static bool activate(wnIkeSword* weapon, soModuleAccesser* acc) { return ftIke::activeArticle(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_IKE_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftIkeArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftIkeArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_IKE_GENERATE(wnIkeSword, FT_IKE_POOL_SWORD)
+    case 0: return wnArticleSlotGenerate<ftIkeArticleActivator<wnIkeSword> >(static_cast<wnArticlePool<wnIkeSword, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_IKE_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftIkeShootSlot0(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftIke::shootArticle(&dynamic_cast<wnIkeSword&>(*article), acc);
+}
+
 bool ftIkeArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        return ftIke::shootArticle(&dynamic_cast<wnIkeSword&>(*article), acc);
-    }
+    case 0: return ftIkeShootSlot0(acc, article, WN_ARTICLE_SLOT_TAGS);
     FT_IKE_UNUSED_SLOTS(true)
     default: return false;
     }

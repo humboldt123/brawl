@@ -253,8 +253,8 @@ void ftDonkeyArticleMediator::deactivate() {
 
 s32 ftDonkeyArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 4; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(4, WN_ARTICLE_SLOT_TAGS);
     FT_DONKEY_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -267,54 +267,19 @@ struct ftDonkeyActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_DONKEY_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftDonkeyActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftDonkeyActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftDonkeyArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_DONKEY_COUNT_ACTIVE(FT_DONKEY_POOL_BARRELCONGA, 1)
-    case 1: FT_DONKEY_COUNT_ACTIVE(FT_DONKEY_POOL_SOUNDEFFECT, 4)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnDonkeyBarrelConga, 1, ftDonkeySoundEffectPool>, ftDonkeyActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnDonkeySoundEffect, 4, soInstancePoolRoot>, ftDonkeyActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_DONKEY_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_DONKEY_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftDonkeyArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_DONKEY_CAN_GENERATE(FT_DONKEY_POOL_BARRELCONGA, 1, 0)
-    case 1: FT_DONKEY_CAN_GENERATE(FT_DONKEY_POOL_SOUNDEFFECT, 4, 1)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnDonkeyBarrelConga, 1, ftDonkeySoundEffectPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnDonkeySoundEffect, 4, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_DONKEY_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -328,29 +293,10 @@ template <> struct ftDonkeyArticleActivator<wnDonkeySoundEffect> {
     static bool activate(wnDonkeySoundEffect* weapon, soModuleAccesser* acc) { return ftDonkey::activeArticle1(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_DONKEY_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftDonkeyArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftDonkeyArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_DONKEY_GENERATE(wnDonkeyBarrelConga, FT_DONKEY_POOL_BARRELCONGA)
-    case 1: FT_DONKEY_GENERATE(wnDonkeySoundEffect, FT_DONKEY_POOL_SOUNDEFFECT)
+    case 0: return wnArticleSlotGenerate<ftDonkeyArticleActivator<wnDonkeyBarrelConga> >(static_cast<wnArticlePool<wnDonkeyBarrelConga, 1, ftDonkeySoundEffectPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftDonkeyArticleActivator<wnDonkeySoundEffect> >(static_cast<wnArticlePool<wnDonkeySoundEffect, 4, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_DONKEY_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -358,8 +304,8 @@ soArticle* ftDonkeyArticleMediator::generate(s32 articleId, soModuleAccesser* ac
 
 bool ftDonkeyArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnDonkeyBarrelConga&>(*article); return true; }
-    case 1: { wnArticleSlotTag tag; (void)dynamic_cast<wnDonkeySoundEffect&>(*article); return true; }
+    case 0: return wnArticleSlotShoot<wnDonkeyBarrelConga>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnDonkeySoundEffect>(article, WN_ARTICLE_SLOT_TAGS);
     FT_DONKEY_UNUSED_SLOTS(true)
     default: return false;
     }

@@ -63,6 +63,8 @@ typedef wnArticleHierarchy<wnDiddyGun, 2, ftDiddyBarrelPool> ftDiddyGunPool;
 class ftDiddyArticleMediator : public soArticleMediator {
     ftDiddyGunPool m_pools;
     u8 m_autoRecycle;
+    // The slot members (wnArticleSlot*, wn/wn_article_pool.h) read the pool chain.
+    WN_ARTICLE_SLOT_FRIENDS
 public:
     ftDiddyArticleMediator(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~ftDiddyArticleMediator();

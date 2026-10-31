@@ -38,6 +38,8 @@ typedef wnArticleHierarchy<wnLucarioAuraBall, 3, ftLucarioQigongPool> ftLucarioA
 class ftLucarioArticleMediator : public soArticleMediator {
     ftLucarioAuraBallPool m_pools;
     u8 m_autoRecycle;
+    // The slot members (wnArticleSlot*, wn/wn_article_pool.h) read the pool chain.
+    WN_ARTICLE_SLOT_FRIENDS
 public:
     ftLucarioArticleMediator(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~ftLucarioArticleMediator();

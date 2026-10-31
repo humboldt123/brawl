@@ -300,11 +300,11 @@ void ftDededeArticleMediator::deactivate() {
 
 s32 ftDededeArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 2; }
-    case 1: { wnArticleSlotTag tag; return 1; }
-    case 2: { wnArticleSlotTag tag; return 1; }
-    case 3: { wnArticleSlotTag tag; return 4; }
-    case 4: { wnArticleSlotTag tag; return 19; }
+    case 0: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(4, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerateMaxNum(19, WN_ARTICLE_SLOT_TAGS);
     FT_DEDEDE_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -317,60 +317,25 @@ struct ftDededeActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_DEDEDE_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftDededeActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftDededeActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftDededeArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_DEDEDE_COUNT_ACTIVE(FT_DEDEDE_POOL_STAR, 2)
-    case 1: FT_DEDEDE_COUNT_ACTIVE(FT_DEDEDE_POOL_JETHAMMER, 1)
-    case 2: FT_DEDEDE_COUNT_ACTIVE(FT_DEDEDE_POOL_STARMISSILE, 1)
-    case 3: FT_DEDEDE_COUNT_ACTIVE(FT_DEDEDE_POOL_WADDLEDOOBEAM, 4)
-    case 4: FT_DEDEDE_COUNT_ACTIVE(FT_DEDEDE_POOL_FOLLOWER, 19)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnDededeStar, 2, ftDededeJethammerPool>, ftDededeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnDededeJethammer, 1, ftDededeStarmissilePool>, ftDededeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnDededeStarmissile, 1, ftDededeWaddledooBeamPool>, ftDededeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnDededeWaddledooBeam, 4, ftDededeFollowerPool>, ftDededeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotActiveNum<wnArticlePool<wnDededeFollower, 19, soInstancePoolRoot>, ftDededeActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_DEDEDE_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_DEDEDE_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftDededeArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_DEDEDE_CAN_GENERATE(FT_DEDEDE_POOL_STAR, 2, 0)
-    case 1: FT_DEDEDE_CAN_GENERATE(FT_DEDEDE_POOL_JETHAMMER, 1, 1)
-    case 2: FT_DEDEDE_CAN_GENERATE(FT_DEDEDE_POOL_STARMISSILE, 1, 2)
-    case 3: FT_DEDEDE_CAN_GENERATE(FT_DEDEDE_POOL_WADDLEDOOBEAM, 4, 3)
-    case 4: FT_DEDEDE_CAN_GENERATE(FT_DEDEDE_POOL_FOLLOWER, 19, 4)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnDededeStar, 2, ftDededeJethammerPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnDededeJethammer, 1, ftDededeStarmissilePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnDededeStarmissile, 1, ftDededeWaddledooBeamPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnDededeWaddledooBeam, 4, ftDededeFollowerPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotIsGeneratable<wnArticlePool<wnDededeFollower, 19, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_DEDEDE_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -396,63 +361,36 @@ template <> struct ftDededeArticleActivator<wnDededeFollower> {
     static bool activate(wnDededeFollower* weapon, soModuleAccesser* acc) { return ftDedede::activeArticle2(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_DEDEDE_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftDededeArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftDededeArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_DEDEDE_GENERATE(wnDededeStar, FT_DEDEDE_POOL_STAR)
-    case 1: FT_DEDEDE_GENERATE(wnDededeJethammer, FT_DEDEDE_POOL_JETHAMMER)
-    case 2: FT_DEDEDE_GENERATE(wnDededeStarmissile, FT_DEDEDE_POOL_STARMISSILE)
-    case 3: FT_DEDEDE_GENERATE(wnDededeWaddledooBeam, FT_DEDEDE_POOL_WADDLEDOOBEAM)
-    case 4: FT_DEDEDE_GENERATE(wnDededeFollower, FT_DEDEDE_POOL_FOLLOWER)
+    case 0: return wnArticleSlotGenerate<ftDededeArticleActivator<wnDededeStar> >(static_cast<wnArticlePool<wnDededeStar, 2, ftDededeJethammerPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftDededeArticleActivator<wnDededeJethammer> >(static_cast<wnArticlePool<wnDededeJethammer, 1, ftDededeStarmissilePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftDededeArticleActivator<wnDededeStarmissile> >(static_cast<wnArticlePool<wnDededeStarmissile, 1, ftDededeWaddledooBeamPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftDededeArticleActivator<wnDededeWaddledooBeam> >(static_cast<wnArticlePool<wnDededeWaddledooBeam, 4, ftDededeFollowerPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerate<ftDededeArticleActivator<wnDededeFollower> >(static_cast<wnArticlePool<wnDededeFollower, 19, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_DEDEDE_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftDededeShootSlot1(soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    (void)dynamic_cast<wnDededeJethammer&>(*article);
+    return false;
+}
+
+template <int S, int L>
+inline bool ftDededeShootSlot4(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftDedede::shootArticle(&dynamic_cast<wnDededeFollower&>(*article), acc);
+}
+
 bool ftDededeArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnDededeStar&>(*article);
-        return true;
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnDededeJethammer&>(*article);
-        return false;
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnDededeStarmissile&>(*article);
-        return true;
-    }
-    case 3: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnDededeWaddledooBeam&>(*article);
-        return true;
-    }
-    case 4: {
-        wnArticleSlotTag tag;
-        return ftDedede::shootArticle(&dynamic_cast<wnDededeFollower&>(*article), acc);
-    }
+    case 0: return wnArticleSlotShoot<wnDededeStar>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftDededeShootSlot1(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnDededeStarmissile>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnDededeWaddledooBeam>(article, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftDededeShootSlot4(acc, article, WN_ARTICLE_SLOT_TAGS);
     FT_DEDEDE_UNUSED_SLOTS(true)
     default: return false;
     }

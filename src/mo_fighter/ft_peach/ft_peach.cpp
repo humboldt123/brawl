@@ -301,8 +301,8 @@ void ftPeachArticleMediator::deactivate() {
 
 s32 ftPeachArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOT(2, 1)
     FT_PEACH_UNUSED_SLOTS(0)
     default: return 0;
@@ -316,56 +316,26 @@ struct ftPeachActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_PEACH_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftPeachActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftPeachActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftPeachArticleMediator::getActiveNum(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_PEACH_COUNT_ACTIVE(FT_PEACH_POOL_KASSAR, 1)
-    case 1: FT_PEACH_COUNT_ACTIVE(FT_PEACH_POOL_KINOPIO, 1)
-    case 2: { wnArticleSlotTag tag; return 0; }
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnPeachKassar, 1, ftPeachKinopioPool>, ftPeachActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnPeachKinopio, 1, soInstancePoolRoot>, ftPeachActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(0, WN_ARTICLE_SLOT_TAGS);
     FT_PEACH_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_PEACH_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
+template <int S, int L>
+inline bool ftPeachIsGeneratableSlot2(const soIntToType<S>&, const soIntToType<L>&) {
+        return true;
+}
 
 bool ftPeachArticleMediator::isGeneratable(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_PEACH_CAN_GENERATE(FT_PEACH_POOL_KASSAR, 1, 0)
-    case 1: FT_PEACH_CAN_GENERATE(FT_PEACH_POOL_KINOPIO, 1, 1)
-    case 2: { wnArticleSlotTag tag; return true; }
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnPeachKassar, 1, ftPeachKinopioPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnPeachKinopio, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftPeachIsGeneratableSlot2(WN_ARTICLE_SLOT_TAGS);
     FT_PEACH_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -383,51 +353,36 @@ template <> struct ftPeachArticleActivator<wnPeachKinopio> {
     }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_PEACH_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftPeachArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
+template <int S, int L>
+inline soArticle* ftPeachGenerateSlot2(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    BaseItem* item = soArticleMediatorHelper::createItem(0x56, 2, acc->getStageObject().m_taskId);
+    if (item == NULL) {
+        return wnGetNullArticle();
     }
+    acc->getItemManageModule().haveItem(item, 0, false, true);
+    return wnGetNullArticle();
+}
 
 soArticle* ftPeachArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_PEACH_GENERATE(wnPeachKassar, FT_PEACH_POOL_KASSAR)
-    case 1: FT_PEACH_GENERATE(wnPeachKinopio, FT_PEACH_POOL_KINOPIO)
-    case 2: {
-        wnArticleSlotTag tag;
-        BaseItem* item = soArticleMediatorHelper::createItem(0x56, 2, acc->getStageObject().m_taskId);
-        if (item == NULL) {
-            return wnGetNullArticle();
-        }
-        acc->getItemManageModule().haveItem(item, 0, false, true);
-        return wnGetNullArticle();
-    }
+    case 0: return wnArticleSlotGenerate<ftPeachArticleActivator<wnPeachKassar> >(static_cast<wnArticlePool<wnPeachKassar, 1, ftPeachKinopioPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftPeachArticleActivator<wnPeachKinopio> >(static_cast<wnArticlePool<wnPeachKinopio, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftPeachGenerateSlot2(acc, WN_ARTICLE_SLOT_TAGS);
     FT_PEACH_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftPeachShootSlot2(const soIntToType<S>&, const soIntToType<L>&) {
+    return true;
+}
+
 bool ftPeachArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnPeachKassar&>(*article); return true; }
-    case 1: { wnArticleSlotTag tag; (void)dynamic_cast<wnPeachKinopio&>(*article); return true; }
-    case 2: {
-        wnArticleSlotTag tag;
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnPeachKassar>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnPeachKinopio>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftPeachShootSlot2(WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOT(3, true)
     WN_ARTICLE_UNUSED_SLOT(4, true)
     WN_ARTICLE_UNUSED_SLOT(5, true)

@@ -380,13 +380,13 @@ void ftGameWatchArticleMediator::deactivate() {
 
 s32 ftGameWatchArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 5; }
-    case 1: { wnArticleSlotTag tag; return 1; }
-    case 2: { wnArticleSlotTag tag; return 1; }
-    case 3: { wnArticleSlotTag tag; return 1; }
-    case 4: { wnArticleSlotTag tag; return 1; }
-    case 5: { wnArticleSlotTag tag; return 1; }
-    case 6: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(5, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_GAMEWATCH_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -399,64 +399,29 @@ struct ftGameWatchActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_GAMEWATCH_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftGameWatchActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftGameWatchActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftGameWatchArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_GAMEWATCH_COUNT_ACTIVE(FT_GAMEWATCH_POOL_SAUSAGE, 5)
-    case 1: FT_GAMEWATCH_COUNT_ACTIVE(FT_GAMEWATCH_POOL_RESCUE, 1)
-    case 2: FT_GAMEWATCH_COUNT_ACTIVE(FT_GAMEWATCH_POOL_PARACHUTE, 1)
-    case 3: FT_GAMEWATCH_COUNT_ACTIVE(FT_GAMEWATCH_POOL_PANEL, 1)
-    case 4: FT_GAMEWATCH_COUNT_ACTIVE(FT_GAMEWATCH_POOL_OIL, 1)
-    case 5: FT_GAMEWATCH_COUNT_ACTIVE(FT_GAMEWATCH_POOL_OCTOPUS, 1)
-    case 6: FT_GAMEWATCH_COUNT_ACTIVE(FT_GAMEWATCH_POOL_NORMALWEAPON, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnGameWatchSausage, 5, ftGameWatchRescuePool>, ftGameWatchActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnGameWatchRescue, 1, ftGameWatchParachutePool>, ftGameWatchActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnGameWatchParachute, 1, ftGameWatchPanelPool>, ftGameWatchActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnGameWatchPanel, 1, ftGameWatchOilPool>, ftGameWatchActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotActiveNum<wnArticlePool<wnGameWatchOil, 1, ftGameWatchOctopusPool>, ftGameWatchActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotActiveNum<wnArticlePool<wnGameWatchOctopus, 1, ftGameWatchNormalWeaponPool>, ftGameWatchActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotActiveNum<wnArticlePool<wnGameWatchNormalWeapon, 1, soInstancePoolRoot>, ftGameWatchActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_GAMEWATCH_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_GAMEWATCH_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftGameWatchArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_GAMEWATCH_CAN_GENERATE(FT_GAMEWATCH_POOL_SAUSAGE, 5, 0)
-    case 1: FT_GAMEWATCH_CAN_GENERATE(FT_GAMEWATCH_POOL_RESCUE, 1, 1)
-    case 2: FT_GAMEWATCH_CAN_GENERATE(FT_GAMEWATCH_POOL_PARACHUTE, 1, 2)
-    case 3: FT_GAMEWATCH_CAN_GENERATE(FT_GAMEWATCH_POOL_PANEL, 1, 3)
-    case 4: FT_GAMEWATCH_CAN_GENERATE(FT_GAMEWATCH_POOL_OIL, 1, 4)
-    case 5: FT_GAMEWATCH_CAN_GENERATE(FT_GAMEWATCH_POOL_OCTOPUS, 1, 5)
-    case 6: FT_GAMEWATCH_CAN_GENERATE(FT_GAMEWATCH_POOL_NORMALWEAPON, 1, 6)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnGameWatchSausage, 5, ftGameWatchRescuePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnGameWatchRescue, 1, ftGameWatchParachutePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnGameWatchParachute, 1, ftGameWatchPanelPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnGameWatchPanel, 1, ftGameWatchOilPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotIsGeneratable<wnArticlePool<wnGameWatchOil, 1, ftGameWatchOctopusPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotIsGeneratable<wnArticlePool<wnGameWatchOctopus, 1, ftGameWatchNormalWeaponPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotIsGeneratable<wnArticlePool<wnGameWatchNormalWeapon, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_GAMEWATCH_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -485,34 +450,15 @@ template <> struct ftGameWatchArticleActivator<wnGameWatchNormalWeapon> {
     static bool activate(wnGameWatchNormalWeapon* weapon, soModuleAccesser* acc) { return ftGameWatch::activeArticle6(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_GAMEWATCH_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftGameWatchArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftGameWatchArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_GAMEWATCH_GENERATE(wnGameWatchSausage, FT_GAMEWATCH_POOL_SAUSAGE)
-    case 1: FT_GAMEWATCH_GENERATE(wnGameWatchRescue, FT_GAMEWATCH_POOL_RESCUE)
-    case 2: FT_GAMEWATCH_GENERATE(wnGameWatchParachute, FT_GAMEWATCH_POOL_PARACHUTE)
-    case 3: FT_GAMEWATCH_GENERATE(wnGameWatchPanel, FT_GAMEWATCH_POOL_PANEL)
-    case 4: FT_GAMEWATCH_GENERATE(wnGameWatchOil, FT_GAMEWATCH_POOL_OIL)
-    case 5: FT_GAMEWATCH_GENERATE(wnGameWatchOctopus, FT_GAMEWATCH_POOL_OCTOPUS)
-    case 6: FT_GAMEWATCH_GENERATE(wnGameWatchNormalWeapon, FT_GAMEWATCH_POOL_NORMALWEAPON)
+    case 0: return wnArticleSlotGenerate<ftGameWatchArticleActivator<wnGameWatchSausage> >(static_cast<wnArticlePool<wnGameWatchSausage, 5, ftGameWatchRescuePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftGameWatchArticleActivator<wnGameWatchRescue> >(static_cast<wnArticlePool<wnGameWatchRescue, 1, ftGameWatchParachutePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftGameWatchArticleActivator<wnGameWatchParachute> >(static_cast<wnArticlePool<wnGameWatchParachute, 1, ftGameWatchPanelPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftGameWatchArticleActivator<wnGameWatchPanel> >(static_cast<wnArticlePool<wnGameWatchPanel, 1, ftGameWatchOilPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerate<ftGameWatchArticleActivator<wnGameWatchOil> >(static_cast<wnArticlePool<wnGameWatchOil, 1, ftGameWatchOctopusPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerate<ftGameWatchArticleActivator<wnGameWatchOctopus> >(static_cast<wnArticlePool<wnGameWatchOctopus, 1, ftGameWatchNormalWeaponPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotGenerate<ftGameWatchArticleActivator<wnGameWatchNormalWeapon> >(static_cast<wnArticlePool<wnGameWatchNormalWeapon, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_GAMEWATCH_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -520,41 +466,13 @@ soArticle* ftGameWatchArticleMediator::generate(s32 articleId, soModuleAccesser*
 
 bool ftGameWatchArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnGameWatchSausage&>(*article);
-        return true;
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnGameWatchRescue&>(*article);
-        return true;
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnGameWatchParachute&>(*article);
-        return true;
-    }
-    case 3: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnGameWatchPanel&>(*article);
-        return true;
-    }
-    case 4: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnGameWatchOil&>(*article);
-        return true;
-    }
-    case 5: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnGameWatchOctopus&>(*article);
-        return true;
-    }
-    case 6: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnGameWatchNormalWeapon&>(*article);
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnGameWatchSausage>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnGameWatchRescue>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnGameWatchParachute>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnGameWatchPanel>(article, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotShoot<wnGameWatchOil>(article, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotShoot<wnGameWatchOctopus>(article, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotShoot<wnGameWatchNormalWeapon>(article, WN_ARTICLE_SLOT_TAGS);
     FT_GAMEWATCH_UNUSED_SLOTS(true)
     default: return false;
     }

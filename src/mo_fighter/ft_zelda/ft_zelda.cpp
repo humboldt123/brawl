@@ -221,10 +221,10 @@ void ftZeldaArticleMediator::deactivate() {
 
 s32 ftZeldaArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 3; }
-    case 1: { wnArticleSlotTag tag; return 3; }
-    case 2: { wnArticleSlotTag tag; return 1; }
-    case 3: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(3, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(3, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_ZELDA_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -237,58 +237,23 @@ struct ftZeldaActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_ZELDA_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftZeldaActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftZeldaActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftZeldaArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_ZELDA_COUNT_ACTIVE(FT_ZELDA_POOL_DEIN, 3)
-    case 1: FT_ZELDA_COUNT_ACTIVE(FT_ZELDA_POOL_DEINS, 3)
-    case 2: FT_ZELDA_COUNT_ACTIVE(FT_ZELDA_POOL_LIGHTINGBOW, 1)
-    case 3: FT_ZELDA_COUNT_ACTIVE(FT_ZELDA_POOL_LIGHTINGBOWARROW, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnZeldaDein, 3, ftZeldaDeinSPool>, ftZeldaActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnZeldaDeinS, 3, ftZeldaLightingBowPool>, ftZeldaActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnZeldaLightingBow, 1, ftZeldaLightingBowArrowPool>, ftZeldaActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnZeldaLightingBowArrow, 1, soInstancePoolRoot>, ftZeldaActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_ZELDA_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_ZELDA_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftZeldaArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_ZELDA_CAN_GENERATE(FT_ZELDA_POOL_DEIN, 3, 0)
-    case 1: FT_ZELDA_CAN_GENERATE(FT_ZELDA_POOL_DEINS, 3, 1)
-    case 2: FT_ZELDA_CAN_GENERATE(FT_ZELDA_POOL_LIGHTINGBOW, 1, 2)
-    case 3: FT_ZELDA_CAN_GENERATE(FT_ZELDA_POOL_LIGHTINGBOWARROW, 1, 3)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnZeldaDein, 3, ftZeldaDeinSPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnZeldaDeinS, 3, ftZeldaLightingBowPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnZeldaLightingBow, 1, ftZeldaLightingBowArrowPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnZeldaLightingBowArrow, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_ZELDA_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -308,31 +273,12 @@ template <> struct ftZeldaArticleActivator<wnZeldaLightingBowArrow> {
     static bool activate(wnZeldaLightingBowArrow* weapon, soModuleAccesser* acc) { return ftZelda::activeArticle2(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_ZELDA_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftZeldaArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftZeldaArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_ZELDA_GENERATE(wnZeldaDein, FT_ZELDA_POOL_DEIN)
-    case 1: FT_ZELDA_GENERATE(wnZeldaDeinS, FT_ZELDA_POOL_DEINS)
-    case 2: FT_ZELDA_GENERATE(wnZeldaLightingBow, FT_ZELDA_POOL_LIGHTINGBOW)
-    case 3: FT_ZELDA_GENERATE(wnZeldaLightingBowArrow, FT_ZELDA_POOL_LIGHTINGBOWARROW)
+    case 0: return wnArticleSlotGenerate<ftZeldaArticleActivator<wnZeldaDein> >(static_cast<wnArticlePool<wnZeldaDein, 3, ftZeldaDeinSPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftZeldaArticleActivator<wnZeldaDeinS> >(static_cast<wnArticlePool<wnZeldaDeinS, 3, ftZeldaLightingBowPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftZeldaArticleActivator<wnZeldaLightingBow> >(static_cast<wnArticlePool<wnZeldaLightingBow, 1, ftZeldaLightingBowArrowPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftZeldaArticleActivator<wnZeldaLightingBowArrow> >(static_cast<wnArticlePool<wnZeldaLightingBowArrow, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_ZELDA_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -340,26 +286,10 @@ soArticle* ftZeldaArticleMediator::generate(s32 articleId, soModuleAccesser* acc
 
 bool ftZeldaArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnZeldaDein&>(*article);
-        return true;
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnZeldaDeinS&>(*article);
-        return true;
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnZeldaLightingBow&>(*article);
-        return true;
-    }
-    case 3: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnZeldaLightingBowArrow&>(*article);
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnZeldaDein>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnZeldaDeinS>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnZeldaLightingBow>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnZeldaLightingBowArrow>(article, WN_ARTICLE_SLOT_TAGS);
     FT_ZELDA_UNUSED_SLOTS(true)
     default: return false;
     }

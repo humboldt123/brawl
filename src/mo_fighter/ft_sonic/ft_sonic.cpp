@@ -382,8 +382,8 @@ void ftSonicArticleMediator::deactivate() {
 
 s32 ftSonicArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_SONIC_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -396,92 +396,43 @@ struct ftSonicActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_SONIC_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftSonicActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftSonicActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftSonicArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_SONIC_COUNT_ACTIVE(FT_SONIC_POOL_GIMMICK_JUMP, 1)
-    case 1: FT_SONIC_COUNT_ACTIVE(FT_SONIC_POOL_SUPER_SONIC, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnSonicGimmickJump, 1, ftSonicSuperSonicPool>, ftSonicActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnSonicSuperSonic, 1, soInstancePoolRoot>, ftSonicActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_SONIC_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_SONIC_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftSonicArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_SONIC_CAN_GENERATE(FT_SONIC_POOL_GIMMICK_JUMP, 1, 0)
-    case 1: FT_SONIC_CAN_GENERATE(FT_SONIC_POOL_SUPER_SONIC, 1, 1)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnSonicGimmickJump, 1, ftSonicSuperSonicPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnSonicSuperSonic, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_SONIC_UNUSED_SLOTS(false)
     default: return false;
     }
 }
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_SONIC_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftSonicArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftSonicArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_SONIC_GENERATE(wnSonicGimmickJump, FT_SONIC_POOL_GIMMICK_JUMP)
-    case 1: FT_SONIC_GENERATE(wnSonicSuperSonic, FT_SONIC_POOL_SUPER_SONIC)
+    case 0: return wnArticleSlotGenerate<ftSonicArticleActivator<wnSonicGimmickJump> >(static_cast<wnArticlePool<wnSonicGimmickJump, 1, ftSonicSuperSonicPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftSonicArticleActivator<wnSonicSuperSonic> >(static_cast<wnArticlePool<wnSonicSuperSonic, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_SONIC_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
 // Shooting only type-checks the article (the spring is launched); the unused slots accept anything.
+template <int S, int L>
+inline bool ftSonicShootSlot0(soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+        dynamic_cast<wnSonicGimmickJump&>(*article).shoot(); return true;
+}
+
 bool ftSonicArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; dynamic_cast<wnSonicGimmickJump&>(*article).shoot(); return true; }
-    case 1: { wnArticleSlotTag tag; (void)dynamic_cast<wnSonicSuperSonic&>(*article); return true; }
+    case 0: return ftSonicShootSlot0(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnSonicSuperSonic>(article, WN_ARTICLE_SLOT_TAGS);
     FT_SONIC_UNUSED_SLOTS(true)
     default: return false;
     }

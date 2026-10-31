@@ -186,10 +186,10 @@ void ftSZerosuitArticleMediator::deactivate() {
 
 s32 ftSZerosuitArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 2; }
-    case 2: { wnArticleSlotTag tag; return 1; }
-    case 3: { wnArticleSlotTag tag; return 8; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(8, WN_ARTICLE_SLOT_TAGS);
     FT_SZEROSUIT_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -202,58 +202,23 @@ struct ftSZerosuitActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_SZEROSUIT_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftSZerosuitActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftSZerosuitActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftSZerosuitArticleMediator::getActiveNum(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_SZEROSUIT_COUNT_ACTIVE(FT_SZEROSUIT_POOL_PARALYZER, 1)
-    case 1: FT_SZEROSUIT_COUNT_ACTIVE(FT_SZEROSUIT_POOL_BULLET, 2)
-    case 2: FT_SZEROSUIT_COUNT_ACTIVE(FT_SZEROSUIT_POOL_WHIP, 1)
-    case 3: FT_SZEROSUIT_COUNT_ACTIVE(FT_SZEROSUIT_POOL_ARMOR, 8)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnSZerosuitParalyzer, 1, ftSZerosuitBulletPool>, ftSZerosuitActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnSZerosuitParalyzerBullet, 2, ftSZerosuitWhipPool>, ftSZerosuitActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnSZerosuitWhip, 1, ftSZerosuitArmorPool>, ftSZerosuitActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnSZerosuitArmor, 8, soInstancePoolRoot>, ftSZerosuitActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_SZEROSUIT_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_SZEROSUIT_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftSZerosuitArticleMediator::isGeneratable(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_SZEROSUIT_CAN_GENERATE(FT_SZEROSUIT_POOL_PARALYZER, 1, 0)
-    case 1: FT_SZEROSUIT_CAN_GENERATE(FT_SZEROSUIT_POOL_BULLET, 2, 1)
-    case 2: FT_SZEROSUIT_CAN_GENERATE(FT_SZEROSUIT_POOL_WHIP, 1, 2)
-    case 3: FT_SZEROSUIT_CAN_GENERATE(FT_SZEROSUIT_POOL_ARMOR, 8, 3)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnSZerosuitParalyzer, 1, ftSZerosuitBulletPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnSZerosuitParalyzerBullet, 2, ftSZerosuitWhipPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnSZerosuitWhip, 1, ftSZerosuitArmorPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnSZerosuitArmor, 8, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_SZEROSUIT_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -273,57 +238,28 @@ template <> struct ftSZerosuitArticleActivator<wnSZerosuitArmor> {
     static bool activate(wnSZerosuitArmor* weapon, soModuleAccesser* acc) { return ftSZerosuit::activeArticle1(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_SZEROSUIT_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftSZerosuitArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftSZerosuitArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_SZEROSUIT_GENERATE(wnSZerosuitParalyzer, FT_SZEROSUIT_POOL_PARALYZER)
-    case 1: FT_SZEROSUIT_GENERATE(wnSZerosuitParalyzerBullet, FT_SZEROSUIT_POOL_BULLET)
-    case 2: FT_SZEROSUIT_GENERATE(wnSZerosuitWhip, FT_SZEROSUIT_POOL_WHIP)
-    case 3: FT_SZEROSUIT_GENERATE(wnSZerosuitArmor, FT_SZEROSUIT_POOL_ARMOR)
+    case 0: return wnArticleSlotGenerate<ftSZerosuitArticleActivator<wnSZerosuitParalyzer> >(static_cast<wnArticlePool<wnSZerosuitParalyzer, 1, ftSZerosuitBulletPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftSZerosuitArticleActivator<wnSZerosuitParalyzerBullet> >(static_cast<wnArticlePool<wnSZerosuitParalyzerBullet, 2, ftSZerosuitWhipPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftSZerosuitArticleActivator<wnSZerosuitWhip> >(static_cast<wnArticlePool<wnSZerosuitWhip, 1, ftSZerosuitArmorPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftSZerosuitArticleActivator<wnSZerosuitArmor> >(static_cast<wnArticlePool<wnSZerosuitArmor, 8, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_SZEROSUIT_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftSZerosuitShootSlot3(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftSZerosuit::shootArticle(&dynamic_cast<wnSZerosuitArmor&>(*article), acc);
+}
+
 bool ftSZerosuitArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnSZerosuitParalyzer&>(*article);
-        return true;
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnSZerosuitParalyzerBullet&>(*article);
-        return true;
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnSZerosuitWhip&>(*article);
-        return true;
-    }
-    case 3: {
-        wnArticleSlotTag tag;
-        return ftSZerosuit::shootArticle(&dynamic_cast<wnSZerosuitArmor&>(*article), acc);
-    }
+    case 0: return wnArticleSlotShoot<wnSZerosuitParalyzer>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnSZerosuitParalyzerBullet>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnSZerosuitWhip>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftSZerosuitShootSlot3(acc, article, WN_ARTICLE_SLOT_TAGS);
     FT_SZEROSUIT_UNUSED_SLOTS(true)
     default: return false;
     }

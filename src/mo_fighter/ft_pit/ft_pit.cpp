@@ -190,9 +190,9 @@ void ftPitArticleMediator::deactivate() {
 
 s32 ftPitArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 4; }
-    case 2: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(4, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_PIT_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -205,56 +205,21 @@ struct ftPitActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_PIT_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftPitActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftPitActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftPitArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_PIT_COUNT_ACTIVE(FT_PIT_POOL_BOW, 1)
-    case 1: FT_PIT_COUNT_ACTIVE(FT_PIT_POOL_BOWARROW, 4)
-    case 2: FT_PIT_COUNT_ACTIVE(FT_PIT_POOL_PARTHENA, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnPitBow, 1, ftPitBowArrowPool>, ftPitActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnPitBowArrow, 4, ftPitParthenaPool>, ftPitActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnPitParthena, 1, soInstancePoolRoot>, ftPitActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_PIT_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_PIT_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftPitArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_PIT_CAN_GENERATE(FT_PIT_POOL_BOW, 1, 0)
-    case 1: FT_PIT_CAN_GENERATE(FT_PIT_POOL_BOWARROW, 4, 1)
-    case 2: FT_PIT_CAN_GENERATE(FT_PIT_POOL_PARTHENA, 1, 2)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnPitBow, 1, ftPitBowArrowPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnPitBowArrow, 4, ftPitParthenaPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnPitParthena, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_PIT_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -274,51 +239,26 @@ template <> struct ftPitArticleActivator<wnPitParthena> {
     static bool activate(wnPitParthena* weapon, soModuleAccesser* acc) { return ftPit::activeArticle1(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_PIT_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftPitArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftPitArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_PIT_GENERATE(wnPitBow, FT_PIT_POOL_BOW)
-    case 1: FT_PIT_GENERATE(wnPitBowArrow, FT_PIT_POOL_BOWARROW)
-    case 2: FT_PIT_GENERATE(wnPitParthena, FT_PIT_POOL_PARTHENA)
+    case 0: return wnArticleSlotGenerate<ftPitArticleActivator<wnPitBow> >(static_cast<wnArticlePool<wnPitBow, 1, ftPitBowArrowPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftPitArticleActivator<wnPitBowArrow> >(static_cast<wnArticlePool<wnPitBowArrow, 4, ftPitParthenaPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftPitArticleActivator<wnPitParthena> >(static_cast<wnArticlePool<wnPitParthena, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_PIT_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftPitShootSlot1(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftPitTransactor::getInstance()->shootArticle(&dynamic_cast<wnPitBowArrow&>(*article), acc);
+}
+
 bool ftPitArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPitBow&>(*article);
-        return true;
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        return ftPitTransactor::getInstance()->shootArticle(&dynamic_cast<wnPitBowArrow&>(*article), acc);
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPitParthena&>(*article);
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnPitBow>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftPitShootSlot1(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnPitParthena>(article, WN_ARTICLE_SLOT_TAGS);
     FT_PIT_UNUSED_SLOTS(true)
     default: return false;
     }

@@ -386,11 +386,11 @@ void ftLucasArticleMediator::deactivate() {
 
 s32 ftLucasArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 1; }
-    case 1: { wnArticleSlotTag tag; return 2; }
-    case 2: { wnArticleSlotTag tag; return 2; }
-    case 3: { wnArticleSlotTag tag; return 16; }
-    case 4: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(16, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_LUCAS_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -403,104 +403,55 @@ struct ftLucasActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_LUCAS_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftLucasActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftLucasActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftLucasArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_LUCAS_COUNT_ACTIVE(FT_LUCAS_POOL_FLASH, 1)
-    case 1: FT_LUCAS_COUNT_ACTIVE(FT_LUCAS_POOL_FIRE, 2)
-    case 2: FT_LUCAS_COUNT_ACTIVE(FT_LUCAS_POOL_THUNDER, 2)
-    case 3: FT_LUCAS_COUNT_ACTIVE(FT_LUCAS_POOL_STAR_STORM, 16)
-    case 4: FT_LUCAS_COUNT_ACTIVE(FT_LUCAS_POOL_HIMOHEBI, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnLucasPKFlash, 1, ftLucasFirePool>, ftLucasActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnLucasPKFire, 2, ftLucasThunderPool>, ftLucasActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnLucasPKThunder, 2, ftLucasStarStormPool>, ftLucasActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnLucasPKStarStorm, 16, ftLucasHimohebiPool>, ftLucasActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotActiveNum<wnArticlePool<wnLucasHimohebi, 1, soInstancePoolRoot>, ftLucasActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_LUCAS_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_LUCAS_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftLucasArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_LUCAS_CAN_GENERATE(FT_LUCAS_POOL_FLASH, 1, 0)
-    case 1: FT_LUCAS_CAN_GENERATE(FT_LUCAS_POOL_FIRE, 2, 1)
-    case 2: FT_LUCAS_CAN_GENERATE(FT_LUCAS_POOL_THUNDER, 2, 2)
-    case 3: FT_LUCAS_CAN_GENERATE(FT_LUCAS_POOL_STAR_STORM, 16, 3)
-    case 4: FT_LUCAS_CAN_GENERATE(FT_LUCAS_POOL_HIMOHEBI, 1, 4)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnLucasPKFlash, 1, ftLucasFirePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnLucasPKFire, 2, ftLucasThunderPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnLucasPKThunder, 2, ftLucasStarStormPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnLucasPKStarStorm, 16, ftLucasHimohebiPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotIsGeneratable<wnArticlePool<wnLucasHimohebi, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_LUCAS_UNUSED_SLOTS(false)
     default: return false;
     }
 }
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_LUCAS_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftLucasArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftLucasArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_LUCAS_GENERATE(wnLucasPKFlash, FT_LUCAS_POOL_FLASH)
-    case 1: FT_LUCAS_GENERATE(wnLucasPKFire, FT_LUCAS_POOL_FIRE)
-    case 2: FT_LUCAS_GENERATE(wnLucasPKThunder, FT_LUCAS_POOL_THUNDER)
-    case 3: FT_LUCAS_GENERATE(wnLucasPKStarStorm, FT_LUCAS_POOL_STAR_STORM)
-    case 4: FT_LUCAS_GENERATE(wnLucasHimohebi, FT_LUCAS_POOL_HIMOHEBI)
+    case 0: return wnArticleSlotGenerate<ftLucasArticleActivator<wnLucasPKFlash> >(static_cast<wnArticlePool<wnLucasPKFlash, 1, ftLucasFirePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftLucasArticleActivator<wnLucasPKFire> >(static_cast<wnArticlePool<wnLucasPKFire, 2, ftLucasThunderPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftLucasArticleActivator<wnLucasPKThunder> >(static_cast<wnArticlePool<wnLucasPKThunder, 2, ftLucasStarStormPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftLucasArticleActivator<wnLucasPKStarStorm> >(static_cast<wnArticlePool<wnLucasPKStarStorm, 16, ftLucasHimohebiPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerate<ftLucasArticleActivator<wnLucasHimohebi> >(static_cast<wnArticlePool<wnLucasHimohebi, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_LUCAS_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
 // Shooting only type-checks the article; the unused slots accept anything.
+template <int S, int L>
+inline bool ftLucasShootSlot0(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+        return ftLucasTransactor::getInstance()->shootArticle1(&dynamic_cast<wnLucasPKFlash&>(*article), acc);
+}
+
 bool ftLucasArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; return ftLucasTransactor::getInstance()->shootArticle1(&dynamic_cast<wnLucasPKFlash&>(*article), acc); }
-    case 1: { wnArticleSlotTag tag; (void)dynamic_cast<wnLucasPKFire&>(*article); return true; }
-    case 2: { wnArticleSlotTag tag; (void)dynamic_cast<wnLucasPKThunder&>(*article); return true; }
-    case 3: { wnArticleSlotTag tag; (void)dynamic_cast<wnLucasPKStarStorm&>(*article); return true; }
-    case 4: { wnArticleSlotTag tag; (void)dynamic_cast<wnLucasHimohebi&>(*article); return true; }
+    case 0: return ftLucasShootSlot0(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnLucasPKFire>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnLucasPKThunder>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnLucasPKStarStorm>(article, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotShoot<wnLucasHimohebi>(article, WN_ARTICLE_SLOT_TAGS);
     FT_LUCAS_UNUSED_SLOTS(true)
     default: return false;
     }

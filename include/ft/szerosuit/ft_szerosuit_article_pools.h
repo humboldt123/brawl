@@ -45,6 +45,8 @@ typedef wnArticleHierarchy<wnSZerosuitParalyzer, 1, ftSZerosuitBulletPool> ftSZe
 class ftSZerosuitArticleMediator : public soArticleMediator {
     ftSZerosuitParalyzerPool m_pools;
     volatile u8 m_autoRecycle; // MATCH-ONLY: keeps the store behind the (partly inlined) pool constructors
+    // The slot members (wnArticleSlot*, wn/wn_article_pool.h) read the pool chain.
+    WN_ARTICLE_SLOT_FRIENDS
 public:
     ftSZerosuitArticleMediator(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~ftSZerosuitArticleMediator();

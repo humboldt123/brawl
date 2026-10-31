@@ -643,14 +643,14 @@ void ftSamusArticleMediator::deactivate() {
 
 s32 ftSamusArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 4; }
-    case 1: { wnArticleSlotTag tag; return 3; }
-    case 2: { wnArticleSlotTag tag; return 3; }
-    case 3: { wnArticleSlotTag tag; return 1; }
-    case 4: { wnArticleSlotTag tag; return 4; }
-    case 5: { wnArticleSlotTag tag; return 1; }
-    case 6: { wnArticleSlotTag tag; return 2; }
-    case 7: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(4, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(3, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(3, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerateMaxNum(4, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_SAMUS_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -663,66 +663,31 @@ struct ftSamusActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_SAMUS_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftSamusActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftSamusActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftSamusArticleMediator::getActiveNum(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_SAMUS_COUNT_ACTIVE(FT_SAMUS_POOL_CSHOT, 4)
-    case 1: FT_SAMUS_COUNT_ACTIVE(FT_SAMUS_POOL_BOMB, 3)
-    case 2: FT_SAMUS_COUNT_ACTIVE(FT_SAMUS_POOL_MISSILE, 3)
-    case 3: FT_SAMUS_COUNT_ACTIVE(FT_SAMUS_POOL_LASER, 1)
-    case 4: FT_SAMUS_COUNT_ACTIVE(FT_SAMUS_POOL_LASER2, 4)
-    case 5: FT_SAMUS_COUNT_ACTIVE(FT_SAMUS_POOL_GUN, 1)
-    case 6: FT_SAMUS_COUNT_ACTIVE(FT_SAMUS_POOL_SUPERMISSILE, 2)
-    case 7: FT_SAMUS_COUNT_ACTIVE(FT_SAMUS_POOL_GBEAM, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnSamusCShot, 4, ftSamusBombPool>, ftSamusActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnSamusBomb, 3, ftSamusMissilePool>, ftSamusActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnSamusMissile, 3, ftSamusLaserPool>, ftSamusActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnSamusLaser, 1, ftSamusLaser2Pool>, ftSamusActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotActiveNum<wnArticlePool<wnSamusLaser2, 4, ftSamusGunPool>, ftSamusActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotActiveNum<wnArticlePool<wnSamusGun, 1, ftSamusSuperMissilePool>, ftSamusActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotActiveNum<wnArticlePool<wnSamusSuperMissile, 2, ftSamusGBeamPool>, ftSamusActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotActiveNum<wnArticlePool<wnSamusGBeam, 1, soInstancePoolRoot>, ftSamusActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_SAMUS_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_SAMUS_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftSamusArticleMediator::isGeneratable(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
-    case 0: FT_SAMUS_CAN_GENERATE(FT_SAMUS_POOL_CSHOT, 4, 0)
-    case 1: FT_SAMUS_CAN_GENERATE(FT_SAMUS_POOL_BOMB, 3, 1)
-    case 2: FT_SAMUS_CAN_GENERATE(FT_SAMUS_POOL_MISSILE, 3, 2)
-    case 3: FT_SAMUS_CAN_GENERATE(FT_SAMUS_POOL_LASER, 1, 3)
-    case 4: FT_SAMUS_CAN_GENERATE(FT_SAMUS_POOL_LASER2, 4, 4)
-    case 5: FT_SAMUS_CAN_GENERATE(FT_SAMUS_POOL_GUN, 1, 5)
-    case 6: FT_SAMUS_CAN_GENERATE(FT_SAMUS_POOL_SUPERMISSILE, 2, 6)
-    case 7: FT_SAMUS_CAN_GENERATE(FT_SAMUS_POOL_GBEAM, 1, 7)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnSamusCShot, 4, ftSamusBombPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnSamusBomb, 3, ftSamusMissilePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnSamusMissile, 3, ftSamusLaserPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnSamusLaser, 1, ftSamusLaser2Pool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotIsGeneratable<wnArticlePool<wnSamusLaser2, 4, ftSamusGunPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotIsGeneratable<wnArticlePool<wnSamusGun, 1, ftSamusSuperMissilePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotIsGeneratable<wnArticlePool<wnSamusSuperMissile, 2, ftSamusGBeamPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotIsGeneratable<wnArticlePool<wnSamusGBeam, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_SAMUS_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -754,76 +719,61 @@ template <> struct ftSamusArticleActivator<wnSamusGBeam> {
     static bool activate(wnSamusGBeam* weapon, soModuleAccesser* acc) { return ftSamus::activeArticle7(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_SAMUS_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftSamusArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftSamusArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_SAMUS_GENERATE(wnSamusCShot, FT_SAMUS_POOL_CSHOT)
-    case 1: FT_SAMUS_GENERATE(wnSamusBomb, FT_SAMUS_POOL_BOMB)
-    case 2: FT_SAMUS_GENERATE(wnSamusMissile, FT_SAMUS_POOL_MISSILE)
-    case 3: FT_SAMUS_GENERATE(wnSamusLaser, FT_SAMUS_POOL_LASER)
-    case 4: FT_SAMUS_GENERATE(wnSamusLaser2, FT_SAMUS_POOL_LASER2)
-    case 5: FT_SAMUS_GENERATE(wnSamusGun, FT_SAMUS_POOL_GUN)
-    case 6: FT_SAMUS_GENERATE(wnSamusSuperMissile, FT_SAMUS_POOL_SUPERMISSILE)
-    case 7: FT_SAMUS_GENERATE(wnSamusGBeam, FT_SAMUS_POOL_GBEAM)
+    case 0: return wnArticleSlotGenerate<ftSamusArticleActivator<wnSamusCShot> >(static_cast<wnArticlePool<wnSamusCShot, 4, ftSamusBombPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftSamusArticleActivator<wnSamusBomb> >(static_cast<wnArticlePool<wnSamusBomb, 3, ftSamusMissilePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftSamusArticleActivator<wnSamusMissile> >(static_cast<wnArticlePool<wnSamusMissile, 3, ftSamusLaserPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftSamusArticleActivator<wnSamusLaser> >(static_cast<wnArticlePool<wnSamusLaser, 1, ftSamusLaser2Pool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerate<ftSamusArticleActivator<wnSamusLaser2> >(static_cast<wnArticlePool<wnSamusLaser2, 4, ftSamusGunPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerate<ftSamusArticleActivator<wnSamusGun> >(static_cast<wnArticlePool<wnSamusGun, 1, ftSamusSuperMissilePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotGenerate<ftSamusArticleActivator<wnSamusSuperMissile> >(static_cast<wnArticlePool<wnSamusSuperMissile, 2, ftSamusGBeamPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotGenerate<ftSamusArticleActivator<wnSamusGBeam> >(static_cast<wnArticlePool<wnSamusGBeam, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_SAMUS_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftSamusShootSlot0(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftSamus::shootArticle(&dynamic_cast<wnSamusCShot&>(*article), acc);
+}
+
+template <int S, int L>
+inline bool ftSamusShootSlot1(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftSamus::shootArticle1(&dynamic_cast<wnSamusBomb&>(*article), acc);
+}
+
+template <int S, int L>
+inline bool ftSamusShootSlot2(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftSamus::shootArticle2(&dynamic_cast<wnSamusMissile&>(*article), acc);
+}
+
+template <int S, int L>
+inline bool ftSamusShootSlot3(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftSamus::shootArticle4(&dynamic_cast<wnSamusLaser&>(*article), acc);
+}
+
+template <int S, int L>
+inline bool ftSamusShootSlot4(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftSamus::shootArticle5(&dynamic_cast<wnSamusLaser2&>(*article), acc);
+}
+
+template <int S, int L>
+inline bool ftSamusShootSlot6(soModuleAccesser* acc, soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftSamus::shootArticle3(&dynamic_cast<wnSamusSuperMissile&>(*article), acc);
+}
+
 bool ftSamusArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        return ftSamus::shootArticle(&dynamic_cast<wnSamusCShot&>(*article), acc);
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        return ftSamus::shootArticle1(&dynamic_cast<wnSamusBomb&>(*article), acc);
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        return ftSamus::shootArticle2(&dynamic_cast<wnSamusMissile&>(*article), acc);
-    }
-    case 3: {
-        wnArticleSlotTag tag;
-        return ftSamus::shootArticle4(&dynamic_cast<wnSamusLaser&>(*article), acc);
-    }
-    case 4: {
-        wnArticleSlotTag tag;
-        return ftSamus::shootArticle5(&dynamic_cast<wnSamusLaser2&>(*article), acc);
-    }
-    case 5: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnSamusGun&>(*article);
-        return true;
-    }
-    case 6: {
-        wnArticleSlotTag tag;
-        return ftSamus::shootArticle3(&dynamic_cast<wnSamusSuperMissile&>(*article), acc);
-    }
-    case 7: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnSamusGBeam&>(*article);
-        return true;
-    }
+    case 0: return ftSamusShootSlot0(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftSamusShootSlot1(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftSamusShootSlot2(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftSamusShootSlot3(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftSamusShootSlot4(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotShoot<wnSamusGun>(article, WN_ARTICLE_SLOT_TAGS);
+    case 6: return ftSamusShootSlot6(acc, article, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotShoot<wnSamusGBeam>(article, WN_ARTICLE_SLOT_TAGS);
     FT_SAMUS_UNUSED_SLOTS(true)
     default: return false;
     }

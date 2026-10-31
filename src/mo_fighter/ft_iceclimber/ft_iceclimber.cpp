@@ -221,11 +221,11 @@ void ftPopoArticleMediator::deactivate() {
 
 s32 ftPopoArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 3; }
-    case 1: { wnArticleSlotTag tag; return 5; }
-    case 2: { wnArticleSlotTag tag; return 1; }
-    case 3: { wnArticleSlotTag tag; return 1; }
-    case 4: { wnArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(3, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(5, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_POPO_UNUSED_SLOTS(0)
     default: return 0;
     }
@@ -238,60 +238,25 @@ struct ftPopoActiveCounter {
     s32 m_inactiveNum;
 };
 
-#define FT_POPO_COUNT_ACTIVE(POOL, N) \
-    { \
-        wnArticleSlotTag tag; \
-        ftPopoActiveCounter counter; \
-        counter.m_isActive = wnArticleIsActive; \
-        counter.m_activeNum = 0; \
-        counter.m_inactiveNum = 0; \
-        for (s32 i = 0; i < N; ++i) { \
-            ftPopoActiveCounter* c = &counter; \
-            if (c->m_isActive(&static_cast<soArticle&>(*POOL.getInstanceAt(i))) == true) { \
-                ++c->m_activeNum; \
-            } else { \
-                ++c->m_inactiveNum; \
-            } \
-        } \
-        return counter.m_activeNum; \
-    }
-
 s32 ftPopoArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_POPO_COUNT_ACTIVE(FT_POPO_POOL_BLIZZARD, 3)
-    case 1: FT_POPO_COUNT_ACTIVE(FT_POPO_POOL_ICESHOT, 5)
-    case 2: FT_POPO_COUNT_ACTIVE(FT_POPO_POOL_ICEBERG, 1)
-    case 3: FT_POPO_COUNT_ACTIVE(FT_POPO_POOL_RUBBER, 1)
-    case 4: FT_POPO_COUNT_ACTIVE(FT_POPO_POOL_ICEBERGWIND, 1)
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnPopoBlizzard, 3, ftPopoIceShotPool>, ftPopoActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnPopoIceShot, 5, ftPopoIceBergPool>, ftPopoActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<wnArticlePool<wnPopoIceBerg, 1, ftPopoRubberPool>, ftPopoActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<wnArticlePool<wnPopoRubber, 1, ftPopoIceBergWindPool>, ftPopoActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotActiveNum<wnArticlePool<wnPopoIceBergWind, 1, soInstancePoolRoot>, ftPopoActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_POPO_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// Generatable while any article of the slot is inactive.
-#define FT_POPO_CAN_GENERATE(POOL, N, ID) \
-    { \
-        wnArticleSlotTag tag; \
-        bool allActive; \
-        s32 i; \
-        for (i = 0; i < N; ++i) { \
-            if (static_cast<soArticle&>(*POOL.getInstanceAt(i)).isActiveArticle() == false) { \
-                allActive = false; \
-                goto done_##ID; \
-            } \
-        } \
-        allActive = true; \
-    done_##ID: \
-        return allActive == false; \
-    }
-
 bool ftPopoArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: FT_POPO_CAN_GENERATE(FT_POPO_POOL_BLIZZARD, 3, 0)
-    case 1: FT_POPO_CAN_GENERATE(FT_POPO_POOL_ICESHOT, 5, 1)
-    case 2: FT_POPO_CAN_GENERATE(FT_POPO_POOL_ICEBERG, 1, 2)
-    case 3: FT_POPO_CAN_GENERATE(FT_POPO_POOL_RUBBER, 1, 3)
-    case 4: FT_POPO_CAN_GENERATE(FT_POPO_POOL_ICEBERGWIND, 1, 4)
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnPopoBlizzard, 3, ftPopoIceShotPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnPopoIceShot, 5, ftPopoIceBergPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<wnArticlePool<wnPopoIceBerg, 1, ftPopoRubberPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<wnArticlePool<wnPopoRubber, 1, ftPopoIceBergWindPool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotIsGeneratable<wnArticlePool<wnPopoIceBergWind, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
     FT_POPO_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -317,64 +282,31 @@ template <> struct ftPopoArticleActivator<wnPopoIceBergWind> {
     static bool activate(wnPopoIceBergWind* weapon, soModuleAccesser* acc) { return wnPopoIceBerg::activeArticle(weapon, acc); }
 };
 
-// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-#define FT_POPO_GENERATE(W, POOL) \
-    { \
-        wnArticleSlotTag tag; \
-        soArticleDeactivateChecker checker; \
-        W* weapon = POOL##_BASE.find(checker, soIntToType<0>()); \
-        if (weapon == NULL) { \
-            weapon = static_cast<W*>(checker.getCandidate()); \
-            if (weapon == NULL) { \
-                return wnGetNullArticle(); \
-            } \
-            weapon->deactivateArticle(); \
-        } \
-        if (ftPopoArticleActivator<W>::activate(weapon, acc) == true) { \
-            return &static_cast<soArticle&>(*weapon); \
-        } \
-        return wnGetNullArticle(); \
-    }
-
 soArticle* ftPopoArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: FT_POPO_GENERATE(wnPopoBlizzard, FT_POPO_POOL_BLIZZARD)
-    case 1: FT_POPO_GENERATE(wnPopoIceShot, FT_POPO_POOL_ICESHOT)
-    case 2: FT_POPO_GENERATE(wnPopoIceBerg, FT_POPO_POOL_ICEBERG)
-    case 3: FT_POPO_GENERATE(wnPopoRubber, FT_POPO_POOL_RUBBER)
-    case 4: FT_POPO_GENERATE(wnPopoIceBergWind, FT_POPO_POOL_ICEBERGWIND)
+    case 0: return wnArticleSlotGenerate<ftPopoArticleActivator<wnPopoBlizzard> >(static_cast<wnArticlePool<wnPopoBlizzard, 3, ftPopoIceShotPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftPopoArticleActivator<wnPopoIceShot> >(static_cast<wnArticlePool<wnPopoIceShot, 5, ftPopoIceBergPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftPopoArticleActivator<wnPopoIceBerg> >(static_cast<wnArticlePool<wnPopoIceBerg, 1, ftPopoRubberPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftPopoArticleActivator<wnPopoRubber> >(static_cast<wnArticlePool<wnPopoRubber, 1, ftPopoIceBergWindPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerate<ftPopoArticleActivator<wnPopoIceBergWind> >(static_cast<wnArticlePool<wnPopoIceBergWind, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     FT_POPO_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
 }
 
+template <int S, int L>
+inline bool ftPopoShootSlot1(soArticle* article, const soIntToType<S>&, const soIntToType<L>&) {
+    dynamic_cast<wnPopoIceShot&>(*article).shoot();
+    return false;
+}
+
 bool ftPopoArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPopoBlizzard&>(*article);
-        return true;
-    }
-    case 1: {
-        wnArticleSlotTag tag;
-        dynamic_cast<wnPopoIceShot&>(*article).shoot();
-        return false;
-    }
-    case 2: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPopoIceBerg&>(*article);
-        return true;
-    }
-    case 3: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPopoRubber&>(*article);
-        return true;
-    }
-    case 4: {
-        wnArticleSlotTag tag;
-        (void)dynamic_cast<wnPopoIceBergWind&>(*article);
-        return true;
-    }
+    case 0: return wnArticleSlotShoot<wnPopoBlizzard>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftPopoShootSlot1(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnPopoIceBerg>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnPopoRubber>(article, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotShoot<wnPopoIceBergWind>(article, WN_ARTICLE_SLOT_TAGS);
     FT_POPO_UNUSED_SLOTS(true)
     default: return false;
     }

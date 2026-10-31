@@ -83,7 +83,7 @@ void wnLucasPKThunderMediator::setAutoRecycle(bool enabled) { m_autoRecycle = en
 
 s32 wnLucasPKThunderMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { wnArticleSlotTag tag; return 6; }
+    case 0: return wnArticleSlotGenerateMaxNum(6, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOTS_FROM_1(0)
     default: return 0;
     }
@@ -135,25 +135,14 @@ bool wnLucasPKThunderMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     }
 }
 
-// Hands out the first inactive bolt (newest first), else deactivates the oldest active one and reuses it.
+// The pool activates the article through its owner.
+struct wnLucasPKThunderActivator {
+    static bool activate(wnLucasPKThunderChild* weapon, soModuleAccesser* acc) { return wnLucasPKThunder::activeArticle(weapon, acc); }
+};
+
 soArticle* wnLucasPKThunderMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: {
-        wnArticleSlotTag tag;
-        soArticleDeactivateChecker checker;
-        wnLucasPKThunderChild* weapon = m_pools.find(checker, soIntToType<0>());
-        if (weapon == NULL) {
-            weapon = static_cast<wnLucasPKThunderChild*>(checker.getCandidate());
-            if (weapon == NULL) {
-                return wnGetNullArticle();
-            }
-            weapon->deactivateArticle();
-        }
-        if (wnLucasPKThunder::activeArticle(weapon, acc) == true) {
-            return &static_cast<soArticle&>(*weapon);
-        }
-        return wnGetNullArticle();
-    }
+    case 0: return wnArticleSlotGenerate<wnLucasPKThunderActivator>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOTS_FROM_1(wnGetNullArticle())
     default: return wnGetNullArticle();
     }
@@ -162,7 +151,7 @@ soArticle* wnLucasPKThunderMediator::generate(s32 articleId, soModuleAccesser* a
 // Shooting only type-checks the article; the unused slots accept anything.
 bool wnLucasPKThunderMediator::shoot(soModuleAccesser*, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { wnArticleSlotTag tag; (void)dynamic_cast<wnLucasPKThunderChild&>(*article); return true; }
+    case 0: return wnArticleSlotShoot<wnLucasPKThunderChild>(article, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOTS_FROM_1(true)
     default: return false;
     }
