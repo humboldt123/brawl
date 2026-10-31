@@ -85,7 +85,7 @@ public:
     char unk11D[0xB];
     u8 m_unk128;                        // 0x128
     char unk129[0xB];
-    int m_unk134;                       // 0x134: cleared by the constructor
+    void* m_unk134;                     // 0x134: the third part of the common AI pac (pacCmnRegist); cleared by the constructor
     aiReferPar* m_referPar;             // 0x138: the 0x36 rows of the refer parameter table
     void* m_systemPar;                  // 0x13C: aiSystemPar
     gfFileIOHandle m_fileHandle;        // 0x140: HYPOTHESIS: the read of the common AI pac
@@ -131,6 +131,7 @@ public:
     virtual void notifyEventChangeEnd(int entryId, int playerNo, int activeInstanceIndex, ftKind);
 
     static void setEnable(int enable);
+    static void pacCmnRegist(void* data, int size, bool owned);
     void CrearWork();
     void setCpuType(int player, int type);
     void setCpuRank(int player, s8 rank);

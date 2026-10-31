@@ -2,6 +2,7 @@
 #include <ai/ai_act.h>
 #include <ai/ai_enemy.h>
 #include <ai/ai_stat.h>
+#include <gf/gf_archive.h>
 #include <gf/gf_heap_manager.h>
 
 aiInput::aiInput(u32 contNo, int unk2C, int player, int ftKind, s8 state, aiInput* parent, Heaps::HeapType heap)
@@ -49,7 +50,7 @@ aiInput::aiInput(u32 contNo, int unk2C, int player, int ftKind, s8 state, aiInpu
     } else {
         parent->m_child = this;
         aiSystemPar* systemPar = (aiSystemPar*)aiMgr::getAiSystemPar();
-        m_par.setRank(systemPar->m_childRank, 0, 1);
+        m_par.setRank((s8)systemPar->m_childRank, 0, 1);
         aiMgr* mgr = g_aiMgr;
         mgr->regist_ai_child(aiChrIdx::GetPlayerNo(&parent->m_chrIdx), this, ftKind);
     }
@@ -148,6 +149,41 @@ void aiInput::changeFtKind(int ftKind) {
             m_pacData = NULL;
         }
         m_flags &= ~0x40;
+    }
+}
+
+void aiInput::pacRegist(void* data, int size, int owned, int check) {
+    if (check != 0) {
+        gfArchive archive;
+        archive.setFileImage(data, size, Heaps::Tmp);
+        aiParam::check_revision(static_cast<char*>(archive.getData(1, Data_Type_Misc, 0, 0xFFFE)));
+    }
+    m_par.init_par(NULL, -1, NULL);
+    if (m_pacData != NULL && (m_flags & 0x40) != 0) {
+        if (m_pacData != NULL) {
+            gfHeapManager::free(m_pacData);
+            m_pacData = NULL;
+        }
+        m_flags &= ~0x40;
+    }
+    if (m_ftKind <= -1 || (u32)m_ftKind >= 0x36) {
+        return;
+    }
+    m_pacData = data;
+    if (owned != 0) {
+        m_flags |= 0x40;
+    } else {
+        m_flags &= ~0x40;
+    }
+    if (m_pacData != NULL) {
+        gfArchive archive;
+        archive.setFileImage(data, size, Heaps::Tmp);
+        aiParData* par = static_cast<aiParData*>(archive.getData(1, Data_Type_Misc, 0, 0xFFFE));
+        if (par != NULL) {
+            char* atkData = static_cast<char*>(archive.getData(3, Data_Type_Misc, 0, 0xFFFE));
+            m_par.init_par(par, m_ftKind, atkData);
+            m_act->script_reload(archive.getData(2, Data_Type_Misc, 0, 0xFFFE));
+        }
     }
 }
 

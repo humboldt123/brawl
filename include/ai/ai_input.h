@@ -17,7 +17,9 @@ struct aiCpuTypePar {
 
 struct aiSystemPar {
     char unk0[0x1D];
-    s8 m_childRank;        // 0x1D: the rank a sub-character (Nana) controller starts with (HYPOTHESIS)
+    // BYTES: read as lbz then extsb into the argument register (an unsigned byte converted to s8 at the use); an s8
+    // member loads straight into the argument register.
+    u8 m_childRank;        // 0x1D: the rank a sub-character (Nana) controller starts with (HYPOTHESIS)
     char unk1E[2];
     aiCpuTypePar m_cpuType[25];
 };
@@ -91,6 +93,10 @@ public:
     virtual ipPadTrigger getTrigger() const;
     virtual s32 getContNo() const;
 
+    // Loads a fighter's AI pac: the parameter part goes to m_par and the script part to m_act. owned = the controller frees
+    // the data when it is replaced; check = verify the parameter revision first.
+    // HYPOTHESIS: parameter names follow how the function uses them (callers pass the archive from the fighter data provider).
+    void pacRegist(void* data, int size, int owned, int check);
     void reset();
     void change_md(int mode, void* target, int unk1, int unk2);
     void changeFtKind(int ftKind);

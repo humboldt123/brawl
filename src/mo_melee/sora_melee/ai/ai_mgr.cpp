@@ -6,6 +6,7 @@
 #include <ai/ai_weapon.h>
 #include <ai/ai_param.h>
 #include <ft/ft_manager.h>
+#include <gf/gf_archive.h>
 #include <gf/gf_heap_manager.h>
 #include <gf/gf_memory_util.h>
 #include <gm/gm_lib.h>
@@ -18,6 +19,35 @@
 extern "C" {
 // aiMgr readiness flag: -1 while the AI is disabled, 0.. once the floor information has been prepared
 extern s8 lbl_27_data_47BF8;
+}
+
+// Takes the common AI pac: the refer and system parameter tables and the common script part.
+// HYPOTHESIS: owned = the manager frees the data when it is replaced (the caller passes 0).
+void aiMgr::pacCmnRegist(void* data, int size, bool owned) {
+    if (g_aiMgr != NULL && data != NULL) {
+        gfArchive archive;
+        archive.setFileImage(data, size, Heaps::Tmp);
+        if (g_aiMgr->m_pacData != NULL && g_aiMgr->m_pacOwned) {
+            if (g_aiMgr->m_pacData != NULL) {
+                gfHeapManager::free(g_aiMgr->m_pacData);
+                g_aiMgr->m_pacData = NULL;
+            }
+            g_aiMgr->m_pacOwned = false;
+        }
+        g_aiMgr->m_pacData = data;
+        g_aiMgr->m_pacOwned = owned;
+        aiMgr* mgr = g_aiMgr;
+        mgr->m_referPar = static_cast<aiReferPar*>(archive.getData(0, Data_Type_Misc, 0, 0xFFFE));
+        mgr->m_systemPar = archive.getData(0, Data_Type_Misc, 1, 0xFFFE);
+        mgr->m_unk134 = archive.getData(2, Data_Type_Misc, 0, 0xFFFE);
+        if (mgr->m_aiInput != NULL) {
+            for (int i = 0; i < NumChrs; i++) {
+                if (mgr->m_aiInput[i] != NULL) {
+                    mgr->m_aiInput[i]->setCpuType(-1);
+                }
+            }
+        }
+    }
 }
 
 AiClBlock::AiClBlock() { }
@@ -381,6 +411,39 @@ void aiMgr::CrearWork() {
     m_unk385 = 0;
     m_unk386 = 0;
     gfMemFill(m_work, 0, sizeof(m_work));
+}
+
+void aiMgr::set_ai_player(int player, s8 state, aiInput* input, int ftKind) {
+    if (m_aiInput != NULL && player >= 0 && player < NumPlayers) {
+        m_chrState[player] = state;
+        if (input != NULL) {
+            m_aiInput[player] = input;
+            m_stat[player].init(player, ftKind, input, 0);
+            if (m_cpuTypeLock[player] >= 0) {
+                m_aiInput[player]->setCpuType(m_cpuTypeLock[player]);
+            }
+            if (m_cpuRankLock[player] >= 0) {
+                aiInput* cpu = m_aiInput[player];
+                cpu->m_par.setRank(m_cpuRankLock[player], 0, (cpu->m_flags >> 15) & 1);
+            }
+        }
+        if (m_aiInput[player] != NULL) {
+            if (state != 0 && state != m_chrState[player] && input == NULL) {
+                m_aiInput[player]->reset();
+            }
+            aiInput* child = m_aiInput[player]->m_child;
+            if (child != NULL) {
+                if (state == 0) {
+                    aiSystemPar* systemPar = static_cast<aiSystemPar*>(getAiSystemPar());
+                    child->m_par.setRank((s8)systemPar->m_childRank, 0, (child->m_flags >> 15) & 1);
+                } else {
+                    child->m_par.setRank(m_aiInput[player]->m_par.m_rank, 0, (child->m_flags >> 15) & 1);
+                }
+                child->setCpuType(0);
+            }
+            m_aiInput[player]->setEnableRumble(state == 0);
+        }
+    }
 }
 
 void aiMgr::setCpuType(int player, int type) {
