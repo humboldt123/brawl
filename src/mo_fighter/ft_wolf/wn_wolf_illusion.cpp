@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #include <types.h>
 #include <ft/wolf/ft_wolf_article_pools.h>
 #include <wn/wn_activate_desc.h>
@@ -19,8 +20,7 @@ void wnWolfIllusion::activate(s32 founderTaskId, s32 unk1, s32 team, float lr, s
     desc.unk14 = -1;
     desc.unk18 = 0;
     desc.unk1C = 0;
-    // MATCH-ONLY: activation copies position with integer moves.
-    __memcpy(&desc.pos, &pos, sizeof(Vec3f));
+    desc.pos = pos;
     desc.lr = lr;
     desc.team = team;
     desc.life = 0;

@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define MT_VEC2F_PLAIN_BASE
 #include <wn/toon_link/wn_toon_link_bow_arrow.h>
 #include <wn/wn_class_info_impl.h>
@@ -23,12 +24,7 @@ void wnToonLinkBowArrow::activate(int founderTaskId, int resourceId, int team, f
     desc.unk14 = -1;
     desc.unk18 = 0;
     desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, &pos, sizeof(Vec3f));
-#else
     desc.pos = pos;
-#endif
     desc.lr = lr;
     desc.team = team;
     desc.life = 0;
