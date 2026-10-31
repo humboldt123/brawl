@@ -1,3 +1,5 @@
+// BYTES: the effect offsets use XY-first paired-single vector addition.
+#define MT_VEC3F_ADD_NATIVE_ORDER
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/purin/ft_purin_status_uniq_process_special_n.h>
 #include <ft/ft_kinetic_energy.h>
@@ -35,6 +37,39 @@ static inline void resetPurinTurnGround(soModuleAccesser* acc, Vec3f& resetRotat
     ftKineticEnergyDisableAndClear(1, acc);
 }
 
+// HYPOTHESIS: shared startup kinetic setup; boundary and name inferred.
+static inline void resetPurinStartGround(soModuleAccesser* acc) {
+    ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
+    // Preserve facing with a small horizontal seed while charging on the ground.
+    float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
+    Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
+    Vec2f initialSpeed = Vec2f(seed, 0.0f);
+    stop.resetEnergy(0x16, &initialSpeed, &groundResetRotation, acc);
+    Vec2f targetSpeed = Vec2f(seed, 0.0f);
+    stop.m_speedTarget = targetSpeed;
+    stop.onConsiderGroundFriction();
+    stop.enable();
+    acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
+    ftKineticEnergyDisableAndClear(1, acc);
+}
+
+// HYPOTHESIS: shared startup kinetic setup; boundary and name inferred.
+static inline void resetPurinStartAir(soModuleAccesser* acc) {
+    ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
+    ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
+    Vec2f speed;
+    Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
+    stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &airResetRotation, acc);
+    stop.enable();
+    Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
+    gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &gravityResetRotation, acc);
+    gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
+    gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
+    gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
+    gravity.enable();
+}
+
 void ftPurinStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
     float direction = acc->getPostureModule().getLr();
     acc->getWorkManageModule().setFloat(direction, 0x2100000a);
@@ -43,32 +78,9 @@ void ftPurinStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
     acc->getWorkManageModule().setFloat(direction, 0x21000011);
     ftPurinStatusUniqProcessSpecialNUtility::ftPurinSpecialNInit(acc);
     if (acc->getSituationModule().getKind() == Situation_Ground) {
-        ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-        // A tiny facing-dependent seed preserves direction while charging.
-        float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
-        Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
-        Vec2f initialSpeed = Vec2f(seed, 0.0f);
-        stop.resetEnergy(0x16, &initialSpeed, &groundResetRotation, acc);
-        Vec2f targetSpeed = Vec2f(seed, 0.0f);
-        stop.m_speedTarget = targetSpeed;
-        stop.onConsiderGroundFriction();
-        stop.enable();
-        acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
-        ftKineticEnergyDisableAndClear(1, acc);
+        resetPurinStartGround(acc);
     } else {
-        ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-        ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
-        Vec2f speed;
-        Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-        Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
-        stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &airResetRotation, acc);
-        stop.enable();
-        Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
-        gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &gravityResetRotation, acc);
-        gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
-        gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
-        gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
-        gravity.enable();
+        resetPurinStartAir(acc);
     }
     acc->getWorkManageModule().setInt(acc->getSituationModule().getKind(), 0x20000008);
     ftKineticEnergyDisableAndClear(2, acc);
@@ -83,31 +95,9 @@ void ftPurinStatusUniqProcessSpecialNStart::execStatus(soModuleAccesser* acc) {
     // Restore the appropriate kinetic setup when startup crosses ground/air.
     if (situation != previous) {
         if (situation == Situation_Ground) {
-            ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-            float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
-            Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
-            Vec2f initialSpeed = Vec2f(seed, 0.0f);
-            stop.resetEnergy(0x16, &initialSpeed, &groundResetRotation, acc);
-            Vec2f targetSpeed = Vec2f(seed, 0.0f);
-            stop.m_speedTarget = targetSpeed;
-            stop.onConsiderGroundFriction();
-            stop.enable();
-            acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
-            ftKineticEnergyDisableAndClear(1, acc);
+            resetPurinStartGround(acc);
         } else {
-            ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-            ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
-            Vec2f speed;
-            Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-            Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
-            stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &airResetRotation, acc);
-            stop.enable();
-            Vec3f gravityResetRotation(0.0f, 0.0f, 0.0f);
-            gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &gravityResetRotation, acc);
-            gravity.m_gravity = -acc->getConstantFloatKirby(0xfa0);
-            gravity.unk1C = acc->getConstantFloatKirby(0xfa1);
-            gravity.m_fallSpeedMax = acc->getConstantFloatKirby(0xfa1);
-            gravity.enable();
+            resetPurinStartAir(acc);
         }
     }
     acc->getWorkManageModule().setInt(situation, 0x20000008);
@@ -213,7 +203,9 @@ void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
     float charge = acc->getWorkManageModule().getFloat(0x21000005);
     float increment = acc->getConstantFloatKirby(0xfba) * 0.017453292f;
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
-    angle += (charge * increment) * direction;
+    const float phaseStep = charge * increment;
+    const float directedStep = phaseStep * direction;
+    angle += directedStep;
     // The phase is stored in radians, while model-node rotation uses degrees.
     while (angle < 0.0f) {
         angle += 6.2831855f;
@@ -412,7 +404,7 @@ void ftPurinStatusUniqProcessSpecialNHoldMax::execStatus(soModuleAccesser* acc) 
 void ftPurinStatusUniqProcessSpecialNHoldMax::execFixPosCounter(soModuleAccesser* acc) {
     // Fully charged Rollout emits a dust burst and a sparkle every ten frames.
     acc->getWorkManageModule().addInt(1, 0x2000000a);
-    if (acc->getWorkManageModule().getInt(0x2000000a) > 9) {
+    if (acc->getWorkManageModule().getInt(0x2000000a) >= 10) {
         float slopeAngle = 0.0f;
         if (acc->getSituationModule().getKind() == Situation_Ground) {
             Vec2f normal = acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0);
@@ -428,7 +420,7 @@ void ftPurinStatusUniqProcessSpecialNHoldMax::execFixPosCounter(soModuleAccesser
         acc->getWorkManageModule().setInt(0, 0x2000000a);
     }
     acc->getWorkManageModule().addInt(1, 0x2000000b);
-    if (acc->getWorkManageModule().getInt(0x2000000b) > 9) {
+    if (acc->getWorkManageModule().getInt(0x2000000b) >= 10) {
         EfID effect = static_cast<EfID>(acc->getStageObject().soGetSubKind() == 5 ? 0x1260001 : 0x260002);
         int node = acc->getStageObject().soGetSubKind() == 5 ? 0x199 : 6;
         Vec3f rotation(0.0f, 0.0f, 0.0f);
@@ -1181,11 +1173,11 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execFixPos(soModuleAccesser* acc) 
             acc->getStatusModule().changeStatusRequest(0x119, acc);
         }
         acc->getWorkManageModule().offFlag(0x22000016);
-        Vec2f normal = acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0);
-        float slopeAngle = atan2(-normal.m_x, normal.m_y);
+        Vec2f normal;
+        Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0));
+        float slopeAngle = atan2f(-normal.m_x, normal.m_y);
         float direction = acc->getPostureModule().getLr();
-        Vec3f rotation(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, slopeAngle);
-        acc->getEffectModule().req(static_cast<EfID>(10), &acc->getPostureModule().getPos(), &rotation, 1.0f, 0, -1);
+        acc->getEffectModule().req(static_cast<EfID>(10), &acc->getPostureModule().getPos(), &Vec3f(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, slopeAngle), 1.0f, 0, -1);
     }
 }
 
@@ -1374,7 +1366,7 @@ void ftPurinStatusUniqProcessSpecialNTurn::execStop(soModuleAccesser* acc) {
 }
 void ftPurinStatusUniqProcessSpecialNTurn::exitStatus(soModuleAccesser*, int) { }
 void ftPurinStatusUniqProcessSpecialNTurn::updateKineticTurnGround(soModuleAccesser* acc) {
-    // MATCH-ONLY: declaration order retains the native floating-point registers.
+    // BYTES: these used slope/friction locals precede the energy and vector locals.
     float slope;
     float friction;
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
@@ -1537,7 +1529,7 @@ void ftPurinStatusUniqProcessSpecialNHitEnd::initStatus(soModuleAccesser* acc) {
 void ftPurinStatusUniqProcessSpecialNHitEnd::execStatus(soModuleAccesser* acc) {
     SituationKind situation = acc->getSituationModule().getKind();
     acc->getWorkManageModule().getInt(0x20000008);
-    // MATCH-ONLY: this declaration retains the native vector temporary order.
+    // BYTES: caller-owned reset storage precedes scale to retain the native vector homes.
     Vec3f resetRotation;
     Vec3f scale(1.0f, 1.0f, 1.0f);
     int frame = acc->getWorkManageModule().getInt(0x20000002);
