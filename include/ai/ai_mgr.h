@@ -36,6 +36,8 @@ static_assert(sizeof(aiReferPar) == 0x20, "Class is wrong size!");
 struct aiChrIdx {
     s8 m_idx;
 
+    aiChrIdx() : m_idx(-1) { }
+
     static int GetPlayerNo(const aiChrIdx* idx);
     static int GetFighterNo(const aiChrIdx* idx);
     static bool IsValid(const aiChrIdx* idx);
@@ -167,6 +169,10 @@ public:
     int getAiCpuTarget(int player);
     bool chkNanaForceMove(int player);
     bool chkIpHumanUpdate(aiChrIdx* idx);
+    // HYPOTHESIS: whether the player's sub-character (Nana) follows its own option mode (md 0x79) and its aiStat lets it.
+    bool chkChildOptionMd(int player);
+    // HYPOTHESIS: registers the CPU input of a player slot; the parameter names follow how the function uses them.
+    void set_ai_player(int player, s8 state, aiInput* input, int ftKind);
     static aiWeaponMgr* getWeaponMgr();
     static void* getAiSystemPar();
     static aiReferPar* getAiReferPar(int index);

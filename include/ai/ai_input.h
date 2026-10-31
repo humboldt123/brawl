@@ -3,6 +3,7 @@
 #include <ai/ai_mgr.h>
 #include <ai/ai_param.h>
 #include <ip/ip_human.h>
+#include <sr/sr_common.h>
 #include <types.h>
 
 class aiAct;
@@ -15,7 +16,9 @@ struct aiCpuTypePar {
 };
 
 struct aiSystemPar {
-    char unk0[0x20];
+    char unk0[0x1D];
+    s8 m_childRank;        // 0x1D: the rank a sub-character (Nana) controller starts with (HYPOTHESIS)
+    char unk1E[2];
     aiCpuTypePar m_cpuType[25];
 };
 
@@ -31,9 +34,9 @@ public:
     u8 m_unk3E;
     u8 m_unk3F;
     u8 m_swingState;       // 0x40
-    s8 m_swingChr;         // 0x41
+    aiChrIdx m_swingChr;   // 0x41
     aiChrIdx m_chrIdx;     // 0x42
-    u8 m_unk43;
+    aiChrIdx m_unk43;      // 0x43
     aiAct* m_act;          // 0x44
     int m_md;              // 0x48: current mode (md_* index)
     int m_mdNext;          // 0x4C
@@ -68,7 +71,7 @@ public:
     float m_unk8C;
     aiParam m_par;         // 0x90
     char unkA4[0x6C];
-    s8 m_target;           // 0x110: the character slot (aiChrIdx) the CPU is after; its own slot = none (HYPOTHESIS)
+    aiChrIdx m_target;     // 0x110: the character slot (aiChrIdx) the CPU is after; its own slot = none (HYPOTHESIS)
     u8 m_unk111;
     u8 m_unk112;
     u8 m_cpuType;          // 0x113
@@ -77,6 +80,9 @@ public:
     u16 m_unk116;
     float m_unk118;        // 0x118
 
+    // HYPOTHESIS: the parameter names follow how the constructor uses them; parent is the main character's controller
+    // when this one controls the sub-character (Nana).
+    aiInput(u32 contNo, int unk2C, int player, int ftKind, s8 state, aiInput* parent, Heaps::HeapType heap);
     virtual ~aiInput();
     virtual void update();
     virtual Vec2f getStickMain() const;
