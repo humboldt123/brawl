@@ -44,7 +44,6 @@ extern "C" void fn_800DCDB0(IfMngr* mngr, float a, float b, float c);
 extern "C" void fn_800DCDD4(IfMngr* mngr, int kind, float distance);
 // IfPlayer::updateDamageHP / setDamageState (the barrier shows its health on the damage gauge of the player)
 extern "C" void fn_800E14A4(IfPlayer* player, u32 value, int a);
-extern "C" void fn_800E3684(IfPlayer* player, int state);
 // stMelee::setPlayerPositionIndexFixed, setCamera (position, target, roll, fov), interpolate, interpolate1
 extern "C" void fn_27_238DD8(stMelee* stage, int index);
 extern "C" void fn_27_239AF4(stMelee* stage, Vec3f* eye, Vec3f* target, float roll, float fov);
@@ -900,7 +899,7 @@ void stHomerun::updateSandBagDmg(float deltaFrame) {
             stHomerunPlayerView* view = reinterpret_cast<stHomerunPlayerView*>(player);
             if (view->m_unk1C == view->m_unk18) {
                 view->m_damageGauge = gauge;
-                fn_800E3684(player, 1);
+                player->setDamageState(1);
             }
             m_sandBagHp = hp;
         }
