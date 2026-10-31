@@ -2,8 +2,6 @@
 #define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define SO_SLOW_GET_INSTANCE_OUT_OF_LINE
-// The constructor calls the status table's default constructor in sora_melee instead of inlining it.
-#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/ft_owner.h>

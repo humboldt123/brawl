@@ -4,8 +4,6 @@
 #define WN_PARAM_CUSTOMIZE_INLINE_DTOR
 #define WN_KINETIC_MEDIATOR_INLINE_DTOR
 #define WN_WEAPON_BUILDER // The fighter owns complete article types.
-// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
-#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_MARIO_ARTICLE_POOLS
 #define FT_POOL_ROOT_NONPOLYMORPHIC // the pool root has no vptr (see ft/builder/ft_builder_kinetic.h)
