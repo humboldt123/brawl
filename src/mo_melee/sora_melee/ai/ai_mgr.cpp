@@ -6,6 +6,7 @@
 #include <ai/ai_weapon.h>
 #include <ai/ai_param.h>
 #include <ft/ft_manager.h>
+#include <gf/gf_heap_manager.h>
 #include <gf/gf_memory_util.h>
 #include <gm/gm_lib.h>
 #include <st/stage.h>
@@ -17,6 +18,38 @@
 extern "C" {
 // aiMgr readiness flag: -1 while the AI is disabled, 0.. once the floor information has been prepared
 extern s8 lbl_27_data_47BF8;
+}
+
+AiClBlock::AiClBlock() { }
+
+tag_AiClJointList::tag_AiClJointList() { }
+
+aiMgr::~aiMgr() {
+    if (m_stat != NULL) {
+        delete[] m_stat;
+        m_stat = NULL;
+    }
+    if (m_weaponMgr != NULL) {
+        delete m_weaponMgr;
+        m_weaponMgr = NULL;
+    }
+    if (m_enemyMgr != NULL) {
+        delete m_enemyMgr;
+        m_enemyMgr = NULL;
+    }
+    if (m_jointLists != NULL) {
+        delete[] m_jointLists;
+        m_jointLists = NULL;
+    }
+    if (m_blocks != NULL) {
+        delete[] m_blocks;
+        m_blocks = NULL;
+    }
+    if (m_pacOwned == 1 && m_pacData != NULL) {
+        gfHeapManager::free(m_pacData);
+        m_pacData = NULL;
+    }
+    g_aiMgr = NULL;
 }
 
 bool aiMgr::isReady() {
@@ -591,7 +624,7 @@ AiClBlock* aiMgr::search_blk1(u32* key) {
                 match = false;
             } else {
                 match = false;
-                if (key[1] == (u32)block->m_unk48 && key[0] == *(u32*)((u8*)block->m_joint + 0x1C)) {
+                if (key[1] == (u32)block->m_unk48 && key[0] == block->m_joint->m_id) {
                     match = true;
                 }
             }
@@ -639,6 +672,22 @@ void aiMgr::removePlayer(aiChrIdx* idx) {
 
 AiClBlock* aiMgr::get_via_blk(AiClBlock* from, int unk1, float x, Vec2f* pos, int unk2, int unk3, float f1, float f2, float f3) {
     return get_via_blk_team(from, unk1, x, -1, pos, unk2, unk3, f1, f2, f3);
+}
+
+bool aiMgr::chk_cl_cross(Vec2f* from, Vec2f* to, u32 mask, Vec2f* hitPos, AiClBlock* ignore) {
+    return chk_cl_cross2(from, to, mask, hitPos, ignore) != NULL;
+}
+
+// Whether the input of the character in this slot still comes from its controller: true until the AI has its floor
+// information, and for every slot that the AI has not registered.
+bool aiMgr::chkIpHumanUpdate(aiChrIdx* idx) {
+    if (aiChrIdx::IsPlayer(idx) && aiChrIdx::GetFighterNo(idx) == 0) {
+        int player = aiChrIdx::GetPlayerNo(idx);
+        if (m_jointLists == NULL || m_chrState[player] <= 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void aiMgr::renderDebug() {
