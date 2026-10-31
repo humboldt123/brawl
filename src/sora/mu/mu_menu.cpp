@@ -1,3 +1,4 @@
+#include <gm/gm_global.h>
 #include <gf/gf_pad_system.h>
 #include <types.h>
 
