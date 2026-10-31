@@ -5,10 +5,6 @@
 #include <gf/gf_memory_util.h>
 #include <mt/mt_common.h>
 
-template<class T> static inline T aiMgrField(aiMgr* mgr, int offset) {
-    return *(T*)((u8*)mgr + offset);
-}
-
 static inline float aiLengthOf(float lengthSq) {
     float length;
     if ((float)fabs(lengthSq) <= 1.17549435e-38f) {
@@ -102,8 +98,8 @@ int aiStat::chk_over_ground1(aiChrIdx* target) {
 bool aiStat::chk_near_deadarea() {
     aiMgr* mgr = g_aiMgr;
     float width = aiParam::get_width(&m_chrIdx);
-    if (m_pos.m_x - width < 70.0f + aiMgrField<float>(mgr, 0x360)
-        || m_pos.m_x + width > aiMgrField<float>(mgr, 0x364) - 70.0f) {
+    if (m_pos.m_x - width < 70.0f + mgr->m_areaLeft
+        || m_pos.m_x + width > mgr->m_areaRight - 70.0f) {
         return true;
     }
     return false;

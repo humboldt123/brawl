@@ -44,7 +44,7 @@ class aiParam {
 public:
     aiParData* m_par;    // 0x00
     char* m_atkData;     // 0x04: ATKD block, NULL if absent
-    u8 m_rank;           // 0x08: CPU level, clamped to 0..100
+    s8 m_rank;           // 0x08: CPU level, clamped to 0..100
     u32 m_disableCmds;   // 0x0C: commands the AI may not use (bit per command)
     float m_rankRate;    // 0x10: (rank - 20) / 2 clamped to 0..30
 

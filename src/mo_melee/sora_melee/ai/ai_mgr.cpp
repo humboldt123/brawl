@@ -12,27 +12,11 @@
 #include <st_madein/st_madein.h>
 #include <types.h>
 
-// The CPU player AI manager (aiMgr) and its helpers. HYPOTHESIS: field names are unknown, so members are read through
-// byte offsets (aiMgrField).
+// The CPU player AI manager (aiMgr) and its helpers. HYPOTHESIS: the member names follow how the functions use them.
 
 extern "C" {
 // aiMgr readiness flag: -1 while the AI is disabled, 0.. once the floor information has been prepared
 extern s8 lbl_27_data_47BF8;
-}
-
-// HYPOTHESIS: view of the part of aiMgr that holds the danger zone flags (see aiMgr::setDangerZone)
-struct aiMgrDangerView {
-    char unk0[0x32C];
-    u8 zoneUsed[24];
-};
-
-template <class T> static inline T& aiMgrField(aiMgr* manager, int offset) {
-    return *reinterpret_cast<T*>(reinterpret_cast<u8*>(manager) + offset);
-}
-
-// Element `index` of a byte/word table at `base`; the index is added to the object first (matches `add r3, r3, r4`).
-template <class T> static inline T& aiMgrArray(aiMgr* manager, int base, int index) {
-    return *reinterpret_cast<T*>(reinterpret_cast<u8*>(manager) + index + base);
 }
 
 bool aiMgr::isReady() {
@@ -44,7 +28,7 @@ bool aiMgr::isReadyUpdate() {
 }
 
 char* aiMgr::getMadeinAiData(bool includePreparation) {
-    if (aiMgrField<int>(g_aiMgr, 0x370) == Stages::Madein && g_Stage != NULL) {
+    if (g_aiMgr->m_stageKind == Stages::Madein && g_Stage != NULL) {
         stMadeinAiData* data = static_cast<stMadeinAiData*>(g_Stage->getMadeinAiData());
         // The stage sets +1 while the microgame is running; +0 exposes its
         // preparation phase only to callers that request it.
@@ -56,7 +40,7 @@ char* aiMgr::getMadeinAiData(bool includePreparation) {
 }
 
 bool aiMgr::isSmallMap() {
-    switch (aiMgrField<int>(g_aiMgr, 0x370)) {
+    switch (g_aiMgr->m_stageKind) {
     case 1:
     case 2:
     case 3:
@@ -87,37 +71,33 @@ bool aiMgr::isSmallMap() {
 }
 
 void* aiMgr::getAiSystemPar() {
-    return aiMgrField<void*>(g_aiMgr, 0x13C);
+    return g_aiMgr->m_systemPar;
 }
 
 aiReferPar* aiMgr::getAiReferPar(int index) {
     if (index < 0 || index > 0x35) {
         index = 0;
     }
-    return aiMgrField<aiReferPar*>(g_aiMgr, 0x138) + index;
-}
-
-template <class T> static inline T& aiInputField(aiInput* input, int offset) {
-    return *reinterpret_cast<T*>(reinterpret_cast<u8*>(input) + offset);
+    return g_aiMgr->m_referPar + index;
 }
 
 int aiMgr::getCpuType(int player) {
     if (player >= 0 && player < 7 && m_aiInput != NULL && m_aiInput[player] != NULL) {
-        return aiInputField<u8>(m_aiInput[player], 0x113);
+        return m_aiInput[player]->m_cpuType;
     }
     return 0;
 }
 
 int aiMgr::getCpuRank(int player) {
     if (player >= 0 && player < 7 && m_aiInput != NULL && m_aiInput[player] != NULL) {
-        return aiInputField<s8>(m_aiInput[player], 0x98);
+        return m_aiInput[player]->m_par.m_rank;
     }
     return 0;
 }
 
 int aiMgr::getAiCpuTarget(int player) {
     if (player >= 0 && player < 7 && m_aiInput != NULL && m_aiInput[player] != NULL) {
-        return aiInputField<s8>(m_aiInput[player], 0x110);
+        return m_aiInput[player]->m_target;
     }
     return -1;
 }
@@ -125,7 +105,7 @@ int aiMgr::getAiCpuTarget(int player) {
 bool aiMgr::chkNanaForceMove(int player) {
     if (m_aiInput != NULL && player >= 0 && player < 7 && m_aiInput[player + 7] != NULL) {
         aiInput* nana = m_aiInput[player + 7];
-        if (aiInputField<int>(nana, 0x48) == 0x79 && (aiInputField<u16>(nana, 0x3C) & 8) == 0) {
+        if (nana->m_md == 0x79 && (nana->m_flags & 8) == 0) {
             return true;
         }
     }
@@ -163,19 +143,18 @@ bool aiChrIdx::IsPlayer(const aiChrIdx* idx) {
 }
 
 // Danger zones: 24 axis-aligned boxes the CPUs avoid (hazards, projectiles, ...). Slots 0-7 are the stage's zones and
-// 8-23 the dynamic ones. m_active (+0x32C, one byte per slot, bit 0 = in use, the rest an attribute mask), the
-// box corners (+0x14C, 0x14 bytes per slot: minX, minY, maxX, maxY, team) and the in-use count (+0x149).
+// 8-23 the dynamic ones. m_dangerAttr (one byte per slot, bit 0 = in use, the rest an attribute mask), m_dangerZone (the
+// box corners and the team) and m_numDangerZones (the in-use count).
 void aiMgr::delDangerZone(int index) {
-    aiMgrDangerView* view = reinterpret_cast<aiMgrDangerView*>(this);
-    if (index < 0 || (u32)index >= 0x18 || view->zoneUsed[index] == 0) {
+    if (index < 0 || (u32)index >= 0x18 || m_dangerAttr[index] == 0) {
         return;
     }
-    view->zoneUsed[index] = 0;
-    aiMgrField<s8>(this, 0x149)--;
+    m_dangerAttr[index] = 0;
+    m_numDangerZones--;
 }
 
 void aiMgr::clearDangerZone(int index) {
-    if (index == 0 && (aiMgrField<u16>(this, 0xA2) & 0x100) != 0) {
+    if (index == 0 && (m_flags & 0x100) != 0) {
         return;
     }
     int last = 0x18;
@@ -195,7 +174,7 @@ void aiMgr::clearDangerZone(int index) {
 
 int aiMgr::setDangerZone(Vec2f* p1, Vec2f* p2, int index, bool unk, bool attr) {
     int mode = unk;
-    if (mode == 0 && (aiMgrField<u16>(this, 0xA2) & 0x100) != 0) {
+    if (mode == 0 && (m_flags & 0x100) != 0) {
         return -1;
     }
     int first;
@@ -204,7 +183,7 @@ int aiMgr::setDangerZone(Vec2f* p1, Vec2f* p2, int index, bool unk, bool attr) {
         first = 8;
         last = 0x18;
     } else {
-        if (aiMgrField<int>(this, 0x370) == 0x1F) {
+        if (m_stageKind == 0x1F) {
             return -1;
         }
         first = 0;
@@ -216,7 +195,7 @@ int aiMgr::setDangerZone(Vec2f* p1, Vec2f* p2, int index, bool unk, bool attr) {
         }
         index = first;
         for (int i = first; i < last; i++) {
-            if (aiMgrField<u8>(this, 0x32C + index) == 0) {
+            if (m_dangerAttr[index] == 0) {
                 break;
             }
             index++;
@@ -228,40 +207,39 @@ int aiMgr::setDangerZone(Vec2f* p1, Vec2f* p2, int index, bool unk, bool attr) {
     float x0 = p1->m_x;
     float x1 = p2->m_x;
     if (x0 <= x1) {
-        aiMgrField<float>(this, 0x14C + index * 0x14) = x0;
-        aiMgrField<float>(this, 0x154 + index * 0x14) = x1;
+        m_dangerZone[index].m_minX = x0;
+        m_dangerZone[index].m_maxX = x1;
     } else {
-        aiMgrField<float>(this, 0x154 + index * 0x14) = x0;
-        aiMgrField<float>(this, 0x14C + index * 0x14) = x1;
+        m_dangerZone[index].m_maxX = x0;
+        m_dangerZone[index].m_minX = x1;
     }
     float y0 = p1->m_y;
     float y1 = p2->m_y;
     if (y0 <= y1) {
-        aiMgrField<float>(this, 0x150 + index * 0x14) = y0;
-        aiMgrField<float>(this, 0x158 + index * 0x14) = y1;
+        m_dangerZone[index].m_minY = y0;
+        m_dangerZone[index].m_maxY = y1;
     } else {
-        aiMgrField<float>(this, 0x158 + index * 0x14) = y0;
-        aiMgrField<float>(this, 0x150 + index * 0x14) = y1;
+        m_dangerZone[index].m_maxY = y0;
+        m_dangerZone[index].m_minY = y1;
     }
-    if (aiMgrField<u8>(this, 0x32C + index) == 0) {
-        aiMgrField<s8>(this, 0x149)++;
-        aiMgrField<u8>(this, 0x32C + index) = attr | 1;
-        aiMgrField<int>(this, 0x15C + index * 0x14) = -1;
+    if (m_dangerAttr[index] == 0) {
+        m_numDangerZones++;
+        m_dangerAttr[index] = attr | 1;
+        m_dangerZone[index].m_team = -1;
     }
     return index;
 }
 
 void aiMgr::setDangerAttr(int index, u8 attr) {
-    aiMgrDangerView* view = reinterpret_cast<aiMgrDangerView*>(this);
     u8 current;
-    if (index < 0 || (u32)index >= 0x18 || (current = view->zoneUsed[index]) == 0) {
+    if (index < 0 || (u32)index >= 0x18 || (current = m_dangerAttr[index]) == 0) {
         return;
     }
-    view->zoneUsed[index] = current | attr;
+    m_dangerAttr[index] = current | attr;
 }
 
 void aiMgr::setDangerTeam(int index, int team) {
-    if (index < 0 || (u32)index >= 0x18 || reinterpret_cast<aiMgrDangerView*>(this)->zoneUsed[index] == 0) {
+    if (index < 0 || (u32)index >= 0x18 || m_dangerAttr[index] == 0) {
         return;
     }
     u8* zone = reinterpret_cast<u8*>(this) + index * 0x14;
@@ -272,10 +250,12 @@ void aiMgr::setDangerTeam(int index, int team) {
 // and only those carrying one of the attribute bits, if attr != 0).
 bool aiMgr::chkDangerZone(Vec2f* pos, int team, u8 attr) {
     aiMgr* manager = g_aiMgr;
-    if (aiMgrField<u8>(manager, 0x149) != 0) {
+    if (manager->m_numDangerZones != 0) {
+        // MATCH-ONLY: the attribute bytes are read through a byte pointer that starts at the manager (m_dangerAttr is at
+        // +0x32C), and the zones through a float pointer; typed array indexing did not reproduce the loop (the original
+        // steps one pointer by 2 bytes and one by 0x28 per iteration). Two zones per iteration (the loop is unrolled by two).
         u8* base = reinterpret_cast<u8*>(manager);
-        float* box = &aiMgrField<float>(manager, 0x14C);
-        // two zones per iteration (the original loop is unrolled by two)
+        float* box = &manager->m_dangerZone[0].m_minX;
         for (int i = 0; i < 12; i++, box += 10, base += 2) {
             if (base[0x32C] != 0 && (team < 0 || *reinterpret_cast<int*>(&box[4]) != team)) {
                 if (attr == 0 || (attr & base[0x32C]) != 0) {
@@ -309,73 +289,72 @@ aiStat* aiMgr::get_aiStat(aiChrIdx* idx) {
     s8 index = idx->m_idx;
     if (index >= 0) {
         if (aiIndexValid(index)) {
-            stat = &aiMgrField<aiStat*>(g_aiMgr, 0xF8)[index];
+            stat = &g_aiMgr->m_stat[index];
         } else {
-            aiEnemy* enemy = aiMgrField<aiEnemyMgr*>(g_aiMgr, 0x100)->getEnemy(index - 14);
-            stat = &aiMgrField<aiStat*>(g_aiMgr, 0xF8)[14];
-            if (aiMgrField<s8>(g_aiMgr, 0xA4) != idx->m_idx - 14 && enemy != NULL) {
+            aiEnemy* enemy = g_aiMgr->m_enemyMgr->getEnemy(index - 14);
+            stat = &g_aiMgr->m_stat[14];
+            if (g_aiMgr->m_unkA4 != idx->m_idx - 14 && enemy != NULL) {
                 stat->update_enemy(enemy, idx);
-                aiMgrField<s8>(g_aiMgr, 0xA4) = idx->m_idx - 14;
+                g_aiMgr->m_unkA4 = idx->m_idx - 14;
             }
         }
     } else {
-        stat = &aiMgrField<aiStat*>(g_aiMgr, 0xF8)[14];
+        stat = &g_aiMgr->m_stat[14];
     }
     return stat;
 }
 
 void aiMgr::setEnable(int enable) {
-    aiMgrField<s8>(g_aiMgr, 0xA0) = enable;
+    g_aiMgr->m_enable = enable;
     if (enable == 0) {
         lbl_27_data_47BF8 = -1;
-        if (aiMgrField<aiWeaponMgr*>(g_aiMgr, 0xFC) != NULL) {
-            aiMgrField<aiWeaponMgr*>(g_aiMgr, 0xFC)->reset();
+        if (g_aiMgr->m_weaponMgr != NULL) {
+            g_aiMgr->m_weaponMgr->reset();
         }
-        if (aiMgrField<aiEnemyMgr*>(g_aiMgr, 0x100) != NULL) {
-            aiMgrField<aiEnemyMgr*>(g_aiMgr, 0x100)->reset();
+        if (g_aiMgr->m_enemyMgr != NULL) {
+            g_aiMgr->m_enemyMgr->reset();
         }
         g_aiMgr->CrearWork();
     }
 }
 
 void aiMgr::CrearWork() {
-    aiMgrField<int>(this, 0xA8) = 0;
-    aiMgrField<s8>(this, 0xA4) = -1;
-    aiMgrDangerView* view = reinterpret_cast<aiMgrDangerView*>(this);
+    m_unkA8 = 0;
+    m_unkA4 = -1;
     for (int i = 0; i < 24; i++) {
-        view->zoneUsed[i] = 0;
+        m_dangerAttr[i] = 0;
     }
-    aiMgrField<u8>(this, 0x149) = 0;
-    aiMgrField<u8>(this, 0x104) = 0;
-    aiMgrField<u8>(this, 0x110) = 0;
-    aiMgrField<u8>(this, 0x11C) = 0;
-    aiMgrField<u8>(this, 0x128) = 0;
-    aiMgrField<int>(this, 0x344) = 1;
-    aiMgrField<u16>(this, 0x35C) = 0;
-    aiMgrField<u16>(this, 0x35A) = 0;
-    aiMgrField<u16>(this, 0x358) = 0;
-    aiMgrField<u16>(this, 0x350) = 0;
-    aiMgrField<u16>(this, 0x354) = 0;
-    aiMgrField<float>(this, 0x360) = -99999.9f;
-    aiMgrField<float>(this, 0x36C) = -99999.9f;
-    aiMgrField<float>(this, 0x364) = 99999.9f;
-    aiMgrField<float>(this, 0x368) = 99999.9f;
-    aiMgrField<int>(this, 0x370) = 0;
-    aiMgrField<int>(this, 0x378) = 0;
-    aiMgrField<int>(this, 0x374) = 0;
-    aiMgrField<float>(this, 0x37C) = 0.0f;
-    aiMgrField<int>(this, 0x380) = 0;
-    aiMgrField<u8>(this, 0x384) = 0;
-    aiMgrField<u8>(this, 0x385) = 0;
-    aiMgrField<u8>(this, 0x386) = 0;
-    gfMemFill(&aiMgrField<u8>(this, 0xAC), 0, 0x4C);
+    m_numDangerZones = 0;
+    m_unk104 = 0;
+    m_unk110 = 0;
+    m_unk11C = 0;
+    m_unk128 = 0;
+    m_unk344 = 1;
+    m_unk35C = 0;
+    m_unk35A = 0;
+    m_unk358 = 0;
+    m_numBlocks = 0;
+    m_unk354 = 0;
+    m_areaLeft = -99999.9f;
+    m_areaBottom = -99999.9f;
+    m_areaRight = 99999.9f;
+    m_areaTop = 99999.9f;
+    m_stageKind = 0;
+    m_unk378 = 0;
+    m_unk374 = 0;
+    m_unk37C = 0.0f;
+    m_unk380 = 0;
+    m_unk384 = 0;
+    m_unk385 = 0;
+    m_unk386 = 0;
+    gfMemFill(m_work, 0, sizeof(m_work));
 }
 
 void aiMgr::setCpuType(int player, int type) {
     if (m_aiInput != NULL && player >= 0 && player < 7) {
         aiInput* input = m_aiInput[player];
         if (input != NULL) {
-            if (aiMgrField<u8>(this, 0xA0) != 1 && aiMgrArray<s8>(this, 0x92, player) >= 0) {
+            if (m_enable != 1 && m_cpuTypeLock[player] >= 0) {
                 return;
             }
             input->setCpuType(type);
@@ -387,7 +366,7 @@ void aiMgr::setCpuRank(int player, s8 rank) {
     if (m_aiInput != NULL && player >= 0 && player < 7) {
         aiInput* input = m_aiInput[player];
         if (input != NULL) {
-            if (aiMgrField<u8>(this, 0xA0) == 1 || aiMgrArray<s8>(this, 0x99, player) < 0) {
+            if (m_enable == 1 || m_cpuRankLock[player] < 0) {
                 aiInput* child = input->m_child;
                 input->m_par.setRank(rank, 0, (input->m_flags >> 15) & 1);
                 if (child != NULL) {
@@ -400,9 +379,9 @@ void aiMgr::setCpuRank(int player, s8 rank) {
 
 void aiMgr::regist_ai_child(int player, aiInput* input, int chrKind) {
     int index = player + 7;
-    aiMgrArray<s8>(this, 0x84, index) = 1;
+    m_chrState[index] = 1;
     m_aiInput[index] = input;
-    aiMgrField<aiStat*>(this, 0xF8)[index].init(index, chrKind, input, 0);
+    m_stat[index].init(index, chrKind, input, 0);
     if (input != NULL) {
         input->setEnableRumble(false);
     }
@@ -410,14 +389,14 @@ void aiMgr::regist_ai_child(int player, aiInput* input, int chrKind) {
 
 void aiMgr::notifyEventChangeStart(int entryId, int playerNo, int activeInstanceIndex, ftKind kind) {
     setEnablePlayer(playerNo, 0, 1);
-    aiMgrField<u8>(this, 0x385) = 0xF0;
+    m_unk385 = 0xF0;
 }
 
 void aiMgr::notifyEventChangeEnd(int entryId, int playerNo, int activeInstanceIndex, ftKind kind) {
     if (playerNo < 7) {
         if (m_aiInput[playerNo] != NULL) {
             m_aiInput[playerNo]->changeFtKind(kind);
-            aiMgrField<aiStat*>(this, 0xF8)[playerNo].change(playerNo, kind, m_aiInput[playerNo], activeInstanceIndex);
+            m_stat[playerNo].change(playerNo, kind, m_aiInput[playerNo], activeInstanceIndex);
         }
     }
 }
@@ -466,8 +445,8 @@ bool AiClBlock::chk_fl_danger(int team) {
 }
 
 AiClBlock* aiMgr::get_top_block(int team) {
-    int count = aiMgrField<u16>(this, 0x350);
-    AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
+    int count = m_numBlocks;
+    AiClBlock* block = m_blocks;
     float best = -99999.9f;
     AiClBlock* result = NULL;
     for (int i = 0; i < count; i++, block++) {
@@ -499,8 +478,8 @@ AiClBlock* aiMgr::get_top_block(int team) {
 }
 
 AiClBlock* aiMgr::get_right_block(int team) {
-    int count = aiMgrField<u16>(this, 0x350);
-    AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
+    int count = m_numBlocks;
+    AiClBlock* block = m_blocks;
     float best = -99999.9f;
     AiClBlock* result = NULL;
     for (int i = 0; i < count; i++, block++) {
@@ -532,10 +511,10 @@ AiClBlock* aiMgr::get_right_block(int team) {
 }
 
 AiClBlock* aiMgr::get_center_block(int team) {
-    AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
+    AiClBlock* block = m_blocks;
     AiClBlock* result = NULL;
     float best = 9999979520.0f;
-    int count = aiMgrField<u16>(this, 0x350);
+    int count = m_numBlocks;
     for (int i = 0; i < count; i++, block++) {
         u32 flags = block->m_flags;
         if ((flags & 2) != 0) {
@@ -545,8 +524,8 @@ AiClBlock* aiMgr::get_center_block(int team) {
             if (block->m_edgeL.m_x > 0.0f || block->m_edgeR.m_x < 0.0f) {
                 score += 100.0f;
             }
-            if (block->m_top < aiMgrField<float>(this, 0x36C) + 40.0f
-                || aiMgrField<float>(this, 0x368) - 40.0f < block->m_bottom) {
+            if (block->m_top < m_areaBottom + 40.0f
+                || m_areaTop - 40.0f < block->m_bottom) {
                 score += 10000.0f;
             }
             if ((flags & 0x10000) != 0) {
@@ -574,8 +553,8 @@ AiClBlock* aiMgr::get_center_block(int team) {
 }
 
 bool aiMgr::chkUnderFloor(float slope, Vec2f* pos) {
-    int count = aiMgrField<u16>(this, 0x350);
-    AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
+    int count = m_numBlocks;
+    AiClBlock* block = m_blocks;
     for (int i = 0; i < count; i++, block++) {
         if ((block->m_flags & 2) != 0 && !(block->m_top > pos->m_y)) {
             if (block->m_edgeL.m_x > pos->m_x) {
@@ -605,8 +584,8 @@ bool aiMgr::chkUnderFloor(float slope, Vec2f* pos) {
 
 AiClBlock* aiMgr::search_blk1(u32* key) {
     if (key[0] != 0) {
-        AiClBlock* block = aiMgrField<AiClBlock*>(this, 0x34C);
-        for (int count = aiMgrField<u16>(this, 0x350); count > 0; count--) {
+        AiClBlock* block = m_blocks;
+        for (int count = m_numBlocks; count > 0; count--) {
             bool match;
             if (block->m_joint == NULL) {
                 match = false;
@@ -647,7 +626,7 @@ aiStat* aiMgr::get_aiStatFinal() {
 void aiMgr::removePlayer(aiChrIdx* idx) {
     if (aiChrIdx::IsValid(idx)) {
         removeTgtRefer(aiChrIdx::GetPlayerNo(idx), 0);
-        aiMgrArray<s8>(this, 0x84, idx->m_idx) = -1;
+        m_chrState[idx->m_idx] = -1;
         aiInput* input = m_aiInput[idx->m_idx];
         if (input != NULL) {
             input->setEnableRumble(false);
@@ -658,15 +637,15 @@ void aiMgr::removePlayer(aiChrIdx* idx) {
 }
 
 void aiMgr::setAdventureMd(u32 md) {
-    u32 current = aiMgrField<u8>(g_aiMgr, 0xA1);
+    u32 current = g_aiMgr->m_adventureMd;
     if (current == md) {
         return;
     }
-    aiMgrField<u8>(g_aiMgr, 0xA1) = md;
+    g_aiMgr->m_adventureMd = md;
     for (int i = 0; i < 14; i++) {
         aiInput* input = g_aiMgr->m_aiInput[i];
         if (input != NULL) {
-            input->m_unk112 = aiMgrField<u8>(g_aiMgr, 0xA1);
+            input->m_unk112 = g_aiMgr->m_adventureMd;
         }
     }
 }

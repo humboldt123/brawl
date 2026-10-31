@@ -68,7 +68,7 @@ public:
     float m_unk8C;
     aiParam m_par;         // 0x90
     char unkA4[0x6C];
-    u8 m_unk110;           // 0x110
+    s8 m_target;           // 0x110: the character slot (aiChrIdx) the CPU is after; its own slot = none (HYPOTHESIS)
     u8 m_unk111;
     u8 m_unk112;
     u8 m_cpuType;          // 0x113
@@ -77,6 +77,14 @@ public:
     u16 m_unk116;
     float m_unk118;        // 0x118
 
+    virtual ~aiInput();
+    virtual void update();
+    virtual Vec2f getStickMain() const;
+    virtual Vec2f getStickSub() const;
+    virtual ipPadButton getButton() const;
+    virtual ipPadTrigger getTrigger() const;
+    virtual s32 getContNo() const;
+
     void reset();
     void change_md(int mode, void* target, int unk1, int unk2);
     void changeFtKind(int ftKind);
@@ -84,4 +92,5 @@ public:
     void setEnable(u32 enable);
     void swingChkReset(int force);
     void swingChkSet(int hit);
+    s8 get_fix_target(float* distance);
 };

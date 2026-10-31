@@ -831,3 +831,9 @@ Method used for `soModelModuleImpl` (sora_melee 0x77DC-0xE268, `include/so/model
 - **`while (g->count != 0) { int n = g->count; if (n != 0) g->Remove(n - 1); }`** reproduces the doubled test of the "remove all items" loop (the count is read once per iteration and the inline remove tests it again). **MED**
 - **`__attribute__((never_inline))` on a small member (`muProcMovieAdv::makeMovieList`)** keeps `-inline auto` from folding it into `init`; the larger sibling in the Movie unit is not folded without it. **MED**
 - **`list[count++] = id` and `list[count] = id; count++` allocate differently:** the first matched the strength-reduced `stwx` with a separate byte-offset register in `muProcMovie::makeMovieList`. **LOW**
+
+## CPU AI (ai_input, ai_mgr) findings
+
+- **A CPU controller that overrides the controller getters needs the base members visible:** `aiInput` returns IpHuman's own stick/button/trigger/controller-number members through five tiny overrides (vtable slots 2-6 of `lbl_27_data_48598`), so a shadow `include/ip/ip_human.h` makes them `protected`. The vtable is the quickest way to find which of the unnamed 8-16 byte functions are overrides. **MED**
+- **Offsets of one manager class can be recovered from every raw `aiMgrField<T>(g_aiMgr, 0x...)` call at once:** the danger-zone block (24 boxes of 0x14 bytes at +0x14C, attribute bytes at +0x32C), the stage edges (+0x360..0x36C) and the sub-manager pointers (+0xF8 stat array, +0xFC weapon, +0x100 enemy) are now members of `aiMgr`; reading the byte the callers test (`u8` vs `s8`: `extsb.` vs `cmpwi`) fixes member signedness. **MED**
+- **`chkDangerZone` keeps a byte pointer that starts at the manager:** typed array indexing (`m_dangerAttr[i * 2]`, a second pointer, an index variable) all changed the induction variables; only a `u8* base` stepped by 2 and a `float* box` stepped by 10 reproduces the original loop (marked MATCH-ONLY). **LOW**
