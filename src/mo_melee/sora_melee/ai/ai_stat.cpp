@@ -1,6 +1,7 @@
 #include <ai/ai_enemy.h>
 #include <ai/ai_param.h>
 #include <ai/ai_stat.h>
+#include <ft/fighter.h>
 #include <math.h>
 #include <gf/gf_memory_util.h>
 #include <mt/mt_common.h>
@@ -15,6 +16,166 @@ static inline float aiLengthOf(float lengthSq) {
     return length;
 }
 
+
+// The AI's own classification of the common fighter statuses (0 = none), read by status kind into aiStat 0x1BA.
+// HYPOTHESIS: the namespace follows the sora_melee map ("aistat__initUniqStatusTable", lower case, apart from aiStat);
+// the data names are descriptive and the category values are not named yet.
+namespace aistat {
+
+u8 s_uniqStatusTableReady;
+u8 s_uniqStatusTable[NumUniqStatus];
+
+void initUniqStatusTable() {
+    gfMemFill(s_uniqStatusTable, 0, NumUniqStatus);
+    s_uniqStatusTable[Fighter::Status::Wait] = 1;
+    s_uniqStatusTable[Fighter::Status::Walk] = 1;
+    s_uniqStatusTable[Fighter::Status::Squat] = 1;
+    s_uniqStatusTable[Fighter::Status::Squat_Wait] = 1;
+    s_uniqStatusTable[Fighter::Status::Ottoto] = 1;
+    s_uniqStatusTable[Fighter::Status::Ottoto_Wait] = 1;
+    s_uniqStatusTable[Fighter::Status::Landing_Light] = 1;
+    s_uniqStatusTable[Fighter::Status::Item_Shoot_Wait] = 1;
+    s_uniqStatusTable[Fighter::Status::Item_Shoot_Walk_F] = 1;
+    s_uniqStatusTable[Fighter::Status::Item_Shoot_Walk_B] = 1;
+    s_uniqStatusTable[Fighter::Status::Item_Lift_Wait] = 1;
+    s_uniqStatusTable[Fighter::Status::Item_Lift_Walk] = 1;
+    s_uniqStatusTable[Fighter::Status::Hammer_Wait] = 1;
+    s_uniqStatusTable[Fighter::Status::Hammer_Walk] = 1;
+    s_uniqStatusTable[Fighter::Status::Rebirth] = 1;
+    s_uniqStatusTable[Fighter::Status::Turn] = 1;
+    s_uniqStatusTable[Fighter::Status::Jump] = 2;
+    s_uniqStatusTable[Fighter::Status::Jump_Aerial] = 2;
+    s_uniqStatusTable[Fighter::Status::Fall] = 2;
+    s_uniqStatusTable[Fighter::Status::Fall_Aerial] = 2;
+    s_uniqStatusTable[Fighter::Status::Damage_Fall] = 2;
+    s_uniqStatusTable[Fighter::Status::Warpstar_Jump] = 2;
+    s_uniqStatusTable[Fighter::Status::Fly] = 2;
+    s_uniqStatusTable[Fighter::Status::Dash] = 3;
+    s_uniqStatusTable[Fighter::Status::Run] = 3;
+    s_uniqStatusTable[Fighter::Status::Run_Brake] = 3;
+    s_uniqStatusTable[Fighter::Status::Turn_Run] = 3;
+    s_uniqStatusTable[Fighter::Status::Turn_Run_Brake] = 3;
+    s_uniqStatusTable[Fighter::Status::Down] = 4;
+    s_uniqStatusTable[Fighter::Status::Down_Wait] = 4;
+    s_uniqStatusTable[Fighter::Status::Slip_Wait] = 4;
+    s_uniqStatusTable[Fighter::Status::Damage] = 5;
+    s_uniqStatusTable[Fighter::Status::Damage_Air] = 5;
+    s_uniqStatusTable[Fighter::Status::Damage_Fly] = 5;
+    s_uniqStatusTable[Fighter::Status::Damage_Fly_Roll] = 5;
+    s_uniqStatusTable[Fighter::Status::Damage_Fly_Reflect_Lr] = 5;
+    s_uniqStatusTable[Fighter::Status::Damage_Fly_Reflect_U] = 5;
+    s_uniqStatusTable[Fighter::Status::Escape] = 24;
+    s_uniqStatusTable[Fighter::Status::Escape_F] = 24;
+    s_uniqStatusTable[Fighter::Status::Escape_B] = 24;
+    s_uniqStatusTable[Fighter::Status::Cliff_Catch_Move] = 6;
+    s_uniqStatusTable[Fighter::Status::Cliff_Catch] = 6;
+    s_uniqStatusTable[Fighter::Status::Cliff_Wait] = 6;
+    s_uniqStatusTable[Fighter::Status::Air_Lasso_Hang] = 6;
+    s_uniqStatusTable[Fighter::Status::Cliff_Attack] = 7;
+    s_uniqStatusTable[Fighter::Status::Cliff_Climb] = 7;
+    s_uniqStatusTable[Fighter::Status::Cliff_Escape] = 7;
+    s_uniqStatusTable[Fighter::Status::Cliff_Jump1] = 7;
+    s_uniqStatusTable[Fighter::Status::Cliff_Jump2] = 7;
+    s_uniqStatusTable[Fighter::Status::Cliff_Jump3] = 7;
+    s_uniqStatusTable[Fighter::Status::Ladder_Wait] = 8;
+    s_uniqStatusTable[Fighter::Status::FuraFura_Stand] = 9;
+    s_uniqStatusTable[Fighter::Status::FuraFura] = 9;
+    s_uniqStatusTable[Fighter::Status::Bind] = 9;
+    s_uniqStatusTable[Fighter::Status::Shield_Break_Fly] = 9;
+    s_uniqStatusTable[Fighter::Status::Shield_Break_Fall] = 9;
+    s_uniqStatusTable[Fighter::Status::Shield_Break_Down] = 9;
+    s_uniqStatusTable[Fighter::Status::Ice] = 9;
+    s_uniqStatusTable[Fighter::Status::Bury] = 9;
+    s_uniqStatusTable[Fighter::Status::Bury_Wait] = 9;
+    s_uniqStatusTable[Fighter::Status::Clung_Diddy] = 9;
+    s_uniqStatusTable[Fighter::Status::Clung_Damage_Diddy] = 9;
+    s_uniqStatusTable[Fighter::Status::Swallowed] = 9;
+    s_uniqStatusTable[Fighter::Status::Swallowed_Drink] = 9;
+    s_uniqStatusTable[Fighter::Status::Swallowed_Capture] = 9;
+    s_uniqStatusTable[Fighter::Status::Swallowed_Thrown_Star] = 9;
+    s_uniqStatusTable[Fighter::Status::Swallowed_Thrown] = 9;
+    s_uniqStatusTable[Fighter::Status::Swallowed_Canceled] = 9;
+    s_uniqStatusTable[Fighter::Status::Bitten_Wario_Start] = 9;
+    s_uniqStatusTable[Fighter::Status::Bitten_Wario] = 9;
+    s_uniqStatusTable[Fighter::Status::Yoshi_Egg] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Pulled] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Wait] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Damage] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Jump] = 9;
+    s_uniqStatusTable[Fighter::Status::Shouldered_Donkey] = 9;
+    s_uniqStatusTable[Fighter::Status::Damage_Song_Start] = 9;
+    s_uniqStatusTable[Fighter::Status::Damage_Song] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Pulled_Yoshi] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Wait_Yoshi] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Damage_Yoshi] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Masterhand] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Bucyulus] = 9;
+    s_uniqStatusTable[Fighter::Status::Capture_Cut_Bucyulus] = 9;
+    s_uniqStatusTable[Fighter::Status::Ike_Final_Damage_Fly] = 23;
+    s_uniqStatusTable[Fighter::Status::Ike_Final_Damage] = 23;
+    s_uniqStatusTable[Fighter::Status::Ike_Final_Damage_Fall] = 23;
+    s_uniqStatusTable[Fighter::Status::Link_Final] = 23;
+    s_uniqStatusTable[Fighter::Status::Metaknight_Final] = 23;
+    s_uniqStatusTable[Fighter::Status::Kirby_Final_Damage_Fly] = 23;
+    s_uniqStatusTable[Fighter::Status::Kirby_Final_Damage_Wait] = 23;
+    s_uniqStatusTable[Fighter::Status::Capture_Gokulin] = 23;
+    s_uniqStatusTable[Fighter::Status::Capture_Taboo] = 23;
+    s_uniqStatusTable[Fighter::Status::Koopa_Dived] = 23;
+    s_uniqStatusTable[Fighter::Status::Catch_Wait] = 10;
+    s_uniqStatusTable[Fighter::Status::Catch_Attack] = 10;
+    s_uniqStatusTable[Fighter::Status::Catch_Cut] = 11;
+    s_uniqStatusTable[Fighter::Status::Throw] = 11;
+    s_uniqStatusTable[Fighter::Status::Swim] = 12;
+    s_uniqStatusTable[Fighter::Status::Swim_Wait] = 12;
+    s_uniqStatusTable[Fighter::Status::Swim_End] = 12;
+    s_uniqStatusTable[Fighter::Status::Swim_Turn] = 12;
+    s_uniqStatusTable[Fighter::Status::Swim_Jump] = 12;
+    s_uniqStatusTable[Fighter::Status::Swim_Drown] = 12;
+    s_uniqStatusTable[Fighter::Status::Swim_Dive] = 12;
+    s_uniqStatusTable[Fighter::Status::Swim_Rise] = 12;
+    s_uniqStatusTable[Fighter::Status::Swim_Up] = 12;
+    s_uniqStatusTable[Fighter::Status::Swim_Drown_Out] = 12;
+    s_uniqStatusTable[Fighter::Status::Attach_Wall] = 13;
+    s_uniqStatusTable[Fighter::Status::Attach_Wall_Wait] = 13;
+    s_uniqStatusTable[Fighter::Status::Fall_Special] = 14;
+    s_uniqStatusTable[Fighter::Status::Dragoon_Ride] = 15;
+    s_uniqStatusTable[Fighter::Status::Glide] = 16;
+    s_uniqStatusTable[Fighter::Status::Warpstar] = 17;
+    s_uniqStatusTable[Fighter::Status::Attack] = 18;
+    s_uniqStatusTable[Fighter::Status::Attack_100] = 18;
+    s_uniqStatusTable[Fighter::Status::Attack_Dash] = 18;
+    s_uniqStatusTable[Fighter::Status::Attack_S3] = 18;
+    s_uniqStatusTable[Fighter::Status::Attack_Hi3] = 18;
+    s_uniqStatusTable[Fighter::Status::Attack_Lw3] = 18;
+    s_uniqStatusTable[Fighter::Status::Attack_S4] = 18;
+    s_uniqStatusTable[Fighter::Status::Attack_Lw4] = 18;
+    s_uniqStatusTable[Fighter::Status::Attack_Hi4] = 18;
+    s_uniqStatusTable[Fighter::Status::Attack_Air] = 18;
+    s_uniqStatusTable[Fighter::Status::Item_Swing] = 18;
+    s_uniqStatusTable[Fighter::Status::Item_Swing_S3] = 18;
+    s_uniqStatusTable[Fighter::Status::Item_Swing_S4] = 18;
+    s_uniqStatusTable[Fighter::Status::Item_Swing_Dash] = 18;
+    s_uniqStatusTable[Fighter::Status::Catch] = 20;
+    s_uniqStatusTable[Fighter::Status::Catch_Dash] = 20;
+    s_uniqStatusTable[Fighter::Status::Catch_Turn] = 20;
+    s_uniqStatusTable[Fighter::Status::Attack_S4_Start] = 19;
+    s_uniqStatusTable[Fighter::Status::Attack_S4_Hold] = 19;
+    s_uniqStatusTable[Fighter::Status::Attack_Lw4_Start] = 19;
+    s_uniqStatusTable[Fighter::Status::Attack_Lw4_Hold] = 19;
+    s_uniqStatusTable[Fighter::Status::Attack_Hi4_Start] = 19;
+    s_uniqStatusTable[Fighter::Status::Attack_Hi4_Hold] = 19;
+    s_uniqStatusTable[Fighter::Status::Item_Swing_S4_Start] = 19;
+    s_uniqStatusTable[Fighter::Status::Item_Swing_S4_Hold] = 19;
+    s_uniqStatusTable[Fighter::Status::Guard_On] = 21;
+    s_uniqStatusTable[Fighter::Status::Guard] = 21;
+    s_uniqStatusTable[Fighter::Status::Guard_Damage] = 21;
+    s_uniqStatusTable[Fighter::Status::Jump_Squat] = 22;
+    s_uniqStatusTable[Fighter::Status::Item_Shoot_Jump_Squat] = 22;
+    s_uniqStatusTable[Fighter::Status::Hammer_Jump_Squat] = 22;
+    s_uniqStatusTableReady = 1;
+}
+
+} // namespace aistat
 
 // aiStat: the CPU AI's per-character state snapshot and helper queries.
 

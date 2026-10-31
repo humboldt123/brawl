@@ -10,6 +10,15 @@
 class aiEnemy;
 struct aiJumpPar;
 
+namespace aistat {
+    enum {
+        NumUniqStatus = 0x117, // the common fighter statuses (Fighter::Status::Kind) the table covers
+    };
+    extern u8 s_uniqStatusTableReady; // set once initUniqStatusTable has run (aiStat's constructor checks it)
+    extern u8 s_uniqStatusTable[NumUniqStatus];
+    void initUniqStatusTable();
+}
+
 class aiStat {
 public:
     aiStat();
