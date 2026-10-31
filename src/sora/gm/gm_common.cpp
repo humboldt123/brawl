@@ -113,7 +113,7 @@ const char* getStageNameString(int kind) {
     return lbl_8042BC18[kind];
 }
 
-u8 gmRetHideMovieID(GmMovieID id) {
+int gmRetHideMovieID(GmMovieID id) {
     return lbl_804069A0[id].m_hideId;
 }
 

@@ -11,7 +11,7 @@ enum GmHideBGMKind {};
 // HYPOTHESIS: all parameter types below come from the callee's own register use; the map has no parameter types.
 const char* getChKindNameString(int kind);
 const char* getStageNameString(int kind);
-u8 gmRetHideMovieID(GmMovieID id);
+int gmRetHideMovieID(GmMovieID id); // HYPOTHESIS: int, the callers use the byte it loads (lbz) without clearing the upper bits
 void gmGetMovieFileName(char* buf, GmMovieID id);
 void gmGetMovieFileNameNoPath(char* buf, GmMovieID id);
 gmCharacterKind gmRetHideKindToCharacterKind(u32 hideKind);

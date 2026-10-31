@@ -4,17 +4,9 @@
 #include <gf/gf_task.h>
 #include <mu/mu_collection_viewer.h>
 #include <mu/mu_object.h>
+#include <mu/mu_scn_mdl_expand.h>
 #include <nw4r/g3d/g3d_scngroup.h>
 #include <stddef.h>
-
-namespace nw4r { namespace g3d {
-// Declaration prefix for the attachment group. The storage after ScnGroup is
-// not modeled here; this interface is used only through existing pointers.
-class ScnMdlExpand : public ScnGroup {
-public:
-    bool PushBack(ScnObj* object, const char* nodeName);
-};
-}}
 
 // Recovered behavior prefix, not a complete allocation layout. The constructor
 // proves the gfTask base; only fields used by the grid/palette controls are named.

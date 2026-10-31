@@ -46,6 +46,16 @@ mo_menu/mu_proc_count.cpp:
 	.rodata     start:0x00000710 end:0x00000920
 	.data       start:0x000027D0 end:0x00002898
 
+mo_menu/mu_proc_movie.cpp:
+	.text       start:0x00021B80 end:0x00022E40
+	.rodata     start:0x00000970 end:0x000009A8
+	.data       start:0x00002B48 end:0x00002C10
+
+mo_menu/mu_proc_movie_adv.cpp:
+	.text       start:0x00022E40 end:0x00023874
+	.rodata     start:0x000009A8 end:0x00000AB0
+	.data       start:0x00002C10 end:0x00002CB0
+
 mo_menu/mu_proc_figure.cpp:
 	.text       start:0x0002B5E8 end:0x0002BCF8
 	.rodata     start:0x00000EF8 end:0x00000F08
