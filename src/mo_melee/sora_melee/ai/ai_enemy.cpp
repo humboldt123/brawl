@@ -8,15 +8,6 @@
 #include <st/st_enemy_id_manager.h>
 #include <st_madein/st_madein.h>
 
-// Partial view: stage identity is also read by aiMgr::isSmallMap and its
-// stage-specific logic. The rest of the manager remains opaque here.
-struct aiEnemyStageView {
-    char unk0[0x370];
-    Stages::srStageKind m_stage;
-};
-
-// emManager::getEnemyRefFromId (not declared by BrawlHeaders); returns the enemy as a StageObject.
-extern "C" StageObject* fn_41_CECC(emManager* manager, int createId);
 extern "C" int fn_27_8CC2C(StageObject* obj, int kind);  // soExternalValueAccesser::isGroundTouch
 
 aiEnemyMgr::aiEnemyMgr() {
@@ -36,7 +27,7 @@ void aiEnemyMgr::reset() {
 }
 
 void aiEnemyMgr::update() {
-    if (reinterpret_cast<aiEnemyStageView*>(g_aiMgr)->m_stage != Stages::Madein &&
+    if (g_aiMgr->m_stageKind != Stages::Madein &&
         g_stEnemyIdManager == NULL) {
         return;
     }
@@ -54,7 +45,7 @@ void aiEnemyMgr::update() {
         missing[i] = m_enemies[i].m_flags & aiEnemy::Active;
     }
 
-    if (reinterpret_cast<aiEnemyStageView*>(g_aiMgr)->m_stage == Stages::Madein) {
+    if (g_aiMgr->m_stageKind == Stages::Madein) {
         stMadeinAiData* data = reinterpret_cast<stMadeinAiData*>(aiMgr::getMadeinAiData(false));
         if (data != NULL) {
             switch (data->m_game) {
@@ -195,7 +186,7 @@ aiEnemy* aiEnemyMgr::getEnemyNear(Vec3f* pos, float* distanceSq) {
 }
 
 void aiEnemy::update() {
-    StageObject* obj = fn_41_CECC(emManager::getInstance(), m_objId);
+    StageObject* obj = emManager::getInstance()->getEnemyRefFromId(m_objId);
     m_flags = Active;
     m_status = soExternalValueAccesser::getStatusKind(obj);
     if (soExternalValueAccesser::getSituationKind(obj) != Situation_Outfield) {

@@ -878,12 +878,11 @@ int aiWeapon::predict_core(Vec3f* pos, float radius, int frames) {
 // is verified here; the complete collision-query signature is not recovered.
 class aiMgr;
 extern aiMgr* g_aiMgr;
-extern "C" u32 fn_27_1ED8A4(aiMgr*, Vec3f*, AiClBlock**, void*, int, float, float, float);
 
 AiClBlock* aiWeapon::getFloorBlk() {
     if ((m_flags & 4) == 0) {
         Vec3f above = m_pos + Vec3f(0.0f, 5.0f, 0.0f);
-        fn_27_1ED8A4(g_aiMgr, &above, &m_floorBlk, NULL, -1, -9999.9f, 0.0f, 0.0f);
+        g_aiMgr->get_under_floor(&above, &m_floorBlk, NULL, -1, -9999.9f, 0.0f, 0.0f);
         m_flags |= 4;
     }
     return m_floorBlk;

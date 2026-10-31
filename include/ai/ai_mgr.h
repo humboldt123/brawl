@@ -138,6 +138,11 @@ public:
     AiClBlock* get_center_block(int team);
     bool chkUnderFloor(float slope, Vec2f* pos);
     AiClBlock* search_blk1(u32* key);
+    // HYPOTHESIS: parameter meaning; the types follow the register use of the original and of its callers.
+    // HYPOTHESIS: the parameters follow the call sites (position, found block, unused, team, then three limits).
+    u32 get_under_floor(Vec3f* pos, AiClBlock** block, void* unk1, int team, float f1, float f2, float f3);
+    AiClBlock* get_via_blk(AiClBlock* from, int unk1, float x, Vec2f* pos, int unk2, int unk3, float f1, float f2, float f3);
+    AiClBlock* get_via_blk_team(AiClBlock* from, int unk1, float x, int team, Vec2f* pos, int unk2, int unk3, float f1, float f2, float f3);
 
     static bool isReady();
     static bool isReadyUpdate();

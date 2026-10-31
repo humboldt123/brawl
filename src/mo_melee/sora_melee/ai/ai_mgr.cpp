@@ -624,16 +624,24 @@ aiStat* aiMgr::get_aiStatFinal() {
 }
 
 void aiMgr::removePlayer(aiChrIdx* idx) {
-    if (aiChrIdx::IsValid(idx)) {
+    if (aiChrIdx::IsPlayer(idx)) {
         removeTgtRefer(aiChrIdx::GetPlayerNo(idx), 0);
-        m_chrState[idx->m_idx] = -1;
-        aiInput* input = m_aiInput[idx->m_idx];
+        int slot = idx->m_idx;
+        m_chrState[slot] = -1;
+        aiInput* input = m_aiInput[slot];
         if (input != NULL) {
             input->setEnableRumble(false);
         }
         m_aiInput[idx->m_idx] = NULL;
         get_aiStat(idx)->init(idx->m_idx, -1, NULL, 0);
     }
+}
+
+AiClBlock* aiMgr::get_via_blk(AiClBlock* from, int unk1, float x, Vec2f* pos, int unk2, int unk3, float f1, float f2, float f3) {
+    return get_via_blk_team(from, unk1, x, -1, pos, unk2, unk3, f1, f2, f3);
+}
+
+void aiMgr::renderDebug() {
 }
 
 void aiMgr::setAdventureMd(u32 md) {
