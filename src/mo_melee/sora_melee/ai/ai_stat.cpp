@@ -182,8 +182,8 @@ void aiStat::init(int chrIdx, int chrKind, aiInput* input, int unk) {
     m_unk1 = unk;
     m_flags = 0x8000;
     m_transition = 0;
-    m_unkD8 = -1;
-    m_unkE0 = 0;
+    m_damageTeam = -1;
+    m_taskId = 0;
     m_enableAway = -1;
     m_unk1B9 = 0;
     m_unk1BB = 0;

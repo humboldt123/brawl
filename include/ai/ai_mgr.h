@@ -16,6 +16,9 @@ struct tag_AiClJointList;
 class aiWeaponMgr;
 class aiEnemyMgr;
 class IpHuman;
+class grCollision;
+class grCollisionJoint;
+class grCollisionLine;
 
 // One row of the AI "refer" parameter table (0x36 rows of 0x20 bytes).
 // Field names follow the aiParam getters that read them.
@@ -137,7 +140,7 @@ public:
     void setCpuRank(int player, s8 rank);
     void regist_ai_child(int player, aiInput* input, int chrKind);
     static void setEnablePlayer(int player, int enable, int unk);
-    void removeTgtRefer(int player, int unk);
+    void removeTgtRefer(int player, int onlySelf);
 
     void* searchAtkData(int ftKind, u32 id);
 
@@ -145,6 +148,8 @@ public:
     AiClBlock* get_right_block(int team);
     AiClBlock* get_center_block(int team);
     bool chkUnderFloor(float slope, Vec2f* pos);
+    // The block whose joint walk reaches line of joint in collision (aiStat passes the fighter's ground line work).
+    AiClBlock* search_blk(grCollision* collision, grCollisionJoint* joint, grCollisionLine* line);
     AiClBlock* search_blk1(u32* key);
     // HYPOTHESIS: the segment from -> to against the floor blocks whose flags match mask, skipping ignore; returns the
     // block that is crossed (and the crossing point in hitPos when given).

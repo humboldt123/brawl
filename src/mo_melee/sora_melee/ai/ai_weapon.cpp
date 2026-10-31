@@ -116,7 +116,7 @@ void aiWeaponMgr::update() {
             playerIdx.m_idx = i;
             s8 player = aiChrIdx::GetPlayerNo(&playerIdx);
             update_core2(&stat->m_center, 10.0f, s8(stat->m_team), player,
-                         3, 1, stat->m_chrKind, stale, stat->m_unkE0, 0x38, -1, 0);
+                         3, 1, stat->m_chrKind, stale, stat->m_taskId, 0x38, -1, 0);
         }
     }
     if (m_previousCount > 0) {

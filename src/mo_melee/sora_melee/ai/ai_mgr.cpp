@@ -10,6 +10,7 @@
 #include <gf/gf_heap_manager.h>
 #include <gf/gf_memory_util.h>
 #include <gm/gm_lib.h>
+#include <gr/collision/gr_collision.h>
 #include <st/stage.h>
 #include <st_madein/st_madein.h>
 #include <types.h>
@@ -176,9 +177,8 @@ bool aiMgr::chkNanaForceMove(int player) {
 }
 
 int aiChrIdx::GetPlayerNo(const aiChrIdx* idx) {
-    int value = idx->m_idx;
-    if (value >= 0 && value < 14) {
-        return value % 7;
+    if (idx->m_idx >= 0 && idx->m_idx < 14) {
+        return idx->m_idx % 7;
     }
     return idx->m_idx;
 }
@@ -365,6 +365,59 @@ aiStat* aiMgr::get_aiStat(aiChrIdx* idx) {
         stat = &g_aiMgr->m_stat[14];
     }
     return stat;
+}
+
+// Whether a character slot has a registered CPU controller. HYPOTHESIS: an inline of the original, as the same test
+// is expanded in several aiMgr functions.
+static inline bool aiIsRegistered(aiMgr* mgr, int slot) {
+    if (slot >= 0 && slot < aiMgr::NumChrs && mgr->m_chrState[slot] != 0 && mgr->m_aiInput[slot] != NULL)
+    {
+        return true;
+    }
+    return false;
+}
+
+// A player leaves the target lists: every CPU of that player, and (when onlySelf is 0) every CPU that was after it,
+// starts over as if it had been hit. HYPOTHESIS: the parameter names follow the two callers (removePlayer passes 0,
+// notifyEventDead 1).
+void aiMgr::removeTgtRefer(int player, int onlySelf) {
+    for (int i = 0; i < NumChrs; i++) {
+        aiChrIdx idx;
+        idx.m_idx = i;
+        if (get_aiStat(&idx)->m_chrKind != -1 && aiIsRegistered(this, i)) {
+            aiInput* input = m_aiInput[i];
+            if (input != NULL) {
+                if (player == aiChrIdx::GetPlayerNo(&idx) ||
+                    (onlySelf == 0 && aiChrIdx::IsValid(&input->m_target) && player == aiChrIdx::GetPlayerNo(&input->m_target)))
+                {
+                    input->damageStart(NULL, 1, 1);
+                }
+            }
+        }
+    }
+}
+
+// A fighter took damage: its CPU reacts, and the CPU whose attack it was (same task id) records the hit.
+void aiMgr::notifyEventOnDamage(int entryId, u32 hp, soDamage* damage) {
+    int player = g_ftManager->getPlayerNo(entryId);
+    if (aiIsRegistered(this, player)) {
+        aiChrIdx idx;
+        idx.m_idx = player;
+        get_aiStat(&idx)->m_damageTeam = damage->m_collisionLog.m_teamNo;
+        m_aiInput[idx.m_idx]->damageStart(damage, 0, 0);
+    }
+    for (int i = 0; i < NumPlayers; i++) {
+        aiChrIdx idx;
+        idx.m_idx = i;
+        aiStat* stat = get_aiStat(&idx);
+        if (stat->m_chrKind != -1 && damage->m_collisionLog.m_taskId == stat->m_taskId && m_chrState[i] == 1 &&
+            m_aiInput[i] != NULL)
+        {
+            aiChrIdx victim;
+            victim.m_idx = player;
+            m_aiInput[i]->swingHit(&victim, damage);
+        }
+    }
 }
 
 void aiMgr::setEnable(int enable) {
@@ -676,6 +729,47 @@ bool aiMgr::chkUnderFloor(float slope, Vec2f* pos) {
         }
     }
     return false;
+}
+
+// The next line of a joint walk: left from m_line to m_leftLine, then right from m_line to m_rightLine, then NULL.
+// HYPOTHESIS: an inline of the original (every branch ends in the same assignment).
+static inline grCollisionLine* aiNextJointLine(tag_AiClJointList* list, grCollision* coll, grCollisionLine* l, bool& right) {
+    if (!right) {
+        if (l == list->m_leftLine) {
+            if (list->m_line == list->m_rightLine) {
+                return NULL;
+            }
+            grCollisionLine* next = coll->getRightLine(list->m_line);
+            right = true;
+            return next;
+        }
+        return coll->getLeftLine(l);
+    }
+    if (l == list->m_rightLine) {
+        return NULL;
+    }
+    return coll->getRightLine(l);
+}
+
+AiClBlock* aiMgr::search_blk(grCollision* collision, grCollisionJoint* joint, grCollisionLine* line) {
+    AiClBlock* block = m_blocks;
+    for (int i = 0; i < m_numBlocks; i++, block++) {
+        for (tag_AiClJointList* list = block->m_joint; list != NULL; list = list->m_next) {
+            if (list->m_collision.isValid()) {
+                grCollision* coll = list->m_collision.getCollision();
+                if (coll == collision && list->m_collJoint == joint) {
+                    bool right = false;
+                    for (grCollisionLine* l = list->m_line; l != NULL;) {
+                        if (l == line) {
+                            return block;
+                        }
+                        l = aiNextJointLine(list, coll, l, right);
+                    }
+                }
+            }
+        }
+    }
+    return NULL;
 }
 
 AiClBlock* aiMgr::search_blk1(u32* key) {

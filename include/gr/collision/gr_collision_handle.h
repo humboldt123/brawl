@@ -5,6 +5,8 @@
 
 #include <types.h>
 
+class grCollision;
+
 class grCollisionHandle {
     u16* m_idPtr;
     u16 m_id;
@@ -17,5 +19,8 @@ public:
     }
     grCollisionHandle(u16* idPtr);
     bool isValid();
+    // HYPOTHESIS: the handle points at grCollision::m_index, the first member, so it gives the collision itself (the CPU AI
+    // reads the handle like this after isValid()).
+    grCollision* getCollision() const { return reinterpret_cast<grCollision*>(m_idPtr); }
 };
 // TODO size assertion

@@ -47,9 +47,9 @@ public:
     int m_unkCC;
     int m_unkD0;
     int m_unkD4;
-    int m_unkD8;
+    int m_damageTeam;        // 0xD8: the team number of the last attack that hit this character (soCollisionLog::m_teamNo)
     float m_unkDC;
-    int m_unkE0;
+    u32 m_taskId;            // 0xE0: compared with soCollisionLog::m_taskId to find the attacker
     char unkE4[0xD5];
     u8 m_unk1B9;
     u8 m_situation;          // 0x1BA: 1 = ground, 2 = air, 6/7 = special

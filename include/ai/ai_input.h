@@ -105,4 +105,8 @@ public:
     void swingChkReset(int force);
     void swingChkSet(int hit);
     s8 get_fix_target(float* distance);
+    // HYPOTHESIS: parameter names; frames <= 0 = pick the reaction delay at random from the AI parameters.
+    void damageStart(soDamage* damage, s16 frames, int unk);
+    // HYPOTHESIS: target = the character that was hit by this CPU's attack.
+    void swingHit(aiChrIdx* target, soDamage* damage);
 };

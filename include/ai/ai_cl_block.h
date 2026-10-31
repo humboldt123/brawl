@@ -5,12 +5,19 @@
 #include <mt/mt_vector.h>
 #include <types.h>
 
+class grCollisionJoint;
+class grCollisionLine;
+
 // One collision joint (a moving part of the stage) whose floor blocks the CPU AI tracks; aiMgr keeps an array of these.
 // HYPOTHESIS: layout recovered from the constructor and the aiMgr block searches only.
+// HYPOTHESIS: the line names follow aiMgr::search_blk, which walks left from m_line to m_leftLine, then right to m_rightLine.
 struct tag_AiClJointList {
-    char unk0[8];
+    tag_AiClJointList* m_next;     // 0x0: the next joint of the same block
+    grCollisionJoint* m_collJoint; // 0x4
     grCollisionHandle m_collision; // 0x8: the joint's collision
-    char unk10[0xC];
+    grCollisionLine* m_line;       // 0x10: the line the walk starts from
+    grCollisionLine* m_leftLine;   // 0x14: the leftmost line of the block
+    grCollisionLine* m_rightLine;  // 0x18: the rightmost line of the block
     u32 m_id;                      // 0x1C: compared with the first word of a block search key
 
     tag_AiClJointList();
