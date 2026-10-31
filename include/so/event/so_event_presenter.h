@@ -164,6 +164,8 @@ public:
                 m_manageID = manageId;
         }
     }
+    // The CPU AI manager registers itself by reference (no null test when its observer base is taken).
+    void addObserverSubS16(s16 manageId, T& obsvr, s8 p3) { addObserverSubS16(manageId, &obsvr, p3); }
 #endif
 
 #if defined(EM_ENEMY_BUILDER) || defined(SO_EVENT_OBSERVER_CTOR_EXTERN)

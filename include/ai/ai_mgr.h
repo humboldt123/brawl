@@ -73,7 +73,8 @@ public:
     u8 m_enable;                        // 0xA0: aiMgr::setEnable
     u8 m_adventureMd;                   // 0xA1: aiMgr::setAdventureMd, copied into aiInput::m_unk112
     u16 m_flags;                        // 0xA2: 0x100 = the stage's danger zones are not used
-    s8 m_unkA4;                         // 0xA4: HYPOTHESIS: the sub-enemy (aiEnemyMgr slot) that the CPUs look at last, -1 = none
+    aiChrIdx m_unkA4;                   // 0xA4: HYPOTHESIS: the sub-enemy (aiEnemyMgr slot) that the CPUs look at last, -1 = none
+                                        // (an aiChrIdx: the constructor sets it to -1 before the members that follow)
     char unkA5[3];
     int m_unkA8;                        // 0xA8
     u8 m_work[0x4C];                    // 0xAC: HYPOTHESIS: per-match work, cleared by CrearWork
@@ -133,6 +134,9 @@ public:
     virtual void notifyEventChangeStart(int entryId, int playerNo, int activeInstanceIndex, ftKind);
     virtual void notifyEventChangeEnd(int entryId, int playerNo, int activeInstanceIndex, ftKind);
 
+    aiMgr();
+    // Creates the manager once (it registers itself as g_aiMgr) and enables or disables it.
+    static void create(int enable);
     static void setEnable(int enable);
     static void pacCmnRegist(void* data, int size, bool owned);
     void CrearWork();

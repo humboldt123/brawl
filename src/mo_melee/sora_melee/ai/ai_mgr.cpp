@@ -1,3 +1,6 @@
+// BYTES: aiMgr registers with the fighter manager's event module through the s16 manage id that getManageId returns,
+// which the original re-extends at every use (the same registration as mlFtEvent's constructor).
+#define SO_EVENT_OBSERVER_MANAGE_S16
 #include <ai/ai_cl_block.h>
 #include <ai/ai_enemy.h>
 #include <ai/ai_input.h>
@@ -20,6 +23,27 @@
 extern "C" {
 // aiMgr readiness flag: -1 while the AI is disabled, 0.. once the floor information has been prepared
 extern s8 lbl_27_data_47BF8;
+}
+
+// HYPOTHESIS: create precedes setEnable in the unit, so the original spells setEnable's body out here instead of calling it.
+void aiMgr::create(int enable) {
+    if (g_aiMgr == NULL) {
+        new (Heaps::System) aiMgr();
+    }
+    if (g_aiMgr != NULL) {
+        g_aiMgr->m_enable = enable;
+        if (enable == 0) {
+            lbl_27_data_47BF8 = -1;
+            if (g_aiMgr->m_weaponMgr != NULL) {
+                g_aiMgr->m_weaponMgr->reset();
+            }
+            if (g_aiMgr->m_enemyMgr != NULL) {
+                g_aiMgr->m_enemyMgr->reset();
+            }
+            g_aiMgr->CrearWork();
+        }
+    }
+    lbl_27_data_47BF8 = -1;
 }
 
 // Takes the common AI pac: the refer and system parameter tables and the common script part.
@@ -48,6 +72,45 @@ void aiMgr::pacCmnRegist(void* data, int size, bool owned) {
                 }
             }
         }
+    }
+}
+
+aiMgr::aiMgr() : gfTask("aiMgr", Category_AI, 5, 6, true), ftOutsideEventObserver(-1, 0) {
+    g_aiMgr = this;
+    m_stat = new (Heaps::System) aiStat[NumChrs + 1];
+    m_weaponMgr = new (Heaps::System) aiWeaponMgr;
+    m_enemyMgr = new (Heaps::System) aiEnemyMgr;
+    CrearWork();
+    m_jointLists = NULL;
+    m_blocks = NULL;
+    m_maxJointLists = 0x176;
+    m_maxBlocks = 0x176;
+    if (m_sendID <= -1) {
+        soEventManageModule* module = &g_ftManager->m_eventManageModule;
+        addObserverSubS16(module->getManageId(), *this, -1);
+    }
+    for (int i = 0; i < NumChrs; i++) {
+        m_aiInput[i] = NULL;
+        m_chrState[i] = -1;
+    }
+    for (int i = 0; i < NumPlayers; i++) {
+        m_cpuTypeLock[i] = -1;
+    }
+    int i = 0;
+    while (i < NumPlayers) {
+        m_cpuRankLock[i++] = -1;
+    }
+    m_enable = 1;
+    m_adventureMd = 0;
+    m_flags = 0;
+    m_pacOwned = 0;
+    m_pacData = NULL;
+    m_unk134 = NULL;
+    m_referPar = NULL;
+    m_systemPar = NULL;
+    if (m_maxJointLists != 0 && m_maxBlocks != 0) {
+        m_jointLists = new (Heaps::System) tag_AiClJointList[m_maxJointLists];
+        m_blocks = new (Heaps::System) AiClBlock[m_maxBlocks];
     }
 }
 
@@ -356,9 +419,9 @@ aiStat* aiMgr::get_aiStat(aiChrIdx* idx) {
         } else {
             aiEnemy* enemy = g_aiMgr->m_enemyMgr->getEnemy(index - 14);
             stat = &g_aiMgr->m_stat[14];
-            if (g_aiMgr->m_unkA4 != idx->m_idx - 14 && enemy != NULL) {
+            if (g_aiMgr->m_unkA4.m_idx != idx->m_idx - 14 && enemy != NULL) {
                 stat->update_enemy(enemy, idx);
-                g_aiMgr->m_unkA4 = idx->m_idx - 14;
+                g_aiMgr->m_unkA4.m_idx = idx->m_idx - 14;
             }
         }
     } else {
@@ -436,7 +499,7 @@ void aiMgr::setEnable(int enable) {
 
 void aiMgr::CrearWork() {
     m_unkA8 = 0;
-    m_unkA4 = -1;
+    m_unkA4.m_idx = -1;
     for (int i = 0; i < 24; i++) {
         m_dangerAttr[i] = 0;
     }

@@ -12,6 +12,8 @@ struct aiJumpPar;
 
 class aiStat {
 public:
+    aiStat();
+
     aiChrIdx m_chrIdx;       // 0x00: -1 = unused
     u8 m_unk1;               // 0x01
     u8 m_unk2;               // 0x02
