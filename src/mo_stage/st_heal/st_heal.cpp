@@ -138,7 +138,7 @@ void stHeal::createObj() {
     createObjPokeTrainer(m_fileData, 101, "PokeTrainer00", m_pokeTrainerPos, NULL);
     m_timer = data_loc_0;
     m_state = 0;
-    *((u8*)g_cmAIController + 0x94) &= ~8; // HYPOTHESIS: clears a camera flag of the AI controller
+    g_cmAIController->unk94_08 = false; // HYPOTHESIS: clears a camera flag of the AI controller
 }
 
 // MSL's qsort (main.dol 0x803F8ACC); the stdlib header of this project does not declare it.

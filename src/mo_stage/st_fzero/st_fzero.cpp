@@ -466,7 +466,7 @@ void stFzero::update(float deltaFrame) {
     }
 
     CameraController* camera = CameraController::getInstance();
-    Rect2D range = *reinterpret_cast<Rect2D*>((u8*)camera + 0x148);
+    Rect2D range = camera->m_stageCameraBounds;
     if (range.m_down < floorPos.m_y) {
         range.m_down = floorPos.m_y;
         cmStageParam* param = &CameraController::getInstance()->m_stageCameraParam;
@@ -478,7 +478,7 @@ void stFzero::update(float deltaFrame) {
     }
     CameraController::getInstance()->setCameraRange(&range);
     // MATCH-ONLY: the store goes through a named pointer so the 0.0f load follows the getInstance call.
-    float* unk18C = (float*)((u8*)CameraController::getInstance() + 0x18C);
+    float* unk18C = &CameraController::getInstance()->unk18C;
     *unk18C = 0.0f;
 }
 

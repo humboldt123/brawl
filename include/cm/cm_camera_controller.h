@@ -55,7 +55,9 @@ public:
     float unk15C;
     float unk160;
     float unk164;
-    char unk168[60];
+    char unk168[36];
+    float unk18C; // HYPOTHESIS: reset to 0 by the stage camera range setup (st_fzero)
+    char unk190[20];
 
     virtual void processCamera();
     virtual void processDebug();

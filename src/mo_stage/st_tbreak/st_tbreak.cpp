@@ -445,7 +445,7 @@ void stTargetBreak::createObj() {
     m_hitsBy[1] = 0;
     m_seq.m_tag = sStatics.m_noTag;
     m_seq.m_line = 0;
-    *((u8*)g_cmAIController + 0x94) &= ~8; // HYPOTHESIS: clears a camera flag of the AI controller
+    g_cmAIController->unk94_08 = false; // HYPOTHESIS: clears a camera flag of the AI controller
 }
 
 // Break the targets one after the other: a target that was hit (or whose chain-reaction timer ran out) breaks, adds the

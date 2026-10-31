@@ -93,8 +93,8 @@ void stDxOnett::createObj() {
     initPosPokeTrainer(1, 0);
     createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, NULL);
     cmAIController* ai = g_cmAIController;
-    *((u8*)ai + 0x94) |= 4; // HYPOTHESIS: sets a camera flag of the AI controller
-    *(float*)((u8*)ai + 0x184) = 0.30543262f;
+    ai->unk94_04 = true; // HYPOTHESIS: sets a camera flag of the AI controller
+    ai->unk184 = 0.30543262f;
 }
 
 // The clouds that float behind the stage.
