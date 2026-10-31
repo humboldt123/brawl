@@ -28,6 +28,16 @@ bool mtIsZero(float value) {
 }
 #pragma dont_inline reset
 
+// HYPOTHESIS: the transactor reaches each energy of its instance pools through an overload selected by an empty
+// soIntToType<pool level> tag; the value-initialized one-byte tag temporary is the zero byte stored before each lookup
+// (as in wn_pikmin_pikmin.cpp and wn_diddy_barrel_kinetic_transactor.cpp).
+static inline soKineticEnergyNormal* getEnergy(wnSonicSuperSonicNormalEnergyPool* pools, const soIntToType<0>&) {
+    return pools->getSub().getInstanceAt(0);
+}
+static inline wnKineticEnergyGravity* getEnergy(wnSonicSuperSonicKineticPools* pools, const soIntToType<1>&) {
+    return pools->getSub().getInstanceAt(0);
+}
+
 // Kinetic 0x20 initializes the Final Move energy; 0x21 adds the vertical
 // gravity energy. Earlier kinds use the shared weapon policy.
 void wnSonicSuperSonicKineticTransactor::changeKinetic(
@@ -58,10 +68,7 @@ void wnSonicSuperSonicKineticTransactor::changeKineticFinalMoveCommon(
     Vec2f previousSpeed = acc->getKineticModule().getSumSpeed(mainEnergy);
     acc->getKineticModule().unableEnergyAll();
 
-    volatile u8 unk8 = 0; // MATCH-ONLY: native initializes this local byte after disabling energies.
-
-    wnSonicSuperSonicNormalEnergyPool* normalPool = pools;
-    soKineticEnergyNormal* normalEnergy = normalPool->getSub().getInstanceAt(0);
+    soKineticEnergyNormal* normalEnergy = getEnergy(pools, soIntToType<0>());
     {
         soKineticEnergyNormal setup;
         setup.enable();
@@ -88,8 +95,7 @@ void wnSonicSuperSonicKineticTransactor::changeKineticFinalMoveCommon(
 void wnSonicSuperSonicKineticTransactor::changeKineticSub(
     wnSonicSuperSonicKineticPools* pools, soModuleAccesser* acc) {
     changeKineticFinalMoveCommon(pools, acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native initializes this separate Sub local after the common policy.
-    wnKineticEnergyGravity* gravity = pools->getSub().getInstanceAt(0);
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
     gravity->m_speedY = soValueAccesser::getConstantFloat(acc, 0xfa7, 0);
     gravity->m_gravity = 0.0f;
     gravity->m_speedLimit = -1.0f;

@@ -26,6 +26,7 @@
 #include <so/so_slow.h>
 #include <so/so_utility_lot_service.h>
 #include <so/so_value_accesser.h>
+#include <so/so_type_list.h>
 #include <so/status/so_status_module_impl.h>
 #include <so/so_kinetic_energy_normal.h>
 #include <so/stop/so_stop_module_impl.h>
@@ -334,6 +335,9 @@ struct DolfinVec2Temp {
 };
 #define DF_V2(x, y) reinterpret_cast<const Vec2f&>(DolfinVec2Temp((x), (y)))
 #define DF_NORMAL(pools) (reinterpret_cast<soKineticEnergyNormal*>(static_cast<u8*>(pools) + 0x10))
+// HYPOTHESIS: as in wn_pikmin_pikmin.cpp, the energy of the mediator's first instance pool is reached through an
+// overload selected by an empty soIntToType<0> tag; the value-initialized tag is the zero byte stored before the lookup.
+static inline soKineticEnergyNormal* dfGetEnergy(void* pools, const soIntToType<0>&) { return DF_NORMAL(pools); }
 // The native code rebuilds the normal energy from its five default vectors before it fills in the mode values.
 #define DF_RESET_NORMAL(normal)                                                                  \
     {                                                                                            \
@@ -395,7 +399,9 @@ void wnPikminDolfinKineticTransactor::changeKineticSub(void* pools, soModuleAcce
             time = minTime;
         }
         float speedX = diff.m_x / time;
-        volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the energy is rebuilt.
+        // MATCH-ONLY: native clears this unused local byte before the energy is rebuilt (the dfGetEnergy tag
+        // temporary gives the same store but swaps r28/r29 here; unresolved).
+        volatile u8 unk8 = 0;
         soKineticEnergyNormal* normal = DF_NORMAL(pools);
         DF_RESET_NORMAL(normal);
         normal->m_speed = DF_V2(speedX, 0.0f);
@@ -412,8 +418,7 @@ void wnPikminDolfinKineticTransactor::changeKineticSub(void* pools, soModuleAcce
 
 void wnPikminDolfinKineticTransactor::changeKineticSub1(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the energy is rebuilt.
-    soKineticEnergyNormal* normal = DF_NORMAL(pools);
+    soKineticEnergyNormal* normal = dfGetEnergy(pools, soIntToType<0>());
     DF_RESET_NORMAL(normal);
     normal->m_speed = DF_V2(0.0f, soValueAccesser::getConstantFloat(acc, 0xfa4, 0));
     normal->enable();

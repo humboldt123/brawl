@@ -23,6 +23,7 @@
 #include <so/so_kinetic_utility.h>
 #include <wn/wn_kinetic_energy_gravity.h>
 #include <wn/wn_kinetic_transactor.h>
+#include <so/so_type_list.h>
 #include <wn/wn_activate_desc.h>
 #include <types.h>
 
@@ -1213,6 +1214,11 @@ struct PkVec2Temp {
 #define PK_V2_REF(name) reinterpret_cast<Vec2f&>(name##Storage)
 #define PK_NORMAL(pools) (reinterpret_cast<soKineticEnergyNormal*>(static_cast<u8*>(pools) + 0x10))
 #define PK_GRAVITY(pools) (reinterpret_cast<wnKineticEnergyGravity*>(static_cast<u8*>(pools) + 0x50))
+// HYPOTHESIS: the transactor reaches an energy of the mediator's instance pools through an overload selected by an
+// empty soIntToType<pool level> tag (0 = normal, 1 = gravity), as the general term module selects its checkEstablishSub
+// overloads; the value-initialized one-byte tag temporary is the zero byte stored before each lookup.
+static inline soKineticEnergyNormal* pkGetEnergy(void* pools, const soIntToType<0>&) { return PK_NORMAL(pools); }
+static inline wnKineticEnergyGravity* pkGetEnergy(void* pools, const soIntToType<1>&) { return PK_GRAVITY(pools); }
 #define PK_PARAMS(acc) (static_cast<soParamAccesser*>((acc)->getWorkManageModule().getParamAccesser()))
 #define PK_VEC2(name, x, y) \
     Vec2f name;             \
@@ -1259,10 +1265,8 @@ static void scale(Vec2f* vec, float factor) {
 void wnPikminPikminKineticTransactor::addSpeed(float* speed, void* pools, soModuleAccesser* acc) {
     float speedX = speed[0] * acc->getPostureModule().getLr();
     float speedY = speed[1];
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte before the energy pointers.
-    soKineticEnergyNormal* normal = PK_NORMAL(pools);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity pointer.
-    wnKineticEnergyGravity* gravity = PK_GRAVITY(pools);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     if (gravity->isEnable() == true) {
         gravity->m_speedY = speedY + gravity->getSpeed().m_y;
     } else if (normal->isEnable() == true) {
@@ -1482,7 +1486,6 @@ void wnPikminPikminKineticTransactor::changeKinetic(int mode, void* pools, soMod
 
 void wnPikminPikminKineticTransactor::changeKineticSub(void* pools, soModuleAccesser* acc) {
     soKineticEnergyNormal* normal;
-    wnKineticEnergyGravity* gravity = PK_GRAVITY(pools);
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
     float speedX = params->getParamFloat(acc, 0xFAA, 0);
@@ -1492,12 +1495,11 @@ void wnPikminPikminKineticTransactor::changeKineticSub(void* pools, soModuleAcce
     if (acc->getPostureModule().getLr() >= 0.0f) {
         speedX = -speedX;
     }
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte before the reset.
-    normal = PK_NORMAL(pools);
+    normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->m_speed = PK_V2(speedX, 0.0f);
     normal->enable();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity setup.
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     gravity->m_speedY = params->getParamFloat(acc, 0xFAB, 0);
     gravity->m_gravity = -params->getParamFloat(acc, 0xFD4, 0);
     gravity->m_speedLimit = params->getParamFloat(acc, 0xFD5, 0);
@@ -1510,8 +1512,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub1(void* pools, soModuleAcc
     acc->getKineticModule().unableEnergyAll();
     soKineticEnergyNormal* normal;
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    normal = PK_NORMAL(pools);
+    normal = pkGetEnergy(pools, soIntToType<0>());
     normal->m_unk30 = true;
     normal->onConsiderGroundFriction();
     if ((acc->getWorkManageModule().getInt(0x10000011) & 1) != 0) {
@@ -1563,8 +1564,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub2(void* pools, soModuleAcc
         }
         scale(&current, params->getParamFloat(acc, 0xFCE, 0));
     }
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the energy setup.
-    normal = PK_NORMAL(pools);
+    normal = pkGetEnergy(pools, soIntToType<0>());
     normal->m_unk30 = false;
     normal->offConsiderGroundFriction();
     normal->m_speed = current;
@@ -1584,8 +1584,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub3(void* pools, soModuleAcc
     acc->getKineticModule().unableEnergyAll();
     soKineticEnergyNormal* normal;
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the energy setup.
-    normal = PK_NORMAL(pools);
+    normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->m_speed = current;
     normal->m_speedTarget = PK_V2(0.0f, 0.0f);
@@ -1600,8 +1599,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub4(void* pools, soModuleAcc
     Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
     acc->getKineticModule().unableEnergyAll();
     PK_PARAMS(acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    soKineticEnergyNormal* normal = PK_NORMAL(pools);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     normal->m_unk30 = true;
     normal->onConsiderGroundFriction();
     normal->m_speed = current;
@@ -1622,8 +1620,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub5(void* pools, soModuleAcc
     acc->getKineticModule().unableEnergyAll();
     soKineticEnergyNormal* normal;
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    normal = PK_NORMAL(pools);
+    normal = pkGetEnergy(pools, soIntToType<0>());
     normal->m_unk30 = true;
     normal->onConsiderGroundFriction();
     normal->m_speed = current;
@@ -1645,24 +1642,23 @@ void wnPikminPikminKineticTransactor::changeKineticSub6(void* pools, soModuleAcc
     Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    PK_NORMAL(pools)->m_speed = PK_V2(current.m_x, 0.0f);
-    PK_NORMAL(pools)->m_speedTarget = PK_V2(params->getParamFloat(acc, 0xFC7, 0), 0.0f);
-    PK_NORMAL(pools)->m_brake = PK_V2(params->getParamFloat(acc, 0xFC8, 0), 0.0f);
-    PK_NORMAL(pools)->m_speedLimit = PK_V2(params->getParamFloat(acc, 0xFC9, 0), 0.0f);
-    PK_NORMAL(pools)->enable();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity setup.
-    PK_GRAVITY(pools)->m_speedY = current.m_y;
-    PK_GRAVITY(pools)->m_gravity = -params->getParamFloat(acc, 0xFD4, 0);
-    PK_GRAVITY(pools)->m_speedLimit = params->getParamFloat(acc, 0xFD5, 0);
-    PK_GRAVITY(pools)->enable();
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
+    normal->m_speed = PK_V2(current.m_x, 0.0f);
+    normal->m_speedTarget = PK_V2(params->getParamFloat(acc, 0xFC7, 0), 0.0f);
+    normal->m_brake = PK_V2(params->getParamFloat(acc, 0xFC8, 0), 0.0f);
+    normal->m_speedLimit = PK_V2(params->getParamFloat(acc, 0xFC9, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = current.m_y;
+    gravity->m_gravity = -params->getParamFloat(acc, 0xFD4, 0);
+    gravity->m_speedLimit = params->getParamFloat(acc, 0xFD5, 0);
+    gravity->enable();
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub7(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    wnKineticEnergyGravity* gravity = PK_GRAVITY(pools);
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     gravity->m_speedY = 0.0f;
     gravity->m_gravity = -params->getParamFloat(acc, 0xFD4, 0);
     gravity->m_speedLimit = params->getParamFloat(acc, 0xFD5, 0);
@@ -1674,8 +1670,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub8(void* pools, soModuleAcc
     Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    wnKineticEnergyGravity* gravity = PK_GRAVITY(pools);
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     gravity->m_speedY = current.m_y;
     gravity->m_gravity = -params->getParamFloat(acc, 0xFD4, 0);
     gravity->m_speedLimit = params->getParamFloat(acc, 0xFD5, 0);
@@ -1687,42 +1682,39 @@ void wnPikminPikminKineticTransactor::changeKineticSub9(void* pools, soModuleAcc
     Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    PK_NORMAL(pools)->m_speed = PK_V2(current.m_x, 0.0f);
-    PK_NORMAL(pools)->m_speedTarget = PK_V2(wnPikminPikminKineticTransactor::getStableSpeed(acc), 0.0f);
-    PK_NORMAL(pools)->m_brake = PK_V2(wnPikminPikminKineticTransactor::getBrake(acc), 0.0f);
-    PK_NORMAL(pools)->m_speedLimit = PK_V2(wnPikminPikminKineticTransactor::getLimitSpeed(acc), 0.0f);
-    PK_NORMAL(pools)->enable();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity setup.
-    PK_GRAVITY(pools)->m_speedY = params->getParamFloat(acc, 0xFD2, 0);
-    PK_GRAVITY(pools)->m_gravity = -params->getParamFloat(acc, 0xFD4, 0);
-    PK_GRAVITY(pools)->m_speedLimit = params->getParamFloat(acc, 0xFD5, 0);
-    PK_GRAVITY(pools)->enable();
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
+    normal->m_speed = PK_V2(current.m_x, 0.0f);
+    normal->m_speedTarget = PK_V2(wnPikminPikminKineticTransactor::getStableSpeed(acc), 0.0f);
+    normal->m_brake = PK_V2(wnPikminPikminKineticTransactor::getBrake(acc), 0.0f);
+    normal->m_speedLimit = PK_V2(wnPikminPikminKineticTransactor::getLimitSpeed(acc), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = params->getParamFloat(acc, 0xFD2, 0);
+    gravity->m_gravity = -params->getParamFloat(acc, 0xFD4, 0);
+    gravity->m_speedLimit = params->getParamFloat(acc, 0xFD5, 0);
+    gravity->enable();
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub10(void* pools, soModuleAccesser* acc) {
     wnPikminPikminKineticTransactor empty = {};
     empty.changeKineticSub9(pools, acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the speed setup.
-    PK_GRAVITY(pools)->m_speedY = soValueAccesser::getConstantFloat(acc, 0xFD3, 0);
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = soValueAccesser::getConstantFloat(acc, 0xFD3, 0);
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub11(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the reset.
-    soKineticEnergyNormal* normal = PK_NORMAL(pools);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->enable();
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub12(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte before the reset.
-    soKineticEnergyNormal* normal = PK_NORMAL(pools);
-    wnKineticEnergyGravity* gravity = PK_GRAVITY(pools);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->enable();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity setup.
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     gravity->m_speedY = 3.0f;
     gravity->m_gravity = -0.005f;
     gravity->m_speedLimit = 0.0f;
@@ -1732,55 +1724,54 @@ void wnPikminPikminKineticTransactor::changeKineticSub12(void* pools, soModuleAc
 void wnPikminPikminKineticTransactor::changeKineticSub13(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     float speedX = params->getParamFloat(acc, 0xFAE, 0);
     if (acc->getPostureModule().getLr() < 0.0f) {
         speedX = -speedX;
     }
     speedX = speedX * acc->getPostureModule().getScale();
-    PK_NORMAL(pools)->m_speed = PK_V2(speedX, 0.0f);
+    normal->m_speed = PK_V2(speedX, 0.0f);
     float accelX = params->getParamFloat(acc, 0xFAF, 0);
     if (acc->getPostureModule().getLr() < 0.0f) {
         accelX = -accelX;
     }
     accelX = accelX * acc->getPostureModule().getScale();
-    PK_NORMAL(pools)->m_accel = PK_V2(accelX, 0.0f);
-    PK_NORMAL(pools)->m_speedTarget = PK_V2(params->getParamFloat(acc, 0xFB0, 0), 0.0f);
-    PK_NORMAL(pools)->m_brake = PK_V2(params->getParamFloat(acc, 0xFB1, 0), 0.0f);
-    PK_NORMAL(pools)->m_speedLimit = PK_V2(params->getParamFloat(acc, 0xFB2, 0), 0.0f);
-    PK_NORMAL(pools)->enable();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity setup.
-    PK_GRAVITY(pools)->m_speedY = params->getParamFloat(acc, 0xFB3, 0);
-    PK_GRAVITY(pools)->m_gravity = -params->getParamFloat(acc, 0xFB4, 0);
-    PK_GRAVITY(pools)->m_speedLimit = params->getParamFloat(acc, 0xFD5, 0);
-    PK_GRAVITY(pools)->enable();
+    normal->m_accel = PK_V2(accelX, 0.0f);
+    normal->m_speedTarget = PK_V2(params->getParamFloat(acc, 0xFB0, 0), 0.0f);
+    normal->m_brake = PK_V2(params->getParamFloat(acc, 0xFB1, 0), 0.0f);
+    normal->m_speedLimit = PK_V2(params->getParamFloat(acc, 0xFB2, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = params->getParamFloat(acc, 0xFB3, 0);
+    gravity->m_gravity = -params->getParamFloat(acc, 0xFB4, 0);
+    gravity->m_speedLimit = params->getParamFloat(acc, 0xFD5, 0);
+    gravity->enable();
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub14(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    PK_NORMAL(pools)->enable();
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
+    normal->enable();
     float size = acc->getPostureModule().getScale();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte after the scale lookup.
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     float speedY = params->getParamFloat(acc, 0xFB5, 0);
     if (size < 1.0f) {
         speedY = speedY * size;
     }
-    PK_GRAVITY(pools)->m_speedY = speedY;
+    gravity->m_speedY = speedY;
     float fall = -params->getParamFloat(acc, 0xFB6, 0);
     if (size < 1.0f) {
         fall = fall * size;
     }
-    PK_GRAVITY(pools)->m_gravity = fall;
-    PK_GRAVITY(pools)->m_speedLimit = -params->getParamFloat(acc, 0xFB7, 0);
-    PK_GRAVITY(pools)->enable();
+    gravity->m_gravity = fall;
+    gravity->m_speedLimit = -params->getParamFloat(acc, 0xFB7, 0);
+    gravity->enable();
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub15(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the reset.
-    soKineticEnergyNormal* normal = PK_NORMAL(pools);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->enable();
 }
@@ -1844,8 +1835,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub18(void* pools, soModuleAc
     acc->getKineticModule().unableEnergyAll();
     soKineticEnergyNormal* normal;
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    normal = PK_NORMAL(pools);
+    normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     float speedX = params->getParamFloat(acc, 0xFDC, 0);
     speedX = speedX * acc->getPostureModule().getScale();
@@ -1874,8 +1864,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub19(void* pools, soModuleAc
     acc->getKineticModule().unableEnergyAll();
     soKineticEnergyNormal* normal;
     soParamAccesser* params = PK_PARAMS(acc);
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte after the parameter accesser lookup.
-    normal = PK_NORMAL(pools);
+    normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     float speedX = params->getParamFloat(acc, 0xFD8, 0);
     if (acc->getPostureModule().getLr() >= 0.0f) {
@@ -1887,9 +1876,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub19(void* pools, soModuleAc
 
 void wnPikminPikminKineticTransactor::changeKineticSub20(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte after disabling the energies.
-    soKineticEnergyNormal* normal = PK_NORMAL(pools);
-    wnKineticEnergyGravity* gravity = PK_GRAVITY(pools);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     float speedX = soValueAccesser::getConstantFloat(acc, 0xFB9, 0);
     if (acc->getPostureModule().getLr() < 0.0f) {
@@ -1897,7 +1884,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub20(void* pools, soModuleAc
     }
     normal->m_speed = PK_V2(speedX, 0.0f);
     normal->enable();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity setup.
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     gravity->m_speedY = soValueAccesser::getConstantFloat(acc, 0xFBA, 0);
     gravity->m_gravity = -soValueAccesser::getConstantFloat(acc, 0xFD4, 0);
     gravity->m_speedLimit = soValueAccesser::getConstantFloat(acc, 0xFD5, 0);
@@ -1909,10 +1896,9 @@ void wnPikminPikminKineticTransactor::changeKineticSub21(void* pools, soModuleAc
     Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
     wnPikminPikminKineticTransactor empty = {};
     empty.changeKineticSub3(pools, acc);
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte after the Sub3 call.
-    PK_NORMAL(pools)->offConsiderGroundFriction();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity reset.
-    wnKineticEnergyGravity* gravity = PK_GRAVITY(pools);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
+    normal->offConsiderGroundFriction();
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     PK_RESET_GRAVITY(gravity);
     gravity->m_speedY = current.m_y;
 }
@@ -1921,20 +1907,19 @@ void wnPikminPikminKineticTransactor::changeKineticSub22(void* pools, soModuleAc
     acc->getKineticModule().unableEnergyAll();
     Vec2f current;
     Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte after the speed lookup.
-    PK_NORMAL(pools)->m_unk30 = false;
-    PK_NORMAL(pools)->offConsiderGroundFriction();
-    PK_NORMAL(pools)->m_speed = PK_V2(current.m_x, 0.0f);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
+    normal->m_unk30 = false;
+    normal->offConsiderGroundFriction();
+    normal->m_speed = PK_V2(current.m_x, 0.0f);
     wnPikminPikminKineticTransactor::getAccel(acc);
     float targetValue = soValueAccesser::getConstantFloat(acc, 0xFC7, 0);
-    PK_NORMAL(pools)->m_speedTarget = PK_V2(targetValue, targetValue);
+    normal->m_speedTarget = PK_V2(targetValue, targetValue);
     float brakeValue = soValueAccesser::getConstantFloat(acc, 0xFC8, 0);
-    PK_NORMAL(pools)->m_brake = PK_V2(brakeValue, brakeValue);
+    normal->m_brake = PK_V2(brakeValue, brakeValue);
     float limitValue = soValueAccesser::getConstantFloat(acc, 0xFC9, 0);
-    PK_NORMAL(pools)->m_speedLimit = PK_V2(limitValue, limitValue);
-    PK_NORMAL(pools)->enable();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity reset.
-    wnKineticEnergyGravity* gravity = PK_GRAVITY(pools);
+    normal->m_speedLimit = PK_V2(limitValue, limitValue);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     PK_RESET_GRAVITY(gravity);
     gravity->m_speedLimit = limitValue;
     gravity->m_speedY = current.m_y;
@@ -1944,8 +1929,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub23(void* pools, soModuleAc
     acc->getKineticModule().unableEnergyAll();
     Vec2f current;
     Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte after the speed lookup.
-    soKineticEnergyNormal* normal = PK_NORMAL(pools);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->m_unk30 = false;
     normal->offConsiderGroundFriction();
@@ -1957,15 +1941,13 @@ void wnPikminPikminKineticTransactor::changeKineticSub24(void* pools, soModuleAc
     acc->getKineticModule().unableEnergyAll();
     Vec2f current;
     Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-    volatile u8 unk9 = 0; // MATCH-ONLY: native clears this unused local byte after the speed lookup.
-    soKineticEnergyNormal* normal = PK_NORMAL(pools);
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->m_unk30 = false;
     normal->offConsiderGroundFriction();
     normal->m_speed = PK_V2(current.m_x, 0.0f);
     normal->enable();
-    volatile u8 unk8 = 0; // MATCH-ONLY: native clears this unused local byte before the gravity reset.
-    wnKineticEnergyGravity* gravity = PK_GRAVITY(pools);
+    wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
     PK_RESET_GRAVITY(gravity);
     gravity->m_gravity = -soValueAccesser::getConstantFloat(acc, 0xFD4, 0);
     gravity->m_speedLimit = soValueAccesser::getConstantFloat(acc, 0xFD5, 0);
