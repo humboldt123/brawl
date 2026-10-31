@@ -4,7 +4,6 @@
 #include <sr/sr_common.h>
 #include <types.h>
 
-extern "C" void fn_8004D010(GameGlobal* global);
 extern "C" void fn_80050160(gmGlobalModeMelee* modeMelee);
 
 static gfScene* s_selStage;
@@ -20,7 +19,7 @@ void sqSpMelee::start() {
         unk8 = 0;
         unk11 = 0;
         s_selStage = gfSceneManager::getInstance()->searchScene("scSelStage");
-        fn_8004D010(g_GameGlobal);
+        g_GameGlobal->initSelCharData();
         fn_80050160(g_GameGlobal->m_modeMelee);
     }
 }

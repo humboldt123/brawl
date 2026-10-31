@@ -5,7 +5,6 @@
 #include <sr/sr_common.h>
 #include <types.h>
 
-extern "C" void fn_8004D010(GameGlobal* global);
 
 static u8 s_handicap;
 
@@ -16,7 +15,7 @@ sqQuMelee* sqQuMelee::create() {
 void sqQuMelee::start() {
     unk8 = 0;
     unk18 = g_gfApplication->unk110[0] != 0;
-    fn_8004D010(g_GameGlobal);
+    g_GameGlobal->initSelCharData();
     s_handicap = g_GameGlobal->m_setRule->m_handicap;
     g_GameGlobal->m_setRule->m_handicap = 0;
 }

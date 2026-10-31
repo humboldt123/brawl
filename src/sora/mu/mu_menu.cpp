@@ -1,3 +1,4 @@
+#include <gm/gm_global.h>
 #include <gf/gf_pad_system.h>
 #include <types.h>
 
@@ -59,10 +60,8 @@ extern const u8 lbl_80407BE0[10][2];
 
 struct GameGlobal;
 extern GameGlobal* g_GameGlobal;
-extern "C" u32* fn_8004E580(GameGlobal*); // returns the unlocked-character bitset
 extern "C" int fn_8004D9E8(GameGlobal*);
 extern "C" int fn_8004D9A8(GameGlobal*, int);
-extern "C" int fn_8004DA94(GameGlobal*, int);
 
 // 8 bytes per entry. Stored at lbl_80455AA8.
 struct muEntry8 {
@@ -152,7 +151,7 @@ int muMenu::exchangeMuCharKindToMuStockchkind(int muCharKind, int, int) {
 }
 
 bool muMenu::isCharUsable(int muCharKind, int, int) {
-    u32* bits = fn_8004E580(g_GameGlobal);
+    u32* bits = g_GameGlobal->getCharaAppFlag();
     int unlockIdx = lbl_80407A40[muCharKind].unk1;
     if (unlockIdx != 0xE) {
         int bit = unlockIdx * 3 + 1;
@@ -164,7 +163,7 @@ bool muMenu::isCharUsable(int muCharKind, int, int) {
 }
 
 bool muMenu::isCharRefered(int muCharKind, int, int) {
-    u32* bits = fn_8004E580(g_GameGlobal);
+    u32* bits = g_GameGlobal->getCharaAppFlag();
     int unlockIdx = lbl_80407A40[muCharKind].unk1;
     if (unlockIdx != 0xE) {
         int bit = unlockIdx * 3 + 2;
@@ -176,7 +175,7 @@ bool muMenu::isCharRefered(int muCharKind, int, int) {
 }
 
 void muMenu::setCharRefered(int muCharKind, int, int) {
-    u32* bits = fn_8004E580(g_GameGlobal);
+    u32* bits = g_GameGlobal->getCharaAppFlag();
     int unlockIdx = lbl_80407A40[muCharKind].unk1;
     if (unlockIdx != 0xE) {
         int bit = unlockIdx * 3 + 2;
@@ -373,7 +372,7 @@ void muMenu::startRumbleController(int controller, int strength, int setting) {
     if (setting >= 0) {
         enabled = fn_8004D9A8(g_GameGlobal, setting);
     } else {
-        enabled = fn_8004DA94(g_GameGlobal, controller);
+        enabled = g_GameGlobal->getRumbleSetting(controller);
     }
     if (enabled) {
         gfPadSystem* pad = g_gfPadSystem;
