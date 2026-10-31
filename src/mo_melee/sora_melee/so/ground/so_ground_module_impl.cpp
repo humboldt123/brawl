@@ -519,7 +519,7 @@ Vec2f soGroundModuleImpl::getTouchSpeed(grCollStatus::TouchMask p0, u32 index) {
 
 Vec2f soGroundModuleImpl::getAttachMovementSpeed(u32 index) {
     Vec2f result(0.0f, 0.0f);
-    u8 attachKind = ((u8*)m_groundShapeArray->at(index).m_collStatus)[0x6D];
+    u8 attachKind = m_groundShapeArray->at(index).m_collStatus->m_unk6D;
     if (attachKind & grCollStatus::TOUCH_MASK_DOWN) {
         grCollision::calcLineVector(m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Down), getDownPos(index), &result);
     } else if (attachKind & grCollStatus::TOUCH_MASK_UP) {
@@ -535,7 +535,7 @@ Vec2f soGroundModuleImpl::getAttachMovementSpeed(u32 index) {
 Vec2f soGroundModuleImpl::getAttachNormal(u32 index) {
     Vec2f normal(0.0f, 1.0f);
     if (isAttach(0) == true) {
-        u8 attachKind = ((u8*)m_groundShapeArray->at(index).m_collStatus)[0x6D];
+        u8 attachKind = m_groundShapeArray->at(index).m_collStatus->m_unk6D;
         if (attachKind & grCollStatus::TOUCH_MASK_DOWN) {
             normal = getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0);
         } else if (attachKind & grCollStatus::TOUCH_MASK_UP) {

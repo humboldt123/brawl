@@ -38,7 +38,7 @@ void soCollisionHitModuleImpl::checkLog() {
             nw4r::ut::List* logList = (nw4r::ut::List*)m_collision.getLogList(groupIndex);
             soCollisionLog* log = NULL;
             while ((log = (soCollisionLog*)nw4r::ut::List_GetNext(logList, log)) != NULL) {
-                if (*((u8*)log + 0x21) == 0) {
+                if (static_cast<u8>(log->_33) == 0) {
                     gfTask* task = gfTaskScheduler::getInstance()->getTaskById((gfTask::Category)*((u8*)log + 0x22), log->m_taskId);
                     if (task != NULL) {
                         StageObject& stageObject = dynamic_cast<StageObject&>(*task);

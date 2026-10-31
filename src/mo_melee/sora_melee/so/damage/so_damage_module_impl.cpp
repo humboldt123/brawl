@@ -569,7 +569,7 @@ bool soDamageModuleImpl::isReaction() {
 }
 
 void soDamageModuleImpl::notifyEventCollisionHit(float power, soCollisionAttackData* attackData, u32 index, int unk, soModuleAccesser* moduleAccesser, soCollisionLog* collisionLog) {
-    u8 unk29 = *((u8*)collisionLog + 0x29);
+    u8 unk29 = static_cast<u8>(collisionLog->_41);
     if (unk29 != 1) {
         float damage = power * m_damageMul * getDamageMul();
         g_soLogEventPresenter.notifyLogEventCollisionHit(damage, collisionLog->m_taskId, moduleAccesser->m_stageObject->m_taskId, 0);
@@ -675,7 +675,7 @@ void soDamageModuleImpl::notifyEventCollisionHit2nd(soCollisionAttackModule* att
         }
         return;
     }
-    if (*((u8*)collisionLog + 0x29) == 1) {
+    if (static_cast<u8>(collisionLog->_41) == 1) {
         m_effector->reqTipEffect(m_moduleAccesser, collisionLog);
         return;
     }
