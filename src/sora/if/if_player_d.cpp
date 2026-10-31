@@ -518,10 +518,7 @@ u8 IfPlayer::pluckDragoonParts(int index) {
         }
         group->Remove(m_dragoonParts[i].m_object->m_sceneModel);
     }
-    DragoonPart plucked;
-    plucked.m_state = m_dragoonParts[index].m_state;
-    plucked.m_part = m_dragoonParts[index].m_part;
-    plucked.m_object = m_dragoonParts[index].m_object;
+    DragoonPart plucked = m_dragoonParts[index];
     for (int i = index; i < 2; i++) {
         m_dragoonParts[i] = m_dragoonParts[i + 1];
     }
@@ -608,16 +605,20 @@ void IfPlayer::setLoupePos(const nw4r::math::VEC3* pos) {
 // Places the arrow of every player that has one (the players are counted for each arrow kind so that the arrows of one
 // kind are lined up).
 void IfPlayer::arrowMain(IfPlayer** players, int count) {
+    int i;
+    IfPlayer** p;
     int total1 = 0;
     int total2 = 0;
     int next1 = 0;
     int next2 = 0;
     int index;
     int total;
-    for (int i = 0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         IfPlayer* player = players[i];
         if (player != NULL) {
             switch (player->unk2B0) {
+            case 0:
+                break;
             case 1:
                 total1++;
                 break;
@@ -627,10 +628,13 @@ void IfPlayer::arrowMain(IfPlayer** players, int count) {
             }
         }
     }
-    for (int i = 0; i < count; i++) {
-        IfPlayer* player = players[i];
+    p = players;
+    for (i = 0; i < count; i++, p++) {
+        IfPlayer* player = *p;
         if (player != NULL) {
             switch (player->unk2B0) {
+            case 0:
+                break;
             case 1:
                 index = next1++;
                 total = total1;
@@ -648,6 +652,7 @@ void IfPlayer::arrowMain(IfPlayer** players, int count) {
 // HYPOTHESIS: kind 1 and 2 of unk2B0 are the arrows on the two sides of the screen; the screen limits come from
 // the 4:3 and the 16:9 table.
 void IfPlayer::dispArrow(int index, int count) {
+    Vec3f pos;
     MuObject* arrow = m_objects[39];
     int kind = unk2B0;
     lbl_805A02E0->Remove(arrow->m_sceneModel);
@@ -660,11 +665,11 @@ void IfPlayer::dispArrow(int index, int count) {
         }
         Vec3f rotate(0.0f, 0.0f, angle);
         arrow->setObjRotate(&rotate);
+        bool widescreen = g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen;
         const float* limits = lbl_804088A0;
-        if (g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen) {
+        if (widescreen) {
             limits = lbl_804088B0;
         }
-        Vec3f pos;
         if (kind == 1) {
             pos.m_x = limits[0];
         } else {
@@ -676,8 +681,8 @@ void IfPlayer::dispArrow(int index, int count) {
         } else {
             spacing = 0.0f;
         }
-        pos.m_z = 0.0f;
         pos.m_y = (limits[2] + limits[3]) * 0.5f - spacing * 0.5f + 3.0f * (float)index;
+        pos.m_z = 0.0f;
         arrow->setTrans(&pos);
         lbl_805A02E0->Insert(lbl_805A02E0->sceneItemsCount, arrow->m_sceneModel);
         arrow->m_modelAnim->m_anmObjVisRes->SetUpdateRate(1.0f);
@@ -686,13 +691,15 @@ void IfPlayer::dispArrow(int index, int count) {
 
 // Mode 0 hides the head cursor, 1 shows the name tag and 2 the damage.
 void IfPlayer::setHeadCursorMode(int mode) {
+    int i;
+    nw4r::g3d::ScnMdlExpand* damageGroup;
     m_headCursorMode = mode;
     nw4r::g3d::ScnMdlExpand* group = m_groups[2];
     MuObject* cursor = m_objects[40];
     lbl_805A02E0->Remove(group);
     if (mode != 0) {
-        nw4r::g3d::ScnMdlExpand* damageGroup = m_groups[2];
-        for (int i = 41; i < 45; i++) {
+        damageGroup = m_groups[2];
+        for (i = 41; i < 45; i++) {
             damageGroup->Remove(m_objects[i]->m_sceneModel);
         }
         float visible;

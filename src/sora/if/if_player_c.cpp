@@ -40,6 +40,7 @@ extern "C" void fn_800DB5F4(const Vec3f* position, Vec3f* out);
 // HYPOTHESIS: map name IfPlayer::overwriteAMatAlphaMul (cluster D)
 extern "C" void fn_800E3274(MuObject* object, const char* materialName, u8 alpha);
 
+// True when the float is a NaN (exponent bits all set and a non-zero mantissa).
 static inline int isNaN(float f) {
     u32 i = *(u32*)&f;
     int res = 0;
@@ -48,6 +49,10 @@ static inline int isNaN(float f) {
     return res;
 }
 
+// Per-frame update of the player HUD: the portrait loader, the appear animation models (HYPOTHESIS: unk10 is 1 or 2
+// while one of the two appear models plays, and the model is taken out of the locator group when it ends), damage,
+// the five stock faces (state machine of the table in if_player.cpp), the dragoon parts and the countdown that
+// removes model 49 from the HUD group.
 void IfPlayer::main() {
     unk5D0++;
     portriteMain();
@@ -82,6 +87,8 @@ void IfPlayer::main() {
     }
 }
 
+// Loads the face resource ("/info/portrite/InfFace%03d.brres") of the character in the background and, when it has
+// arrived, puts its texture on the portrait model.
 void IfPlayer::portriteMain() {
     switch (m_portraitState) {
     case 2:
@@ -114,6 +121,9 @@ void IfPlayer::portriteMain() {
 
 // HYPOTHESIS: the portrait (and its frame) becomes translucent while a fighter's rectangle, projected to the HUD,
 // overlaps it.
+// Slow path of the portrait fade, run per player while its HUD is shown: the portrait (and its frame) turns
+// translucent while the rectangle of a camera subject in play, projected to the HUD, overlaps it. m_portraitFade
+// moves by 0.1 a frame; the alpha then goes from 255 down to 64 on the face materials.
 void IfPlayer::portriteRenderMain() {
     bool hit = false;
     if (unk0_2) {
@@ -167,6 +177,9 @@ void IfPlayer::portriteRenderMain() {
     }
 }
 
+// Fast path of the portrait fade, step 1 (once per frame for all players): projects the rectangle of every camera
+// subject that is in play (state 2 or 3, HYPOTHESIS: a fighter on the field) to the HUD with the table-based
+// conversion of IfCommon, and stores up to max rectangles.
 void IfPlayer::portriteRenderMainFastInit(Rect2D* rects, int* count, int max) {
     fn_800DB444();
     *count = 0;
@@ -226,6 +239,10 @@ static inline int isHit(IfPlayer* player, Rect2D* rects, int count) {
     return 0;
 }
 
+// Fast path of the portrait fade, step 2 (per player): the portrait is faded out (m_portraitFade towards 1, by 0.1 a
+// frame) while one of the projected subject rectangles overlaps it, and back in otherwise. The rectangle of the
+// portrait is measured once its nodes hold valid numbers. The alpha of the three material channels follows both
+// fades.
 void IfPlayer::portriteRenderMainFast(Rect2D* rects, int count) {
     if (m_portraitRectPending) {
         m_objects[36]->getRect3D(&m_portraitRect, m_portraitRectNodeA, m_portraitRectNodeB);
@@ -263,46 +280,43 @@ void IfPlayer::portriteRenderMainFast(Rect2D* rects, int count) {
     }
 }
 
-#define IF_PLAYER_POINT_IN_RECT(p, r) ((r)->m_left < (p).m_x && (p).m_x < (r)->m_right && (r)->m_down < (p).m_y && (p).m_y < (r)->m_up)
+// A point lies strictly inside a rectangle (the rectangles keep the larger y in m_up).
+#define IF_PLAYER_POINT_IN_RECT(p, r) ((r)->m_left < (p).m_x && (r)->m_right > (p).m_x && (r)->m_down < (p).m_y && (r)->m_up > (p).m_y)
 
+// True when a corner of either rectangle lies inside the other one (an overlap that only crosses is not detected).
 int IfPlayer::isCollideRect(Rect2D* a, Rect2D* b) {
-    {
-        Vec3f c[4];
-        c[0].m_x = a->m_left; c[0].m_y = a->m_down; c[0].m_z = 0.0f;
-        c[1].m_x = a->m_right; c[1].m_y = a->m_down; c[1].m_z = 0.0f;
-        c[2].m_x = a->m_right; c[2].m_y = a->m_up; c[2].m_z = 0.0f;
-        c[3].m_x = a->m_left; c[3].m_y = a->m_up; c[3].m_z = 0.0f;
-        if (IF_PLAYER_POINT_IN_RECT(c[0], b)) {
-            return 1;
-        }
-        if (IF_PLAYER_POINT_IN_RECT(c[1], b)) {
-            return 1;
-        }
-        if (IF_PLAYER_POINT_IN_RECT(c[2], b)) {
-            return 1;
-        }
-        if (IF_PLAYER_POINT_IN_RECT(c[3], b)) {
-            return 1;
-        }
+    Vec3f c[4];
+    c[0].m_x = a->m_left; c[0].m_y = a->m_down; c[0].m_z = 0.0f;
+    c[1].m_x = a->m_right; c[1].m_y = a->m_down; c[1].m_z = 0.0f;
+    c[2].m_x = a->m_right; c[2].m_y = a->m_up; c[2].m_z = 0.0f;
+    c[3].m_x = a->m_left; c[3].m_y = a->m_up; c[3].m_z = 0.0f;
+    if (IF_PLAYER_POINT_IN_RECT(c[0], b)) {
+        return 1;
     }
-    {
-        Vec3f c[4];
-        c[0].m_x = b->m_left; c[0].m_y = b->m_down; c[0].m_z = 0.0f;
-        c[1].m_x = b->m_right; c[1].m_y = b->m_down; c[1].m_z = 0.0f;
-        c[2].m_x = b->m_right; c[2].m_y = b->m_up; c[2].m_z = 0.0f;
-        c[3].m_x = b->m_left; c[3].m_y = b->m_up; c[3].m_z = 0.0f;
-        if (IF_PLAYER_POINT_IN_RECT(c[0], a)) {
-            return 1;
-        }
-        if (IF_PLAYER_POINT_IN_RECT(c[1], a)) {
-            return 1;
-        }
-        if (IF_PLAYER_POINT_IN_RECT(c[2], a)) {
-            return 1;
-        }
-        if (IF_PLAYER_POINT_IN_RECT(c[3], a)) {
-            return 1;
-        }
+    if (IF_PLAYER_POINT_IN_RECT(c[1], b)) {
+        return 1;
+    }
+    if (IF_PLAYER_POINT_IN_RECT(c[2], b)) {
+        return 1;
+    }
+    if (IF_PLAYER_POINT_IN_RECT(c[3], b)) {
+        return 1;
+    }
+    c[0].m_x = b->m_left; c[0].m_y = b->m_down; c[0].m_z = 0.0f;
+    c[1].m_x = b->m_right; c[1].m_y = b->m_down; c[1].m_z = 0.0f;
+    c[2].m_x = b->m_right; c[2].m_y = b->m_up; c[2].m_z = 0.0f;
+    c[3].m_x = b->m_left; c[3].m_y = b->m_up; c[3].m_z = 0.0f;
+    if (IF_PLAYER_POINT_IN_RECT(c[0], a)) {
+        return 1;
+    }
+    if (IF_PLAYER_POINT_IN_RECT(c[1], a)) {
+        return 1;
+    }
+    if (IF_PLAYER_POINT_IN_RECT(c[2], a)) {
+        return 1;
+    }
+    if (IF_PLAYER_POINT_IN_RECT(c[3], a)) {
+        return 1;
     }
     return 0;
 }
