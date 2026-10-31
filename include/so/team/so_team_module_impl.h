@@ -2,8 +2,10 @@
 
 // Local header (shadows the BrawlHeaders copy, doldecomp/brawl #152): the team interface classes (soTeam, soTeamModule)
 // are our own headers, so only the event observer/presenter and the concrete module are taken from upstream.
+// Upstream also declares ftTeam/ftTeamIndirect here (#157, used by ft/ft_team.cpp); ours live in ft/ft_team.h.
 
 #include <StaticAssert.h>
+#include <ft/ft_team.h>
 #include <so/anim/so_anim_cmd_event_presenter.h>
 #include <so/event/so_event_presenter.h>
 #include <so/so_null.h>
