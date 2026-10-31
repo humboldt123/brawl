@@ -397,3 +397,10 @@ extern "C" {
 void fn_99_B154() {}
 u8* fn_99_B50C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 } // extern "C"
+
+// Zero-fill of a three-float member (Vec3f-sized), as in ft_mario.cpp.
+extern "C" void fn_99_AB44(float* p) {
+    p[0] = 0.0f;
+    p[1] = 0.0f;
+    p[2] = 0.0f;
+}
