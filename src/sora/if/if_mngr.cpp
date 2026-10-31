@@ -76,17 +76,14 @@ extern "C" void fn_800DBD3C(IfMngr* mngr);
 // HYPOTHESIS: map names IfCenter::main, IfPlayer::main, IfPlayer::arrowMain
 extern "C" void fn_800DE360(void* center);
 extern "C" void fn_800E244C(IfPlayer* player);
-extern "C" void fn_800E4ED0(IfPlayer** players, int count);
 // HYPOTHESIS: map names IfAdvBoss::main, IfPhoto::main, IfWifiIntrMenu::main
 extern "C" void fn_80108E5C(IfAdvBoss* boss);
 extern "C" void fn_800F0F84(void* photo);
 extern "C" int fn_800FBFDC(void* menu);
 // HYPOTHESIS: map names IfPlayer::portriteRenderMainFastInit, portriteRenderMainFast
 extern "C" void fn_800E2964(void* work, int* count, int numPlayers);
-extern "C" void fn_800E2B00(IfPlayer* player, void* work, int count);
 // HYPOTHESIS: map names IfPlayer::receiveShareStock, addDragoonParts
 extern "C" void fn_800E1D78(IfPlayer* player, Vec3f* pos);
-extern "C" void fn_800E4758(IfPlayer* player, u32 part);
 // HYPOTHESIS: map names IfPhoto::startPause
 extern "C" void fn_800F00D4(void* photo, int arg1, int arg2, int playerNo, bool arg4);
 // HYPOTHESIS: map names IfWifiIntrMenu::endMenu
@@ -192,7 +189,7 @@ void IfMngr::main() {
                 fn_800E244C(m_ifPlayers[i]);
             }
         }
-        fn_800E4ED0(m_ifPlayers, MAX_PLAYERS);
+        IfPlayer::arrowMain(m_ifPlayers, MAX_PLAYERS);
     }
     if (m_ifMinigameHomerun != NULL) {
         static_cast<IfMinigameHomerun*>(m_ifMinigameHomerun)->main();
@@ -298,7 +295,7 @@ bool IfMngr::sharePlayerStock(int giver, int receiver) {
 }
 
 void IfMngr::addPlayerDragoonParts(int playerNo, int part) {
-    fn_800E4758(m_ifPlayers[playerNo], part);
+    m_ifPlayers[playerNo]->addDragoonParts(part);
 }
 
 void IfMngr::deletePlayerDragoonParts(int playerNo, int part) {
@@ -463,7 +460,7 @@ void ifTask::renderPre() {
     for (i = 0; i < MAX_PLAYERS; i++) {
         IfPlayer* player = mngr->m_ifPlayers[i];
         if (player != NULL && reinterpret_cast<IfPlayerFlags*>(player)->unk5) {
-            fn_800E2B00(player, work, count);
+            player->portriteRenderMainFast(reinterpret_cast<Rect2D*>(work), count);
             mngr->m_ifPlayers[i]->loupeRenderPre();
         }
     }

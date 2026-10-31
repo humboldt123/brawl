@@ -58,7 +58,6 @@ IfPlayer* fn_800DFCB4(IfPlayer* player, int index);
 void fn_800E023C(IfPlayer* player, int arg1, int arg2, nw4r::g3d::ResFile* resFile1, nw4r::g3d::ResFile* resFile2);
 void fn_800E244C(IfPlayer* player);
 void fn_800E26B8(IfPlayer* player);
-void fn_800E4ED0(IfPlayer** players, int num);
 void fn_800DD6E4(IfCenter* center, nw4r::g3d::ResFile* resFile1, nw4r::g3d::ResFile* resFile2, int arg1, int arg2);
 // HYPOTHESIS: the fourth parameter is a bool (its argument is loaded out of order like a narrower type).
 void fn_800DDA50(IfCenter* center, nw4r::g3d::ScnGroup* group, int arg1, bool arg2, int arg3, int arg4);
@@ -585,7 +584,7 @@ void IfAdvMngr::meleeMain() {
             fn_800E244C(m_players[i]);
         }
     }
-    fn_800E4ED0(m_players, 7);
+    IfPlayer::arrowMain(m_players, 7);
     if (m_zako) {
         fn_80108544(m_zako);
     }
