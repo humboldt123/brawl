@@ -2,6 +2,7 @@
 #include <revolution/BASE.h>
 #include <revolution/DB.h>
 #include <revolution/DVD.h>
+#include <revolution/ESP.h>
 #include <revolution/EXI.h>
 #include <revolution/IPC.h>
 #include <revolution/OS.h>
@@ -32,7 +33,7 @@ BOOL __OSInNandBoot;
 BOOL __OSInIPL;
 
 const char* __OSVersion =
-    "<< RVL_SDK - OS \trelease build: Apr 24 2007 11:50:47 (0x4199_60831) >>";
+    "<< RVL_SDK - OS \trelease build: Sep  7 2007 02:14:12 (0x4199_60831) >>";
 
 static void OSExceptionInit(void);
 
@@ -48,6 +49,7 @@ void __OSEVEnd(void);
 
 DECOMP_FORCEACTIVE(OS_c, __OSRebootParams);
 
+#ifdef __MWERKS__
 asm void __OSFPRInit(void) {
     // clang-format off
     nofralloc
@@ -135,6 +137,7 @@ paired_singles_disabled:
     blr
     // clang-format on
 }
+#endif
 
 static void DisableWriteGatherPipe(void) {
     PPCMthid2(PPCMfhid2() & ~HID2_WPE);
@@ -209,6 +212,9 @@ u32 OSGetConsoleType(void) {
             if (hollywood > 0x00000011) {
                 return OS_CONSOLE_NDEV_2_1;
             }
+
+        case 0x0300:
+            return 0x00000100;
         }
     }
 
@@ -344,7 +350,7 @@ static void CheckTargets(void) {
         OSReport("OS ERROR: boot program is not for RVL target. Please use "
                  "correct boot program.\n");
         // clang-format off
-#line 1112
+#line 1156
         OSError("Failed to run app");
         // clang-format on
         break;
@@ -358,7 +364,7 @@ static void CheckTargets(void) {
         OSReport("OS ERROR: apploader[D].img is not for RVL target. Please use "
                  "correct apploader[D].img.\n");
         // clang-format off
-#line 1130
+#line 1174
         OSError("Failed to run app");
         // clang-format on
         break;
@@ -368,14 +374,14 @@ static void CheckTargets(void) {
     }
 }
 
-static void ReportOSInfo(void) {
+void ReportOSInfo(void) {
     OSConsoleType type;
     OSIOSRev rev;
     u32 category;
     u32 tdev;
 
     OSReport("\nRevolution OS\n");
-    OSReport("Kernel built : %s %s\n", "Apr 24 2007", "11:50:47");
+    OSReport("Kernel built : %s %s\n", "Sep  7 2007", "02:14:12");
 
     OSReport("Console Type : ");
     type = OSGetConsoleType();
@@ -391,6 +397,9 @@ static void ReportOSInfo(void) {
             break;
         case OS_CONSOLE_RVL_PP_2_2:
             OSReport("Pre-production board 2-2\n");
+            break;
+        case 0x00000100:
+            OSReport("RVA 1\n");
             break;
         default:
             OSReport("Retail %d\n", type);
@@ -514,7 +523,7 @@ void OSInit(void) {
                  */
                 if (BootInfo->arenaLo == NULL && BI2DebugFlag != NULL &&
                     *BI2DebugFlag < 2) {
-                    mem1lo = ROUND_UP_PTR(_db_stack_end, 32);
+                    mem1lo = ROUND_UP_PTR(_stack_addr, 32);
                 }
             } else {
                 // ???
@@ -541,7 +550,7 @@ void OSInit(void) {
 
                 // Use debugger stack if it would be wasted
                 if (BI2DebugFlag != NULL && *BI2DebugFlag < 2) {
-                    mem2lo = ROUND_UP_PTR(_db_stack_end, 32);
+                    mem2lo = ROUND_UP_PTR(_stack_addr, 32);
                 }
             }
             // First 2K of MEM2 is reserved?
@@ -587,8 +596,11 @@ void OSInit(void) {
             EnableMetroTRKInterrupts();
         }
 
-        ClearArena();
-        ClearMEM2Arena();
+        if (!__OSInNandBoot && !__OSInReboot) {
+            ClearArena();
+            ClearMEM2Arena();
+        }
+
         OSEnableInterrupts();
         IPCCltInit();
 
@@ -613,10 +625,39 @@ void OSInit(void) {
                 DCInvalidateRange(&DriveInfo, sizeof(DVDDriveInfo));
                 DVDInquiryAsync(&DriveBlock, &DriveInfo, InquiryCallback);
             }
+
+            if (OSGetAppType() == OS_APP_TYPE_DVD && !__OSInReboot) {
+                if (!__DVDCheckDevice()) {
+                    OSReturnToMenu();
+                }
+            }
+        }
+
+        if (!__OSInIPL && !__OSInNandBoot) {
+            __OSInitPlayTime();
         }
 
         if (!__OSInIPL && !__OSInNandBoot && !__OSInReboot) {
             __OSStartPlayRecord();
+        }
+
+        if (OSGetResetCode() == 0xA0000000) {
+            ESTitleId titleId;
+            u64 lastTitleId;
+            s32 result = ESP_InitLib();
+
+            if (result == 0) {
+                result = ESP_GetTitleId(&titleId);
+            }
+
+            if (result == 0) {
+                lastTitleId = OSGetLastTitleId();
+                if (lastTitleId != 0 && lastTitleId != titleId) {
+                    ESP_DeleteTitle(lastTitleId);
+                }
+            }
+
+            ESP_CloseLib();
         }
     }
 }
@@ -695,6 +736,7 @@ static void OSExceptionInit(void) {
     DBPrintf("Exceptions initialized...\n");
 }
 
+#ifdef __MWERKS__
 static asm void __OSDBIntegrator(void) {
     // clang-format off
     nofralloc
@@ -736,6 +778,10 @@ static asm void __OSDBJump(void){
     entry __OSDBJUMPEND
     // clang-format on
 }
+#else
+static void __OSDBIntegrator(void) {}
+static void __OSDBJump(void) {}
+#endif
 
 OSExceptionHandler
     __OSSetExceptionHandler(u8 type, OSExceptionHandler handler) {
@@ -748,6 +794,7 @@ OSExceptionHandler __OSGetExceptionHandler(u8 type) {
     return OSExceptionTable[type];
 }
 
+#ifdef __MWERKS__
 static asm void OSExceptionVector(void) {
     // clang-format off
     nofralloc
@@ -844,12 +891,16 @@ asm void OSDefaultExceptionHandler(u8 type, register OSContext* ctx) {
     b __OSUnhandledException
     // clang-format on
 }
+#else
+static void OSExceptionVector(void) {}
+#endif
 
 void __OSPSInit(void) {
     PPCMthid2(PPCMfhid2() | (1 << 31) | HID2_PSE);
     ICFlashInvalidate();
 
     // clang-format off
+#ifdef __MWERKS__
     asm {
         sync
         li r3, 0
@@ -862,6 +913,7 @@ void __OSPSInit(void) {
         mtgqr6 r3
         mtgqr7 r3
     }
+#endif
     // clang-format on
 }
 
@@ -877,17 +929,18 @@ void OSRegisterVersion(const char* ver) {
 static const char* AppGameNameForSysMenu = "HAEA";
 
 const char* OSGetAppGamename(void) {
-    int i;
-    const char* name =
-        (const char*)OSPhysicalToCached(OS_PHYS_CURRENT_APP_NAME);
+    const char* name = (const char*)OSPhysicalToCached(0x3194);
 
     if (__OSInIPL) {
         name = AppGameNameForSysMenu;
+    } else if (*name < '0' || ('9' < *name && *name < 'A') || 'Z' < *name) {
+        name = (const char*)OSPhysicalToCached(OS_PHYS_CURRENT_APP_NAME);
     }
 
-    for (i = 0; i < 4; i++) {
-        GameNameBuffer[i] = name[i];
-    }
+    GameNameBuffer[0] = *name++;
+    GameNameBuffer[1] = *name++;
+    GameNameBuffer[2] = *name++;
+    GameNameBuffer[3] = *name;
     GameNameBuffer[4] = '\0';
 
     return GameNameBuffer;

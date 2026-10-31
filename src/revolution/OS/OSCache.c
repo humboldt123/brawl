@@ -2,6 +2,7 @@
 #include <revolution/DB.h>
 #include <revolution/OS.h>
 
+#ifdef __MWERKS__
 asm void DCEnable(void) {
     // clang-format off
     nofralloc
@@ -265,6 +266,9 @@ do_load:
     blr
     // clang-format on
 }
+#else
+static void __LCEnable(void) {}
+#endif
 
 void LCEnable(void) {
     BOOL enabled = OSDisableInterrupts();
@@ -272,6 +276,7 @@ void LCEnable(void) {
     OSRestoreInterrupts(enabled);
 }
 
+#ifdef __MWERKS__
 asm void LCDisable(void) {
     // clang-format off
     nofralloc
@@ -327,6 +332,27 @@ asm void LCStoreBlocks(register void* dst, register const void* src,
     blr
     // clang-format on
 }
+#endif
+
+u32 LCLoadData(void* dst, const void* src, u32 len) {
+    u32 blocks = (len + 31) / 32;
+    u32 ret = (blocks + 127) / 128;
+
+    while (blocks > 0) {
+        if (blocks < 128) {
+            LCLoadBlocks(dst, src, blocks);
+            blocks = 0;
+        } else {
+            LCLoadBlocks(dst, src, 0);
+            blocks -= 128;
+
+            dst = (u8*)dst + 0x1000;
+            src = (u8*)src + 0x1000;
+        }
+    }
+
+    return ret;
+}
 
 u32 LCStoreData(void* dst, const void* src, u32 len) {
     u32 blocks = (len + 31) / 32;
@@ -348,6 +374,7 @@ u32 LCStoreData(void* dst, const void* src, u32 len) {
     return ret;
 }
 
+#ifdef __MWERKS__
 asm u32 LCQueueLength(void) {
     // clang-format off
     nofralloc
@@ -371,6 +398,7 @@ asm void LCQueueWait(register u32 n) {
     blr
     // clang-format on
 }
+#endif
 
 static void L2Init(void) {
     u32 msr;

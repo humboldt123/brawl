@@ -26,6 +26,11 @@ force_active:
 - __DVDFsUnreferencedB
 - IdleThread
 - fn_8038F428
+- OSLink # Unreferenced in the DOL, but not stripped in the original link
+block_relocations:
+# OSInit: arena fallback 0x80004000 is a constant, not __check_pad3
+- source: .text:0x801D5D94
+- source: .text:0x801D5E0C
 
 extract:
 - symbol: HomeBtnIcon
