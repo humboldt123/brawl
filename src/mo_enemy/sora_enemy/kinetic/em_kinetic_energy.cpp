@@ -12,7 +12,6 @@
 // the Vec3f constructor, assignment, subtraction and scale.
 #define MT_VEC2F_LENGTH_OUT_OF_LINE
 #define MT_VEC2F_ASSIGN_NOINLINE
-#define MT_VEC2F_PLAIN_BASE
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
 #define MT_VEC3F_SUB_NOINLINE

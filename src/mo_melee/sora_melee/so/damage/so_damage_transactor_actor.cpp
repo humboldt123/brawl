@@ -1,3 +1,4 @@
+#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 #include <so/damage/so_damage_transactor_actor.h>
 #include <so/damage/so_damage_util_actor.h>
 #include <so/damage/so_damage_effector_impl.h>

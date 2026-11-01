@@ -30,8 +30,6 @@
 #define MT_VEC2F_MUL_OUT_OF_LINE
 // The weak copy of Vec2f::operator+= adds the components directly.
 #define MT_VEC2F_ADD_ASSIGN_DIRECT
-// MATCH-ONLY: the unit copies whole Vec2f values (returned normals and speeds) with word copies.
-#define MT_VEC2F_PLAIN_BASE
 #include <em/kinetic/em_kinetic_module_impl.h>
 #include <em/enemy.h>
 #include <math.h>

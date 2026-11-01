@@ -135,17 +135,23 @@ void ftKineticEnergyGravity::updateEnergy(soModuleAccesser* acc) {
 void ftKineticEnergyGravity::mulSpeed(Vec3f* mul) { m_speedY *= mul->m_y; }
 void ftKineticEnergyGravity::mulAccel(Vec3f* mul) { m_gravity *= mul->m_y; }
 
+static inline void reflectVec(Vec2f& out, const Vec2f& v, const Vec2f& n) {
+    out = v - n * 2.0f * (n.m_x * v.m_x + n.m_y * v.m_y);
+}
+
 void ftKineticEnergyGravity::reflectSpeed(Vec3f* normal) {
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     Vec2f speed(0.0f, m_speedY);
-    Vec2f reflected = speed - n * 2.0f * (n.m_x * speed.m_x + n.m_y * speed.m_y);
+    Vec2f reflected;
+    reflectVec(reflected, speed, n);
     m_speedY = reflected.m_y;
 }
 
 void ftKineticEnergyGravity::reflectAccel(Vec3f* normal) {
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     Vec2f accel(0.0f, m_gravity);
-    Vec2f reflected = accel - n * 2.0f * (n.m_x * accel.m_x + n.m_y * accel.m_y);
+    Vec2f reflected;
+    reflectVec(reflected, accel, n);
     m_gravity = reflected.m_y;
 }
 

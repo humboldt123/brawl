@@ -3,8 +3,6 @@
 #define YK_STAGE_FULL
 // YK_STAGE_FULL gives StageObject the long notifyEventAnimCmd slot; Weapon must override that same slot (see em_prim.cpp).
 #define WN_WEAPON_ANIMCMD_LONG
-// MATCH-ONLY: processUpdate copies the returned trace speed with the word copy of the plain Vec2f base.
-#define MT_VEC2F_PLAIN_BASE
 #include <em/galfire/em_galfire.h>
 #include <so/ground/so_ground_module_impl.h>
 

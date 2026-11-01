@@ -6,7 +6,6 @@
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
 #define MT_VEC2F_ASSIGN_NOINLINE
-#define MT_VEC2F_PLAIN_BASE
 #include <wn/wn_module_accesser_builder.h>
 #include <wn/kirby/wn_kirby_stone.h>
 #include <wn/wn_activate_desc.h>

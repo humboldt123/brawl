@@ -2,7 +2,6 @@
 // MATCH-ONLY: native Cape setup calls the shared vector constructor/assignment.
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC2F_ASSIGN_NOINLINE
-#define MT_VEC2F_PLAIN_BASE
 #include <so/so_module_accesser.h>
 #include <so/status/so_status_module_impl.h>
 #include <types.h>

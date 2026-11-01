@@ -1,5 +1,3 @@
-// MATCH-ONLY: this unit copies whole vectors with the aggregate word copy.
-#define MT_VEC2F_PLAIN_BASE
 #define MT_VEC3F_MUL_INLINE
 #include <gf/gf_camera.h>
 #include <gf/gf_draw.h>

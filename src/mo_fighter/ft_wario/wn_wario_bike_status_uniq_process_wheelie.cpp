@@ -48,7 +48,8 @@ void wnWarioBikeStatusUniqProcessWheelie::execFixPos(soModuleAccesser* a) {
     if (!work.isFlag(0x22000005)) {
         status.changeStatusRequest(2, a);
     } else if (angle - previousAngle > param->unk48) {
-        Vec2f velocity = normal.getSpeed();
+        Vec2f velocity;
+        velocity = normal.getSpeed();
         velocity.m_x *= param->unk68;
         normal.m_speed = velocity;
         velocity = gravity.getSpeed();

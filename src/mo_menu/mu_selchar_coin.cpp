@@ -1,3 +1,4 @@
+#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 #include <memory.h>
 #include <mt/mt_vector.h>
 #include <mu/mu_object.h>

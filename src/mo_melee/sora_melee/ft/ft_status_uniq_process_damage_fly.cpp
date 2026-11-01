@@ -1,3 +1,4 @@
+#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 #include <ft/ft_status_uniq_process_damage_fly.h>
 #include <ft/ft_kinetic_energy.h>
 #include <gf/gf_task.h>

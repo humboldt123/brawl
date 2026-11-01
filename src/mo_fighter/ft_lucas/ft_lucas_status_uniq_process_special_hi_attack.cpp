@@ -1,3 +1,4 @@
+#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/lucas/ft_lucas_status_uniq_process_special_hi.h>
 #include <ft/ft_common_data_accesser.h>

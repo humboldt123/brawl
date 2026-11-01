@@ -266,7 +266,8 @@ static void updateAirCatchFall(soModuleAccesser* moduleAccesser) {
 
 static void setFallParams(soModuleAccesser* moduleAccesser, float gravityAccel, float fallSpeedMax) {
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
-    Vec2f speed = gravity.getSpeed();
+    Vec2f speed;
+    speed = gravity.getSpeed();
     Vec3f rotation;
     rotation = gravity.getRotation();
     gravity.resetEnergy(0, &speed, &rotation, moduleAccesser);

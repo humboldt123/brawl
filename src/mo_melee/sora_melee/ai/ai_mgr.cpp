@@ -1,3 +1,4 @@
+#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 // BYTES: aiMgr registers with the fighter manager's event module through the s16 manage id that getManageId returns,
 // which the original re-extends at every use (the same registration as mlFtEvent's constructor).
 #define SO_EVENT_OBSERVER_MANAGE_S16

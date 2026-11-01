@@ -1,5 +1,3 @@
-// MATCH-ONLY: the attach offset is copy-constructed with the aggregate word copy of a plain-base Vec2f.
-#define MT_VEC2F_PLAIN_BASE
 #define MT_VEC2F_IMPLICIT_ASSIGN
 #include <gf/gf_model.h>
 #include <sora_adv_stage/gr_adventure_common.h>

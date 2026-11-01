@@ -1,6 +1,5 @@
-// MATCH-ONLY: Vec2f copies are the aggregate word copies of a plain base, assignments out-of-line calls, and the
-// Vec2f::length and operator*= copies calls to the weak copies another unit of the REL carries.
-#define MT_VEC2F_PLAIN_BASE
+// MATCH-ONLY: Vec2f assignments are out-of-line calls, and the Vec2f::length and operator*= copies calls to the weak
+// copies another unit of the REL carries.
 #define MT_VEC2F_LENGTH_OUT_OF_LINE
 #define MT_VEC2F_MUL_ASSIGN_DIRECT
 #define MT_VEC2F_ASSIGN_NOINLINE

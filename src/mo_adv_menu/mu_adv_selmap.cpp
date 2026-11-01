@@ -1,3 +1,4 @@
+#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 #include <gf/gf_3d_scene.h>
 #include <gf/gf_application.h>
 #include <gf/gf_heap_manager.h>

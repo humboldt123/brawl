@@ -8,19 +8,23 @@
 
 class Vec3f;
 
-#ifdef MT_VEC2F_PLAIN_BASE
-// MATCH-ONLY: the owning unit copies whole vectors with the aggregate word copy of a plain base.
+// HYPOTHESIS: the coordinates live in a plain C struct that Vec2f derives from (as nw4r's VEC2 derives from _VEC2):
+// copy construction then goes through the base's aggregate word copy (lwz/stw), which most units show, while the
+// user assignment below copies the two floats.
 struct Vec2fPlainBase {
     float m_x;
     float m_y;
 };
-class Vec2f : public Vec2fPlainBase {
-public:
-#else
+#ifdef MT_VEC2F_MEMBER_COPY
+// MATCH-ONLY: a unit whose functions still score better with float-wise copy construction; some vector copy in it
+// is spelled wrong (in the original it is an assignment or a constructor from the components), not yet found.
 class Vec2f {
 public:
     float m_x;
     float m_y;
+#else
+class Vec2f : public Vec2fPlainBase {
+public:
 #endif
 
     Vec2f() { }
@@ -40,10 +44,10 @@ public:
 #endif
 #ifdef MT_VEC2F_CTOR_OUT_OF_LINE
         ; // MATCH-ONLY: an owning unit supplies the weak constructor in native order.
-#elif defined(MT_VEC2F_PLAIN_BASE)
-    { m_x = x; m_y = y; }
-#else
+#elif defined(MT_VEC2F_MEMBER_COPY)
         : m_x(x), m_y(y) { }
+#else
+    { m_x = x; m_y = y; }
 #endif
 
 #ifndef MT_VEC2F_IMPLICIT_ASSIGN // MATCH-ONLY: some units copy with the implicit (word-wise) assignment and elide copy temporaries.
@@ -526,10 +530,10 @@ inline Vec3f Vec3f::operator+(const Vec3f& v) {
     Vec3fAdd(&result, this, &v);
     return result;
 }
-#ifdef MT_VEC2F_PLAIN_BASE
-inline Vec2f::Vec2f(const Vec3f& xyz) { m_x = xyz.m_x; m_y = xyz.m_y; }
-#else
+#ifdef MT_VEC2F_MEMBER_COPY
 inline Vec2f::Vec2f(const Vec3f& xyz) : m_x(xyz.m_x), m_y(xyz.m_y) { }
+#else
+inline Vec2f::Vec2f(const Vec3f& xyz) { m_x = xyz.m_x; m_y = xyz.m_y; }
 #endif
 #if defined(MATCHING) && defined(MT_VEC3F_MUL_INLINE)
 inline Vec3f Vec3f::operator*(const float c) {
