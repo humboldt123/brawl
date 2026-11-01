@@ -28,23 +28,6 @@
 #include <st_gw/gr_gw_step.h>
 #include <st_gw/st_gw.h>
 
-// HYPOTHESIS: tear down and validity check of a stCollisionWork (unnamed functions of sora_melee).
-extern "C" void fn_27_239F6C(stCollisionWork* work);
-extern "C" int fn_27_239FD8(stCollisionWork* work);
-
-// MATCH-ONLY: the data pointers of stCollisionWork are private in the header.
-struct stCollisionWorkView {
-    grCollData::VtxData* m_vtxDatas;
-    grCollData::LineData* m_lineDatas;
-    grCollData::JointData* m_jointDatas;
-};
-
-// MATCH-ONLY: views of the node data of a model; the header names neither the name offset (+8) nor the id (+0xC).
-static inline const char* gwNodeName(nw4r::g3d::ResNode& node) {
-    u8* data = reinterpret_cast<u8*>(node.ptr());
-    s32 offset = *reinterpret_cast<s32*>(data + 8);
-    return offset != 0 ? reinterpret_cast<const char*>(data + offset) : NULL;
-}
 
 stClassInfoImpl<Stages::GW, stGW> stGW::bss_loc_14;
 
@@ -107,7 +90,7 @@ stGW::~stGW() {
         delete m_springData;
     }
     m_springData = NULL;
-    fn_27_239F6C(&m_collWork);
+    m_collWork.destroy();
     if (m_tblStep != NULL) {
         delete m_tblStep;
     }
@@ -974,26 +957,24 @@ static inline const char* gwModelName(nw4r::g3d::ResMdl& model) {
 // a left and a right one: -11 and 11 units, 1.5 high; the real places come from the joints, which are the nodes of the model
 // named "_FIRE_STEP_POSITION__"), each with its own joint.
 void stGW::initCollDatafromCollWorkStep(grCollData* data, stCollisionWork* work, Ground* ground) {
-    if (data == NULL || work == NULL || ground == NULL || !fn_27_239FD8(work)) {
+    if (data == NULL || work == NULL || ground == NULL || !work->isValid()) {
         return;
     }
-    // MATCH-ONLY: the three data pointers are private in the header; this view reads them at their offsets.
-    stCollisionWorkView* wv = reinterpret_cast<stCollisionWorkView*>(work);
     u32 vtxNum = work->m_vtxLen * 20;
     double minX = 0.0;
     double maxX = 0.0;
     double minY = 0.0;
     double maxY = 0.0;
-    wv->m_vtxDatas = reinterpret_cast<grCollData::VtxData*>(new (Heaps::StageInstance) u8[(work->m_vtxLen * 0xA0) & 0x7FFF8]);
-    wv->m_lineDatas = reinterpret_cast<grCollData::LineData*>(new (Heaps::StageInstance) u8[0x140]);
-    wv->m_jointDatas = reinterpret_cast<grCollData::JointData*>(new (Heaps::StageInstance) u8[0x870]);
-    memset(wv->m_vtxDatas, 0, (vtxNum & 0xFFFF) << 3);
-    memset(wv->m_lineDatas, 0, 0x140);
-    memset(wv->m_jointDatas, 0, 0x870);
+    work->m_vtxDatas = reinterpret_cast<grCollData::VtxData*>(new (Heaps::StageInstance) u8[(work->m_vtxLen * 0xA0) & 0x7FFF8]);
+    work->m_lineDatas = reinterpret_cast<grCollData::LineData*>(new (Heaps::StageInstance) u8[0x140]);
+    work->m_jointDatas = reinterpret_cast<grCollData::JointData*>(new (Heaps::StageInstance) u8[0x870]);
+    memset(work->m_vtxDatas, 0, (vtxNum & 0xFFFF) << 3);
+    memset(work->m_lineDatas, 0, 0x140);
+    memset(work->m_jointDatas, 0, 0x870);
     u8 side = 0;
     u32 index = 0;
     for (u32 left = vtxNum & 0xFFFF; left != 0; left--) {
-        float* vtx = reinterpret_cast<float*>(reinterpret_cast<u8*>(wv->m_vtxDatas) + (index & 0xFFFF) * 8);
+        float* vtx = reinterpret_cast<float*>(reinterpret_cast<u8*>(work->m_vtxDatas) + (index & 0xFFFF) * 8);
         if (side == 1) {
             vtx[0] = 11.0f;
             vtx[1] = 1.5f;
@@ -1022,7 +1003,7 @@ void stGW::initCollDatafromCollWorkStep(grCollData* data, stCollisionWork* work,
     u32 line = 0;
     for (int n = 4; n != 0; n--) {
         for (int k = 0; k < 5; k++) {
-            u16* entry = reinterpret_cast<u16*>(reinterpret_cast<u8*>(wv->m_lineDatas) + ((line + k) & 0xFFFF) * 0x10);
+            u16* entry = reinterpret_cast<u16*>(reinterpret_cast<u8*>(work->m_lineDatas) + ((line + k) & 0xFFFF) * 0x10);
             entry[0] = (line + k) * 2;
             entry[1] = (line + k) * 2 + 1;
             entry[2] = 0xFFFF;
@@ -1044,9 +1025,9 @@ void stGW::initCollDatafromCollWorkStep(grCollData* data, stCollisionWork* work,
             u32 jointOffset = 0;
             for (u32 i = 0; i != numNodes; i++) {
                 nw4r::g3d::ResNode resNode = model.GetResNode(i);
-                const char* name = gwNodeName(resNode);
+                const char* name = resNode.GetName();
                 if (strstr(name, "_FIRE_STEP_POSITION__") != NULL) {
-                    u8* joint = reinterpret_cast<u8*>(wv->m_jointDatas) + jointOffset;
+                    u8* joint = reinterpret_cast<u8*>(work->m_jointDatas) + jointOffset;
                     *reinterpret_cast<short*>(joint) = jointCount;
                     *reinterpret_cast<u16*>(joint + 2) = 1;
                     *reinterpret_cast<float*>(joint + 0x14) = 0.0f;
@@ -1056,7 +1037,7 @@ void stGW::initCollDatafromCollWorkStep(grCollData* data, stCollisionWork* work,
                     *reinterpret_cast<short*>(joint + 0x24) = lineStart;
                     *reinterpret_cast<u16*>(joint + 0x26) = 2;
                     strcpy(reinterpret_cast<char*>(joint + 0x2C), gwModelName(model));
-                    strcpy(reinterpret_cast<char*>(joint + 0x4C), gwNodeName(resNode));
+                    strcpy(reinterpret_cast<char*>(joint + 0x4C), resNode.GetName());
                     jointOffset += 0x6C;
                     lineStart += 2;
                     jointCount++;
@@ -1066,9 +1047,9 @@ void stGW::initCollDatafromCollWorkStep(grCollData* data, stCollisionWork* work,
             data->m_lineLen = 20;
             data->m_jointLen = 20;
             data->m_unk1 = 0;
-            data->m_vtxDatas = wv->m_vtxDatas;
-            data->m_lineDatas = wv->m_lineDatas;
-            data->m_jointDatas = wv->m_jointDatas;
+            data->m_vtxDatas = work->m_vtxDatas;
+            data->m_lineDatas = work->m_lineDatas;
+            data->m_jointDatas = work->m_jointDatas;
         }
     }
 }

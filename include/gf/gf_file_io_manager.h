@@ -6,13 +6,26 @@
 #include <gf/gf_file_io_request.h>
 #include <types.h>
 
+class utBitArray;
+
+// The fixed set of requests the manager hands out: a bit set of the ones in use and the request storage.
+// HYPOTHESIS: names.
+struct gfFileIORequestPool {
+    s32 unk0;
+    utBitArray* m_usedBits;
+    gfFileIORequest* m_requests;
+};
+
 class gfFileIOManager {
 public:
     char _0x0[4];
     gfThread* m_thread;
     gfFileIORequestQueue* m_queue1;
     gfFileIORequestQueue* m_queue2;
-    char _0x10[0x88];
+    gfFileIORequestPool* m_requestPool; // 0x10
+    char _0x14[2];
+    u16 unk16;
+    char _0x18[0x80];
     bool unk98 : 1;
     u8 unk99[0x3];
 public:

@@ -17,8 +17,6 @@
 #include <st_famicom/gr_famicom.h>
 #include <st_famicom/st_famicom.h>
 
-// stCollisionWork::destroy (sora_melee, unnamed)
-extern "C" void fn_27_239F6C(stCollisionWork* work);
 // stTrigger::setPressureAreaTrigger (sora_melee, unnamed)
 extern "C" void fn_27_233898(stTrigger* trigger, stFamicomPressureData* data);
 // stTrigger::setPressureParam (sora_melee, unnamed)
@@ -122,14 +120,14 @@ stFamicom::~stFamicom() {
     if (m_pressurePow != NULL) {
         delete m_pressurePow;
     }
-    fn_27_239F6C(&m_collWork[0]);
-    fn_27_239F6C(&m_collWork[1]);
-    fn_27_239F6C(&m_collWork[2]);
-    fn_27_239F6C(&m_collWork[3]);
-    fn_27_239F6C(&m_collWork[4]);
-    fn_27_239F6C(&m_collWork[5]);
-    fn_27_239F6C(&m_collWork[6]);
-    fn_27_239F6C(&m_collWork[7]);
+    m_collWork[0].destroy();
+    m_collWork[1].destroy();
+    m_collWork[2].destroy();
+    m_collWork[3].destroy();
+    m_collWork[4].destroy();
+    m_collWork[5].destroy();
+    m_collWork[6].destroy();
+    m_collWork[7].destroy();
     if (m_enemyData != NULL) {
         delete[] m_enemyData;
         m_enemyData = NULL;

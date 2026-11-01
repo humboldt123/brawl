@@ -9,11 +9,10 @@
 #include <types.h>
 
 class stCollisionWork {
+public:
     grCollData::VtxData* m_vtxDatas;
     grCollData::LineData* m_lineDatas;
     grCollData::JointData* m_jointDatas;
-
-public:
     u16 m_vtxLen;
     bool m_isClosed;
     char _0xf;

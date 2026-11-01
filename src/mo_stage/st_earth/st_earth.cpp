@@ -21,8 +21,6 @@
 
 // sndSystem::stopSE (main, unnamed)
 extern "C" void fn_80075F1C(sndSystem* system, s32 handle, int fade);
-// stCollisionWork::destroy (sora_melee, unnamed)
-extern "C" void fn_27_239F6C(stCollisionWork* work);
 // stTrigger::setBeltConveyorTrigger for the triangle belt (sora_melee, unnamed)
 extern "C" void fn_27_233808(stTrigger* trigger, stEarthBeltData* belt);
 // stTrigger::setBeltConveyorParam for the triangle belt (sora_melee, unnamed)
@@ -74,7 +72,7 @@ stEarth::stEarth() : stMelee("stEarth", Stages::Earth) {
 }
 
 stEarth::~stEarth() {
-    fn_27_239F6C(&m_collWork);
+    m_collWork.destroy();
     if (m_pelletData != NULL) {
         delete[] m_pelletData;
     }

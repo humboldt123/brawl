@@ -13,8 +13,6 @@
 // MATCH-ONLY: the stage's empty string (shared by the createCollisionSelf name arguments).
 extern const char g_fzeroEmptyString[];
 
-// HYPOTHESIS: tears down a stCollisionWork (an unnamed function of sora_melee).
-extern "C" void fn_27_239F6C(stCollisionWork* work);
 
 // MATCH-ONLY: a view of the joint's flag word (HYPOTHESIS: byte 2 selects the joint's collision mode).
 struct fzeroJointBits {
@@ -62,7 +60,7 @@ stFzero::stFzero() : stMelee("stFzero", Stages::FZero) {
 }
 
 stFzero::~stFzero() {
-    fn_27_239F6C(&m_collisionWork);
+    m_collisionWork.destroy();
     releaseArchive();
 }
 
