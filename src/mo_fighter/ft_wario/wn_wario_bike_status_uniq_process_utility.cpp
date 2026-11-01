@@ -1,7 +1,3 @@
-// MATCH-ONLY: MSL's native atan2f wrapper retains the scheduled return sequence.
-#pragma scheduling 603
-#include <internal/math_double.h>
-#pragma scheduling reset
 #define MT_VEC3F_CTOR_NOINLINE
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #define MT_VEC3F_BIKE_UTILITY_OPERATORS
@@ -11,8 +7,6 @@
 #include <st/st_utility.h>
 #include <math.h>
 
-// MATCH-ONLY: the native wheel probes call MSL's float-returning atan2 wrapper.
-extern "C" float atan2f(float, float) __attribute__((never_inline));
 
 // MATCH-ONLY: keep the pitch vector transient while retaining the native
 // out-of-line construction of the wheel-probe axis and effect arguments.

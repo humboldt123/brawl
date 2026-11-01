@@ -1,7 +1,4 @@
-// MATCH-ONLY: the inline atan2f of the math header needs scheduling on (the original has its epilogue lwz before the frsp).
-#pragma scheduling on
 #include <math.h>
-#pragma scheduling reset
 #define MT_VEC3F_SET_NOINLINE
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/builder/ft_builder_kinetic.h>

@@ -52,9 +52,7 @@ void ftPikminStatusUniqProcessSpecialS::execFixPos(soModuleAccesser* moduleAcces
             if (moduleAccesser->getSituationModule().getKind() == 0) {
                 if (moduleAccesser->getGroundModule().isTouch(static_cast<grCollStatus::TouchMask>(8), 0) == true) {
                     Vec2f normal = moduleAccesser->getGroundModule().getTouchNormal(8, 0);
-                    float normalY = normal.m_y;
-                    float normalX = normal.m_x;
-                    slope = (float)atan2(normalX, normalY);
+                    slope = atan2f(normal.m_x, normal.m_y);
                     if (slope != 0.0f) {
                         troops = m_troops;
                         troops->setStatusFloat(troops->getHoldPikminTop(), slope, 0x21000000);
