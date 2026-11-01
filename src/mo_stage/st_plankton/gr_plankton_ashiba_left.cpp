@@ -83,7 +83,7 @@ void grPlanktonAshibaLeft::updateYakumono(float deltaFrame) {
         // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
         m_hitData = reinterpret_cast<soCollisionHitData*>(new (Heaps::StageInstance) u8[sizeof(soCollisionHitData)]);
         m_hitSimple = reinterpret_cast<soCollisionHitData::Simple*>(new (Heaps::StageInstance) u8[sizeof(soCollisionHitData::Simple)]);
-        m_hitSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(new (Heaps::StageInstance) u8[sizeof(grPlanktonSetView)]);
+        m_hitSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(new (Heaps::StageInstance) u8[sizeof(soSet<soCollisionHitData::Simple>)]);
         m_dataGroup = new (Heaps::StageInstance) ykDataGroup;
         m_data = new (Heaps::StageInstance) ykData;
         Vec3f topPos;
@@ -113,8 +113,7 @@ void grPlanktonAshibaLeft::updateYakumono(float deltaFrame) {
         reinterpret_cast<u8*>(m_hitSimple)[0x1C] = reinterpret_cast<u8*>(m_hitData)[0x1C];
         m_hitSimple->m_height = soCollisionHitData::Height_Low;
         m_hitSimple->m_nodeIndex = 0;
-        // MATCH-ONLY: the members of soSet are private
-        grPlanktonSetView* set = reinterpret_cast<grPlanktonSetView*>(m_hitSet);
+        soSet<soCollisionHitData::Simple>* set = m_hitSet;
         set->m_elements = m_hitSimple;
         set->m_size = 1;
         m_dataGroup->m_hitDataSimpleSet = m_hitSet;

@@ -44,12 +44,6 @@ struct mariopastHitByte {
     unsigned char m_rest : 7;
 };
 
-// MATCH-ONLY: layout of soSet<T> (its members are private)
-struct mariopastSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // MATCH-ONLY: the flags of a joint (bytes 0x54 and 0x55 are bit fields in the header, shown here as plain bytes)
 struct mariopastJointView {
     u8 _pad[0x54];
@@ -238,8 +232,8 @@ void grMarioPastBlockPosLite::initYaku() {
         // MATCH-ONLY: the original allocates the spheres and the sets as raw storage
         m_hitSimple[m_group] = reinterpret_cast<soCollisionHitData::Simple*>(new (Heaps::StageInstance) u8[num * sizeof(soCollisionHitData::Simple)]);
         soCollisionHitData::Simple* simple = m_hitSimple[m_group];
-        mariopastSetView* sets = reinterpret_cast<mariopastSetView*>(new (Heaps::StageInstance) u8[rowCount * sizeof(mariopastSetView)]);
-        m_simpleSets[m_group] = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(sets);
+        soSet<soCollisionHitData::Simple>* sets = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(new (Heaps::StageInstance) u8[rowCount * sizeof(soSet<soCollisionHitData::Simple>)]);
+        m_simpleSets[m_group] = sets;
         ykDataGroup* dataGroups = new (Heaps::StageInstance) ykDataGroup[rowCount];
         m_dataGroups[m_group] = dataGroups;
         ykData* data = new (Heaps::StageInstance) ykData;
@@ -273,7 +267,7 @@ void grMarioPastBlockPosLite::initYaku() {
                 m_rowHit[m_group][row] = count;
             }
             sets->m_size = count;
-            dataGroups->m_hitDataSimpleSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(sets);
+            dataGroups->m_hitDataSimpleSet = sets;
             sets++;
             dataGroups->m_hitGroupIndex = row;
             dataGroups++;

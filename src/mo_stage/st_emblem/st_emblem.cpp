@@ -317,7 +317,7 @@ void stEmblem::updateScene(float deltaFrame) {
                 for (s32 i = 0; i < m_scene_ground_num[m_scene_num]; i++) {
                     createSceneGround(i);
                 }
-                stageParamChange();
+                stageParamChange(m_scene_num);
                 setSoundParameters(m_stageParam);
                 clearCameraParam();
                 initCameraParam();

@@ -45,14 +45,12 @@ extern "C" void fn_800DCDD4(IfMngr* mngr, int kind, float distance);
 // IfPlayer::updateDamageHP / setDamageState (the barrier shows its health on the damage gauge of the player)
 extern "C" void fn_800E14A4(IfPlayer* player, u32 value, int a);
 // stMelee::setPlayerPositionIndexFixed, setCamera (position, target, roll, fov), interpolate, interpolate1
-extern "C" void fn_27_238DD8(stMelee* stage, int index);
 extern "C" void fn_27_239AF4(stMelee* stage, Vec3f* eye, Vec3f* target, float roll, float fov);
 extern "C" void fn_27_239BDC(stMelee* stage, Vec3f* out, Vec3f* from, Vec3f* to, float t, u8 ease);
 extern "C" void fn_27_239E58(stMelee* stage, float* out, float from, float to, float t, u8 ease);
 // stTrigger::setBeltConveyorParam
 extern "C" void fn_27_233ACC(stTrigger* trigger, grGimmickBeltConveyorData* data);
 // stPositions::getItemPos
-extern "C" void fn_27_226CFC(stPositions* positions, int index, Vec3f* pos, Vec3f* safePos);
 // soExternalValueAccesser::isGroundTouch
 extern "C" int fn_27_8CC2C(BaseItem* item, int kind);
 
@@ -161,7 +159,7 @@ stHomerun::stHomerun() : stMelee("stHomerun", Stages::HomeRunContest) {
     if (melee->m_single || melee->m_combi) {
         setPlayerPositionIndexSerial();
     } else {
-        fn_27_238DD8(this, 0);
+        setPlayerPositionIndexFixed(0);
     }
     m_beltTrigger = NULL;
     m_beltData = NULL;
@@ -666,7 +664,7 @@ void stHomerun::updateSandBag(float deltaFrame) {
                         if (m_stagePositions != NULL) {
                             Vec3f itemPos;
                             Vec3f safePos;
-                            fn_27_226CFC(m_stagePositions, 0, &itemPos, &safePos);
+                            m_stagePositions->getItemPos(0, &itemPos, &safePos);
                             pos.m_x = itemPos.m_x;
                             pos.m_z = itemPos.m_z;
                             pos.m_y = 10.0f;

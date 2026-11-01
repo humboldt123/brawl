@@ -340,7 +340,9 @@ public:
     // 70
     Effect_Info* m_effects;
     // 74
-    char _spacer6[8];
+    float unkB4; // HYPOTHESIS: zeroed by the constructor, no reader found in gr_gimmick.o
+    // 78: the target node name setTgtNode copies (freed by the destructor)
+    char* m_tgtNode;
     // 7C
     void* m_gimmickData;
     // 80
@@ -382,13 +384,13 @@ public:
         u32 m_transparencySettings;
     };
     // A8
-    char _spacer8[16];
+    u32 unkE8;
+    // AC: the clip sphere invalidatedByCameraClipping tests (centre = the callback's position, radius below)
+    Vec3f m_clipSphereCenter;
     // B8
-    float unkF8; // HYPOTHESIS: set to 100.0 by the grAdventureMove4Ground constructor
-    // BC
-    grVisibleProduction* m_visibleProductions[4];
-    // CC
-    char _spacer9[0x40];
+    float unkF8; // HYPOTHESIS: the clip-sphere radius; set to 100.0 by the grAdventureMove4Ground constructor
+    // BC: two banks of ten productions (the destructor deletes both; the fade production is entry 8 of each)
+    grVisibleProduction* m_visibleProductions[20];
 
     grGimmick(const char* taskName);
 

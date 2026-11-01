@@ -31,6 +31,7 @@ public:
     virtual ~stShadow();
 
     void clearShadowObject();
+    static stShadow* create(int numObjects, int unk2); // HYPOTHESIS: parameter roles (Stage passes 0x10, 0x18)
 };
 static_assert(sizeof(stShadow::ShadowObject) == 0x34, "Class is wrong size!");
 static_assert(sizeof(stShadow) == 0x28c, "Class is wrong size!");

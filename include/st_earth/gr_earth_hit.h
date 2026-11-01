@@ -4,12 +4,6 @@
 #include <so/so_array.h>
 #include <types.h>
 
-// MATCH-ONLY: the members of soSet are private
-struct grEarthSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
 struct grEarthHitByte {
     u8 _pad[0x1c];

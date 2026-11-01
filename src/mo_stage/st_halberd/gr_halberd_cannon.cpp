@@ -1,3 +1,4 @@
+#include <st/st_melee.h>
 #include <ec/ec_mgr.h>
 #include <ft/fighter.h>
 #include <ft/ft_manager.h>
@@ -10,7 +11,6 @@
 #include <st_halberd/gr_halberd_anim.h>
 
 // stMelee: the position of a player, his hip (sora_melee, unnamed)
-extern "C" bool fn_27_2398D0(int playerNo, Vec3f* pos);
 
 grHalberdCannon* grHalberdCannon::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
     grHalberdCannon* ground = new (Heaps::StageInstance) grHalberdCannon(taskName);
@@ -383,5 +383,5 @@ void grHalberdCannon::setMotion(u32 animId, bool shouldLoop, bool force, float* 
 }
 
 bool grHalberdCannon::getPlayerPosition(int playerNo, Vec3f* pos) {
-    return fn_27_2398D0(playerNo, pos);
+    return stMelee::getPlayerHipPosition(playerNo, pos);
 }

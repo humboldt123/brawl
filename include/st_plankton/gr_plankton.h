@@ -50,12 +50,6 @@ struct grPlanktonHitByte {
     unsigned char m_rest : 7;
 };
 
-// MATCH-ONLY: layout of soSet<T> (its members are private)
-struct grPlanktonSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // A fighter that is in the water (the id of its entry) and how many frames it counts down until it may make a ripple again.
 class grPlanktonListNode : public nw4r::ut::LinkListNode {
 public:

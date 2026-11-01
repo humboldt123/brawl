@@ -58,11 +58,6 @@ struct grGWAttackBits {
     u32 _3C : 30;
 };
 
-struct grGWSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
 struct grGWHitByte {
     u8 _pad[0x1c];
@@ -298,7 +293,7 @@ void grGWOilGuest::updateCallBack(float deltaFrame) {
 void grGWOilGuest::setHit() {
     m_hitData = new (Heaps::StageInstance) soCollisionHitData;
     m_hitSimple = new (Heaps::StageInstance) soCollisionHitData::Simple;
-    m_hitSet = reinterpret_cast<soSet<soCollisionHitData>*>(new (Heaps::StageInstance) grGWSetView);
+    m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;
     m_dataGroup = new (Heaps::StageInstance) ykDataGroup;
     m_data = new (Heaps::StageInstance) ykData;
 
@@ -314,11 +309,10 @@ void grGWOilGuest::setHit() {
     gwCopyHit(m_hitSimple, m_hitData);
     m_hitSimple->m_height = soCollisionHitData::Height_Low;
     m_hitSimple->m_nodeIndex = 0;
-    // MATCH-ONLY: the members of soSet are private
-    grGWSetView* set = reinterpret_cast<grGWSetView*>(m_hitSet);
+    soSet<soCollisionHitData::Simple>* set = m_hitSet;
     set->m_elements = m_hitSimple;
     set->m_size = 1;
-    m_dataGroup->m_hitDataSimpleSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(m_hitSet);
+    m_dataGroup->m_hitDataSimpleSet = m_hitSet;
     m_dataGroup->m_hitGroupIndex = 0;
     m_data->m_dataGroups = m_dataGroup;
     m_data->m_dataGroupNum = 1;

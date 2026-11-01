@@ -69,6 +69,8 @@ public:
     void changeInput(Kind cameraControllerKind);
     void setRangeOffset(Vec2f* offset);
     void setCameraRange(Rect2D*);
+    void setDeadRange(Rect2D* range);
+    void setStageParam(cmStageParam* param);
     gfCameraController* getCameraController(Kind kind);
     static CameraController* getInstance();
 };
