@@ -4,7 +4,6 @@
 #define MT_VEC3F_CTOR_NOINLINE
 #define FT_NOINLINE_SEARCH_BUILDER
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
-#define FT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/wario/ft_wario_builder.h>

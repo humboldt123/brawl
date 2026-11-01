@@ -6,8 +6,6 @@
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define FT_PARAM_ACCESSER_TYPED_DTOR
 #define FT_TEAM_TYPED_INTERFACE
-// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
-#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #include <ft/builder/ft_dol_array_list.h>
 #define FT_KINETIC_MEDIATOR_TRANSACTOR ftLuigiKineticTransactor
 #include <ft/luigi/ft_luigi_kinetic_transactor.h>

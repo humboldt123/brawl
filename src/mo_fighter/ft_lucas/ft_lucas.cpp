@@ -3,7 +3,6 @@
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
 #define FT_TEAM_TYPED_INTERFACE
 #define FT_SOUND_GENERATOR_DTOR_NOINLINE
-#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR // MATCH-ONLY: call the shared table constructor used by this REL.
 #define FT_LUCAS_ARTICLE_POOLS
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #include <ft/builder/ft_dol_array_list.h>

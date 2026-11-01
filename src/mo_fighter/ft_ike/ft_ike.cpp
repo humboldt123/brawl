@@ -1,8 +1,6 @@
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define FT_SOUND_GENERATOR_DTOR_NOINLINE
-// MATCH-ONLY: the status table default constructor is a call into the shared sora_melee code, as in Captain.
-#define FT_ROBOT_SHARED_STATUS_TABLE_CTOR
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_NOINLINE_SEARCH_BUILDER
 #define FT_IKE_ARTICLE_POOLS

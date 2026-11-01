@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #include <wn/samus/wn_samus_laser.h>
 #include <wn/wn_activate_desc.h>
 #include <so/so_module_accesser.h>
@@ -16,12 +17,7 @@ void wnSamusLaser::activate(int founderTaskId, int etcResourceId, int team) {
     desc.unk14 = -1;
     desc.unk18 = 0;
     desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, &pos, sizeof(Vec3f));
-#else
     desc.pos = pos;
-#endif
     desc.lr = 0.0f;
     desc.team = team;
     desc.life = 0;
