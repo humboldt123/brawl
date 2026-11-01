@@ -6657,6 +6657,7 @@ config.libs = [
             Object(NonMatching, "mo_menu/mu_proc_opt_del.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_opt_vib.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_opt_btn.cpp"),
+            Object(NonMatching, "mo_menu/mu_proc_opt_song.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_wifi_friend.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_wifi_anybody.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_record.cpp"),

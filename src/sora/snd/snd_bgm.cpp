@@ -1,3 +1,4 @@
+#include <gm/gm_common.h>
 #include <revolution/OS/OSError.h>
 #include <mt/mt_prng.h>
 #include <snd/snd_bgm.h>
@@ -6,9 +7,7 @@
 #include <types.h>
 #include <ut/ut_relocate.h>
 
-// HYPOTHESIS: stand-ins for gmCheckBGMIDUseEnable (gm_lib.o) and sndSystem BGM entries, which are still fn_.
-extern "C" bool fn_8004F978(u32 bgmId);
-extern "C" void fn_80073F84(sndSystem* system, int fade);
+// HYPOTHESIS: stand-ins for sndSystem BGM entries, which are still fn_.
 extern "C" bool fn_80074018(sndSystem* system, u32 bgmId, int unk);
 extern "C" bool fn_80074184(sndSystem* system, u32 bgmId);
 extern "C" void fn_800741EC(sndSystem* system, u32 bgmId, u32 param);
@@ -46,7 +45,7 @@ sndBgmRateSystem* sndBgmRateSystem::create() {
     return lbl_805A01D8;
 }
 
-// HYPOTHESIS: still configured as fn_80078990; only the clear loop's register allocation differs.
+// Only the clear loop's register allocation differs.
 void sndBgmRateSystem::setupBGMList() {
     for (int i = 0; i < 24; i++) {
         m_seriesCount[i] = 0;
@@ -71,7 +70,7 @@ void sndBgmRateSystem::setupBGMList() {
             case 0x27BE:
                 break;
             default:
-                if (fn_8004F978(data->m_playId)) {
+                if (gmCheckBGMIDUseEnable(data->m_playId)) {
                     m_enabledTitleCount++;
                     u32 series = data->m_series;
                     if (series < 21) {
@@ -110,7 +109,7 @@ u32 sndBgmRateSystem::getBgmId(int category, int index) {
 
 // HYPOTHESIS: sndBgmRateSystem::stopBGM; st_madein.cpp still calls it by this address name.
 extern "C" void fn_800790FC(sndBgmRateSystem* system, int fade) {
-    fn_80073F84(g_sndSystem, fade);
+    g_sndSystem->stopBGM(fade);
 }
 
 int sndBgmRateSystem::prepareBGM(int category, u32 id, int bgmId) {
@@ -153,10 +152,9 @@ u16 sndBgmRateSystem::getPlayTiming() {
     return m_currentRate->m_playTiming;
 }
 
-// HYPOTHESIS: sndBgmRateSystem::getBgmTitleDataPlayId; if_center.cpp still calls it by this address name.
-extern "C" sndBgmTitleData* fn_800791FC(sndBgmRateSystem* system, u32 playId) {
-    for (u32 i = 0; i < system->m_titleCount; i++) {
-        sndBgmTitleData* data = &system->m_titleData[i];
+sndBgmTitleData* sndBgmRateSystem::getBgmTitleDataPlayId(u32 playId) {
+    for (u32 i = 0; i < m_titleCount; i++) {
+        sndBgmTitleData* data = &m_titleData[i];
         if (data->m_playId == playId) {
             return data;
         }
@@ -173,7 +171,7 @@ int sndBgmRateSystem::setBgmId(int category, u32 id, int bgmId) {
             return 0x26F9;
         }
         for (u32 i = m_categoryStart[category]; m_rateData[i].m_category == category; i++) {
-            if (fn_8004F978(m_rateData[i].m_bgmId)) {
+            if (gmCheckBGMIDUseEnable(m_rateData[i].m_bgmId)) {
                 total += m_rateData[i].m_rate;
             }
         }
@@ -183,7 +181,7 @@ int sndBgmRateSystem::setBgmId(int category, u32 id, int bgmId) {
         } else {
             int roll = randi(total);
             for (u32 i = m_categoryStart[category]; m_rateData[i].m_category == category; i++) {
-                if (fn_8004F978(m_rateData[i].m_bgmId)) {
+                if (gmCheckBGMIDUseEnable(m_rateData[i].m_bgmId)) {
                     if (roll < m_rateData[i].m_rate) {
                         bgmId = m_rateData[i].m_bgmId;
                         m_currentRate = &m_rateData[i];

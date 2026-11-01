@@ -21,7 +21,7 @@ extern "C" void fn_1_135E0(muMenuMain* scene, int code);
 
 // The priority of the draw of a model of the scene (the same for the opaque and the transparent parts).
 static inline int getDrawPriority(MuObject* object) {
-    return *reinterpret_cast<u8*>(reinterpret_cast<char*>(object->m_scnMdl) + 0xD0);
+    return object->m_scnMdl->m_priorityDrawOpa;
 }
 
 static inline muMenuMain* getMenuMain() {

@@ -7,6 +7,7 @@
 #include <nw4r/g3d/g3d_anmchr.h>
 #include <nw4r/g3d/g3d_anmclr.h>
 #include <nw4r/g3d/g3d_scnmdl.h>
+#include <snd/snd_bgm.h>
 #include <snd/snd_system.h>
 #include <stdio.h>
 #include <string.h>
@@ -34,12 +35,8 @@ extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void*
 // The archive: the resource of a node of the pack and the data of a file (archive, id, type, index, size, file id)
 extern "C" void* fn_800B03F0(gfArchive* archive, int index);
 extern "C" void* fn_80015E34(gfArchive* archive, int id, int type, int index, int* size, u16 fileId);
-// The sound system: stop the music (fade frames) and play a sound with a volume and a pitch
-extern "C" void fn_80073F84(sndSystem* system, int fade);
+// The sound system: play a sound with a volume and a pitch
 extern "C" void fn_80074ECC(sndSystem* system, int id, float volume, float pitch);
-// The system that stops the music with a fade and the instance it works on
-extern "C" void fn_80078DAC(void* system, int a, int b, int c);
-extern void* lbl_805A01D8;
 // The window of the module of the name menus where a player picks a name: create(group, kind, resource, resource, pad, heap, model,
 // node, ...)
 extern "C" muEventNameWnd* fn_16_1CB0(void* group, int kind, nw4r::g3d::ResFile* resFileA, nw4r::g3d::ResFile* resFileB, int pad, int heap,
@@ -334,7 +331,7 @@ void muEventTask::initDisp() {
     arrow->setFrameNode(sArrowFrames[0]);
     arrow->m_modelAnim->m_anmObjChrRes->SetUpdateRate(0.0f);
     m_arrowDir = 0;
-    fn_80078DAC(lbl_805A01D8, 0x2A, 0, 0);
+    lbl_805A01D8->playBGM(0x2A, 0, 0);
 }
 
 // The pad status of a controller; for the controller of all the players (no pad) it is the merge of the pads of the players.
@@ -1022,7 +1019,7 @@ void muEventTask::mainStepDecidedInit(muEventTask* task) {
     task->m_unk17E9 = !noFighter;
     task->m_wait = 2;
     if (task->m_unk17E9) {
-        fn_80073F84(g_sndSystem, 0);
+        g_sndSystem->stopBGM(0);
         g_sndSystem->playSE(static_cast<SndID>(0x16), -1, 0, 0, -1);
     }
 }

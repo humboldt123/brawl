@@ -58,6 +58,8 @@ public:
     void setRate(int category, u32 bgmId, u8 rate);
     u8 getRate(int category, u32 bgmId);
     u32 getBgmId(int category, int index);
+    // HYPOTHESIS: the parameters are those of prepareBGM (the menus pass 0x2A, 0, 0).
+    void playBGM(int category, u32 id, int bgmId);
     int prepareBGM(int category, u32 id, int bgmId);
     bool isPreparedBGM();
     void startBGM(u32 param);
@@ -65,6 +67,7 @@ public:
     int setBgmId(int category, u32 id, int bgmId);
     bool getSeriesAndId(u32 playId, u32* series, u32* index);
     u32 getSeriesId(u32 key);
+    sndBgmTitleData* getBgmTitleDataPlayId(u32 playId);
 };
 static_assert(sizeof(sndBgmRateSystem) == 0x14D8, "Class is wrong size!");
 

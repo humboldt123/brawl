@@ -56,6 +56,7 @@ public:
     bool isPlay(s32 handleId);
     bool isPlaySEID(SndID sndID);
     bool playBGM(int bgmId, u32 fade, bool);
+    void stopBGM(int fade);
     int getBGMId();
     void specialPause();
     void specialResume();
