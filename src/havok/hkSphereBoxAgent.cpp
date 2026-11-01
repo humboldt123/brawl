@@ -55,18 +55,10 @@ hkSphereBoxAgent* hkSphereBoxAgent::createSphereBoxAgent(void* unk0, void* unk1,
     return new hkSymmetricAgentLinearCast_16hkSphereBoxAgent_(contactMgr);
 }
 
-// MATCH-ONLY: the release slot (0x18 of the contact manager) takes the 16-bit slot value as its argument.
-// Same local view as hkCapsuleCapsuleAgent.cpp; hkContactMgr in hkCollisionAgent.h declares unk18() without one.
-struct hkContactMgrKeyedSphere : hkReferencedObject {
-    virtual void unk10();
-    virtual void unk14();
-    virtual void unk18(u16 key);
-};
-
 void hkSphereBoxAgent::cleanup() {
     u16 slot = unkC;
     if (slot != 0xFFFF) {
-        ((hkContactMgrKeyedSphere*)unk8)->unk18(slot);
+        ((hkContactMgr*)unk8)->removeContactPoint(slot);
     }
     delete this;
 }

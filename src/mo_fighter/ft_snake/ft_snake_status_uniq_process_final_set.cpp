@@ -33,12 +33,10 @@ void ftSnakeStatusUniqProcessFinalSet::execFixPos(soModuleAccesser* acc) {
     Vec2f cursor(soExternalValueAccesser::getWorkFloat(object, 0x11000001), cursorY);
     if (!g_cmAIController) return;
     {
-        char* viewport = reinterpret_cast<char*>(g_cmAIController);
-        float width = 0.5f * (*reinterpret_cast<float*>(viewport + 0x170) -
-                              *reinterpret_cast<float*>(viewport + 0x16C));
+        Rect2D& viewport = g_cmAIController->unk16C;
+        float width = 0.5f * (viewport.m_right - viewport.m_left);
         cursor.m_x /= width;
-        float height = 0.5f * (*reinterpret_cast<float*>(viewport + 0x178) -
-                               *reinterpret_cast<float*>(viewport + 0x174));
+        float height = 0.5f * (viewport.m_down - viewport.m_up);
         cursor.m_y /= height;
     }
     if (acc->getMotionModule().getKind() == 500) {
