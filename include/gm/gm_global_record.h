@@ -252,7 +252,7 @@ struct gmGlobalRecord {
             char _16[10];
             struct {
                 u8 m_unk10[8];   // HYPOTHESIS: eight on/off settings that start on (set to 1 by InitAllRecord)
-                u8 m_volBalance; // 0x18: balance of the music and the sound effects, 0-100 (starts at 50); applied with sndSystem::setVolBalance
+                s8 m_volBalance; // 0x18: (s8: muProcOptSound and GameGlobal sign-extend it) balance of the music and the sound effects, 0-100 (starts at 50); applied with sndSystem::setVolBalance
                 u8 m_deflicker;  // 0x19: the video deflicker setting (1 = on); applied with gfVideo::setDeflicker
             };
         };
@@ -260,8 +260,8 @@ struct gmGlobalRecord {
         char _27[5];
         StageSwitch m_stageSwitch;
 
-        bool m_isWidescreen : 1;
-        bool m_41_6 : 1;
+        u8 m_isWidescreen : 1;  // HYPOTHESIS: u8, not bool: muProcOptScreen::proc stores the u8 cursor into it without normalizing it
+        u8 m_41_6 : 1;          // HYPOTHESIS: u8 like m_isWidescreen (GameGlobal::setSaveData copies one into the other)
         bool m_41_5 : 1;
         bool m_41_4 : 1;
         bool m_41_3 : 1;

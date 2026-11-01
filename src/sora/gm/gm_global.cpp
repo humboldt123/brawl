@@ -37,10 +37,9 @@ struct GameFrameState {
 };
 
 // HYPOTHESIS: stand-ins for callees that are not named yet. fn_8001B784 (8 bytes) hands the language to the file system
-// code (map: gfFileIO::setLanguage), fn_80076F30 is sndSystem::setVolBalance (music, sound effects), fn_80052250 is
+// code (map: gfFileIO::setLanguage), fn_80052250 is
 // gmCharaFlag::setGlobalCharaData returned by value (the set of selectable fighters as one 64-bit value).
 extern "C" void fn_8001B784(int language);
-extern "C" void fn_80076F30(sndSystem* system, f32 bgm, f32 se);
 extern "C" u64 fn_80052250();
 // HYPOTHESIS: the parameter is the coin count of the record (gm_common.cpp); the shared header does not declare it yet.
 u32 gmSetCoinNum(u32 coins);
@@ -303,7 +302,7 @@ void GameGlobal::init() {
     lbl_805A0098->setDeflicker(deflicker);
     m_record->m_menuData.m_deflicker = deflicker == 1;
     m_record->m_menuData.m_volBalance = 50;
-    fn_80076F30(g_sndSystem, 0.5f, 0.5f);
+    g_sndSystem->setVolBalance(0.5f, 0.5f);
 
     // MATCH-ONLY: the native code sets the melee and normal stage switches as two words of one 64-bit store.
     *reinterpret_cast<u64*>(&m_record->m_menuData.m_stageSwitch) = 0xFFFFFFFFFFFFFFFFULL;
@@ -671,7 +670,7 @@ void GameGlobal::setRumbleSetting(int player, u8 value) {
 
 
 // HYPOTHESIS: stand-ins for callees that are not named yet. fn_8001B784 (8 bytes) hands the language to the file system
-// code (map: gfFileIO::setLanguage), fn_80076F30 is sndSystem::setVolBalance (music, sound effects), fn_80078768 is
+// code (map: gfFileIO::setLanguage), fn_80078768 is
 // sndBgmRateSystem::setupBGMRate.
 extern "C" void fn_80078768(sndBgmRateSystem* system);
 void addMaxCheck(u32* dst, u32 add, u32 max);
@@ -977,7 +976,7 @@ void GameGlobal::InitAllRecord() {
     camera->setAspectRatio(standardAspect);
 
     m_record->m_menuData.m_volBalance = 50;
-    fn_80076F30(g_sndSystem, 0.5f, 0.5f);
+    g_sndSystem->setVolBalance(0.5f, 0.5f);
     gmGlobalRecord::MenuData::StageSwitch* stages = &m_record->m_menuData.m_stageSwitch;
     stages->m_normalMask = 0xFFFFFFFF;
     stages->m_meleeMask = 0xFFFFFFFF;
@@ -1397,7 +1396,7 @@ void GameGlobal::setSaveData(const void* data) {
 
     // HYPOTHESIS: this makes the play time of the record the time of the load before the copy overwrites it
     m_record->m_workingTime = OS_TICKS_TO_SEC(OSGetTime());
-    bool widescreen = g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen;
+    u8 widescreen = g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen;
     memcpy(m_record, buffer + 8, sizeof(gmGlobalRecord));
     memcpy(m_nameRecords, buffer + 8 + sizeof(gmGlobalRecord), 120 * sizeof(gmGlobalRecord::NameData));
     memcpy(m_nteData, buffer + 8 + sizeof(gmGlobalRecord) + 120 * sizeof(gmGlobalRecord::NameData), sizeof(nteGlobalData));
@@ -1427,7 +1426,7 @@ void GameGlobal::setSaveData(const void* data) {
     m_record->m_menuData.m_deflicker = deflicker == 1;
 
     s8 balance = m_record->m_menuData.m_volBalance;
-    fn_80076F30(g_sndSystem, (f32)(100 - balance) / 100.0f, (f32)balance / 100.0f);
+    g_sndSystem->setVolBalance((f32)(100 - balance) / 100.0f, (f32)balance / 100.0f);
 
     // the "has been seen" bit of every hidden fighter starts clear
     for (int i = 0; i < 14; i++) {
