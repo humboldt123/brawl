@@ -6701,7 +6701,14 @@ config.libs = [
         "mw_version": config.linker_version,
         "cflags": cflags_rel,
         "host": False,
-        "objects": [],
+        "objects": [
+            Object(NonMatching, "mo_menu/mu_selchar.cpp"),
+            Object(NonMatching, "mo_menu/mu_selchar_player_area.cpp"),
+            Object(NonMatching, "mo_menu/mu_selchar_hand.cpp"),
+            Object(NonMatching, "mo_menu/mu_selchar_coin.cpp"),
+            Object(NonMatching, "mo_menu/mu_selchar_panel_ctrl.cpp"),
+            Object(NonMatching, "mo_menu/mu_select_character_list.cpp"),
+        ],
     },
     {
         "lib": "sora_menu_sel_char_access",

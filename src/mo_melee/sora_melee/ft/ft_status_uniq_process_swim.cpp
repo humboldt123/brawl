@@ -35,18 +35,13 @@ static int s_swimExitWorkValue = 0x1e;
 // HYPOTHESIS: the area manager singleton (created on first use) and its water record query.
 extern stAreaManager* lbl_27_bss_5780;
 extern "C" {
-stAreaManager* fn_27_22A914(void* self);
 int fn_27_22B3B8(stAreaManager* manager, u32 areaId, stWaterData* water);
 }
 
 static inline stAreaManager* getAreaManager() {
     stAreaManager* manager = lbl_27_bss_5780;
     if (manager == NULL) {
-        void* memory = ::operator new(0x54, Heaps::System);
-        manager = static_cast<stAreaManager*>(memory);
-        if (memory != NULL) {
-            manager = fn_27_22A914(memory);
-        }
+        manager = new (Heaps::System) stAreaManager();
         lbl_27_bss_5780 = manager;
     }
     return lbl_27_bss_5780;

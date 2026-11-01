@@ -1,3 +1,4 @@
+#include <st/st_melee.h>
 #include <ec/ec_mgr.h>
 #include <ft/ft_manager.h>
 #include <gf/gf_model.h>
@@ -17,8 +18,6 @@ extern "C" int enumIncludeEntryId__9ftManagerCFi(ftManager* manager, Rect2D* are
 extern "C" void fn_80075F1C(sndSystem* sndSystem, int handle, int frames);
 
 // stMelee: the position of a player, his hip (D0) or his cursor (D8) (sora_melee, unnamed)
-extern "C" bool fn_27_2398D0(int playerNo, Vec3f* pos);
-extern "C" bool fn_27_2398D8(int playerNo, Vec3f* pos);
 
 // The search light finds a fighter, follows him and loses him.
 grMetalgearSearch* grMetalgearSearch::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
@@ -197,7 +196,7 @@ void grMetalgearSearch::updateActive(float deltaFrame) {
 // The place of a player: kind 1 is his cursor, any other kind his hip (both are small functions of the melee stage in sora_melee).
 bool grMetalgearSearch::getPlayerPosition(int playerNo, Vec3f* pos, int kind) {
     if (kind != 1) {
-        return fn_27_2398D0(playerNo, pos);
+        return stMelee::getPlayerHipPosition(playerNo, pos);
     }
-    return fn_27_2398D8(playerNo, pos);
+    return stMelee::getPlayerCursorPosition(playerNo, pos);
 }

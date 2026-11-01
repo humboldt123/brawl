@@ -1,8 +1,8 @@
+#include <st/stage.h>
 #include <st_dxbigblue/gr_dxbigblue_fly.h>
 #include <st_dxbigblue/gr_dxbigblue_util.h>
 
 // HYPOTHESIS: a flag of sora_melee that is set while the match runs (its name is unknown).
-extern u8 lbl_27_data_547E4;
 
 grDxBigBlueFly::grDxBigBlueFly(const char* taskName) : grDxBigBlue(taskName) {
     m_posLimitWork = NULL;
@@ -23,7 +23,7 @@ grDxBigBlueFly::~grDxBigBlueFly() { }
 
 void grDxBigBlueFly::update(float deltaFrame) {
     grGimmick::update(deltaFrame);
-    if (lbl_27_data_547E4 != 0) {
+    if (g_stIsJustGameFrame != 0) {
         m_landedTimer -= deltaFrame;
         if (m_landedTimer < 0.0f) {
             m_landedTimer = 0.0f;

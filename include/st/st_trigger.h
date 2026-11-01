@@ -75,6 +75,7 @@ class stTriggerMng : public gfTask {
     char _spacer[24];
 
 public:
+    stTriggerMng(const char* taskName);
     virtual void processBegin();
     virtual void processFix();
     virtual void processGameProc();

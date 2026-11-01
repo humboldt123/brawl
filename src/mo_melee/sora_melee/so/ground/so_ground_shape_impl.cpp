@@ -11,16 +11,6 @@ struct GrStatusView {
     u32 : 24;
 };
 
-// HYPOTHESIS: the stage's collision attribute table (Stage + 0xF8) hands out a per-material parameter set.
-struct stCollisionAttrParamSet {
-    float m_0;
-    float m_downFriction;
-};
-class stCollisionAttrParam {
-public:
-    stCollisionAttrParamSet* getCollisionAttrParamSet(int materialType);
-};
-
 soGroundShapeImpl::soGroundShapeImpl() {
     m_correctKind = 0;
     m_cliffCheck = 0;
@@ -369,7 +359,7 @@ void soGroundShapeImpl::clearSetting() {
 void soGroundShapeImpl::updateDownMaterialInfo() {
     int materialType = m_collStatus->getTouchLineMaterialType(grCollStatus::Touch_Down);
     m_collMaterialType = materialType;
-    m_downFriction = ((stCollisionAttrParam*)g_Stage->collisionAttrs)->getCollisionAttrParamSet(materialType)->m_downFriction;
+    m_downFriction = g_Stage->m_collisionAttrParam.getCollisionAttrParamSet(materialType)->m_downFriction;
 }
 
 void soGroundShapeImpl::update(soModuleAccesser* moduleAccesser, int state) {

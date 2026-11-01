@@ -2373,10 +2373,9 @@ void wnPikminPikminKineticTransactor::updateEnergy7(soKineticEnergyNormal* energ
 }
 
 // sora_melee: the area manager singleton, its constructor and getWater.
-class stAreaManager;
+#include <st/st_area_manager.h>
 extern stAreaManager* lbl_27_bss_5780;
 extern "C" {
-stAreaManager* fn_27_22A914(void* self);
 bool fn_27_22B3B8(stAreaManager* manager, u32 areaId, float* water);
 }
 
@@ -2401,11 +2400,7 @@ void wnPikminPikminKineticTransactor::updateEnergy12(wnKineticEnergyGravity* ene
     } else {
         stAreaManager* manager = lbl_27_bss_5780;
         if (lbl_27_bss_5780 == NULL) {
-            void* memory = ::operator new(0x54, Heaps::System);
-            manager = static_cast<stAreaManager*>(memory);
-            if (memory != NULL) {
-                manager = fn_27_22A914(memory);
-            }
+            manager = new (Heaps::System) stAreaManager();
         }
         lbl_27_bss_5780 = manager;
         manager = lbl_27_bss_5780;

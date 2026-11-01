@@ -25,7 +25,6 @@ extern "C" void fn_80110B98(grCollision* collision, int status, int unk);
 // sndSystem::setVol / setPitch / setPan / stopSE (unnamed functions of main)
 extern "C" void fn_800777DC(sndSystem* system, float volume, int handle, int fadeFrames);
 extern "C" void fn_800778CC(sndSystem* system, float pitch, int handle);
-extern "C" void fn_8007798C(sndSystem* system, float pan, int handle);
 extern "C" void fn_80075F1C(sndSystem* system, int handle, int fadeFrames);
 // Matrix helpers of main: place a matrix with a translation / scale
 extern "C" void fn_8003F074(float x, float y, float z, Matrix* matrix);
@@ -1171,7 +1170,7 @@ void stDolpic::updateSE(float deltaFrame) {
         }
         int handle = g_sndSystem->playSE(id, 0, 0, 0, -1);
         if (0 < handle) {
-            fn_8007798C(g_sndSystem, pan, handle);
+            g_sndSystem->setPan(handle, pan);
             fn_800777DC(g_sndSystem, volume, handle, 0x78);
         }
         float time = (5.0f + 5.0f * randf()) * 60.0f;

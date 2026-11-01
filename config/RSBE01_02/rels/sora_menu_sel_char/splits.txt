@@ -6,6 +6,37 @@ Sections:
 	.data       type:data align:32
 	.bss        type:bss align:8
 
+mo_menu/mu_selchar.cpp:
+	.text       start:0x00000000 end:0x00010CAC
+	.rodata     start:0x00000000 end:0x00000568
+	.data       start:0x00000000 end:0x00000748
+
+mo_menu/mu_selchar_player_area.cpp:
+	.text       start:0x00010CAC end:0x00019700
+	.rodata     start:0x00000568 end:0x000007D0
+	.data       start:0x00000748 end:0x00000BB0
+	.bss        start:0x00000008 end:0x00000014
+
+mo_menu/mu_selchar_hand.cpp:
+	.text       start:0x00019700 end:0x0001B834
+	.rodata     start:0x000007D0 end:0x00000870
+	.data       start:0x00000BB0 end:0x00000CA8
+
+mo_menu/mu_selchar_coin.cpp:
+	.text       start:0x0001B834 end:0x0001C608
+	.rodata     start:0x00000870 end:0x000008A0
+	.data       start:0x00000CA8 end:0x00000CF8
+
+mo_menu/mu_selchar_panel_ctrl.cpp:
+	.text       start:0x0001C608 end:0x0001C874
+	.rodata     start:0x000008A0 end:0x000008A8
+	.data       start:0x00000CF8 end:0x00000DE0
+
+mo_menu/mu_select_character_list.cpp:
+	.text       start:0x0001C874 end:0x0001DE90
+	.rodata     start:0x000008A8 end:0x000008DC
+	.data       start:0x00000DE0 end:0x00000E30
+
 mo_menu/mo_menu.cpp:
 	.text       start:0x0001DE90 end:0x0001DF2C
 	.data       start:0x00000E30 end:0x00000E3C

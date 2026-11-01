@@ -377,7 +377,7 @@ void stLoaderStage::entryEntity() {
         static_cast<stCommonGimmick*>(m_stage)->m_secondaryFileData = m_secondaryArchive;
         static_cast<stCommonGimmick*>(m_stage)->setupItemSheet();
         m_stage->createObj();
-        m_stage->_spacer7[0] = false;
+        m_stage->unk198 = false;
         fn_27_23AC24(this);
         if (lbl_8049DEC8) {
             lbl_8049DEC8[0x5C] = true;
@@ -397,7 +397,7 @@ void stLoaderStage::entryEntity() {
 void stLoaderStage::entryEntitySuddenDeath() {
     if (fn_27_23AC10(this) != true && m_stage == nullptr) {
         entryEntity();
-        m_stage->_spacer7[0] = true;
+        m_stage->unk198 = true;
     }
 }
 

@@ -5,7 +5,14 @@
 #include <types.h>
 
 class efScreen {
-    char _spacer[492];
+    char _spacer[0x1DC];
+
+public:
+    // HYPOTHESIS: the screen-fill listener; stMelee installs its StageScreenNotify here and Stage::closeStage clears it.
+    void* m_notify;
+
+private:
+    char _1E0[0xC];
 
 public:
     int requestFill(float, int, int, GXColor*);
