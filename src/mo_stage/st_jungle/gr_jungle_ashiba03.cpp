@@ -173,8 +173,7 @@ void grJungleAshiba03::setHit() {
         m_hitData[i].m_endOffsetPos.m_y = 0.0f;
         m_hitData[i].m_endOffsetPos.m_z = 0.0f;
         m_hitData[i].m_size = 4.5f;
-        // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-        reinterpret_cast<grJungleHitByte*>(&m_hitData[i])->m_shape = 1;
+        m_hitData[i].m_shapeType = soCollision::Shape_Capsule;
         grJungleCopyHit(&m_hitSimple[i], &m_hitData[i]);
         m_hitSimple[i].m_height = soCollisionHitData::Height_Low;
         m_hitSimple[i].m_nodeIndex = m_node[i];

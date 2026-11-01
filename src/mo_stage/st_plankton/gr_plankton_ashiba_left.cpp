@@ -98,8 +98,11 @@ void grPlanktonAshibaLeft::updateYakumono(float deltaFrame) {
         m_hitData->m_endOffsetPos.m_y = diff.m_y;
         m_hitData->m_endOffsetPos.m_z = 0.0f;
         m_hitData->m_size = 1.5f;
-        // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-        reinterpret_cast<grPlanktonHitByte*>(m_hitData)->m_shape = 1;
+        m_hitData->m_shapeType = soCollision::Shape_Capsule;
+        // MATCH-ONLY: the copy of a hit sphere to its simple form word by word. The real form is `*simple = *hit` (the
+        // implicit soCollisionHitSphere assignment, see so/collision/templates/so_collision_hit_part.h), which needs
+        // the aggregate Vec3f copy (MT_VEC3F_IMPLICIT_ASSIGN), but the other Vec3f assignments of this unit are float-
+        // wise.
         u32* srcWords = reinterpret_cast<u32*>(m_hitData);
         u32* dstWords = reinterpret_cast<u32*>(m_hitSimple);
         for (int w = 0; w < 6; w += 3) {

@@ -58,14 +58,9 @@ struct grGWAttackBits {
     u32 _3C : 30;
 };
 
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct grGWHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
-// MATCH-ONLY: the copy of a hit sphere to its simple form (word by word, as the original does it)
+// MATCH-ONLY: the copy of a hit sphere to its simple form word by word. The real form is `*simple = *hit` (the implicit
+// soCollisionHitSphere assignment, see so/collision/templates/so_collision_hit_part.h), which needs the aggregate Vec3f
+// copy (MT_VEC3F_IMPLICIT_ASSIGN), but the other Vec3f assignments of this unit are float-wise.
 static inline void gwCopyHit(soCollisionHitData::Simple* dst, soCollisionHitData* src) {
     u32* srcWords = reinterpret_cast<u32*>(src);
     u32* dstWords = reinterpret_cast<u32*>(dst);
@@ -304,8 +299,7 @@ void grGWOilGuest::setHit() {
     m_hitData->m_endOffsetPos.m_y = 0.0f;
     m_hitData->m_endOffsetPos.m_z = 0.0f;
     m_hitData->m_size = 10.0f;
-    // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-    reinterpret_cast<grGWHitByte*>(m_hitData)->m_shape = 1;
+    m_hitData->m_shapeType = soCollision::Shape_Capsule;
     gwCopyHit(m_hitSimple, m_hitData);
     m_hitSimple->m_height = soCollisionHitData::Height_Low;
     m_hitSimple->m_nodeIndex = 0;

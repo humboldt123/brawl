@@ -73,13 +73,6 @@ static inline void grVillageFreeModelAnim(gfModelAnimation* anim) {
     }
 }
 
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct grVillageHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
 // The base ground of the stage. The scene (time of day), the state of the stage and the places of the guests are shared
 // with the stage by pointer.
 class grVillage : public grYakumono {

@@ -21,13 +21,6 @@ enum {
     MANSION_EVENT_ID = 0x9E,
 };
 
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct grMansionHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
 #include <nw4r/math/math_types.h>
 #include <st_mansion/gr_mansion_anim.h>
 

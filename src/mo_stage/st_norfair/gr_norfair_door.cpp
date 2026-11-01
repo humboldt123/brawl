@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_CLTARGET_4_FIRST // the clTarget constructor writes the second member first in this REL
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
@@ -16,21 +17,6 @@
 
 #include <st_norfair/gr_norfair.h>
 #include <st_norfair/gr_norfair_anim.h>
-
-// MATCH-ONLY: the copy of a hit sphere to its simple form (word by word, as the original does it)
-static inline void norfairCopyHit(soCollisionHitData::Simple* dst, soCollisionHitData* src) {
-    u32* srcWords = reinterpret_cast<u32*>(src);
-    u32* dstWords = reinterpret_cast<u32*>(dst);
-    for (int w = 0; w < 6; w += 3) {
-        u32 w1 = srcWords[w + 1];
-        u32 w0 = srcWords[w];
-        dstWords[w] = w0;
-        dstWords[w + 1] = w1;
-        dstWords[w + 2] = srcWords[w + 2];
-    }
-    dst->m_size = src->m_size;
-    reinterpret_cast<u8*>(dst)[0x1C] = reinterpret_cast<u8*>(src)[0x1C];
-}
 
 grNorfairDoor::grNorfairDoor(const char* taskName) : grNorfair(taskName), m_snd() {
     m_posWork = NULL;
@@ -309,9 +295,8 @@ void grNorfairDoor::setHit() {
     m_hitData[0].m_endOffsetPos.m_y = 22.0f;
     m_hitData[0].m_endOffsetPos.m_z = 0.0f;
     m_hitData[0].m_size = 4.0f;
-    // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-    reinterpret_cast<grNorfairHitByte*>(&m_hitData[0])->m_shape = 1;
-    norfairCopyHit(&m_hitSimple[0], &m_hitData[0]);
+    m_hitData[0].m_shapeType = soCollision::Shape_Capsule;
+    m_hitSimple[0] = m_hitData[0];
     m_hitSimple[0].m_height = soCollisionHitData::Height_Low;
     m_hitSimple[0].m_nodeIndex = m_nodeIndex;
 
@@ -322,8 +307,8 @@ void grNorfairDoor::setHit() {
     m_hitData[1].m_endOffsetPos.m_y = 22.0f;
     m_hitData[1].m_endOffsetPos.m_z = 0.0f;
     m_hitData[1].m_size = 4.0f;
-    reinterpret_cast<grNorfairHitByte*>(&m_hitData[1])->m_shape = 1;
-    norfairCopyHit(&m_hitSimple[1], &m_hitData[1]);
+    m_hitData[1].m_shapeType = soCollision::Shape_Capsule;
+    m_hitSimple[1] = m_hitData[1];
     m_hitSimple[1].m_height = soCollisionHitData::Height_Low;
     m_hitSimple[1].m_nodeIndex = m_nodeIndex;
 

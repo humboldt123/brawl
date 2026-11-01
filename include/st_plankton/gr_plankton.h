@@ -31,13 +31,6 @@ static inline gmMeleeInitData* planktonMeleeInitData() {
     return &g_GameGlobal->m_modeMelee->m_meleeInitData;
 }
 
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct grPlanktonHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
 // A fighter that is in the water (the id of its entry) and how many frames it counts down until it may make a ripple again.
 class grPlanktonListNode : public nw4r::ut::LinkListNode {
 public:

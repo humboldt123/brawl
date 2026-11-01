@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_CLTARGET_4_FIRST // the clTarget constructor writes the second member first in this REL
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
@@ -430,19 +431,8 @@ void grPalutenaAshiba::setHit() {
     m_hitData->m_endOffsetPos.m_y = -extent.m_y;
     m_hitData->m_endOffsetPos.m_z = -extent.m_z;
     m_hitData->m_size = 2.5f;
-    // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-    reinterpret_cast<grPalutenaHitByte*>(m_hitData)->m_shape = 1;
-    u32* srcWords = reinterpret_cast<u32*>(m_hitData);
-    u32* dstWords = reinterpret_cast<u32*>(m_hitSimple);
-    for (int w = 0; w < 6; w += 3) {
-        u32 w0 = srcWords[w];
-        u32 w1 = srcWords[w + 1];
-        dstWords[w] = w0;
-        dstWords[w + 1] = w1;
-        dstWords[w + 2] = srcWords[w + 2];
-    }
-    m_hitSimple->m_size = m_hitData->m_size;
-    reinterpret_cast<u8*>(m_hitSimple)[0x1C] = reinterpret_cast<u8*>(m_hitData)[0x1C];
+    m_hitData->m_shapeType = soCollision::Shape_Capsule;
+    *m_hitSimple = *m_hitData;
     m_hitSimple->m_height = soCollisionHitData::Height_Low;
     m_hitSimple->m_nodeIndex = nodeIndex;
     soSet<soCollisionHitData::Simple>* set = m_hitSet;

@@ -42,13 +42,6 @@ extern "C" void fn_800778CC(sndSystem* system, s32 handleId, float pitch);
 // Yakumono::getDamage (sora_melee, unnamed)
 extern "C" void fn_27_26399C(Yakumono* yakumono);
 
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct grKartHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
 // The base ground of the stage.
 class grKart : public grYakumono {
 protected:

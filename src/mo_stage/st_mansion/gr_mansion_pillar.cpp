@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_CLTARGET_4_FIRST // the clTarget constructor writes the second member first in this REL
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
@@ -18,21 +19,6 @@
 
 #include <st_mansion/gr_mansion_pillar.h>
 #include <st_mansion/gr_mansion_util.h>
-
-// MATCH-ONLY: the copy of a hit sphere to its simple form (word by word, as the original does it)
-static inline void mansionCopyHit(soCollisionHitData::Simple* dst, soCollisionHitData* src) {
-    u32* srcWords = reinterpret_cast<u32*>(src);
-    u32* dstWords = reinterpret_cast<u32*>(dst);
-    for (int w = 0; w < 6; w += 3) {
-        u32 w1 = srcWords[w + 1];
-        u32 w0 = srcWords[w];
-        dstWords[w] = w0;
-        dstWords[w + 1] = w1;
-        dstWords[w + 2] = srcWords[w + 2];
-    }
-    dst->m_size = src->m_size;
-    reinterpret_cast<u8*>(dst)[0x1C] = reinterpret_cast<u8*>(src)[0x1C];
-}
 
 grMansionPillar* grMansionPillar::create(int modelIndex, const char* nodeName, const char* taskName) {
     grMansionPillar* ground = new (Heaps::StageInstance) grMansionPillar(taskName);
@@ -285,9 +271,8 @@ void grMansionPillar::setHit() {
     unk194->m_endOffsetPos.m_y = 32.5f;
     unk194->m_endOffsetPos.m_z = -unk164->m_z;
     unk194->m_size = 5.0f;
-    // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-    reinterpret_cast<grMansionHitByte*>(unk194)->m_shape = 1;
-    mansionCopyHit(unk198, unk194);
+    unk194->m_shapeType = soCollision::Shape_Capsule;
+    *unk198 = *unk194;
     unk198->m_height = soCollisionHitData::Height_Low;
     unk198->m_nodeIndex = m_nodeIndex;
     soSet<soCollisionHitData::Simple>* set = unk19C;

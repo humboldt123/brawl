@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define YK_DATA_INLINE_CTOR // the ykData / ykDataGroup constructors are inline in this REL
 #define YK_CLTARGET_4_FIRST // the clTarget constructor writes the second member first in this REL
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
@@ -20,13 +21,6 @@
 extern "C" void fn_27_263464(Yakumono* yakumono);
 extern "C" void fn_27_263750(Yakumono* yakumono);
 extern "C" void fn_27_26399C(Yakumono* yakumono);
-
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct dxgreensHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
 
 // MATCH-ONLY: a flag of the Yakumono the gimmick switches on after creating it
 struct dxgreensYakumonoFlags {
@@ -236,21 +230,9 @@ void grDxGreensBlockPos::setHit() {
             hit->m_endOffsetPos.m_y = 3.75f;
             hit->m_endOffsetPos.m_z = 0.0f;
             hit->m_size = 6.0f;
-            // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-            reinterpret_cast<dxgreensHitByte*>(hit)->m_shape = 1;
+            hit->m_shapeType = soCollision::Shape_Capsule;
             soCollisionHitData::Simple* simple = &m_hitSimple[idx];
-            // MATCH-ONLY: the positions are copied word by word
-            u32* srcWords = reinterpret_cast<u32*>(hit);
-            u32* dstWords = reinterpret_cast<u32*>(simple);
-            for (int w = 0; w < 6; w += 3) {
-                u32 w0 = srcWords[w];
-                u32 w1 = srcWords[w + 1];
-                dstWords[w] = w0;
-                dstWords[w + 1] = w1;
-                dstWords[w + 2] = srcWords[w + 2];
-            }
-            simple->m_size = hit->m_size;
-            reinterpret_cast<u8*>(simple)[0x1c] = reinterpret_cast<u8*>(hit)[0x1c];
+            *simple = *hit;
             simple->m_height = soCollisionHitData::Height_Low;
             simple->m_nodeIndex = m_node[column * 5 + row];
             soSet<soCollisionHitData::Simple>* set = m_simpleSets + idx;

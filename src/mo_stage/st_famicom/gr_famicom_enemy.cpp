@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
 #define YK_DATA_INLINE_CTOR // the ykData / ykDataGroup constructors are inline in this REL
@@ -25,28 +26,6 @@
 // HYPOTHESIS: BaseItem members of sora_melee that have no names yet
 extern "C" BaseItem* fn_27_2A8A00(itManager* manager, int index); // itManager::getSafeItemFromIndex
 extern "C" Stage* lbl_27_bss_5668;
-
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct grFamicomHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
-// MATCH-ONLY: the copy of a hit sphere to its simple form (word by word, as the original does it)
-static inline void famicomCopyHit(soCollisionHitData::Simple* dst, soCollisionHitData* src) {
-    u32* srcWords = reinterpret_cast<u32*>(src);
-    u32* dstWords = reinterpret_cast<u32*>(dst);
-    for (int w = 0; w < 6; w += 3) {
-        u32 w1 = srcWords[w + 1];
-        u32 w0 = srcWords[w];
-        dstWords[w] = w0;
-        dstWords[w + 1] = w1;
-        dstWords[w + 2] = srcWords[w + 2];
-    }
-    dst->m_size = src->m_size;
-    reinterpret_cast<u8*>(dst)[0x1C] = reinterpret_cast<u8*>(src)[0x1C];
-}
 
 // MATCH-ONLY: views of parts of the item and of the item manager that the enemy reads (nothing names them: the holder
 // of the item (at 0x1a4 / 0x14) tells how the item is carried, 2 means it is held by a fighter; the list of the manager
@@ -754,9 +733,8 @@ void grFamicomEnemy::setHit() {
     m_hitData->m_endOffsetPos.m_y = 0.0f;
     m_hitData->m_endOffsetPos.m_z = 0.0f;
     m_hitData->m_size = 9.2f;
-    // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-    reinterpret_cast<grFamicomHitByte*>(m_hitData)->m_shape = 1;
-    famicomCopyHit(m_hitSimple, m_hitData);
+    m_hitData->m_shapeType = soCollision::Shape_Capsule;
+    *m_hitSimple = *m_hitData;
     m_hitSimple->m_height = soCollisionHitData::Height_Low;
     m_hitSimple->m_nodeIndex = 0;
     soSet<soCollisionHitData::Simple>* set = m_hitSet;

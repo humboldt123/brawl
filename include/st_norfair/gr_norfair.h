@@ -21,13 +21,6 @@
 // Yakumono::getDamage (sora_melee, unnamed)
 extern "C" void fn_27_26399C(Yakumono* yakumono);
 
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct grNorfairHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
 // The base ground of the stage. The grounds that move have the state (the step of their sequence), a timer and the number
 // of the event of the stage.
 class grNorfair : public grYakumono {

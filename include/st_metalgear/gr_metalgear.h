@@ -22,13 +22,6 @@ extern "C" void fn_27_26399C(Yakumono* yakumono);
 // sora_melee, unnamed: plays a sound effect of the stage, with a position on the screen (-1 left, 1 right)
 extern "C" void fn_27_224DB8(int sndId, float pan);
 
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct grMetalgearHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
 // The base ground of the stage. It has only the state and the timer that most of the grounds use.
 class grMetalgear : public grYakumono {
 protected:

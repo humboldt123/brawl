@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
 #define YK_CLTARGET_4_FIRST // the clTarget constructor writes the second member first in this REL
@@ -362,9 +363,8 @@ void grEarthOniyon::setHit() {
     m_hitData->m_endOffsetPos.m_y = 0.0f;
     m_hitData->m_endOffsetPos.m_z = 0.0f;
     m_hitData->m_size = 6.0f;
-    // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-    reinterpret_cast<grEarthHitByte*>(m_hitData)->m_shape = 0;
-    grEarthCopyHit(m_hitSimple, m_hitData);
+    m_hitData->m_shapeType = soCollision::Shape_Sphere;
+    *m_hitSimple = *m_hitData;
     m_hitSimple->m_height = soCollisionHitData::Height_Low;
     m_hitSimple->m_nodeIndex = 3;
 

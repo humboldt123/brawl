@@ -4,14 +4,10 @@
 #include <so/so_array.h>
 #include <types.h>
 
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct grJungleHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
-// MATCH-ONLY: the copy of a hit sphere to its simple form (word by word, as the original does it)
+// MATCH-ONLY: the copy of a hit sphere to its simple form word by word. The real form is `*simple = *hit` (the implicit
+// soCollisionHitSphere assignment, see so/collision/templates/so_collision_hit_part.h), which needs the aggregate Vec3f
+// copy (MT_VEC3F_IMPLICIT_ASSIGN), but the other Vec3f assignments of the units that use this helper (ashiba02, 03, 08)
+// are float-wise.
 static inline void grJungleCopyHit(soCollisionHitData::Simple* dst, soCollisionHitData* src) {
     u32* srcWords = reinterpret_cast<u32*>(src);
     u32* dstWords = reinterpret_cast<u32*>(dst);

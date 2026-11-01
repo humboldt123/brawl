@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
 #define YK_DATA_INLINE_CTOR // the ykData / ykDataGroup constructors are inline in this REL
@@ -237,9 +238,8 @@ void grEarthPelletFlower::setHit() {
     m_hitData[0].m_endOffsetPos.m_y = 22.0f;
     m_hitData[0].m_endOffsetPos.m_z = 10.0f;
     m_hitData[0].m_size = 2.0f;
-    // MATCH-ONLY: the shape type is the top bit of the byte at 0x1c (it is the whole byte of the simple form)
-    reinterpret_cast<grEarthHitByte*>(&m_hitData[0])->m_shape = 1;
-    grEarthCopyHit(&m_hitSimple[0], &m_hitData[0]);
+    m_hitData[0].m_shapeType = soCollision::Shape_Capsule;
+    m_hitSimple[0] = m_hitData[0];
     m_hitSimple[0].m_height = soCollisionHitData::Height_Low;
     m_hitSimple[0].m_nodeIndex = 0;
     m_hitData[1].m_startOffsetPos.m_x = 0.0f;
@@ -249,8 +249,8 @@ void grEarthPelletFlower::setHit() {
     m_hitData[1].m_endOffsetPos.m_y = 0.0f;
     m_hitData[1].m_endOffsetPos.m_z = 0.0f;
     m_hitData[1].m_size = 6.0f;
-    reinterpret_cast<grEarthHitByte*>(&m_hitData[1])->m_shape = 0;
-    grEarthCopyHit(&m_hitSimple[1], &m_hitData[1]);
+    m_hitData[1].m_shapeType = soCollision::Shape_Sphere;
+    m_hitSimple[1] = m_hitData[1];
     m_hitSimple[1].m_height = soCollisionHitData::Height_Low;
     m_hitSimple[1].m_nodeIndex = 0;
 

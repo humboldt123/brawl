@@ -37,13 +37,6 @@ extern "C" void fn_8001AA88(GXTexObj* texObj, nw4r::g3d::ResTex* tex);
 extern "C" void Destroy__Q34nw4r3g3d6G3dObjFv(void* obj);
 extern "C" void fn_801F2C58(GXTexObj* texObj, int wrapS, int wrapT);
 
-// MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
-struct mariopastHitByte {
-    u8 _pad[0x1c];
-    unsigned char m_shape : 1;
-    unsigned char m_rest : 7;
-};
-
 // MATCH-ONLY: the flags of a joint (bytes 0x54 and 0x55 are bit fields in the header, shown here as plain bytes)
 struct mariopastJointView {
     u8 _pad[0x54];
@@ -247,7 +240,7 @@ void grMarioPastBlockPosLite::initYaku() {
                     simple->m_endOffsetPos = b->m_posOrg;
                     simple->m_startOffsetPos = simple->m_endOffsetPos;
                     simple->m_size = 5.0f;
-                    reinterpret_cast<mariopastHitByte*>(simple)->m_shape = 1;
+                    simple->m_shapeType = soCollision::Shape_Capsule;
                     simple->m_height = soCollisionHitData::Height_Low;
                     simple->m_nodeIndex = 0;
                     simple++;
