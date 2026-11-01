@@ -28,15 +28,6 @@ extern "C" int enumIncludeEntryId__9ftManagerCFi(ftManager* manager, Rect2D* rec
 // gmCheckGlobalItemSwitch (main, unnamed)
 extern "C" bool fn_8005136C(int itemKind);
 
-// MATCH-ONLY: the start of the settings of the match (the game mode is in the top six bits of the first byte, the byte
-// at 0xE says whether items are on)
-struct stIceMeleeView {
-    u8 m_gameMode : 6;
-    u8 _unused : 2;
-    u8 _pad[0xD];
-    u8 m_itemsOn;
-};
-
 // HYPOTHESIS: two small constant objects (an 0xFF marker with an index) that the unit's headers instantiate.
 struct stIceMarker {
     int m_a;
@@ -827,7 +818,7 @@ void stIce::updateYasai(float deltaFrame) {
     u8 state = m_yasaiState;
     if (state != 2) {
         if (state < 2) {
-            stIceMeleeView* melee = reinterpret_cast<stIceMeleeView*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 8);
+            gmMeleeInitData* melee = &g_GameGlobal->m_modeMelee->m_meleeInitData;
             if (state == 0) {
                 if (g_GameGlobal->m_modeMelee != NULL) {
                     if (melee->m_gameMode == 4) {
@@ -843,7 +834,9 @@ void stIce::updateYasai(float deltaFrame) {
                     }
                 }
             } else if (m_yasaiTimer == 0.0f && g_GameGlobal->m_modeMelee != NULL) {
-                if (melee->m_itemsOn == 0 || !fn_8005136C(Item_Stage_Yasai)) {
+                // BYTES: this unit reads the item frequency unsigned (lbz without extsb); the village, crayon and Mario Bros. units read
+                // it signed, so the stages disagree on its signedness and the cast keeps this unit's load.
+                if ((u8)melee->m_itemFrequency == 0 || !fn_8005136C(Item_Stage_Yasai)) {
                     m_yasaiState = 3;
                 } else {
                     u8 count = getItemPosCount();

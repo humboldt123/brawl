@@ -47,5 +47,7 @@ struct hkCollisionAgent : hkReferencedObject {
 struct hkContactMgr : hkReferencedObject {
     virtual void unk10(); // 0x10 HYPOTHESIS
     virtual void unk14(); // 0x14 HYPOTHESIS
-    virtual void unk18(); // 0x18 HYPOTHESIS: called by hkSphereSphereAgent::cleanup on the 0x08 object
+    // 0x18 HYPOTHESIS: Havok's hkContactMgr::removeContactPoint(hkContactPointId), the id being 16 bits; the agents' cleanup
+    // calls it once for every contact point they still hold (key != 0xFFFF).
+    virtual void removeContactPoint(u16 contactPointId);
 };

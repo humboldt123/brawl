@@ -144,16 +144,9 @@ void stBattleField::update(float deltaFrame) {
     }
 }
 
-// BYTES: the original reads the game mode of gmMeleeInitData with a byte load (an unsigned u8 bitfield); reading the
-// typed gmMeleeInitData::m_gameMode instead was compiled and changes getFighterStartPos (97.9%).
-struct stBattleModeByte {
-    u8 m_mode : 6;
-    u8 : 2;
-};
-
 // In 100-Man Brawl the fighters and enemies start from the nodes of the "KumiteNode" model.
 void stBattleField::getFighterStartPos(Vec3f* startPos, int fighterIndex) {
-    u32 mode = ((stBattleModeByte*)((u8*)g_GameGlobal->m_modeMelee + 8))->m_mode;
+    u32 mode = g_GameGlobal->m_modeMelee->m_meleeInitData.m_gameMode;
     if (mode == Game_Mode_Kumite || mode == Game_Mode_Net_Kumite) {
         if ((u32)fighterIndex >= 20) {
             *startPos = m_enemyStartPos[(u32)(fighterIndex - 20) % 5];

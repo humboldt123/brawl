@@ -61,10 +61,10 @@ grPlanktonAshiba::grPlanktonAshiba(const char* taskName) : grPlankton(taskName) 
     if (g_GameGlobal->m_modeMelee == NULL) {
         return;
     }
-    if (planktonMeleeBytes()->m_mode != 7) {
+    if (planktonMeleeInitData()->m_gameMode != 7) {
         return;
     }
-    if (planktonMeleeBytes()->m_event == 0x24) {
+    if (planktonMeleeInitData()->m_event == 0x24) {
         m_event = 1;
     }
 }
@@ -256,7 +256,7 @@ void grPlanktonAshiba::updateColor(float deltaFrame) {
                             float time = data->unk04;
                             m_colorTimer = time;
                             if (m_event == 1 && g_GameGlobal->m_modeMelee != NULL) {
-                                switch (planktonMeleeBytes()->m_rule) {
+                                switch (planktonMeleeInitData()->m_level) {
                                 case 0:
                                     m_colorTimer = time * data->unk70;
                                     break;
@@ -345,7 +345,7 @@ void grPlanktonAshiba::updateHanenbou(float deltaFrame) {
                 if (g_GameGlobal->m_modeMelee == NULL) {
                     return;
                 }
-                switch (planktonMeleeBytes()->m_rule) {
+                switch (planktonMeleeInitData()->m_level) {
                 case 0:
                     m_colorTimer = time * data->unk70;
                     break;
@@ -472,7 +472,7 @@ void grPlanktonAshiba::onDamage(int index, soDamage* damage, soDamageAttackerInf
             float time = data->unk04;
             m_colorTimer = time;
             if (m_event == 1 && g_GameGlobal->m_modeMelee != NULL) {
-                switch (planktonMeleeBytes()->m_rule) {
+                switch (planktonMeleeInitData()->m_level) {
                 case 0:
                     m_colorTimer = time * data->unk70;
                     break;

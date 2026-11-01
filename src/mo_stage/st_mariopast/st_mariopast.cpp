@@ -47,25 +47,6 @@ static inline u8* mpNodeParent(nw4r::g3d::ResNode& node) {
 
 stClassInfoImpl<Stages::MarioPast, stMarioPast> stMarioPast::bss_loc_14;
 
-// MATCH-ONLY: the bytes of the match settings the stage reads (their names are unknown): byte 0 holds the game mode in its
-// upper six bits, byte 6 the setting that picks the speed of the lifts in its upper three bits and byte 8 the event.
-static inline u8* mpMeleeBytes() {
-    return reinterpret_cast<u8*>(&g_GameGlobal->m_modeMelee->m_meleeInitData);
-}
-
-// MATCH-ONLY: the game mode is the first six bits of byte 0 (read as an unsigned bitfield)
-struct mpMeleeMode {
-    unsigned char mode : 6;
-    unsigned char rest : 2;
-};
-
-// MATCH-ONLY: the setting that picks the speed of the lifts is the upper three bits of the byte 6
-struct mpMeleeLevel {
-    u8 _pad[6];
-    unsigned char level : 3;
-    unsigned char rest : 5;
-};
-
 // MATCH-ONLY: the first word of the AI camera controller after its base holds flags of which only the top byte is used here.
 static inline u32* mpCameraFlags() {
     return reinterpret_cast<u32*>(reinterpret_cast<u8*>(g_cmAIController) + 8);
@@ -130,7 +111,7 @@ bool stMarioPast::loading() {
 void stMarioPast::createObj() {
     testStageDataInit(m_fileData, 0x14, 0x28);
     if (g_GameGlobal->m_modeMelee != NULL) {
-        switch (mpMeleeBytes()[0x14]) {
+        switch (g_GameGlobal->m_modeMelee->m_meleeInitData.m_subStageKind) {
         case 0:
             m_stage = 0;
             break;
@@ -174,7 +155,7 @@ void stMarioPast::createObj() {
         }
         loadStageAttrParam(m_fileData, 0x1E);
         registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), 0);
-        if (g_GameGlobal->m_modeMelee != NULL && reinterpret_cast<mpMeleeMode*>(mpMeleeBytes())->mode == 7 && mpMeleeBytes()[8] == 8) {
+        if (g_GameGlobal->m_modeMelee != NULL && g_GameGlobal->m_modeMelee->m_meleeInitData.m_gameMode == 7 && g_GameGlobal->m_modeMelee->m_meleeInitData.m_event == 8) {
             m_event = 1;
         }
     }
@@ -319,10 +300,10 @@ void stMarioPast::updateLift(float deltaFrame) {
             if (g_GameGlobal->m_modeMelee == NULL) {
                 return;
             }
-            if (reinterpret_cast<mpMeleeMode*>(mpMeleeBytes())->mode != 7) {
+            if (g_GameGlobal->m_modeMelee->m_meleeInitData.m_gameMode != 7) {
                 return;
             }
-            switch (reinterpret_cast<mpMeleeLevel*>(mpMeleeBytes())->level) {
+            switch (g_GameGlobal->m_modeMelee->m_meleeInitData.m_level) {
             case 0:
                 m_liftSpeed = data[7];
                 break;

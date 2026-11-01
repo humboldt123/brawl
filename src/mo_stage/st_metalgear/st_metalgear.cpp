@@ -34,14 +34,6 @@ public:
     virtual float getDamage();
 };
 
-// MATCH-ONLY: the first bytes of the match settings (the game rule is a bit field of three bits)
-struct metalgearMeleeView {
-    u8 m_gameMode : 6;
-    u8 _unused0 : 2;
-    u8 m_gameRule : 3;
-    u8 _unused1 : 5;
-};
-
 // MATCH-ONLY: two bytes of the result record of a player (HYPOTHESIS: the stage reads them at the offsets, the layout of
 // gmPlayerResultInfo has no names for them)
 struct stMetalgearResultView {
@@ -193,11 +185,11 @@ void stMetalgear::createObj() {
     createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, NULL);
     m_appearTask = IfSnakeSmashAppearTask::create(m_fileData);
     gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
-    if (melee != NULL && reinterpret_cast<metalgearMeleeView*>(&melee->m_meleeInitData)->m_gameMode == 7) {
-        if (reinterpret_cast<u8*>(&melee->m_meleeInitData)[8] == 0x2D) {
+    if (melee != NULL && melee->m_meleeInitData.m_gameMode == 7) {
+        if (melee->m_meleeInitData.m_event == 0x2D) {
             m_eventA = 1;
         }
-        if (reinterpret_cast<u8*>(&melee->m_meleeInitData)[8] == 0xAD) {
+        if (melee->m_meleeInitData.m_event == 0xAD) {
             m_eventB = 1;
         }
     }
@@ -754,7 +746,7 @@ bool stMetalgear::isMetalgear() {
     if (melee == NULL) {
         return false;
     }
-    switch (reinterpret_cast<metalgearMeleeView*>(&melee->m_meleeInitData)->m_gameRule) {
+    switch (melee->m_meleeInitData.m_gameRule) {
     case 1: {
         gmResultInfo* resultInfo = g_GameGlobal->m_resultInfo;
         if (resultInfo == NULL) {

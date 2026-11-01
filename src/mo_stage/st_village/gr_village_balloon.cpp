@@ -126,12 +126,6 @@ void grVillageBalloon::updateYakumono(float deltaFrame) {
     }
 }
 
-// MATCH-ONLY: the original reads the item frequency of gmMeleeInitData with a signed byte load
-struct grVillageMeleeInitView {
-    char _0[0xE];
-    s8 m_itemFrequency;
-};
-
 // The balloon starts at the beginning of its path, waits, then flies (the motions 0 - 2 are the ways it can wave; 3 is the pop).
 void grVillageBalloon::updateMove(float deltaFrame) {
     stVillageData* data = static_cast<stVillageData*>(getStageData());
@@ -200,7 +194,7 @@ void grVillageBalloon::updateMove(float deltaFrame) {
                 m_balloonMotion = motion;
                 enableHit(0, 0);
                 if (g_GameGlobal->m_modeMelee != NULL) {
-                    if (reinterpret_cast<grVillageMeleeInitView*>(&g_GameGlobal->m_modeMelee->m_meleeInitData)->m_itemFrequency != 0 && fn_8005136C(0x40) == 1) {
+                    if (g_GameGlobal->m_modeMelee->m_meleeInitData.m_itemFrequency != 0 && fn_8005136C(0x40) == 1) {
                         m_itemMake = 1;
                     }
                     m_state = 4;

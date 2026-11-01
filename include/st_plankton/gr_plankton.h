@@ -27,20 +27,8 @@ extern "C" u32 fn_8005F800(ecMgr* mgr, EfID effectID, Vec3f* pos);
 // Ground::isCollisionStatusOwnerTask (sora_melee): the symbol takes an int pointer (the header declares another type)
 extern "C" bool isCollisionStatusOwnerTask__6GroundFP12grCollStatusPi(Ground* ground, grCollStatus* collStatus, int* flags);
 
-// MATCH-ONLY: the bytes of the match settings the stages read (their names are unknown): byte 0 holds the game mode in its
-// upper six bits, byte 6 the rule in its upper three bits and byte 8 the event.
-struct grPlanktonMeleeBytes {
-    unsigned char m_mode : 6;
-    unsigned char m_rest : 2;
-    u8 _pad[5];
-    unsigned char m_rule : 3;
-    unsigned char m_rest6 : 5;
-    u8 _pad7;
-    u8 m_event;
-};
-
-static inline grPlanktonMeleeBytes* planktonMeleeBytes() {
-    return reinterpret_cast<grPlanktonMeleeBytes*>(&g_GameGlobal->m_modeMelee->m_meleeInitData);
+static inline gmMeleeInitData* planktonMeleeInitData() {
+    return &g_GameGlobal->m_modeMelee->m_meleeInitData;
 }
 
 // MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type

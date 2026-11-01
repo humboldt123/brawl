@@ -102,7 +102,7 @@ void stPalutena::createObj() {
             m_hp[i] = data->m_hp;
         }
     }
-    if (g_GameGlobal->m_modeMelee != NULL && palutenaMeleeBytes()->m_mode == 7 && palutenaMeleeBytes()->m_event == 3) {
+    if (g_GameGlobal->m_modeMelee != NULL && palutenaMeleeInitData()->m_gameMode == 7 && palutenaMeleeInitData()->m_event == 3) {
         m_event = 1;
     }
 }

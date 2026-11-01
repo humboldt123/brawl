@@ -739,8 +739,8 @@ void grEarthChappy::presentPosEvent() {
 
 // An item is made over the chappy when it spits (the items of the stage are on and the chance is right).
 void grEarthChappy::makeItem() {
-    grEarthMeleeView* melee = reinterpret_cast<grEarthMeleeView*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 8);
-    if (g_GameGlobal->m_modeMelee != NULL && melee->m_itemsOn != 0 && fn_8005136C(0x40) != 0) {
+    gmMeleeInitData* melee = &g_GameGlobal->m_modeMelee->m_meleeInitData;
+    if (g_GameGlobal->m_modeMelee != NULL && melee->m_itemFrequency != 0 && fn_8005136C(0x40) != 0) {
         itManager* items = itManager::getInstance();
         if (items != NULL) {
             int variations = items->getItemVariationNum(0x40);
@@ -760,8 +760,8 @@ void grEarthChappy::makeItem() {
 
 // The item that the stage drops comes out of the mouth.
 void grEarthChappy::makeItemInMouth() {
-    grEarthMeleeView* melee = reinterpret_cast<grEarthMeleeView*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 8);
-    if (g_GameGlobal->m_modeMelee != NULL && melee->m_itemsOn != 0) {
+    gmMeleeInitData* melee = &g_GameGlobal->m_modeMelee->m_meleeInitData;
+    if (g_GameGlobal->m_modeMelee != NULL && melee->m_itemFrequency != 0) {
         Vec3f pos;
         getNodePosition(&pos, 0, m_nodeAgo);
         pos.m_x = pos.m_x - 10.0f;

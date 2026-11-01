@@ -32,11 +32,6 @@ struct gmPlayerInitDataFlagView {
     bool m_1c_5 : 1;
 };
 
-// HYPOTHESIS: the game mode read as an unsigned 6-bit field (BrawlHeaders types it as an enum bitfield).
-struct gmMeleeInitDataModeView {
-    u8 m_gameMode : 6;
-};
-
 // HYPOTHESIS: two (value, flag) pairs filled by the static initializer (same shape as other sora_melee units).
 struct stOperatorInfoPair {
     u32 m_0;
@@ -59,7 +54,7 @@ void stOperatorInfo::setLocalPlayerPadMask() {
         return;
     }
     m_cc = 0;
-    u8 mode = reinterpret_cast<gmMeleeInitDataModeView*>(&m_condition->m_meleeInitData)->m_gameMode;
+    u8 mode = m_condition->m_meleeInitData.m_gameMode;
     if (mode != Game_Mode_Melee && mode != Game_Mode_Tournament) {
         for (int i = 0; i < 4; i++) {
             gmPlayerInitData* data = &m_condition->m_playersInitData[i];

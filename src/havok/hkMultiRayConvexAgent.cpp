@@ -59,18 +59,12 @@ hkMultiRayConvexAgent* hkMultiRayConvexAgent::createMultiRayConvexAgent(void* a0
     return agent;
 }
 
-struct hkContactMgrKeyed : hkReferencedObject {
-    virtual void unk10();
-    virtual void unk14();
-    virtual void unk18(u16 key);
-};
-
 void hkMultiRayConvexAgent::cleanup() {
     int count = m_count;
     for (int i = 0; i < count; i++) {
         u16 slot = m_slots[i];
         if (slot != 0xFFFF) {
-            ((hkContactMgrKeyed*)unk8)->unk18(slot);
+            ((hkContactMgr*)unk8)->removeContactPoint(slot);
         }
     }
     delete this;

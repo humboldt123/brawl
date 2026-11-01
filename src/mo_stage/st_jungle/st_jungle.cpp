@@ -18,28 +18,6 @@
 #include <st_jungle/gr_jungle.h>
 #include <st_jungle/st_jungle.h>
 
-// MATCH-ONLY: the bytes of the match settings the stage reads (their names are unknown): byte 0 holds the game mode in its
-// upper six bits, byte 6 the setting that picks the speed in its upper three bits and byte 8 the event.
-static inline u8* jungleMeleeBytes() {
-    return reinterpret_cast<u8*>(&g_GameGlobal->m_modeMelee->m_meleeInitData);
-}
-
-// MATCH-ONLY: the game mode is the upper six bits of byte 0 (read as an unsigned bitfield)
-struct jungleMeleeMode {
-    unsigned char mode : 6;
-    unsigned char rest : 2;
-};
-
-// MATCH-ONLY: the setting that picks the speed is the upper three bits of the byte 6
-struct jungleMeleeSpeed {
-    u8 _pad[6];
-    u8 level : 3;
-    u8 rest : 5;
-};
-static inline u32 jungleMeleeLevel() {
-    return reinterpret_cast<jungleMeleeSpeed*>(jungleMeleeBytes())->level;
-}
-
 // MATCH-ONLY: the first word of the AI camera controller after its base holds flags of which only the top byte is used here.
 static inline u32* jungleCameraFlags() {
     return reinterpret_cast<u32*>(reinterpret_cast<u8*>(g_cmAIController) + 8);
@@ -167,7 +145,7 @@ void stJungle::createObj() {
     createObjPokeTrainer(m_fileData, 0x68, "PokeTrainer03", &m_pokeTrainerPos[6], &m_posGimmick[0]);
     loadStageAttrParam(m_fileData, 100);
     registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), 0);
-    if (g_GameGlobal->m_modeMelee != NULL && reinterpret_cast<jungleMeleeMode*>(jungleMeleeBytes())->mode == 7 && jungleMeleeBytes()[8] == 0x15) {
+    if (g_GameGlobal->m_modeMelee != NULL && g_GameGlobal->m_modeMelee->m_meleeInitData.m_gameMode == 7 && g_GameGlobal->m_modeMelee->m_meleeInitData.m_event == 0x15) {
         m_isEvent = 1;
     }
 }
@@ -1002,7 +980,7 @@ void stJungle::updateSpeed(float deltaFrame) {
             switch (m_stateSpeed) {
             case 0:
                 if (g_GameGlobal->m_modeMelee != NULL) {
-                    switch (jungleMeleeLevel()) {
+                    switch (g_GameGlobal->m_modeMelee->m_meleeInitData.m_level) {
                     case 0:
                         m_speed = data->unk64;
                         break;

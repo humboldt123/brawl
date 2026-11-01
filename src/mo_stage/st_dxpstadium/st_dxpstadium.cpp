@@ -27,11 +27,6 @@
 
 stClassInfoImpl<Stages::DxPStadium, stDxPStadium> stDxPStadium::bss_loc_14;
 
-// HYPOTHESIS: bit 0 of the byte at +0xF of the melee init data is set while the big screen shows Jigglypuff.
-struct stDxPStadiumMeleeFlags {
-    u8 pad : 7;
-    u8 jigglypuff : 1;
-};
 // MATCH-ONLY: the original reads the first two bytes of a player's init data (character kind, state) as bytes.
 struct stDxPStadiumPlayerBytes {
     u8 kind;
@@ -137,7 +132,7 @@ stDxPStadium::~stDxPStadium() {
     }
     releaseArchive();
     // HYPOTHESIS: the flag marks that the big screen shows Jigglypuff (see startPlayerVision)
-    reinterpret_cast<stDxPStadiumMeleeFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0xF)->jigglypuff = 0;
+    g_GameGlobal->m_modeMelee->m_meleeInitData.m_isAmplifySongAttack = false;
 }
 
 bool stDxPStadium::loading() {
@@ -838,11 +833,12 @@ void stDxPStadium::startPlayerVision() {
     m_visionPlayer = players[index];
     m_visionNext = index + 1;
     stDxPStadiumPlayerBytes* player = reinterpret_cast<stDxPStadiumPlayerBytes*>(&g_GameGlobal->m_modeMelee->m_playersInitData[m_visionPlayer]);
-    stDxPStadiumMeleeFlags* flags = reinterpret_cast<stDxPStadiumMeleeFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0xF);
+    // The flag is set while the big screen shows a Jigglypuff that is in the match.
+    gmMeleeInitData* flags = &g_GameGlobal->m_modeMelee->m_meleeInitData;
     if (player->kind == Character_Jigglypuff && player->state == 3) {
-        flags->jigglypuff = 1;
+        flags->m_isAmplifySongAttack = true;
     } else {
-        flags->jigglypuff = 0;
+        flags->m_isAmplifySongAttack = false;
     }
 }
 

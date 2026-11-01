@@ -82,10 +82,10 @@ grPalutenaAshiba::grPalutenaAshiba(const char* taskName) : grPalutena(taskName) 
     if (g_GameGlobal->m_modeMelee == NULL) {
         return;
     }
-    if (palutenaMeleeBytes()->m_mode != 7) {
+    if (palutenaMeleeInitData()->m_gameMode != 7) {
         return;
     }
-    if (palutenaMeleeBytes()->m_event == 3) {
+    if (palutenaMeleeInitData()->m_event == 3) {
         m_event = 1;
     }
 }

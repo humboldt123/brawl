@@ -58,11 +58,6 @@ struct mariopastLineView {
     u8 m_flags;
 };
 
-// MATCH-ONLY: the zone byte and the layout of the stage's melee settings
-static inline u8* mpItemFrequencyByte() {
-    return reinterpret_cast<u8*>(&g_GameGlobal->m_modeMelee->m_meleeInitData) + 0xE;
-}
-
 grMarioPastBlockPosLite::grMarioPastBlockPosLite(const char* taskName) : grYakumono(taskName), m_mtx(true) {
     m_scnProc = NULL;
     m_stage = 0;
@@ -486,7 +481,7 @@ void grMarioPastBlockPosLite::makeItem(stMarioPastBlockDt* block) {
     if (g_GameGlobal->m_modeMelee == NULL) {
         return;
     }
-    if (static_cast<s8>(*mpItemFrequencyByte()) == 0) {
+    if (g_GameGlobal->m_modeMelee->m_meleeInitData.m_itemFrequency == 0) {
         return;
     }
     Vec3f pos;

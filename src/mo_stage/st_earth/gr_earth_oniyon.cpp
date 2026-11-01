@@ -394,8 +394,8 @@ void grEarthOniyon::setHit() {
 // The oniyon makes the item over the leaf: the item of the kind of the stage, from a lot (the item kind of the oniyon says
 // which lot).
 void grEarthOniyon::makeItem() {
-    grEarthMeleeView* melee = reinterpret_cast<grEarthMeleeView*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 8);
-    if (g_GameGlobal->m_modeMelee != NULL && melee->m_itemsOn != 0) {
+    gmMeleeInitData* melee = &g_GameGlobal->m_modeMelee->m_meleeInitData;
+    if (g_GameGlobal->m_modeMelee != NULL && melee->m_itemFrequency != 0) {
         itManager* items = itManager::getInstance();
         if (items != NULL) {
             Vec3f pos;

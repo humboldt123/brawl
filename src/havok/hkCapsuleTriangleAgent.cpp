@@ -28,14 +28,6 @@ extern "C" void fn_80325334(void* src, void* dst);
 extern "C" void fn_802AE4F8();
 extern "C" void fn_802B7FD0();
 
-// MATCH-ONLY: the release slot (0x18 of the contact manager) takes the 16-bit slot value as its argument.
-// hkContactMgr in hkCollisionAgent.h declares unk18() without one, so this local view declares it with the key.
-struct hkContactMgrKeyed : hkReferencedObject {
-    virtual void unk10();
-    virtual void unk14();
-    virtual void unk18(u16 key);
-};
-
 hkCapsuleTriangleAgent::hkCapsuleTriangleAgent(hkContactMgr* contactMgr, void* src) : hkCollisionAgent((int)contactMgr) {
     unkC[0] = 0xFFFF;
     unkC[1] = 0xFFFF;
@@ -77,7 +69,7 @@ void hkCapsuleTriangleAgent::cleanup() {
     for (int i = 0; i < 3; i++) {
         u16 key = unkC[i];
         if (key != 0xFFFF) {
-            ((hkContactMgrKeyed*)unk8)->unk18(key);
+            ((hkContactMgr*)unk8)->removeContactPoint(key);
         }
     }
     delete this;

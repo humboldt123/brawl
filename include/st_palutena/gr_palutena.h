@@ -28,15 +28,6 @@ struct grPalutenaHitByte {
     unsigned char m_rest : 7;
 };
 
-// MATCH-ONLY: the bytes of the match settings the stages read (their names are unknown): byte 0 holds the game mode in its
-// upper six bits and byte 8 the event.
-struct grPalutenaMeleeBytes {
-    unsigned char m_mode : 6;
-    unsigned char m_rest : 2;
-    u8 _pad[7];
-    u8 m_event;
-};
-
 // The grounds make their own model animation (the file comes from the stage) instead of the shared ones: it is built word by
 // word and freed by the ground. HYPOTHESIS: layout of gfModelAnimation as in gf/gf_model.h (the first byte after the
 // resource tells that the animation owns the resource).
@@ -91,8 +82,8 @@ static inline void grPalutenaFreeModelAnim(gfModelAnimation* anim) {
     }
 }
 
-static inline grPalutenaMeleeBytes* palutenaMeleeBytes() {
-    return reinterpret_cast<grPalutenaMeleeBytes*>(&g_GameGlobal->m_modeMelee->m_meleeInitData);
+static inline gmMeleeInitData* palutenaMeleeInitData() {
+    return &g_GameGlobal->m_modeMelee->m_meleeInitData;
 }
 
 // The base ground of the stage.
@@ -147,7 +138,6 @@ protected:
     ykData* m_data;                             // 0x1C4
     snd3DGenerator m_snd;                       // 0x1C8
     u8 m_event;                                 // 0x1D0 1 = the stage is run by the event mode
-
 
 public:
     grPalutenaAshiba(const char* taskName);

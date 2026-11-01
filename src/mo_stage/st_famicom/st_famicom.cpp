@@ -24,13 +24,6 @@ extern "C" void fn_27_233898(stTrigger* trigger, stFamicomPressureData* data);
 // stTrigger::setPressureParam (sora_melee, unnamed)
 extern "C" void fn_27_233BE4(stTrigger* trigger, stFamicomPressureData* data);
 
-// MATCH-ONLY: the first word of the AI camera controller after its vtable pointer: the original sets its top byte (a flag that
-// is set while the stage is played) with one read-modify-write of the word.
-struct famicomCameraFlag {
-    u32 m_flag : 8;
-    u32 _unused : 24;
-};
-
 stClassInfoImpl<Stages::Famicom, stFamicom> stFamicom::bss_loc_14;
 
 stFamicom* stFamicom::create() {
@@ -106,13 +99,13 @@ stFamicom::stFamicom() : stMelee("stFamicom", Stages::Famicom) {
     memset(m_landingFlg, 0, sizeof(m_landingFlg));
     m_stateArea = 0xD;
     if (g_cmAIController != NULL) {
-        reinterpret_cast<famicomCameraFlag*>(reinterpret_cast<u8*>(g_cmAIController) + 8)->m_flag = 1;
+        g_cmAIController->unk8 = 1;
     }
 }
 
 stFamicom::~stFamicom() {
     if (g_cmAIController != NULL) {
-        reinterpret_cast<famicomCameraFlag*>(reinterpret_cast<u8*>(g_cmAIController) + 8)->m_flag = 0;
+        g_cmAIController->unk8 = 0;
     }
     if (m_pressureYuka[0] != NULL) {
         delete m_pressureYuka[0];

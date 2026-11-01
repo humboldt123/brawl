@@ -11,20 +11,8 @@
 // Yakumono::getDamage (sora_melee, unnamed)
 extern "C" void fn_27_26399C(Yakumono* yakumono);
 
-// MATCH-ONLY: the bytes of the match settings the stages read (their names are unknown): byte 0 holds the game mode in its
-// upper six bits, byte 6 the rule in its upper three bits and byte 8 the event.
-struct grMansionMeleeBytes {
-    unsigned char m_mode : 6;
-    unsigned char m_rest : 2;
-    u8 _pad[5];
-    unsigned char m_rule : 3;
-    unsigned char m_rest6 : 5;
-    u8 _pad7;
-    u8 m_event;
-};
-
-static inline grMansionMeleeBytes* mansionMeleeBytes() {
-    return reinterpret_cast<grMansionMeleeBytes*>(&g_GameGlobal->m_modeMelee->m_meleeInitData);
+static inline gmMeleeInitData* mansionMeleeInitData() {
+    return &g_GameGlobal->m_modeMelee->m_meleeInitData;
 }
 
 // The event of the event mode that runs on this stage ("Luigi's Mansion: break the pillars").

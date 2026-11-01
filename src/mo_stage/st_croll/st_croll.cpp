@@ -2072,7 +2072,7 @@ void stCharacterRoll::setSkipMode(bool isSkip) {
 void stCharacterRoll::setSceneCamera() {
     gfCameraManager* manager = gfCameraManager::getManager();
     u8* cam = reinterpret_cast<u8*>(manager);
-    *(reinterpret_cast<u8*>(g_cmAIController) + 0x94) &= ~0x10;
+    g_cmAIController->unk94_10 = false;
     if (manager != NULL) {
         if (m_anmCamera.IsValid()) {
             nw4r::g3d::CameraAnmResult result;
@@ -2305,7 +2305,7 @@ void stCharacterRoll::createObj() {
     nw4r::g3d::ResFileData* sceneData =
         static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, (menu[0x28] >> 7) == 0, 0xFFFE));
     registScnAnim(sceneData, 0);
-    *(reinterpret_cast<u8*>(g_cmAIController) + 0x94) &= ~0x10;
+    g_cmAIController->unk94_10 = false;
     nw4r::g3d::ResFile sceneFile(sceneData);
     nw4r::g3d::ResAnmScn anmScn = sceneFile.GetResAnmScn(0);
     if (HasResAnmCamera__Q34nw4r3g3d9ResAnmScnCFv(&anmScn)) {
