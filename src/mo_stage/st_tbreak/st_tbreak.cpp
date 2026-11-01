@@ -631,8 +631,7 @@ void grGimmickTargetBreakSpring::setMotionOff() {
     changeNodeAnim(0, 0);
     changeShapeAnim(0, 0);
     g_sndSystem->playSE(snd_se_Target_Spring, -1, 0, 0, -1);
-    // MATCH-ONLY: the original stores the state with a plain byte store instead of a bitfield insert.
-    reinterpret_cast<u8*>(this)[0x158] = State_Off;
+    m_state = State_Off;
     m_animFrame = 0.0f;
 }
 

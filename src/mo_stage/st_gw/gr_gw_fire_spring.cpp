@@ -77,9 +77,8 @@ void grGWFireSpring::updateYakumono(float deltaFrame) {
     } else {
         m_springData = static_cast<grGimmickSpringData*>(getGimmickData());
         memset(&m_ykData, 0, sizeof(m_ykData));
-        // MATCH-ONLY: the shape type and the group of the area are set as two bytes
-        reinterpret_cast<u8*>(&m_areaData)[0] = 0;
-        reinterpret_cast<u8*>(&m_areaData)[1] = gfArea::Stage_Group_Gimmick_Normal;
+        m_areaData.m_shapeType = soAreaInstance::Shape_Rectangle;
+        m_areaData.m_group = gfArea::Stage_Group_Gimmick_Normal;
         m_areaData.m_0x4 = 0;
         m_areaData.m_0x8 = 0;
         m_areaData.m_shapeFlag.m_mask = 1;
@@ -127,23 +126,21 @@ void grGWFireSpring::updateScaleBase(float deltaFrame) {
 // The spring is turned on while its scene plays; when the event of the scene turns on it is folded away (hidden, no area), when
 // it turns off the spring comes back (shown, with its area).
 void grGWFireSpring::updateActive(float deltaFrame) {
-    // MATCH-ONLY: the state is a byte in the original, the header declares it as an 8-bit bitfield
-    u8* state = &reinterpret_cast<u8*>(this)[0x158];
-    switch (*state) {
+    switch (m_state) {
     case 0:
         setVisibility(0);
         m_startFlag = 1;
         m_eventLast = 1;
-        *state = 1;
+        m_state = 1;
         break;
     case 1:
         if (*m_sceneIdWork == m_sceneId) {
-            *state = 2;
+            m_state = 2;
         }
         break;
     case 2:
         if (*m_sceneIdWork != m_sceneId) {
-            *state = 0;
+            m_state = 0;
         } else {
             u8 event = *m_eventWork;
             if (m_eventLast != event) {

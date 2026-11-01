@@ -49,9 +49,8 @@ void grDonkeyLadder::updateYakumono(float deltaFrame) {
         } else {
             m_ladderData = static_cast<grGimmickLadderData*>(getGimmickData());
             if (m_ladderData != NULL) {
-                // MATCH-ONLY: the shape type and the group of the area are set as two bytes
-                reinterpret_cast<u8*>(&m_areaData)[0] = 0;
-                reinterpret_cast<u8*>(&m_areaData)[1] = gfArea::Stage_Group_Gimmick_Ladder;
+                m_areaData.m_shapeType = soAreaInstance::Shape_Rectangle;
+                m_areaData.m_group = gfArea::Stage_Group_Gimmick_Ladder;
                 m_areaData.m_0x4 = 0;
                 m_areaData.m_0x8 = 0;
                 m_areaData.m_shapeFlag.m_mask = 0;

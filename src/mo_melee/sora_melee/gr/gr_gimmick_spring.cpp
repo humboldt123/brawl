@@ -15,9 +15,7 @@ extern f32 lbl_27_rodata_4410;
 
 void grGimmickSpring::update(float deltaFrame) {
     grGimmick::update(deltaFrame);
-    // MATCH-ONLY: the state is read as a byte; the header declares it as an 8-bit enum bit-field, which reads with shifts.
-    u8 state = *reinterpret_cast<u8*>(reinterpret_cast<char*>(this) + 0x158);
-    switch (state) {
+    switch (m_state) {
     case State_On: {
         m_modelAnims[0]->m_anmObjShpRes->SetFrame(m_animFrame);
         // MATCH-ONLY: the lengths convert to float as signed ints.
@@ -41,7 +39,7 @@ void grGimmickSpring::update(float deltaFrame) {
             m_modelAnims[0]->unbindShapeAnim(m_sceneModels[0]);
             // MATCH-ONLY: the reset value is loaded before the state byte is stored.
             f32 rest = lbl_27_rodata_4410;
-            *reinterpret_cast<u8*>(reinterpret_cast<char*>(this) + 0x158) = State_Rest;
+            m_state = State_Rest;
             m_animFrame = rest;
         }
         break;
@@ -61,8 +59,7 @@ void grGimmickSpring::setMotionOff() {
     g_sndSystem->playSE(static_cast<SndID>(0x226E), -1, 0, 0, -1);
     // MATCH-ONLY: the frame constant is loaded before the state store to match the original schedule.
     f32 animFrame = lbl_27_rodata_4410;
-    // MATCH-ONLY: the original stores the state with a plain byte store instead of a bitfield insert.
-    reinterpret_cast<u8*>(this)[0x158] = State_Off;
+    m_state = State_Off;
     m_animFrame = animFrame;
 }
 

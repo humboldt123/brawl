@@ -3,7 +3,9 @@
 #include "revolution/ax.h"
 #include "revolution/os.h"
 
-// MATCH-ONLY: pointer compares against NULL come out as cmpwi in retail, not cmplwi
+// BYTES: integer-0 NULL, so pointer tests against NULL compile as signed cmpwi as in retail. Not header-wide:
+// making revolution/types.h define NULL 0 for C changes no other SDK unit except OSExec and nwc24, whose
+// retail compares are cmplwi ((void*)0), so the NULL spelling differs per original source file.
 #undef NULL
 #define NULL 0
 
