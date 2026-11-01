@@ -154,6 +154,9 @@ public:
                 bool m_assistTrophy : 1;
                 bool m_smashBall : 1;
             } ex;
+            // HYPOTHESIS: the whole switch as one doubleword. gmInitMeleeDataDefault sets it with one 64-bit store
+            // (low word first), gmCheckItemSwitch shifts it by 32, and the records pad it to an 8-byte boundary.
+            u64 m_mask;
         };
     } m_item;
 
@@ -226,42 +229,48 @@ public:
                 bool m_chikorita : 1;
                 bool m_torchic : 1;
             } ex;
+            u32 m_mask; // HYPOTHESIS: the whole switch as one word (gmInitMeleeDataDefault, gmCheckItemSwitch)
         };
     } m_pokemon;
 
     struct AssistSwitch {
-        bool : 1;
-        bool : 1;
-        bool : 1;
-        bool : 1;
-        bool : 1;
-        bool m_drWright : 1;
-        bool m_waluigi : 1;
-        bool m_tingle : 1;
-        bool m_infantryTank : 1;
-        bool m_starfy : 1;
-        bool m_shadow : 1;
-        bool m_saki : 1;
-        bool m_isaac : 1;
-        bool m_mrResetti : 1;
-        bool m_nintendog : 1;
-        bool m_metroid : 1;
-        bool m_littleMac : 1;
-        bool m_lyn : 1;
-        bool m_jillDozer : 1;
-        bool m_katAna : 1;
-        bool m_helirin : 1;
-        bool m_hammerBro : 1;
-        bool m_knuckleJoe : 1;
-        bool m_lakitu : 1;
-        bool m_jeff : 1;
-        bool m_excitebike : 1;
-        bool m_devil : 1;
-        bool m_samuraiGoroh : 1;
-        bool m_rayMKII : 1;
-        bool m_grayFox : 1;
-        bool m_barbara : 1;
-        bool m_andross : 1;
+        union {
+            struct {
+                bool : 1;
+                bool : 1;
+                bool : 1;
+                bool : 1;
+                bool : 1;
+                bool m_drWright : 1;
+                bool m_waluigi : 1;
+                bool m_tingle : 1;
+                bool m_infantryTank : 1;
+                bool m_starfy : 1;
+                bool m_shadow : 1;
+                bool m_saki : 1;
+                bool m_isaac : 1;
+                bool m_mrResetti : 1;
+                bool m_nintendog : 1;
+                bool m_metroid : 1;
+                bool m_littleMac : 1;
+                bool m_lyn : 1;
+                bool m_jillDozer : 1;
+                bool m_katAna : 1;
+                bool m_helirin : 1;
+                bool m_hammerBro : 1;
+                bool m_knuckleJoe : 1;
+                bool m_lakitu : 1;
+                bool m_jeff : 1;
+                bool m_excitebike : 1;
+                bool m_devil : 1;
+                bool m_samuraiGoroh : 1;
+                bool m_rayMKII : 1;
+                bool m_grayFox : 1;
+                bool m_barbara : 1;
+                bool m_andross : 1;
+            };
+            u32 m_mask; // HYPOTHESIS: the whole switch as one word (gmInitMeleeDataDefault, gmCheckItemSwitch)
+        };
     } m_assist;
 };
 static_assert(sizeof(gmItSwitch) == 0x10, "Class is wrong size!");
