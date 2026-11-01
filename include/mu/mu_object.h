@@ -106,7 +106,7 @@ public:
     void getAnimScale(Vec3f* scl, const char* name);
     void setScale(Vec3f* scl);
     void setScale(const char* name, Vec3f* scl);
-    void getScale(Vec3f* scl, const char* name);
+    Vec3f getScale(const char* name);
     void setObjScale(Vec3f* scl);
     Vec3f getObjScale();
 
