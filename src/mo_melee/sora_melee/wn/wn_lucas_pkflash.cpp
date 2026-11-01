@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define FT_MODULE_BUILDER
 #define WN_PARAM_ACCESSER_INLINE_DTOR
 #define SO_NULLABLE_INLINE_CTOR
@@ -52,12 +53,7 @@ void wnLucasPKFlash::activate(int founderTaskId, int team, const Vec3f* pos, flo
     desc.unk14 = -1;
     desc.unk18 = 0;
     desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, pos, sizeof(Vec3f));
-#else
     desc.pos = *pos;
-#endif
     desc.lr = lr;
     desc.team = team;
     desc.life = 0;

@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
 #define WN_SHARED_ARRAYS_1
@@ -37,12 +38,7 @@ void wnLucasPKFire::activate(int founderTaskId, int team, Vec3f* pos, Vec2f* spe
     desc.unkC = desc.unk8 = desc.resourceId = 0xFFFF;
     desc.unk14 = desc.unk10 = -1;
     desc.unk1C = desc.unk18 = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, pos, sizeof(Vec3f));
-#else
     desc.pos = *pos;
-#endif
     desc.lr = lr;
     desc.team = team;
     desc.life = 0;

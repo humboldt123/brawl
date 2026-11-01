@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define FT_SNAKE_ARTICLE_POOLS
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
@@ -32,12 +33,7 @@ void wnSnakeC4::activate(int founderTaskId, int etcResourceId, int team, float l
     desc.unk14 = -1;
     desc.unk18 = 0;
     desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, &position, sizeof(Vec3f));
-#else
     desc.pos = position;
-#endif
     desc.lr = lr;
     desc.team = team;
     desc.life = 0;

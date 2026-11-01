@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #include <types.h>
 #include <ft/pit/ft_pit_article_pools.h>
 #include <st/stage.h>
@@ -22,8 +23,7 @@ void wnPitParthena::activate(int founderTaskId, int resourceId, int team, float 
     desc.unk14 = -1;
     desc.unk18 = 0;
     desc.unk1C = 0;
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, &position, sizeof(Vec3f));
+    desc.pos = position;
     desc.lr = 1.0f;
     desc.team = team;
     desc.life = 0;
