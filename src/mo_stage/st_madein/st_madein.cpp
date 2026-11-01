@@ -96,20 +96,6 @@ stClassInfoImpl<Stages::Madein, stMadein> stMadein::bss_loc_14;
 // MATCH-ONLY: the player that hit a ground last (HitPointInfo::m_lastPlayerHit, +0x38 of the hit point info at +0x160).
 #define MADEIN_HIT_PLAYER(ground) (*reinterpret_cast<int*>(*reinterpret_cast<u8**>(reinterpret_cast<u8*>(ground) + 0x160) + 0x38))
 
-// MATCH-ONLY: the fields of the melee data the stage reads (they sit in a part of the structure the shared header does
-// not name).
-struct stMadeinMeleeView {
-    char _0[9];
-    u8 m_rule : 3;     // 0x9 (top bits): 1 is a match without a time limit
-    u8 _9pad : 5;
-    char _a[0xC];
-    s8 m_unk16;        // 0x16
-    char _17[9];
-    int m_unk20;       // 0x20
-};
-
-// The slot of a player in the melee data (stride 0x5C, the pad the player uses is the byte at +0xD5).
-#define MADEIN_PLAYER_PAD(melee, index) (*(reinterpret_cast<u8*>(melee) + (index) * 0x5C + 0xD5))
 
 // The stage that is played (sora_melee .bss), asked for the frames that are left of the match.
 extern "C" Stage* lbl_27_bss_5668;
@@ -128,8 +114,8 @@ static inline float madeinRand(float range) {
 
 // False while the match is a timed one with less than ten seconds left (no new micro-game starts then).
 static inline bool madeinCanStart() {
-    stMadeinMeleeView* melee = reinterpret_cast<stMadeinMeleeView*>(g_GameGlobal->m_modeMelee);
-    if (melee->m_rule != 1 && melee->m_unk20 != 0) {
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
+    if (melee->m_meleeInitData.m_gameRule != 1 && melee->m_meleeInitData.m_timeLimitFrames != 0) {
         if ((u32)lbl_27_bss_5668->getFrameRuleTime() < 600) {
             return false;
         }
@@ -2333,12 +2319,12 @@ void stMadein::update(float deltaFrame) {
                 for (int i = 0; i < 4; i++) {
                     Vec3f pos;
                     if (getPlayerPosition(i, &pos) == true) {
-                        stMadeinMeleeView* melee = reinterpret_cast<stMadeinMeleeView*>(g_GameGlobal->m_modeMelee);
+                        gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
                         if (m_unk954[i] == 1) {
                             anyCorrect = true;
                             int range = 3;
                             int base = 0;
-                            if (melee->m_unk16 != 0) {
+                            if (melee->m_meleeInitData.m_itemFrequency != 0) {
                                 range = 2;
                                 base = 1;
                             }
@@ -2349,7 +2335,7 @@ void stMadein::update(float deltaFrame) {
                             switch (base + r) {
                                 case 0:
                                     if (g_GameGlobal->m_modeMelee != NULL) {
-                                        if (reinterpret_cast<stMadeinMeleeView*>(g_GameGlobal->m_modeMelee)->m_unk16 != 0) {
+                                        if (g_GameGlobal->m_modeMelee->m_meleeInitData.m_itemFrequency != 0) {
                                             ItemKind kind;
                                             kind.m_kind = static_cast<itKind>(0x1C);
                                             kind.m_variation = 0;
@@ -2384,7 +2370,7 @@ void stMadein::update(float deltaFrame) {
                             }
                             bool played = false;
                             int slot = 0;
-                            u8 pad = MADEIN_PLAYER_PAD(melee, i);
+                            u8 pad = melee->m_playersInitData[i].m_padNo;
                             if (pad != 0) {
                                 u32 padIndex = (u8)(pad - 1);
                                 if (padIndex < 4) {
@@ -2417,7 +2403,7 @@ void stMadein::update(float deltaFrame) {
                         } else {
                             bool played = false;
                             int slot = 0;
-                            u8 pad = MADEIN_PLAYER_PAD(melee, i);
+                            u8 pad = melee->m_playersInitData[i].m_padNo;
                             if (pad != 0) {
                                 u32 padIndex = (u8)(pad - 1);
                                 if (padIndex < 4) {

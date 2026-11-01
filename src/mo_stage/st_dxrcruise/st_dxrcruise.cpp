@@ -28,18 +28,6 @@ struct stDxCruiseSceneFlags {
 };
 extern stDxCruiseSceneFlags* lbl_805A0360;
 
-// MATCH-ONLY: the original reads a few bytes of the melee init data directly.
-struct stDxCruiseMeleeView {
-    char _0[8];
-    u8 gameMode : 6;   // 0x08
-    u8 pad8 : 2;
-    char _9[5];        // 0x09
-    u8 speedClass : 3; // 0x0E
-    u8 padE : 5;
-    char _f[1];        // 0x0F
-    u8 eventId;        // 0x10
-};
-
 // Unnamed helpers of sora_melee the stage calls directly.
 // HYPOTHESIS: sets a ground's blend/speed constant (on = 1)
 extern "C" void fn_27_279228(Ground* ground, bool on);
@@ -196,10 +184,10 @@ void stDxCruise::createObj() {
     if (!isPokemonTrainer()) {
         static_cast<grMadein*>(getGround(31))->endEntity();
     }
-    stDxCruiseMeleeView* melee = reinterpret_cast<stDxCruiseMeleeView*>(g_GameGlobal->m_modeMelee);
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
     if (melee != NULL) {
-        if (melee->gameMode == 7) {
-            if (melee->eventId == 0x8C) {
+        if (melee->m_meleeInitData.m_gameMode == 7) {
+            if (melee->m_meleeInitData.m_event == 0x8C) {
                 m_unk1008 = 1;
             }
         }
@@ -209,14 +197,14 @@ void stDxCruise::createObj() {
 void stDxCruise::update(float deltaFrame) {
     if (m_unk1008 == 1) {
         if (m_speedInit == 0) {
-            stDxCruiseMeleeView* melee = reinterpret_cast<stDxCruiseMeleeView*>(g_GameGlobal->m_modeMelee);
+            gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
             if (melee == NULL) {
                 return;
             }
-            if (melee->gameMode != 7) {
+            if (melee->m_meleeInitData.m_gameMode != 7) {
                 return;
             }
-            switch (melee->speedClass) {
+            switch (melee->m_meleeInitData.m_level) {
                 case 0:
                     m_speedScale = 0.5f;
                     break;

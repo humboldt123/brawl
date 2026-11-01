@@ -382,14 +382,23 @@ public:
             char _0x51[0x07];
             u8 m_0x58;           // 0x58 (copied from the record)
             u8 m_0x59;           // 0x59 (copied from the record)
-            bool m_0x5a_7 : 1;   // 0x5A
-            bool m_0x5a_6 : 1;
-            bool m_0x5a_5 : 1;
-            bool m_0x5a_4 : 1;
-            bool m_0x5a_3 : 1;
-            bool m_0x5a_2 : 1;
-            bool m_0x5a_1 : 1;
-            bool m_0x5a_0 : 1;
+            u8 m_isUseRisetsan : 1; // 0x5A: Mr. Resetti appeared in this match (gmSetUseRisetsan, gmCheckRisetsan)
+            u8 m_isUseDragoon : 1;  // the Dragoon was assembled in this match (fn_800526E4)
+            u8 m_0x5a_5 : 1;
+            u8 m_0x5a_4 : 1;
+            u8 m_0x5a_3 : 1;
+            u8 m_0x5a_2 : 1;
+            u8 m_0x5a_1 : 1;
+            u8 m_0x5a_0 : 1;
+            // HYPOTHESIS: the Home-Run Contest's settings and records (stHomerun reads them).
+            bool m_isHomerunSingle;  // 0x5B: one player
+            bool m_isHomerunCombi;   // 0x5C: two players throw together
+            char _0x5d[0x03];
+            int m_homerunTeamA;      // 0x60
+            int m_homerunTeamB;      // 0x64
+            u32 m_homerunScoreA;     // 0x68
+            u32 m_homerunScoreB;     // 0x6C
+            u32 m_homerunScoreBest;  // 0x70
         };
     };
     short m_globalOffenseRatio; // 0x78
@@ -474,7 +483,8 @@ public:
         char _0x3C[0x04];                   // 0x3C
         struct {
             u8 m_0x3C;
-            char _0x3D[0x02];
+            u8 m_padNo;                     // 0x3D HYPOTHESIS: the pad that controls the player, 1-based (0: none); WarioWare reads it
+            char _0x3E;
             u8 m_0x3F;                      // the player number it was initialised with
         };
     };

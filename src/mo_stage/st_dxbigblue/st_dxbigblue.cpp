@@ -171,8 +171,8 @@ void stDxBigBlue::createObj() {
     loadStageAttrParam(m_fileData, 0x46);
     registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), 0);
     if (g_GameGlobal->m_modeMelee != NULL) {
-        dxbigblueMeleeView* melee = reinterpret_cast<dxbigblueMeleeView*>(g_GameGlobal->m_modeMelee);
-        if (melee->m_mode == 7 && melee->m_event == 0x9F) {
+        gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
+        if (melee->m_meleeInitData.m_gameMode == 7 && melee->m_meleeInitData.m_event == 0x9F) {
             m_eventEnd = 1;
         }
     }

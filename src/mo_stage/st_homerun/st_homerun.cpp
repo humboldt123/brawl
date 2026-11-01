@@ -73,22 +73,6 @@ namespace {
 
 stClassInfoImpl<Stages::HomeRunContest, stHomerun> stHomerun::bss_loc_14;
 
-// MATCH-ONLY: the fields of the melee data the contest reads (they sit in a part of the structure the shared header
-// does not name).
-struct stHomerunMeleeView {
-    char _0[0x63];
-    bool m_single;     // 0x63: the single player mode
-    bool m_combi;        // 0x64: two players throw together
-    char _65[3];
-    int m_teamA;       // 0x68
-    int m_teamB;       // 0x6C
-    u32 m_scoreA;      // 0x70
-    u32 m_scoreB;      // 0x74
-    u32 m_scoreBest;   // 0x78
-};
-
-#define HOMERUN_MELEE() reinterpret_cast<stHomerunMeleeView*>(g_GameGlobal->m_modeMelee)
-
 stHomerun* stHomerun::create() {
     return new (Heaps::StageInstance) stHomerun;
 }
@@ -152,11 +136,11 @@ stHomerun::stHomerun() : stMelee("stHomerun", Stages::HomeRunContest) {
     m_sound[3] = -1;
     m_sound[4] = -1;
     m_sound[5] = -1;
-    stHomerunMeleeView* melee = HOMERUN_MELEE();
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
     if (melee == NULL) {
         return;
     }
-    if (melee->m_single || melee->m_combi) {
+    if (melee->m_meleeInitData.m_isHomerunSingle || melee->m_meleeInitData.m_isHomerunCombi) {
         setPlayerPositionIndexSerial();
     } else {
         setPlayerPositionIndexFixed(0);
@@ -581,9 +565,9 @@ void stHomerun::processFixPosition() {
 }
 
 // Which of the four result rows (one player, or the two teams in either order) the versus history shows.
-static inline void homerunShowHistory(stHomerunMeleeView* melee, float distance) {
-    int teamA = melee->m_teamA;
-    int teamB = melee->m_teamB;
+static inline void homerunShowHistory(gmGlobalModeMelee* melee, float distance) {
+    int teamA = melee->m_meleeInitData.m_homerunTeamA;
+    int teamB = melee->m_meleeInitData.m_homerunTeamB;
     int kind;
     if (teamA == 0 && teamB == 0) {
         kind = 0;
@@ -613,7 +597,7 @@ void stHomerun::updateSandBag(float deltaFrame) {
     }
     float* param = static_cast<float*>(m_stageData);
     if (param != NULL) {
-        stHomerunMeleeView* melee = HOMERUN_MELEE();
+        gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
         if (melee != NULL) {
             Vec3f sandBagPos;
             int touch;
@@ -732,10 +716,10 @@ void stHomerun::updateSandBag(float deltaFrame) {
                 break;
             case 4: {
                 float best;
-                if (melee->m_combi) {
+                if (melee->m_meleeInitData.m_isHomerunCombi) {
                     best = m_scoreBestCombi;
                 } else {
-                    switch (melee->m_teamA) {
+                    switch (melee->m_meleeInitData.m_homerunTeamA) {
                     case 0:
                         best = m_scoreBest[0];
                         break;
@@ -836,13 +820,13 @@ void stHomerun::updateSandBag(float deltaFrame) {
             case 8:
                 if (m_endTimer == 0.0f) {
                     Vec3f result;
-                    if (melee->m_scoreA > melee->m_scoreB) {
-                        result.m_x = (float)melee->m_scoreA / 10.0f;
+                    if (melee->m_meleeInitData.m_homerunScoreA > melee->m_meleeInitData.m_homerunScoreB) {
+                        result.m_x = (float)melee->m_meleeInitData.m_homerunScoreA / 10.0f;
                     } else {
-                        result.m_x = (float)melee->m_scoreB / 10.0f;
+                        result.m_x = (float)melee->m_meleeInitData.m_homerunScoreB / 10.0f;
                     }
-                    if ((float)melee->m_scoreBest > 10.0f * m_dist) {
-                        result.m_y = (float)melee->m_scoreBest / 10.0f;
+                    if ((float)melee->m_meleeInitData.m_homerunScoreBest > 10.0f * m_dist) {
+                        result.m_y = (float)melee->m_meleeInitData.m_homerunScoreBest / 10.0f;
                     } else {
                         result.m_y = m_dist;
                     }
@@ -1398,40 +1382,40 @@ bool stHomerun::isFly() {
 }
 
 bool stHomerun::isSingle() {
-    stHomerunMeleeView* melee = HOMERUN_MELEE();
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
     if (melee == NULL) {
         return false;
     }
-    return melee->m_single;
+    return melee->m_meleeInitData.m_isHomerunSingle;
 }
 
 bool stHomerun::isCombi() {
-    stHomerunMeleeView* melee = HOMERUN_MELEE();
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
     if (melee == NULL) {
         return false;
     }
-    return melee->m_combi;
+    return melee->m_meleeInitData.m_isHomerunCombi;
 }
 
 bool stHomerun::isVs() {
-    stHomerunMeleeView* melee = HOMERUN_MELEE();
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
     if (melee == NULL) {
         return false;
     }
-    if (melee->m_single) {
+    if (melee->m_meleeInitData.m_isHomerunSingle) {
         return false;
     }
-    return melee->m_combi == 0;
+    return melee->m_meleeInitData.m_isHomerunCombi == 0;
 }
 
 bool stHomerun::isVsEnd() {
-    stHomerunMeleeView* melee = HOMERUN_MELEE();
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
     if (melee == NULL) {
         return false;
     }
-    if (!melee->m_single && !melee->m_combi) {
-        int teamA = melee->m_teamA;
-        int teamB = melee->m_teamB;
+    if (!melee->m_meleeInitData.m_isHomerunSingle && !melee->m_meleeInitData.m_isHomerunCombi) {
+        int teamA = melee->m_meleeInitData.m_homerunTeamA;
+        int teamB = melee->m_meleeInitData.m_homerunTeamB;
         if (teamA == 1 && teamB == 1) {
             return true;
         }

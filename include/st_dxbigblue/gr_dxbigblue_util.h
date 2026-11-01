@@ -21,16 +21,6 @@
         (scnMdl)->m_nodeIndex = (calcWorldCallBack)->m_nodeCallbackDatas[0].m_nodeIndex;                             \
     }
 
-// MATCH-ONLY: the bytes of the match settings the stage reads (their names are unknown): the game mode in the upper six bits
-// of byte 8 and the event in byte 0x10.
-struct dxbigblueMeleeView {
-    u8 _pad0[8];
-    unsigned char m_mode : 6;
-    unsigned char m_rest : 2;
-    u8 _pad1[7];
-    u8 m_event;
-};
-
 // HYPOTHESIS: mode 7 with event 0x9F is the Boss battle that fights on this stage.
 
 // Ground::isCollisionStatusOwnerTask (sora_melee): the symbol takes an int pointer (the header declares another type)
