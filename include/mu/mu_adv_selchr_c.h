@@ -5,6 +5,7 @@
 #include <gf/gf_task.h>
 #include <mu/mu_menu_controller.h>
 #include <mu/mu_object.h>
+#include <nw4r/g3d/g3d_scnmdlexpand.h>
 #include <sr/sr_common.h>
 #include <types.h>
 
@@ -31,6 +32,14 @@ public:
         CharKind_None = 0x28,
     };
 
+    // Indices of m_objects. HYPOTHESIS: the names follow how moveCharCursor and dispNumber use them.
+    enum Obj {
+        Obj_Face = 13,              // the faces of the members of a team, from its m_top on
+        Obj_Cursor = 0x36,          // the cursor of each player (two)
+        Obj_Number1 = 0x38,         // the numbers that show the order of the picks of the first player (40)
+        Obj_Number2 = 0x60,         // the same for the second player
+    };
+
     // One step of the menu: what runs when the step starts, and what runs every frame (it returns the next step).
     struct StepFunc {
         void (*m_init)(muAdvSelchrCTask* task);
@@ -39,16 +48,17 @@ public:
 
     // A team: the characters in it and the first one that the list shows.
     struct Team {
-        int m_unk0;
+        int m_id;                   // 0x00 what getCharTeam gives back
         int m_members[40];          // 0x04 the menu kinds of the characters
         int m_count;                // 0xA4
         int m_top;                  // 0xA8 the first member that the list shows
     };
 
-    // The data of one player: the controller and the cursor.
+    // The data of one player: the controller, the characters the player picked and the cursor.
     struct PlayerWork {
         muMenuController m_controller;
-        int m_unkA8[41];
+        int m_members[40];          // 0xA8 the characters that the player picked (the positions in the team)
+        int m_count;                // 0x148
         int m_cursor;               // 0x14C the character that the cursor is on
     };
 
@@ -57,10 +67,11 @@ public:
     };
 
     Team m_teams[10];               // 0x40
-    int m_unk6F8[2];                // 0x6F8
+    int m_numTeams;                 // 0x6F8
+    int m_unk6FC;                   // 0x6FC
     int m_unk700[4];                // 0x700
     MuObject* m_objects[137];       // 0x710 the faces of the members are from index 13 on
-    int m_unk934[12];               // 0x934
+    nw4r::g3d::ScnMdlExpand* m_expands[12]; // 0x934 from index 2 on, the faces of each team (the cursors and numbers go on them)
     int m_unk964;                   // 0x964
     int m_step;                     // 0x968
     int m_stepPrev;                 // 0x96C
@@ -81,6 +92,7 @@ public:
     Heaps::HeapType m_resourceHeap; // 0xC5C
 
     static int normalizeCharKind(int kind, bool* pokeTrainerSeen, bool* zeldaSeen, bool* samusSeen);
+    int getCharTeam(int* index, int kind);
     int getTeamMember(int team, int index);
     int getTeamMemberDetail(int team, int index);
     int getNumTeamMember(int team);
@@ -90,6 +102,12 @@ public:
     int getNumTeamLine(int team);
     int getCharCursorPos(int player);
     void setCharCursorPos(int player, int pos);
+    int getMemberNumber(int pos);
+    bool canLocateCursor(int player, int pos);
+    int getNumFreeChar();
+    void moveCharCursor(int player, int pos);
+    void dispNumber(int player, int pos, int number);
+    void removeNumber(int player, int number);
     bool isSelected();
 
     static void mainStepSelectedInit(muAdvSelchrCTask* task);
