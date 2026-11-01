@@ -6,6 +6,7 @@
 #include <ft/ft_common_data_accesser.h>
 
 #include <ft/robot/ft_robot_article_info.h>
+#include <wn/wn_article_pool.h>
 // Robot-specific declaration of the shared weapon-data lookup entry point.
 // Its full SDK template type is not reconstructed yet.
 class ftRobotArticleDataAccesser {
@@ -109,41 +110,40 @@ public:
 };
 static_assert(sizeof(soArrayVector<soArticleEventObserver, 4>) == 0x4c, "Observer array layout is wrong!");
 
+// What the article data lookups are given: an unused flag and the resource group flag they fill in.
+struct ftRobotArticleDataTag {
+    bool m_unused;
+    bool m_resourceGroup;
+    ftRobotArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
+};
+
 template <class W> struct ftRobotArticleTraits;
 template <> struct ftRobotArticleTraits<wnRobotGyro> {
     enum { ArticleId = 0 };
     static void* getData() {
-        bool resourceGroup = false;
-        const ftRobotArticleDataAccesser* accesser =
-            reinterpret_cast<const ftRobotArticleDataAccesser*>(&g_ftCommonDataAccesser);
-        return accesser->getGyroData(Fighter_Robot, &resourceGroup);
+        ftRobotArticleDataTag tag;
+        return reinterpret_cast<const ftRobotArticleDataAccesser*>(&g_ftCommonDataAccesser)->getGyroData(Fighter_Robot, &tag.m_resourceGroup);
     }
 };
 template <> struct ftRobotArticleTraits<wnRobotBeam> {
     enum { ArticleId = 1 };
     static void* getData() {
-        bool resourceGroup = false;
-        const ftRobotArticleDataAccesser* accesser =
-            reinterpret_cast<const ftRobotArticleDataAccesser*>(&g_ftCommonDataAccesser);
-        return accesser->getBeamData(Fighter_Robot, &resourceGroup);
+        ftRobotArticleDataTag tag;
+        return reinterpret_cast<const ftRobotArticleDataAccesser*>(&g_ftCommonDataAccesser)->getBeamData(Fighter_Robot, &tag.m_resourceGroup);
     }
 };
 template <> struct ftRobotArticleTraits<wnRobotGyroHolder> {
     enum { ArticleId = 2 };
     static void* getData() {
-        bool resourceGroup = false;
-        const ftRobotArticleDataAccesser* accesser =
-            reinterpret_cast<const ftRobotArticleDataAccesser*>(&g_ftCommonDataAccesser);
-        return accesser->getGyroHolderData(Fighter_Robot, &resourceGroup);
+        ftRobotArticleDataTag tag;
+        return reinterpret_cast<const ftRobotArticleDataAccesser*>(&g_ftCommonDataAccesser)->getGyroHolderData(Fighter_Robot, &tag.m_resourceGroup);
     }
 };
 template <> struct ftRobotArticleTraits<wnRobotFinalBeam> {
     enum { ArticleId = 3 };
     static void* getData() {
-        bool resourceGroup = false;
-        const ftRobotArticleDataAccesser* accesser =
-            reinterpret_cast<const ftRobotArticleDataAccesser*>(&g_ftCommonDataAccesser);
-        return accesser->getFinalBeamData(Fighter_Robot, &resourceGroup);
+        ftRobotArticleDataTag tag;
+        return reinterpret_cast<const ftRobotArticleDataAccesser*>(&g_ftCommonDataAccesser)->getFinalBeamData(Fighter_Robot, &tag.m_resourceGroup);
     }
 };
 
@@ -175,9 +175,8 @@ public:
     // HYPOTHESIS: source name of the native newest-first predicate traversal.
     template <class Predicate>
     W* find(Predicate& predicate) {
-        W* candidate = m_holder.getInstance();
-        if (predicate(&static_cast<soArticle&>(*candidate)) == true) {
-            return candidate;
+        if (predicate(&static_cast<soArticle&>(*m_holder.getInstance())) == true) {
+            return m_holder.getInstance();
         }
         return m_next.find(predicate);
     }
@@ -187,7 +186,7 @@ template <class W>
 class ftRobotArticleSubPool<W, 0> {
     u32 m_terminal;
 public:
-    ftRobotArticleSubPool(soModuleAccesser*) : m_terminal(0) { }
+    ftRobotArticleSubPool(soModuleAccesser*) { }
     W* getInstanceAt(s32) { return NULL; }
     template <class Predicate>
     W* find(Predicate&) { return NULL; }
@@ -197,9 +196,13 @@ template <class W, int N, class Base>
 class ftRobotArticlePool : public Base {
     ftRobotArticleSubPool<W, N> m_sub;
 public:
+    typedef W Article;
+    enum { Num = N };
     ftRobotArticlePool(soModuleAccesser* acc) : Base(acc), m_sub(acc) { }
     virtual ~ftRobotArticlePool();
     ftRobotArticleSubPool<W, N>& getSub() { return m_sub; }
+    template <class Predicate, int Id>
+    W* find(Predicate& predicate, const soIntToType<Id>&) { return m_sub.find(predicate); }
 };
 
 template <class W, int N, class Base>
@@ -219,6 +222,8 @@ static_assert(sizeof(ftRobotGyroPool) == 0x9eb4, "Article pools layout is wrong!
 class ftRobotArticleMediator : public soArticleMediator {
     ftRobotGyroPool m_pools;
     u8 m_autoRecycle;
+    // The slot members (wnArticleSlot*, wn/wn_article_pool.h) read the pool chain.
+    WN_ARTICLE_SLOT_FRIENDS
 public:
     ftRobotArticleMediator(soModuleAccesser* acc) :
         soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }

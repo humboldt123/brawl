@@ -111,8 +111,8 @@ soArticleMediator::~soArticleMediator() { }
 template <class W>
 ftRobotArticleHolder<W>::ftRobotArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
         m_instance(ftRobotArticleTraits<W>::ArticleId,
-                   ftRobotArticleConstructionInfo(ftRobotArticleKindInfo(),
-                       acc->m_enumerationStart->m_heapModule),
+                   ftRobotArticleBuildInfo(ftRobotArticleKindInfo(),
+                       static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
                    ftRobotArticleTraits<W>::getData()) { }
 
 static void* ftRobotGetBeamData() {
@@ -126,8 +126,8 @@ static void* ftRobotGetBeamData() {
 template <>
 ftRobotArticleHolder<wnRobotBeam>::ftRobotArticleHolder(soModuleAccesser* acc) :
     soInstancePoolRoot(acc),
-    m_instance(1, ftRobotArticleConstructionInfo(ftRobotArticleKindInfo(),
-                    acc->m_enumerationStart->m_heapModule), ftRobotGetBeamData()) { }
+    m_instance(1, ftRobotArticleBuildInfoRef(ftRobotArticleKindInfo(),
+                    static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftRobotGetBeamData()) { }
 
 ftRobotArticleManageModuleBuilder::ftRobotArticleManageModuleBuilder(soModuleAccesser* acc) :
     m_articles(0), m_observers(4, 0), m_mediator(acc),
@@ -175,119 +175,49 @@ void ftRobotArticleMediator::deactivate() {
 }
 
 // The mediator walks a list of 17 article slots (only the first four are used by R.O.B.; the original code has one
-// switch case per slot). Every case builds a two-byte empty tag on the stack, which is why each case owns its own slot
-// of the frame (HYPOTHESIS: the tag is the per-slot type-list marker of the generic mediator template).
-struct ftRobotArticleSlotTag {
-    // MATCH-ONLY: preserve the native per-case marker stores, which MWCC would
-    // otherwise eliminate when the empty marker's lifetime stays inside a case.
-    volatile u8 m_pad0;
-    volatile u8 m_pad1;
-    ftRobotArticleSlotTag() : m_pad0(0), m_pad1(0) { }
-    ~ftRobotArticleSlotTag() { }
-};
+// switch case per slot, see wn/wn_article_pool.h for the slot members).
+#define FT_ROBOT_UNUSED_SLOTS(value)     WN_ARTICLE_UNUSED_SLOT(4, value) WN_ARTICLE_UNUSED_SLOT(5, value) WN_ARTICLE_UNUSED_SLOT(6, value)     WN_ARTICLE_UNUSED_SLOT(7, value) WN_ARTICLE_UNUSED_SLOT(8, value) WN_ARTICLE_UNUSED_SLOT(9, value)     WN_ARTICLE_UNUSED_SLOT(10, value) WN_ARTICLE_UNUSED_SLOT(11, value) WN_ARTICLE_UNUSED_SLOT(12, value)     WN_ARTICLE_UNUSED_SLOT(13, value) WN_ARTICLE_UNUSED_SLOT(14, value) WN_ARTICLE_UNUSED_SLOT(15, value)     WN_ARTICLE_UNUSED_SLOT(16, value)
 
-#define FT_ROBOT_UNUSED_SLOT(n, value) \
-    case n: { \
-        ftRobotArticleSlotTag tag; \
-        return value; \
-    }
-#define FT_ROBOT_UNUSED_SLOTS(value) \
-    FT_ROBOT_UNUSED_SLOT(4, value) FT_ROBOT_UNUSED_SLOT(5, value) FT_ROBOT_UNUSED_SLOT(6, value) \
-    FT_ROBOT_UNUSED_SLOT(7, value) FT_ROBOT_UNUSED_SLOT(8, value) FT_ROBOT_UNUSED_SLOT(9, value) \
-    FT_ROBOT_UNUSED_SLOT(10, value) FT_ROBOT_UNUSED_SLOT(11, value) FT_ROBOT_UNUSED_SLOT(12, value) \
-    FT_ROBOT_UNUSED_SLOT(13, value) FT_ROBOT_UNUSED_SLOT(14, value) FT_ROBOT_UNUSED_SLOT(15, value) \
-    FT_ROBOT_UNUSED_SLOT(16, value)
+typedef ftRobotArticlePool<wnRobotGyro, 1, ftRobotBeamPool> ftRobotGyroSlotPool;
+typedef ftRobotArticlePool<wnRobotBeam, 2, ftRobotGyroHolderPool> ftRobotBeamSlotPool;
+typedef ftRobotArticlePool<wnRobotGyroHolder, 1, ftRobotFinalBeamPool> ftRobotGyroHolderSlotPool;
+typedef ftRobotArticlePool<wnRobotFinalBeam, 1, soInstancePoolRoot> ftRobotFinalBeamSlotPool;
 
 s32 ftRobotArticleMediator::getGenerateMaxNum(s32 articleId) {
     switch (articleId) {
-    case 0: { ftRobotArticleSlotTag tag; return 1; }
-    case 1: { ftRobotArticleSlotTag tag; return 2; }
-    case 2: { ftRobotArticleSlotTag tag; return 1; }
-    case 3: { ftRobotArticleSlotTag tag; return 1; }
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
     FT_ROBOT_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-// The original counts with a small functor on the stack: the first word is the address of a thunk that calls the
-// article's isActiveArticle virtual on the article subobject (a weak function at 0xAFB0), followed by the number of
-// active and of inactive articles seen so far.
-static bool ftRobotIsActiveArticle(soArticle* article) { return article->isActiveArticle(); }
-
+// The counter is a plain aggregate here; the original counts with a functor whose methods MWCC inlines.
 struct ftRobotArticleActiveCounter {
     bool (*m_isActive)(soArticle*);
     s32 m_activeNum;
     s32 m_inactiveNum;
-    ftRobotArticleActiveCounter() : m_isActive(ftRobotIsActiveArticle), m_activeNum(0), m_inactiveNum(0) { }
-    void operator()(soArticle* article) {
-        if (m_isActive(article) == true) {
-            ++m_activeNum;
-        } else {
-            ++m_inactiveNum;
-        }
-    }
 };
-
-template <class W, int N>
-static s32 ftRobotCountActiveArticles(ftRobotArticleSubPool<W, N>& pool) {
-    ftRobotArticleActiveCounter counter;
-    for (s32 i = 0; i < N; ++i) {
-        counter(&static_cast<soArticle&>(*pool.getInstanceAt(i)));
-    }
-    return counter.m_activeNum;
-}
 
 s32 ftRobotArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotCountActiveArticles(static_cast<ftRobotArticlePool<wnRobotGyro, 1, ftRobotBeamPool> &>(m_pools).getSub());
-    }
-    case 1: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotCountActiveArticles(static_cast<ftRobotArticlePool<wnRobotBeam, 2, ftRobotGyroHolderPool> &>(m_pools).getSub());
-    }
-    case 2: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotCountActiveArticles(static_cast<ftRobotArticlePool<wnRobotGyroHolder, 1, ftRobotFinalBeamPool> &>(m_pools).getSub());
-    }
-    case 3: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotCountActiveArticles(static_cast<ftRobotArticlePool<wnRobotFinalBeam, 1, soInstancePoolRoot> &>(m_pools).getSub());
-    }
+    case 0: return wnArticleSlotActiveNum<ftRobotGyroSlotPool, ftRobotArticleActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<ftRobotBeamSlotPool, ftRobotArticleActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotActiveNum<ftRobotGyroHolderSlotPool, ftRobotArticleActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotActiveNum<ftRobotFinalBeamSlotPool, ftRobotArticleActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
     FT_ROBOT_UNUSED_SLOTS(0)
     default: return 0;
     }
 }
 
-template <class W, int N>
-static bool ftRobotCanGenerateArticle(ftRobotArticleSubPool<W, N>& pool) {
-    for (s32 i = 0; i < N; ++i) {
-        if (pool.getInstanceAt(i)->isActiveArticle() == false) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool ftRobotArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotCanGenerateArticle(static_cast<ftRobotArticlePool<wnRobotGyro, 1, ftRobotBeamPool> &>(m_pools).getSub());
-    }
-    case 1: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotCanGenerateArticle(static_cast<ftRobotArticlePool<wnRobotBeam, 2, ftRobotGyroHolderPool> &>(m_pools).getSub());
-    }
-    case 2: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotCanGenerateArticle(static_cast<ftRobotArticlePool<wnRobotGyroHolder, 1, ftRobotFinalBeamPool> &>(m_pools).getSub());
-    }
-    case 3: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotCanGenerateArticle(static_cast<ftRobotArticlePool<wnRobotFinalBeam, 1, soInstancePoolRoot> &>(m_pools).getSub());
-    }
+    case 0: return wnArticleSlotIsGeneratable<ftRobotGyroSlotPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<ftRobotBeamSlotPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotIsGeneratable<ftRobotGyroHolderSlotPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotIsGeneratable<ftRobotFinalBeamSlotPool>(this, WN_ARTICLE_SLOT_TAGS);
     FT_ROBOT_UNUSED_SLOTS(false)
     default: return false;
     }
@@ -540,64 +470,29 @@ bool ftRobot::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, int inde
     return result;
 }
 
-static soArticle* ftRobotGetNullArticle() {
-    return reinterpret_cast<soArticle*>(g_ftRobotNullArticleStorage);
-}
-
 bool ftRobotArticleActivator<wnRobotBeam>::activate(wnRobotBeam* weapon, soModuleAccesser* acc) {
     u32 resourceId = acc->getResourceModule().getResourceIdAccesser()->getEtcResId();
     return ftRobotTransactor::getInstance()->activeArticle1(weapon, acc, resourceId);
 }
 
-template <class W, int N>
-static soArticle* ftRobotGenerateFromPool(ftRobotArticleSubPool<W, N>& pool, soModuleAccesser* acc) {
-    soArticleDeactivateChecker checker;
-    // Stop at the first inactive article; otherwise the checker retains the
-    // oldest active candidate. Beam visits slot 1 before slot 0.
-    W* weapon = pool.find(checker);
-    if (weapon == NULL) {
-        weapon = static_cast<W*>(checker.getCandidate());
-        if (weapon == NULL) {
-            return ftRobotGetNullArticle();
-        }
-        weapon->deactivateArticle();
-    }
-    if (ftRobotArticleActivator<W>::activate(weapon, acc) == true) {
-        return static_cast<soArticle*>(weapon);
-    }
-    return ftRobotGetNullArticle();
-}
-
 soArticle* ftRobotArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotGenerateFromPool(static_cast<ftRobotArticlePool<wnRobotGyro, 1, ftRobotBeamPool> &>(m_pools).getSub(), acc);
-    }
-    case 1: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotGenerateFromPool(static_cast<ftRobotArticlePool<wnRobotBeam, 2, ftRobotGyroHolderPool> &>(m_pools).getSub(), acc);
-    }
-    case 2: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotGenerateFromPool(static_cast<ftRobotArticlePool<wnRobotGyroHolder, 1, ftRobotFinalBeamPool> &>(m_pools).getSub(), acc);
-    }
-    case 3: {
-        ftRobotArticleSlotTag tag;
-        return ftRobotGenerateFromPool(static_cast<ftRobotArticlePool<wnRobotFinalBeam, 1, soInstancePoolRoot> &>(m_pools).getSub(), acc);
-    }
-    FT_ROBOT_UNUSED_SLOTS(ftRobotGetNullArticle())
-    default: return ftRobotGetNullArticle();
+    case 0: return wnArticleSlotGenerate<ftRobotArticleActivator<wnRobotGyro> >(static_cast<ftRobotGyroSlotPool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftRobotArticleActivator<wnRobotBeam> >(static_cast<ftRobotBeamSlotPool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerate<ftRobotArticleActivator<wnRobotGyroHolder> >(static_cast<ftRobotGyroHolderSlotPool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerate<ftRobotArticleActivator<wnRobotFinalBeam> >(static_cast<ftRobotFinalBeamSlotPool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    FT_ROBOT_UNUSED_SLOTS(wnGetNullArticle())
+    default: return wnGetNullArticle();
     }
 }
 
 // Shooting only type-checks the article; the unused slots accept anything.
 bool ftRobotArticleMediator::shoot(soModuleAccesser*, soArticle* article) {
     switch (article->getArticleId()) {
-    case 0: { ftRobotArticleSlotTag tag; (void)dynamic_cast<wnRobotGyro&>(*article); return true; }
-    case 1: { ftRobotArticleSlotTag tag; (void)dynamic_cast<wnRobotBeam&>(*article); return true; }
-    case 2: { ftRobotArticleSlotTag tag; (void)dynamic_cast<wnRobotGyroHolder&>(*article); return true; }
-    case 3: { ftRobotArticleSlotTag tag; (void)dynamic_cast<wnRobotFinalBeam&>(*article); return true; }
+    case 0: return wnArticleSlotShoot<wnRobotGyro>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnRobotBeam>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnRobotGyroHolder>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnRobotFinalBeam>(article, WN_ARTICLE_SLOT_TAGS);
     FT_ROBOT_UNUSED_SLOTS(true)
     default: return false;
     }
