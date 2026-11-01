@@ -66,13 +66,6 @@ extern "C" void fn_8003E9B4(Matrix* mtx, float angle);
 extern "C" nw4r::g3d::ResMatChan GetResMatChan__Q44nw4r3g3d6ScnMdl15CopiedMatAccessFb(
     nw4r::g3d::ScnMdl::CopiedMatAccess* access, bool sync);
 
-// The real CopiedMatAccess is 0x34 bytes (the shared header declares 0x30): the stack slot of the access is padded.
-struct IfPlayerMatAccess {
-    nw4r::g3d::ScnMdl::CopiedMatAccess m_access;
-    u32 unk30;
-    IfPlayerMatAccess(nw4r::g3d::ScnMdl* mdl, u32 id) : m_access(mdl, id) { }
-};
-
 // HYPOTHESIS: ScnMdlSimple::mDrawMode (0x118), which the HUD models set to 8 after clearing it.
 struct IfPlayerScnMdlView {
     u8 unk0[0x118];
@@ -500,8 +493,8 @@ void IfPlayer::createModel(int scoreMode, int teamBattle, nw4r::g3d::ResFile* re
     {
         faceMdl = m_objects[35]->m_sceneModel->m_resMdl;
         nw4r::g3d::ResMat mat = faceMdl.GetResMat("lambert110");
-        IfPlayerMatAccess access(m_objects[35]->m_scnMdl, mat->m_id);
-        m_portraitChan2.m_chan = GetResMatChan__Q44nw4r3g3d6ScnMdl15CopiedMatAccessFb(&access.m_access, true);
+        nw4r::g3d::ScnMdl::CopiedMatAccess access(m_objects[35]->m_scnMdl, mat->m_id);
+        m_portraitChan2.m_chan = GetResMatChan__Q44nw4r3g3d6ScnMdl15CopiedMatAccessFb(&access, true);
         m_portraitChan2.m_chan.GXGetChanMatColor(GX_ALPHA0, &m_portraitChan2.m_colorA);
         m_portraitChan2.m_chan.GXGetChanMatColor(GX_ALPHA1, &m_portraitChan2.m_colorB);
     }
@@ -525,15 +518,15 @@ void IfPlayer::createModel(int scoreMode, int teamBattle, nw4r::g3d::ResFile* re
     m_portraitRectPending = 1;
     {
         nw4r::g3d::ResMat mat = faceMdl.GetResMat("Character_Face_Mat");
-        IfPlayerMatAccess access(m_objects[36]->m_scnMdl, mat->m_id);
-        m_portraitChan0.m_chan = GetResMatChan__Q44nw4r3g3d6ScnMdl15CopiedMatAccessFb(&access.m_access, true);
+        nw4r::g3d::ScnMdl::CopiedMatAccess access(m_objects[36]->m_scnMdl, mat->m_id);
+        m_portraitChan0.m_chan = GetResMatChan__Q44nw4r3g3d6ScnMdl15CopiedMatAccessFb(&access, true);
         m_portraitChan0.m_chan.GXGetChanMatColor(GX_ALPHA0, &m_portraitChan0.m_colorA);
         m_portraitChan0.m_chan.GXGetChanMatColor(GX_ALPHA1, &m_portraitChan0.m_colorB);
     }
     {
         nw4r::g3d::ResMat mat = faceMdl.GetResMat("lambert106");
-        IfPlayerMatAccess access(m_objects[36]->m_scnMdl, mat->m_id);
-        m_portraitChan1.m_chan = GetResMatChan__Q44nw4r3g3d6ScnMdl15CopiedMatAccessFb(&access.m_access, true);
+        nw4r::g3d::ScnMdl::CopiedMatAccess access(m_objects[36]->m_scnMdl, mat->m_id);
+        m_portraitChan1.m_chan = GetResMatChan__Q44nw4r3g3d6ScnMdl15CopiedMatAccessFb(&access, true);
         m_portraitChan1.m_chan.GXGetChanMatColor(GX_ALPHA0, &m_portraitChan1.m_colorA);
         m_portraitChan1.m_chan.GXGetChanMatColor(GX_ALPHA1, &m_portraitChan1.m_colorB);
     }

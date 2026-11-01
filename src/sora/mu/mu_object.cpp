@@ -32,12 +32,6 @@ struct ChrAnmResult {
 };
 void ChrAnmResult_GetScale(const ChrAnmResult* res, Vec3f* out);
 
-// The real CopiedMatAccess is 0x34 bytes; the BrawlHeaders copy is 4 bytes short.
-struct MatAccess : public nw4r::g3d::ScnMdl::CopiedMatAccess {
-    u32 m_pad;
-    MatAccess(nw4r::g3d::ScnMdl* mdl, u32 id) : CopiedMatAccess(mdl, id) {}
-};
-
 nw4r::g3d::ResTexObjData* CopiedMatAccess_GetResTexObj(nw4r::g3d::ScnMdl::CopiedMatAccess* access, bool sync);
 extern "C" void GXGetTexObjAll(const GXTexObj* obj, void** image, u16* w, u16* h, GXTexFmt* fmt, GXTexWrapMode* wrapS, GXTexWrapMode* wrapT, GXBool* mipmap);
 
@@ -1267,7 +1261,7 @@ void MuObject::setFrameMatCol(float frame) {
 
 void MuObject::changeMaterialTex(const char* matName, GXTexObj* srcObj) {
     u32 matId = m_resMdl.GetResMat(matName)->m_id;
-    MatAccess access(m_scnMdl, matId);
+    nw4r::g3d::ScnMdl::CopiedMatAccess access(m_scnMdl, matId);
     void* image;
     GXTexFmt fmt;
     GXTexWrapMode wrapS;
@@ -1284,7 +1278,7 @@ void MuObject::changeMaterialTex(const char* matName, GXTexObj* srcObj) {
 void MuObject::changeMaterialTex(const char* matName, void* image, u16 width, u16 height) {
     nw4r::g3d::ResTexObj texObj(NULL);
     u32 matId = m_resMdl.GetResMat(matName)->m_id;
-    MatAccess access(m_scnMdl, matId);
+    nw4r::g3d::ScnMdl::CopiedMatAccess access(m_scnMdl, matId);
     texObj = nw4r::g3d::ResTexObj(CopiedMatAccess_GetResTexObj(&access, false));
     GXTexObj* obj = texObj.GetTexObj(GX_TEXMAP0);
     GXInitTexObj(obj, image, width, height, GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, false);
@@ -1300,7 +1294,7 @@ void MuObject::changeMaterialTex(const char* matName, int texIndex, nw4r::g3d::R
 }
 
 void MuObject::changeMaterialTex(u32 matId, const char* texName, nw4r::g3d::ResFile* texFile) {
-    MatAccess access(m_scnMdl, matId);
+    nw4r::g3d::ScnMdl::CopiedMatAccess access(m_scnMdl, matId);
     nw4r::g3d::ResTexObj texObj(CopiedMatAccess_GetResTexObj(&access, false));
     GXTexObj* obj = texObj.GetTexObj(GX_TEXMAP0);
     nw4r::g3d::ResTex tex(NULL);

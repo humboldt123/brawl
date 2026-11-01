@@ -31,4 +31,5 @@ public:
     int m_padLock;                  // 0xAB8 the menus do not read the pads while this is more than 0
 
     void* getBuffer(int index);     // (name from the sora_menu_main map) HYPOTHESIS: a file of the menu archive by index
+    void addCommonObject();         // (name from the sora_menu_main map)
 };

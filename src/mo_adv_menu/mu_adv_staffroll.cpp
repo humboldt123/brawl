@@ -4,6 +4,7 @@
 #include <gf/gf_pad_system.h>
 #include <gm/gm_global.h>
 #include <memory.h>
+#include <mv/mv_movie_player.h>
 #include <nw4r/g3d/g3d_scnmdl.h>
 #include <revolution/MTX/mtx.h>
 #include <string.h>
@@ -21,16 +22,6 @@ extern "C" void* getMsgData__5MuMsgFUlPi(MuMsg* msg, u32 index, int* length);
 extern "C" void setHScale__5MuMsgFUlf(MuMsg* msg, u32 index, float scale);
 extern "C" void getHScale__5MuMsgFUlf(MuMsg* msg, u32 index, float scale);
 extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 index, const void* data, int size);
-// mvMoviePlayer: constructor, destructor(flags), open(path ...), setScnMdl(model, 0), play(), drawFrame(...),
-// getVideoState() and getTotalFrame()
-extern "C" void fn_8007E99C(void* player);
-extern "C" void fn_8007EA78(void* player, int flags);
-extern "C" void fn_8007EC08(void* player, const char* path, int unk1, int unk2, int unk3);
-extern "C" void fn_8007F2B4(void* player, void* model, int unk);
-extern "C" void fn_8007F148(void* player);
-extern "C" int fn_8007EF70(void* player, int x, int y, int w, int h);
-extern "C" int fn_8007EF64(void* player);
-extern "C" int fn_8007EF68(void* player);
 // nw4r::g3d::ScnMdl: set the matrix of a node, and the matrix of a node of a ScnObj
 extern "C" void ScnMdl_SetNodeMtx__FPQ34nw4r3g3d6ScnMdlUlPC6Matrix(void* scnMdl, u32 node, const Mtx mtx);
 extern "C" void GetMtx__Q34nw4r3g3d6ScnObjCFQ44nw4r3g3d6ScnObj13ScnObjMtxTypePQ34nw4r4math5MTX34(void* scnObj, int type, Mtx mtx);
@@ -346,7 +337,7 @@ void muAdvStaffrollTask::processDefault() {
 
 void muAdvStaffrollTask::renderOpa() {
     if (m_movieDraw == true) {
-        m_unk84 = fn_8007EF70(m_player, 0, 0, -1, -1);
+        m_unk84 = m_player->drawFrame(0, 0, -1, -1);
     }
 }
 
@@ -361,11 +352,7 @@ static inline void initCamera(muAdvStaffCamera* camera) {
 
 void muAdvStaffrollTask::initialize() {
     unk2C_b1 = false;
-    void* player = new (Heaps::MenuInstance) u8;
-    if (player != NULL) {
-        fn_8007E99C(player);
-    }
-    m_player = player;
+    m_player = new (Heaps::MenuInstance) mvMoviePlayer;
     m_movieShown = false;
     m_movieDraw = false;
     m_movieFrames = 0;
@@ -407,7 +394,7 @@ void muAdvStaffrollTask::release() {
     delete[] m_texts;
     delete m_msg;
     m_msg = NULL;
-    fn_8007EA78(m_player, 1);
+    delete m_player;
     m_player = NULL;
     delete[] m_textY;
     m_textY = NULL;
@@ -427,7 +414,7 @@ void muAdvStaffrollTask::requestFiles() {
 }
 
 void muAdvStaffrollTask::openMovie() {
-    fn_8007EC08(m_player, "/movie/ADV_ending.thp", 0, 0, 0);
+    m_player->openMovie("/movie/ADV_ending.thp", 0, 0, 0);
 }
 
 int muAdvStaffrollTask::isLoadingFiles() {
@@ -443,10 +430,10 @@ int muAdvStaffrollTask::isLoadingFiles() {
 }
 
 bool muAdvStaffrollTask::isLoadingMovie() {
-    if (fn_8007EF64(m_player) != 1) {
+    if (m_player->getVideoState() != 1) {
         return true;
     }
-    m_movieFrames = fn_8007EF68(m_player);
+    m_movieFrames = m_player->getTotalFrame();
     return false;
 }
 
@@ -478,9 +465,9 @@ void muAdvStaffrollTask::createData() {
         m_msg->attachScnMdlSimple(i, reinterpret_cast<nw4r::g3d::ScnMdlSimple*>(m_texts[i]->m_sceneModel), 0, 0.0625f);
         m_msg->setFontWidthModeProportional(i);
     }
-    fn_8007F2B4(m_player, m_movie->m_sceneModel, 0);
-    fn_8007F148(m_player);
-    fn_8007EF70(m_player, 0, 0, -1, -1);
+    m_player->setScnMdl(m_movie->m_sceneModel, 0);
+    m_player->play();
+    m_player->drawFrame(0, 0, -1, -1);
     setupExcelParam();
 }
 

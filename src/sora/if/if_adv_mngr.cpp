@@ -50,8 +50,6 @@ void fn_8010CF88(IfAdvRadarData* data, int arg);
 void fn_8010D00C();
 nw4r::g3d::ScnChoice* fn_801B3440(MEMAllocator* allocator, u32* size, int capacity);
 nw4r::g3d::ScnGroup* fn_801AB6CC(MEMAllocator* allocator, u32* size, int capacity);
-void fn_8000D6DC(gfSceneRoot* root, nw4r::g3d::ResAnmScn* anm);
-void fn_8000D7B8(gfSceneRoot* root);
 void Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(nw4r::g3d::ResAnmScn* self, nw4r::g3d::ResAnmScn* anm);
 void fn_800DFAB4(nw4r::g3d::ResFile* resFile, int numPlayer);
 IfPlayer* fn_800DFCB4(IfPlayer* player, int index);
@@ -470,7 +468,7 @@ void IfAdvMngr::createModel() {
     anm = unk30.GetResAnmScn(0);
     anm2 = anm.ptr();
     Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&anm, reinterpret_cast<nw4r::g3d::ResAnmScn*>(&anm2));
-    fn_8000D6DC(g_gfSceneRoot, &anm);
+    g_gfSceneRoot->setInfoCamResAnm(&anm);
     if (m_radarData.m_ptr) {
         fn_8010CF88(m_radarData.m_ptr, 0);
     }
@@ -516,7 +514,7 @@ void IfAdvMngr::destroyModel() {
         m_group->Destroy();
         m_group = NULL;
     }
-    fn_8000D7B8(g_gfSceneRoot);
+    g_gfSceneRoot->removeInfoCamResAnm();
     if (m_task) {
         m_task->exit();
         m_task = NULL;
@@ -916,7 +914,7 @@ void IfAdvMngr::setCameraResAnm() {
     anm = unk30.GetResAnmScn(0);
     nw4r::g3d::ResAnmScn anm2 = anm;
     Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&anm, &anm2);
-    fn_8000D6DC(g_gfSceneRoot, &anm);
+    g_gfSceneRoot->setInfoCamResAnm(&anm);
 }
 
 IfAdvMngr* g_IfAdvMngr;

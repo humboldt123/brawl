@@ -617,10 +617,8 @@ bool GameGlobal::getNameRumbleSwitch(int index) {
     return name->m_rumble == 1;
 }
 
-// The shared header declares getLanguage static, but the native function reads this->m_record: the callers pass the
-// singleton in r3, so it is defined under its mangled name with an explicit receiver.
-extern "C" int getLanguage__10GameGlobalFv(GameGlobal* self) {
-    return self->m_record->m_menuData.m_language;
+int GameGlobal::getLanguage() {
+    return m_record->m_menuData.m_language;
 }
 
 bool GameGlobal::isLanguageJp() {

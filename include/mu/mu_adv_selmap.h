@@ -18,8 +18,6 @@
 #include <string.h>
 #include <types.h>
 
-// GameGlobal::getLanguage(): a member function (the shared header declares it static)
-extern "C" int getLanguage__10GameGlobalFv(GameGlobal* global);
 // GameGlobal::getName(number, buffer): the names that were saved
 
 // What the scene gives to the task.
@@ -152,7 +150,7 @@ public:
         char noName[6] = {0x7F, 0x7E, 0x7D, 0x7C, 0x7B, 0};
         char label1[0x1C];
         char label2[0x1C];
-        if (getLanguage__10GameGlobalFv(g_GameGlobal) == 0) {
+        if (g_GameGlobal->getLanguage() == 0) {
             sprintf(label1, "1P: ");
             sprintf(label2, "2P: ");
         } else {

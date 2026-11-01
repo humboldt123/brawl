@@ -11,12 +11,6 @@ static inline float stBattleClamp(float lo, float hi, float value) {
     return nw4r::math::FSelect(value - hi, hi, value);
 }
 
-// The real CopiedMatAccess is 0x34 bytes; the BrawlHeaders copy is 4 bytes short (same workaround as sora/mu/mu_object.cpp).
-struct grBattleFieldMatAccess : public nw4r::g3d::ScnMdl::CopiedMatAccess {
-    u32 m_pad;
-    grBattleFieldMatAccess(nw4r::g3d::ScnMdl* mdl, u32 id) : CopiedMatAccess(mdl, id) {}
-};
-
 grBattleField* grBattleField::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
     grBattleField* ground = new (Heaps::StageInstance) grBattleField(taskName);
     if (ground) {
@@ -86,7 +80,7 @@ void grBattleField::update(float deltaFrame) {
                 if (resMdl.IsValid()) {
                     resMat = resMdl.GetResMat(m_shadowMatIndex);
                     if (resMat.IsValid()) {
-                        grBattleFieldMatAccess access(scnMdl, resMat->m_id);
+                        nw4r::g3d::ScnMdl::CopiedMatAccess access(scnMdl, resMat->m_id);
                         copyTev = access.GetResMatTevColor(false);
                         if (copyTev.IsValid()) {
                             u8* matDL = resMat->m_offToDisplayLists != 0 ? (u8*)resMat.ptr() + resMat->m_offToDisplayLists : NULL;

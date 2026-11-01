@@ -18,7 +18,7 @@ public:
     nw4r::g3d::ResFile m_resScene;              // 0x48 the camera and the light of the scene
     nw4r::g3d::ResFile m_resChr;                // 0x4C the model that shows the movie
     MuObject* m_object;                         // 0x50 "MenAdvChrCmn1000_TopN"
-    muMovie* m_movie;                           // 0x54
+    mvMoviePlayer* m_movie;                         // 0x54
     int m_frameCount;                           // 0x58 how many frames the movie has
     int m_frame;                                // 0x5C the frame that was played
     int m_state;                                // 0x60

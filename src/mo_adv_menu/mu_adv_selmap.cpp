@@ -29,8 +29,6 @@ extern "C" void fn_8003DBA8(Vec2f* vec);
 // GameGlobal::getNameCount() and GameGlobal::getName(number, buffer): the names that were saved
 // gfSceneRoot::layerUpdateFrame(layer), gfSceneRoot::removeInfoCamResAnm() and gfSceneRoot::setInfoCamResAnm(animation)
 extern "C" void fn_8000DB40(gfSceneRoot* root, int layer);
-extern "C" void fn_8000D7B8(gfSceneRoot* root);
-extern "C" void fn_8000D6DC(gfSceneRoot* root, void* resAnmScn);
 // The scene module: the loader of the pack (load(heap, path, archive, size) and isLoaded())
 extern "C" void fn_1_3D44(scResourceLoader* loader, int heap, const char* path, gfArchive* archive, int size);
 extern "C" bool fn_1_3E50(scResourceLoader* loader);
@@ -104,7 +102,7 @@ muAdvSelmapTask::~muAdvSelmapTask() {
     for (int i = 0; i < 0xB2; i++) {
         delete m_objects[i];
     }
-    fn_8000D7B8(g_gfSceneRoot);
+    g_gfSceneRoot->removeInfoCamResAnm();
     if (m_group != NULL) {
         m_group->Destroy();
         m_group = NULL;
@@ -1043,7 +1041,7 @@ int muAdvSelmapTask::stepLoadMain(muAdvSelmapTask* task) {
     anm = GetResAnmScn__Q34nw4r3g3d7ResFileCFi(&task->m_resFileScene, 0);
     anm2 = anm;
     Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&anm, &anm2);
-    fn_8000D6DC(g_gfSceneRoot, &anm);
+    g_gfSceneRoot->setInfoCamResAnm(reinterpret_cast<nw4r::g3d::ResAnmScn*>(&anm));
     task->m_resFileMap = nw4r::g3d::ResFile(task->m_archive->getData(0, Data_Type_Misc, 0, 0xFFFE));
     nw4r::g3d::ResFile::Init(&task->m_resFileMap);
     task->createObjResFile(sModels, 13, &task->m_resFileMap);

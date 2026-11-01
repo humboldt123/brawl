@@ -30,6 +30,15 @@ public:
     // 0xDC: first member after the ScnObj base
     char spacer2[0x8];
     int sceneItemsCount;
+
+    u32 Size() const { return sceneItemsCount; }
+    bool Empty() const { return Size() == 0; }
+    // HYPOTHESIS: like the nw4r ScnGroup::PopBack (muProcMoviePlayer::init empties its group with it).
+    void PopBack() {
+        if (!Empty()) {
+            Remove(Size() - 1);
+        }
+    }
 };
 }
 }

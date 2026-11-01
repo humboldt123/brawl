@@ -25,8 +25,6 @@ extern "C" nw4r::g3d::ResVtxClrData* GetResVtxClr__Q34nw4r3g3d6ResMdlCFi(const n
 extern "C" void DCStore__Q34nw4r3g3d9ResVtxClrFb(nw4r::g3d::ResVtxClrData** self, bool sync);
 
 // gfSceneRoot: main.dol has the functions, the shared header does not.
-extern "C" void fn_8000D6DC(gfSceneRoot* root, nw4r::g3d::ResAnmScn* anmScn);
-extern "C" void fn_8000D7B8(gfSceneRoot* root);
 // nw4r::g3d::ResAnmScn
 extern "C" void Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(nw4r::g3d::ResAnmScn* self, nw4r::g3d::ResAnmScn anmScn);
 extern "C" void Release__Q34nw4r3g3d9ResAnmScnFv(nw4r::g3d::ResAnmScn* self);
@@ -231,7 +229,7 @@ void muTitleTask::addModelNormal() {
     if (m_normalAdded != 1) {
         m_anmScn = m_resScene.GetResAnmScn(0);
         Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&m_anmScn, m_anmScn);
-        fn_8000D6DC(g_gfSceneRoot, &m_anmScn);
+        g_gfSceneRoot->setInfoCamResAnm(&m_anmScn);
         g_gfSceneRoot->add(gfSceneRoot::Layer_Info, m_background->m_scnMdl);
         g_gfSceneRoot->add(gfSceneRoot::Layer_Info, m_logo->m_scnMdl);
         m_normalAdded = 1;
@@ -240,7 +238,7 @@ void muTitleTask::addModelNormal() {
 
 void muTitleTask::removeModelNormal() {
     if (m_normalAdded) {
-        fn_8000D7B8(g_gfSceneRoot);
+        g_gfSceneRoot->removeInfoCamResAnm();
         Release__Q34nw4r3g3d9ResAnmScnFv(&m_anmScn);
         g_gfSceneRoot->remove(m_background->m_scnMdl);
         g_gfSceneRoot->remove(m_logo->m_scnMdl);
@@ -252,7 +250,7 @@ void muTitleTask::addModelShort() {
     if (m_shortAdded != 1) {
         m_anmScn = m_resScene.GetResAnmScn(0);
         Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&m_anmScn, m_anmScn);
-        fn_8000D6DC(g_gfSceneRoot, &m_anmScn);
+        g_gfSceneRoot->setInfoCamResAnm(&m_anmScn);
         g_gfSceneRoot->add(gfSceneRoot::Layer_Info, m_logoShort->m_scnMdl);
         m_shortAdded = 1;
     }
@@ -260,7 +258,7 @@ void muTitleTask::addModelShort() {
 
 void muTitleTask::removeModelShort() {
     if (m_shortAdded) {
-        fn_8000D7B8(g_gfSceneRoot);
+        g_gfSceneRoot->removeInfoCamResAnm();
         Release__Q34nw4r3g3d9ResAnmScnFv(&m_anmScn);
         g_gfSceneRoot->remove(m_logoShort->m_scnMdl);
         m_shortAdded = 0;

@@ -13,8 +13,6 @@ extern "C" void qsort(void* base, unsigned long count, unsigned long size, int (
 
 // muMenu helpers of main.dol whose symbols take three ints; the callers set only the first (as the matched units do)
 extern "C" int getInfoMsgID__6muMenuFiii(int info);
-// GameGlobal::getLanguage(): a member function (the shared header declares it static)
-extern "C" int getLanguage__10GameGlobalFv(GameGlobal* global);
 
 // The animations of the window and of the arrows: [0] comes in, [1] goes out.
 static MuAnimIdxData sInfoPanelAnims[2] = {
@@ -91,7 +89,7 @@ void muProcInfo::dispPage(int top) {
         m_msg->printIndex(line, getInfoMsgID__6muMenuFiii(info), NULL);
         OSCalendarTime time;
         gmGetCalendarTime(&time, flag->m_recvTime[info]);
-        if (getLanguage__10GameGlobalFv(g_GameGlobal) == 0) {
+        if (g_GameGlobal->getLanguage() == 0) {
             m_msg->printf(dateLine, "%4d/%2d/%2d\n%2d:%02d:%02d", time.year, time.month + 1, time.mday, time.hour, time.min, time.sec);
         } else {
             m_msg->printf(dateLine, "%2d/%2d/%4d\n%2d:%02d:%02d", time.month + 1, time.mday, time.year, time.hour, time.min, time.sec);

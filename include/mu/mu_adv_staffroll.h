@@ -7,6 +7,7 @@
 #include <mu/menu.h>
 #include <mu/mu_msg.h>
 #include <mu/mu_object.h>
+#include <mv/mv_movie_player.h>
 #include <nw4r/g3d/g3d_resfile.h>
 #include <types.h>
 
@@ -93,7 +94,7 @@ public:
     MuObject* m_theEnd;                     // 0x6C
     MuObject** m_texts;                     // 0x70
     MuMsg* m_msg;                           // 0x74
-    void* m_player;                         // 0x78 the player of the movie
+    mvMoviePlayer* m_player;                       // 0x78 the player of the movie
     bool m_movieShown;                      // 0x7C
     bool m_movieDraw;                       // 0x7D
     int m_movieFrames;                      // 0x80

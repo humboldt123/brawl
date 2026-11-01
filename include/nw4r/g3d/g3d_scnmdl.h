@@ -1,0 +1,56 @@
+#pragma once
+
+// Local shadow of include/nw4r/include/nw4r/g3d/g3d_scnmdl.h: ScnMdl::CopiedMatAccess is 0x34 bytes, not 0x30.
+
+#include <StaticAssert.h>
+#include <nw4r/g3d/g3d_resmat.h>
+#include <nw4r/g3d/g3d_scnmdlsmpl.h>
+
+namespace nw4r {
+    namespace g3d {
+
+        // TODO ScnMdlSimple and all subsequent classes
+        class ScnMdl : public ScnMdlSimple {
+        private:
+            char _spacer[80];
+
+        public:
+            class CopiedMatAccess {
+            private:
+                ScnMdl* m_scnMdl;
+                u32 m_MatID;
+                // The resources of the copied material (nw4r keeps eleven of them, one word each), so the object is 0x34 bytes:
+                // muProcMoviePlayer::telopProc puts two of them 0x34 bytes apart on its stack.
+                char spacer[0x2C];
+
+            public:
+                CopiedMatAccess(ScnMdl* scnMdl, u32 matID);
+                ResMatTevColor GetResMatTevColor(bool sync);
+                ResTexObj GetResTexObjEx();
+            };
+
+            class CopiedVisAccess {
+            public:
+                CopiedVisAccess(ScnMdl* pScnMdl, u32 id);
+
+                bool IsVisible() const;
+                bool SetVisibility(bool visible);
+
+            private:
+                ScnMdl* mpScnMdl; // at 0x0
+                u32 mNodeID;      // at 0x4
+                u8* mpVis;        // at 0x8
+            };
+
+            // TODO
+            virtual u32 IsDerivedFrom(int* unk1);
+            virtual void G3dProc(int unk1, int unk2, int unk3);
+            virtual ~ScnMdl();
+
+            static ScnMdl* Construct(void* memAllocator, int x, int y, void* scnModel);
+            static void Pushback(void* thing, void* thing2, const char* str); // PushBack/[nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3]/(g3d_scnmdlexpand.o)
+        };
+    }
+}
+
+// Size: 392

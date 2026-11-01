@@ -148,7 +148,7 @@ public:
     void setAdventureSaveData(const void* data);
     void getAdventureSaveData(void* data);
 
-    static int getLanguage();
+    int getLanguage();
     static GameGlobal* getInstance();
 };
 static_assert(sizeof(GameGlobal) == 0x50, "Class is wrong size!");
