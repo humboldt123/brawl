@@ -70,6 +70,22 @@ public:
     void* m_notifyCallback;
     char m_filepath[128];
 
+    // HYPOTHESIS: gfFileIOManager::allocRequest constructs a pooled request in place with this.
+    gfFileIORequest() {
+        m_isCached = false;
+        unk16_b7 = 0;
+        unk17_b6 = 0;
+        unk17_b5 = 0;
+        m_isCancelRequested = false;
+        m_isCanceled = false;
+        unk17_b2 = 0;
+        unk17_b1 = 0;
+        unk17_b0 = 0;
+        unk18_b7 = 0;
+        unk18_b6 = 0;
+        m_isReady = 1;
+        m_notifyCallback = NULL;
+    }
     ~gfFileIORequest();
     void setParam(const char* filepath);
     void setReadParam(const char* filepath, const void* addr, int length, int offset);
@@ -80,8 +96,14 @@ public:
 class gfFileIORequestQueue {
     OSMutex m_mtx;
     utQueue<gfFileIORequest*, 128>* m_queue;
+    friend class gfFileIOManager;
 public:
     u32 getSize() { return m_queue->size(); }
+    void push(gfFileIORequest* req) {
+        OSLockMutex(&m_mtx);
+        m_queue->push(req);
+        OSUnlockMutex(&m_mtx);
+    }
     gfFileIORequestQueue();
 };
 static_assert(sizeof(gfFileIORequestQueue) == 0x1c, "Wrong size for class!");
