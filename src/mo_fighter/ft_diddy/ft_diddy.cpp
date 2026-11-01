@@ -142,8 +142,9 @@ void ftDiddy::notifyEventOnDamage(soDamage* damage, bool isDamage, soModuleAcces
 }
 
 // The popgun starts through the transactor of the fighter with the effect resource of the fighter.
-// MATCH-ONLY: the native singleton addresses its guard, instance and destructor registration separately rather than
-// pooling them into one BSS base.
+// BYTES: the native function addresses the local static's guard, object and destructor registration separately
+// instead of from one pooled BSS base. The setting is per function: unit-wide it breaks the pooled constructor and
+// __sinit, and an in-class inline definition makes the static weak and moves it to the end of .bss.
 #pragma pool_data off
 bool ftDiddy::activeArticle(wnDiddyGun* weapon, soModuleAccesser* acc) {
     static ftDiddyTransactor instance;

@@ -188,8 +188,9 @@ void ftLuigiArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enab
     WN_ARTICLE_UNUSED_SLOT(14, value) WN_ARTICLE_UNUSED_SLOT(15, value) WN_ARTICLE_UNUSED_SLOT(16, value)
 
 // The fireball starts through the transactor with the effect resource of the fighter (the kind 0x1a selects the variant).
-// MATCH-ONLY: the native singleton addresses its guard, instance and destructor registration separately rather than
-// pooling them into one BSS base.
+// BYTES: the native function addresses the local static's guard, object and destructor registration separately
+// instead of from one pooled BSS base. The setting is per function: unit-wide it breaks the pooled constructor and
+// __sinit, and an in-class inline definition makes the static weak and moves it to the end of .bss.
 #pragma pool_data off
 bool ftLuigi::activeArticle(wnLuigiFireball* weapon, soModuleAccesser* acc) {
     static ftLuigiTransactor instance;

@@ -161,8 +161,9 @@ bool ftWario::notifyEventAnimCmd(acAnimCmd* command, soModuleAccesser* acc, s32 
     }
 }
 
-// MATCH-ONLY: native addresses the guard, singleton and destructor registration
-// separately, as in the other fighter transactor callbacks.
+// BYTES: the native function addresses the local static's guard, object and destructor registration separately
+// instead of from one pooled BSS base. The setting is per function: unit-wide it breaks the pooled constructor and
+// __sinit, and an in-class inline definition makes the static weak and moves it to the end of .bss.
 #pragma pool_data off
 void ftWario::notifyEventCollisionSearch(soCollisionLog* log, soModuleAccesser* acc) {
     static ftWarioTransactor transactor;
