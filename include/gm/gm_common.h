@@ -18,6 +18,8 @@ gmCharacterKind gmRetHideKindToCharacterKind(u32 hideKind);
 u32 gmRetIfKindMenukind(int ifKind);
 u32 gmGetBgmIDToHideBGMKind(GmHideBGMKind kind);
 u32 gmGetDateCount();
+// Whether a song can be played (it is unlocked).
+bool gmCheckBGMIDUseEnable(u32 bgmId);
 
 // The autosave dirty flag: an option or a name changed and the system save has to be written.
 void gmSetAutosaveDirtyFlag();

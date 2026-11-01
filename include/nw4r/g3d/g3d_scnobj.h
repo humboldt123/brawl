@@ -26,7 +26,10 @@ namespace nw4r {
 
             virtual ~ScnObj();
 
-            char _spacer[208];
+            char _spacer[0xCC];
+            u8 m_priorityDrawOpa;        // +0xD0
+            u8 m_priorityDrawXlu;        // +0xD1
+            char _spacerD2[2];
             IScnObjCallback* m_callback; // +0xD4: set by createModel callers (see IfMarthFinalTask)
             char _spacer2[4];
 

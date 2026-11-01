@@ -5,7 +5,6 @@
 
 extern "C" {
 bool fn_80074018(sndSystem* system, int bgmId, int arg);
-void fn_80073F84(sndSystem* system, int fade);
 bool fn_80074184(sndSystem* system, int bgmId);
 void fn_800741EC(sndSystem* system, int bgmId, int frame);
 void fn_27_23B36C(const char* format, ...);
@@ -39,7 +38,7 @@ void stOperatorAdvBgm::phasePrepareRequest() {
             }
         } else {
             fn_27_23B36C("ADV BGM ID \x82\xAA\x83\x65\x81\x5B\x83\x75\x83\x8B\x82\xC9\x8C\xA9\x82\xC2\x82\xA9\x82\xE7\x82\xC8\x82\xA2 BgmId=%d \n");
-            fn_80073F84(system, 0);
+            system->stopBGM(0);
             m_state = 0;
         }
     }
@@ -62,7 +61,7 @@ void stOperatorAdvBgm::phasePlayReady() {
 void stOperatorAdvBgm::phasePlaying() {
     sndSystem* system = g_sndSystem;
     if (m_isRequestStop) {
-        fn_80073F84(system, 30);
+        system->stopBGM(30);
         m_isRequestPlay = false;
         m_state = 5;
     }

@@ -3,17 +3,8 @@
 #include <mu/mu_object.h>
 #include <nw4r/g3d/g3d_scngroup.h>
 #include <nw4r/g3d/g3d_scnmdl.h>
+#include <snd/snd_bgm.h>
 #include <types.h>
-
-// HYPOTHESIS: sndBgmRateSystem::getBgmTitleDataPlayId (0x800791FC, still fn_) returns an entry whose 0x10 is the
-// line of the music title message.
-struct sndBgmTitleData {
-    u8 unk0[0x10];
-    u32 m_msgIndex;
-};
-class sndBgmRateSystem;
-extern sndBgmRateSystem* lbl_805A01D8;
-extern "C" sndBgmTitleData* fn_800791FC(sndBgmRateSystem* system, u32 bgmId);
 
 // HYPOTHESIS: IfCenter::updateTimeFast (0x800DDCF8, still fn_) takes the time to show.
 extern "C" void fn_800DDCF8(IfCenter* center, s32 time);
@@ -139,7 +130,7 @@ void IfCenter::centerReadyInit(IfCenter* center) {
     u32 bgmId = center->unk168;
     if (bgmId != -1) {
         center->m_group->Insert(center->m_group->sceneItemsCount, center->m_models[12]->m_sceneModel);
-        sndBgmTitleData* data = fn_800791FC(lbl_805A01D8, bgmId);
+        sndBgmTitleData* data = lbl_805A01D8->getBgmTitleDataPlayId(bgmId);
         if (data != NULL) {
             center->m_msg->printIndex(0, data->m_msgIndex);
         }
@@ -168,7 +159,7 @@ void IfCenter::centerCountReadyInit(IfCenter* center) {
     u32 bgmId = center->unk168;
     if (bgmId != -1) {
         center->m_group->Insert(center->m_group->sceneItemsCount, center->m_models[12]->m_sceneModel);
-        sndBgmTitleData* data = fn_800791FC(lbl_805A01D8, bgmId);
+        sndBgmTitleData* data = lbl_805A01D8->getBgmTitleDataPlayId(bgmId);
         if (data != NULL) {
             center->m_msg->printIndex(0, data->m_msgIndex);
         }
