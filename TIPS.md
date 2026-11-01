@@ -123,6 +123,8 @@ Adapted from [decomp-triage](https://github.com/KakarottoCake/decomp-triage/tree
 - Explicit `== false` / `!= true` comparisons on bool-returning calls match the original codegen in several places (`so_status_module_impl.cpp`). **MED**
 - **A `clrlwi rX,rY,24` before a call that the original does not have is a narrow parameter type:** MWCC narrows a `u8` argument in the caller, so `GameGlobal::getGlobalRecordNameDatap(u8)` added the instruction to every caller passing an `int` or `u16`; the native callee (`mulli` with no `clrlwi`) and its callers prove an `int` index. Seen: `getGlobalRecordNameDatap__10GameGlobalFi` (`src/sora/gm/gm_global.cpp`, `mu_select_character_list.cpp`). **HIGH**
 
+- **A one-bit field stored with a bare `rlwimi` from a `clrlwi 24` value (no `neg; or; srwi` before it) is a `u8 x : 1`, not a `bool x : 1`:** assigning a `u8` to a `bool` bit-field normalizes it to 0/1 first. `MenuData::m_isWidescreen`/`m_41_6` became `u8` bit-fields for `muProcOptScreen::proc`; a caller that read the bit into a `bool` local (`GameGlobal::setSaveData`) then needs a `u8` local to keep its bytes. Recompile every user of the field and compare the objects. **MED**
+
 ## 6. Control flow and registers
 - **`addis rX, rN, 1; cmplwi rX, 0xffff` is an unsigned `== -1`:** the value is a `u32` compared with -1. Seen: the node id of
   `emLinkModuleImpl::notifyEventAnimCmd`. **MED**
@@ -186,6 +188,8 @@ Things that moved registers, roughly in the order worth trying:
 - **`Matrix` members call `setIdentity` from their own constructor:** if the original constructor calls it once, after the plain stores, the member is plain storage (`float m[3][4]` in a struct) and the constructor does the explicit call. Copy it with a `reinterpret_cast<Matrix*>` accessor. Seen: `include/st_pirates/gr_pirates_work.h` (`stPiratesMtx`). **MED**
 - **Several `Ground` flags in one byte:** bitfields are numbered from the MSB. `rlwinm r0,r0,0,31,29` on byte 0x6c clears `0x02`, which is `m_hasUpdatedG3dCalcWorld` (the 7th flag of the first byte), not `m_isUpdateG3dCalcWorld` (second byte, 0x6d). **MED**
 - **An unsigned range test `x - a <= 1` is the only spelling that gives `subi; cmplwi; bgt`:** a `switch`, `||` or `>= && <=` all give two compares. Seen: `emPorky::updateNodeSRT` (weapon kind 0x2c/0x2d). **MED**
+
+- **Unreachable code after a branch (calls with unset `r3`, compares of registers nobody loaded) is a test the compiler folded against a value it has just stored:** MWCC turns `m_state = 3; ...; if (m_state == 2) { ... }` into an unconditional `b` over the body but keeps the body, minus the loads. Write the test after the store to get the dead block back. Seen: the two unreachable record saves in `muProcOptSound::proc`. **MED**
 
 ## 7. Data and sections
 - **MWCC's frame order: objects with destructors first, then parse-time temporaries in source order, then plain named

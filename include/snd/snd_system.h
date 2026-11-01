@@ -47,6 +47,9 @@ public:
     void stopSE(s8 handleIndex, s32 p2);
     void setBGMVol(bool setImmediately, float volume);
     void setEffectVol(bool unused, bool setImmediately, float volume);
+    // The balance of the music and the sound effects (map: sndSystem::setVolBalance); the menu passes (100 - b) / 100 and
+    // b / 100 for the balance b of the record.
+    void setVolBalance(float bgm, float se);
     s32 prepareSE(SndID p1, s32 p2, s32 p3);
     void setPan(s32 p1, float p2);
     void startSE(s32 p1, s32 p2, s32 p3);
