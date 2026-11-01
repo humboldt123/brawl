@@ -5,6 +5,7 @@
 #include <gf/gf_heap_manager.h>
 #include <gf/gf_memory_util.h>
 #include <types.h>
+#include <mt/mt_ps_minmax.h>
 
 grCollCollection::grCollCollection(int capacity) {
     m_lineWorks.m_capacity = capacity;
@@ -30,28 +31,8 @@ void grCollCollection::reset() {
 extern "C" grCollisionJoint* getJoint__11grCollisionFUs(grCollision* collision, u32 index);
 extern "C" grCollisionLine* getLine1__11grCollisionFUs(grCollision* collision, u32 index);
 
-// MATCH-ONLY: the original measures a returned vector temporary through a by-value copy.
-static inline float getLength(Vec2f vec) {
-    return vec.length();
-}
-
-// MATCH-ONLY: the original takes the componentwise minimum and maximum of the end points of a segment with paired singles.
-static inline void segmentBounds(register const clSegment2D* segment, register Vec2f* lo, register Vec2f* hi) {
-    register float p0, p1, diff, minPair, maxPair;
-    // clang-format off
-    asm {
-        psq_l p0, 0(segment), 0, 0
-        psq_l p1, 8(segment), 0, 0
-        ps_sub diff, p0, p1
-        ps_sel minPair, diff, p1, p0
-        ps_sel maxPair, diff, p0, p1
-        psq_st minPair, 0(lo), 0, 0
-        psq_st maxPair, 0(hi), 0, 0
-    }
-    // clang-format on
-}
-
-// MATCH-ONLY: the componentwise minimum and maximum of two pairs, written to out (min first, then max).
+// The componentwise minimum and maximum of two pairs, written to out (min first, then max).
+// BYTES: paired-single asm, see mt/mt_ps_minmax.h.
 static inline void mergeBounds(register Vec2f* outMin, register Vec2f* outMax, register const Vec2f* minB, register const Vec2f* maxB) {
     register float a, b, c, d, diffMin, diffMax, resMin, resMax;
     // clang-format off
@@ -102,7 +83,7 @@ bool grCollCollection::addSegment(grCollision* collision) {
                         grCollSegmentEx segment;
                         clSegment2D trace;
                         collision->getSegmentTrace1(&segment, &trace, line, jointLineId | index);
-                        if (getLength(segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos) < 0.01f) {
+                        if ((segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos).length() < 0.01f) {
                             continue;
                         }
                         {

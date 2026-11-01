@@ -5,6 +5,7 @@
 #include <revolution/GX.h>
 #include <types.h>
 #include <mt/mt_common.h>
+#include <mt/mt_ps_minmax.h>
 
 // ===== part A =====
 
@@ -99,30 +100,6 @@ bool clRay2D::checkIntersect2(const clSegment2D& segment, f32* t, Vec2f* normal)
         normal->normalize();
     }
     return hit;
-}
-
-// MATCH-ONLY: the original takes the componentwise minimum and maximum of two floats with a paired-single
-// subtract and select (the compiler schedules the four subtracts and selects of getAABBox together).
-static inline float psMin(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, b, a
-    }
-    // clang-format on
-    return result;
-}
-
-static inline float psMax(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, a, b
-    }
-    // clang-format on
-    return result;
 }
 
 // The smallest box that contains two points.
@@ -321,22 +298,6 @@ void clSegment2D::draw(GXColor color, float width, bool zEnable) const {
 
 // HYPOTHESIS: clTriangle2D::checkIntersect1 (mt_coll2d.o, main.dol 0x8004231C): true when the circle overlaps the triangle.
 // HYPOTHESIS: clSegment2D::checkIntersect (mt_coll2d.o, main.dol 0x800409D4): true when the two segments cross.
-
-// MATCH-ONLY: the original takes the componentwise minimum and maximum of the two segment end points with paired singles.
-static inline void segmentBounds(register const clSegment2D* segment, register Vec2f* lo, register Vec2f* hi) {
-    register float p0, p1, diff, minPair, maxPair;
-    // clang-format off
-    asm {
-        psq_l p0, 0(segment), 0, 0
-        psq_l p1, 8(segment), 0, 0
-        ps_sub diff, p0, p1
-        ps_sel minPair, diff, p1, p0
-        ps_sel maxPair, diff, p0, p1
-        psq_st minPair, 0(lo), 0, 0
-        psq_st maxPair, 0(hi), 0, 0
-    }
-    // clang-format on
-}
 
 // The segment (p0, p1) as the box spanned by its end points.
 static inline void segmentBox(register const clSegment2D* segment, register clAABBox2D* box) {
@@ -702,7 +663,8 @@ static inline bool boxIncludes(const clAABBox2D& box, const Vec2f& point) {
     return result;
 }
 
-// MATCH-ONLY: the original widens the box with paired-single max/min (ps_sub, ps_sel); the box holds the first vertex.
+// The box widened by the other two vertices (ps_sub, ps_sel); the box holds the first vertex.
+// BYTES: paired-single asm, see mt/mt_ps_minmax.h.
 static inline void widenByTriangle(register const clTriangle2D* tri, register clAABBox2D* box) {
     register float hi1, hi2, diff3, lo1, v2, lo2, diff2, diff1, lo, hi, v1, diff0;
     // clang-format off

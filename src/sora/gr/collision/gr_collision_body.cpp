@@ -10,6 +10,7 @@
 #include <gr/collision/gr_collision_linework.h>
 #include <mt/mt_coll2d.h>
 #include <gr/collision/gr_collision_manager.h>
+#include <mt/mt_ps_minmax.h>
 
 // ===== cluster A =====
 
@@ -56,34 +57,6 @@ grCollisionTest::grCollisionTest(grCollStatus* status)
 
 // HYPOTHESIS: grCollision::getSegment with a fourth argument (main.dol 0x80111968): fills the segment of a line.
 extern "C" void fn_80111968(grCollision* collision, grCollSegmentEx* out, grCollisionLine* line, int unk);
-
-// MATCH-ONLY: the original computes min/max of two floats with a paired-single subtract and select.
-static inline float psMax(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, a, b
-    }
-    // clang-format on
-    return result;
-}
-
-static inline float psMin(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, b, a
-    }
-    // clang-format on
-    return result;
-}
-
-// MATCH-ONLY: the original measures a returned vector temporary through a by-value copy.
-static inline float getLength(Vec2f vec) {
-    return vec.length();
-}
 
 // HYPOTHESIS: grCollStatus::clearTouchLine (0x80134468): forgets the touch line of the given touch id.
 extern "C" void fn_80134468(grCollStatus* status, int touchId);
@@ -386,7 +359,7 @@ int grCollisionTest::checkMoveLenXDown(const Vec2f* pos, grCollisionLineWork* li
     fn_80111968(lineWork->m_collision, &segment, lineWork->m_collisionLine, 0);
     Vec2f foot;
     segment.m_segment.projection1(*pos, foot);
-    float length = getLength(segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos);
+    float length = (segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos).length();
     float slopeCos;
     float moveLen = m_unk10C;
     slopeCos = (segment.m_segment.m_p1Pos.m_x - segment.m_segment.m_p0Pos.m_x) / length;

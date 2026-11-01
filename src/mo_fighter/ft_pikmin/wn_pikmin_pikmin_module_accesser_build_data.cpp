@@ -70,11 +70,6 @@ float wnPikminPikminUtility::getOwnerDist(soModuleAccesser* acc, int mode) {
     return result;
 }
 
-// HYPOTHESIS: the native distance helper takes its difference vector by value.
-static inline float lengthOf(Vec2f v) {
-    return v.length();
-}
-
 float wnPikminPikminUtility::getDist(Vec2f* from, Vec2f* to, int mode) {
     float result = 0.0f;
     switch (mode) {
@@ -88,7 +83,7 @@ float wnPikminPikminUtility::getDist(Vec2f* from, Vec2f* to, int mode) {
         result = to->m_y - from->m_y;
         break;
     case 3: {
-        result = lengthOf(*to - *from);
+        result = (*to - *from).length();
         break;
     }
     }

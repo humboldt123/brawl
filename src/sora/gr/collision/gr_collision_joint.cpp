@@ -5,6 +5,7 @@
 #include <mt/mt_matrix.h>
 #include <nw4r/g3d/g3d_scnmdl.h>
 #include <types.h>
+#include <mt/mt_ps_minmax.h>
 
 // HYPOTHESIS: set from grCollisionManager::processUpdate (the debug-check flag of the task).
 extern bool lbl_805A0358;
@@ -133,29 +134,6 @@ void grCollisionJoint::updateStatus() {
         m_0x54_6 = m_0x54_4 = m_0x54_7 = false;
     }
     m_0x54_4 = m_0x54_6;
-}
-
-// MATCH-ONLY: the original takes the componentwise minimum and maximum of the vertex positions with paired singles.
-static inline float psMin(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, b, a
-    }
-    // clang-format on
-    return result;
-}
-
-static inline float psMax(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, a, b
-    }
-    // clang-format on
-    return result;
 }
 
 // The box around the current and the previous positions of the vertices, each grown by the margin.

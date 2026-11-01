@@ -5,11 +5,12 @@
 #include <gr/collision/gr_collision_test_rhombus.h>
 #include <types.h>
 #include <nw4r/math/math_arithmetic.h>
+#include <mt/mt_ps_minmax.h>
 
 // ===== cluster R1 =====
 
-// MATCH-ONLY: the original takes the componentwise minimum and maximum of the two segment end points with paired singles.
-static inline void segmentBounds(register const clSegment2D* segment, register Vec2f* lo, register Vec2f* hi) {
+// BYTES: paired-single asm (see mt/mt_ps_minmax.h); unlike its segmentBounds, the original subtracts once per bound.
+static inline void segmentMinMax(register const clSegment2D* segment, register Vec2f* lo, register Vec2f* hi) {
     register float p0, p1, diffMin, diffMax, minPair, maxPair;
     // clang-format off
     asm {
@@ -37,7 +38,7 @@ u8 grCollisionTestRhombus::checkIntersect(clRhombus2D* rhombus, clSegment2D* seg
     u32 result = 0;
     Vec2f lo;
     Vec2f hi;
-    segmentBounds(segment, &lo, &hi);
+    segmentMinMax(segment, &lo, &hi);
     if (!(lo.m_y > rhombus->m_upPos.m_y || lo.m_x > rhombus->m_rightPos.m_x || hi.m_y < rhombus->m_downPos.m_y ||
           hi.m_x < rhombus->m_leftPos.m_x)) {
         result = rhombus->getIntersectInfo(*segment);
@@ -574,29 +575,6 @@ int grCollisionTestRhombus::testStaticCorrection(grCollisionLineWork* lineWork) 
         }
     }
     return moved;
-}
-
-// MATCH-ONLY: the original takes the maximum of two floats with a paired-single subtract and select.
-static inline float psMax(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, a, b
-    }
-    // clang-format on
-    return result;
-}
-
-static inline float psMin(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, b, a
-    }
-    // clang-format on
-    return result;
 }
 
 // Pushes the right corner (and with it the rhombus) out of a wall line on its right. flags = checkIntersect's result.
@@ -1408,7 +1386,7 @@ int grCollisionTestRhombus::testStaticCorrectionLast(grCollisionLineWork* lineWo
 
 // ===== cluster R2 =====
 
-// MATCH-ONLY: the original computes min of two floats with a paired-single subtract and select.
+// BYTES: paired-single asm (see mt/mt_ps_minmax.h); this minimum selects into the difference's register.
 static inline float psMinInPlace(register float a, register float b) {
     register float diff;
     // clang-format off

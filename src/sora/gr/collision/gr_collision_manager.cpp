@@ -6,6 +6,7 @@
 #include <gr/collision/gr_collision_status.h>
 #include <nw4r/ut/ut_LinkList.h>
 #include <types.h>
+#include <mt/mt_ps_minmax.h>
 
 extern "C" void fn_80110A40(grCollision* collision);
 extern "C" void fn_80110EA0(grCollision* collision, clAABBox2D* range);
@@ -23,34 +24,6 @@ extern bool lbl_805A0358;
 // parameters of grCollision::getJoint / grCollisionJoint::getLine are probably not u16; the stand-ins keep the symbols of the members.
 extern "C" grCollisionJoint* getJoint__11grCollisionFUs(grCollision* collision, u32 index);
 extern "C" grCollisionLine* getLine__16grCollisionJointFUs(grCollisionJoint* joint, u32 index);
-
-// MATCH-ONLY: the original takes the minimum and maximum of two floats with a paired-single subtract and select.
-static inline float psMin(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, b, a
-    }
-    // clang-format on
-    return result;
-}
-
-static inline float psMax(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, a, b
-    }
-    // clang-format on
-    return result;
-}
-
-// MATCH-ONLY: the original measures a returned vector temporary through a by-value copy.
-static inline float getLength(Vec2f vec) {
-    return vec.length();
-}
 
 grCollisionManager::grCollisionManager() :
     gfTask("GroundCollision", Category_GrCollision, 4, 13, true), unk41(0), m_nextIndex(0), unk44(0) {
@@ -132,7 +105,7 @@ void grCollisionManager::calcFloorRange() {
                         if (line->m_isUnder) {
                             clSegment2D segment;
                             collision->getSegment(&segment, line);
-                            float length = getLength(segment.m_p1Pos - segment.m_p0Pos);
+                            float length = (segment.m_p1Pos - segment.m_p0Pos).length();
                             if (length > 0.01f) {
                                 float lineMinY = psMin(segment.m_p0Pos.m_y, segment.m_p1Pos.m_y);
                                 float lineMaxY = psMax(segment.m_p0Pos.m_y, segment.m_p1Pos.m_y);

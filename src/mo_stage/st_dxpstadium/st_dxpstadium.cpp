@@ -25,6 +25,7 @@
 #include <types.h>
 
 #include <st_dxpstadium/st_dxpstadium.h>
+#include <mt/mt_ps_minmax.h>
 
 stClassInfoImpl<Stages::DxPStadium, stDxPStadium> stDxPStadium::bss_loc_14;
 
@@ -46,18 +47,6 @@ static inline void stDxPStadiumSwap(u8& x, u8& y) {
     u8 tmp = x;
     x = y;
     y = tmp;
-}
-
-// MATCH-ONLY: the original computes max(a, b) with a paired-single subtract and select.
-static inline float stDxPStadiumPsMax(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, a, b
-    }
-    // clang-format on
-    return result;
 }
 
 // The big screen is ground 0 and always a grStadiumVision.
@@ -872,8 +861,8 @@ void stDxPStadium::updateVisionRect() {
         }
         float width = screenB.m_x - screenA.m_x;
         float height = screenB.m_y - screenA.m_y;
-        width = stDxPStadiumPsMax(width, 0.08f);
-        height = stDxPStadiumPsMax(height, 0.08f);
+        width = psMax(width, 0.08f);
+        height = psMax(height, 0.08f);
         float aspect = 1.0f;
         if (g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen) {
             aspect = 4.0f / 3.0f;
