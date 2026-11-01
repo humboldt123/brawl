@@ -17,6 +17,7 @@ namespace nw4r {
             s32 m_toResFile;
             s32 m_dataOffset; // 0x10
             s32 m_nameOffset;
+            u32 m_flags; // 0x18, HYPOTHESIS: bit 0 = has palette
         };
 
         class ResTex : public ResCommon<ResTexData> {

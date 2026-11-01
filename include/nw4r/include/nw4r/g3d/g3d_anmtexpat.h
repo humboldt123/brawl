@@ -10,8 +10,13 @@ namespace nw4r {
     namespace g3d {
 
         struct ResAnmTexPatData {
-            char _spacer2[0x2C];
+            char _spacer0[0x24];
+            u32 m_stringOffset;
+            char _spacer1[0x4];
             unsigned short m_animLength;
+            unsigned short _pad2E;
+            char _spacer3[0x4];
+            s32 m_loopMode; // HYPOTHESIS: 1 = looping
         };
         class ResAnmTexPat : public ResCommon<ResAnmTexPatData> {
         public:
