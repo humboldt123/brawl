@@ -188,8 +188,9 @@ void ftYoshi::notifyEventChangeSituation(SituationKind kind, SituationKind previ
     }
 }
 
-// MATCH-ONLY: native addresses the local static's guard, object, and
-// destructor registration separately, as in R.O.B.'s transactor singleton.
+// BYTES: the native function addresses the local static's guard, object and destructor registration separately
+// instead of from one pooled BSS base. The setting is per function: unit-wide it breaks the pooled constructor and
+// __sinit, and an in-class inline definition makes the static weak and moves it to the end of .bss.
 #pragma pool_data off
 bool ftYoshi::activeArticle1(wnYoshiTamago* article, soModuleAccesser* acc) {
     static ftYoshiTransactor transactor;

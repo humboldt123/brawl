@@ -610,12 +610,13 @@ void grCollisionTest::calcNewShapeOnTop(grCollisionLineWork* lineWork) {
 // ground under the shape changed since the start of the test), up (2), left (3), right (4).
 // mode: the grCollStatus setting at the start of test() (1 ground, 2 air), prevGround: the ground line at that time.
 void grCollisionTest::callbackExec(int mode, grCollisionLineWork* prevGround) {
+    grCollisionJoint* downJoint;
     int changed = 0;
     if (m_collStatus->m_touchDown) {
         grCollisionLineWork* lineWork = &m_touch[grCollStatus::Touch_Down].m_lineWork;
         bool valid = hasLine(lineWork);
         if (valid) {
-            grCollisionJoint* joint = lineWork->m_collisionJoint;
+            downJoint = lineWork->m_collisionJoint;
             Ground* ground = grCollision::getReferenceGround(lineWork);
             if (ground != NULL) {
                 if (mode == 2) {
@@ -627,7 +628,7 @@ void grCollisionTest::callbackExec(int mode, grCollisionLineWork* prevGround) {
                         changed = 1;
                     }
                 }
-                ground->receiveCollMsg(changed != 0, m_collStatus, joint);
+                ground->receiveCollMsg(changed != 0, m_collStatus, downJoint);
             }
         }
     }
@@ -1904,14 +1905,13 @@ int grCollisionTest::testGroundLRWallCorrect(grCollisionLineWork* lineWork, int 
 // just inside the nearer end of the line (0.01 margin) unless the move is heading back towards the line.
 // Returns 1 when the shape was corrected.
 int grCollisionTest::stopEdgeCorrect(grCollisionLineWork* lineWork) {
-    grCollStatus* status = m_collStatus;
     int result = 0;
-    if (status->m_cliffStop) {
+    if (m_collStatus->m_cliffStop) {
         do {
-            if (m_unk20 == 1 && status->m_cliffSide == 1 && (m_unkE & DIR_RIGHT)) {
+            if (m_unk20 == 1 && m_collStatus->m_cliffSide == 1 && (m_unkE & DIR_RIGHT)) {
                 break;
             }
-            if (m_unk20 == 0 && status->m_cliffSide == 0 && (m_unkE & DIR_LEFT)) {
+            if (m_unk20 == 0 && m_collStatus->m_cliffSide == 0 && (m_unkE & DIR_LEFT)) {
                 break;
             }
             clSegment2D segment;
@@ -3707,9 +3707,12 @@ int grCollisionTest::testCollisionMainAir() {
 // One sweep of testCollisionNotMove over the collected lines whose attribute is in the side mask m_unkF; returns true
 // when at least one line was tested. A through-able line that is the status' reference line (touch line 9) is skipped.
 int grCollisionTest::testCollisionMainAirSub() {
+    u16 mask;
+    grCollStatus* status = m_collStatus;
+    int count = 0;
     m_unk8 = 1.0f;
     u8 sides = m_unkF;
-    u16 mask = 0;
+    mask = 0;
     if (sides & grCollStatus::TOUCH_MASK_UP) {
         mask |= 2;
     }
@@ -3722,8 +3725,6 @@ int grCollisionTest::testCollisionMainAirSub() {
     if (sides & grCollStatus::TOUCH_MASK_RIGHT) {
         mask |= 8;
     }
-    grCollStatus* status = m_collStatus;
-    int count = 0;
     for (u32 i = 0; i < m_collection->m_lineWorks.m_num; i++) {
         grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
         if (isActiveLineWork(*lineWork) && (lineWork->m_collisionLine->m_unkE & mask)) {
@@ -3746,9 +3747,12 @@ int grCollisionTest::testCollisionMainAirSub() {
 // Tests the collected lines like testCollisionMainAirSub, then limits the move to the nearest hit: the shape is advanced by
 // the rate done so far and the touched line is published to the status. Returns true when the move was cut short.
 int grCollisionTest::testCollisionMain() {
+    u16 mask;
+    grCollStatus* status = m_collStatus;
+    int count = 0;
     m_unk8 = 1.0f;
     u8 sides = m_unkF;
-    u16 mask = 0;
+    mask = 0;
     if (sides & grCollStatus::TOUCH_MASK_UP) {
         mask |= 2;
     }
@@ -3761,8 +3765,6 @@ int grCollisionTest::testCollisionMain() {
     if (sides & grCollStatus::TOUCH_MASK_RIGHT) {
         mask |= 8;
     }
-    grCollStatus* status = m_collStatus;
-    int count = 0;
     for (u32 i = 0; i < m_collection->m_lineWorks.m_num; i++) {
         grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
         if (isActiveLineWork(*lineWork) && (lineWork->m_collisionLine->m_unkE & mask)) {

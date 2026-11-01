@@ -158,6 +158,13 @@ void grCollisionTestRhombus::updateTarget(float rate) {
     m_shape1.m_rhombus.interpolate(m_shape3.m_rhombus, m_shape2.m_rhombus, rate);
 }
 
+// The line flags of a neighbour line work, read through the line work's address (after the enabled check of the same line work
+// the original reloads the line pointer instead of reusing the one the check loaded).
+static inline bool lineIsUnder(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isUnder; }
+static inline bool lineIsUpper(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isUpper; }
+static inline bool lineIsLeft(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isLeft; }
+static inline bool lineIsRight(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isRight; }
+
 // A line work whose line, joint and collision are all set, whose joint is active and whose collision is enabled.
 static inline bool isActiveLineWork(grCollisionLineWork* lineWork) {
     bool valid = false;
@@ -647,7 +654,7 @@ int grCollisionTestRhombus::testStaticRight(grCollisionLineWork* lineWork, u8 fl
         return moved;
     }
     // the wall's lower end continues into a floor on the next line: slide the right corner along the edge down corner -> right corner
-    if (isActiveLineWork(&next) && next.m_collisionLine->m_isUnder && rhombus->m_downPos.m_y <= wall.m_segment.m_p1Pos.m_y &&
+    if (isActiveLineWork(&next) && lineIsUnder(&next) && rhombus->m_downPos.m_y <= wall.m_segment.m_p1Pos.m_y &&
         wall.m_segment.m_p1Pos.m_y <= rhombus->m_rightPos.m_y) {
         clSegment2D edge(rhombus->m_downPos, rhombus->m_rightPos);
         bool hit = false;
@@ -674,7 +681,7 @@ int grCollisionTestRhombus::testStaticRight(grCollisionLineWork* lineWork, u8 fl
         }
     }
     // the wall's upper end continues into a ceiling on the previous line: same along the edge right corner -> up corner
-    if (isActiveLineWork(&prev) && prev.m_collisionLine->m_isUpper) {
+    if (isActiveLineWork(&prev) && lineIsUpper(&prev)) {
         clSegment2D edge(rhombus->m_rightPos, rhombus->m_upPos);
         if (rhombus->m_rightPos.m_y <= wall.m_segment.m_p0Pos.m_y && wall.m_segment.m_p0Pos.m_y <= rhombus->m_upPos.m_y) {
             bool hit = false;
@@ -703,7 +710,7 @@ int grCollisionTestRhombus::testStaticRight(grCollisionLineWork* lineWork, u8 fl
     }
     if (flags & 1) {
         // the next line is a ceiling: the up corner must not end up beyond the wall, nor above the ceiling
-        if (isActiveLineWork(&next) && next.m_collisionLine->m_isUpper) {
+        if (isActiveLineWork(&next) && lineIsUpper(&next)) {
             if (wall.m_segment.projectionY(rhombus->m_upPos, projected)) {
                 push = (projected - rhombus->m_upPos) + Vec2f(-0.01f, 0.0f);
                 if (push.m_x < 0.0f) {
@@ -739,7 +746,7 @@ int grCollisionTestRhombus::testStaticRight(grCollisionLineWork* lineWork, u8 fl
         }
     }
     // the wall's previous line is a floor the rhombus can stand on: keep the down corner above it
-    if (isActiveLineWork(&prev) && prev.m_collisionLine->m_isUnder && (prev.m_collisionLine->m_unkE & m_exclusiveLineAttr) == 0 &&
+    if (isActiveLineWork(&prev) && lineIsUnder(&prev) && (prev.m_collisionLine->m_unkE & m_exclusiveLineAttr) == 0 &&
         fn_80137114(m_collStatus, &prev) == 0) {
         grCollSegmentEx floor;
         fn_80111968(prev.m_collision, &floor, prev.m_collisionLine, 0);
@@ -839,7 +846,7 @@ int grCollisionTestRhombus::testStaticLeft(grCollisionLineWork* lineWork, u8 fla
         return moved;
     }
     // the wall's upper end continues into a floor on the previous line: slide the left corner along the edge down -> left corner
-    if (isActiveLineWork(&prev) && prev.m_collisionLine->m_isUnder && rhombus->m_downPos.m_y <= wall.m_segment.m_p0Pos.m_y &&
+    if (isActiveLineWork(&prev) && lineIsUnder(&prev) && rhombus->m_downPos.m_y <= wall.m_segment.m_p0Pos.m_y &&
         wall.m_segment.m_p0Pos.m_y <= rhombus->m_leftPos.m_y) {
         clSegment2D edge(rhombus->m_downPos, rhombus->m_leftPos);
         bool hit = false;
@@ -864,7 +871,7 @@ int grCollisionTestRhombus::testStaticLeft(grCollisionLineWork* lineWork, u8 fla
         }
     }
     // the wall's lower end continues into a ceiling on the next line: same along the edge left corner -> up corner
-    if (isActiveLineWork(&next) && next.m_collisionLine->m_isUpper) {
+    if (isActiveLineWork(&next) && lineIsUpper(&next)) {
         clSegment2D edge(rhombus->m_leftPos, rhombus->m_upPos);
         if (rhombus->m_leftPos.m_y <= wall.m_segment.m_p1Pos.m_y && wall.m_segment.m_p1Pos.m_y <= rhombus->m_upPos.m_y) {
             bool hit = false;
@@ -900,7 +907,7 @@ int grCollisionTestRhombus::testStaticLeft(grCollisionLineWork* lineWork, u8 fla
     }
     if (flags & 8) {
         // the previous line is a ceiling: the up corner must not end up beyond the wall, nor above the ceiling
-        if (isActiveLineWork(&prev) && prev.m_collisionLine->m_isUpper) {
+        if (isActiveLineWork(&prev) && lineIsUpper(&prev)) {
             if (wall.m_segment.projectionY(rhombus->m_upPos, projected)) {
                 push = (projected - rhombus->m_upPos) + Vec2f(0.01f, 0.0f);
                 if (0.0f < push.m_x) {
@@ -934,7 +941,7 @@ int grCollisionTestRhombus::testStaticLeft(grCollisionLineWork* lineWork, u8 fla
         }
     }
     // the next line is a floor the rhombus can stand on: keep the down corner above it
-    if (isActiveLineWork(&next) && next.m_collisionLine->m_isUnder && (next.m_collisionLine->m_unkE & m_exclusiveLineAttr) == 0 &&
+    if (isActiveLineWork(&next) && lineIsUnder(&next) && (next.m_collisionLine->m_unkE & m_exclusiveLineAttr) == 0 &&
         fn_80137114(m_collStatus, &next) == 0) {
         grCollSegmentEx floor;
         fn_80111968(next.m_collision, &floor, next.m_collisionLine, 0);
@@ -1596,8 +1603,8 @@ int grCollisionTestRhombus::testDown(grCollisionLineWork* lineWork, float* rate)
     }
     if (ignore != 1) {
         grCollisionLineWork next;
-        if (!((lineWork->getPrev(&next) && next.m_collisionLine->m_isRight) ||
-              (lineWork->getNext(&next) && next.m_collisionLine->m_isLeft))) {
+        if (!((lineWork->getPrev(&next) && lineIsRight(&next)) ||
+              (lineWork->getNext(&next) && lineIsLeft(&next)))) {
             from = m_shape1.m_rhombus.m_upPos;
             to = m_shape2.m_rhombus.m_upPos;
             dir = to - from;
@@ -2924,8 +2931,9 @@ static inline void setCornerPair(grCollSegmentEx& pair, const Vec2f& first, cons
 
 // MATCH-ONLY: the first neighbour check of a dispatcher keeps its first-stage flag (`valid`, declared at the top of the function)
 // in a register of its own; the second one is the plain isEnabledNeighbor(). The CSE of the neighbour's line pointer between the
-// null check and the `m_isUnder` / `m_isUpper` test does not happen in the original (it reloads it); not reproduced yet
-// (dispatchers: 89-90 % because of the two extra reloads and the prologue schedule).
+// null check and the `m_isUnder` / `m_isUpper` test does not happen in the original (it reloads it): the lineIs* helpers
+// reproduce that. The dispatchers that start with the segment fetch still differ in the prologue schedule (the original loads the
+// line pointer before the callee-saved register stores).
 #define NEIGHBOR_ENABLED(lw) \
     (lw.m_collisionLine != NULL && lw.m_collisionJoint != NULL && lw.m_collision != NULL)
 
@@ -2946,13 +2954,13 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYRight(grCollisionLi
         } else {
             enabled = false;
         }
-        if (enabled && next.m_collisionLine->m_isUnder && (m_unmovedMask & 6) != 6 && (m_unmovedMask & 6) == 0) {
+        if (enabled && lineIsUnder(&next) && (m_unmovedMask & 6) != 6 && (m_unmovedMask & 6) == 0) {
             testCollisionMoveSlatingLineMoveYRightDown(lineWork, rate);
         }
     }
     if (!(m_hitDirs & (DIR_RIGHT | DIR_UP))) {
         lineWork->getPrev(&prev);
-        if (isEnabledNeighbor(prev) && prev.m_collisionLine->m_isUpper && (m_unmovedMask & 5) != 5 && (m_unmovedMask & 5) == 0) {
+        if (isEnabledNeighbor(prev) && lineIsUpper(&prev) && (m_unmovedMask & 5) != 5 && (m_unmovedMask & 5) == 0) {
             testCollisionMoveSlatingLineMoveYRightUp(lineWork, rate);
         }
     }
@@ -2977,12 +2985,12 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYLeft(grCollisionLin
         } else {
             enabled = false;
         }
-        if (enabled && prev.m_collisionLine->m_isUnder && (m_unmovedMask & 10) != 10 && (m_unmovedMask & 10) == 0) {
+        if (enabled && lineIsUnder(&prev) && (m_unmovedMask & 10) != 10 && (m_unmovedMask & 10) == 0) {
             testCollisionMoveSlatingLineMoveYLeftDown(lineWork, rate);
         }
     }
     if (!(m_hitDirs & (DIR_LEFT | DIR_UP))) {
-        if (isEnabledNeighbor(next) && next.m_collisionLine->m_isUpper && (m_unmovedMask & 9) != 9 && (m_unmovedMask & 9) == 0) {
+        if (isEnabledNeighbor(next) && lineIsUpper(&next) && (m_unmovedMask & 9) != 9 && (m_unmovedMask & 9) == 0) {
             testCollisionMoveSlatingLineMoveYLeftUp(lineWork, rate);
         }
     }
@@ -3003,7 +3011,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUp(grCollisionLineW
         } else {
             enabled = false;
         }
-        if (enabled && next.m_collisionLine->m_isUnder && (m_unmovedMask & 5) != 5 && (m_unmovedMask & 5) == 0) {
+        if (enabled && lineIsUnder(&next) && (m_unmovedMask & 5) != 5 && (m_unmovedMask & 5) == 0) {
             testCollisionMoveSlatingLineMoveYUpRight(lineWork, rate);
         }
     }
@@ -3020,7 +3028,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUp(grCollisionLineW
         } else {
             enabled = false;
         }
-        if (enabled && prev.m_collisionLine->m_isUnder && (m_unmovedMask & 9) != 9 && (m_unmovedMask & 9) == 0) {
+        if (enabled && lineIsUnder(&prev) && (m_unmovedMask & 9) != 9 && (m_unmovedMask & 9) == 0) {
             testCollisionMoveSlatingLineMoveYUpLeft(lineWork, rate);
         }
     }
@@ -3045,12 +3053,12 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYDown(grCollisionLin
         } else {
             enabled = false;
         }
-        if (enabled && prev.m_collisionLine->m_isUpper && (m_unmovedMask & 6) != 6 && (m_unmovedMask & 5) == 0) {
+        if (enabled && lineIsUpper(&prev) && (m_unmovedMask & 6) != 6 && (m_unmovedMask & 5) == 0) {
             testCollisionMoveSlatingLineMoveYDownRight(lineWork, rate);
         }
     }
     if (!(m_hitDirs & (DIR_LEFT | DIR_DOWN))) {
-        if (isEnabledNeighbor(next) && next.m_collisionLine->m_isUpper && (m_unmovedMask & 10) != 10 && (m_unmovedMask & 9) == 0) {
+        if (isEnabledNeighbor(next) && lineIsUpper(&next) && (m_unmovedMask & 10) != 10 && (m_unmovedMask & 9) == 0) {
             testCollisionMoveSlatingLineMoveYDownLeft(lineWork, rate);
         }
     }

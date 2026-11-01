@@ -346,7 +346,6 @@ void grEarthOniyon::updateCallBack(float deltaFrame) {
 
 // The hit object of the oniyon: one hit sphere (size 6) and the damage module (it reports its damage to onDamage).
 void grEarthOniyon::setHit() {
-    // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
     m_hitData = new (Heaps::StageInstance) soCollisionHitData;
     m_hitSimple = new (Heaps::StageInstance) soCollisionHitData::Simple;
     m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;
