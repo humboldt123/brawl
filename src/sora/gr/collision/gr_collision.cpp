@@ -6,6 +6,7 @@
 #include <gr/collision/gr_collision_status.h>
 #include <gr/collision/gr_collision_test_types.h>
 #include <gr/ground.h>
+#include <mt/mt_ps_minmax.h>
 
 // HYPOTHESIS: each vertex owns a 16-byte pair, current position first and previous position second
 struct grCollVtxPair {
@@ -211,29 +212,6 @@ const char* grCollision::getJointNodeName(u32 nodeIndex) {
         return NULL;
     }
     return m_collData->getJointNodeName(nodeIndex);
-}
-
-// MATCH-ONLY: the original takes the minimum / maximum of two floats with a paired-single subtract and select.
-static inline float psMax(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, a, b
-    }
-    // clang-format on
-    return result;
-}
-
-static inline float psMin(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, b, a
-    }
-    // clang-format on
-    return result;
 }
 
 void grCollision::update() {

@@ -10,6 +10,7 @@
 #include <gr/collision/gr_collision_linework.h>
 #include <mt/mt_coll2d.h>
 #include <gr/collision/gr_collision_manager.h>
+#include <mt/mt_ps_minmax.h>
 
 // ===== cluster A =====
 
@@ -56,29 +57,6 @@ grCollisionTest::grCollisionTest(grCollStatus* status)
 
 // HYPOTHESIS: grCollision::getSegment with a fourth argument (main.dol 0x80111968): fills the segment of a line.
 extern "C" void fn_80111968(grCollision* collision, grCollSegmentEx* out, grCollisionLine* line, int unk);
-
-// MATCH-ONLY: the original computes min/max of two floats with a paired-single subtract and select.
-static inline float psMax(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, a, b
-    }
-    // clang-format on
-    return result;
-}
-
-static inline float psMin(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, b, a
-    }
-    // clang-format on
-    return result;
-}
 
 // MATCH-ONLY: the original measures a returned vector temporary through a by-value copy.
 static inline float getLength(Vec2f vec) {

@@ -6,6 +6,7 @@
 #include <gr/collision/gr_collision_status.h>
 #include <nw4r/ut/ut_LinkList.h>
 #include <types.h>
+#include <mt/mt_ps_minmax.h>
 
 extern "C" void fn_80110A40(grCollision* collision);
 extern "C" void fn_80110EA0(grCollision* collision, clAABBox2D* range);
@@ -23,29 +24,6 @@ extern bool lbl_805A0358;
 // parameters of grCollision::getJoint / grCollisionJoint::getLine are probably not u16; the stand-ins keep the symbols of the members.
 extern "C" grCollisionJoint* getJoint__11grCollisionFUs(grCollision* collision, u32 index);
 extern "C" grCollisionLine* getLine__16grCollisionJointFUs(grCollisionJoint* joint, u32 index);
-
-// MATCH-ONLY: the original takes the minimum and maximum of two floats with a paired-single subtract and select.
-static inline float psMin(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, b, a
-    }
-    // clang-format on
-    return result;
-}
-
-static inline float psMax(register float a, register float b) {
-    register float diff, result;
-    // clang-format off
-    asm {
-        ps_sub diff, a, b
-        ps_sel result, diff, a, b
-    }
-    // clang-format on
-    return result;
-}
 
 // MATCH-ONLY: the original measures a returned vector temporary through a by-value copy.
 static inline float getLength(Vec2f vec) {
