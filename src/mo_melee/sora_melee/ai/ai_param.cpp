@@ -260,6 +260,41 @@ void aiParam::set_disable_cmd(int cmd) {
     m_disableCmds |= 1 << cmd;
 }
 
+// HYPOTHESIS: inverse of ai_act_id2cmd, inlined by the callers (cmd 0-12 -> 0x6031.., 13-21 -> 0x6034..).
+static inline int ai_cmd2act_id(int cmd) {
+    if (cmd >= 0) {
+        if (cmd < 13) {
+            return cmd + 0x6031;
+        }
+        if (cmd < 0x16) {
+            return cmd + 0x6034;
+        }
+    }
+    return 0;
+}
+
+u16 aiParam::enum_act_list_id(int list, int n) {
+    if (list >= 0 && (u32)list < NumActLists && m_par->m_actList[list] != 0) {
+        tag_AI_PAR_ACT_LIST* act = (tag_AI_PAR_ACT_LIST*)((char*)m_par + m_par->m_actList[list]);
+        float highRate = 0.01f * m_rank;
+        float lowRate = 1.0f - highRate;
+        for (; act->m_cmd != 0; act++) {
+            if ((m_disableCmds & (1 << (act->m_cmd - 1))) == 0
+                && (int)(act->m_ratioHigh * highRate + act->m_ratioLow * lowRate) > 0
+                && --n < 0) {
+                break;
+            }
+        }
+        if (n < 0) {
+            u8 cmd = act->m_cmd - 1;
+            if (cmd < 0x16) {
+                return ai_cmd2act_id(cmd);
+            }
+        }
+    }
+    return 0;
+}
+
 bool aiParam::chkCmdRevise(int cmd) {
     return m_par->m_reviseCmds & (1 << cmd);
 }

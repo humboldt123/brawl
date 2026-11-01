@@ -179,6 +179,49 @@ void initUniqStatusTable() {
 
 // aiStat: the CPU AI's per-character state snapshot and helper queries.
 
+aiStat::aiStat() {
+    if (!aistat::s_uniqStatusTableReady) {
+        aistat::initUniqStatusTable();
+    }
+    m_chrIdx.m_idx = -1;
+    m_unk1 = 0;
+    m_unkB0 = -1;
+    m_chrKind = -1;
+    m_input = NULL;
+    m_flags = 0x8000;
+    m_transition = 0;
+    m_unk2 = 0;
+    m_unk8 = 0;
+    m_chrStat = 0;
+    m_center = Vec3f(0.0f, 0.0f, 0.0f);
+    m_pos.m_x = 0.0f;
+    m_pos.m_y = 0.0f;
+    m_pos.m_z = 0.0f;
+    m_scale = Vec3f(1.0f, 1.0f, 1.0f);
+    m_accel = Vec2f(0.0f, 0.0f);
+    m_speed = Vec2f(0.0f, 0.0f);
+    m_unk98.m_x = 0.0f;
+    m_unk98.m_y = 0.0f;
+    m_unk90.m_x = 0.0f;
+    m_unk90.m_y = 0.0f;
+    m_lr = 1.0f;
+    m_unkA4 = 0.0f;
+    m_unkA8 = 0;
+    m_unkB8 = 0;
+    m_unkB4 = 0;
+    m_floor = (AiClBlock*)g_aiMgr->m_work; // HYPOTHESIS: the manager's work area doubles as the "no floor" block
+    m_unkC4 = 0.0f;
+    m_unkAA = 0;
+    m_unkCC = -1;
+    m_team = -1;
+    m_unkD0 = 0;
+    m_damageTeam = 0;
+    m_unkDC = 0.0f;
+    m_unk4 = 0;
+    m_unk1BD = 0;
+    m_unk1BC = 0;
+}
+
 int aiStat::chk_over_ground() {
     if (!(((m_flags & 1) != 0 || (m_floor->m_flags & 0x20000) != 0) && (u8)(m_situation + 250) > 1)) {
         return 1;
@@ -368,7 +411,7 @@ void aiStat::init(int chrIdx, int chrKind, aiInput* input, int unk) {
     m_unkA8 = 0;
     m_unkB8 = 0;
     m_unkB4 = 0;
-    m_floor = (AiClBlock*)((u8*)g_aiMgr + 0xAC);
+    m_floor = (AiClBlock*)g_aiMgr->m_work; // HYPOTHESIS: the manager's work area doubles as the "no floor" block
     m_unkC4 = 0.0f;
     m_unkCC = -1;
     m_team = -1;

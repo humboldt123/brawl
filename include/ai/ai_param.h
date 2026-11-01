@@ -28,8 +28,16 @@ struct aiParData {
     char unk164[4];
     u32 m_reviseCmds;   // 0x168
     u32 m_reflectCmds;  // 0x16C
-    char unk170[0x70];
+    int m_actList[24];  // 0x170: offset of each action list (tag_AI_PAR_ACT_LIST entries ending with cmd 0) from the start of the block, 0 = none
+    char unk1D0[0x10];
     int m_situationList[1]; // 0x1E0: offset of each situation entry from the start of the block; HYPOTHESIS: count unknown
+};
+
+// One entry of an action list; HYPOTHESIS: the two weights are blended by CPU level (high at rank 100, low at rank 0).
+struct tag_AI_PAR_ACT_LIST {
+    u8 m_cmd;        // command number + 1, 0 ends the list
+    u8 m_ratioHigh;
+    u8 m_ratioLow;
 };
 
 // Jump parameters of one character (HYPOTHESIS: possibly a larger view of aiReferPar).
@@ -42,6 +50,10 @@ struct aiJumpPar {
 
 class aiParam {
 public:
+    enum {
+        NumActLists = 24,
+    };
+
     aiParData* m_par;    // 0x00
     char* m_atkData;     // 0x04: ATKD block, NULL if absent
     s8 m_rank;           // 0x08: CPU level, clamped to 0..100
@@ -56,6 +68,7 @@ public:
     bool chkCmdFall(int cmd);
     bool chkCmdReflect(int cmd);
     void set_disable_cmd(int cmd);
+    u16 enum_act_list_id(int list, int n); // HYPOTHESIS: the n-th enabled action of an action list (0 = none)
     int select_situation(int start, int end, aiChrIdx* chr, aiChrIdx* target); // HYPOTHESIS: parameter types from chk_situation's use
 
     static bool check_revision(char* data);

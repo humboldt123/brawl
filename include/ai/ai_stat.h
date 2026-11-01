@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ai/ai_cl_block.h>
+#include <ai/ai_ip_buf.h>
 #include <ai/ai_mgr.h>
 #include <mt/mt_vector.h>
 #include <types.h>
@@ -19,6 +20,16 @@ namespace aistat {
     void initUniqStatusTable();
 }
 
+// HYPOTHESIS: aiStat 0x0C-0x4B holds four 16-byte records that start out zeroed (the constructor's array loop).
+struct aiStatUnkRecord {
+    int m_unk0;
+    int m_unk4;
+    int m_unk8;
+    int m_unkC;
+
+    aiStatUnkRecord() : m_unk0(0), m_unk4(0), m_unk8(0), m_unkC(0) { }
+};
+
 class aiStat {
 public:
     aiStat();
@@ -30,7 +41,7 @@ public:
     u8 m_unk4;               // 0x04
     char unk5[3];
     int m_unk8;              // 0x08
-    char unkC[0x40];
+    aiStatUnkRecord m_unkC[4]; // 0x0C
     aiInput* m_input;        // 0x4C: the aiInput driving this character (0 for humans)
     u32 m_flags;             // 0x50
     u32 m_transition;        // 0x54: transition bits (chk_transition)
@@ -61,7 +72,8 @@ public:
     int m_damageTeam;        // 0xD8: the team number of the last attack that hit this character (soCollisionLog::m_teamNo)
     float m_unkDC;
     u32 m_taskId;            // 0xE0: compared with soCollisionLog::m_taskId to find the attacker
-    char unkE4[0xD5];
+    aiIpBuf m_ipBuf;         // 0xE4: HYPOTHESIS: this character's recent stick/button frames
+    char unk1A8[0x11];
     u8 m_unk1B9;
     u8 m_situation;          // 0x1BA: 1 = ground, 2 = air, 6/7 = special
     u8 m_unk1BB;
