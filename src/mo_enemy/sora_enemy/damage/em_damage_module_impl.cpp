@@ -216,11 +216,6 @@ static inline float getVec2Angle(Vec2f* a, Vec2f* b) {
     return (float)acos(clamped);
 }
 
-// MATCH-ONLY: the original reads the attack data bitfields as whole words (lwz) with unsigned extraction.
-static inline u32 getAttackDataWord(soCollisionAttackData* attackData, int offset) {
-    return *(u32*)((u8*)attackData + offset);
-}
-
 // The argument at index (a virtual call through the array interface, as in the Enemy unit).
 static inline acCmdArg getCmdArg(const soArrayFixed<const acCmdArgConv>& args, s32 index) {
     return acCmdArg(&args.at(index));
@@ -850,7 +845,7 @@ bool emDamageModuleImpl::isCaptureCut(void* cutByAttack) {
                 if (damage->m_damageAdd >= soValueAccesser::getConstantFloat(m_moduleAccesser, 0x7f1, 0)) {
                     return true;
                 }
-            } else if (((getAttackDataWord(&damage->m_attackData, 0x38) >> 9) & 1) == 0) {
+            } else if (damage->m_attackData.m_isCatch == 0) {
                 *static_cast<bool*>(cutByAttack) = true;
                 return true;
             }

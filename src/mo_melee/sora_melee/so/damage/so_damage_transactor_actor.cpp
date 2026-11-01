@@ -33,7 +33,7 @@ bool soDamageTransactorActor::onDamageSub(soModuleAccesser* moduleAccesser, soDa
     if (0.0f == reaction && damage->m_powerMax <= 0.0f) {
         return false;
     }
-    if (((getAttackDataWord(damage, 0x38) >> 5) & 1) == 1) {
+    if (damage->m_attackData.m_noTransaction == 1) {
         if (isSpeedDamage(moduleAccesser) == 1) {
             setupSpeedDamage(moduleAccesser, damage, damageLog);
         }

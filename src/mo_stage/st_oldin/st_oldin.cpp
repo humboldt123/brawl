@@ -76,41 +76,6 @@ struct stOldinMeleeView {
     u8 stage;
 };
 
-// MATCH-ONLY: a word based view of the bit fields of soCollisionAttackData (from +0x30). The shared header declares its
-// single-bit flags as bool, which the compiler accesses one byte at a time; the original sets all of them with one
-// read-modify-write per word.
-struct stOldinAttackBits {
-    u32 m_nodeIndex : 9;
-    u32 m_targetCategory : 10;
-    u32 m_targetSituation : 3;
-    u32 m_targetLr : 1;
-    u32 m_targetPart : 4;
-    u32 m_attribute : 5;
-    u32 m_soundLevel : 2;
-    u32 m_soundAttribute : 5;
-    u32 m_setOffKind : 2;
-    u32 m_noScale : 1;
-    u32 m_isShieldable : 1;
-    u32 m_isReflectable : 1;
-    u32 m_isAbsorbable : 1;
-    u32 m_subShield : 9;
-    u32 _34 : 10;
-    u32 m_serialHitFrame : 16;
-    u32 m_isDirect : 1;
-    u32 m_isInvalidInvincible : 1;
-    u32 m_isInvalidXlu : 1;
-    u32 m_lrCheck : 3;
-    u32 m_isCatch : 1;
-    u32 m_noTeam : 1;
-    u32 m_noHitStop : 1;
-    u32 m_noEffect : 1;
-    u32 m_noTransaction : 1;
-    u32 m_region : 5;
-    u32 m_shapeType : 1;
-    u32 m_isDeath100 : 1;
-    u32 _3C : 30;
-};
-
 // Parks a ground far below the stage (its first node matrix is moved to (0, -1000, 0)).
 #define OLDIN_PARK(ground)                                                          \
     {                                                                               \
@@ -1286,14 +1251,13 @@ void stOldin::BridgeUpdate(float deltaFrame) {
 void stOldin::setLordBullboAttack(Vec3f* offset) {
     m_lordBullboHit->setAttack(2.0f, offset);
     soCollisionAttackData* attack = m_lordBullboHit->getOverwriteAttackData();
-    stOldinAttackBits* bits = reinterpret_cast<stOldinAttackBits*>(reinterpret_cast<u8*>(attack) + 0x30);
-    bits->m_nodeIndex = 0;
+    attack->m_nodeIndex = 0;
     attack->m_power = 15;
-    bits->m_attribute = 2;
-    bits->m_targetSituation = 7;
-    bits->m_targetCategory = 0x3FF;
-    bits->m_targetLr = 0;
-    bits->m_targetPart = 0xF;
+    attack->m_attribute = soCollisionAttackData::Attribute_Cutup;
+    attack->m_targetSituation = soCollision::SITUATION_MASK_ALL;
+    attack->m_targetCategory = soCollision::CATEGORY_MASK_ALL;
+    attack->m_targetLr = 0;
+    attack->m_targetPart = soCollision::PART_MASK_ALL;
     attack->m_vector = 35;
     attack->m_reactionEffect = 40;
     attack->m_reactionFix = 0;
@@ -1302,24 +1266,24 @@ void stOldin::setLordBullboAttack(Vec3f* offset) {
     attack->m_offsetPos.m_x = offset->m_x;
     attack->m_offsetPos.m_y = offset->m_y;
     attack->m_offsetPos.m_z = offset->m_z;
-    bits->m_setOffKind = 0;
-    bits->m_soundLevel = 2;
-    bits->m_soundAttribute = 2;
-    bits->m_noScale = 0;
-    bits->m_isShieldable = 1;
-    bits->m_isReflectable = 0;
-    bits->m_isAbsorbable = 0;
-    bits->m_isDirect = 0;
-    bits->m_serialHitFrame = 90;
-    bits->m_isInvalidInvincible = 0;
-    bits->m_isInvalidXlu = 0;
-    bits->m_lrCheck = 3;
-    bits->m_isCatch = 0;
-    bits->m_noTeam = 0;
-    bits->m_noHitStop = 0;
-    bits->m_noEffect = 0;
-    bits->m_noTransaction = 0;
-    bits->m_shapeType = 0;
+    attack->m_setOffKind = soCollisionAttackData::SetOff_Off;
+    attack->m_soundLevel = soCollisionAttackData::Sound_Level_Large;
+    attack->m_soundAttribute = soCollisionAttackData::Sound_Attribute_Kick;
+    attack->m_noScale = 0;
+    attack->m_isShieldable = 1;
+    attack->m_isReflectable = 0;
+    attack->m_isAbsorbable = 0;
+    attack->m_isDirect = 0;
+    attack->m_serialHitFrame = 90;
+    attack->m_isInvalidInvincible = 0;
+    attack->m_isInvalidXlu = 0;
+    attack->m_lrCheck = soCollisionAttackData::Lr_Check_Forward;
+    attack->m_isCatch = 0;
+    attack->m_noTeam = 0;
+    attack->m_noHitStop = 0;
+    attack->m_noEffect = 0;
+    attack->m_noTransaction = 0;
+    attack->m_shapeType = soCollision::Shape_Sphere;
     m_lordBullboHit->setAttackPreset(grMadein::Attack_Overwrite);
 }
 
@@ -1327,14 +1291,13 @@ void stOldin::setLordBullboAttack(Vec3f* offset) {
 void stOldin::setTaruAttack(Vec3f* offset) {
     m_taruAttack->setAttack(40.0f, offset);
     soCollisionAttackData* attack = m_taruAttack->getOverwriteAttackData();
-    stOldinAttackBits* bits = reinterpret_cast<stOldinAttackBits*>(reinterpret_cast<u8*>(attack) + 0x30);
-    bits->m_nodeIndex = 0;
+    attack->m_nodeIndex = 0;
     attack->m_power = 30;
-    bits->m_attribute = 0;
-    bits->m_targetSituation = 7;
-    bits->m_targetCategory = 0x3FF;
-    bits->m_targetLr = 0;
-    bits->m_targetPart = 0xF;
+    attack->m_attribute = soCollisionAttackData::Attribute_Normal;
+    attack->m_targetSituation = soCollision::SITUATION_MASK_ALL;
+    attack->m_targetCategory = soCollision::CATEGORY_MASK_ALL;
+    attack->m_targetLr = 0;
+    attack->m_targetPart = soCollision::PART_MASK_ALL;
     attack->m_vector = 362;
     attack->m_reactionEffect = 50;
     attack->m_reactionFix = 0;
@@ -1343,24 +1306,24 @@ void stOldin::setTaruAttack(Vec3f* offset) {
     attack->m_offsetPos.m_x = offset->m_x;
     attack->m_offsetPos.m_y = offset->m_y;
     attack->m_offsetPos.m_z = offset->m_z;
-    bits->m_setOffKind = 0;
-    bits->m_soundLevel = 0;
-    bits->m_soundAttribute = 0;
-    bits->m_noScale = 0;
-    bits->m_isShieldable = 1;
-    bits->m_isReflectable = 0;
-    bits->m_isAbsorbable = 0;
-    bits->m_isDirect = 0;
-    bits->m_serialHitFrame = 60;
-    bits->m_isInvalidInvincible = 0;
-    bits->m_isInvalidXlu = 0;
-    bits->m_lrCheck = 0;
-    bits->m_isCatch = 0;
-    bits->m_noTeam = 0;
-    bits->m_noHitStop = 0;
-    bits->m_noEffect = 0;
-    bits->m_noTransaction = 0;
-    bits->m_shapeType = 1;
+    attack->m_setOffKind = soCollisionAttackData::SetOff_Off;
+    attack->m_soundLevel = soCollisionAttackData::Sound_Level_Small;
+    attack->m_soundAttribute = soCollisionAttackData::Sound_Attribute_None;
+    attack->m_noScale = 0;
+    attack->m_isShieldable = 1;
+    attack->m_isReflectable = 0;
+    attack->m_isAbsorbable = 0;
+    attack->m_isDirect = 0;
+    attack->m_serialHitFrame = 60;
+    attack->m_isInvalidInvincible = 0;
+    attack->m_isInvalidXlu = 0;
+    attack->m_lrCheck = soCollisionAttackData::Lr_Check_Pos;
+    attack->m_isCatch = 0;
+    attack->m_noTeam = 0;
+    attack->m_noHitStop = 0;
+    attack->m_noEffect = 0;
+    attack->m_noTransaction = 0;
+    attack->m_shapeType = soCollision::Shape_Capsule;
     m_taruAttack->setAttackPreset(grMadein::Attack_Overwrite);
 }
 
@@ -1369,14 +1332,13 @@ void stOldin::setBridgeAttack() {
     Vec3f offset(200.0f, 0.0f, 0.0f);
     m_bridgeAttack->setAttack(40.0f, &offset);
     soCollisionAttackData* attack = m_bridgeAttack->getOverwriteAttackData();
-    stOldinAttackBits* bits = reinterpret_cast<stOldinAttackBits*>(reinterpret_cast<u8*>(attack) + 0x30);
-    bits->m_nodeIndex = 0;
+    attack->m_nodeIndex = 0;
     attack->m_power = 0;
-    bits->m_attribute = 0;
-    bits->m_targetSituation = 7;
-    bits->m_targetCategory = 0x3FF;
-    bits->m_targetLr = 0;
-    bits->m_targetPart = 0xF;
+    attack->m_attribute = soCollisionAttackData::Attribute_Normal;
+    attack->m_targetSituation = soCollision::SITUATION_MASK_ALL;
+    attack->m_targetCategory = soCollision::CATEGORY_MASK_ALL;
+    attack->m_targetLr = 0;
+    attack->m_targetPart = soCollision::PART_MASK_ALL;
     attack->m_vector = 90;
     attack->m_reactionEffect = 50;
     attack->m_reactionFix = 100;
@@ -1385,24 +1347,24 @@ void stOldin::setBridgeAttack() {
     attack->m_offsetPos.m_x = offset.m_x;
     attack->m_offsetPos.m_y = offset.m_y;
     attack->m_offsetPos.m_z = offset.m_z;
-    bits->m_setOffKind = 0;
-    bits->m_soundLevel = 0;
-    bits->m_soundAttribute = 0;
-    bits->m_noScale = 0;
-    bits->m_isShieldable = 0;
-    bits->m_isReflectable = 0;
-    bits->m_isAbsorbable = 0;
-    bits->m_isDirect = 0;
-    bits->m_serialHitFrame = 60;
-    bits->m_isInvalidInvincible = 1;
-    bits->m_isInvalidXlu = 1;
-    bits->m_lrCheck = 0;
-    bits->m_isCatch = 0;
-    bits->m_noTeam = 0;
-    bits->m_noHitStop = 0;
-    bits->m_noEffect = 0;
-    bits->m_noTransaction = 0;
-    bits->m_shapeType = 1;
+    attack->m_setOffKind = soCollisionAttackData::SetOff_Off;
+    attack->m_soundLevel = soCollisionAttackData::Sound_Level_Small;
+    attack->m_soundAttribute = soCollisionAttackData::Sound_Attribute_None;
+    attack->m_noScale = 0;
+    attack->m_isShieldable = 0;
+    attack->m_isReflectable = 0;
+    attack->m_isAbsorbable = 0;
+    attack->m_isDirect = 0;
+    attack->m_serialHitFrame = 60;
+    attack->m_isInvalidInvincible = 1;
+    attack->m_isInvalidXlu = 1;
+    attack->m_lrCheck = soCollisionAttackData::Lr_Check_Pos;
+    attack->m_isCatch = 0;
+    attack->m_noTeam = 0;
+    attack->m_noHitStop = 0;
+    attack->m_noEffect = 0;
+    attack->m_noTransaction = 0;
+    attack->m_shapeType = soCollision::Shape_Capsule;
     m_bridgeAttack->setAttackPreset(grMadein::Attack_Overwrite);
 }
 

@@ -257,7 +257,7 @@ bool soDamageModuleImpl::check(bool damageChecked) {
             if ((u32)*(int*)&_160[0] != 0xFFFFFFFF) {
                 m_moduleAccesser->getCollisionAttackModule().setIndirectInfo(*(int*)&_160[0], *(int*)&_160[4]);
             }
-            if (result == 0 && !((getAttackDataWord(&damage->m_attackData, 0x38) >> 5) & 1)) {
+            if (result == 0 && !damage->m_attackData.m_noTransaction) {
                 if (m_moduleAccesser->getSituationModule().getKind() == 0) {
                     clearAttackerInfo();
                 }
@@ -382,7 +382,7 @@ bool soDamageModuleImpl::setGroundDamage(u32 touchKind, soCollisionAttackData* a
         damage->m_collisionLog = log;
         damaged = onGroundDamage();
         m_moduleAccesser->getSoundModule().playHitSE(damage->m_powerMax, &damage->m_attackData);
-        if (((getAttackDataWord(attackData, 0x38) >> 6) & 1) == 0) {
+        if (attackData->m_noEffect == 0) {
             m_effector->reqCommonEffect(damage->m_powerMax, damage->m_reaction, damage->m_lr, m_moduleAccesser, attackData, &damage->m_collisionLog);
         }
         if (m_isDamageLock == 0) {
@@ -484,7 +484,7 @@ bool soDamageModuleImpl::setForceDamage(StageObject* stageObject, Vec3f* pos, u3
         m_attackerInfo.set(defenderTaskId, stageObject);
         damaged = onDamage(damageIndex);
         m_moduleAccesser->getSoundModule().playHitSE(damage->m_powerMax, &damage->m_attackData);
-        if (((getAttackDataWord(attackData, 0x38) >> 6) & 1) == 0) {
+        if (attackData->m_noEffect == 0) {
             m_effector->reqCommonEffect(damage->m_powerMax, damage->m_reaction, damage->m_lr, m_moduleAccesser, attackData, &damage->m_collisionLog);
         }
         if (m_isDamageLock == 0) {
@@ -670,7 +670,7 @@ void soDamageModuleImpl::notifyEventCollisionHit2nd(soCollisionAttackModule* att
     u8 collisionIndex = collisionLog->m_collsionIndex;
     soCollisionAttackData* attackData = attackModule->getData(collisionIndex, collisionLog->m_isAbsolute);
     if (unk == 1) {
-        if (((getAttackDataWord(attackData, 0x38) >> 6) & 1) == 0) {
+        if (attackData->m_noEffect == 0) {
             m_effector->reqInvincibleEffect(m_moduleAccesser, collisionLog);
         }
         return;
@@ -720,7 +720,7 @@ void soDamageModuleImpl::notifyEventCollisionHit2nd(soCollisionAttackModule* att
         damage->m_reaction = kb;
         damage->m_lr = lr;
     }
-    if (((getAttackDataWord(attackData, 0x38) >> 6) & 1) == 0) {
+    if (attackData->m_noEffect == 0) {
         m_effector->reqCommonEffect(tmp, kb, lr, m_moduleAccesser, attackData, collisionLog);
     }
 }
