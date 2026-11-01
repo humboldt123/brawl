@@ -2,6 +2,7 @@
 
 #include <StaticAssert.h>
 #include <gf/gf_task.h>
+#include <nw4r/g3d/g3d_resfile.h>
 #include <nw4r/g3d/g3d_scngroup.h>
 #include <types.h>
 
@@ -18,9 +19,9 @@ public:
     int m_step;                     // 0x138 the step the window is in; HYPOTHESIS: 12 once it has closed
     u8 m_unk13C[0x1F4 - 0x13C];
 
-    // HYPOTHESIS: the parameter types follow what muProcTop passes (three words of muMenuMain, a buffer of the menu
-    // archive, the scene group and a message number).
-    static muWifiCnctWndTask* create(int mode, int* unk1, void* buffer, nw4r::g3d::ScnGroup* group, int msgNo, int* unk2,
-                                     int* unk3);
+    // HYPOTHESIS: the parameter types follow what muProcTop passes (three model files of muMenuMain, a buffer of the
+    // menu archive, the scene group and a message number).
+    static muWifiCnctWndTask* create(int mode, nw4r::g3d::ResFile* resFile1, void* buffer, nw4r::g3d::ScnGroup* group,
+                                     int msgNo, nw4r::g3d::ResFile* keyRes, nw4r::g3d::ResFile* wndRes);
     virtual void exit();
 };

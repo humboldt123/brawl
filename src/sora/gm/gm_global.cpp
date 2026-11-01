@@ -1027,7 +1027,7 @@ void GameGlobal::InitAllRecord() {
     rule->m_allowPause = true;
     rule->m_showScoreDisplay = false;
     rule->m_showDamageGauge = 1;
-    memset(&rule->_32[0x10], 0, 0x58);
+    memset(rule->_30, 0, sizeof(rule->_30));
 
     // HYPOTHESIS: the nte settings start with these values (one byte per setting, mostly percentages)
     s8* nte = reinterpret_cast<s8*>(g_GameGlobal->m_nteData);

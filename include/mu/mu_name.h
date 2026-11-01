@@ -229,6 +229,11 @@ public:
     virtual void exit();
     virtual ~muNameTask();
 
+    // HYPOTHESIS: an inline helper: muProcOptBtn clears both words through one pointer after reading the result
+    void clearResult() {
+        m_resultKind = Result_None;
+        m_resultNameNo = 0;
+    }
     void deleteModel();
     void initProc(nw4r::g3d::ScnGroup* scnGroup, int kind, int padNo, int priority, nw4r::g3d::ScnMdl* parentMdl,
                   const char* parentNode, void* msgData, nw4r::g3d::ResFile* wndRes);
