@@ -25,6 +25,15 @@ void stMelee::setPlayerPositionIndexFixed(int index) {
     m_playerPositionIndex[3] = index;
 }
 
+stMelee::~stMelee() {
+    g_soWorld->m_gravityUp = 1.0f;
+    g_soWorld->m_gravityDown = 1.0f;
+    g_efScreen->m_notify = NULL;
+    if (m_wind2ndData != NULL) {
+        delete m_wind2ndData;
+    }
+}
+
 void stMelee::setGravityNormal() {
     g_soWorld->m_gravityUp = 1.0f;
     g_soWorld->m_gravityDown = 1.0f;
@@ -225,6 +234,26 @@ void stCollisionWork::initialize() {
     m_jointDatas = NULL;
     m_vtxLen = 0;
     m_isClosed = false;
+}
+
+void stCollisionWork::destroy() {
+    // BYTES: the three tables are freed with a plain __dla (no array cookie).
+    if (m_vtxDatas != NULL) {
+        delete[] reinterpret_cast<u8*>(m_vtxDatas);
+    }
+    if (m_lineDatas != NULL) {
+        delete[] reinterpret_cast<u8*>(m_lineDatas);
+    }
+    if (m_jointDatas != NULL) {
+        delete[] reinterpret_cast<u8*>(m_jointDatas);
+    }
+    m_vtxDatas = NULL;
+    m_lineDatas = NULL;
+    m_jointDatas = NULL;
+}
+
+bool stCollisionWork::isValid() {
+    return m_vtxLen != 0;
 }
 
 void stMelee::getItemGenPac(gfArchive** archive) {
