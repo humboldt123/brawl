@@ -13,6 +13,8 @@ namespace nw4r {
             u32 m_stringOffset;
             u8 _spacer2[0x4];
             u16 m_animLength;
+            u16 _pad1E;
+            s32 m_loopMode; // HYPOTHESIS: 1 = looping
         };
         class ResAnmChr : public ResCommon<ResAnmChrData> {
         public:
