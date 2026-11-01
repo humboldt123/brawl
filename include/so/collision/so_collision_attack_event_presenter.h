@@ -48,7 +48,7 @@ public:
     soCollisionAttackEventObserver(short manageId, s8 p2) : soEventObserver<soCollisionAttackEventObserver>(0x1) { initialize(manageId, p2); }
 
 #if defined(FT_MODULE_BUILDER) || defined(YK_STAGE_FULL) || defined(SO_EVENT_OBSERVER_INLINE)
-    virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // MATCH-ONLY: inline in the REL
+    virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // BYTES: the owning unit's weak copy; the #else units call the sora_melee instance
 #else
     virtual void addObserver(short param1, s8 param2);
 #endif

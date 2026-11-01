@@ -36,7 +36,7 @@ public:
     }
 
 #ifdef FT_MODULE_BUILDER
-    ~soHeapModuleImpl(); // MATCH-ONLY: the fighter RELs call the sora_melee destructor
+    ~soHeapModuleImpl(); // BYTES: the fighter RELs call the sora_melee destructor
 #else
     ~soHeapModuleImpl() { }
 #endif

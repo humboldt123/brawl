@@ -3,7 +3,7 @@
 #define SO_TURN_MODULE_IMPL_FULL
 // The anim cmd argument list destructor is the one of sora_melee.
 #define SO_ARRAY_CONTRACTIBLE_TABLE_DTOR_EXTERN
-// MATCH-ONLY: like the Enemy unit, the constructor calls the sora_melee copies of the event observer constructor and
+// BYTES: like the Enemy unit, the constructor calls the sora_melee copies of the event observer constructor and
 // of soEventObserver::initialize.
 #define EM_ENEMY_BUILDER
 // BYTES: the soAnimCmdEventObserver destructor (a weak copy elsewhere in sora_enemy) calls the sora_melee

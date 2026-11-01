@@ -40,7 +40,7 @@ public:
     s32 getManageId() const { return m_manageID; }
 
 #if defined(EM_ENEMY_BUILDER) || defined(SO_EVENT_OBSERVER_CTOR_EXTERN)
-    // MATCH-ONLY: the Enemy unit calls the sora_melee copies of the constructor and of initialize (as does the enemy AI
+    // BYTES: the Enemy unit calls the sora_melee copies of the constructor and of initialize (as does the enemy AI
     // unit, which opts in with SO_EVENT_OBSERVER_CTOR_EXTERN).
     soEventObserver(s16 unitID);
 #else
@@ -63,7 +63,7 @@ public:
     }
 
 #if defined(FT_MODULE_BUILDER) || defined(SO_EVENT_OBSERVER_DTOR_EXTERN)
-    // MATCH-ONLY: the fighter RELs (and the enemy turn module unit, SO_EVENT_OBSERVER_DTOR_EXTERN) call the sora_melee
+    // BYTES: the fighter RELs (and the enemy turn module unit, SO_EVENT_OBSERVER_DTOR_EXTERN) call the sora_melee
     // instance; an inline body would also emit weak copies of the template's vtable and addObserver.
     ~soEventObserver();
 #else
@@ -76,7 +76,7 @@ public:
     void addObserverSub(s32 manageId, T& obsvr, s8 p3) { addObserverSub(manageId, &obsvr, p3); }
 
 #if defined(FT_MODULE_BUILDER) || defined(SO_EVENT_OBSERVER_ADD_SUB_EXTERN)
-    void addObserverSub(s32 manageId, T* obsvr, s8 p3); // MATCH-ONLY: a call into sora_melee in the fighter RELs
+    void addObserverSub(s32 manageId, T* obsvr, s8 p3); // BYTES: a call into sora_melee in the fighter RELs
 #else
     void addObserverSub(s32 manageId, T* obsvr, s8 p3) {
 #if defined(YK_STAGE_FULL) || defined(SO_EVENT_OBSERVER_INLINE) || defined(SO_EVENT_OBSERVER_CHECK_ORDER) // MATCH-ONLY: preserve the stage registration local order

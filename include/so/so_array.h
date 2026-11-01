@@ -226,7 +226,7 @@ public:
     virtual T& at(s32 index);
     virtual const T& at(s32 index) const;
     virtual s32 size() const;
-#ifdef WN_WEAPON_BUILDER // MATCH-ONLY: the article RELs call the sora_melee instances
+#ifdef WN_WEAPON_BUILDER // BYTES: the article RELs call the sora_melee instances
     virtual ~soArrayNull();
 #else
     virtual ~soArrayNull() { }

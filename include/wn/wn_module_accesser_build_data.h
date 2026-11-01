@@ -35,7 +35,7 @@ public:
     virtual u32 getAnmResId() const;
     virtual u8 getResGroupNo() const;
 #ifdef WN_BUILD_DATA_INLINE_QUERIES
-    // MATCH-ONLY: in the Pikmin article unit these queries are weak inline copies.
+    // BYTES: in the Pikmin article unit these queries are weak inline copies.
     virtual s32 getTeam() const { return unk10; }
 #else
     virtual s32 getTeam() const;

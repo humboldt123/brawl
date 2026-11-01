@@ -123,7 +123,7 @@ template <typename T, s32 C>
 class soEventUnitWithWorkArea : public soEventUnitImpl<T> {
     soInstanceManagerFullPropertyVector<T*, C> m_observerList; // 0xC
 public:
-// MATCH-ONLY: fighter RELs call sora_melee's global constructor/destructor of each instantiation (and use its vtable);
+// BYTES: fighter RELs call sora_melee's global constructor/destructor of each instantiation (and use its vtable);
 // with FT_REL_LINK_EXTERN these are declarations only, so the unit emits no weak copy (the destructor
 // is then the key function and the vtable is not emitted either).
 #ifdef FT_REL_LINK_EXTERN

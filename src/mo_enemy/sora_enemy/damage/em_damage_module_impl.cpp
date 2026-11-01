@@ -1,9 +1,9 @@
 // The anim cmd argument list destructor is the one of sora_melee.
 #define SO_ARRAY_CONTRACTIBLE_TABLE_DTOR_EXTERN
-// MATCH-ONLY: like the Enemy unit, the constructor calls the sora_melee copies of the event observer constructor and
+// BYTES: like the Enemy unit, the constructor calls the sora_melee copies of the event observer constructor and
 // of soEventObserver::initialize.
 #define SO_EVENT_OBSERVER_CTOR_EXTERN
-// MATCH-ONLY: the soAnimCmdEventObserver destructor calls the sora_melee instance of the observer template's destructor.
+// BYTES: the soAnimCmdEventObserver destructor calls the sora_melee instance of the observer template's destructor.
 #define SO_EVENT_OBSERVER_DTOR_EXTERN
 // The effector takes the accesser first in reqCommonEffect and reqQuake, and keeps soNull out of its base list
 // (see so/damage/so_damage_effector_impl.h).
@@ -30,7 +30,7 @@
 // BYTES: the effector base keeps its destructor out of line (the soDamageEffectorImpl destructor calls a weak copy of
 // it), as the article units' effector does (see so/damage/so_damage_effector_impl.h).
 #define SO_DAMAGE_EFFECTOR_OUTLINE_DTOR
-// MATCH-ONLY: the registration of an observer base (addObserverSub) is the sora_melee instance of the template member, a
+// BYTES: the registration of an observer base (addObserverSub) is the sora_melee instance of the template member, a
 // call and not an expansion (see so/event/so_event_presenter.h).
 #define SO_EVENT_OBSERVER_ADD_SUB_EXTERN
 // The includes reproduce the original's class definition order, which MWCC's type information order in .data reverses

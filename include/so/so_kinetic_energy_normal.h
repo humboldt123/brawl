@@ -13,7 +13,7 @@ class soKineticEnergyNormal : public soKineticEnergy {
 public:
 #if defined(WN_KINETIC_GENERIC_BUILDER) || defined(FT_KINETIC_STOP_IMPLEMENTATION)
 #ifdef WN_KINETIC_NORMAL_EXTERN
-    // MATCH-ONLY: the Pikmin Dolfin article calls the sora_melee constructor and assignment (declarations only).
+    // BYTES: the Pikmin Dolfin article calls the sora_melee constructor and assignment (declarations only).
     soKineticEnergyNormal(const Vec2f& speed, const Vec2f& accel,
                           const Vec2f& target, const Vec2f& brake,
                           const Vec2f& limit, bool unk30, bool friction);
@@ -114,7 +114,7 @@ public:
 static_assert(sizeof(soKineticEnergyNormal) == 0x34, "Class is wrong size!");
 
 #ifdef FT_MODULE_BUILDER
-// MATCH-ONLY: in the fighter RELs these virtual functions are weak copies (the original header defined them inline);
+// BYTES: in the fighter RELs these virtual functions are weak copies (the original header defined them inline);
 // sora_melee has the out-of-line versions in so_kinetic_energy_normal.cpp.
 inline void soKineticEnergyNormal::clearRotSpeed() { }
 

@@ -2,7 +2,7 @@
 #define SO_AREA_MODULE_INLINE_ACCESSORS
 // The constructor of soAreaEnviromentElementCheckerImpl is a function of sora_melee.
 #define SO_AREA_ENVIROMENT_ELEMENT_CHECKER_IMPL_CT
-// MATCH-ONLY: only the situation observer's addObserver is a weak copy of this unit (the others are sora_melee's).
+// BYTES: only the situation observer's addObserver is a weak copy of this unit (the others are sora_melee's).
 #define SO_SITUATION_OBSERVER_INLINE
 #define SO_EVENT_OBSERVER_ADD_SUB_EXTERN
 // BYTES: the unit calls the weak out-of-line copies of Vec3f(float, float, float) and operator= and of the Vec2f
@@ -17,7 +17,7 @@
 #define MT_VEC3F_SUB_NATIVE_ORDER
 // The anim cmd argument list destructor is the one of sora_melee.
 #define SO_ARRAY_CONTRACTIBLE_TABLE_DTOR_EXTERN
-// MATCH-ONLY: the observer bases are built by the sora_melee copies (EM_ENEMY_BUILDER would also do it, but it conflicts
+// BYTES: the observer bases are built by the sora_melee copies (EM_ENEMY_BUILDER would also do it, but it conflicts
 // with ft/ft_manager.h, which specializes soInstanceUnit<soEventUnit*> and so comes before the event system headers).
 #define SO_EVENT_OBSERVER_CTOR_EXTERN
 #define SO_EVENT_OBSERVER_DTOR_EXTERN

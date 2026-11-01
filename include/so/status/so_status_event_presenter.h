@@ -20,7 +20,7 @@ public:
     s16 m_sendID;
     s32 getObserverId() const { return m_sendID; }
 #ifdef EM_ENEMY_BUILDER
-    // MATCH-ONLY: the Enemy unit calls the sora_melee copies of the constructor and of initialize.
+    // BYTES: the Enemy unit calls the sora_melee copies of the constructor and of initialize.
     soEventObserver(s16 unitID);
     void initialize(s16 param1, s8 param2);
 #else
@@ -44,7 +44,7 @@ public:
     soStatusEventObserver(short manageId, s8 p2) : soEventObserver<soStatusEventObserver>(0x4) { initialize(manageId, p2); }
 
 #ifdef FT_MODULE_BUILDER
-    virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // MATCH-ONLY: inline in the REL
+    virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // BYTES: the owning unit's weak copy; the #else units call the sora_melee instance
 #else
     virtual void addObserver(short param1, s8 param2);
 #endif
