@@ -1,3 +1,4 @@
+#define MT_VEC3F_SCALE_FRESH_REGS
 #define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 // BaseItem: the base class of every item (food, bombs, capsules, trophies' stand-ins, Pokeballs, ...). It is a
 // StageObject that carries its own module set inline and asks an itCustomizer (one per item kind) for the behavior that

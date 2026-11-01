@@ -1,3 +1,4 @@
+#define MT_VEC3F_SCALE_FRESH_REGS
 #define MT_VEC3F_MUL_INLINE
 // Stage collision primitives (the "cl" library): newCollision, clCapsule, clSphere and the clManager pools.
 // Unit boundary (sora_melee): .text 0x70-0x3860 (after global_destructor_chain, before StageObject).

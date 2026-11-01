@@ -1,3 +1,4 @@
+#define MT_VEC3F_SCALE_FRESH_REGS
 #define MT_VEC3F_MUL_INLINE
 #include <gf/gf_camera.h>
 #include <gf/gf_heap_manager.h>

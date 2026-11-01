@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <ec/ec_mgr.h>
 #include <gf/gf_application.h>
 #include <gf/gf_archive.h>
@@ -885,8 +887,7 @@ void stEarth::updateBelt(float deltaFrame) {
         stump->getNodePosition(&start, 0, "taibokuPelletP1");
         stump->getNodePosition(&end, 0, "taibokuPelletP2");
         Vec3f dir = end - start;
-        Vec3f scaled;
-        grEarthVec3Scale(&scaled, &dir, 1.12f);
+        Vec3f scaled = dir * 1.12f;
         end = start + scaled;
         end.m_y = end.m_y + 5.0f;
         m_beltData->m_points[0].m_x = start.m_x;

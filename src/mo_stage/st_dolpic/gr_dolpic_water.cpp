@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <gr/gr_calc_world_callback.h>
 #include <st_dolpic/gr_dolpic.h>
 
@@ -45,7 +47,7 @@ void grDolpicWater::updateCallBack(float deltaFrame) {
             }
             Matrix mtx = *m_mtxWork;
             Vec3f scale;
-            scale = dolpicVec3Scaled(&m_scaleBase, 0.9f);
+            scale = m_scaleBase * 0.9f;
             fn_8003E828(&mtx, &scale, &mtx);
             calcWorldCallBack->m_nodeCallbackDatas->m_matrix = mtx;
         }

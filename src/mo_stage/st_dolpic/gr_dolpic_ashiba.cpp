@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <gf/gf_model.h>
 #include <gr/gr_calc_world_callback.h>
 #include <nw4r/math/math_triangular.h>
@@ -207,7 +209,7 @@ void grDolpicAshiba::updateCallBack(float deltaFrame) {
             data->m_offsetPos.m_y = m_offsetPos.m_y;
             data->m_offsetPos.m_z = m_offsetPos.m_z;
             data = calcWorldCallBack->m_nodeCallbackDatas;
-            data->m_scale = dolpicVec3Scaled(&m_scaleBase, 0.9f);
+            data->m_scale = m_scaleBase * 0.9f;
         }
     }
 }

@@ -1,3 +1,4 @@
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <cm/cm_quake.h>
 #include <cm/cm_subject.h>
 #include <ec/ec_mgr.h>
@@ -43,21 +44,6 @@ static inline void stStadiumSwap(u8& x, u8& y) {
     u8 tmp = x;
     x = y;
     y = tmp;
-}
-
-// MATCH-ONLY: the original scales vectors with paired singles (inline asm in the shared vector code).
-static inline void stStadiumVec3Scale(register Vec3f* pOut, register const Vec3f* v, register float c) {
-    register float fr0, fr2, fr1;
-    // clang-format off
-    asm {
-        psq_l    fr0, Vec3f.m_x(v), 0, 0
-        psq_l    fr1, Vec3f.m_z(v), 1, 0
-        ps_muls0 fr0, fr0, c
-        ps_muls0 fr2, fr1, c
-        psq_st   fr0, Vec3f.m_x(pOut), 0, 0
-        psq_st   fr2, Vec3f.m_z(pOut), 1, 0
-    }
-    // clang-format on
 }
 
 // MATCH-ONLY: the original computes max(a, b) with a paired-single subtract and select.
@@ -1097,12 +1083,12 @@ void stStadium::updateVisionScreenPos() {
         Vec3f deltaA;
         Vec3f scaledA;
         Vec3fSub(&deltaA, &cornerA, &m_visionPosA);
-        stStadiumVec3Scale(&scaledA, &deltaA, 1.0f / quarter);
+        Vec3fScale(&scaledA, &deltaA, 1.0f / quarter);
         Vec3fAdd(&m_visionPosA, &m_visionPosA, &scaledA);
         Vec3f deltaB;
         Vec3f scaledB;
         Vec3fSub(&deltaB, &cornerB, &m_visionPosB);
-        stStadiumVec3Scale(&scaledB, &deltaB, 1.0f / quarter);
+        Vec3fScale(&scaledB, &deltaB, 1.0f / quarter);
         Vec3fAdd(&m_visionPosB, &m_visionPosB, &scaledB);
         cornerA = m_visionPosA;
         cornerB = m_visionPosB;

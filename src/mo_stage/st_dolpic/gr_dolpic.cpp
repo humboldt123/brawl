@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <gr/gr_calc_world_callback.h>
 #include <math.h>
 #include <nw4r/g3d/g3d_resmdl.h>
@@ -72,7 +74,7 @@ void grDolpic::updateCallBack(float deltaFrame) {
                 scnMdl->EnableScnMdlCallbackTiming(1);
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
-            Vec3f scale = dolpicVec3Scaled(&m_scaleBase, 0.9f);
+            Vec3f scale = m_scaleBase * 0.9f;
             grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_scale = scale;
         }

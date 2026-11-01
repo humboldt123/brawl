@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <ec/ec_mgr.h>
 #include <ef/ef_id.h>
 #include <gf/gf_model.h>
@@ -50,7 +52,7 @@ void grDolpicMainBg::processAnim() {
 
 void grDolpicMainBg::update(float deltaFrame) {
     grDolpic::update(deltaFrame);
-    *m_scaleWork = dolpicVec3Scaled(&m_scaleBase, 0.9f);
+    *m_scaleWork = m_scaleBase * 0.9f;
     if (m_effectHandle == 0) {
         g_ecMgr->setDrawPrio(1);
         m_effectHandle = g_ecMgr->setEffect(ef_ptc_stg_dolpic_hunsui);

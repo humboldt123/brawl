@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_CLTARGET_4_FIRST // the clTarget constructor writes the second member first in this REL
@@ -491,8 +493,7 @@ void grGWChefEtc::updateCallBack(float deltaFrame) {
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
             calcWorldCallBack->m_numNodeCallbackData = 1;
-            Vec3f scale;
-            gwVec3Scale(&scale, &m_scale, 0.9f);
+            Vec3f scale = m_scale * 0.9f;
             grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_scale.m_x = scale.m_x;
             data->m_scale.m_y = scale.m_y;
@@ -508,8 +509,7 @@ void grGWChefEtc::updateCallBack(float deltaFrame) {
                 data[1].m_rot.m_x = m_rot.m_x;
                 data[1].m_rot.m_y = m_rot.m_y;
                 data[1].m_rot.m_z = m_rot.m_z;
-                Vec3f flyScale;
-                gwVec3Scale(&flyScale, &m_scale, 0.9f);
+                Vec3f flyScale = m_scale * 0.9f;
                 data = calcWorldCallBack->m_nodeCallbackDatas;
                 data[1].m_scale.m_x = flyScale.m_x;
                 data[1].m_scale.m_y = flyScale.m_y;

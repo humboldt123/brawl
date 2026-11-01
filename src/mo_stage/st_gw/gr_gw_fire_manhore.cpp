@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <gr/gr_calc_world_callback.h>
 #include <memory.h>
 #include <types.h>
@@ -127,8 +129,7 @@ void grGWFireManhore::updateCallBack(float deltaFrame) {
                 data->m_pos.m_y = pos->m_y;
                 data->m_pos.m_z = pos->m_z;
             }
-            Vec3f scale;
-            gwVec3Scale(&scale, &m_scale, 0.9f);
+            Vec3f scale = m_scale * 0.9f;
             grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_scale.m_x = scale.m_x;
             data->m_scale.m_y = scale.m_y;

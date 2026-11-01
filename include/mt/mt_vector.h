@@ -415,18 +415,21 @@ public:
         // clang-format on
     }
     // MATCH-ONLY: paired-single scale used by the generic article code (opt in with MT_VEC3F_MUL_INLINE).
+    // Two register forms reproduce the callers: by default the products overwrite the loaded halves; a unit
+    // that defines MT_VEC3F_SCALE_FRESH_REGS gives each load and each product its own register variable and
+    // lets the allocator place them (the stages, the item/weapon/model posture code, the camera).
     friend void Vec3fScale(register Vec3f* pOut, register const Vec3f* v, register float c) {
-#ifdef MT_VEC3F_SCALE_SPLIT_RESULT
-        // MATCH-ONLY: loaded Z and its product have distinct native lifetimes.
-        register f32 frOut, frZ, frXY;
+#ifdef MT_VEC3F_SCALE_FRESH_REGS
+        register f32 frXY, frZ, frA, frB;
+
         // clang-format off
         asm {
             psq_l    frXY, Vec3f.m_x(v), 0, 0
             psq_l    frZ, Vec3f.m_z(v), 1, 0
-            ps_muls0 frXY, frXY, c
-            ps_muls0 frOut, frZ, c
-            psq_st   frXY, Vec3f.m_x(pOut), 0, 0
-            psq_st   frOut, Vec3f.m_z(pOut), 1, 0
+            ps_muls0 frA, frXY, c
+            ps_muls0 frB, frZ, c
+            psq_st   frA, Vec3f.m_x(pOut), 0, 0
+            psq_st   frB, Vec3f.m_z(pOut), 1, 0
         }
         // clang-format on
 #else

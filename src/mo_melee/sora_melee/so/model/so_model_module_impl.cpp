@@ -1,3 +1,4 @@
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <gf/gf_3d_scene.h>
 #include <gf/gf_copyefb.h>
 #include <gf/gf_heap_manager.h>

@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
 #define YK_DATA_INLINE_CTOR // the ykData / ykDataGroup constructors are inline in this REL
@@ -274,8 +276,7 @@ void grGWOilGuest::updateCallBack(float deltaFrame) {
             data->m_pos.m_x = m_pos.m_x;
             data->m_pos.m_y = m_pos.m_y;
             data->m_pos.m_z = m_pos.m_z;
-            Vec3f scale;
-            gwVec3Scale(&scale, &m_scale, 0.9f);
+            Vec3f scale = m_scale * 0.9f;
             data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_scale.m_x = scale.m_x;
             data->m_scale.m_y = scale.m_y;
@@ -516,8 +517,7 @@ void grGWOilGuestAngerM::updateCallBack(float deltaFrame) {
             data->m_pos.m_x = m_pos.m_x;
             data->m_pos.m_y = m_pos.m_y;
             data->m_pos.m_z = m_pos.m_z;
-            Vec3f scale;
-            gwVec3Scale(&scale, &m_scale, 0.9f);
+            Vec3f scale = m_scale * 0.9f;
             data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_scale.m_x = scale.m_x;
             data->m_scale.m_y = scale.m_y;
@@ -809,8 +809,7 @@ void grGWOilGuestAngerW::updateCallBack(float deltaFrame) {
             float y = pos->m_y;
             data->m_pos.m_y = y;
             data->m_pos.m_z = pos->m_z;
-            Vec3f scale;
-            gwVec3Scale(&scale, &m_scale, 0.9f);
+            Vec3f scale = m_scale * 0.9f;
             data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_scale.m_x = scale.m_x;
             data->m_scale.m_y = scale.m_y;

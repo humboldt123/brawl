@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <gr/gr_calc_world_callback.h>
 #include <mt/mt_prng.h>
 #include <nw4r/g3d/g3d_scnmdl.h>
@@ -114,7 +116,7 @@ void grDolpicBell::updateCallBack(float deltaFrame) {
             grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_pos = pos;
             data = calcWorldCallBack->m_nodeCallbackDatas;
-            data->m_scale = dolpicVec3Scaled(&m_scaleBase, 0.9f);
+            data->m_scale = m_scaleBase * 0.9f;
             if (getScnObjCallback(scnMdl) == NULL) {
                 m_scnObjCallBack.SetCallBackCondition(scnMdl);
                 setScnObjCallback(scnMdl, &m_scnObjCallBack);

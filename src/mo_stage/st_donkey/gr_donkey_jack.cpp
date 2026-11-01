@@ -1,3 +1,5 @@
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #define YK_STAGE_INLINE // inline members of the shared SO headers that the stage RELs emit themselves
 #define YK_STAGE_FULL // ... and the ones of the hit objects with an attack module and an event observer
 #define SO_COLLISION_GROUP_ALIGNED // the hit object embeds soArrayVector<soCollisionGroup, 1> with 4-byte aligned elements
@@ -182,8 +184,7 @@ void grDonkeyJack::updateCallBack(float deltaFrame) {
             data->m_offsetPos.m_x = m_offset.m_x;
             data->m_offsetPos.m_y = m_offset.m_y;
             data->m_offsetPos.m_z = m_offset.m_z;
-            Vec3f scale;
-            donkeyVec3Scale(&scale, &m_scaleBase, 0.9f);
+            Vec3f scale = m_scaleBase * 0.9f;
             data = calcWorldCallBack->m_nodeCallbackDatas;
             data->m_scale.m_x = scale.m_x;
             data->m_scale.m_y = scale.m_y;

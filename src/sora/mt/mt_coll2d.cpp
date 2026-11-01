@@ -659,7 +659,6 @@ void clAABBox2D::draw(GXColor color, float width, bool fill) const {
 
 
 // ===== part C =====
-// MATCH-ONLY: the scale of a 3D vector with paired singles (see mt_vector.h).
 
 // HYPOTHESIS: unnamed mt_coll2d entry points (map: clSegment2D checkIntersect / checkIntersect1); parameter types from register use.
 
