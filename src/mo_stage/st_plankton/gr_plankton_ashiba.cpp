@@ -236,11 +236,12 @@ void grPlanktonAshiba::updateColor(float deltaFrame) {
                 m_leaf->m_hitCount = level - 1;
             }
         } else {
-            nw4r::g3d::ResMatTevColor tevColor;
+            nw4r::g3d::ResMdl model;
             nw4r::g3d::ResMat mat;
+            nw4r::g3d::ResMatTevColor tevColor;
             nw4r::g3d::ScnMdl* scnMdl = m_sceneModels[0];
             if (scnMdl != NULL) {
-                nw4r::g3d::ResMdl model = scnMdl->m_resMdl;
+                model = scnMdl->m_resMdl;
                 if (model.IsValid()) {
                     mat = model.GetResMat("leafA");
                     if (mat.IsValid()) {
@@ -248,11 +249,22 @@ void grPlanktonAshiba::updateColor(float deltaFrame) {
                         tevColor = access.GetResMatTevColor(0);
                         if (tevColor.IsValid()) {
                             u8 index = m_leaf->m_hitCount;
-                            if (index > 14) {
+                            if (index >= 15) {
                                 index = 14;
                             }
-                            tevColor.GXSetTevColor(GX_TEVREG1, data->unk7C[index]);
-                            tevColor.GXSetTevColor(GX_TEVREG2, data->unkB8[index]);
+                            GXColor color;
+                            GXColor* first = &data->unk7C[index];
+                            color.r = first->r;
+                            color.g = first->g;
+                            color.b = first->b;
+                            color.a = first->a;
+                            tevColor.GXSetTevColor(GX_TEVREG0, color);
+                            GXColor* second = &data->unkB8[index];
+                            color.r = second->r;
+                            color.g = second->g;
+                            color.b = second->b;
+                            color.a = second->a;
+                            tevColor.GXSetTevColor(GX_TEVREG1, color);
                             tevColor.DCStore(false);
                             mat.DCStore(false);
                             m_colorLevel = m_leaf->m_hitCount;
@@ -288,11 +300,12 @@ void grPlanktonAshiba::updateLine(float deltaFrame) {
             m_lineTimer = 0.0f;
         }
         if (m_lineTimer != 0.0f) {
-            nw4r::g3d::ResMatTevColor tevColor;
+            nw4r::g3d::ResMdl model;
             nw4r::g3d::ResMat mat;
+            nw4r::g3d::ResMatTevColor tevColor;
             nw4r::g3d::ScnMdl* scnMdl = m_sceneModels[0];
             if (scnMdl != NULL) {
-                nw4r::g3d::ResMdl model = scnMdl->m_resMdl;
+                model = scnMdl->m_resMdl;
                 if (model.IsValid()) {
                     mat = model.GetResMat("leafB");
                     if (mat.IsValid()) {
@@ -300,20 +313,23 @@ void grPlanktonAshiba::updateLine(float deltaFrame) {
                         tevColor = access.GetResMatTevColor(0);
                         if (tevColor.IsValid()) {
                             float rate = nw4r::math::SinFIdx(NW4R_MATH_IDX_TO_FIDX(nw4r::math::U16ToF32((u16)(int)((1.0f - m_lineTimer / 10.0f) * 16384.0f))));
-                            rate = nw4r::math::FSelect(rate - 0.0f, rate, 0.0f);
-                            rate = nw4r::math::FSelect(rate - 1.0f, 1.0f, rate);
+                            if (rate < 0.0f) {
+                                rate = 0.0f;
+                            }
+                            if (rate > 1.0f) {
+                                rate = 1.0f;
+                            }
                             GXColor color;
                             color.r = 255.0f - rate * 83.0f;
-                            color.g = color.r;
+                            color.g = 255.0f - rate * 83.0f;
                             color.b = 255.0f - rate * 43.0f;
-                            color.a = color.r;
+                            color.a = 0;
+                            tevColor.GXSetTevColor(GX_TEVREG0, color);
+                            color.r = 255.0f - rate * 255.0f;
+                            color.g = 255.0f - rate * 255.0f;
+                            color.b = 255.0f - rate * 255.0f;
+                            color.a = 0;
                             tevColor.GXSetTevColor(GX_TEVREG1, color);
-                            u8 value = 255.0f - rate * 255.0f;
-                            color.r = value;
-                            color.g = value;
-                            color.b = value;
-                            color.a = value;
-                            tevColor.GXSetTevColor(GX_TEVREG2, color);
                             tevColor.DCStore(false);
                             mat.DCStore(false);
                         }
