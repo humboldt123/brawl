@@ -590,7 +590,7 @@ float soDamageModuleImpl::getDamageMul() {
 float soDamageModuleImpl::getDamageLr(float posX, float lr, void* attackModulePtr, void* attackDataPtr, int index, int isAbsolute) {
     soCollisionAttackModule* attackModule = (soCollisionAttackModule*)attackModulePtr;
     soCollisionAttackData* attackData = (soCollisionAttackData*)attackDataPtr;
-    switch (((*(u32*)((u8*)attackData + 0x38)) >> 10) & 7) { // MATCH-ONLY: unsigned extraction of the lrCheck bitfield
+    switch (attackData->m_lrCheck) {
     case 1:
         {
             float speed = attackModule->getSpeedX();

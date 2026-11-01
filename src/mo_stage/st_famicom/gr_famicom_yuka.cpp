@@ -26,14 +26,6 @@ extern "C" void fn_801F2C58(GXTexObj* texObj, int wrapS, int wrapT);
 extern "C" void fn_801341D8(grCollStatus* collStatus, void* shape);
 extern "C" void Destroy__Q34nw4r3g3d6G3dObjFv(void* obj);
 
-// MATCH-ONLY: the original reads the second byte of the collision status' first word as a signed bit field.
-struct famicomCollView {
-    char _0[8];
-    int m_first : 8;
-    int m_hitSide : 8;
-    int m_rest : 16;
-};
-
 // MATCH-ONLY: the flag word of a collision joint (the stage sets the collision kind in its second byte)
 struct famicomJointView {
     u8 _pad[0x48];
@@ -435,7 +427,7 @@ grFamicomYukaActor* grFamicomYuka::getActor1(nw4r::ut::LinkList<grFamicomYukaAct
 void grFamicomYuka::receiveCollMsg_Heading(grCollStatus* collStatus, grCollisionJoint* collisionJoint, bool isFirstContact) {
     static u32 sOwnerFlags = 1;
     if (isCollisionStatusOwnerTask(collStatus, reinterpret_cast<CollCategoryFlag*>(&sOwnerFlags)) &&
-        reinterpret_cast<famicomCollView*>(collStatus)->m_hitSide == 2) {
+        collStatus->m_unk9 == 2) {
         float hitX;
         float hitY;
         if (collStatus->m_currentCollShape->getType() == 2) {

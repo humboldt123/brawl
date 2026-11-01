@@ -1185,9 +1185,9 @@ void stDxCorneria::PTBaseUpdate(float deltaFrame) {
     }
 }
 
-// MATCH-ONLY: a word based view of the bit fields of soCollisionAttackData (from +0x30). The shared header declares its
-// single-bit flags as bool, which the compiler accesses one byte at a time; the original sets all of them with one
-// read-modify-write per word.
+// MATCH-ONLY: a word based view of the bit fields of soCollisionAttackData (from +0x30), used only by setBeamGAttack:
+// the typed members give the same instructions with r4/r5/r0 permuted (0.18% worse); the original stores the word
+// once right after clearing the node index, which neither form reproduces.
 struct stDxCorneriaAttackBits {
     u32 m_nodeIndex : 9;
     u32 m_targetCategory : 10;
@@ -1225,14 +1225,13 @@ void stDxCorneria::setBeamAAttack(grDxCorneriaBeam* beam) {
     beam->setAttack(0.5f, &sBeamAPos);
     beam->m_angle = sBeamAPos.m_x;
     soCollisionAttackData* attack = beam->getOverwriteAttackData();
-    stDxCorneriaAttackBits* bits = reinterpret_cast<stDxCorneriaAttackBits*>(reinterpret_cast<u8*>(attack) + 0x30);
-    bits->m_nodeIndex = 0;
+    attack->m_nodeIndex = 0;
     attack->m_power = 6;
-    bits->m_attribute = 0;
-    bits->m_targetSituation = 7;
-    bits->m_targetCategory = 0x3FF;
-    bits->m_targetLr = 0;
-    bits->m_targetPart = 0xF;
+    attack->m_attribute = 0;
+    attack->m_targetSituation = soCollision::SITUATION_MASK_ALL;
+    attack->m_targetCategory = soCollision::CATEGORY_MASK_ALL;
+    attack->m_targetLr = 0;
+    attack->m_targetPart = soCollision::PART_MASK_ALL;
     attack->m_vector = 10;
     attack->m_reactionEffect = 25;
     attack->m_reactionFix = 0;
@@ -1241,24 +1240,24 @@ void stDxCorneria::setBeamAAttack(grDxCorneriaBeam* beam) {
     attack->m_offsetPos.m_x = sBeamAPos.m_x;
     attack->m_offsetPos.m_y = sBeamAPos.m_y;
     attack->m_offsetPos.m_z = sBeamAPos.m_z;
-    bits->m_setOffKind = 0;
-    bits->m_soundLevel = 0;
-    bits->m_soundAttribute = 1;
-    bits->m_noScale = 0;
-    bits->m_isShieldable = 1;
-    bits->m_isReflectable = 1;
-    bits->m_isAbsorbable = 1;
-    bits->m_isDirect = 0;
-    bits->m_serialHitFrame = 16;
-    bits->m_isInvalidInvincible = 0;
-    bits->m_isInvalidXlu = 0;
-    bits->m_lrCheck = 0;
-    bits->m_isCatch = 0;
-    bits->m_noTeam = 0;
-    bits->m_noHitStop = 1;
-    bits->m_noEffect = 0;
-    bits->m_noTransaction = 0;
-    bits->m_shapeType = soCollision::Shape_Capsule;
+    attack->m_setOffKind = soCollisionAttackData::SetOff_Off;
+    attack->m_soundLevel = 0;
+    attack->m_soundAttribute = 1;
+    attack->m_noScale = 0;
+    attack->m_isShieldable = 1;
+    attack->m_isReflectable = 1;
+    attack->m_isAbsorbable = 1;
+    attack->m_isDirect = 0;
+    attack->m_serialHitFrame = 16;
+    attack->m_isInvalidInvincible = 0;
+    attack->m_isInvalidXlu = 0;
+    attack->m_lrCheck = 0;
+    attack->m_isCatch = 0;
+    attack->m_noTeam = 0;
+    attack->m_noHitStop = 1;
+    attack->m_noEffect = 0;
+    attack->m_noTransaction = 0;
+    attack->m_shapeType = soCollision::Shape_Capsule;
     beam->setAttackPreset(grMadein::Attack_Overwrite);
 }
 
@@ -1309,14 +1308,13 @@ void stDxCorneria::setBeamGAttack(grDxCorneriaBeam* beam) {
 void stDxCorneria::setGFoxCanonAttack(grDxCorneria* ground) {
     ground->setAttack(4.0f, &sCanonPos);
     soCollisionAttackData* attack = ground->getOverwriteAttackData();
-    stDxCorneriaAttackBits* bits = reinterpret_cast<stDxCorneriaAttackBits*>(reinterpret_cast<u8*>(attack) + 0x30);
-    bits->m_nodeIndex = 0;
+    attack->m_nodeIndex = 0;
     attack->m_power = 30;
-    bits->m_attribute = soCollisionAttackData::Attribute_Electric;
-    bits->m_targetSituation = 7;
-    bits->m_targetCategory = 0x3FF;
-    bits->m_targetLr = 0;
-    bits->m_targetPart = 0xF;
+    attack->m_attribute = soCollisionAttackData::Attribute_Electric;
+    attack->m_targetSituation = soCollision::SITUATION_MASK_ALL;
+    attack->m_targetCategory = soCollision::CATEGORY_MASK_ALL;
+    attack->m_targetLr = 0;
+    attack->m_targetPart = soCollision::PART_MASK_ALL;
     attack->m_vector = 10;
     attack->m_reactionEffect = 80;
     attack->m_reactionFix = 0;
@@ -1325,24 +1323,24 @@ void stDxCorneria::setGFoxCanonAttack(grDxCorneria* ground) {
     attack->m_offsetPos.m_x = sCanonPos.m_x;
     attack->m_offsetPos.m_y = sCanonPos.m_y;
     attack->m_offsetPos.m_z = sCanonPos.m_z;
-    bits->m_setOffKind = 0;
-    bits->m_soundLevel = soCollisionAttackData::Sound_Level_Large;
-    bits->m_soundAttribute = soCollisionAttackData::Sound_Attribute_Fire;
-    bits->m_noScale = 0;
-    bits->m_isShieldable = 1;
-    bits->m_isReflectable = 0;
-    bits->m_isAbsorbable = 0;
-    bits->m_isDirect = 0;
-    bits->m_serialHitFrame = 16;
-    bits->m_isInvalidInvincible = 0;
-    bits->m_isInvalidXlu = 0;
-    bits->m_lrCheck = soCollisionAttackData::Lr_Check_Lr;
-    bits->m_isCatch = 0;
-    bits->m_noTeam = 0;
-    bits->m_noHitStop = 1;
-    bits->m_noEffect = 0;
-    bits->m_noTransaction = 0;
-    bits->m_shapeType = soCollision::Shape_Capsule;
+    attack->m_setOffKind = soCollisionAttackData::SetOff_Off;
+    attack->m_soundLevel = soCollisionAttackData::Sound_Level_Large;
+    attack->m_soundAttribute = soCollisionAttackData::Sound_Attribute_Fire;
+    attack->m_noScale = 0;
+    attack->m_isShieldable = 1;
+    attack->m_isReflectable = 0;
+    attack->m_isAbsorbable = 0;
+    attack->m_isDirect = 0;
+    attack->m_serialHitFrame = 16;
+    attack->m_isInvalidInvincible = 0;
+    attack->m_isInvalidXlu = 0;
+    attack->m_lrCheck = soCollisionAttackData::Lr_Check_Lr;
+    attack->m_isCatch = 0;
+    attack->m_noTeam = 0;
+    attack->m_noHitStop = 1;
+    attack->m_noEffect = 0;
+    attack->m_noTransaction = 0;
+    attack->m_shapeType = soCollision::Shape_Capsule;
     ground->setAttackPreset(grMadein::Attack_Overwrite);
 }
 

@@ -52,7 +52,9 @@ public:
     grCollStatus* m_prev;
     // 8
     Setting m_setting : 8;
-    u32 m_unk9 : 16;
+    // HYPOTHESIS: a signed contact side (the block stages' heading messages accept only 2); read signed (extsb).
+    int m_unk9 : 8;
+    u32 m_unkA : 8;
     int m_unkB : 8;
 
     u32 m_unkC : 8;
