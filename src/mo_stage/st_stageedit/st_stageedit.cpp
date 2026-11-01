@@ -37,8 +37,6 @@ void fn_27_232C18(stTriggerMng* mng);
 void fn_27_232374(stTriggerMng* mng, void* trigger);
 // stAreaManager: the singleton, its constructor, initMng and eraseAll
 extern stAreaManager* lbl_27_bss_5780;
-stAreaManager* fn_27_22A914(void* self);
-void fn_27_22A9D4(stAreaManager* manager, int size);
 void fn_27_22AB74(stAreaManager* manager);
 }
 
@@ -273,12 +271,7 @@ static inline void stEditSleepTrigger(stObsTriggerSquareBeltConveyorCB* callback
 // The manager of the areas, created when it is needed.
 static inline stAreaManager* stEditAreaManager() {
     if (lbl_27_bss_5780 == NULL) {
-        void* memory = ::operator new(0x54, Heaps::System);
-        stAreaManager* manager = static_cast<stAreaManager*>(memory);
-        if (memory != NULL) {
-            manager = fn_27_22A914(memory);
-        }
-        lbl_27_bss_5780 = manager;
+        lbl_27_bss_5780 = new (Heaps::System) stAreaManager();
     }
     return lbl_27_bss_5780;
 }
@@ -305,7 +298,7 @@ stEdit::stEdit() : stMelee("stEdit", Stages::Edit) {
     m_fallBlocks = NULL;
     m_seCount = 0;
     memset(m_startPos, 0, 0x1A28);
-    fn_27_22A9D4(stEditAreaManager(), 0x20);
+    stEditAreaManager()->initMng(0x20);
 }
 
 stEdit::~stEdit() {

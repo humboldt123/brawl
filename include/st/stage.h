@@ -10,6 +10,7 @@
 #include <gf/gf_archive.h>
 #include <gf/gf_task.h>
 #include <gm/gm_lib.h>
+#include <gr/gr_collconv.h>
 #include <gr/gr_yakumono.h>
 #include <if/if_smash_appear.h>
 #include <it/item.h>
@@ -18,6 +19,7 @@
 #include <mt/mt_vector.h>
 #include <snd/snd_3d_generator.h>
 #include <st/st_collision_attr_param.h>
+#include <st/st_data_container.h>
 #include <st/st_positions.h>
 #include <st/st_trigger.h>
 #include <st/st_shadow.h>
@@ -25,11 +27,11 @@
 
 struct stGameFrame {
     float m_frameDelta;
-    bool m_isJust;
-    char _[3];
 };
 
 extern stGameFrame g_stGameFrame;
+// HYPOTHESIS: the name. A separate global next to g_stGameFrame (the stage code addresses it on its own).
+extern bool g_stIsJustGameFrame;
 
 class stParam { // STPM
 public:
@@ -47,7 +49,8 @@ public:
     char _23;
     float m_shadowPitch;
     float m_shadowYaw;
-    char _26[8];
+    float m_shadowRoll; // HYPOTHESIS: the name; copied next to pitch/yaw into gfSceneRoot by updateStagePositions
+    char _36[4];
     float m_camFOV;
     float m_camMinZ;
     float m_camMaxZ;
@@ -75,7 +78,7 @@ public:
     float m_fixedCamFOV;
     float m_fixedHorizontalAngle;
     float m_fixedVerticalAngle;
-    char _164[4];
+    float m_enableZ; // getEnableZ
     float m_olimarFinalCamAngle;
     Vec3f m_iceClimbersFinalPos;
     Vec2f m_iceClimbersFinalScale;
@@ -118,102 +121,138 @@ struct stDestroyBossParamCommon {
 };
 static_assert(sizeof(stDestroyBossParamCommon) == 0x18, "Class is wrong size!");
 
+// HYPOTHESIS: the names. A linear blend of gmStageData::m_motionRatio (or m_motionSubRatio) from m_start to
+// m_target over m_endFrame frames; processAnim advances m_frame and clears the blend when it is done.
+struct MotionRatioBlend {
+    float m_start;
+    float m_target;
+    float m_frame;
+    float m_endFrame;
+};
+static_assert(sizeof(MotionRatioBlend) == 0x10, "Class is wrong size!");
+
 class Stage;
 extern Stage* g_Stage;
 class Stage : public gfTask {
 public:
-    // 0
-    u32 unk40;
-    // 4
-    srStageKind m_stageKind;
-    // 8
-    char _spacer1[0x10];
-    // 18
-    Rect2D m_deadRange;
-    // 28
-    Rect2D m_aiRange;
-    // 38
-    cmStageParam* m_cameraParam1;
-    // 3c
-    char _3c[0x4];
-    // 40
-    cmStageParam* m_cameraParam2;
+    // Offsets are from the start of the object (gfTask is 0x40 bytes); recovered from the constructor,
+    // initializeStage, closeStage and the accessors in sora_melee st/stage.o.
+    // 40: begin-frame state machine (processBegin): 0 start, 1 loading, 2 loaded, 3/4 running
+    s32 unk40;
     // 44
-    char _spacer2[4];
+    srStageKind m_stageKind;
     // 48
-    Ground* m_headGround;
-    // 4c
-    void* m_collConv;
-    // 50
-    stPositions* m_stagePositions;
+    u8 unk48;
+    // 49: cleared by initializeStage; roles unknown
+    u8 unk49;
+    u8 unk4A;
+    u8 unk4B;
+    u8 unk4C;
+    u8 unk4D;
+    u8 unk4E;
+    u8 unk4F;
+    u8 unk50;
+    char _51[3];
     // 54
-    char _spacer3[4];
+    u32 unk54;
     // 58
-    stParam* m_stageParam;
-    // 5C
-    void* m_stageData;
-    // 60
-    stTriggerMng* m_triggerMng;
-    // 64
-    char _spacer4[8];
-    // 6C
-    bool unkAC; // HYPOTHESIS: set while the camera clips grounds; Ground::processUpdate then calls invalidatedByCameraClipping
-    char _spacer4b[0xF];
+    Rect2D m_deadRange;
+    // 68
+    Rect2D m_aiRange;
+    // 78: the active camera parameters (initCameraParam points this at m_cameraParam2)
+    cmStageParam* m_cameraParam1;
     // 7C
-    Vec3f* m_pokeTrainerPos;
-    // 80
-    u8 m_pokeTrainerPosIndex;
-    // 81
-    u8 m_pokeTrainerPosCount;
-    // 82
-    u8 m_pokeTrainerPosType;
-    // 83
-    char _0x83[1];
+    bool unk7C; // HYPOTHESIS: set once initCameraParam owns the camera parameters
+    u8 unk7D;
+    char _7E[2];
+    // 80: the camera parameters initCameraParam allocates (freed by clearCameraParam/closeStage)
+    cmStageParam* m_cameraParam2;
     // 84
-    stShadow* m_shadow;
+    u32 unk84;
     // 88
-    float _0x88[6];
+    Ground* m_headGround;
+    // 8C
+    grCollConv* m_collConv;
+    // 90
+    stPositions* m_stagePositions;
+    // 94: the shadow texture registShadowTexture finds in the stage file
+    nw4r::g3d::ResTex m_shadowTex;
+    // 98
+    stParam* m_stageParam;
+    // 9C
+    void* m_stageData;
     // A0
-    char _0xA0[11];
-    // AB
-    bool m_isDevil;
+    stTriggerMng* m_triggerMng;
+    // A4: the containers that own the STPM and STDT blocks above
+    stDataMultiContainer* m_stageParamContainer;
+    stDataMultiContainer* m_stageDataContainer;
     // AC
-    Vec2f m_devilOffset;
-    // B4
-    char _0xB4[4];
+    bool unkAC; // HYPOTHESIS: set while the camera clips grounds; Ground::processUpdate then calls invalidatedByCameraClipping
+    char _AD[3];
+    // B0
+    float m_fighterDeadEffectSizeRate;
+    float m_enemyDeadEffectSizeRate;
     // B8
-    char collisionAttrs[0xC];
+    u32 unkB8;
+    // BC
+    Vec3f* m_pokeTrainerPos;
+    // C0
+    u8 m_pokeTrainerPosIndex;
+    // C1
+    u8 m_pokeTrainerPosCount;
+    // C2
+    u8 m_pokeTrainerPosType;
+    // C3
+    char _0x83[1];
     // C4
+    stShadow* m_shadow;
+    // C8: the motion-ratio blends setMotionRatio/setMotionSubRatio start and processAnim steps
+    MotionRatioBlend m_motionRatioBlend;
+    MotionRatioBlend m_motionSubRatioBlend;
+    // E8
+    u8 unkE8; // HYPOTHESIS: 1 makes processAnim call updateStagePositions every frame
+    // E9
+    bool unkE9; // set by setStageInEffectInit, cleared by setStageOutEffectInit
+    bool unkEA;
+    // EB
+    bool m_isDevil;
+    // EC
+    Vec2f m_devilOffset;
+    // F4
+    float unkF4;
+    // F8
+    stCollisionAttrParam m_collisionAttrParam;
+    // 104
     gfArchive m_itemSheetArchive;
-    // 144
+    // 184
     bool m_unk2;
-    // 145
+    // 185
     char _spacer6[3];
-    // 148
+    // 188
     u32 m_unk3;
-    // 14C
+    // 18C
     float m_unk4;
-    // 150
+    // 190
     float m_frameRuleTime;
-    // 154
+    // 194
     u32 unk194;
-    // 158
-    char _spacer7[0x1];
+    // 198
+    bool unk198; // HYPOTHESIS: cleared and set by stLoaderStage around the stage load
     // HYPOTHESIS: flags read by the boss-defeat sequence (stOperatorDefeatBoss), meanings unknown.
     bool unk199;
     bool unk19A;
     bool unk19B;
     bool unk19C;
     bool unk19D;
-    char _spacer8[0x1];
+    bool unk19E;
     // HYPOTHESIS: a flag of the stage the boss fight runs on; Meta Ridley's body stays intangible while it is 1.
     bool unk19F; // a bool: emGeneralTermDisideModuleImpl returns it as is
-    // TOTAL_SIZE == 0x160
+    // TOTAL_SIZE == 0x1A0
 
     void testStageParamInit(gfArchive* archive, int fileIndex);
     void testCollDataInit(gfArchive* archive, grCollData* collData, u32 index);
     void setCollision(grCollision* coll);
-    void stageParamChange();
+    bool stageParamChange(u32 index); // takes the block index (the map gives no parameters)
     void testStageDataInit(gfArchive* archive, int fileIndex, int unk2);
     void initSoundParameters();
     void setSoundParameters(stParam* stpm);
@@ -226,12 +265,17 @@ public:
     void createStagePositions();
     void createStagePositions(nw4r::g3d::ResFile* resFile);
     void loadStageAttrParam(gfArchive* filedata, int fileIndex);
-    void registScnAnim(nw4r::g3d::ResFileData* scnData, u32 index);
+    bool registScnAnim(nw4r::g3d::ResFileData* scnData, u32 index);
     void initPosPokeTrainer(int unk1, int unk2);
     void setStageAttackData(grGimmickDamageFloor* attackData, u32 index);
     void removeGround(Ground*);
     bool isPokemonTrainer();
     void clearShadow();
+    bool registShadowTexture(void* data, u32 index); // HYPOTHESIS: name from the map
+    void loadStageAttackData(gfArchive* archive, int fileIndex, u8 attackRate); // HYPOTHESIS: name from the map
+    void setBlendColorEnable();
+    void setBlendColorDisable();
+    void setBlendColor(GXColor color);
 
     Stage(const char* name, srStageKind stageKind);
     virtual void processBegin();
@@ -335,12 +379,12 @@ public:
     virtual IfSmashAppearTask* getAppearTask();              // TODO
     virtual void forceStopAppear();                          // TODO
     virtual GXColor getFinalTechniqColor();
-    virtual void setMotionRatio(float unk1, float unk2);     // TODO
-    virtual void saveMotionRatio(int unk1);                  // TODO
-    virtual void restoreMotionRatio(int unk1);               // TODO
-    virtual void setMotionSubRatio(float unk1, float unk2);  // TODO
-    virtual void saveMotionSubRatio(int unk1);               // TODO
-    virtual void restoreMotionSubRatio(int unk1);            // TODO
+    virtual void setMotionRatio(float ratio, float frames);
+    virtual void saveMotionRatio(MotionRatioBlend* save);
+    virtual void restoreMotionRatio(MotionRatioBlend* save);
+    virtual void setMotionSubRatio(float ratio, float frames);
+    virtual void saveMotionSubRatio(MotionRatioBlend* save);
+    virtual void restoreMotionSubRatio(MotionRatioBlend* save);
     virtual bool isCameraLocked() { return true; }
 #ifdef ST_STAGE_BOSS_MODE_DECL_ONLY
     // A unit that only calls these through the vtable sees no body (the Enemy unit's original emits no weak copies).
@@ -386,6 +430,7 @@ public:
 
     inline static Stage* getInstance() { return g_Stage; }
 };
+static_assert(sizeof(Stage) == 0x1A0, "Class is wrong size!");
 
 
 ENUM_U32(ArchiveOverrideSetting,

@@ -180,6 +180,8 @@ public:
     bool searchNode(const char* mdlName, const char* nodeName, int* mdlIndex, u16* nodeIndex);
     void setBlendColorDisable();
     void setBlendColorEnable();
+    // HYPOTHESIS: inline (Stage::setBlendColor copies the colour argument to the stack for each ground).
+    void setBlendColor(GXColor color) { m_blendColor = color; }
     void setDontMoveGround();
     void setEnableCollisionStatus(bool enableColl);
     void setEnableCollisionStatusByClipping(bool enableColl);

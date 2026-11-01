@@ -44,7 +44,6 @@ struct stDxCruiseMeleeView {
 // HYPOTHESIS: sets a ground's blend/speed constant (on = 1)
 extern "C" void fn_27_279228(Ground* ground, bool on);
 // HYPOTHESIS: gives the position of the fighter with this entry id (false when it cannot be found)
-extern "C" bool fn_27_2397E4(Stage* stage, int entryId, Vec3f* pos);
 
 // Reads the "landed on" weight of a madein ground (grMadein::m_304 at +0x170 is protected).
 class grCruiseMadein : public grMadein {
@@ -398,7 +397,7 @@ void stDxCruise::update(float deltaFrame) {
         int entryId = g_ftManager->getEntryIdFromTaskId(cruiseGround(this, 11)->getLanderTaskId(), &instance);
         Vec3f fighterPos;
         if (entryId != -1) {
-            if (fn_27_2397E4(this, entryId, &fighterPos)) {
+            if (getPlayerPositionEntryId(entryId, &fighterPos)) {
                 Vec3f seesawPos = static_cast<grGimmick*>(getGround(9))->getPos();
                 float distance = mtSqrtf((seesawPos.m_x - fighterPos.m_x) * (seesawPos.m_x - fighterPos.m_x)
                                          + (seesawPos.m_y - fighterPos.m_y) * (seesawPos.m_y - fighterPos.m_y));
@@ -414,7 +413,7 @@ void stDxCruise::update(float deltaFrame) {
         int entryId = g_ftManager->getEntryIdFromTaskId(cruiseGround(this, 10)->getLanderTaskId(), &instance);
         Vec3f fighterPos;
         if (entryId != -1) {
-            if (fn_27_2397E4(this, entryId, &fighterPos)) {
+            if (getPlayerPositionEntryId(entryId, &fighterPos)) {
                 Vec3f seesawPos = static_cast<grGimmick*>(getGround(9))->getPos();
                 float distance = mtSqrtf((seesawPos.m_x - fighterPos.m_x) * (seesawPos.m_x - fighterPos.m_x)
                                          + (seesawPos.m_y - fighterPos.m_y) * (seesawPos.m_y - fighterPos.m_y));
