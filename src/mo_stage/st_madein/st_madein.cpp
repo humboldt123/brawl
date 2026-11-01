@@ -50,79 +50,43 @@ namespace {
 
 stClassInfoImpl<Stages::Madein, stMadein> stMadein::bss_loc_14;
 
-// MATCH-ONLY: a word based view of the bit fields of soCollisionAttackData (from +0x30). The shared header declares its
-// single-bit flags as bool, which the compiler accesses one byte at a time; the original sets all of them with one
-// read-modify-write per word.
-struct stMadeinAttackBits {
-    u32 m_nodeIndex : 9;
-    u32 m_targetCategory : 10;
-    u32 m_targetSituation : 3;
-    u32 m_targetLr : 1;
-    u32 m_targetPart : 4;
-    u32 m_attribute : 5;
-    u32 m_soundLevel : 2;
-    u32 m_soundAttribute : 5;
-    u32 m_setOffKind : 2;
-    u32 m_noScale : 1;
-    u32 m_isShieldable : 1;
-    u32 m_isReflectable : 1;
-    u32 m_isAbsorbable : 1;
-    u32 m_subShield : 9;
-    u32 _34 : 10;
-    u32 m_serialHitFrame : 16;
-    u32 m_isDirect : 1;
-    u32 m_isInvalidInvincible : 1;
-    u32 m_isInvalidXlu : 1;
-    u32 m_lrCheck : 3;
-    u32 m_isCatch : 1;
-    u32 m_noTeam : 1;
-    u32 m_noHitStop : 1;
-    u32 m_noEffect : 1;
-    u32 m_noTransaction : 1;
-    u32 m_region : 5;
-    u32 m_shapeType : 1;
-    u32 m_isDeath100 : 1;
-    u32 _3C : 30;
-};
-
 // Every hit box of the stage is described by the same list of values, in this order.
 #define MADEIN_ATTACK(attack, power, attribute, situation, vector, rEffect, rFix, rAdd, size, offset, soundLevel, soundAttr, \
                       serialHit, lr)                                                                                       \
     {                                                                                                                      \
-        stMadeinAttackBits* bits = reinterpret_cast<stMadeinAttackBits*>(reinterpret_cast<u8*>(attack) + 0x30);            \
         (attack)->m_reactionEffect = (rEffect);                                                                            \
         (attack)->m_reactionFix = (rFix);                                                                                  \
         (attack)->m_reactionAdd = (rAdd);                                                                                  \
         (attack)->m_power = (power);                                                                                       \
         (attack)->m_vector = (vector);                                                                                     \
-        bits->m_nodeIndex = 0;                                                                                             \
+        (attack)->m_nodeIndex = 0;                                                                                             \
         (attack)->m_size = (size);                                                                                         \
         (attack)->m_offsetPos.m_x = (offset).m_x;                                                                          \
         (attack)->m_offsetPos.m_y = (offset).m_y;                                                                          \
         (attack)->m_offsetPos.m_z = (offset).m_z;                                                                          \
-        bits->m_attribute = (attribute);                                                                                   \
-        bits->m_targetSituation = (situation);                                                                             \
-        bits->m_targetCategory = 0x3FF;                                                                                    \
-        bits->m_targetLr = 0;                                                                                              \
-        bits->m_targetPart = 0xF;                                                                                          \
-        bits->m_setOffKind = 0;                                                                                            \
-        bits->m_noScale = 0;                                                                                               \
-        bits->m_soundLevel = (soundLevel);                                                                                 \
-        bits->m_soundAttribute = (soundAttr);                                                                              \
-        bits->m_isShieldable = 1;                                                                                          \
-        bits->m_isReflectable = 0;                                                                                         \
-        bits->m_isAbsorbable = 0;                                                                                          \
-        bits->m_isDirect = 0;                                                                                              \
-        bits->m_serialHitFrame = (serialHit);                                                                              \
-        bits->m_isInvalidInvincible = 0;                                                                                   \
-        bits->m_isInvalidXlu = 0;                                                                                          \
-        bits->m_lrCheck = (lr);                                                                                            \
-        bits->m_isCatch = 0;                                                                                               \
-        bits->m_noTeam = 0;                                                                                                \
-        bits->m_noHitStop = 0;                                                                                             \
-        bits->m_noEffect = 0;                                                                                              \
-        bits->m_noTransaction = 0;                                                                                         \
-        bits->m_shapeType = 1;                                                                                             \
+        (attack)->m_attribute = (attribute);                                                                                   \
+        (attack)->m_targetSituation = (situation);                                                                             \
+        (attack)->m_targetCategory = soCollision::CATEGORY_MASK_ALL;                                                                                    \
+        (attack)->m_targetLr = 0;                                                                                              \
+        (attack)->m_targetPart = soCollision::PART_MASK_ALL;                                                                                          \
+        (attack)->m_setOffKind = soCollisionAttackData::SetOff_Off;                                                                                            \
+        (attack)->m_noScale = 0;                                                                                               \
+        (attack)->m_soundLevel = (soundLevel);                                                                                 \
+        (attack)->m_soundAttribute = (soundAttr);                                                                              \
+        (attack)->m_isShieldable = 1;                                                                                          \
+        (attack)->m_isReflectable = 0;                                                                                         \
+        (attack)->m_isAbsorbable = 0;                                                                                          \
+        (attack)->m_isDirect = 0;                                                                                              \
+        (attack)->m_serialHitFrame = (serialHit);                                                                              \
+        (attack)->m_isInvalidInvincible = 0;                                                                                   \
+        (attack)->m_isInvalidXlu = 0;                                                                                          \
+        (attack)->m_lrCheck = (lr);                                                                                            \
+        (attack)->m_isCatch = 0;                                                                                               \
+        (attack)->m_noTeam = 0;                                                                                                \
+        (attack)->m_noHitStop = 0;                                                                                             \
+        (attack)->m_noEffect = 0;                                                                                              \
+        (attack)->m_noTransaction = 0;                                                                                         \
+        (attack)->m_shapeType = soCollision::Shape_Capsule;                                                                                             \
     }
 
 // MATCH-ONLY: the players a hit box hit last frame are flagged in the attack info of the ground (one byte per player,
@@ -389,17 +353,20 @@ void stMadein::createObj() {
     // the cars
     for (u32 i = 0; i < 3; i++) {
         soCollisionAttackData* attack = MADEIN(i + 1)->getOverwriteAttackData();
-        MADEIN_ATTACK(attack, 13, 0, 7, 361, 85, 0, 70, 10.0f, offset, 2, 1, 60, 2);
+        MADEIN_ATTACK(attack, 13, soCollisionAttackData::Attribute_Normal, soCollision::SITUATION_MASK_ALL, 361, 85, 0, 70, 10.0f, offset, soCollisionAttackData::Sound_Level_Large,
+                      soCollisionAttackData::Sound_Attribute_Punch, 60, soCollisionAttackData::Lr_Check_Lr);
     }
     // the hit boxes that follow the cracker strips
     for (u32 i = 0; i < 4; i++) {
         soCollisionAttackData* attack = MADEIN(i + 0x5D)->getOverwriteAttackData();
-        MADEIN_ATTACK(attack, 1, 0, 7, 361, 0, 0, 0, 1.0f, offset, 0, 0, 15, 2);
+        MADEIN_ATTACK(attack, 1, soCollisionAttackData::Attribute_Normal, soCollision::SITUATION_MASK_ALL, 361, 0, 0, 0, 1.0f, offset, soCollisionAttackData::Sound_Level_Small,
+                      soCollisionAttackData::Sound_Attribute_None, 15, soCollisionAttackData::Lr_Check_Lr);
     }
     // the foot
     {
         soCollisionAttackData* attack = MADEIN(5)->getOverwriteAttackData();
-        MADEIN_ATTACK(attack, 20, 11, 7, 80, 50, 0, 70, 20.0f, offset, 2, 2, 60, 2);
+        MADEIN_ATTACK(attack, 20, soCollisionAttackData::Attribute_Bury, soCollision::SITUATION_MASK_ALL, 80, 50, 0, 70, 20.0f, offset, soCollisionAttackData::Sound_Level_Large,
+                      soCollisionAttackData::Sound_Attribute_Kick, 60, soCollisionAttackData::Lr_Check_Lr);
     }
     // the arrows
     offset.m_x = 0.0f;
@@ -409,7 +376,8 @@ void stMadein::createObj() {
         MADEIN(i + 0x1D)->setAttack(5.0f, &offset);
         MADEIN(i + 0x1D)->setAttackPreset(grMadein::Attack_Overwrite);
         soCollisionAttackData* attack = MADEIN(i + 0x1D)->getOverwriteAttackData();
-        MADEIN_ATTACK(attack, 15, 2, 7, 80, 100, 0, 70, 5.0f, offset, 2, 3, 60, 2);
+        MADEIN_ATTACK(attack, 15, soCollisionAttackData::Attribute_Cutup, soCollision::SITUATION_MASK_ALL, 80, 100, 0, 70, 5.0f, offset, soCollisionAttackData::Sound_Level_Large,
+                      soCollisionAttackData::Sound_Attribute_Cutup, 60, soCollisionAttackData::Lr_Check_Lr);
     }
     // the ground that is thrown at the fighters
     offset.m_x = 400.0f;
@@ -419,7 +387,8 @@ void stMadein::createObj() {
     MADEIN(0x72)->setAttackPreset(grMadein::Attack_Overwrite);
     {
         soCollisionAttackData* attack = MADEIN(0x72)->getOverwriteAttackData();
-        MADEIN_ATTACK(attack, 20, 11, 1, 270, 50, 0, 70, 10.0f, offset, 2, 2, 60, 2);
+        MADEIN_ATTACK(attack, 20, soCollisionAttackData::Attribute_Bury, soCollision::SITUATION_MASK_GROUND, 270, 50, 0, 70, 10.0f, offset, soCollisionAttackData::Sound_Level_Large,
+                      soCollisionAttackData::Sound_Attribute_Kick, 60, soCollisionAttackData::Lr_Check_Lr);
     }
 
     Vec3f hitStart(0.0f, 0.0f, 0.0f);

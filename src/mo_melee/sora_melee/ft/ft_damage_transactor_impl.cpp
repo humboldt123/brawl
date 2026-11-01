@@ -22,11 +22,6 @@
 extern "C" int fn_27_61334(soModuleAccesser* moduleAccesser, int statusKind);
 extern "C" void fn_27_1392D4(Fighter* fighter, bool setStatus, float rate, float size, int unk4, bool unk5);
 
-// MATCH-ONLY: the original reads the attack data bitfields as whole words (lwz) with unsigned extraction.
-static inline u32 getAttackDataWord(soDamage* damage, int offset) {
-    return *(u32*)((u8*)&damage->m_attackData + offset);
-}
-
 // HYPOTHESIS: the bit with mask 0x10 of the common status flag word marks statuses without turn damage.
 struct ftStatusTurnFlagData {
     u32 : 27;
@@ -204,7 +199,7 @@ float ftDamageTransactorImpl::getDamageForReaction(float damage, soModuleAccesse
 }
 
 bool ftDamageTransactorImpl::checkNoReaction(soModuleAccesser* moduleAccesser, soDamage* damage) {
-    u32 attribute = getAttackDataWord(damage, 0x30) & 0x1F;
+    u32 attribute = damage->m_attackData.m_attribute;
     if (attribute - soCollisionAttackData::Attribute_Sleep <= 1 && moduleAccesser->getDamageModule().isNoReactionModePerfect() == false) {
         return false;
     }

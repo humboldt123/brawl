@@ -25,8 +25,6 @@
 #define SO_ANIM_CMD_EVENT_OBSERVER_PURE
 // MATCH-ONLY: updateDamageAttackInfo and the hit handlers read the task category of the collision log as a byte.
 #define SO_COLLISION_LOG_CATEGORY_BYTE
-// MATCH-ONLY: reqCommonEffect overwrites the attribute of its attack data copy with an int (u32 bitfield view).
-#define SO_COLLISION_ATTACK_DATA_WORD_FIELDS
 // The attack data's bitfields are plain members (reqCommonEffect copies their words one by one).
 #define SO_COLLISION_ATTACK_DATA_PLAIN_BITFIELDS
 // MATCH-ONLY: the effector base keeps its destructor out of line (the soDamageEffectorImpl destructor calls a weak copy of
@@ -214,11 +212,6 @@ static inline float getVec2Angle(Vec2f* a, Vec2f* b) {
     register float clamped;
     asm { fsel clamped, fromUpper, upper, lowerBounded }
     return (float)acos(clamped);
-}
-
-// MATCH-ONLY: the original reads the attack data bitfields as whole words (lwz) with unsigned extraction.
-static inline u32 getAttackDataWord(soCollisionAttackData* attackData, int offset) {
-    return *(u32*)((u8*)attackData + offset);
 }
 
 // The argument at index (a virtual call through the array interface, as in the Enemy unit).
@@ -850,7 +843,7 @@ bool emDamageModuleImpl::isCaptureCut(void* cutByAttack) {
                 if (damage->m_damageAdd >= soValueAccesser::getConstantFloat(m_moduleAccesser, 0x7f1, 0)) {
                     return true;
                 }
-            } else if (((getAttackDataWord(&damage->m_attackData, 0x38) >> 9) & 1) == 0) {
+            } else if (damage->m_attackData.m_isCatch == 0) {
                 *static_cast<bool*>(cutByAttack) = true;
                 return true;
             }

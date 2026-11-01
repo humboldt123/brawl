@@ -33,13 +33,13 @@ bool soDamageTransactorActor::onDamageSub(soModuleAccesser* moduleAccesser, soDa
     if (0.0f == reaction && damage->m_powerMax <= 0.0f) {
         return false;
     }
-    if (((getAttackDataWord(damage, 0x38) >> 5) & 1) == 1) {
+    if (damage->m_attackData.m_noTransaction == 1) {
         if (isSpeedDamage(moduleAccesser) == 1) {
             setupSpeedDamage(moduleAccesser, damage, damageLog);
         }
         return false;
     }
-    switch (getAttackDataWord(damage, 0x30) & 0x1f) {
+    switch (damage->m_attackData.m_attribute) {
     case soCollisionAttackData::Attribute_Flower:
         onFlowerDamage(moduleAccesser, damage);
         break;
@@ -87,7 +87,7 @@ void soDamageTransactorActor::setupDamageStatusNormal(soModuleAccesser* moduleAc
     int situationKind = moduleAccesser->getSituationModule().getKind();
     int statusKind = getDamageStatusKind(moduleAccesser);
     float lr = moduleAccesser->getPostureModule().getLr();
-    u32 attribute = getAttackDataWord(damage, 0x30) & 0x1f;
+    u32 attribute = damage->m_attackData.m_attribute;
     int forcedStatus = 0;
     bool isDamageAir = true;
     bool isGround = false;
@@ -289,7 +289,7 @@ void soDamageTransactorActor::setupDamageStatusNormal(soModuleAccesser* moduleAc
     damageLog->m_lr = damageLr;
     damageLog->m_frame = frameReaction;
     damageLog->m_hitStopFrame = hitStopFrame;
-    damageLog->m_attribute = (soCollisionAttackData::Attribute)(getAttackDataWord(damage, 0x30) & 0x1f);
+    damageLog->m_attribute = (soCollisionAttackData::Attribute)damage->m_attackData.m_attribute;
     damageLog->m_damageAdd = damage->m_damageAdd;
     damageLog->m_attackerTeamNo = damage->m_collisionLog.m_teamNo;
     damageLog->m_hitStopDelay = damage->m_attackData.m_hitStopDelay;
@@ -386,7 +386,7 @@ void soDamageTransactorActor::setupDamageStatusTurn(soModuleAccesser* moduleAcce
     } else {
         speed = speed * soValueAccesser::getConstantFloat(moduleAccesser, 2023, 0);
     }
-    u32 attribute = getAttackDataWord(damage, 0x30) & 0x1f;
+    u32 attribute = damage->m_attackData.m_attribute;
     damageLog->m_speed = speed;
     damageLog->m_angle = angle;
     damageLog->m_attribute = (soCollisionAttackData::Attribute)attribute;

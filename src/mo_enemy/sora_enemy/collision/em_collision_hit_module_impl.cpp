@@ -3,9 +3,6 @@
 #define WN_ARTICLE_ANIMCMD_INT
 // The anim cmd argument list destructor is the one of sora_melee.
 #define SO_ARRAY_CONTRACTIBLE_TABLE_DTOR_EXTERN
-// MATCH-ONLY: getDurabilityMulFromAttackData reads soCollisionAttackData's attribute unsigned and its direct flag from
-// the whole word (u32 bitfields; the layout is the same).
-#define SO_COLLISION_ATTACK_DATA_WORD_FIELDS
 #include <ac/ac_anim_cmd_impl.h>
 #include <em/collision/em_collision_hit_module_impl.h>
 #include <types.h>

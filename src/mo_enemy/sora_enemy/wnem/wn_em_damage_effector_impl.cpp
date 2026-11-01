@@ -37,11 +37,6 @@ static inline const wnemDamageEffectCommonParamView* getDamageEffectCommonParam(
     return reinterpret_cast<const wnemDamageEffectCommonParamView*>(g_ftCommonDataAccesser.getParamCommon());
 }
 
-// MATCH-ONLY: the original reads the attack data bitfields as whole words (lwz) with unsigned extraction.
-static inline u32 getAttackDataWord(soCollisionAttackData* attackData, int offset) {
-    return *(u32*)((u8*)attackData + offset);
-}
-
 // HYPOTHESIS: the anim cmd group that plays the weapon's damage effect scripts.
 static const int DamageEffectAnimCmdGroup = 6;
 
@@ -84,7 +79,7 @@ void wnemDamageEffectorImpl::reqCommonEffect(float power, float reaction, float 
 // Picks the damage effect script by the attack's element (the level offsets the script within an element, as the
 // fighters' effect ids do in ftDamageEffectorImpl::reqUniqEffect) and runs it.
 void wnemDamageEffectorImpl::reqUniqEffect(soModuleAccesser* moduleAccesser, int level, soCollisionAttackData* attackData) {
-    switch (getAttackDataWord(attackData, 0x30) & 0x1F) {
+    switch (attackData->m_attribute) {
         case soCollisionAttackData::Attribute_Fire:
             resetDamageEffectScript(moduleAccesser, level + 3);
             break;

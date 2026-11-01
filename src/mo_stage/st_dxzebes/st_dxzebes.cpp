@@ -50,41 +50,6 @@ struct stDxZebesJointView {
     u8 _rest : 4;
 };
 
-// MATCH-ONLY: a word based view of the bit fields of soCollisionAttackData (from +0x30). The shared header declares its
-// single-bit flags as bool, which the compiler accesses one byte at a time; the original sets all of them with one
-// read-modify-write per word.
-struct stDxZebesAttackBits {
-    u32 m_nodeIndex : 9;
-    u32 m_targetCategory : 10;
-    u32 m_targetSituation : 3;
-    u32 m_targetLr : 1;
-    u32 m_targetPart : 4;
-    u32 m_attribute : 5;
-    u32 m_soundLevel : 2;
-    u32 m_soundAttribute : 5;
-    u32 m_setOffKind : 2;
-    u32 m_noScale : 1;
-    u32 m_isShieldable : 1;
-    u32 m_isReflectable : 1;
-    u32 m_isAbsorbable : 1;
-    u32 m_subShield : 9;
-    u32 _34 : 10;
-    u32 m_serialHitFrame : 16;
-    u32 m_isDirect : 1;
-    u32 m_isInvalidInvincible : 1;
-    u32 m_isInvalidXlu : 1;
-    u32 m_lrCheck : 3;
-    u32 m_isCatch : 1;
-    u32 m_noTeam : 1;
-    u32 m_noHitStop : 1;
-    u32 m_noEffect : 1;
-    u32 m_noTransaction : 1;
-    u32 m_region : 5;
-    u32 m_shapeType : 1;
-    u32 m_isDeath100 : 1;
-    u32 _3C : 30;
-};
-
 // The frames the acid stays at one level before it moves to the next one (see grZebesWaterProc): the base, a spare,
 // the random extra and the height the level is around. A line of zeros ends the table. HYPOTHESIS: names follow their
 // use in grZebesWaterInit.
@@ -268,31 +233,30 @@ void stDxZebes::createObj() {
     attack->m_offsetPos.m_x = attackPos.m_x;
     attack->m_offsetPos.m_y = attackPos.m_y;
     attack->m_offsetPos.m_z = attackPos.m_z;
-    stDxZebesAttackBits* bits = reinterpret_cast<stDxZebesAttackBits*>(reinterpret_cast<u8*>(attack) + 0x30);
-    bits->m_nodeIndex = 0;
-    bits->m_attribute = soCollisionAttackData::Attribute_Fire;
-    bits->m_targetSituation = 7;
-    bits->m_targetCategory = 0x3FF;
-    bits->m_targetLr = 0;
-    bits->m_targetPart = 0xF;
-    bits->m_setOffKind = soCollisionAttackData::SetOff_Off;
-    bits->m_noScale = 0;
-    bits->m_soundLevel = soCollisionAttackData::Sound_Level_Medium;
-    bits->m_soundAttribute = soCollisionAttackData::Sound_Attribute_Fire;
-    bits->m_isShieldable = 0;
-    bits->m_isReflectable = 0;
-    bits->m_isAbsorbable = 0;
-    bits->m_isDirect = 0;
-    bits->m_serialHitFrame = 60;
-    bits->m_isInvalidInvincible = 0;
-    bits->m_isInvalidXlu = 0;
-    bits->m_lrCheck = soCollisionAttackData::Lr_Check_Lr;
-    bits->m_isCatch = 0;
-    bits->m_noTeam = 0;
-    bits->m_noHitStop = 0;
-    bits->m_noEffect = 0;
-    bits->m_noTransaction = 0;
-    bits->m_shapeType = soCollision::Shape_Capsule;
+    attack->m_nodeIndex = 0;
+    attack->m_attribute = soCollisionAttackData::Attribute_Fire;
+    attack->m_targetSituation = soCollision::SITUATION_MASK_ALL;
+    attack->m_targetCategory = soCollision::CATEGORY_MASK_ALL;
+    attack->m_targetLr = 0;
+    attack->m_targetPart = soCollision::PART_MASK_ALL;
+    attack->m_setOffKind = soCollisionAttackData::SetOff_Off;
+    attack->m_noScale = 0;
+    attack->m_soundLevel = soCollisionAttackData::Sound_Level_Medium;
+    attack->m_soundAttribute = soCollisionAttackData::Sound_Attribute_Fire;
+    attack->m_isShieldable = 0;
+    attack->m_isReflectable = 0;
+    attack->m_isAbsorbable = 0;
+    attack->m_isDirect = 0;
+    attack->m_serialHitFrame = 60;
+    attack->m_isInvalidInvincible = 0;
+    attack->m_isInvalidXlu = 0;
+    attack->m_lrCheck = soCollisionAttackData::Lr_Check_Lr;
+    attack->m_isCatch = 0;
+    attack->m_noTeam = 0;
+    attack->m_noHitStop = 0;
+    attack->m_noEffect = 0;
+    attack->m_noTransaction = 0;
+    attack->m_shapeType = soCollision::Shape_Capsule;
 
     addGround(grMadein::create(0xF, "", "ShaftHitL", Heaps::StageInstance));
     addGround(grMadein::create(0xF, "", "ShaftHitR", Heaps::StageInstance));

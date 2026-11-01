@@ -37,41 +37,6 @@ struct stNorfairEventRow {
 
 #define NORFAIR_MADEIN(index) static_cast<grMadein*>(getGround(index))
 
-// MATCH-ONLY: a word based view of the bit fields of soCollisionAttackData (from +0x30). The shared header declares its
-// single-bit flags as bool, which the compiler accesses one byte at a time; the original sets all of them with one
-// read-modify-write per word.
-struct stNorfairAttackBits {
-    u32 m_nodeIndex : 9;
-    u32 m_targetCategory : 10;
-    u32 m_targetSituation : 3;
-    u32 m_targetLr : 1;
-    u32 m_targetPart : 4;
-    u32 m_attribute : 5;
-    u32 m_soundLevel : 2;
-    u32 m_soundAttribute : 5;
-    u32 m_setOffKind : 2;
-    u32 m_noScale : 1;
-    u32 m_isShieldable : 1;
-    u32 m_isReflectable : 1;
-    u32 m_isAbsorbable : 1;
-    u32 m_subShield : 9;
-    u32 _34 : 10;
-    u32 m_serialHitFrame : 16;
-    u32 m_isDirect : 1;
-    u32 m_isInvalidInvincible : 1;
-    u32 m_isInvalidXlu : 1;
-    u32 m_lrCheck : 3;
-    u32 m_isCatch : 1;
-    u32 m_noTeam : 1;
-    u32 m_noHitStop : 1;
-    u32 m_noEffect : 1;
-    u32 m_noTransaction : 1;
-    u32 m_region : 5;
-    u32 m_shapeType : 1;
-    u32 m_isDeath100 : 1;
-    u32 _3C : 30;
-};
-
 // The damage ground of the wave: it burns (power 18) and knocks the fighter away with the base knockback of the number given.
 #define NORFAIR_WAVE_ATTACK(index, reactionAddArg)                                              \
     madein = NORFAIR_MADEIN(index);                                                              \
@@ -79,40 +44,39 @@ struct stNorfairAttackBits {
     madein->setAttack(5.0f, &offset);                                                            \
     madein->setAttackPreset(grMadein::Attack_Overwrite);                                         \
     attackData = madein->getOverwriteAttackData();                                               \
-    bits = reinterpret_cast<stNorfairAttackBits*>(reinterpret_cast<u8*>(attackData) + 0x30);     \
     attackData->m_reactionEffect = 50;                                                           \
     attackData->m_reactionFix = 0;                                                               \
     attackData->m_reactionAdd = (reactionAddArg);                                                \
     attackData->m_power = 18;                                                                    \
     attackData->m_vector = 80;                                                                   \
     attackData->m_nodeIndex = 0;                                                                 \
-    bits->m_attribute = soCollisionAttackData::Attribute_Fire;                                   \
-    bits->m_targetSituation = 7;                                                                 \
+    attackData->m_attribute = soCollisionAttackData::Attribute_Fire;                                   \
+    attackData->m_targetSituation = soCollision::SITUATION_MASK_ALL;                                                                 \
     attackData->m_size = 5.0f;                                                                   \
-    bits->m_targetCategory = 0x3FF;                                                              \
-    bits->m_targetLr = 0;                                                                        \
-    bits->m_targetPart = 0xF;                                                                    \
+    attackData->m_targetCategory = soCollision::CATEGORY_MASK_ALL;                                                              \
+    attackData->m_targetLr = 0;                                                                        \
+    attackData->m_targetPart = soCollision::PART_MASK_ALL;                                                                    \
     attackData->m_offsetPos.m_x = offset.m_x;                                                    \
     attackData->m_offsetPos.m_y = offset.m_y;                                                    \
     attackData->m_offsetPos.m_z = offset.m_z;                                                    \
-    bits->m_setOffKind = 0;                                                                      \
-    bits->m_noScale = 0;                                                                         \
-    bits->m_soundLevel = soCollisionAttackData::Sound_Level_Large;                               \
-    bits->m_soundAttribute = soCollisionAttackData::Sound_Attribute_None;                        \
-    bits->m_isShieldable = 1;                                                                    \
-    bits->m_isReflectable = 0;                                                                   \
-    bits->m_isAbsorbable = 0;                                                                    \
-    bits->m_serialHitFrame = 60;                                                                 \
-    bits->m_isDirect = 0;                                                                        \
-    bits->m_isInvalidInvincible = 0;                                                             \
-    bits->m_isInvalidXlu = 0;                                                                    \
-    bits->m_lrCheck = soCollisionAttackData::Lr_Check_Lr;                                        \
-    bits->m_isCatch = 0;                                                                         \
-    bits->m_noTeam = 0;                                                                          \
-    bits->m_noHitStop = 1;                                                                       \
-    bits->m_noEffect = 0;                                                                        \
-    bits->m_noTransaction = 0;                                                                   \
-    bits->m_shapeType = soCollision::Shape_Capsule;
+    attackData->m_setOffKind = soCollisionAttackData::SetOff_Off;                                                                      \
+    attackData->m_noScale = 0;                                                                         \
+    attackData->m_soundLevel = soCollisionAttackData::Sound_Level_Large;                               \
+    attackData->m_soundAttribute = soCollisionAttackData::Sound_Attribute_None;                        \
+    attackData->m_isShieldable = 1;                                                                    \
+    attackData->m_isReflectable = 0;                                                                   \
+    attackData->m_isAbsorbable = 0;                                                                    \
+    attackData->m_serialHitFrame = 60;                                                                 \
+    attackData->m_isDirect = 0;                                                                        \
+    attackData->m_isInvalidInvincible = 0;                                                             \
+    attackData->m_isInvalidXlu = 0;                                                                    \
+    attackData->m_lrCheck = soCollisionAttackData::Lr_Check_Lr;                                        \
+    attackData->m_isCatch = 0;                                                                         \
+    attackData->m_noTeam = 0;                                                                          \
+    attackData->m_noHitStop = 1;                                                                       \
+    attackData->m_noEffect = 0;                                                                        \
+    attackData->m_noTransaction = 0;                                                                   \
+    attackData->m_shapeType = soCollision::Shape_Capsule;
 
 // HYPOTHESIS: two small constant objects (an 0xFF marker with an index) that the unit's headers instantiate.
 struct stNorfairMarker {
@@ -221,7 +185,6 @@ void stNorfair::createObj() {
     grMadein* ground;
     grMadein* madein;
     soCollisionAttackData* attackData;
-    stNorfairAttackBits* bits;
     Vec3f offset;
     {
         NORFAIR_DAMAGE_GROUND("dmg1")

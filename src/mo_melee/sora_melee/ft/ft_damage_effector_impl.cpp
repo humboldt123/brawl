@@ -18,11 +18,6 @@ struct ftDamageEffectCommonParamView {
     float unk37C;
 };
 
-// MATCH-ONLY: the original reads the attack data bitfields as whole words (lwz) with unsigned extraction.
-static inline u32 getAttackDataWord(soCollisionAttackData* attackData, int offset) {
-    return *(u32*)((u8*)attackData + offset);
-}
-
 static inline const ftDamageEffectCommonParamView* getDamageEffectCommonParam() {
     return reinterpret_cast<const ftDamageEffectCommonParamView*>(g_ftCommonDataAccesser.getParamCommon());
 }
@@ -42,7 +37,7 @@ void ftDamageEffectorImpl::reqCommonEffect(float power, float reaction, float lr
 }
 
 void ftDamageEffectorImpl::reqUniqEffect(soModuleAccesser* moduleAccesser, int level, soCollisionAttackData* attackData) {
-    switch (getAttackDataWord(attackData, 0x30) & 0x1F) {
+    switch (attackData->m_attribute) {
         case soCollisionAttackData::Attribute_Fire:
             moduleAccesser->getEffectModule().reqCommon(level + 3, 0.0f);
             break;
@@ -66,7 +61,7 @@ void ftDamageEffectorImpl::reqUniqEffect(soModuleAccesser* moduleAccesser, int l
 
 void ftDamageEffectorImpl::reqDamageEffectParam(float damageAdd, float reaction, soModuleAccesser* moduleAccesser, soCollisionAttackData* attackData) {
     if (damageAdd > 0.0f && reaction >= soValueAccesser::getConstantFloat(moduleAccesser, 0xCD3, 0)) {
-        switch (getAttackDataWord(attackData, 0x30) & 0x1F) {
+        switch (attackData->m_attribute) {
             case soCollisionAttackData::Attribute_Fire:
                 moduleAccesser->getEffectModule().reqScreen(2);
                 break;

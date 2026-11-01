@@ -1,5 +1,4 @@
 #define SO_SOUND_3D_GENERATOR_ACCESSER_FULL
-#define SO_COLLISION_ATTACK_DATA_SOUND_WORD_FIELDS
 #include <mt/mt_vector.h>
 #include <snd/snd_system.h>
 #include <so/collision/so_collision_attack_part.h>
