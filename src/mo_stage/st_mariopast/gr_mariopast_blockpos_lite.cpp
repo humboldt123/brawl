@@ -615,19 +615,11 @@ void grMarioPastBlockPosLite::onDamage(int index, soDamage* damage, soDamageAtta
     }
 }
 
-// MATCH-ONLY: the original reads the second byte of the collision status' first word as a signed bit field.
-struct mariopastCollView {
-    char _0[8];
-    int m_first : 8;
-    int m_hitSide : 8;
-    int m_rest : 16;
-};
-
 // A fighter hits a block from below with his head: the same as above, only found by the collision joint.
 void grMarioPastBlockPosLite::receiveCollMsg_Heading(grCollStatus* collStatus, grCollisionJoint* joint, bool isStartCollision) {
     static u32 sOwnerFlags = 1;
     if (isCollisionStatusOwnerTask(collStatus, reinterpret_cast<CollCategoryFlag*>(&sOwnerFlags)) &&
-        reinterpret_cast<mariopastCollView*>(collStatus)->m_hitSide == 2 && m_num != 0 && m_blocks != NULL && m_joints != NULL) {
+        collStatus->m_unk9 == 2 && m_num != 0 && m_blocks != NULL && m_joints != NULL) {
         u32 index = (reinterpret_cast<u8*>(joint) - reinterpret_cast<u8*>(m_joints)) / 0x60;
         if (index < m_num) {
             stMarioPastBlockDt* block = &m_blocks[index];

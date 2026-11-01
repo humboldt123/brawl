@@ -42,14 +42,6 @@ struct famicomLineView {
     u8 m_flags;
 };
 
-// MATCH-ONLY: the original reads the second byte of the collision status' first word as a signed bit field.
-struct famicomCollView {
-    char _0[8];
-    int m_first : 8;
-    int m_hitSide : 8;
-    int m_rest : 16;
-};
-
 // MATCH-ONLY: the copy of a hit sphere to its simple form (word by word, as the original does it)
 static inline void famicomCopyHit(soCollisionHitData::Simple* dst, soCollisionHitData* src) {
     u32* srcWords = reinterpret_cast<u32*>(src);
@@ -383,7 +375,7 @@ void grFamicomPow::onDamage(int index, soDamage* damage, soDamageAttackerInfo* a
 void grFamicomPow::receiveCollMsg_Heading(grCollStatus* collStatus, grCollisionJoint* collisionJoint, bool isFirstContact) {
     static u32 sOwnerFlags = 1;
     if (isCollisionStatusOwnerTask(collStatus, reinterpret_cast<CollCategoryFlag*>(&sOwnerFlags)) &&
-        reinterpret_cast<famicomCollView*>(collStatus)->m_hitSide == 2) {
+        collStatus->m_unk9 == 2) {
         Fighter* fighter = static_cast<Fighter*>(gfTask::getTask(collStatus->m_taskId));
         if (fighter != NULL) {
             int playerNo = g_ftManager->getPlayerNo(fighter->m_entryId);

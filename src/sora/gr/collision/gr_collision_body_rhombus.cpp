@@ -163,6 +163,12 @@ static inline bool lineIsUpper(const grCollisionLineWork* lw) { return lw->m_col
 static inline bool lineIsLeft(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isLeft; }
 static inline bool lineIsRight(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isRight; }
 
+// Whether both corners of an edge (two VTX_ bits of m_unmovedMask) / any of them stayed in place this pass.
+// HYPOTHESIS: two separate mask tests; the slating-line dispatchers ask both, which is why the original compares the
+// masked bits with the full mask and with 0.
+static inline bool isUnmovedAll(const grCollisionTestRhombus* test, u16 vtx) { return (test->m_unmovedMask & vtx) == vtx; }
+static inline bool isUnmovedAny(const grCollisionTestRhombus* test, u16 vtx) { return (test->m_unmovedMask & vtx) != 0; }
+
 // A line work whose line, joint and collision are all set, whose joint is active and whose collision is enabled.
 static inline bool isActiveLineWork(grCollisionLineWork* lineWork) {
     bool valid = false;
@@ -2097,8 +2103,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRight(grCollisionLi
             active = false;
         }
         if (active && lineIsUnder(&next)) {
-            int still = m_unmovedMask & 6; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
-            if (still != 6 && still == 0) {
+            if (!isUnmovedAll(this, VTX_DOWN | VTX_RIGHT) && !isUnmovedAny(this, VTX_DOWN | VTX_RIGHT)) {
                 testCollisionMoveSlatingLineMoveXRightDown(lineWork, rate);
             }
         }
@@ -2115,8 +2120,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRight(grCollisionLi
             active = false;
         }
         if (active && lineIsUpper(&prev)) {
-            int still = m_unmovedMask & 5; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
-            if (still != 5 && still == 0) {
+            if (!isUnmovedAll(this, VTX_UP | VTX_RIGHT) && !isUnmovedAny(this, VTX_UP | VTX_RIGHT)) {
                 testCollisionMoveSlatingLineMoveXRightUp(lineWork, rate);
             }
         }
@@ -2142,8 +2146,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeft(grCollisionLin
             active = false;
         }
         if (active && lineIsUnder(&prev)) {
-            int still = m_unmovedMask & 10; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
-            if (still != 10 && still == 0) {
+            if (!isUnmovedAll(this, VTX_DOWN | VTX_LEFT) && !isUnmovedAny(this, VTX_DOWN | VTX_LEFT)) {
                 testCollisionMoveSlatingLineMoveXLeftDown(lineWork, rate);
             }
         }
@@ -2160,8 +2163,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeft(grCollisionLin
             active = false;
         }
         if (active && lineIsUpper(&next)) {
-            int still = m_unmovedMask & 9; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
-            if (still != 9 && still == 0) {
+            if (!isUnmovedAll(this, VTX_UP | VTX_LEFT) && !isUnmovedAny(this, VTX_UP | VTX_LEFT)) {
                 testCollisionMoveSlatingLineMoveXLeftUp(lineWork, rate);
             }
         }
@@ -2219,19 +2221,19 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightDown(grCollis
             }
         }
     } else {
-        const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
+        const Vec2f& corner = to.m_segment.m_p0Pos;
         fetchSegment(&nextSeg, &next);
-        if (nextSeg.m_segment.m_p1Pos.m_x < to.m_segment.m_p0Pos.m_x) {
-            next.getPosXDownLine(to.m_segment.m_p0Pos.m_x, &search);
+        if (nextSeg.m_segment.m_p1Pos.m_x < corner.m_x) {
+            next.getPosXDownLine(corner.m_x, &search);
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&nextSeg, &search);
             }
         }
-        if (to.m_segment.m_p0Pos.m_x < nextSeg.m_segment.m_p1Pos.m_x &&
+        if (corner.m_x < nextSeg.m_segment.m_p1Pos.m_x &&
             nextSeg.m_segment.projectionX(corner, foot)) {
-            move = (foot - to.m_segment.m_p0Pos) + Vec2f(0.0f, 0.01f);
+            move = (foot - corner) + Vec2f(0.0f, 0.01f);
         } else {
-            move = (nextSeg.m_segment.m_p1Pos - to.m_segment.m_p0Pos) + Vec2f(0.0f, 0.01f);
+            move = (nextSeg.m_segment.m_p1Pos - corner) + Vec2f(0.0f, 0.01f);
         }
         if (move.m_y > 0.0f) {
             hit = true;
@@ -2295,19 +2297,19 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightUp(grCollisio
             }
         }
     } else {
-        const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
+        const Vec2f& corner = to.m_segment.m_p0Pos;
         fetchSegment(&nextSeg, &next);
-        if (nextSeg.m_segment.m_p0Pos.m_x < to.m_segment.m_p0Pos.m_x) {
-            next.getPosXUpLine(to.m_segment.m_p0Pos.m_x, &search);
+        if (nextSeg.m_segment.m_p0Pos.m_x < corner.m_x) {
+            next.getPosXUpLine(corner.m_x, &search);
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&nextSeg, &search);
             }
         }
-        if (to.m_segment.m_p0Pos.m_x < nextSeg.m_segment.m_p0Pos.m_x &&
+        if (corner.m_x < nextSeg.m_segment.m_p0Pos.m_x &&
             nextSeg.m_segment.projectionX(corner, foot)) {
-            move = (foot - to.m_segment.m_p0Pos) + Vec2f(0.0f, -0.01f);
+            move = (foot - corner) + Vec2f(0.0f, -0.01f);
         } else {
-            move = (nextSeg.m_segment.m_p0Pos - to.m_segment.m_p0Pos) + Vec2f(0.0f, -0.01f);
+            move = (nextSeg.m_segment.m_p0Pos - corner) + Vec2f(0.0f, -0.01f);
         }
         if (move.m_y < 0.0f) {
             hit = true;
@@ -2370,19 +2372,19 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeftDown(grCollisi
             }
         }
     } else {
-        const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
+        const Vec2f& corner = to.m_segment.m_p0Pos;
         fetchSegment(&nextSeg, &next);
-        if (to.m_segment.m_p0Pos.m_x < nextSeg.m_segment.m_p0Pos.m_x) {
-            next.getPosXDownLine(to.m_segment.m_p0Pos.m_x, &search);
+        if (corner.m_x < nextSeg.m_segment.m_p0Pos.m_x) {
+            next.getPosXDownLine(corner.m_x, &search);
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&nextSeg, &search);
             }
         }
-        if (nextSeg.m_segment.m_p0Pos.m_x < to.m_segment.m_p0Pos.m_x &&
+        if (nextSeg.m_segment.m_p0Pos.m_x < corner.m_x &&
             nextSeg.m_segment.projectionX(corner, foot)) {
-            move = (foot - to.m_segment.m_p0Pos) + Vec2f(0.0f, 0.01f);
+            move = (foot - corner) + Vec2f(0.0f, 0.01f);
         } else {
-            move = (nextSeg.m_segment.m_p0Pos - to.m_segment.m_p0Pos) + Vec2f(0.0f, 0.01f);
+            move = (nextSeg.m_segment.m_p0Pos - corner) + Vec2f(0.0f, 0.01f);
         }
         if (move.m_y > 0.0f) {
             hit = true;
@@ -2446,19 +2448,19 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeftUp(grCollision
             }
         }
     } else {
-        const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
+        const Vec2f& corner = to.m_segment.m_p0Pos;
         fetchSegment(&nextSeg, &next);
-        if (to.m_segment.m_p0Pos.m_x < nextSeg.m_segment.m_p1Pos.m_x) {
-            next.getPosXUpLine(to.m_segment.m_p0Pos.m_x, &search);
+        if (corner.m_x < nextSeg.m_segment.m_p1Pos.m_x) {
+            next.getPosXUpLine(corner.m_x, &search);
             if (isActiveLineWorkStaged(search)) {
                 fetchSegment(&nextSeg, &search);
             }
         }
-        if (nextSeg.m_segment.m_p1Pos.m_x < to.m_segment.m_p0Pos.m_x &&
+        if (nextSeg.m_segment.m_p1Pos.m_x < corner.m_x &&
             nextSeg.m_segment.projectionX(corner, foot)) {
-            move = (foot - to.m_segment.m_p0Pos) + Vec2f(0.0f, -0.01f);
+            move = (foot - corner) + Vec2f(0.0f, -0.01f);
         } else {
-            move = (nextSeg.m_segment.m_p1Pos - to.m_segment.m_p0Pos) + Vec2f(0.0f, -0.01f);
+            move = (nextSeg.m_segment.m_p1Pos - corner) + Vec2f(0.0f, -0.01f);
         }
         if (move.m_y < 0.0f) {
             hit = true;
@@ -2491,8 +2493,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUp(grCollisionLineW
             active = false;
         }
         if (active && lineIsUnder(&next)) {
-            int still = m_unmovedMask & 6; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
-            if (still != 6 && still == 0) {
+            if (!isUnmovedAll(this, VTX_DOWN | VTX_RIGHT) && !isUnmovedAny(this, VTX_DOWN | VTX_RIGHT)) {
                 testCollisionMoveSlatingLineMoveXUpRight(lineWork, rate);
             }
         }
@@ -2509,8 +2510,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUp(grCollisionLineW
             active = false;
         }
         if (active && lineIsUnder(&prev)) {
-            int still = m_unmovedMask & 5; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
-            if (still != 5 && still == 0) {
+            if (!isUnmovedAll(this, VTX_UP | VTX_RIGHT) && !isUnmovedAny(this, VTX_UP | VTX_RIGHT)) {
                 testCollisionMoveSlatingLineMoveXUpLeft(lineWork, rate);
             }
         }
@@ -2680,8 +2680,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDown(grCollisionLin
             active = false;
         }
         if (active && lineIsUpper(&prev)) {
-            int still = m_unmovedMask & 6; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
-            if (still != 6 && still == 0) {
+            if (!isUnmovedAll(this, VTX_DOWN | VTX_RIGHT) && !isUnmovedAny(this, VTX_DOWN | VTX_RIGHT)) {
                 testCollisionMoveSlatingLineMoveXDownRight(lineWork, rate);
             }
         }
@@ -2698,8 +2697,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDown(grCollisionLin
             active = false;
         }
         if (active && lineIsUpper(&next)) {
-            int still = m_unmovedMask & 9; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
-            if (still != 9 && still == 0) {
+            if (!isUnmovedAll(this, VTX_UP | VTX_LEFT) && !isUnmovedAny(this, VTX_UP | VTX_LEFT)) {
                 testCollisionMoveSlatingLineMoveXDownLeft(lineWork, rate);
             }
         }
@@ -2936,13 +2934,13 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYRight(grCollisionLi
         } else {
             enabled = false;
         }
-        if (enabled && lineIsUnder(&next) && (m_unmovedMask & 6) != 6 && (m_unmovedMask & 6) == 0) {
+        if (enabled && lineIsUnder(&next) && !isUnmovedAll(this, VTX_DOWN | VTX_RIGHT) && !isUnmovedAny(this, VTX_DOWN | VTX_RIGHT)) {
             testCollisionMoveSlatingLineMoveYRightDown(lineWork, rate);
         }
     }
     if (!(m_hitDirs & (DIR_RIGHT | DIR_UP))) {
         lineWork->getPrev(&prev);
-        if (isEnabledNeighbor(prev) && lineIsUpper(&prev) && (m_unmovedMask & 5) != 5 && (m_unmovedMask & 5) == 0) {
+        if (isEnabledNeighbor(prev) && lineIsUpper(&prev) && !isUnmovedAll(this, VTX_UP | VTX_RIGHT) && !isUnmovedAny(this, VTX_UP | VTX_RIGHT)) {
             testCollisionMoveSlatingLineMoveYRightUp(lineWork, rate);
         }
     }
@@ -2967,12 +2965,12 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYLeft(grCollisionLin
         } else {
             enabled = false;
         }
-        if (enabled && lineIsUnder(&prev) && (m_unmovedMask & 10) != 10 && (m_unmovedMask & 10) == 0) {
+        if (enabled && lineIsUnder(&prev) && !isUnmovedAll(this, VTX_DOWN | VTX_LEFT) && !isUnmovedAny(this, VTX_DOWN | VTX_LEFT)) {
             testCollisionMoveSlatingLineMoveYLeftDown(lineWork, rate);
         }
     }
     if (!(m_hitDirs & (DIR_LEFT | DIR_UP))) {
-        if (isEnabledNeighbor(next) && lineIsUpper(&next) && (m_unmovedMask & 9) != 9 && (m_unmovedMask & 9) == 0) {
+        if (isEnabledNeighbor(next) && lineIsUpper(&next) && !isUnmovedAll(this, VTX_UP | VTX_LEFT) && !isUnmovedAny(this, VTX_UP | VTX_LEFT)) {
             testCollisionMoveSlatingLineMoveYLeftUp(lineWork, rate);
         }
     }
@@ -2993,7 +2991,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUp(grCollisionLineW
         } else {
             enabled = false;
         }
-        if (enabled && lineIsUnder(&next) && (m_unmovedMask & 5) != 5 && (m_unmovedMask & 5) == 0) {
+        if (enabled && lineIsUnder(&next) && !isUnmovedAll(this, VTX_UP | VTX_RIGHT) && !isUnmovedAny(this, VTX_UP | VTX_RIGHT)) {
             testCollisionMoveSlatingLineMoveYUpRight(lineWork, rate);
         }
     }
@@ -3010,7 +3008,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveYUp(grCollisionLineW
         } else {
             enabled = false;
         }
-        if (enabled && lineIsUnder(&prev) && (m_unmovedMask & 9) != 9 && (m_unmovedMask & 9) == 0) {
+        if (enabled && lineIsUnder(&prev) && !isUnmovedAll(this, VTX_UP | VTX_LEFT) && !isUnmovedAny(this, VTX_UP | VTX_LEFT)) {
             testCollisionMoveSlatingLineMoveYUpLeft(lineWork, rate);
         }
     }

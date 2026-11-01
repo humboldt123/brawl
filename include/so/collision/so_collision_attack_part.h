@@ -255,12 +255,12 @@ struct soCollisionAttackData {
             soCollision::SituationMask m_targetSituation : 3;            // up to 0x7
             u32 m_targetLr : 1;                          // up to 0x1 // unused in vBrawl?
             soCollision::PartMask m_targetPart : 4;                 // up to 0xf
-            // HYPOTHESIS: unsigned bit-fields holding Attribute, SoundLevel and SoundAttribute values (the units read
-            // them with unsigned extraction; an enum bit-field would be read signed).
+            // HYPOTHESIS: unsigned bit-fields holding Attribute, SoundLevel, SoundAttribute, SetOffKind, LrCheck and
+            // Region values (the units read them with unsigned extraction; an enum bit-field would be read signed).
             u32 m_attribute : 5;     // Attribute, up to 0x1f
             u32 m_soundLevel : 2; // SoundLevel, up to 0x3
             u32 m_soundAttribute : 5;   // SoundAttribute, up to 0x1f
-            SetOffKind m_setOffKind : 2; // up to 0x3
+            u32 m_setOffKind : 2; // SetOffKind, up to 0x3
             u32 m_noScale : 1;
             u32 m_isShieldable : 1;
             u32 m_isReflectable : 1;
@@ -271,13 +271,13 @@ struct soCollisionAttackData {
             u32 m_isDirect : 1;
             u32 m_isInvalidInvincible : 1;   // ignore invincibility
             u32 m_isInvalidXlu : 1; // ignore intangibility
-            LrCheck m_lrCheck : 3; // up to 0x7
+            u32 m_lrCheck : 3; // LrCheck, up to 0x7
             u32 m_isCatch : 1;  // only affect grabbed opponent
             u32 m_noTeam : 1;    // friendly fire
             u32 m_noHitStop : 1;    // no hitlag
             u32 m_noEffect : 1; // disable gfx on hit
             u32 m_noTransaction : 1; // flinchless
-            Region m_region : 5; // up to 0x1f;
+            u32 m_region : 5; // Region, up to 0x1f
             soCollision::ShapeType m_shapeType : 1;
             u32 m_isDeath100 : 1; // custom
             unsigned int field_0x3c_2 : 30; // ~up to 0x3fffffff

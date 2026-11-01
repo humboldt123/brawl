@@ -5,14 +5,6 @@
 #include <st_dxyorster/gr_dxyorster.h>
 #include <st_dxyorster/gr_dxyorster_anim.h>
 
-// MATCH-ONLY: the original reads the second byte of the collision status' first word as a signed bit field.
-struct grDxYorsterCollView {
-    char _0[8];
-    int m_first : 8;
-    int m_hitSide : 8;
-    int m_rest : 16;
-};
-
 grDxYorsterBlock* grDxYorsterBlock::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
     grDxYorsterBlock* ground = new (Heaps::StageInstance) grDxYorsterBlock(taskName);
     if (ground != NULL) {
@@ -166,7 +158,7 @@ void grDxYorsterBlock::receiveCollMsg_Heading(grCollStatus* collStatus, grCollis
     if (m_dmg == NULL) {
         return;
     }
-    if (reinterpret_cast<grDxYorsterCollView*>(collStatus)->m_hitSide != 2) {
+    if (collStatus->m_unk9 != 2) {
         return;
     }
     *m_dmg = 1;
