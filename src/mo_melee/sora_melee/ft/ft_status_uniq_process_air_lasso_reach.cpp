@@ -1,4 +1,4 @@
-#define MT_VEC3F_SUB_AIR_LASSO // MATCH-ONLY: subtraction register form of the original
+#define MT_VEC3F_SUB_FRESH_REGS
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/ft_status_uniq_process_air_lasso_reach.h>
 #include <math.h>
@@ -52,8 +52,7 @@ void ftStatusUniqProcessAirLassoReach::execFixPos(soModuleAccesser* moduleAccess
     }
     float groundZ = ground->getZ();
     Vec3f origin(ground->getCenterPos(0), groundZ);
-    Vec3f toTarget;
-    Vec3fSubLhsFirst(&toTarget, &target, &origin);
+    Vec3f toTarget = target - origin;
     workManage->setFlag(ground->rayCheck(&origin, &toTarget, true), 0x22000014);
     ftStatusUniqProcessAirLassoCommon::execFixPos(moduleAccesser);
 }

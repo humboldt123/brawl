@@ -1,3 +1,4 @@
+#define MT_VEC3F_SUB_FRESH_REGS
 #include <ai/ai_mgr.h>
 #include <cm/cm_camera_controller.h>
 #include <cm/cm_controller_ai.h>

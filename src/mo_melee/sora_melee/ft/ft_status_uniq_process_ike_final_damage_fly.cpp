@@ -1,4 +1,4 @@
-#define MT_VEC3F_SUB_DISTINCT // MATCH-ONLY: subtraction register form of the original
+#define MT_VEC3F_SUB_FRESH_REGS
 #define MT_VEC3F_MUL_INLINE // paired-single Vec3f scale, as in the original code
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 // Use the native Fighter observer override before transitive Fighter includes;

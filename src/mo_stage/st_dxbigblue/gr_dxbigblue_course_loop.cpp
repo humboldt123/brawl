@@ -1,3 +1,4 @@
+#define MT_VEC3F_SUB_FRESH_REGS
 #include <gr/collision/gr_collision.h>
 #include <st_dxbigblue/gr_dxbigblue_course_loop.h>
 #include <st_dxbigblue/gr_dxbigblue_util.h>

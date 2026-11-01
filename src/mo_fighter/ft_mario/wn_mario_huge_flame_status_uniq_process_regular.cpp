@@ -1,7 +1,7 @@
+#define MT_VEC3F_SUB_FRESH_REGS
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 // MATCH-ONLY: retain the native shared Vec3 assignment.
 #define MT_VEC3F_ASSIGN_NOINLINE
-#define MT_VEC3F_SUB_ASCENDING
 #include <so/status/so_status_module_impl.h>
 #include <types.h>
 #include <so/so_module_accesser.h>

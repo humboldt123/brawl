@@ -1,7 +1,7 @@
+#define MT_VEC3F_SUB_FRESH_REGS
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #define MT_VEC3F_ASSIGN_NOINLINE
 #define MT_VEC3F_SUB_NOINLINE
-#define MT_VEC3F_SUB_NATIVE_ORDER
 #include <ft/ft_kinetic_energy.h>
 #include <ft/toonlink/ft_toonlink_status_final.h>
 #include <gf/gf_task_scheduler.h>
