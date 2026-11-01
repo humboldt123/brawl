@@ -135,7 +135,7 @@ void wnemCataguardProc::HelmBullet(wnemSimple* wn, soModuleAccesser* acc) {
     // MATCH-ONLY: the original .rodata has 1.0f before the degrees-to-radians factor; MWCC pools literals by first
     // use, so mention it first.
     (void)1.0f;
-    // MATCH-ONLY: declared at function scope; declared in the bounce block, the dot product takes f30 instead of f31.
+    // BYTES: declared at function scope; declared in the bounce block, the dot product takes f30 instead of f31.
     float dot;
     wnemCataguardHelmParam* param = NULL;
     if (wn->unk2234 != NULL) {

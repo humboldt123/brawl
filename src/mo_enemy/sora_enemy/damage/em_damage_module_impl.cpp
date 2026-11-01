@@ -224,7 +224,7 @@ static inline emDamageCaptureView* getDamageCaptureModule(soModuleAccesser* modu
 }
 
 // The damage transactor of the module: nothing reacts through it (the module does it all).
-// MATCH-ONLY: defined after the constructor, which places the transactor's weak destructor after the observer's.
+// BYTES: defined after the constructor, which places the transactor's weak destructor after the observer's.
 inline soDamageTransactor* getNullTransactor();
 
 emDamageModuleImpl::emDamageModuleImpl(soModuleAccesser* acc, soArray<soDamage>* damages)
@@ -296,7 +296,7 @@ float emDamageModuleImpl::getDamageAngle(float reaction, int attackVector, int s
         angle = 0.017453292f * soValueAccesser::getValueFloat(m_moduleAccesser, 0x59dc, 0);
     } else {
         Vec2f attackSpeed = speed;
-        // MATCH-ONLY: declared ahead, which gives the loads the original's float registers.
+        // BYTES: declared ahead, which gives the loads the original's float registers.
         float param1;
         float param2;
         float param0;
@@ -950,7 +950,7 @@ void emDamageModuleImpl::reqCommonEffect(soModuleAccesser* moduleAccesser, float
         if (effectData.m_attribute == soCollisionAttackData::Attribute_Paralyze) {
             effectData.m_attribute = soValueAccesser::getValueInt(m_moduleAccesser, ValueInt_ParalyzeEffectAttribute, 0);
         }
-        // MATCH-ONLY: declared ahead, which gives the loads (which run in reverse argument order) the original's float registers.
+        // BYTES: declared ahead, which gives the loads (which run in reverse argument order) the original's float registers.
         float param1;
         float param2;
         float param3;

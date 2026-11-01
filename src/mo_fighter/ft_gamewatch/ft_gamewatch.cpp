@@ -177,7 +177,7 @@ bool ftGameWatch::activeArticle2(wnGameWatchParachute* weapon, soModuleAccesser*
 
 // The panel starts with the facing, the selector kept in the work of the fighter and its color.
 bool ftGameWatch::activeArticle3(wnGameWatchPanel* weapon, soModuleAccesser* acc) {
-    // MATCH-ONLY: declare the saved ID before the other persistent locals.
+    // BYTES: declare the saved ID before the other persistent locals.
     int founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
     soWorkManageModule& work = acc->getWorkManageModule();
@@ -199,7 +199,7 @@ bool ftGameWatch::activeArticle4(wnGameWatchOil* weapon, soModuleAccesser* acc) 
 
 // The octopus starts at the position of the fighter with its facing, a constant and its color.
 bool ftGameWatch::activeArticle5(wnGameWatchOctopus* weapon, soModuleAccesser* acc) {
-    // MATCH-ONLY: declare the saved ID before the other persistent locals.
+    // BYTES: declare the saved ID before the other persistent locals.
     int founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
     soPostureModule& posture = acc->getPostureModule();

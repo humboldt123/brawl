@@ -38,7 +38,7 @@ inline float absValueInline(float value) { return __fabsf(value); }
 //   flag  0x22000014  the spin's launch speed still has to be applied / energies have to be set up again
 
 void ftRobotStatusUniqProcessSpecialArmSpin::initStatus(soModuleAccesser* moduleAccesser) {
-    // MATCH-ONLY: the stick and flick-window floats are declared up front so they share the first saved FPR with speedX.
+    // BYTES: the stick and flick-window floats are declared up front so they share the first saved FPR with speedX.
     float stickX;
     float flickBase;
     float window;

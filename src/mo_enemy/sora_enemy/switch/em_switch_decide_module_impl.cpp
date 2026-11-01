@@ -114,7 +114,7 @@ static inline acCmdArg getCmdArg(const soArrayFixed<const acCmdArgConv>& args, s
 
 // An argument that is either a plain value or a variable of the enemy's value accesser; a parameter block is either an
 // address or a variable naming an indefinite constant.
-// MATCH-ONLY: statement macros, as in the Enemy unit (inline functions stay out of line there).
+// BYTES: statement macros, as in the Enemy unit (inline functions stay out of line there).
 #define READ_FLOAT_ARG(args, index, acc, out)                                                                          \
     if (getCmdArg(args, index).getArgType() == CmdArgType_ValueIndex) {                                                \
         out = soValueAccesser::getValueFloat(acc, getCmdArg(args, index).getValueIndexData(), 0);                      \

@@ -24,7 +24,7 @@ static inline const wnDamageEffectCommonParamView* getDamageEffectCommonParam() 
 void wnDamageEffectorImpl::reqShake(soModuleAccesser* moduleAccesser, int situation, Vec2f* normal, soCollisionAttackData* attackData, int hitStopFrame) { }
 
 void wnDamageEffectorImpl::reqCommonEffect(float power, float reaction, float lr, soModuleAccesser* moduleAccesser, soCollisionAttackData* attackData, soCollisionLog* collisionLog) {
-    // MATCH-ONLY: declared ahead of the loads, which run in reverse argument order, to get the original float registers.
+    // BYTES: declared ahead of the loads, which run in reverse argument order, to get the original float registers.
     float param1;
     float param2;
     float param3;

@@ -106,7 +106,7 @@ void ftStatusUniqProcessHammer::initStatus(soModuleAccesser* moduleAccesser) {
 void ftStatusUniqProcessHammer::execStatus(soModuleAccesser* moduleAccesser) {
     if (moduleAccesser->getStatusModule().getStatusKind() == 0xE0) {
         soKineticEnergyNormal& energy = dynamic_cast<soKineticEnergyNormal&>(*moduleAccesser->getKineticModule().getEnergy(0));
-        // MATCH-ONLY: declaration order selects the native registers.
+        // BYTES: declaration order selects the native registers.
         soWorkManageModule* work;
         float target, acceleration, deceleration, speedLimit, speedScale, current;
         speedScale = ftUtil::getWalkSpeedMul(moduleAccesser);

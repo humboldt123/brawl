@@ -352,7 +352,7 @@ void stMansion::update(float deltaFrame) {
 // The left/top and right/bottom limit of the camera.
 void stMansion::updateLimit() {
     CameraController* camera = CameraController::getInstance();
-    // MATCH-ONLY: the x limits are declared before the y loads so their float registers match.
+    // BYTES: the x limits are declared before the y loads so their float registers match.
     float left, right;
     float top = camera->unk160;
     left = camera->unk158;

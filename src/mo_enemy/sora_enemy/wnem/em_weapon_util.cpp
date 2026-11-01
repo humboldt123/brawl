@@ -235,7 +235,7 @@ void activeSimpleWeaponHolder(Vec3f* pos, bool flag, wnemSwHolder* article, emSh
 
 // Launches the wnemSimple article from the position, with the shot of the work block.
 void activeSimpleWeapon(Vec3f* pos, bool flag, wnemSimple* article, emShotParam* param, soModuleAccesser* acc) {
-    // MATCH-ONLY: the task id declared ahead of the Enemy reference gives the original's register order (as in
+    // BYTES: the task id declared ahead of the Enemy reference gives the original's register order (as in
     // emPorky::activeArticle1).
     int founderTaskId;
     Enemy& enemy = dynamic_cast<Enemy&>(*acc->m_stageObject);

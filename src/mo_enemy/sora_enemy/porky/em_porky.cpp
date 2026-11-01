@@ -83,7 +83,7 @@ bool emPorky::activeArticle(wnemSwHolder* article, soModuleAccesser* moduleAcces
     }
     Vec3f zero(0.0f, 0.0f, 0.0f);
     moduleAccesser->getModelModule().setNodeTranslate(Porky_Node_WeaponTranslate, &zero);
-    // MATCH-ONLY: the task id and the owner declared ahead of the Enemy reference give the original's register order
+    // BYTES: the task id and the owner declared ahead of the Enemy reference give the original's register order
     // (r27 / r26 / r25); the original also evaluates the call's arguments right to left (life, resource id, team).
     int founderTaskId;
     StageObject* owner;
@@ -104,7 +104,7 @@ bool emPorky::activeArticle(wnemSwHolder* article, soModuleAccesser* moduleAcces
 void emPorky::updateNodeSRT() {
     int status = moduleAccesser.getStatusModule().getStatusKind();
     if (status == Porky_Status_WeaponHold0 || status == Porky_Status_WeaponHold1) {
-        // MATCH-ONLY: the manager declared before the owner task id keeps the id read before the singleton lookup
+        // BYTES: the manager declared before the owner task id keeps the id read before the singleton lookup
         // (TIPS.md, section 6, item 1).
         emWeaponManager* manager;
         int taskId = moduleAccesser.getStageObject().m_taskId;

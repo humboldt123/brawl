@@ -18,7 +18,7 @@ void ftWarioStatusUniqProcessSpecialLw::initStatus(soModuleAccesser* a) {
     int frames = work.getInt(0x10000041);
     int level = work.getInt(0x10000042);
     if (level == 2) {
-        // MATCH-ONLY: this declaration order retains the native integer registers.
+        // BYTES: this declaration order retains the native integer registers.
         int minimum;
         int maximum = param->chargeSecondsMax;
         if (frames > maximum * 60) frames = maximum * 60;
@@ -30,7 +30,7 @@ void ftWarioStatusUniqProcessSpecialLw::initStatus(soModuleAccesser* a) {
         multiplier = 1.0f + (param->powerMulLevel2 - 1.0f) * multiplier;
         attacks.setPowerMul(multiplier);
     } else if (level == 1) {
-        // MATCH-ONLY: this declaration order retains the native integer registers.
+        // BYTES: this declaration order retains the native integer registers.
         int minimum;
         int maximum = param->chargeSecondsLevel2;
         if (frames > maximum * 60) frames = maximum * 60;
@@ -68,7 +68,7 @@ void ftWarioStatusUniqProcessSpecialLw::execStatus(soModuleAccesser* a) {
         if (level >= 2) {
             float speedY;
             if (level == 2) {
-                // MATCH-ONLY: retain the native threshold declaration order.
+                // BYTES: retain the native threshold declaration order.
                 int minimum;
                 int maximum = param->chargeSecondsMax;
                 if (frames > maximum * 60) frames = maximum * 60;

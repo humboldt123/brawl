@@ -69,7 +69,7 @@ struct ftWinArticleDataTable {
 };
 
 void ftStatusUniqProcessWin::generateArticleWin(soModuleAccesser* moduleAccesser, int articleId, int index) {
-    // MATCH-ONLY: declaration order selects the native registers.
+    // BYTES: declaration order selects the native registers.
     wnSimple* article;
     int kind;
     u32 resourceId;

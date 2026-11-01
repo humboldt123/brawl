@@ -63,7 +63,7 @@ bool emPatapata::emShootItem(itKind kind, int variation, void* param, float lr, 
     if (itManager::getInstance()->getItemFromInstanceId(communicationItemId) != NULL) {
         return false;
     }
-    // MATCH-ONLY: the receiver declared before the owner task id keeps the id read before the singleton lookup (TIPS.md,
+    // BYTES: the receiver declared before the owner task id keeps the id read before the singleton lookup (TIPS.md,
     // section 6, item 1).
     itManager* items;
     int ownerTaskId = moduleAccesser.getStageObject().m_taskId;
@@ -166,7 +166,7 @@ void emPatapata::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* a
         emDamageModuleImpl& damageModule = dynamic_cast<emDamageModuleImpl&>(*moduleAccesser.m_enumerationStart->m_damageModule);
         damageModule.addDamageHp(&damage, 0);
         moduleAccesser.getAnimCmdModule().resetInterpreter2(5, &moduleAccesser, 0, 0.0f);
-        // MATCH-ONLY: the posture declared before the kinetic module gets the original's register.
+        // BYTES: the posture declared before the kinetic module gets the original's register.
         soPostureModule* posture;
         emKineticModuleImpl& kinetic = dynamic_cast<emKineticModuleImpl&>(*moduleAccesser.m_enumerationStart->m_kineticModule);
         posture = moduleAccesser.m_enumerationStart->m_postureModule;

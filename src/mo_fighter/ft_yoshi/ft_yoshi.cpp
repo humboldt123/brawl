@@ -260,7 +260,7 @@ bool ftYoshi::activeArticle(wnYoshiWing* article, soModuleAccesser* acc) {
 }
 
 bool ftYoshi::activeArticle(wnYoshiFireBreath* article, soModuleAccesser* acc) {
-    // MATCH-ONLY: declare the saved ID before the other persistent locals.
+    // BYTES: declare the saved ID before the other persistent locals.
     int founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
     ftYoshiFinalParam* param = static_cast<ftYoshiFinalParam*>(
@@ -290,7 +290,7 @@ bool ftYoshi::activeArticle(wnYoshiFireBreath* article, soModuleAccesser* acc) {
 }
 
 bool ftYoshi::activeArticle(wnYoshiFireCannon* article, soModuleAccesser* acc) {
-    // MATCH-ONLY: declare the saved ID before the other persistent locals.
+    // BYTES: declare the saved ID before the other persistent locals.
     int founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
     ftYoshiFinalParam* param = static_cast<ftYoshiFinalParam*>(

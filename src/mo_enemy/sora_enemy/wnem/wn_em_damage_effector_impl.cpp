@@ -63,7 +63,7 @@ void wnemDamageEffectorImpl::reqCommonEffect(soModuleAccesser* moduleAccesser, f
 // declaration, $B/E3/shared_patch.diff); calls, arguments, constants and branches agree. Exact with the patch.
 void wnemDamageEffectorImpl::reqCommonEffect(float power, float reaction, float lr, soModuleAccesser* moduleAccesser, soCollisionAttackData* attackData, soCollisionLog* collisionLog) {
 #endif
-    // MATCH-ONLY: declared ahead of the loads, which run in reverse argument order, to get the original float registers.
+    // BYTES: declared ahead of the loads, which run in reverse argument order, to get the original float registers.
     float param1;
     float param2;
     float param3;

@@ -41,7 +41,7 @@ emAroaros::~emAroaros() { }
 // Creates the item one unit above a node of the model, with the facing lr, and constrains the enemy to it. The
 // parameter block is anim cmd 26's (only the node and the offset are read here).
 bool emAroaros::emShootItem(itKind kind, int variation, void* param, float lr, float) {
-    // MATCH-ONLY: the receiver declared before the owner task id keeps the id read before the singleton lookup (TIPS.md,
+    // BYTES: the receiver declared before the owner task id keeps the id read before the singleton lookup (TIPS.md,
     // section 6, item 1).
     itManager* items;
     int ownerTaskId = moduleAccesser.getStageObject().m_taskId;

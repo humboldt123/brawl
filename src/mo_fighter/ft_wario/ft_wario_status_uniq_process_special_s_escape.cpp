@@ -4,7 +4,7 @@
 #include <so/so_module_accesser.h>
 
 void ftWarioStatusUniqProcessSpecialSEscape::execFixPosCounter(soModuleAccesser* a) {
-    // MATCH-ONLY: declaration order preserves native module and vector allocation.
+    // BYTES: declaration order preserves native module and vector allocation.
     soGroundModule* ground;
     soWorkManageModule* work = &a->getWorkManageModule();
     soSituationModule* situation = &a->getSituationModule();

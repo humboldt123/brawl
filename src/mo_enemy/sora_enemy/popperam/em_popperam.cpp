@@ -69,7 +69,7 @@ bool emPopperam::emShootItem(itKind kind, int variation, void* param, float, flo
         itManager::getInstance()->preloadItemKindArchive(kind, 0, itArchive::Temp, true);
         return true;
     }
-    // MATCH-ONLY: the receiver declared before the owner task id keeps the id read before the singleton lookup (TIPS.md,
+    // BYTES: the receiver declared before the owner task id keeps the id read before the singleton lookup (TIPS.md,
     // section 6, item 1).
     itManager* items;
     int ownerTaskId = moduleAccesser.getStageObject().m_taskId;

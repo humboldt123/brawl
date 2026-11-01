@@ -111,7 +111,7 @@ emManager::~emManager() {
 // Creates the enemy described by `create` from its kind's preloaded archive. Returns its create id, or -2 (invalid
 // kind), -5 (archive missing or not loaded yet), -3 (no free entry), -4 (creation failed).
 int emManager::createEnemy(emCreate* create) {
-    // MATCH-ONLY: declared up front, the register order of the original.
+    // BYTES: declared up front, the register order of the original.
     u32 createId;
     EnemyKind kind;
     if (emInfo::getInstance()->isInvalidKind(create->m_enemyKind) == true) {

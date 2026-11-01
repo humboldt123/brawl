@@ -399,7 +399,7 @@ void* ftPikachu::getThunderParam() {
 
 // The cloud of Thunder starts at the fighter and is remembered in the fighter's work area.
 bool ftPikachu::activeArticle1(wnPikachuCloud* weapon, soModuleAccesser* acc) {
-    // MATCH-ONLY: declare the saved ID before the other persistent locals.
+    // BYTES: declare the saved ID before the other persistent locals.
     s32 founderTaskId;
     ftPikachu& pikachu = dynamic_cast<ftPikachu&>(acc->getStageObject());
     founderTaskId = pikachu.m_taskId;

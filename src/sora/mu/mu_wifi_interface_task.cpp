@@ -33,7 +33,7 @@ struct ntFriendInfoFields {
 };
 
 void muWifiInterfaceTask::connect(bool arg0) {
-    // MATCH-ONLY: declaration order picks the register assignment
+    // BYTES: declaration order picks the register assignment
     s32 offset;
     Network* network;
     s32 i;

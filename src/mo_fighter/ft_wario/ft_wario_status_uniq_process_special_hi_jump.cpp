@@ -1,5 +1,5 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-// MATCH-ONLY: declaration order preserves the original module-local RTTI order.
+// BYTES: declaration order preserves the original module-local RTTI order.
 #include <ft/ft_kinetic_energy.h>
 #include <ft/wario/ft_wario_status_uniq_process_special_hi.h>
 #include <so/so_module_accesser.h>

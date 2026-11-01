@@ -87,7 +87,7 @@ static const s32 CmdArgType_ValueIndex = 5;
 #define getTermArg(term, index) fn_27_778CC(term, index)
 
 // Read an argument that is either a plain value or a variable (a value index the enemy's value accesser resolves).
-// MATCH-ONLY: statement macros, because the original expands these reads in place (see enemy.cpp).
+// BYTES: statement macros, because the original expands these reads in place (see enemy.cpp).
 #define READ_FLOAT_ARG(term, index, acc, out)                                                                          \
     if (getTermArg(term, index).getArgType() == CmdArgType_ValueIndex) {                                               \
         out = soValueAccesser::getValueFloat(acc, getTermArg(term, index).getValueIndexData(), 0);                     \

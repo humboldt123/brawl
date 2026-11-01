@@ -55,7 +55,7 @@ bool emPrim::activeArticle(wnemSwHolder* article, soModuleAccesser* moduleAccess
 // Fires the shot: the plain shot (kind 4) is launched as emWeaponUtil::activeSimpleWeapon launches it, with the
 // extended resource of the Primid in place of the weapon's resource id.
 bool emPrim::activeArticle1(wnemSimple* article, soModuleAccesser* moduleAccesser) {
-    // MATCH-ONLY: the task id declared ahead of everything else gives the original's register order (as in
+    // BYTES: the task id declared ahead of everything else gives the original's register order (as in
     // emWeaponUtil::activeSimpleWeapon, whose launch the plain shot repeats with the extended resource).
     int founderTaskId;
     emShotParam* param = emWeaponUtil::getSimpleWeaponData(moduleAccesser,

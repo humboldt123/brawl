@@ -20,7 +20,7 @@ bool wnemDamageTransactorImpl::onDamage(soModuleAccesser* moduleAccesser, soDama
 
 // The weapon's damage setup only plays the effects of the hit: the uniq effect, and the shake when it has a reaction.
 void wnemDamageTransactorImpl::setupDamageStatusNormal(soModuleAccesser* moduleAccesser, soDamage* damage, soDamageLog* damageLog, int unk) {
-    // MATCH-ONLY: declared ahead, which gives the frame the register of `this` once the status kind call is done.
+    // BYTES: declared ahead, which gives the frame the register of `this` once the status kind call is done.
     int hitStopFrame;
     int situationKind = moduleAccesser->getSituationModule().getKind();
     getDamageStatusKind(moduleAccesser);

@@ -279,7 +279,7 @@ wnSimple* ftPurinArticleSubPool::getInstanceAt(s32 index) {
 }
 
 bool ftPurin::activeArticle(wnSimple* article, soModuleAccesser* acc) {
-    // MATCH-ONLY: declaration order retains the founder ID in its native register.
+    // BYTES: declaration order retains the founder ID in its native register.
     s32 founderTaskId;
     ftData* data = g_ftCommonDataAccesser.getData(Fighter_Purin);
     // HYPOTHESIS: source member name. Offset 0x64 contains the simple-article

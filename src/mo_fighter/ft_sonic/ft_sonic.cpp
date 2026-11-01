@@ -224,7 +224,7 @@ bool ftSonic::notifyEventCollisionAttackCheck(u32 flags) {
 }
 
 bool ftSonic::activeArticle(wnSonicGimmickJump* weapon, soModuleAccesser* acc) {
-    // MATCH-ONLY: declare the saved ID before the other persistent locals.
+    // BYTES: declare the saved ID before the other persistent locals.
     int founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
     Vec2f pos(acc->getPostureModule().getPos());

@@ -1637,7 +1637,7 @@ void IfPlayer::setScoreVary(int delta) {
 
 // Runs the callbacks of the current damage state and rolls the displayed damage towards the real one.
 void IfPlayer::damageMain() {
-    int i; // MATCH-ONLY: declared first (C89 style) to get the target's register order
+    int i; // BYTES: declared first (C89 style) to get the target's register order
     int prevState = m_damageState;
     // MATCH-ONLY: the (u32) casts keep the compiler from sharing the table offset between the calls.
     if (s_damageFuncTbl[(u32)prevState].m_main != NULL) {

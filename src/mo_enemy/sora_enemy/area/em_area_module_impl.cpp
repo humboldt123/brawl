@@ -1219,7 +1219,7 @@ static inline acCmdArg getCmdArg(const soArrayFixed<const acCmdArgConv>& args, s
     return acCmdArg(&args.at(index));
 }
 
-// MATCH-ONLY: statement macros, because the original expands these reads in place (as in Enemy::notifyEventAnimCmd).
+// BYTES: statement macros, because the original expands these reads in place (as in Enemy::notifyEventAnimCmd).
 // An argument is either a plain value or a variable (a value index the enemy's value accesser resolves).
 #define READ_FLOAT_ARG(args, index, acc, out)                                                                          \
     if (getCmdArg(args, index).getArgType() == CmdArgType_ValueIndex) {                                                \

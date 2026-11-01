@@ -162,7 +162,7 @@ void wnemDuonProc::MissileFly(wnemSimple* wn, soModuleAccesser* acc) {
         wn->m_accel = dir;
         return;
     }
-    // MATCH-ONLY: declared before the loads so that it takes the original's register; it also carries the flag below.
+    // BYTES: declared before the loads so that it takes the original's register; it also carries the flag below.
     s32 turnCount;
     u32 homingStartFrame = param->m_homingStartFrame;
     Vec3f target(0.0f, 0.0f, 0.0f);

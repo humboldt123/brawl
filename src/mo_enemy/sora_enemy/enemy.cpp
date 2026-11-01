@@ -1614,7 +1614,7 @@ static inline acCmdArg getCmdArg(const soArrayFixed<const acCmdArgConv>& args, s
 
 // Read an argument that is either a plain value or a variable (a value index the enemy's value accesser resolves); a
 // parameter block is either an address or a variable naming an indefinite constant.
-// MATCH-ONLY: statement macros, because the original expands these reads in place. As inline functions that return
+// BYTES: statement macros, because the original expands these reads in place. As inline functions that return
 // the value (readFloatArg and so on, tried) MWCC keeps them out of line in this unit and notifyEventAnimCmd drops from
 // 99.99% to 57%.
 #define READ_FLOAT_ARG(args, index, acc, out)                                                                          \
@@ -2334,7 +2334,7 @@ bool Enemy::emCreateFigure(int variation) {
     }
     Vec3f pos = moduleAccesser.getModelModule().getNodeGlobalPosition(
         soValueAccesser::getValueInt(&moduleAccesser, ValueInt_CenterNodeId, 0), false);
-    // MATCH-ONLY: the receiver declared before the owner task id keeps the id read before the singleton lookup (TIPS.md,
+    // BYTES: the receiver declared before the owner task id keeps the id read before the singleton lookup (TIPS.md,
     // section 6, item 1).
     itManager* items;
     int ownerTaskId = moduleAccesser.getStageObject().m_taskId;
