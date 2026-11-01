@@ -31,11 +31,6 @@ void grCollCollection::reset() {
 extern "C" grCollisionJoint* getJoint__11grCollisionFUs(grCollision* collision, u32 index);
 extern "C" grCollisionLine* getLine1__11grCollisionFUs(grCollision* collision, u32 index);
 
-// MATCH-ONLY: the original measures a returned vector temporary through a by-value copy.
-static inline float getLength(Vec2f vec) {
-    return vec.length();
-}
-
 // The componentwise minimum and maximum of two pairs, written to out (min first, then max).
 // BYTES: paired-single asm, see mt/mt_ps_minmax.h.
 static inline void mergeBounds(register Vec2f* outMin, register Vec2f* outMax, register const Vec2f* minB, register const Vec2f* maxB) {
@@ -88,7 +83,7 @@ bool grCollCollection::addSegment(grCollision* collision) {
                         grCollSegmentEx segment;
                         clSegment2D trace;
                         collision->getSegmentTrace1(&segment, &trace, line, jointLineId | index);
-                        if (getLength(segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos) < 0.01f) {
+                        if ((segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos).length() < 0.01f) {
                             continue;
                         }
                         {

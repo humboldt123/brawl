@@ -25,11 +25,6 @@ extern bool lbl_805A0358;
 extern "C" grCollisionJoint* getJoint__11grCollisionFUs(grCollision* collision, u32 index);
 extern "C" grCollisionLine* getLine__16grCollisionJointFUs(grCollisionJoint* joint, u32 index);
 
-// MATCH-ONLY: the original measures a returned vector temporary through a by-value copy.
-static inline float getLength(Vec2f vec) {
-    return vec.length();
-}
-
 grCollisionManager::grCollisionManager() :
     gfTask("GroundCollision", Category_GrCollision, 4, 13, true), unk41(0), m_nextIndex(0), unk44(0) {
     m_indexBits.initilize(0x100);
@@ -110,7 +105,7 @@ void grCollisionManager::calcFloorRange() {
                         if (line->m_isUnder) {
                             clSegment2D segment;
                             collision->getSegment(&segment, line);
-                            float length = getLength(segment.m_p1Pos - segment.m_p0Pos);
+                            float length = (segment.m_p1Pos - segment.m_p0Pos).length();
                             if (length > 0.01f) {
                                 float lineMinY = psMin(segment.m_p0Pos.m_y, segment.m_p1Pos.m_y);
                                 float lineMaxY = psMax(segment.m_p0Pos.m_y, segment.m_p1Pos.m_y);
