@@ -245,7 +245,7 @@ void ftStatusUniqProcessYoshiEgg::exitStatus(soModuleAccesser* moduleAccesser, i
         controller.m_speed.m_x = soValueAccesser::getConstantFloat(moduleAccesser, 0xD6F, 0);
         controller.m_speed.m_y = 0.0f;
         gravity.m_speedY = soValueAccesser::getConstantFloat(moduleAccesser, 0xD70, 0);
-        ((u8*)&gravity)[5] |= 0x80;
+        gravity.enable();
         const int hitParam = soValueAccesser::getConstantInt(moduleAccesser, 0x5A53, 0);
         soCollisionHitModule& hit = moduleAccesser->getCollisionHitModule();
         typedef void (*HitInt)(soCollisionHitModule*, int, int);

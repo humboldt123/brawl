@@ -28,6 +28,5 @@ void ftStatusUniqProcessCaptureCut::initStatus(soModuleAccesser* moduleAccesser)
     speed.m_x = speed.m_x + scale * negLr;
     normal.m_speed.m_x = speed.m_x;
     normal.m_speed.m_y = speed.m_y;
-    // HYPOTHESIS: byte 5 is the soKineticEnergy suspend byte; bit 0x80 is an unnamed flag set here.
-    *((u8*)&normal + 5) |= 0x80;
+    normal.enable();
 }

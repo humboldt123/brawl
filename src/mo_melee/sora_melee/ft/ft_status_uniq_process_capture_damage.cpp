@@ -20,8 +20,7 @@ ftStatusUniqProcessCaptureDamage g_ftStatusUniqProcessCaptureDamage;
 
 void ftStatusUniqProcessCaptureDamage::initStatus(soModuleAccesser* moduleAccesser) {
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
-    // HYPOTHESIS: byte 5 is the soKineticEnergy suspend byte; bit 0x80 is an unnamed flag set here.
-    *((u8*)&stop + 5) |= 0x80;
+    stop.enable();
     int kind = moduleAccesser->getWorkManageModule().getInt(0x20000000);
     // Damage-state ids 0x7e..0x80 fold to 0x80, 0x81..0x83 fold to 0x83.
     switch (kind) {

@@ -46,8 +46,7 @@ void wnNessYoyoHeadStatusUniqProcessShotFall::initStatus(soModuleAccesser* modul
     energy.m_accel = accel;
     energy.m_speedTarget = limit;
     energy.m_speedLimit = limit;
-    // HYPOTHESIS: this bit of the energy's enable word keeps the energy running.
-    *((u8*)&energy + 5) |= 0x80;
+    energy.enable();
     moduleAccesser->getStageObject().updateNodeSRT();
 }
 

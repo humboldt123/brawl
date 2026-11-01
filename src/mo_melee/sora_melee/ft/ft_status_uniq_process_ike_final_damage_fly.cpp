@@ -109,7 +109,7 @@ void ftStatusUniqProcessIkeFinalDamageFly::initStatus(soModuleAccesser* moduleAc
     ftKineticEnergyDisableAndClear(0, moduleAccesser);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
     stop.resetEnergy(0x16, &Vec2f(0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
-    *((u8*)&stop + 5) |= 0x80;
+    stop.enable();
 }
 
 // Each frame the victim is moved towards the attach point (work floats 0x21000007/8) at the drag speed (0x2100000a).

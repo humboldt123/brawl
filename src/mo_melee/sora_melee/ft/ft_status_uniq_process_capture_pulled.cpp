@@ -61,7 +61,7 @@ void ftStatusUniqProcessCapturePulled::initStatus(soModuleAccesser* moduleAccess
     stop.m_speedTarget.m_x = -1.0f;
     stop.m_speedTarget.m_y = -1.0f;
     Vec2f target(-1.0f, -1.0f);
-    *((u8*)&stop + 5) |= 0x80;
+    stop.enable();
     soPostureModuleSimple* posture = reinterpret_cast<soPostureModuleSimple*>(moduleAccesser->m_enumerationStart->m_postureModule);
     posture->setLr(-reinterpret_cast<ftLinkModuleSlotView*>(moduleAccesser->m_enumerationStart->m_linkModule)->slotA8(0));
     posture->updateRotYLr();

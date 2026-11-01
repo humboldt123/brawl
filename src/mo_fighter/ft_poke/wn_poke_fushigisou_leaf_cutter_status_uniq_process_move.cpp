@@ -62,5 +62,5 @@ void wnPokeFushigisouLeafCutterStatusUniqProcessMove::execStatus(soModuleAccesse
     float y = length * sinValue;
     energy.m_speed.m_x = x;
     energy.m_speed.m_y = y;
-    reinterpret_cast<u8*>(&energy)[5] |= 0x80;
+    energy.enable();
 }

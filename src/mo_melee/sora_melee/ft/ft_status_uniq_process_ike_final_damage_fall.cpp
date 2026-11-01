@@ -51,7 +51,7 @@ void ftStatusUniqProcessIkeFinalDamageFall::initStatus(soModuleAccesser* moduleA
     moduleAccesser->getWorkManageModule().setInt(0x29, 0x20000001);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
     stop.resetEnergy(0x16, &Vec2f(0.0f, -4.5f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
-    *((u8*)&stop + 5) |= 0x80;
+    stop.enable();
     moduleAccesser->getWorkManageModule().offFlag(0x22000010);
 }
 
