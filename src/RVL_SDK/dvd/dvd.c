@@ -9,7 +9,9 @@
 #include "revolution/os/OSBootInfo.h"
 #include <cstring>
 
-// MATCH-ONLY: plain 0 for NULL, same as dvd_broadway (otherwise pointer tests come out as cmplw)
+// BYTES: integer-0 NULL, so pointer tests against NULL compile as signed cmpwi as in retail. Not header-wide:
+// making revolution/types.h define NULL 0 for C changes no other SDK unit except OSExec and nwc24, whose
+// retail compares are cmplwi ((void*)0), so the NULL spelling differs per original source file.
 #undef NULL
 #define NULL 0
 
