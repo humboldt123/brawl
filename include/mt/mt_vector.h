@@ -97,38 +97,22 @@ public:
         return lhs * (1 / c);
     }
 
-    Vec2f& operator+=(const Vec2f& v)
-#ifdef MT_VEC2F_ADD_ASSIGN_DIRECT
-    { // MATCH-ONLY: the weak out-of-line copy in the Pikmin article adds the components directly.
+    Vec2f& operator+=(const Vec2f& v) {
         m_x = m_x + v.m_x;
         m_y = m_y + v.m_y;
         return *this;
     }
-#else
-    {
-        *this = *this + v;
-        return *this;
-    }
-#endif
 
     Vec2f& operator-=(const Vec2f& v) {
         *this = *this - v;
         return *this;
     }
 
-    Vec2f& operator*=(const float c)
-#ifdef MT_VEC2F_MUL_ASSIGN_DIRECT
-    { // MATCH-ONLY: Pikachu's Quick Attack scales the components directly in the out-of-line copy.
+    Vec2f& operator*=(const float c) {
         m_x = m_x * c;
         m_y = m_y * c;
         return *this;
     }
-#else
-    {
-        *this = *this * c;
-        return *this;
-    }
-#endif
 
     // HYPOTHESIS: native calls pass vector addresses; original reference qualifiers are unresolved.
     float mtVecAngle(Vec2f& other);
@@ -136,12 +120,12 @@ public:
     float lengthSq()
 #ifdef MT_VEC2F_LENGTH_SQ_OUT_OF_LINE
         __attribute__((never_inline)); // MATCH-ONLY: retain the owning Vanish unit's helper calls.
-#elif defined(MT_VEC2F_LENGTH_SQ_SINGLE_EXPR)
-    { // MATCH-ONLY: the item kinetic energy units square both components in place (one expression).
+#elif !defined(MT_VEC2F_LENGTH_SQ_SPLIT)
+    {
         return m_x * m_x + m_y * m_y;
     }
 #else
-    {
+    { // MATCH-ONLY: opt-in for a unit whose function still allocates better with named squares.
         float xSq = m_x * m_x;
         float ySq = m_y * m_y;
         return xSq + ySq;

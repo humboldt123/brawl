@@ -2,8 +2,6 @@
 #define MT_VEC3F_CTOR_NOINLINE
 // MATCH-ONLY: Vec2f assignments are out-of-line scalar float copies.
 #define MT_VEC2F_ASSIGN_NOINLINE
-// MATCH-ONLY: the weak out-of-line operator*= scales the components directly.
-#define MT_VEC2F_MUL_ASSIGN_DIRECT
 #include <em/em_shot.h>
 #include <em/em_weapon_manager.h>
 #include <em/wnem/wnem_proc_common.h>

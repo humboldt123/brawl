@@ -363,8 +363,10 @@ bool clCircle2D::checkIntersect1(const clCircle2D& other) const {
     Vec2f a(m_centerPos.m_x, m_centerPos.m_y);
     Vec2f b(other.m_centerPos.m_x, other.m_centerPos.m_y);
     Vec2f diff(a.m_x - b.m_x, a.m_y - b.m_y);
+    float xSq = diff.m_x * diff.m_x;
+    float ySq = diff.m_y * diff.m_y;
     float radii = m_radius + other.m_radius;
-    return diff.lengthSq() <= radii * radii;
+    return xSq + ySq <= radii * radii;
 }
 
 bool clCircle2D::checkIntersect2(const clTriangle2D& triangle) const {

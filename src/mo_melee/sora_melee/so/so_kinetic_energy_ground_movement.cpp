@@ -1,6 +1,4 @@
 #define SO_KINETIC_CONTACT_IMPLEMENTATION
-#define MT_VEC2F_ADD_ASSIGN_DIRECT // MATCH-ONLY: add attached motion without a copied local.
-#define MT_VEC2F_MUL_ASSIGN_DIRECT // MATCH-ONLY: decay the retained velocity in place.
 #include <ft/ft_kinetic_energy.h>
 #include <math.h>
 #include <so/so_module_accesser.h>

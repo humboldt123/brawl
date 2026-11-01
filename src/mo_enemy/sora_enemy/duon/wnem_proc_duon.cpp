@@ -1,7 +1,6 @@
-// MATCH-ONLY: Vec2f assignments are out-of-line calls, and the Vec2f::length and operator*= copies calls to the weak
-// copies another unit of the REL carries.
+// MATCH-ONLY: Vec2f assignments and Vec2f::length are calls to the weak copies another unit of the REL
+// carries.
 #define MT_VEC2F_LENGTH_OUT_OF_LINE
-#define MT_VEC2F_MUL_ASSIGN_DIRECT
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <em/duon/wnem_proc_duon.h>
 #include <em/em_scaled_value.h>

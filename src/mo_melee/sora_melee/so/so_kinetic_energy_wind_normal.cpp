@@ -1,4 +1,3 @@
-#define MT_VEC2F_LENGTH_SQ_SINGLE_EXPR // MATCH-ONLY: retain the native squared-length expression.
 #define SO_KINETIC_WIND_IMPLEMENTATION
 #include <ft/ft_kinetic_energy.h>
 #include <math.h>

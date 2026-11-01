@@ -1,6 +1,3 @@
-// SearchNearestFighterPosition's inline Vec2f::length squares both components in one expression (as the item and
-// fighter kinetic energy units do); the two-statement form swaps its float registers.
-#define MT_VEC2F_LENGTH_SQ_SINGLE_EXPR
 #include <em/em_area_module_impl.h>
 #include <em/em_weapon_manager.h>
 #include <ft/ft_external_value_accesser.h>

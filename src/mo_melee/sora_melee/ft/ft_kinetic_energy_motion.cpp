@@ -1,5 +1,4 @@
 #define FT_KINETIC_MOTION_IMPLEMENTATION
-#define MT_VEC2F_MUL_ASSIGN_DIRECT // MATCH-ONLY: scale planar vectors in place.
 #define MT_VEC3F_MUL_INLINE
 #define MT_VEC3F_SCALE_FRESH_REGS
 #include <ft/ft_kinetic_energy.h>

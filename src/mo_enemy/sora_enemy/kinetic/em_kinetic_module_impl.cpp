@@ -28,8 +28,6 @@
 // MATCH-ONLY: the unit calls the out-of-line copies of Vec2f::length and Vec2f * float.
 #define MT_VEC2F_LENGTH_OUT_OF_LINE
 #define MT_VEC2F_MUL_OUT_OF_LINE
-// The weak copy of Vec2f::operator+= adds the components directly.
-#define MT_VEC2F_ADD_ASSIGN_DIRECT
 #include <em/kinetic/em_kinetic_module_impl.h>
 #include <em/enemy.h>
 #include <math.h>

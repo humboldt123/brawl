@@ -1,4 +1,3 @@
-#define MT_VEC2F_LENGTH_SQ_SINGLE_EXPR
 #include <it/kinetic/it_kinetic_energy.h>
 #include <mt/mt_vector.h>
 #include <so/so_kinetic_utility.h>

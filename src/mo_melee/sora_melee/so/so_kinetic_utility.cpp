@@ -1,5 +1,4 @@
 #define MT_VEC3F_LENGTH_SQ_INLINE
-#define MT_VEC2F_ADD_ASSIGN_DIRECT // MATCH-ONLY: accumulate external transport in place.
 #include <so/so_kinetic_utility.h>
 #include <ft/ft_kinetic_energy.h>
 #include <math.h>
