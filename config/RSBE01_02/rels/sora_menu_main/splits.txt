@@ -62,6 +62,11 @@ mo_menu/mu_proc_opt_del.cpp:
 	.data       start:0x00002198 end:0x00002328
 	.bss        start:0x00000048 end:0x00000050
 
+mo_menu/mu_proc_opt_vib.cpp:
+	.text       start:0x00018C30 end:0x00019F9C
+	.rodata     start:0x00000660 end:0x00000688
+	.data       start:0x00002328 end:0x00002410
+
 mo_menu/mu_proc_opt_btn.cpp:
 	.text       start:0x00019F9C end:0x0001A3F8
 	.data       start:0x00002410 end:0x00002460
