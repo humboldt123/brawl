@@ -17,12 +17,6 @@
 #include <st_norfair/gr_norfair.h>
 #include <st_norfair/gr_norfair_anim.h>
 
-// MATCH-ONLY: the members of soSet are private
-struct grNorfairSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // MATCH-ONLY: the copy of a hit sphere to its simple form (word by word, as the original does it)
 static inline void norfairCopyHit(soCollisionHitData::Simple* dst, soCollisionHitData* src) {
     u32* srcWords = reinterpret_cast<u32*>(src);
@@ -304,7 +298,7 @@ void grNorfairDoor::setHit() {
     // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
     m_hitData = reinterpret_cast<soCollisionHitData*>(new (Heaps::StageInstance) u8[sizeof(soCollisionHitData) * 2]);
     m_hitSimple = reinterpret_cast<soCollisionHitData::Simple*>(new (Heaps::StageInstance) u8[sizeof(soCollisionHitData::Simple) * 2]);
-    m_hitSet = reinterpret_cast<soSet<soCollisionHitData>*>(new (Heaps::StageInstance) grNorfairSetView);
+    m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;
     m_dataGroup = new (Heaps::StageInstance) ykDataGroup;
     m_data = new (Heaps::StageInstance) ykData;
 
@@ -333,11 +327,10 @@ void grNorfairDoor::setHit() {
     m_hitSimple[1].m_height = soCollisionHitData::Height_Low;
     m_hitSimple[1].m_nodeIndex = m_nodeIndex;
 
-    // MATCH-ONLY: the members of soSet are private
-    grNorfairSetView* set = reinterpret_cast<grNorfairSetView*>(m_hitSet);
+    soSet<soCollisionHitData::Simple>* set = m_hitSet;
     set->m_elements = m_hitSimple;
     set->m_size = 2;
-    m_dataGroup->m_hitDataSimpleSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(m_hitSet);
+    m_dataGroup->m_hitDataSimpleSet = m_hitSet;
     m_dataGroup->m_hitGroupIndex = 0;
     m_data->m_dataGroups = m_dataGroup;
     m_data->m_dataGroupNum = 1;

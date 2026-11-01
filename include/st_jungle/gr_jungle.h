@@ -123,7 +123,7 @@ protected:
     char _17d[3];
     soCollisionHitData* m_hitData;           // 0x180 the hit spheres
     soCollisionHitData::Simple* m_hitSimple; // 0x184
-    soSet<soCollisionHitData>* m_hitSet;     // 0x188
+    soSet<soCollisionHitData::Simple>* m_hitSet;     // 0x188
     ykDataGroup* m_dataGroup;   // 0x18C
     ykData* m_data;             // 0x190
 
@@ -485,7 +485,7 @@ protected:
     Vec3f m_shake;              // 0x170 how far it is shaken
     soCollisionHitData* m_hitData;           // 0x17C the hit sphere
     soCollisionHitData::Simple* m_hitSimple; // 0x180
-    soSet<soCollisionHitData>* m_hitSet;     // 0x184
+    soSet<soCollisionHitData::Simple>* m_hitSet;     // 0x184
     ykDataGroup* m_dataGroup;   // 0x188
     ykData* m_data;             // 0x18C
     snd3DGenerator m_snd;       // 0x190
@@ -546,7 +546,7 @@ protected:
     char _17d[3];
     soCollisionHitData* m_hitData;           // 0x180
     soCollisionHitData::Simple* m_hitSimple; // 0x184
-    soSet<soCollisionHitData>* m_hitSet;     // 0x188
+    soSet<soCollisionHitData::Simple>* m_hitSet;     // 0x188
     ykDataGroup* m_dataGroup;   // 0x18C
     ykData* m_data;             // 0x190
     snd3DGenerator m_snd;       // 0x194

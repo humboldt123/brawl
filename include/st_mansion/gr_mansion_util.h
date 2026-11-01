@@ -40,12 +40,6 @@ struct grMansionHitByte {
     unsigned char m_rest : 7;
 };
 
-// MATCH-ONLY: layout of soSet<T> (its members are private)
-struct grMansionSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 #include <nw4r/math/math_types.h>
 #include <st_mansion/gr_mansion_anim.h>
 

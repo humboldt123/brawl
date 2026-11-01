@@ -46,7 +46,7 @@ grJungleAshiba03::~grJungleAshiba03() {
     }
     m_hitSimple = NULL;
     if (m_hitSet != NULL) {
-        delete[] reinterpret_cast<grJungleSetView*>(m_hitSet);
+        delete[] reinterpret_cast<u8*>(m_hitSet);
     }
     m_hitSet = NULL;
     if (m_dataGroup != NULL) {
@@ -160,12 +160,11 @@ void grJungleAshiba03::setHit() {
     // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
     m_hitData = new (Heaps::StageInstance) soCollisionHitData[2];
     m_hitSimple = new (Heaps::StageInstance) soCollisionHitData::Simple[2];
-    m_hitSet = reinterpret_cast<soSet<soCollisionHitData>*>(new (Heaps::StageInstance) grJungleSetView[2]);
+    m_hitSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(new (Heaps::StageInstance) u8[sizeof(soSet<soCollisionHitData::Simple>) * 2]);
     m_dataGroup = new (Heaps::StageInstance) ykDataGroup[2];
     m_data = new (Heaps::StageInstance) ykData;
 
-    // MATCH-ONLY: the members of soSet are private
-    grJungleSetView* sets = reinterpret_cast<grJungleSetView*>(m_hitSet);
+    soSet<soCollisionHitData::Simple>* sets = m_hitSet;
     for (int i = 0; i < 2; i++) {
         m_hitData[i].m_startOffsetPos.m_x = 0.0f;
         m_hitData[i].m_startOffsetPos.m_y = 0.0f;
@@ -181,7 +180,7 @@ void grJungleAshiba03::setHit() {
         m_hitSimple[i].m_nodeIndex = m_node[i];
         sets[i].m_elements = &m_hitSimple[i];
         sets[i].m_size = 1;
-        m_dataGroup[i].m_hitDataSimpleSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(&sets[i]);
+        m_dataGroup[i].m_hitDataSimpleSet = &sets[i];
         m_dataGroup[i].m_hitGroupIndex = i;
     }
     m_data->m_dataGroups = m_dataGroup;

@@ -49,12 +49,6 @@ struct grKartHitByte {
     unsigned char m_rest : 7;
 };
 
-// MATCH-ONLY: layout of soSet<T> (its members are private)
-struct grKartSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // The base ground of the stage.
 class grKart : public grYakumono {
 protected:

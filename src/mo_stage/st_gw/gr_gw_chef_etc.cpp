@@ -22,12 +22,6 @@ static grGWMarker sMarkerB(0xFF, 1);
 // Yakumono::getDamage (sora_melee, unnamed)
 extern "C" void fn_27_26399C(Yakumono* yakumono);
 
-// MATCH-ONLY: the members of soSet are private
-struct grGWChefSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
 struct grGWChefHitByte {
     u8 _pad[0x1c];
@@ -552,7 +546,7 @@ void grGWChefEtc::updateCallBack(float deltaFrame) {
 void grGWChefEtc::setHit() {
     m_hitData = new (Heaps::StageInstance) soCollisionHitData[4];
     m_hitSimple = new (Heaps::StageInstance) soCollisionHitData::Simple[4];
-    m_hitSet = reinterpret_cast<soSet<soCollisionHitData>*>(new (Heaps::StageInstance) grGWChefSetView);
+    m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;
     m_dataGroup = new (Heaps::StageInstance) ykDataGroup;
     m_data = new (Heaps::StageInstance) ykData;
     Vec3f origin;
@@ -572,11 +566,10 @@ void grGWChefEtc::setHit() {
         m_hitSimple[i].m_height = soCollisionHitData::Height_Low;
         m_hitSimple[i].m_nodeIndex = m_nodeChef[i][0];
     }
-    // MATCH-ONLY: the members of soSet are private
-    grGWChefSetView* set = reinterpret_cast<grGWChefSetView*>(m_hitSet);
+    soSet<soCollisionHitData::Simple>* set = m_hitSet;
     set->m_elements = m_hitSimple;
     set->m_size = 4;
-    m_dataGroup->m_hitDataSimpleSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(m_hitSet);
+    m_dataGroup->m_hitDataSimpleSet = m_hitSet;
     m_dataGroup->m_hitGroupIndex = 0;
     m_data->m_dataGroups = m_dataGroup;
     m_data->m_dataGroupNum = 1;

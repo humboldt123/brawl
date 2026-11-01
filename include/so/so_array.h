@@ -10,10 +10,13 @@
 
 template <class T>
 class soSet {
+public:
+    // HYPOTHESIS: the members are public. The stage hit setups store the elements and the size through the set
+    // pointer one member at a time (they reload the pointer between the stores), which a constructor or a copy
+    // of a temporary does not produce.
     T* m_elements;
     size_t m_size;
 
-public:
     soSet() { }
     soSet(T* elements, u32 size) : m_elements(elements), m_size(size) { }
     // MATCH-ONLY: writes the size before the elements, as emAreaModuleImpl's constructor does (a copy of a soSet

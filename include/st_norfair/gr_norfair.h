@@ -113,7 +113,7 @@ protected:
     char _179[3];
     soCollisionHitData* m_hitData;           // 0x17C the hit boxes
     soCollisionHitData::Simple* m_hitSimple; // 0x180 their form for the hit object
-    soSet<soCollisionHitData>* m_hitSet;     // 0x184
+    soSet<soCollisionHitData::Simple>* m_hitSet;     // 0x184
     ykDataGroup* m_dataGroup;                // 0x188
     ykData* m_data;                          // 0x18C
     snd3DGenerator m_snd;       // 0x190

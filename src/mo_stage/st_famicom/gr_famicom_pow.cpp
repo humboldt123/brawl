@@ -21,12 +21,6 @@
 #include <st_famicom/gr_famicom.h>
 #include <st_famicom/gr_famicom_anim.h>
 
-// MATCH-ONLY: the members of soSet are private
-struct grFamicomSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
 struct grFamicomHitByte {
     u8 _pad[0x1c];
@@ -312,7 +306,7 @@ void grFamicomPow::setHit() {
     // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
     m_hitData = reinterpret_cast<soCollisionHitData*>(new (Heaps::StageInstance) u8[sizeof(soCollisionHitData)]);
     m_hitSimple = reinterpret_cast<soCollisionHitData::Simple*>(new (Heaps::StageInstance) u8[sizeof(soCollisionHitData::Simple)]);
-    m_hitSet = reinterpret_cast<soSet<soCollisionHitData>*>(new (Heaps::StageInstance) grFamicomSetView);
+    m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;
     m_dataGroup = new (Heaps::StageInstance) ykDataGroup;
     m_data = new (Heaps::StageInstance) ykData;
 
@@ -328,11 +322,10 @@ void grFamicomPow::setHit() {
     famicomCopyHit(m_hitSimple, m_hitData);
     m_hitSimple->m_height = soCollisionHitData::Height_Low;
     m_hitSimple->m_nodeIndex = m_nodeIndex;
-    // MATCH-ONLY: the members of soSet are private
-    grFamicomSetView* set = reinterpret_cast<grFamicomSetView*>(m_hitSet);
+    soSet<soCollisionHitData::Simple>* set = m_hitSet;
     set->m_elements = m_hitSimple;
     set->m_size = 1;
-    m_dataGroup->m_hitDataSimpleSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(m_hitSet);
+    m_dataGroup->m_hitDataSimpleSet = m_hitSet;
     m_dataGroup->m_hitGroupIndex = 0;
     m_data->m_dataGroups = m_dataGroup;
     m_data->m_dataGroupNum = 1;

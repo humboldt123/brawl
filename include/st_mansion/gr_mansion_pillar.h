@@ -29,7 +29,7 @@ protected:
     float unk190;                           // 0x190 frames of that animation
     soCollisionHitData* unk194;             // 0x194 the hit sphere
     soCollisionHitData::Simple* unk198;     // 0x198
-    soSet<soCollisionHitData>* unk19C;      // 0x19C
+    soSet<soCollisionHitData::Simple>* unk19C;      // 0x19C
     ykDataGroup* unk1A0;                    // 0x1A0
     ykData* unk1A4;                         // 0x1A4
     snd3DGenerator unk1A8;                  // 0x1A8

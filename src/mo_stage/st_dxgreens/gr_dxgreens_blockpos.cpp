@@ -28,12 +28,6 @@ struct dxgreensHitByte {
     unsigned char m_rest : 7;
 };
 
-// MATCH-ONLY: layout of soSet<T> (its members are private)
-struct dxgreensSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // MATCH-ONLY: a flag of the Yakumono the gimmick switches on after creating it
 struct dxgreensYakumonoFlags {
     u8 _pad[0xA4];
@@ -225,7 +219,7 @@ void grDxGreensBlockPos::setHit() {
     // MATCH-ONLY: the original allocates the arrays of the spheres as raw storage (no element construction and no array cookie)
     m_hitData = reinterpret_cast<soCollisionHitData*>(new (Heaps::StageInstance) u8[sizeof(soCollisionHitData) * 30]);
     m_hitSimple = reinterpret_cast<soCollisionHitData::Simple*>(new (Heaps::StageInstance) u8[sizeof(soCollisionHitData::Simple) * 30]);
-    m_simpleSets = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(new (Heaps::StageInstance) u8[sizeof(dxgreensSetView) * 30]);
+    m_simpleSets = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(new (Heaps::StageInstance) u8[sizeof(soSet<soCollisionHitData::Simple>) * 30]);
     m_dataGroups = new (Heaps::StageInstance) ykDataGroup[30];
     m_data = new (Heaps::StageInstance) ykData;
     Vec3f pos(0.0f, 0.0f, 0.0f);
@@ -259,11 +253,10 @@ void grDxGreensBlockPos::setHit() {
             reinterpret_cast<u8*>(simple)[0x1c] = reinterpret_cast<u8*>(hit)[0x1c];
             simple->m_height = soCollisionHitData::Height_Low;
             simple->m_nodeIndex = m_node[column * 5 + row];
-            // MATCH-ONLY: the members of soSet are private
-            dxgreensSetView* set = reinterpret_cast<dxgreensSetView*>(m_simpleSets) + idx;
+            soSet<soCollisionHitData::Simple>* set = m_simpleSets + idx;
             set->m_elements = simple;
             set->m_size = 1;
-            m_dataGroups[idx].m_hitDataSimpleSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(set);
+            m_dataGroups[idx].m_hitDataSimpleSet = set;
             m_dataGroups[idx].m_hitGroupIndex = idx;
         }
     }
