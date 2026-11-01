@@ -86,15 +86,14 @@ ftLucario::ftLucario(s32 entryId,
     ftPhysicsModuleCall6C(m_moduleAccesser->m_enumerationStart->m_physicsModule, 0x13);
 }
 
-// MATCH-ONLY: the native singleton addresses its guard, instance and destructor registration separately rather than
-// pooling them into one BSS base.
+// BYTES: the native function addresses the local static's guard, object and destructor registration separately
+// instead of from one pooled BSS base. The setting is per function: unit-wide it breaks the pooled constructor and
+// __sinit, and an in-class inline definition makes the static weak and moves it to the end of .bss.
 #pragma pool_data off
-#pragma dont_inline on
 ftLucarioTransactor* ftLucarioTransactor::getInstance() {
     static ftLucarioTransactor instance;
     return &instance;
 }
-#pragma dont_inline off
 #pragma pool_data reset
 
 // ---- the article holders --------------------------------------------------------------------------------------------
