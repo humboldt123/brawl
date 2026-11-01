@@ -466,8 +466,10 @@ void grCollisionTest::calcNewShapeOnGround(grCollisionLineWork* lineWork, int en
     } else {
         Vec2f target(m_unk2D4, down.m_y);
         float rate;
+        float absDelta;
         float delta = to.m_x - from.m_x;
-        if ((float)__fabs(delta) > 0.01f) {
+        absDelta = __fabs(delta);
+        if (absDelta > 0.01f) {
             rate = (target.m_x - from.m_x) / delta;
         } else {
             rate = (target.m_y - from.m_y) / (to.m_y - from.m_y);
@@ -509,8 +511,10 @@ void grCollisionTest::calcNewShapeOnRight(grCollisionLineWork* lineWork) {
         newRight = to;
     } else {
         float rate;
+        float absDelta;
         float delta = to.m_y - from.m_y;
-        if ((float)__fabs(delta) > 0.01f) {
+        absDelta = __fabs(delta);
+        if (absDelta > 0.01f) {
             rate = (right.m_y - from.m_y) / delta;
         } else {
             rate = (right.m_x - from.m_x) / (to.m_x - from.m_x);
@@ -518,9 +522,11 @@ void grCollisionTest::calcNewShapeOnRight(grCollisionLineWork* lineWork) {
         newRight = from + (to - from) * rate;
     }
     Vec2f curRight = m_unk2bc->getRightPos();
-    if ((float)__fabs(right.m_y - curRight.m_y) > 0.01f) {
-        float rate = (newRight.m_y - curRight.m_y) / (right.m_y - curRight.m_y);
-        rate = clampFloat(rate, 0.0f, 1.0f);
+    float absMove;
+    float move = right.m_y - curRight.m_y;
+    absMove = __fabs(move);
+    if (absMove > 0.01f) {
+        float rate = clampFloat((newRight.m_y - curRight.m_y) / move, 0.0f, 1.0f);
         updateTarget(rate);
     }
     m_unk2c0->setRightPos(newRight);
@@ -553,8 +559,10 @@ void grCollisionTest::calcNewShapeOnLeft(grCollisionLineWork* lineWork) {
         newLeft = to;
     } else {
         float rate;
+        float absDelta;
         float delta = to.m_y - from.m_y;
-        if ((float)__fabs(delta) > 0.01f) {
+        absDelta = __fabs(delta);
+        if (absDelta > 0.01f) {
             rate = (left.m_y - from.m_y) / delta;
         } else {
             rate = (left.m_x - from.m_x) / (to.m_x - from.m_x);
@@ -562,9 +570,11 @@ void grCollisionTest::calcNewShapeOnLeft(grCollisionLineWork* lineWork) {
         newLeft = from + (to - from) * rate;
     }
     Vec2f curLeft = m_unk2bc->getLeftPos();
-    if ((float)__fabs(left.m_y - curLeft.m_y) > 0.01f) {
-        float rate = (newLeft.m_y - curLeft.m_y) / (left.m_y - curLeft.m_y);
-        rate = clampFloat(rate, 0.0f, 1.0f);
+    float absMove;
+    float move = left.m_y - curLeft.m_y;
+    absMove = __fabs(move);
+    if (absMove > 0.01f) {
+        float rate = clampFloat((newLeft.m_y - curLeft.m_y) / move, 0.0f, 1.0f);
         updateTarget(rate);
     }
     m_unk2c0->setLeftPos(newLeft);
@@ -595,8 +605,10 @@ void grCollisionTest::calcNewShapeOnTop(grCollisionLineWork* lineWork) {
         newTop = to;
     } else {
         float rate;
+        float absDelta;
         float delta = to.m_x - from.m_x;
-        if ((float)__fabs(delta) > 0.01f) {
+        absDelta = __fabs(delta);
+        if (absDelta > 0.01f) {
             rate = (top.m_x - from.m_x) / delta;
         } else {
             rate = (top.m_y - from.m_y) / (to.m_y - from.m_y);
