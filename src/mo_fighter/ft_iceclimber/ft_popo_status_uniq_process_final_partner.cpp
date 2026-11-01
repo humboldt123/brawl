@@ -114,8 +114,7 @@ void ftPopoStatusUniqProcessFinalPartner::detachConstraint(soModuleAccesser* mod
 
 void ftPopoStatusUniqProcessFinalPartner::setSafePosPartner(soModuleAccesser* moduleAccesser) {
     if (moduleAccesser->getLinkModule().isLink(6) == 1 && moduleAccesser->getLinkModule().isValidParentShape(6) == true) {
-        Vec2f safePos;
-        Vec2f::copy(safePos, moduleAccesser->getLinkModule().getParentShapeCenterPos(6));
+        Vec2f safePos = moduleAccesser->getLinkModule().getParentShapeCenterPos(6);
         moduleAccesser->getGroundModule().setShapeSafePos(&safePos, 0);
     }
 }

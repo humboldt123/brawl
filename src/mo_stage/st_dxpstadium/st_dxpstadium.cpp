@@ -945,8 +945,7 @@ void stDxPStadium::updateVisionRect() {
 // the fight, scaled and shifted so that only the rectangle around the fighter is visible.
 void stDxPStadium::updateVisionScreen() {
     if (m_visionActive) {
-        Vec2f center;
-        Vec2f::copy(center, (m_visionMin + m_visionMax) * 0.5f);
+        Vec2f center = (m_visionMin + m_visionMax) * 0.5f;
         float width = m_visionMax.m_x - m_visionMin.m_x;
         float height = m_visionMax.m_y - m_visionMin.m_y;
         nw4r::g3d::ResMdl resMdl = getGround(0)->m_sceneModels[0]->m_resMdl;

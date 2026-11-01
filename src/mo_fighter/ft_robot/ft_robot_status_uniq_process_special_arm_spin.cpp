@@ -44,8 +44,7 @@ void ftRobotStatusUniqProcessSpecialArmSpin::initStatus(soModuleAccesser* module
     float window;
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float speedX = sumSpeed.m_x;
     float speedY = sumSpeed.m_y;
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
@@ -106,8 +105,7 @@ void ftRobotStatusUniqProcessSpecialArmSpin::execStatus(soModuleAccesser* module
     soWorkManageModule& work = moduleAccesser->getWorkManageModule();
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
     case 0x117: {
-        Vec2f sumSpeed;
-        Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         float speedX = sumSpeed.m_x;
         float speedY = sumSpeed.m_y;
         float launch = moduleAccesser->getPostureModule().getLr();

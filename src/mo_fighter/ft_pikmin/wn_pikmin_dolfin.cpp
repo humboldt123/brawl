@@ -193,8 +193,7 @@ void wnPikminDolfin::onDeactivate() {
 void wnPikminDolfin::updateNodeSRT() {
     StageObject::updateNodeSRT();
     if (m_moduleAccesser->getStatusModule().getStatusKind() == 1 || m_moduleAccesser->getStatusModule().getStatusKind() == 2) {
-        Vec2f dir;
-        Vec2f::copy(dir, m_moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(-1)));
+        Vec2f dir = m_moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(-1));
         float angle = m_moduleAccesser->getWorkManageModule().getFloat(0x21000000);
         float target = (float)atan2(dir.m_x, dir.m_y) * 57.29578f * -1.0f;
         angle += (target - angle) * 0.025f;
@@ -383,8 +382,7 @@ void wnPikminDolfinKineticTransactor::changeKineticSub(void* pools, soModuleAcce
         target.m_z = 0.0f;
         stage->placeArticle(&target, 2);
         Vec3f cur3 = acc->getPostureModule().getPos();
-        Vec2f diff;
-        Vec2f::copy(diff, Vec2f(target.m_x, target.m_y) - Vec2f(cur3));
+        Vec2f diff = Vec2f(target.m_x, target.m_y) - Vec2f(cur3);
         float time = 0.0f;
         if (diff.m_y > 0.0f) {
             double magnitude = __fabs(diff.m_y);

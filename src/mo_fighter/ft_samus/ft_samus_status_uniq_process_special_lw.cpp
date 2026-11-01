@@ -37,8 +37,7 @@ static void initCommon(soModuleAccesser* moduleAccesser) __attribute__((never_in
 static void initCommon(soModuleAccesser* moduleAccesser) {
     int statusKind = moduleAccesser->getStatusModule().getStatusKind();
     ftSamusExtendParamSpecialLw* param = static_cast<ftSamusExtendParamSpecialLw*>(g_ftCommonDataAccesser.getData(Fighter_Samus)->extendParam[2]);
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     int situation = moduleAccesser->getSituationModule().getKind();
     soWorkManageModule& work = moduleAccesser->getWorkManageModule();
     work.clearAll(2);
@@ -105,8 +104,7 @@ void ftSamusStatusUniqProcessSpecialGroundLw::initStatus(soModuleAccesser* modul
     bool visible = work.getInt(ftSamusWork::SpecialLw_ItemVisibility) != 2;
     items.setHaveItemVisibility(visible, 0);
     items.setAttachItemVisibility(visible, static_cast<itParam::AttachGroup>(0xff));
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     ftSamusExtendParamSpecialLw* param = static_cast<ftSamusExtendParamSpecialLw*>(g_ftCommonDataAccesser.getData(Fighter_Samus)->extendParam[2]);
     unableKinetics(moduleAccesser);
     if (work.isFlag(ftSamusWork::SpecialLw_ControlActive)) {
@@ -132,16 +130,14 @@ void ftSamusStatusUniqProcessSpecialGroundLw::execStatus(soModuleAccesser* modul
     soWorkManageModule& work = moduleAccesser->getWorkManageModule();
     if (!work.isFlag(ftSamusWork::SpecialLw_ControlActive) && work.isFlag(ftSamusWork::SpecialLw_BrakeActive)) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
-        Vec2f sumSpeed;
-        Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         unableKinetics(moduleAccesser);
         stop.resetEnergy(0, &Vec2f(sumSpeed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
         stop.enable();
         work.offFlag(ftSamusWork::SpecialLw_BrakeActive);
     }
     if (work.isFlag(ftSamusWork::SpecialLw_GoAir)) {
-        Vec2f sumSpeed;
-        Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         unableKinetics(moduleAccesser);
         sumSpeed.m_y = param->jumpSpeedY;
         ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
@@ -192,8 +188,7 @@ void ftSamusStatusUniqProcessSpecialAirLw::initStatus(soModuleAccesser* moduleAc
     items.setHaveItemVisibility(visible, 0);
     items.setAttachItemVisibility(visible, static_cast<itParam::AttachGroup>(0xff));
     int statusKind = moduleAccesser->getStatusModule().getStatusKind();
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     ftSamusExtendParamSpecialLw* param = static_cast<ftSamusExtendParamSpecialLw*>(g_ftCommonDataAccesser.getData(Fighter_Samus)->extendParam[2]);
     unableKinetics(moduleAccesser);
     float controlAccelMul;

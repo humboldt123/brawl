@@ -54,8 +54,7 @@ void ftDededeStatusUniqProcessSpecialJetHammer::initStatus(soModuleAccesser* mod
     case 0x130: {
         ftKineticEnergyController& energy = dynamic_cast<ftKineticEnergyController&>(
             *moduleAccesser->getKineticModule().getEnergy(2));
-        Vec2f speed;
-        Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         float speedLimit = soValueAccesser::getConstantFloat(moduleAccesser, 0xFC0, 0);
         if (speed.m_x > speedLimit) {
             speed.m_x = soValueAccesser::getConstantFloat(moduleAccesser, 0xFC0, 0);

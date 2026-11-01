@@ -21,8 +21,7 @@ void wnSheikNeedleStatusUniqProcessMove::execFixPos(soModuleAccesser* moduleAcce
     soPostureModule& posture = moduleAccesser->getPostureModule();
     soStatusModule& status = moduleAccesser->getStatusModule();
     soGroundModule& ground = moduleAccesser->getGroundModule();
-    Vec2f speed;
-    Vec2f::copy(speed, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float negativeLr = -posture.getLr();
     float angle = (float)atan2(speed.m_y, speed.m_x * negativeLr);
     Vec3f rot(57.29578f * angle, 0.0f, 0.0f);

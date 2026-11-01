@@ -1160,25 +1160,20 @@ int grCollisionTest::testAir() {
     // The swept area: the box of both shapes, grown by the shape's extents and at least 10 x 10.
     clAABBox2D box;
     getAABBox(&box);
-    Vec2f down;
-    Vec2f::copy(down, m_unk2bc->getDownPos());
-    Vec2f top;
-    Vec2f::copy(top, m_unk2bc->getTopPos());
+    Vec2f down = m_unk2bc->getDownPos();
+    Vec2f top = m_unk2bc->getTopPos();
     float height = top.m_y - down.m_y;
-    Vec2f center;
-    Vec2f::copy(center, m_unk2bc->getCenterPos());
+    Vec2f center = m_unk2bc->getCenterPos();
     float over = (height + center.m_y) - box.m_unk4;
     if (over > 0.0f) {
         box.m_unk4 = box.m_unk4 + over;
     }
     box.m_unk2 = box.m_unk2 - height;
-    Vec2f left;
-    Vec2f::copy(left, m_unk2bc->getLeftPos());
+    Vec2f left = m_unk2bc->getLeftPos();
     Vec2f::copy(center, m_unk2bc->getCenterPos());
     box.m_unk1 = box.m_unk1 - (center.m_x - left.m_x);
     Vec2f::copy(center, m_unk2bc->getCenterPos());
-    Vec2f right;
-    Vec2f::copy(right, m_unk2bc->getRightPos());
+    Vec2f right = m_unk2bc->getRightPos();
     box.m_unk3 = box.m_unk3 + (right.m_x - center.m_x);
     if (box.m_unk3 - box.m_unk1 < 10.0f) {
         float grow = (10.0f - (box.m_unk3 - box.m_unk1)) * 0.5f;
@@ -1190,10 +1185,8 @@ int grCollisionTest::testAir() {
         box.m_unk4 = box.m_unk4 + grow;
         box.m_unk2 = box.m_unk2 - grow;
     }
-    Vec2f from;
-    Vec2f::copy(from, m_unk2bc->getCenterPos());
-    Vec2f to;
-    Vec2f::copy(to, m_unk2c4->getCenterPos());
+    Vec2f from = m_unk2bc->getCenterPos();
+    Vec2f to = m_unk2c4->getCenterPos();
     Vec2f move = to - from;
     float absX = __fabsf(move.m_x);
     float absY = __fabsf(move.m_y);
@@ -1373,10 +1366,9 @@ void grCollisionTest::testAttached() {
                 switch (id) {
                 case 0: {
                     clSegment2D segment;
-                    Vec2f pos;
                     Vec2f out;
                     getSegmentCompat(lineWork->m_collision, &segment, lineWork->m_collisionLine);
-                    Vec2f::copy(pos, m_unk2bc->getTopPos());
+                    Vec2f pos = m_unk2bc->getTopPos();
                     segment.projectionX(pos, out);
                     m_unk2bc->setTopPos(out);
                     calcOffsetVector(lineWork, addressOf(m_unk2bc->getTopPos()), &offsetPos, &offset);
@@ -1385,10 +1377,9 @@ void grCollisionTest::testAttached() {
                 }
                 case 1: {
                     clSegment2D segment;
-                    Vec2f pos;
                     Vec2f out;
                     getSegmentCompat(lineWork->m_collision, &segment, lineWork->m_collisionLine);
-                    Vec2f::copy(pos, m_unk2bc->getLeftPos());
+                    Vec2f pos = m_unk2bc->getLeftPos();
                     segment.projectionY(pos, out);
                     m_unk2bc->setLeftPos(out);
                     calcOffsetVector(lineWork, addressOf(m_unk2bc->getLeftPos()), &offsetPos, &offset);
@@ -1397,10 +1388,9 @@ void grCollisionTest::testAttached() {
                 }
                 case 2: {
                     clSegment2D segment;
-                    Vec2f pos;
                     Vec2f out;
                     getSegmentCompat(lineWork->m_collision, &segment, lineWork->m_collisionLine);
-                    Vec2f::copy(pos, m_unk2bc->getRightPos());
+                    Vec2f pos = m_unk2bc->getRightPos();
                     segment.projectionY(pos, out);
                     m_unk2bc->setRightPos(out);
                     calcOffsetVector(lineWork, addressOf(m_unk2bc->getRightPos()), &offsetPos, &offset);
@@ -1409,10 +1399,9 @@ void grCollisionTest::testAttached() {
                 }
                 case 3: {
                     clSegment2D segment;
-                    Vec2f pos;
                     Vec2f out;
                     getSegmentCompat(lineWork->m_collision, &segment, lineWork->m_collisionLine);
-                    Vec2f::copy(pos, m_unk2bc->getDownPos());
+                    Vec2f pos = m_unk2bc->getDownPos();
                     segment.projectionX(pos, out);
                     m_unk2bc->setDownPos(out);
                     calcOffsetVector(lineWork, addressOf(m_unk2bc->getDownPos()), &offsetPos, &offset);
@@ -1523,8 +1512,7 @@ int grCollisionTest::testGround() {
             m_unk2c4->setDownPos(offsetPos);
             m_unk2c0->set(*m_unk2c4);
             // The move vector and its direction bits are recomputed for the corrected target.
-            Vec2f from;
-            Vec2f::copy(from, m_unk2bc->getCenterPos());
+            Vec2f from = m_unk2bc->getCenterPos();
             Vec2f to = m_unk2c4->getCenterPos();
             m_moveVec = to - from;
             m_unkE = 0;
@@ -1566,8 +1554,7 @@ int grCollisionTest::testGround() {
     m_unk224 = ground;
     // Remaining length to walk on the ground (m_unk10C): |dx| of the move, or measured along the sloped line
     // relative to the speed of the line the shape stands on.
-    Vec2f downNow;
-    Vec2f::copy(downNow, m_unk2bc->getDownPos());
+    Vec2f downNow = m_unk2bc->getDownPos();
     Vec2f move = m_unk2c4->getDownPos() - downNow;
     m_unk10C = 0.0f;
     if (!ignoreSlope) {
@@ -1610,8 +1597,7 @@ int grCollisionTest::testGround() {
     {
         clSegment2D segment;
         getSegmentCompat(ground.m_collision, &segment, ground.m_collisionLine);
-        Vec2f pos;
-        Vec2f::copy(pos, m_unk2bc->getDownPos());
+        Vec2f pos = m_unk2bc->getDownPos();
         Vec2f projected;
         segment.projectionX(pos, projected);
         m_unk2bc->setDownPos(projected);
@@ -1637,10 +1623,8 @@ int grCollisionTest::testGround() {
         bool done;
         do {
             while (true) {
-                Vec2f startPos;
-                Vec2f::copy(startPos, m_unk2bc->getDownPos());
-                Vec2f checkPos;
-                Vec2f::copy(checkPos, m_unk2bc->getDownPos());
+                Vec2f startPos = m_unk2bc->getDownPos();
+                Vec2f checkPos = m_unk2bc->getDownPos();
                 int reachesEnd = checkMoveLenXDown(&checkPos, &ground);
                 int hasNext = 0;
                 if (reachesEnd) {
@@ -1756,8 +1740,7 @@ finished:
         {
             clSegment2D segment;
             getSegmentCompat(ground.m_collision, &segment, ground.m_collisionLine);
-            Vec2f pos;
-            Vec2f::copy(pos, m_unk2bc->getDownPos());
+            Vec2f pos = m_unk2bc->getDownPos();
             Vec2f projected;
             segment.projectionX(pos, projected);
             m_unk2bc->setDownPos(projected);
@@ -1766,14 +1749,12 @@ finished:
         lastCorrection();
         grCollisionLineWork lower;
         grCollisionLineWork* cur = &m_touch[3].m_lineWork;
-        Vec2f downPos;
-        Vec2f::copy(downPos, m_unk2bc->getDownPos());
+        Vec2f downPos = m_unk2bc->getDownPos();
         if (!cur->getPosXDownLine(downPos.m_x, &lower)) {
             grCollisionLineWork neighbor;
             clSegment2D curSegment;
             cur->m_collision->getSegment(&curSegment, cur->m_collisionLine);
-            Vec2f p;
-            Vec2f::copy(p, m_unk2bc->getDownPos());
+            Vec2f p = m_unk2bc->getDownPos();
             bool keepGround = false;
             if (p.m_x <= curSegment.m_p0Pos.m_x && __fabsf(p.m_x - curSegment.m_p0Pos.m_x) < 1.0f) {
                 if (cur->getPrev(&neighbor) && neighbor.m_collisionLine->m_isLeft) {
@@ -1791,8 +1772,7 @@ finished:
         } else if (isValidLineWork(lower) && cur->m_collisionLine != lower.m_collisionLine) {
             clSegment2D lowerSegment;
             lower.m_collision->getSegment(&lowerSegment, lower.m_collisionLine);
-            Vec2f pos;
-            Vec2f::copy(pos, m_unk2bc->getDownPos());
+            Vec2f pos = m_unk2bc->getDownPos();
             Vec2f projected;
             lowerSegment.projectionX(pos, projected);
             m_unk2bc->setDownPos(projected);
@@ -1801,8 +1781,7 @@ finished:
         if (m_collStatus->m_setting == 1) {
             clSegment2D curSegment;
             cur->m_collision->getSegment(&curSegment, cur->m_collisionLine);
-            Vec2f pos;
-            Vec2f::copy(pos, m_unk2bc->getDownPos());
+            Vec2f pos = m_unk2bc->getDownPos();
             Vec2f projected;
             curSegment.projectionX(pos, projected);
             m_unk2bc->modifyDownY(projected.m_y + 0.01f);
@@ -1830,8 +1809,7 @@ int grCollisionTest::testGroundLRWallCorrect(grCollisionLineWork* lineWork, int 
     clSegment2D segment;
     lineWork->m_collision->getSegment(&segment, lineWork->m_collisionLine);
     if (m_unkE & DIR_RIGHT) {
-        Vec2f right;
-        Vec2f::copy(right, m_unk2bc->getRightPos());
+        Vec2f right = m_unk2bc->getRightPos();
         if (!(right.m_x < segment.m_p1Pos.m_x)) {
             lineWork->getNext(&neighbor);
             if (isValidLineWork(neighbor) && neighbor.m_collisionLine->m_isRight) {
@@ -1867,8 +1845,7 @@ int grCollisionTest::testGroundLRWallCorrect(grCollisionLineWork* lineWork, int 
             }
         }
     } else if (m_unkE & DIR_LEFT) {
-        Vec2f left;
-        Vec2f::copy(left, m_unk2bc->getLeftPos());
+        Vec2f left = m_unk2bc->getLeftPos();
         if (!(segment.m_p0Pos.m_x < left.m_x)) {
             lineWork->getPrev(&neighbor);
             if (isValidLineWork(neighbor) && neighbor.m_collisionLine->m_isLeft) {
@@ -1926,8 +1903,7 @@ int grCollisionTest::stopEdgeCorrect(grCollisionLineWork* lineWork) {
             }
             clSegment2D segment;
             lineWork->m_collision->getSegment(&segment, lineWork->m_collisionLine);
-            Vec2f pos;
-            Vec2f::copy(pos, m_unk2bc->getDownPos());
+            Vec2f pos = m_unk2bc->getDownPos();
             if (pos.m_x <= segment.m_p0Pos.m_x) {
                 pos.m_x = segment.m_p0Pos.m_x + 0.01f;
             } else if (segment.m_p1Pos.m_x <= pos.m_x) {

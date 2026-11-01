@@ -67,8 +67,7 @@ public:
 void ftStatusUniqProcessHammer::initStatus(soModuleAccesser* moduleAccesser) {
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
     case 0xE0: {
-        Vec2f sumSpeed;
-        Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         moduleAccesser->getWorkManageModule().setFloat(sumSpeed.m_x, 0x21000004);
         break;
     }

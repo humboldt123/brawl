@@ -30,12 +30,10 @@ void wnSheikNeedleStatusUniqProcessDrop::initStatus(soModuleAccesser* moduleAcce
     float limitY = speedTable[randi(8)];
     float accelY = accelTable[randi(8)];
     Vec3f rotSpeed(rot, 0.0f, 0.0f);
-    Vec2f speed;
-    Vec2f::copy(speed, movement.getSpeed());
+    Vec2f speed = movement.getSpeed();
     speed.m_x = zero;
     speed.m_y = __fabsf(speedTable[randi(8)]);
-    Vec2f accel;
-    Vec2f::copy(accel, movement.m_accel);
+    Vec2f accel = movement.m_accel;
     accel.m_y = accelY;
     Vec2f limit(zero, limitY);
     rotation.m_rotSpeed = rotSpeed;

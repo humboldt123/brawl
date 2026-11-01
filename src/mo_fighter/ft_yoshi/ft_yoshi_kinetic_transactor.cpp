@@ -25,10 +25,9 @@ void ftYoshiKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
         return;
     }
     // Preprocessing also runs for an unrecognized custom mode.
-    Vec2f speed;
     soModuleAccesser* processAccesser = acc;
     bool process = true;
-    Vec2f::copy(speed, ftKineticTransactHelper::preHelpProcess(processAccesser, process, process));
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
     switch (mode) {
     case 0x64: {
         bool result = false;
@@ -133,8 +132,7 @@ void ftYoshiKineticTransactor::changeKineticSub2(bool*, void*, Vec2f* speed, soM
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
     ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*kinetic.getEnergy(2));
-    Vec2f entrySpeed;
-    Vec2f::copy(entrySpeed, *speed);
+    Vec2f entrySpeed = *speed;
     Vec2f stopSpeed;
     stopSpeed.m_x = 0.0f;
     stopSpeed.m_y = 0.0f;
@@ -212,8 +210,7 @@ void ftYoshiKineticTransactor::changeKineticSub3(bool*, void*, Vec2f* speed, soM
     dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
     ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*kinetic.getEnergy(2));
-    Vec2f entrySpeed;
-    Vec2f::copy(entrySpeed, *speed);
+    Vec2f entrySpeed = *speed;
     Vec2f gravitySpeed;
     gravitySpeed.m_x = 0.0f;
     gravitySpeed.m_y = 0.0f;

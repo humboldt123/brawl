@@ -15,8 +15,7 @@ void ftLucasStatusUniqProcessSpecialLw::initStatus(soModuleAccesser* moduleAcces
         const u8* params = static_cast<const u8*>(lucas.getExtendParam()[3]);
 
         ftKineticEnergyStop& airEnergy = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
-        Vec2f speed;
-        Vec2f::copy(speed, airEnergy.getSpeed());
+        Vec2f speed = airEnergy.getSpeed();
         speed.m_x = speed.m_x * *reinterpret_cast<const float*>(params + 0xC);
         airEnergy.m_speed = speed;
 

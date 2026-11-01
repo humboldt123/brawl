@@ -100,8 +100,7 @@ void wnYoshiTamago::shoot(const Vec3f* position, const Vec2f* speed, float spinF
     spin.m_z *= -posture->getLr();
     rotation.m_rotSpeed = spin;
     Vec2f accel;
-    Vec2f limit;
-    Vec2f::copy(limit, movement.m_speedLimit);
+    Vec2f limit = movement.m_speedLimit;
     accel.m_x = 0.0f;
     accel.m_y = -m_param->gravity;
     limit.m_x = speed->m_x;
@@ -165,8 +164,7 @@ bool wnYoshiTamago::notifyEventCollisionAttackCheck(u32 flags) {
             reflectSettingTeam();
             wnKineticEnergyNormal& movement = dynamic_cast<wnKineticEnergyNormal&>(
                 *m_moduleAccesser->getKineticModule().getEnergy(0));
-            Vec2f speed;
-            Vec2f::copy(speed, movement.getSpeed());
+            Vec2f speed = movement.getSpeed();
             // Reflection turns downward motion upward before the generic speed
             // reflection is applied. Upward motion retains its vertical sign.
             if (speed.m_y < 0.0f) {

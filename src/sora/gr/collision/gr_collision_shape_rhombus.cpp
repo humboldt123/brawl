@@ -45,36 +45,31 @@ void grCollShapeRhombus::move(const Vec2f& displacement) {
 
 void grCollShapeRhombus::setDownPos(const Vec2f& downPos) {
     Vec2f newDownPos(downPos.m_x, gUnk805a2a28 + downPos.m_y);
-    Vec2f disp;
-    Vec2f::copy(disp, newDownPos - m_rhombus.m_downPos);
+    Vec2f disp = newDownPos - m_rhombus.m_downPos;
     m_rhombus.move(disp);
 }
 
 void grCollShapeRhombus::setRightPos(const Vec2f& rightPos) {
     Vec2f newRightPos(rightPos.m_x - gUnk805a2a28, rightPos.m_y);
-    Vec2f disp;
-    Vec2f::copy(disp, newRightPos - m_rhombus.m_rightPos);
+    Vec2f disp = newRightPos - m_rhombus.m_rightPos;
     m_rhombus.move(disp);
 }
 
 void grCollShapeRhombus::setLeftPos(const Vec2f& leftPos) {
     Vec2f newLeftPos(gUnk805a2a28 + leftPos.m_x, leftPos.m_y);
-    Vec2f disp;
-    Vec2f::copy(disp, newLeftPos - m_rhombus.m_leftPos);
+    Vec2f disp = newLeftPos - m_rhombus.m_leftPos;
     m_rhombus.move(disp);
 }
 
 void grCollShapeRhombus::setCenterPos(const Vec2f& centerPos) {
     Vec2f newCenterPos(centerPos.m_x, centerPos.m_y - gUnk805a2a28);
-    Vec2f disp;
-    Vec2f::copy(disp, newCenterPos - m_rhombus.m_centerPos);
+    Vec2f disp = newCenterPos - m_rhombus.m_centerPos;
     m_rhombus.move(disp);
 }
 
 void grCollShapeRhombus::setTopPos(const Vec2f& topPos) {
     Vec2f newTopPos(topPos.m_x, topPos.m_y - gUnk805a2a28);
-    Vec2f disp;
-    Vec2f::copy(disp, newTopPos - m_rhombus.m_upPos);
+    Vec2f disp = newTopPos - m_rhombus.m_upPos;
     m_rhombus.move(disp);
 }
 

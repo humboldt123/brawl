@@ -13,8 +13,7 @@ public:
 void ftCaptainStatusUniqProcessSpecialHi::exitStatus(soModuleAccesser* moduleAccesser, int) {
     soKineticEnergyNormal& motion = dynamic_cast<soKineticEnergyNormal&>(*moduleAccesser->getKineticModule().getEnergy(0));
     float limit = soValueAccesser::getConstantFloat(moduleAccesser, 0xbd0, 0);
-    Vec2f speed;
-    Vec2f::copy(speed, motion.getSpeed());
+    Vec2f speed = motion.getSpeed();
     if (speed.m_y < -limit) {
         speed.m_y = -limit;
         motion.m_speed.m_x = speed.m_x;

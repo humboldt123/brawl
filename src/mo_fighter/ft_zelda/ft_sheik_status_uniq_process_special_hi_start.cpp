@@ -20,8 +20,7 @@ void ftSheikStatusUniqProcessSpecialHiStart::initStatus(soModuleAccesser* module
 
     ftData* sheikData = g_ftCommonDataAccesser.getData(Fighter_Sheik);
     const float* params = static_cast<const float*>(sheikData->extendParam[2]);
-    Vec2f speed;
-    Vec2f::copy(speed, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1)));
+    Vec2f speed = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1));
     kinetic.clearSpeedAll();
 
     ftKineticEnergyGravity& gravity =

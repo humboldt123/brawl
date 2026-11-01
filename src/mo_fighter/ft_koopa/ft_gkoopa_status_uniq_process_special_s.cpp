@@ -119,8 +119,7 @@ void ftGKoopaStatusUniqProcessSpecialSJump::initStatus(soModuleAccesser* moduleA
 void ftGKoopaStatusUniqProcessSpecialSJump::execStatus(soModuleAccesser* moduleAccesser) {
     ftKoopaSpecialSParam* param = getKoopaSpecialSParam(Fighter_GKoopa, 4);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
-    Vec2f speed;
-    Vec2f::copy(speed, stop.getSpeed());
+    Vec2f speed = stop.getSpeed();
     float add = 0.0f;
     if (moduleAccesser->getLinkModule().isLinked(0) == true) {
         gfTaskScheduler* scheduler = gfTaskScheduler::getInstance();

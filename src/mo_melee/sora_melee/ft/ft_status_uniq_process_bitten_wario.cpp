@@ -155,8 +155,7 @@ void ftStatusUniqProcessBittenWario::exitStatus(soModuleAccesser* moduleAccesser
     if (nextStatus != 0xce) {
         soLinkModule* link = moduleAccesser->m_enumerationStart->m_linkModule;
         if (link->isLink(0)) {
-            Vec2f center;
-            Vec2f::copy(center, link->getParentShapeCenterPos(0));
+            Vec2f center = link->getParentShapeCenterPos(0);
             reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot4c(0);
             moduleAccesser->getGroundModule().setShapeSafePos(&center, 0);
         }

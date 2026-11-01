@@ -55,8 +55,7 @@ void grCollShapeCircle::setLR(const Vec2f& centerPos, const Vec2f& left, const V
 }
 
 void grCollShapeCircle::setLR(const Vec2f& left, const Vec2f& right) {
-    Vec2f v;
-    Vec2f::copy(v, ((left + right) / 2.0f));
+    Vec2f v = ((left + right) / 2.0f);
     setLR(v, left, right);
 }
 

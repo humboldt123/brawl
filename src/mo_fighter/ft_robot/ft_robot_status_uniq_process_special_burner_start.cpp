@@ -38,8 +38,7 @@ void ftRobotStatusUniqProcessSpecialBurnerStart::initStatus(soModuleAccesser* mo
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
     ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
     moduleAccesser->getWorkManageModule().onFlag(0x22000012);
-    Vec2f speed;
-    Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     if (moduleAccesser->getWorkManageModule().getFloat(0x11000015) > 0.0f) {
         // Limit the vertical speed carried into the thrust, boosting it on the ground and softening a fall in the air.
         if (absValue(speed.m_y) > soValueAccesser::getConstantFloat(moduleAccesser, 0xfc3, 0)) {
@@ -90,8 +89,7 @@ void ftRobotStatusUniqProcessSpecialBurnerStart::execStatus(soModuleAccesser* mo
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
     if (moduleAccesser->getWorkManageModule().getFloat(0x11000015) > 0.0f) {
         float lift = soValueAccesser::getConstantFloat(moduleAccesser, 0xfc4, 0);
-        Vec2f speed;
-        Vec2f::copy(speed, gravity.getSpeed());
+        Vec2f speed = gravity.getSpeed();
         moduleAccesser->getWorkManageModule().addFloat(-1.0f, 0x11000015);
         if (speed.m_y >= soValueAccesser::getConstantFloat(moduleAccesser, 0xfc5, 0)) {
             lift = soValueAccesser::getConstantFloat(moduleAccesser, 0xfc6, 0);

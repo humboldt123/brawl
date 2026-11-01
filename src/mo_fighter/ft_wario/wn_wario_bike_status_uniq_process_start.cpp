@@ -34,16 +34,14 @@ void wnWarioBikeStatusUniqProcessStart::exitStatus(soModuleAccesser* a, int next
             Vec2f direction(1.0f, 0.0f);
             direction.rot(0.017453292f * angle, &direction);
             direction.m_x *= lr;
-            Vec2f launchVelocity;
-            Vec2f::copy(launchVelocity, direction * speed);
+            Vec2f launchVelocity = direction * speed;
             normal.setSpeed(&launchVelocity);
             gravity.m_speedY = 0.0f;
             work.onFlag(0x22000006);
             work.onFlag(0x22000004);
             work.onFlag(0x22000005);
         } else {
-            Vec2f previous;
-            Vec2f::copy(previous, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+            Vec2f previous = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1));
             float speedX = params->getParamFloat(a, 0xfa1, 0);
             float speedY = params->getParamFloat(a, 0xfa2, 0);
             Vec2f velocity(speedX * lr, 0.0f);

@@ -65,9 +65,8 @@ void ftStatusUniqProcessDownReflect::initNormalDamage(soModuleAccesser* moduleAc
     ftStatusUniqProcessDamage::initNormalDamageCommon(moduleAccesser);
     switch (statusKind) {
     case 0x55: {
-        Vec2f speed;
         soKineticEnergy::AttributeFlag flag(static_cast<soKineticEnergy::AttributeMask>(2));
-        Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(flag));
+        Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(flag);
         bool leftward = speed.m_x < 0.0f;
         float lr = reinterpret_cast<soPostureModuleSimple&>(moduleAccesser->getPostureModule()).getLr();
         float dir = leftward == true ? -1.0f : 1.0f;

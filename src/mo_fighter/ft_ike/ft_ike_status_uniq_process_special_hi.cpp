@@ -87,8 +87,7 @@ static inline void setTargetSpeed(ftKineticEnergyController& controller, const V
 #pragma opt_propagation off
 void ftIkeStatusUniqProcessSpecialHi::execStatus(soModuleAccesser* moduleAccesser) {
     moduleAccesser->getControllerModule().getStickX();
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
     case 0x114: {
         soWorkManageModule& work = moduleAccesser->getWorkManageModule();

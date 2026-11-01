@@ -12,8 +12,7 @@ void ftMarthStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccess
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
     soKineticEnergyNormal& motion = dynamic_cast<soKineticEnergyNormal&>(*moduleAccesser->getKineticModule().getEnergy(0));
     moduleAccesser->getKineticModule().getEnergy(0)->disable();
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float speedX = sumSpeed.m_x;
     float speedY = sumSpeed.m_y;
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
@@ -86,8 +85,7 @@ void ftMarthStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccess
     int situation = moduleAccesser->getSituationModule().getKind();
     // Rebuild movement only when Marth changes between ground and air.
     int previousSituation = moduleAccesser->getWorkManageModule().getInt(ftMarthWork::SpecialS_Situation);
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     if (situation != previousSituation) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));

@@ -29,8 +29,7 @@ void ftGamewatchStatusUniqProcessSpecialLw::initStatus(soModuleAccesser* moduleA
                 g_ftCommonDataAccesser.getData(Fighter_GameWatch)->extendParam[3]);
             ftKineticEnergyStop& energy = dynamic_cast<ftKineticEnergyStop&>(
                 *moduleAccesser->getKineticModule().getEnergy(3));
-            Vec2f speed;
-            Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+            Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
             speed.m_x = speed.m_x / group->m_0;
             energy.m_speed = speed;
         }

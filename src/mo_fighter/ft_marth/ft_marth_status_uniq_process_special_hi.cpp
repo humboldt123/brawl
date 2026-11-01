@@ -9,8 +9,7 @@ void ftKineticEnergyDisableAndClear(int index, soModuleAccesser* moduleAccesser)
 void ftMarthStatusUniqProcessSpecialHi::initStatus(soModuleAccesser* moduleAccesser) {
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float speedX = sumSpeed.m_x;
     if (moduleAccesser->getSituationModule().getKind() == 2) {
         speedX *= soValueAccesser::getConstantFloat(moduleAccesser, ftMarthParam::SpecialHi_AirSpeedXRatio, 0);
@@ -68,8 +67,7 @@ void ftMarthStatusUniqProcessSpecialHi::execStatus(soModuleAccesser* moduleAcces
             moduleAccesser->getWorkManageModule().setFloat(previousAngle, ftMarthWork::SpecialHi_StickAngle);
         }
     }
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     if (moduleAccesser->getWorkManageModule().isFlag(ftMarthWork::SpecialHi_Launched)) {
         if (!moduleAccesser->getWorkManageModule().isFlag(ftMarthWork::SpecialHi_Falling)) {
             if (moduleAccesser->getMotionModule().getKind() == 0x1e9) {

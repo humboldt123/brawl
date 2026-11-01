@@ -27,8 +27,7 @@ void ftPurinStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccess
 
         switch (moduleAccesser->getWorkManageModule().getInt(0x20000000)) {
         case 1: {
-            Vec2f speed;
-            Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+            Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
             ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
             float speedX = speed.m_x * soValueAccesser::getConstantFloat(moduleAccesser, 0xFCC, 0);

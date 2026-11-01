@@ -302,8 +302,7 @@ float emDamageModuleImpl::getDamageAngle(float reaction, int attackVector, int s
     if (isKnockout == true && attackVector == soCollisionAttackData::Vec_None) {
         angle = 0.017453292f * soValueAccesser::getValueFloat(m_moduleAccesser, 0x59dc, 0);
     } else {
-        Vec2f attackSpeed;
-        Vec2f::copy(attackSpeed, speed);
+        Vec2f attackSpeed = speed;
         // MATCH-ONLY: declared ahead, which gives the loads the original's float registers.
         float param1;
         float param2;

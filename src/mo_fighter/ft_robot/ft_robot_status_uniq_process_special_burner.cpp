@@ -32,8 +32,7 @@ static inline void setControllerTarget(ftKineticEnergyController& controller, co
 void ftRobotStatusUniqProcessSpecialBurner::initStatus(soModuleAccesser* moduleAccesser) {
     ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
     // Cap the positive horizontal speed carried into the burner.
-    Vec2f speed;
-    Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     int mode = 0xb;
     if (speed.m_x > soValueAccesser::getConstantFloat(moduleAccesser, 0xfc2, 0)) {
         speed.m_x = soValueAccesser::getConstantFloat(moduleAccesser, 0xfc2, 0);
@@ -62,8 +61,7 @@ void ftRobotStatusUniqProcessSpecialBurner::execStatus(soModuleAccesser* moduleA
 void ftRobotStatusUniqProcessSpecialBurner::execFixPos(soModuleAccesser* moduleAccesser) {
     if (moduleAccesser->getGroundModule().isTouch(static_cast<grCollStatus::TouchMask>(2), 0) || moduleAccesser->getGroundModule().isTouch(static_cast<grCollStatus::TouchMask>(4), 0)) {
         ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
-        Vec2f speed;
-        Vec2f::copy(speed, controller.getSpeed());
+        Vec2f speed = controller.getSpeed();
         speed.m_x = -speed.m_x * soValueAccesser::getConstantFloat(moduleAccesser, 0xfcb, 0);
         controller.m_speed = speed;
     }
@@ -109,8 +107,7 @@ void ftRobotStatusUniqProcessSpecialBurner::controlBurner(soModuleAccesser* modu
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
     if (moduleAccesser->getWorkManageModule().isFlag(0x22000012) && moduleAccesser->getWorkManageModule().getFloat(0x11000015) > 0.0f) {
         float lift = soValueAccesser::getConstantFloat(moduleAccesser, 0xfc4, 0);
-        Vec2f speed;
-        Vec2f::copy(speed, gravity.getSpeed());
+        Vec2f speed = gravity.getSpeed();
         if (speed.m_y >= soValueAccesser::getConstantFloat(moduleAccesser, 0xfc5, 0)) {
             lift = soValueAccesser::getConstantFloat(moduleAccesser, 0xfc6, 0);
         }

@@ -70,8 +70,7 @@ void ftStatusUniqProcessGlide::initStatus(soModuleAccesser* moduleAccesser) {
         ftGlideParam* param = (ftGlideParam*)soValueAccesser::getConstantIndefinite(moduleAccesser, 0xa80b, 0);
         float lr = moduleAccesser->getPostureModule().getLr();
         soKineticEnergy::AttributeFlag flag(1);
-        Vec2f sumSpeed;
-        Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(flag));
+        Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(flag);
         moduleAccesser->getWorkManageModule().setFloat(param->m_baseSpeed, Glide_Float_Power);
         moduleAccesser->getWorkManageModule().setFloat(-sumSpeed.m_y, Glide_Float_Gravity);
         Vec3f rotation(0.0f, 0.0f, 0.0f);
@@ -196,10 +195,8 @@ void ftStatusUniqProcessGlide::execStatus(soModuleAccesser* moduleAccesser) {
             Vec2f limit(soValueAccesser::getConstantFloat(moduleAccesser, 0xbd8, 0), airSpeedYStable);
             Vec2f accel(0.0f, -soValueAccesser::getConstantFloat(moduleAccesser, 0xbcf, 0));
             Vec2f brake(soValueAccesser::getConstantFloat(moduleAccesser, 0xbd6, 0), 0.0f);
-            Vec2f delta;
-            Vec2f::copy(delta, soKineticUtility::brakeSpeed(&energy->getSpeed(), &accel, &target, &brake));
-            Vec2f limited;
-            Vec2f::copy(limited, soKineticUtility::limitSpeed(&(energy->getSpeed() + delta), &limit));
+            Vec2f delta = soKineticUtility::brakeSpeed(&energy->getSpeed(), &accel, &target, &brake);
+            Vec2f limited = soKineticUtility::limitSpeed(&(energy->getSpeed() + delta), &limit);
             energy->m_speed = limited;
             if (angle < param->m_stallRecoverAngle) {
                 float currentLen = calcLength(energy->getSpeed());

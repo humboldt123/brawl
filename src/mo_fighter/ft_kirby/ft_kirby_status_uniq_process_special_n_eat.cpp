@@ -137,8 +137,7 @@ void ftKirbyStatusUniqProcessSpecialNEat::exitStatus(soModuleAccesser* moduleAcc
 // HYPOTHESIS: the jump into the inhale: the horizontal speed follows the current speed and the stick, the vertical one the
 // jump parameters.
 void ftKirbyStatusUniqProcessSpecialNEat::initInhaleJump(soModuleAccesser* moduleAccesser) {
-    Vec2f speed;
-    Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float scale = soValueAccesser::getConstantFloat(moduleAccesser, 0xfa3, 0);
     float accel = soValueAccesser::getConstantFloat(moduleAccesser, 0xbc4, 0);
     accel *= moduleAccesser->getControllerModule().getStickX();

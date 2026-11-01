@@ -14,8 +14,7 @@ extern "C" void __ct__5Vec2fFff(Vec2f* self, float x, float y);
 // Screw Attack.
 void ftSamusStatusUniqProcessSpecialHi::initStatus(soModuleAccesser* moduleAccesser) {
     int situation = moduleAccesser->getSituationModule().getKind();
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     ftSamusExtendParamSpecialHi* param = static_cast<ftSamusExtendParamSpecialHi*>(g_ftCommonDataAccesser.getData(Fighter_Samus)->extendParam[1]);
     moduleAccesser->getKineticModule().getEnergy(0)->disable();
     moduleAccesser->getKineticModule().getEnergy(1)->disable();

@@ -18,12 +18,9 @@ void ftYoshiStatusUniqProcessFinalCommon::execStatus(soModuleAccesser* acc) {
     ftKineticEnergyStop* stop = &dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
     ftKineticEnergyGravity* gravity = &dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
     ftKineticEnergyController* controller = &dynamic_cast<ftKineticEnergyController&>(*kinetic.getEnergy(2));
-    Vec2f stopSpeed;
-    Vec2f::copy(stopSpeed, stop->getSpeed());
-    Vec2f gravitySpeed;
-    Vec2f::copy(gravitySpeed, gravity->getSpeed());
-    Vec2f controllerSpeed;
-    Vec2f::copy(controllerSpeed, controller->getSpeed());
+    Vec2f stopSpeed = stop->getSpeed();
+    Vec2f gravitySpeed = gravity->getSpeed();
+    Vec2f controllerSpeed = controller->getSpeed();
     float lr = acc->getPostureModule().getLr();
     float stickY = input.getStickY();
     int status = acc->getStatusModule().getStatusKind();
@@ -79,10 +76,8 @@ void ftYoshiStatusUniqProcessFinalCommon::execFixPosCounter(soModuleAccesser* ac
     soGroundModule& ground = acc->getGroundModule();
     ftKineticEnergyGravity* gravity = &dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
     ftKineticEnergyController* controller = &dynamic_cast<ftKineticEnergyController&>(*kinetic.getEnergy(2));
-    Vec2f gravitySpeed;
-    Vec2f::copy(gravitySpeed, gravity->getSpeed());
-    Vec2f controllerSpeed;
-    Vec2f::copy(controllerSpeed, controller->getSpeed());
+    Vec2f gravitySpeed = gravity->getSpeed();
+    Vec2f controllerSpeed = controller->getSpeed();
     if (situation.getKind() == Situation_Ground) {
         if (ground.isPassableGround(0)) {
             float threshold = soValueAccesser::getConstantFloat(acc, 0xc5f, 0);

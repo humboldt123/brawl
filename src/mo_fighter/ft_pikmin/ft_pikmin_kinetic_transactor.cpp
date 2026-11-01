@@ -16,8 +16,7 @@ void ftPikminKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcc
         return;
     }
     int process = 1;
-    Vec2f speed;
-    Vec2f::copy(speed, ftKineticTransactHelper::preHelpProcess(moduleAccesser, process, process));
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(moduleAccesser, process, process);
     switch (mode) {
     case 0x64: {
         bool result = false;

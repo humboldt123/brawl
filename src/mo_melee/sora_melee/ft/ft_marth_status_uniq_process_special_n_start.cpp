@@ -7,8 +7,7 @@
 ftMarthStatusUniqProcessSpecialNStart g_ftMarthStatusUniqProcessSpecialNStart;
 
 void ftMarthStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
-    Vec2f speed;
-    Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float speedX = speed.m_x * acc->getConstantFloatKirby(ftMarthParam::SpecialN_AirSpeedXRatio);
     float speedY = speed.m_y;
     float brake = acc->getConstantFloatKirby(ftMarthParam::SpecialN_AirBrakeX);

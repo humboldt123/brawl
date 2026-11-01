@@ -20,8 +20,7 @@ void ftStatusUniqProcessCaptureCut::initStatus(soModuleAccesser* moduleAccesser)
     // The energy slot depends on whether the situation is ground (0): ground uses slot 3, air slot 2.
     int energyIndex = moduleAccesser->getSituationModule().getKind() == 0 ? 3 : 2;
     soKineticEnergyNormal& normal = dynamic_cast<soKineticEnergyNormal&>(*moduleAccesser->getKineticModule().getEnergy(energyIndex));
-    Vec2f speed;
-    Vec2f::copy(speed, normal.getSpeed());
+    Vec2f speed = normal.getSpeed();
     float lr = moduleAccesser->getPostureModule().getLr();
     float negLr = -lr;
     // HYPOTHESIS: param 0xcc5 is the cut-throw horizontal push scale (shared with catch cut).

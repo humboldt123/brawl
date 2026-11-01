@@ -68,8 +68,7 @@ void ftStatusUniqProcessIce::execFixPos(soModuleAccesser* moduleAccesser) {
     }
     if (moduleAccesser->getSituationModule().getKind() == Situation_Air && (touch & 7)) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(4));
-        Vec2f speed;
-        Vec2f::copy(speed, stop.getSpeed());
+        Vec2f speed = stop.getSpeed();
         Vec2f normal;
         Vec2f pos;
         ftUtil::getAirGroundTouchInfo(moduleAccesser, &pos, &normal);

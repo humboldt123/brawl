@@ -65,8 +65,7 @@ void ftDededeStatusUniqProcessSpecialSuperJumpJump::execStatus(soModuleAccesser*
     if (moduleAccesser->getWorkManageModule().isFlag(0x22000011)) {
         moduleAccesser->getWorkManageModule().addInt(1, 0x20000001);
         if (moduleAccesser->getWorkManageModule().getInt(0x20000001) > soValueAccesser::getConstantInt(moduleAccesser, 0x5dc4, 0)) {
-            Vec2f sumSpeed;
-            Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+            Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
             ftKineticEnergyGravity& vertical = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
             Vec2f speed;
             speed.m_x = 0.0f;

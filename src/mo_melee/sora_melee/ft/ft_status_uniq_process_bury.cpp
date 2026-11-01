@@ -77,13 +77,11 @@ void ftStatusUniqProcessBury::initStatus(soModuleAccesser* moduleAccesser) {
     float frames = (float)(soValueAccesser::getConstantInt(moduleAccesser, 0x5a40, 0) - 1);
     moduleAccesser->getWorkManageModule().setFloat((nodePos.m_y - rootPos.m_y) / frames, 0x21000004);
     {
-        Vec2f normal;
-        Vec2f::copy(normal, moduleAccesser->getGroundModule().getTouchNormal(8, 0));
+        Vec2f normal = moduleAccesser->getGroundModule().getTouchNormal(8, 0);
         float normalX = normal.m_x;
     float normalY = normal.m_y;
     float angle = (float)atan2(normalX, normalY);
-        Vec2f touchPos;
-        Vec2f::copy(touchPos, moduleAccesser->getGroundModule().getTouchPos(8, 0));
+        Vec2f touchPos = moduleAccesser->getGroundModule().getTouchPos(8, 0);
         Vec3f effectPos(touchPos.m_x, touchPos.m_y, 0.0f);
         Vec3f effectRot(0.0f, 0.0f, -angle);
         int effectHandle = moduleAccesser->getEffectModule().req(static_cast<EfID>(0x45), &effectPos, &effectRot, 1.0f, 0, -1);
@@ -96,12 +94,9 @@ void ftStatusUniqProcessBury::initStatus(soModuleAccesser* moduleAccesser) {
 // the burial relative to the fighter's scale.
 void ftStatusUniqProcessBury::execStatus(soModuleAccesser* moduleAccesser) {
     soGroundModule* ground = &moduleAccesser->getGroundModule();
-    Vec2f rightPos;
-    Vec2f::copy(rightPos, ground->getRightPos(0));
-    Vec2f leftPos;
-    Vec2f::copy(leftPos, ground->getLeftPos(0));
-    Vec2f downPos;
-    Vec2f::copy(downPos, ground->getDownPos(0));
+    Vec2f rightPos = ground->getRightPos(0);
+    Vec2f leftPos = ground->getLeftPos(0);
+    Vec2f downPos = ground->getDownPos(0);
     float depth = moduleAccesser->getWorkManageModule().getFloat(0x21000005);
     float edgeY = rightPos.m_y < leftPos.m_y ? rightPos.m_y : leftPos.m_y;
     float nextDepth = depth + moduleAccesser->getWorkManageModule().getFloat(0x21000004);
@@ -109,13 +104,11 @@ void ftStatusUniqProcessBury::execStatus(soModuleAccesser* moduleAccesser) {
     if (downPos.m_y + nextDepth + scale > edgeY) {
         nextDepth = edgeY - (downPos.m_y + scale);
     }
-    Vec2f normal;
-    Vec2f::copy(normal, moduleAccesser->getGroundModule().getTouchNormal(8, 0));
+    Vec2f normal = moduleAccesser->getGroundModule().getTouchNormal(8, 0);
     float normalX = normal.m_x;
     float normalY = normal.m_y;
     float angle = (float)atan2(normalX, normalY);
-    Vec2f touchPos;
-    Vec2f::copy(touchPos, moduleAccesser->getGroundModule().getTouchPos(8, 0));
+    Vec2f touchPos = moduleAccesser->getGroundModule().getTouchPos(8, 0);
     int effectHandle = moduleAccesser->getWorkManageModule().getInt(0x20000001);
     Vec3f position;
     position.m_x = touchPos.m_x;
