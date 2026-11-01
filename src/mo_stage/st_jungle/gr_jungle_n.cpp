@@ -210,7 +210,6 @@ void grJungleN::updateShake(float deltaFrame) {
 
 // The hit object of the block: one hit sphere (the wooden block is hit by the fighters).
 void grJungleN::setHit() {
-    // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
     m_hitData = new (Heaps::StageInstance) soCollisionHitData;
     m_hitSimple = new (Heaps::StageInstance) soCollisionHitData::Simple;
     m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;
