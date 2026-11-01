@@ -7,10 +7,6 @@ void hkMotionState::initMotionState(const hkVector4& position, const hkQuaternio
     m_sweptTransform.initSweptTransform();
     m_transform.m_rotation.set(rotation);
     m_transform.m_translation = position;
-    // MATCH-ONLY: the zero stores run from w back to x.
-    m_deltaAngle.w = 0.0f;
-    m_deltaAngle.z = 0.0f;
-    m_deltaAngle.y = 0.0f;
-    m_deltaAngle.x = 0.0f;
+    m_deltaAngle.setZero4();
     m_objectRadius = 1.0f; // HYPOTHESIS: default radius constant
 }

@@ -5,15 +5,8 @@
 #include <havok/hkSweptTransformUtil.h>
 
 hkMotion::hkMotion(const hkVector4& position, const hkQuaternion& rotation) {
-    // MATCH-ONLY: the zero stores run from w back to x.
-    m_linearVelocity.w = 0.0f;
-    m_linearVelocity.z = 0.0f;
-    m_linearVelocity.y = 0.0f;
-    m_linearVelocity.x = 0.0f;
-    m_angularVelocity.w = 0.0f;
-    m_angularVelocity.z = 0.0f;
-    m_angularVelocity.y = 0.0f;
-    m_angularVelocity.x = 0.0f;
+    m_linearVelocity.setZero4();
+    m_angularVelocity.setZero4();
     m_motionState.initMotionState(position, rotation);
     m_type = MOTION_INVALID;
     m_motionState.m_linearDamping = 0.0f;
