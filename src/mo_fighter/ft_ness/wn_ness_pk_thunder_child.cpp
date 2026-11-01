@@ -28,41 +28,41 @@ wnNessPKThunderChild::wnNessPKThunderChild(s32 articleId, const wnArticleBuildIn
     Weapon::deactivate(false);
 }
 
+// MATCH-ONLY: without this the effect id folds into the call; the original keeps it in a register across the vector temporaries.
+#pragma push
+#pragma opt_propagation off
 void wnNessPKThunderChild::activate(int founderTaskId, int linkTaskId, int team, int kind) {
-    {
-        Vec3f origin(0.0f, 0.0f, 0.0f);
-        wnActivateDesc desc;
-        desc.founderTaskId = founderTaskId;
-        desc.resourceId = 0xFFFF;
-        desc.unk8 = 0xFFFF;
-        desc.unkC = 0xFFFF;
-        desc.unk10 = -1;
-        desc.unk14 = -1;
-        desc.unk18 = 0;
-        desc.unk1C = 0;
-        __memcpy(&desc.pos, &origin, sizeof(Vec3f));
-        desc.lr = 1.0f;
-        desc.team = team;
-        desc.life = 0;
-        desc.unk38 = 2;
-        desc.unk3C = 0x80;
-        desc.unk40 = 0;
-        desc.unk44 = 0x35f;
-        desc.unk48 = 0;
-        desc.flagsHigh = 1;
-        desc.flagsMidHigh = 0;
-        desc.flagsMidLow = 1;
-        desc.unk4DHigh = 0;
-        desc.flagsLow = 0;
-        Weapon::activate(&desc);
-    }
+    wnActivateDesc desc;
+    Vec3f origin(0.0f, 0.0f, 0.0f);
+    desc.founderTaskId = founderTaskId;
+    desc.resourceId = 0xFFFF;
+    desc.unk8 = 0xFFFF;
+    desc.unkC = 0xFFFF;
+    desc.unk10 = -1;
+    desc.unk14 = -1;
+    desc.unk18 = 0;
+    desc.unk1C = 0;
+    __memcpy(&desc.pos, &origin, sizeof(Vec3f));
+    desc.lr = 1.0f;
+    desc.team = team;
+    desc.life = 0;
+    desc.unk38 = 2;
+    desc.unk3C = 0x80;
+    desc.unk40 = 0;
+    desc.unk44 = 0x35f;
+    desc.unk48 = 0;
+    desc.flagsHigh = 1;
+    desc.flagsMidHigh = 0;
+    desc.flagsMidLow = 1;
+    desc.flagsLow = 0;
+    desc.unk4DHigh = 0;
+    Weapon::activate(&desc);
     soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
     soPostureModule& posture = m_moduleAccesser->getPostureModule();
     soStatusModule& status = m_moduleAccesser->getStatusModule();
     soLinkModule& link = m_moduleAccesser->getLinkModule();
     if (link.link(5, linkTaskId)) {
-        u32 node = 0;
-        Vec3f parentPos = link.getParentModelNodeGlobalPosition(5u, node, true);
+        Vec3f parentPos = link.getParentModelNodeGlobalPosition(5u, u32(0), true);
         posture.setPos(&parentPos);
         work.setFloat(parentPos.m_x, 0x21000000);
         work.setFloat(parentPos.m_y, 0x21000001);
@@ -72,13 +72,16 @@ void wnNessPKThunderChild::activate(int founderTaskId, int linkTaskId, int team,
             m_moduleAccesser->getSoundModule().playStatusSE(static_cast<SndID>(0xe7c), true, 0);
         }
         soEffectModule& effect = m_moduleAccesser->getEffectModule();
-        EfID effectId = static_cast<EfID>(((kind == 5) ? 1 : 0) + 0xb0003);
-        effect.reqFollow(effectId, 0, &Vec3f(0.0f, 0.0f, 4.0f), &Vec3f(0.0f, 0.0f, 0.0f), 2.0f, false, 0, 0, -1);
+        int effectId = (kind == 5);
+        effectId += 0xb0003;
+        effect.reqFollow(static_cast<EfID>(effectId), 0, &Vec3f(0.0f, 0.0f, 4.0f), &Vec3f(0.0f, 0.0f, 0.0f), 2.0f, false, 0, 0, -1);
         updateNodeSRT();
         link.setAttribute(5, static_cast<soLinkConnection::Attribute>(0xd), true);
     }
     status.changeStatusForce(0, m_moduleAccesser);
 }
+
+#pragma pop
 
 bool wnNessPKThunderChild::notifyEventCollisionAttackCheck(u32 flags) {
     return false;
