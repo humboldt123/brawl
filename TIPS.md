@@ -823,6 +823,10 @@ Same source. These apply when the decomp is built for PC:
 
 Adding a declaration, inline helper or function-local static to a header that many units include shifts MWCC's `$NNNN` suffix on function-local statics in every unit that includes it (for example `sCharKinds$8314` becoming `$8322` in `mu_tour_rule`), which moves symbols and breaks matches far from your change. Put new helpers in narrowly included headers (the screen's own `mu_proc_*.h`, not `mu_object.h`), and rebuild the whole report after touching a shared header, not just your unit. **HIGH**
 
+Removing a struct or inline helper shifts the suffixes the same way (by one or more per declaration). That is harmless when no `name$NNNN` symbol of the unit is named in `symbols.txt` (`grep -rE '[A-Za-z]\$[0-9]{4,}' config/RSBE01_02` is empty today): only the local names and the relocations to them change, and the report and `build.sha1` stay the same. An anonymous `union`/`struct` added to a widely included class shifts them in every includer. **MED**
+
+- **The stage "view structs" of `gmMeleeInitData` were a wrong field type, not missing names:** the game mode is an unsigned byte bit field (`u8 m_gameMode : 6`; the enum-typed field extracts it differently), byte 6's top three bits are one level setting (`m_level`: Target Smash level, event difficulty), byte 8 is a whole byte (`u8 m_event`; the 0x80 bit and the 0x7F number are masks, as Distant Planet reads them) and the item frequency is signed (`s8`, `extsb`). With those types 20 stage units read the header directly, byte-identical, including three that had been tagged "typed field compiled worse". Seen: `include/gm/gm_global_mode_melee.h`. **HIGH**
+
 ## Recovering a class layout from one translation unit
 
 Method used for `soModelModuleImpl` (sora_melee 0x77DC-0xE268, `include/so/model/so_model_module_impl.h`): load the constructor, destructor, every accessor and the callers that cast into the class, write down one offset table with a type and a role for each member, then write the whole unit against that header and let the per-function compare judge. Lessons:

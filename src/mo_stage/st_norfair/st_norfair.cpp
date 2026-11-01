@@ -28,14 +28,6 @@ extern "C" void fn_8009E090(float scale);
 // the stage that is played (sora_melee .bss)
 extern "C" Stage* lbl_27_bss_5668;
 
-// MATCH-ONLY: the first bytes of the match settings (the game rule is a bit field of three bits)
-struct norfairMeleeView {
-    u8 m_gameMode : 6;
-    u8 _unused0 : 2;
-    u8 m_gameRule : 3;
-    u8 _unused1 : 5;
-};
-
 // A row of the table of the events (the file of the stage).
 struct stNorfairEventRow {
     float m_waitMin;        // frames until the next event
@@ -324,8 +316,8 @@ void stNorfair::createObj() {
         initPosPokeTrainer(1, 0);
         createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, NULL);
         gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
-        if (melee != NULL && reinterpret_cast<norfairMeleeView*>(&melee->m_meleeInitData)->m_gameMode == 7
-            && reinterpret_cast<u8*>(&melee->m_meleeInitData)[8] == 0x1C) {
+        if (melee != NULL && melee->m_meleeInitData.m_gameMode == 7
+            && melee->m_meleeInitData.m_event == 0x1C) {
             m_trainerEvent = 1;
             m_eventCount = 0;
         }
@@ -597,7 +589,7 @@ void stNorfair::updateEvent(float deltaFrame) {
                 return;
             }
             bool tooLate = false;
-            switch (reinterpret_cast<norfairMeleeView*>(&melee->m_meleeInitData)->m_gameRule) {
+            switch (melee->m_meleeInitData.m_gameRule) {
             case 0:
                 if (getFrameRuleTime() != 0.0f && getFrameRuleTime() < data->unk04) {
                     tooLate = true;
@@ -794,7 +786,9 @@ void stNorfair::updateEvent(float deltaFrame) {
                         }
                     }
                 }
-                if (g_GameGlobal->m_modeMelee != NULL && reinterpret_cast<u8*>(&g_GameGlobal->m_modeMelee->m_meleeInitData)[0x16 - 8] == 0) {
+                // BYTES: this unit reads the item frequency unsigned (lbz without extsb); the village, crayon and Mario Bros. units read
+                // it signed, so the stages disagree on its signedness and the cast keeps this unit's load.
+                if (g_GameGlobal->m_modeMelee != NULL && (u8)g_GameGlobal->m_modeMelee->m_meleeInitData.m_itemFrequency == 0) {
                     anyIn = false;
                 }
                 if (anyIn) {

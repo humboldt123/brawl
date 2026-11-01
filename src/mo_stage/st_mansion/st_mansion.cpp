@@ -82,7 +82,7 @@ void stMansion::createObj() {
     registScnAnim(static_cast<nw4r::g3d::ResFileData*>(m_fileData->getData(Data_Type_Scene, 0, 0xFFFE)), 0);
     initPosPokeTrainer(1, 0);
     createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, NULL);
-    if (g_GameGlobal->m_modeMelee != NULL && mansionMeleeBytes()->m_mode == MANSION_MODE_EVENT && mansionMeleeBytes()->m_event == MANSION_EVENT_ID) {
+    if (g_GameGlobal->m_modeMelee != NULL && mansionMeleeInitData()->m_gameMode == MANSION_MODE_EVENT && mansionMeleeInitData()->m_event == MANSION_EVENT_ID) {
         m_isEvent = 1;
     }
 }

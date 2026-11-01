@@ -267,7 +267,7 @@ void stPlankton::createObj() {
     if (m_scnProc != NULL) {
         m_scnProc->SetUserData(this);
         g_gfSceneRoot->add(static_cast<gfSceneRoot::LayerType>(3), reinterpret_cast<nw4r::g3d::ScnMdl*>(m_scnProc));
-        if (g_GameGlobal->m_modeMelee != NULL && planktonMeleeBytes()->m_mode == 7 && planktonMeleeBytes()->m_event == 0x24) {
+        if (g_GameGlobal->m_modeMelee != NULL && planktonMeleeInitData()->m_gameMode == 7 && planktonMeleeInitData()->m_event == 0x24) {
             m_event = 1;
         }
     }

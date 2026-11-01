@@ -70,10 +70,10 @@ grMansionPillar::grMansionPillar(const char* taskName) : grMansion(taskName), un
     if (g_GameGlobal->m_modeMelee == NULL) {
         return;
     }
-    if (mansionMeleeBytes()->m_mode != MANSION_MODE_EVENT) {
+    if (mansionMeleeInitData()->m_gameMode != MANSION_MODE_EVENT) {
         return;
     }
-    if (mansionMeleeBytes()->m_event == MANSION_EVENT_ID) {
+    if (mansionMeleeInitData()->m_event == MANSION_EVENT_ID) {
         unk1B0 = 1;
     }
 }
@@ -326,8 +326,8 @@ void grMansionPillar::setHP() {
             unk15C = data[9];
             break;
         }
-        if (unk1B0 == 1 && g_GameGlobal->m_modeMelee != NULL && mansionMeleeBytes()->m_mode == MANSION_MODE_EVENT) {
-            switch (mansionMeleeBytes()->m_rule) {
+        if (unk1B0 == 1 && g_GameGlobal->m_modeMelee != NULL && mansionMeleeInitData()->m_gameMode == MANSION_MODE_EVENT) {
+            switch (mansionMeleeInitData()->m_level) {
             case 0:
                 unk15C *= data[24];
                 break;

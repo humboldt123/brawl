@@ -34,13 +34,6 @@ extern "C" void fn_27_279FC8(grMadein* ground, Matrix* matrix, bool followAttack
 // grMadein::switchToMatrix
 extern "C" void fn_27_279FA4(grMadein* ground);
 
-// MATCH-ONLY: the original reads the level number from a bit field of the melee init data (3 bits at +0xE).
-struct stTargetBreakMeleeView {
-    char _0[0xE];
-    u8 level : 3;
-    u8 pad : 5;
-};
-
 // The level table: a first word that the coroutine tag starts with, then the five levels (the last number of the
 // belts, 100, is the same everywhere). HYPOTHESIS: only the use of the leading fields is known.
 struct stTargetBreakStatics {
@@ -185,7 +178,7 @@ bool stTargetBreak::loading() {
 
 void stTargetBreak::createObj() {
     // The level (0-4) comes from the rules of the match.
-    int levelRaw = reinterpret_cast<stTargetBreakMeleeView*>(g_GameGlobal->m_modeMelee)->level;
+    int levelRaw = g_GameGlobal->m_modeMelee->m_meleeInitData.m_level;
     int levelNumber = (levelRaw > 4) ? 4 : levelRaw;
     m_level = (levelNumber < 0) ? 0 : levelNumber;
     testStageParamInit(m_fileData, 10);

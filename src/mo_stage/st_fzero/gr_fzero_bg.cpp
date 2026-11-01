@@ -18,12 +18,6 @@ grFzeroBg* grFzeroBg::create(int mdlIndex, const char* nodeName, const char* tas
     return ground;
 }
 
-// BYTES (the typed gmMeleeInitData::m_gameMode was compiled and drops the constructor to 98.7%): the original reads the game mode of gmGlobalModeMelee's init data (bits 7..2 of byte 8) with a byte load.
-struct fzeroBgModeByte {
-    u8 m_mode : 6;
-    u8 : 2;
-};
-
 grFzeroBg::grFzeroBg(const char* taskName) : grFzero(taskName) {
     m_phase = 0;
     m_count = 0;
@@ -58,10 +52,10 @@ grFzeroBg::grFzeroBg(const char* taskName) : grFzero(taskName) {
     if (melee == NULL) {
         return;
     }
-    if (((fzeroBgModeByte*)((u8*)melee + 8))->m_mode != 7) {
+    if (melee->m_meleeInitData.m_gameMode != 7) {
         return;
     }
-    if (*((u8*)melee + 0x10) == 0x1f) {
+    if (melee->m_meleeInitData.m_event == 0x1f) {
         m_isEvent = true;
     }
 }

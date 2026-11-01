@@ -276,7 +276,9 @@ struct gmCharaFlagWords {
 
 class gmMeleeInitData {
 public:
-    GameMode m_gameMode : 6;
+    // A GameMode in an unsigned byte bit field: the stages read it with lbz + rlwinm (unsigned); an enum-typed bit field
+    // was compiled and reads it differently (stBattleField::getFighterStartPos 97.9%).
+    u8 m_gameMode : 6;
     char _0x0_0 : 2;
     u8 m_gameRule : 3; // GameRule; a plain byte bit field here, the native code reads and writes this byte directly
     u8 m_numPlayers : 3;
@@ -317,7 +319,8 @@ public:
             bool m_0x5_2 : 1;
             bool m_0x5_1 : 1;
             bool m_0x5_0 : 1;
-            char _0x6;
+            u8 m_level : 3; // 0x06 HYPOTHESIS: a level setting: the Target Smash level (stLoaderStage), the event difficulty on event stages
+            u8 : 5;
         };
     };
     bool m_0x7_7 : 1; // 0x07
@@ -328,14 +331,15 @@ public:
     bool m_0x7_2 : 1;
     bool m_0x7_1 : 1;
     bool m_isAmplifySongAttack : 1;
-    bool m_playeMode : 1;                        // 0x08
-    u8 m_eventId : 7;                          // 0x08
+    // 0x08: the event of an event match. A plain byte: the stages compare the whole byte (0x2D and 0xAD on Shadow Moses),
+    // and Distant Planet splits it with masks (& 0x7F for the event number, & 0x80 for a flag; HYPOTHESIS: co-op).
+    u8 m_event;
     u8 m_scoreToWin;                           // custom
     char _0xA[0x1];                            // 0x0A
     bool m_isTeams;                            // 0x0B
     u8 m_corpsKind;                            // 0x0C (gmCorpsKind; a plain byte, see m_gameRule)
     char _0xd[0x1];                            // 0x09
-    u8 m_itemFrequency;                        // 0x0E (gmItSwitch::Frequency; a plain byte, see m_gameRule)
+    s8 m_itemFrequency;                        // 0x0E (gmItSwitch::Frequency; a signed byte: the stages test it with lbz + extsb)
     s8 m_suicideScoreMultiplier;               // 0x0F
     union {
         char _0x10[0x02]; // 0x10

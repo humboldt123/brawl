@@ -34,15 +34,6 @@ static inline void grCrayonItemHave(BaseItem* item, int taskId, int a, int b) {
     fn(item, taskId, a, b);
 }
 
-// MATCH-ONLY: the start of the settings of the match (the game mode is in the top six bits of the first byte, the byte
-// at 0xE says whether items are on)
-struct grCrayonMeleeView {
-    u8 m_gameMode : 6;
-    u8 _unused : 2;
-    u8 _pad[0xD];
-    char m_itemsOn;
-};
-
 // MATCH-ONLY: the first bit of the byte at 0x1c of a hit sphere is its shape type
 struct grCrayonSetView {
     void* m_elements;
@@ -552,9 +543,9 @@ void grCrayonYakumonoH::InitializeHeihoParam() {
     setVisibility(1);
     if (unk1B0 == 0) {
         unk1B0 = 1;
-        grCrayonMeleeView* melee = reinterpret_cast<grCrayonMeleeView*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 8);
+        gmMeleeInitData* melee = &g_GameGlobal->m_modeMelee->m_meleeInitData;
         if (g_GameGlobal->m_modeMelee != NULL) {
-            if (melee->m_gameMode != 4 && melee->m_itemsOn != 0 && fn_8005136C(0x40) && !(randf() < 0.5f)) {
+            if (melee->m_gameMode != 4 && melee->m_itemFrequency != 0 && fn_8005136C(0x40) && !(randf() < 0.5f)) {
                 unk1B1 = 1;
             }
         }

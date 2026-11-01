@@ -93,15 +93,6 @@ static inline void grEarthSubjectOff(cmSubject* subject) {
     *word = *word & 0x03FFFFFF;
 }
 
-// MATCH-ONLY: the start of the settings of the match (the game mode is in the top six bits of the first byte, the byte
-// at 0xE says whether items are on)
-struct grEarthMeleeView {
-    u8 m_gameMode : 6;
-    u8 _unused : 2;
-    u8 _pad[0xD];
-    char m_itemsOn;
-};
-
 // The base ground of the stage. The grounds that move have the state (the step of their sequence) and a timer.
 class grEarth : public grYakumono {
 protected:
