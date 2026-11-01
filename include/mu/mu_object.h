@@ -58,6 +58,7 @@ public:
     void changeNodeAnimN(const char* animName);
     void changeClrAnimN(const char* animName);
     void changeVisAnimN(const char* animName);
+    void changeTexPatAnim(u32 animIndex);
     void changeTexPatAnimN(const char* animName);
     void changeTexSrtAnimN(const char* animName);
 

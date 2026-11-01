@@ -1397,7 +1397,7 @@ void GameGlobal::setSaveData(const void* data) {
 
     // HYPOTHESIS: this makes the play time of the record the time of the load before the copy overwrites it
     m_record->m_workingTime = OS_TICKS_TO_SEC(OSGetTime());
-    bool widescreen = g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen;
+    u8 widescreen = g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen;
     memcpy(m_record, buffer + 8, sizeof(gmGlobalRecord));
     memcpy(m_nameRecords, buffer + 8 + sizeof(gmGlobalRecord), 120 * sizeof(gmGlobalRecord::NameData));
     memcpy(m_nteData, buffer + 8 + sizeof(gmGlobalRecord) + 120 * sizeof(gmGlobalRecord::NameData), sizeof(nteGlobalData));

@@ -260,8 +260,8 @@ struct gmGlobalRecord {
         char _27[5];
         StageSwitch m_stageSwitch;
 
-        bool m_isWidescreen : 1;
-        bool m_41_6 : 1;
+        u8 m_isWidescreen : 1;  // HYPOTHESIS: u8, not bool: muProcOptScreen::proc stores the u8 cursor into it without normalizing it
+        u8 m_41_6 : 1;          // HYPOTHESIS: u8 like m_isWidescreen (GameGlobal::setSaveData copies one into the other)
         bool m_41_5 : 1;
         bool m_41_4 : 1;
         bool m_41_3 : 1;
