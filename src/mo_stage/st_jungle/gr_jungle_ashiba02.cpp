@@ -150,7 +150,6 @@ bool grJungleAshiba02::setNode() {
 
 // The hit object of the button: one hit sphere (the button is pushed when something hits it).
 void grJungleAshiba02::setHit() {
-    // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
     m_hitData = new (Heaps::StageInstance) soCollisionHitData;
     m_hitSimple = new (Heaps::StageInstance) soCollisionHitData::Simple;
     m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;

@@ -224,7 +224,6 @@ void grEarthPelletFlower::updateCallBack(float deltaFrame) {
 // The hit object of the flower: two hit spheres (a capsule of size 2 and a sphere of size 6) and the damage module. It has no
 // attack.
 void grEarthPelletFlower::setHit() {
-    // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
     m_hitData = new (Heaps::StageInstance) soCollisionHitData[2];
     m_hitSimple = new (Heaps::StageInstance) soCollisionHitData::Simple[2];
     m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;

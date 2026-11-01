@@ -249,7 +249,6 @@ void grIceTurara::updateCallBack(float deltaFrame) {
 
 // The hit object of the icicle: one hit sphere (size 5) and the damage module (it reports its damage to onDamage).
 void grIceTurara::setHit() {
-    // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
     m_hitData = new (Heaps::StageInstance) soCollisionHitData;
     m_hitSimple = new (Heaps::StageInstance) soCollisionHitData::Simple;
     m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;
