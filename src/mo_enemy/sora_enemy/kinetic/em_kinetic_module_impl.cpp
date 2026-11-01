@@ -1,9 +1,3 @@
-// MATCH-ONLY: the weak copy of MSL's atan2f wrapper keeps its scheduled return sequence (as in
-// wn_wario_bike_status_uniq_process_utility.cpp).
-#pragma push
-#pragma scheduling 603
-#include <internal/math_double.h>
-#pragma pop
 // The kinetic module of the enemies (emKineticModuleImpl, em/kinetic/em_kinetic_module_impl.h): eight enemy kinetic
 // energies driven by the anim cmds of group 'f', on top of soKineticModuleImpl of sora_melee.
 #define EM_KINETIC_MODULE_IMPL_FULL

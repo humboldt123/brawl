@@ -67,15 +67,6 @@ static stOldinStatics sStatics = {
         (seq).m_line = (lineNumber);          \
     }
 
-// MATCH-ONLY: the original reads the stage the match is played on (6 bits at +0x8 of the melee data) and its number.
-struct stOldinMeleeView {
-    char _0[8];
-    u8 mode : 6;
-    u8 pad : 2;
-    char _9[7];
-    u8 stage;
-};
-
 // Parks a ground far below the stage (its first node matrix is moved to (0, -1000, 0)).
 #define OLDIN_PARK(ground)                                                          \
     {                                                                               \
@@ -427,8 +418,8 @@ void stOldin::createObj() {
     createObjPokeTrainer(m_fileData, 0x66, "PokeTrainer01", m_pokeTrainerPos + 2, NULL);
     m_barrelNow = 0;
     m_barrelLast = 0;
-    stOldinMeleeView* melee = reinterpret_cast<stOldinMeleeView*>(g_GameGlobal->m_modeMelee);
-    m_noBattle = (melee->mode == 7 && (melee->stage & 0x7F) == 0x18);
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
+    m_noBattle = (melee->m_meleeInitData.m_gameMode == 7 && (melee->m_meleeInitData.m_event & 0x7F) == 0x18);
 }
 
 void stOldin::update(float deltaFrame) {

@@ -102,18 +102,6 @@ bool stPirates::loading() {
     return true;
 }
 
-// MATCH-ONLY: the bytes of the match settings the stage reads (their names are unknown): the game mode in the upper six bits
-// of byte 8, the rule in the upper three bits of byte 9 and the event in byte 0x10.
-struct stPiratesMeleeView {
-    u8 _pad0[8];
-    unsigned char m_mode : 6;
-    unsigned char m_rest : 2;
-    unsigned char m_rule : 3;
-    unsigned char m_rest9 : 5;
-    u8 _pad1[6];
-    u8 m_event;
-};
-
 void stPirates::createObj() {
     testStageParamInit(m_fileData, 10);
     testStageDataInit(m_fileData, 0x14, 0x98);
@@ -165,8 +153,8 @@ void stPirates::createObj() {
     initPosPokeTrainer(1, 0);
     createObjPokeTrainer(m_fileData, 0x65, "PokeTrainer00", m_pokeTrainerPos, NULL);
     if (g_GameGlobal->m_modeMelee != NULL) {
-        stPiratesMeleeView* melee = reinterpret_cast<stPiratesMeleeView*>(g_GameGlobal->m_modeMelee);
-        if (melee->m_mode == 7 && melee->m_event == 0x27) {
+        gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
+        if (melee->m_meleeInitData.m_gameMode == 7 && melee->m_meleeInitData.m_event == 0x27) {
             unk608 = 1;
         }
     }
@@ -829,7 +817,7 @@ void stPirates::updateEventSelect(float deltaFrame) {
             unk55D = 7;
         } else if (g_GameGlobal->m_modeMelee != NULL) {
             u8 timeIsUp = 0;
-            switch (reinterpret_cast<stPiratesMeleeView*>(g_GameGlobal->m_modeMelee)->m_rule) {
+            switch (g_GameGlobal->m_modeMelee->m_meleeInitData.m_gameRule) {
             case 0:
                 if (getFrameRuleTime() != 0.0f && getFrameRuleTime() < data->unk5C) {
                     timeIsUp = 1;

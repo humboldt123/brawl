@@ -16,14 +16,14 @@ public:
     inline grDxBigBlueFalcon(const char* taskName) : grDxBigBlueFly(taskName) {
         unk168 = 1;
         m_isEventMatch = 0;
-        dxbigblueMeleeView* melee = reinterpret_cast<dxbigblueMeleeView*>(g_GameGlobal->m_modeMelee);
+        gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
         if (melee == NULL) {
             return;
         }
-        if (melee->m_mode != 7) {
+        if (melee->m_meleeInitData.m_gameMode != 7) {
             return;
         }
-        if (melee->m_event == 0x9F) {
+        if (melee->m_meleeInitData.m_event == 0x9F) {
             m_isEventMatch = 1;
         }
     }

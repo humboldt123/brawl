@@ -375,9 +375,9 @@ void gmInitMeleeDataDefault(gmMeleeInitData* melee) {
     melee->m_itemFrequency = gmItSwitch::Frequency_Medium;
     melee->m_0x10 = 0x78;
     melee->m_cameraShakeScale = 1.0f;
-    melee->m_0x5a_7 = g_GameGlobal->getGlobalRecordGameDatap()->m_unk808_7;
+    melee->m_isUseRisetsan = g_GameGlobal->getGlobalRecordGameDatap()->m_unk808_7;
     gmAppDataFlags* app = reinterpret_cast<gmAppDataFlags*>(g_GameGlobal->m_appData);
-    melee->m_0x5a_6 = app->m_oneShot28_7;
+    melee->m_isUseDragoon = app->m_oneShot28_7;
     app = reinterpret_cast<gmAppDataFlags*>(g_GameGlobal->m_appData);
     app->m_oneShot28_7 = false;
     melee->m_0x50 = 1;
@@ -1167,42 +1167,29 @@ void gmGlobalCorpsConvertAllStarToCorps(gmGlobalCorps* corps) {
 
 // HYPOTHESIS: byte 0x808 of the global record bit 7 and byte 0x62 of the melee init data bit 7 mark Risetsan use,
 // byte 0x62 bit 6 marks Dragoon use, byte 0x28 of gmAppData bit 7 is the Dragoon use flag.
-struct gmRecordUseFlags {
-    u8 m_risetsan : 1;
-    u8 : 7;
-};
-struct gmMeleeUseFlags {
-    u8 m_risetsan : 1;
-    u8 m_dragoon : 1;
-    u8 : 6;
-};
-struct gmAppUseFlags {
-    u8 m_dragoon : 1;
-    u8 : 7;
-};
 
 void gmSetUseRisetsan() {
     bool on = true;
-    reinterpret_cast<gmRecordUseFlags*>(reinterpret_cast<u8*>(g_GameGlobal->getGlobalRecordGameDatap()) + 0x808)->m_risetsan = on;
-    reinterpret_cast<gmMeleeUseFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0x62)->m_risetsan = 1;
+    g_GameGlobal->getGlobalRecordGameDatap()->m_unk808_7 = on;
+    g_GameGlobal->m_modeMelee->m_meleeInitData.m_isUseRisetsan = 1;
 }
 
 // Not renamed: it_manager.cpp calls it as fn_80052694.
 extern "C" void fn_80052694() {
-    reinterpret_cast<gmAppUseFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_appData) + 0x28)->m_dragoon = 1;
+    reinterpret_cast<gmAppDataFlags*>(g_GameGlobal->m_appData)->m_oneShot28_7 = 1;
 }
 
 void gmResetUseDragoon() {
-    reinterpret_cast<gmAppUseFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_appData) + 0x28)->m_dragoon = 0;
+    reinterpret_cast<gmAppDataFlags*>(g_GameGlobal->m_appData)->m_oneShot28_7 = 0;
 }
 
 bool gmCheckRisetsan() {
-    return reinterpret_cast<gmMeleeUseFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0x62)->m_risetsan == 1;
+    return g_GameGlobal->m_modeMelee->m_meleeInitData.m_isUseRisetsan == 1;
 }
 
 // Not renamed: it_manager.cpp calls it as fn_800526E4.
 extern "C" bool fn_800526E4() {
-    return reinterpret_cast<gmMeleeUseFlags*>(reinterpret_cast<u8*>(g_GameGlobal->m_modeMelee) + 0x62)->m_dragoon == 1;
+    return g_GameGlobal->m_modeMelee->m_meleeInitData.m_isUseDragoon == 1;
 }
 
 // HYPOTHESIS: the figure collection is a halfword array at gmGlobalRecord+0x842 (stickers: +0xD58), one entry per

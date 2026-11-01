@@ -1526,9 +1526,7 @@ static inline Vec2f difference(Vec2f* to, Vec2f* from) {
 // The angle (in degrees) of the direction from one point to another.
 float Enemy::getAtan2fAngle(Vec2f* from, Vec2f* to) {
     Vec2f diff = difference(to, from);
-    float x = diff.m_x;
-    float y = diff.m_y;
-    return 57.29578f * (float)atan2(y, x);
+    return 57.29578f * atan2f(diff.m_y, diff.m_x);
 }
 
 // The offset of the damage position from a node (zero for a node id past the enemy kind's nodes).

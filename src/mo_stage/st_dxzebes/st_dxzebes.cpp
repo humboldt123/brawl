@@ -29,15 +29,6 @@ extern "C" int fn_27_2249E0(Stage* stage);
 // grMadein: HYPOTHESIS: switches the looping flag of the ground's motion.
 extern "C" void fn_27_279228(grMadein* ground, int loop);
 
-// MATCH-ONLY: the original reads the stage the match is played on (6 bits at +0x8 of the melee data) and its number.
-struct stDxZebesMeleeView {
-    char _0[8];
-    u8 mode : 6;
-    u8 pad : 2;
-    char _9[7];
-    u8 stage;
-};
-
 // MATCH-ONLY: the flag byte of a collision joint at +0x54 (the shared header only names the bits of the word at +0x48).
 struct stDxZebesJointView {
     char _0[0x54];
@@ -192,8 +183,8 @@ bool stDxZebes::loading() {
 
 void stDxZebes::createObj() {
     testStageParamInit(m_fileData, 10);
-    stDxZebesMeleeView* melee = reinterpret_cast<stDxZebesMeleeView*>(g_GameGlobal->m_modeMelee);
-    if (melee->mode == 7 && melee->stage == 0x2A) {
+    gmGlobalModeMelee* melee = g_GameGlobal->m_modeMelee;
+    if (melee->m_meleeInitData.m_gameMode == 7 && melee->m_meleeInitData.m_event == 0x2A) {
         m_flagStart = true;
     }
     m_collision.initialize();

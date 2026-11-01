@@ -24,10 +24,7 @@ void wnWarioBikeStatusUniqProcessTurnDown::execFixPos(soModuleAccesser* a) {
     if (ground.isTouch((grCollStatus::TouchMask)8, 0)) {
         float lr = a->getPostureModule().getLr();
         Vec2f normal = ground.getTouchNormal((grCollStatus::TouchMask)8, 0);
-        // MATCH-ONLY: keep the native Y-then-X loads before atan2.
-        float normalY = normal.m_y;
-        float normalX = normal.m_x;
-        float angle = 57.29578f * (float)atan2(-(normalX * lr), normalY);
+        float angle = 57.29578f * atan2f(-(normal.m_x * lr), normal.m_y);
         work.setFloat(angle, 0x21000000);
     }
 }

@@ -17,7 +17,9 @@ public:
     u32 m_advPri : 3;
     // HYPOTHESIS: the player number that getSubjectByPlayerNo and the camera controllers compare.
     u32 m_playerNo : 3;
-    u32 _8_bit12 : 4;
+    u32 _8_bit12 : 3;
+    // HYPOTHESIS: the subject the loupe (the off-screen bubble) may show (gfLoupe::setup takes only these).
+    u32 m_isLoupeTarget : 1;
     u32 m_isDamageFly : 1;
     u32 _8_bit17 : 1;
     // HYPOTHESIS: set while registered (soCameraSubject::unRegist only unregisters when it is set).
