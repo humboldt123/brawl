@@ -255,20 +255,11 @@ struct soCollisionAttackData {
             soCollision::SituationMask m_targetSituation : 3;            // up to 0x7
             u32 m_targetLr : 1;                          // up to 0x1 // unused in vBrawl?
             soCollision::PartMask m_targetPart : 4;                 // up to 0xf
-#ifdef SO_COLLISION_ATTACK_DATA_WORD_FIELDS
-            // MATCH-ONLY (opt-in, the enemy hit and attack module units): read unsigned from the word, as those units' originals do.
-            u32 m_attribute : 5;
-#else
-            Attribute m_attribute : 5;     // up to 0x1f
-#endif
-#ifdef SO_COLLISION_ATTACK_DATA_SOUND_WORD_FIELDS
-            // MATCH-ONLY (opt-in, the so sound module unit): read unsigned from the word, as that unit's original does.
-            u32 m_soundLevel : 2;
-            u32 m_soundAttribute : 5;
-#else
-            SoundLevel m_soundLevel : 2; // up to 0x3
-            SoundAttribute m_soundAttribute : 5;   // up to 0x1f
-#endif
+            // HYPOTHESIS: unsigned bit-fields holding Attribute, SoundLevel and SoundAttribute values (the units read
+            // them with unsigned extraction; an enum bit-field would be read signed).
+            u32 m_attribute : 5;     // Attribute, up to 0x1f
+            u32 m_soundLevel : 2; // SoundLevel, up to 0x3
+            u32 m_soundAttribute : 5;   // SoundAttribute, up to 0x1f
             SetOffKind m_setOffKind : 2; // up to 0x3
             u32 m_noScale : 1;
             u32 m_isShieldable : 1;

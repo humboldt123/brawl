@@ -49,11 +49,6 @@ soDamageModule::~soDamageModule() { }
 
 soDamageModuleImpl::~soDamageModuleImpl() { }
 
-// MATCH-ONLY: the original reads the attack data bitfields as whole words (lwz) with unsigned extraction.
-static inline u32 getAttackDataWord(soCollisionAttackData* attackData, int offset) {
-    return *(u32*)((u8*)attackData + offset);
-}
-
 // HYPOTHESIS: reconstructed interface of the glow module (untyped in the headers); only two slots are known.
 class soGlowModuleLocal : public soNullable {
 public:
@@ -324,7 +319,7 @@ bool soDamageModuleImpl::setGroundDamage(u32 touchKind, soCollisionAttackData* a
     damage->m_powerMax = power;
     float kb = getTransactor()->getDamageForReaction(damage->m_damage, m_moduleAccesser);
     float weightMul;
-    if (s_attributeUsesWeight[getAttackDataWord(attackData, 0x30) & 0x1f]) {
+    if (s_attributeUsesWeight[attackData->m_attribute]) {
         weightMul = getWeightReactionMul(attackData);
     } else {
         weightMul = 1.0f;
@@ -428,7 +423,7 @@ bool soDamageModuleImpl::setForceDamage(StageObject* stageObject, Vec3f* pos, u3
     float reactionMul = attackModule->getReactionMul(collisionIndex);
     float kb = getTransactor()->getDamageForReaction(damage->m_damage, m_moduleAccesser);
     float weightMul;
-    if (s_attributeUsesWeight[getAttackDataWord(attackData, 0x30) & 0x1f]) {
+    if (s_attributeUsesWeight[attackData->m_attribute]) {
         weightMul = getWeightReactionMul(attackData);
     } else {
         weightMul = 1.0f;
@@ -685,7 +680,7 @@ void soDamageModuleImpl::notifyEventCollisionHit2nd(soCollisionAttackModule* att
     float kb = getTransactor()->getDamageForReaction(damage->m_damage + damage->m_damageAdd, m_moduleAccesser);
     float tmp = attackModule->getBasePower(collisionIndex, collisionLog->m_isAbsolute);
     float weightMul;
-    if (s_attributeUsesWeight[getAttackDataWord(attackData, 0x30) & 0x1f]) {
+    if (s_attributeUsesWeight[attackData->m_attribute]) {
         weightMul = getWeightReactionMul(attackData);
     } else {
         weightMul = 1.0f;

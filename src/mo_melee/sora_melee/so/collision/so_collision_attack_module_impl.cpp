@@ -1,4 +1,3 @@
-#define SO_COLLISION_ATTACK_DATA_WORD_FIELDS
 #include <so/collision/so_collision_attack_module_impl.h>
 #include <so/param/so_param_customize_module_impl.h>
 #include <so/so_module_accesser.h>

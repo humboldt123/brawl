@@ -25,8 +25,6 @@
 #define SO_ANIM_CMD_EVENT_OBSERVER_PURE
 // MATCH-ONLY: updateDamageAttackInfo and the hit handlers read the task category of the collision log as a byte.
 #define SO_COLLISION_LOG_CATEGORY_BYTE
-// MATCH-ONLY: reqCommonEffect overwrites the attribute of its attack data copy with an int (u32 bitfield view).
-#define SO_COLLISION_ATTACK_DATA_WORD_FIELDS
 // The attack data's bitfields are plain members (reqCommonEffect copies their words one by one).
 #define SO_COLLISION_ATTACK_DATA_PLAIN_BITFIELDS
 // MATCH-ONLY: the effector base keeps its destructor out of line (the soDamageEffectorImpl destructor calls a weak copy of
