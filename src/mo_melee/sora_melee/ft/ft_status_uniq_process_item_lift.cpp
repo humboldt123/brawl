@@ -1,6 +1,4 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-// MATCH-ONLY: the -O2,s fighter flags stop the implicit constructor inlining into the static initializer;
-// the Matching neighbours build at the default -O4,p.
 #include <ft/ft_util.h>
 #include <so/item/so_item_manage_module_impl.h>
 #include <so/motion/so_motion_module_impl.h>

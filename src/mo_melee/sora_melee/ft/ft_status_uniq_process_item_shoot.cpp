@@ -1,6 +1,4 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-// MATCH-ONLY: the -O2,s fighter flags stop the implicit constructor inlining into the static initializer;
-// the Matching neighbours build at the default -O4,p.
 // Use the native Fighter observer override before transitive Fighter includes;
 // this preserves the verified primary vtable slot of getOwner.
 #define FT_MODULE_BUILDER

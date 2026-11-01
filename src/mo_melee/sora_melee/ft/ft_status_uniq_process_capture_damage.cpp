@@ -1,6 +1,4 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-// MATCH-ONLY: the -O2,s fighter flags stop the implicit constructor inlining into the static initializer;
-// the Matching neighbours build at the default -O4,p.
 #include <ft/ft_kinetic_energy.h>
 #include <ft/ft_status_uniq_process_capture_wait.h>
 #include <so/ground/so_ground_module_impl.h>
