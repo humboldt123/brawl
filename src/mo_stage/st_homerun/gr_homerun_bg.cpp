@@ -16,16 +16,13 @@ extern "C" int fn_801341D8(grCollStatus* status, float* out);
 extern "C" int fn_801342C8(grCollStatus* status, Vec2f* out);
 
 // The Yakumono grounds of the contest all keep the position of the node they are bound to in a world callback.
-// MATCH-ONLY: the original flips three bits of the joint's flag byte as a chain (HYPOTHESIS: they track "enabled").
+// Sets the joint's collision flag bits with one chained assignment (HYPOTHESIS: they track "enabled").
 static inline void grHomerunJointEnable(grCollisionJoint* joint) {
-    joint->m_0x54_4 = true;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = true;
 }
 
 static inline void grHomerunJointDisable(grCollisionJoint* joint) {
-    joint->m_0x54_7 = false;
-    joint->m_0x54_4 = joint->m_0x54_7;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
 }
 
 

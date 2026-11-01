@@ -177,10 +177,8 @@ void grMarioPastBlockPosLite::initCollisionJoint() {
     }
     for (u32 i = 0; i < num; i++, joint++, block++) {
         joint->m_0x56_7 = true;
-        joint->m_0x54_7 = false;
+        joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
         joint->m_matrix = &m_mtx;
-        joint->m_0x54_4 = joint->m_0x54_7;
-        joint->m_0x54_6 = joint->m_0x54_4;
         joint->m_0x54_3 = true;
         joint->m_ground = this;
         if (block->m_kind == 3) {

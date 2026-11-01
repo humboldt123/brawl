@@ -26,14 +26,6 @@ extern "C" void fn_801F2C58(GXTexObj* texObj, int wrapS, int wrapT);
 extern "C" void fn_801341D8(grCollStatus* collStatus, void* shape);
 extern "C" void Destroy__Q34nw4r3g3d6G3dObjFv(void* obj);
 
-// MATCH-ONLY: the flag word of a collision joint (the stage sets the collision kind in its second byte)
-struct famicomJointView {
-    u8 _pad[0x48];
-    u32 _unused0 : 8;
-    u32 m_kind : 8;
-    u32 _unused1 : 16;
-};
-
 // MATCH-ONLY: a flag byte of a line of a collision joint (the top bit makes it a line without ledge)
 struct famicomLineView {
     u8 _pad[0x10];
@@ -252,7 +244,7 @@ void grFamicomYuka::updateColl(float deltaFrame) {
         if (joint != NULL) {
             grCollData::VtxData* vtx = joint->m_vtxDatas;
             if (vtx != NULL) {
-                reinterpret_cast<famicomJointView*>(joint)->m_kind = 3;
+                joint->m_0x49 = 3;
                 famicomLineView* line = reinterpret_cast<famicomLineView*>(joint->getLine(m_ctrl));
                 if (line != NULL) {
                     line->m_flags |= 0x80;

@@ -38,16 +38,13 @@ extern "C" bool isCollisionStatusOwnerTask__6GroundFP12grCollStatusPi(Ground* gr
 
 #include <gr/collision/gr_collision_joint.h>
 
-// MATCH-ONLY: the original flips the same bits of the joint's flag byte as a chain (HYPOTHESIS: they track "enabled").
+// Sets the joint's collision flag bits with one chained assignment (HYPOTHESIS: they track "enabled").
 static inline void dxbigblueJointEnable(grCollisionJoint* joint) {
-    joint->m_0x54_4 = true;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = true;
 }
 
 static inline void dxbigblueJointDisable(grCollisionJoint* joint) {
-    joint->m_0x54_7 = false;
-    joint->m_0x54_4 = joint->m_0x54_7;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
 }
 
 #include <nw4r/math/math_arithmetic.h>

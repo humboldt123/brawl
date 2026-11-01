@@ -40,16 +40,13 @@ static inline float grHalberdLength(float a, float b, float c) {
     return lengthSq * rsqrtf(lengthSq);
 }
 
-// MATCH-ONLY: the original flips three bits of the joint's flag byte as a chain (HYPOTHESIS: they track "enabled").
+// Sets the joint's collision flag bits with one chained assignment (HYPOTHESIS: they track "enabled").
 static inline void grHalberdJointEnable(grCollisionJoint* joint) {
-    joint->m_0x54_4 = true;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = true;
 }
 
 static inline void grHalberdJointDisable(grCollisionJoint* joint) {
-    joint->m_0x54_7 = false;
-    joint->m_0x54_4 = joint->m_0x54_7;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
 }
 
 // The ground all the grounds of the stage are made from: it holds the state of the ground and pointers to the frame and the

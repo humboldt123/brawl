@@ -82,6 +82,11 @@ public:
         u32 m_0x48 : 16; // role: the flag halfword the constructor clears
         u16 m_vtxStart; // role: first vertex of the joint in the collision's vertex arrays (grCollision::getSrcVtx adds it)
     };
+    struct {
+        u32 : 8;
+        u32 m_0x49 : 8; // role: a kind the famicom and metalgear stages set to 3 (HYPOTHESIS: collision kind; written as a word field)
+        u32 : 16;
+    };
     };
 
     u16 m_vtxLen;

@@ -22,14 +22,6 @@
 #include <st_famicom/gr_famicom.h>
 #include <st_famicom/gr_famicom_anim.h>
 
-// MATCH-ONLY: the flag word of a collision joint (the stage sets the collision kind in its second byte)
-struct famicomJointView {
-    u8 _pad[0x48];
-    u32 _unused0 : 8;
-    u32 m_kind : 8;
-    u32 _unused1 : 16;
-};
-
 // MATCH-ONLY: a flag byte of a line of a collision joint (the top bit makes it a line without ledge)
 struct famicomLineView {
     u8 _pad[0x10];
@@ -184,7 +176,7 @@ void grFamicomPow::updateColl(float deltaFrame) {
         if (joint != NULL) {
             grCollData::VtxData* vtx = joint->m_vtxDatas;
             if (vtx != NULL) {
-                reinterpret_cast<famicomJointView*>(joint)->m_kind = 3;
+                joint->m_0x49 = 3;
                 famicomLineView* line = reinterpret_cast<famicomLineView*>(joint->getLine(1));
                 if (line != NULL) {
                     line->m_flags |= 0x80;

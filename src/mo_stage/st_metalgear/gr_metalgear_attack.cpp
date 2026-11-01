@@ -12,14 +12,6 @@
 
 #include <st_metalgear/gr_metalgear.h>
 
-// MATCH-ONLY: the flag word of a collision joint (the stage sets the collision kind in its second byte)
-struct metalgearJointView {
-    u8 _pad[0x48];
-    u32 _unused0 : 8;
-    u32 m_kind : 8;
-    u32 _unused1 : 16;
-};
-
 grMetalgearAttack::grMetalgearAttack(const char* taskName) : grMetalgear(taskName) {
     m_posWork = NULL;
     m_posLimitWork = NULL;
@@ -83,7 +75,7 @@ void grMetalgearAttack::updateCollision(float deltaFrame) {
         if (joint != NULL) {
             grCollisionLine* line = joint->getLine(0);
             if (line != NULL) {
-                reinterpret_cast<metalgearJointView*>(joint)->m_kind = 3;
+                joint->m_0x49 = 3;
                 grCollData::VtxData* vtxA = &joint->m_vtxDatas[(u16)line->m_point0Index];
                 grCollData::VtxData* vtxB = &joint->m_vtxDatas[(u16)(line->m_point0Index + 1)];
                 if (m_type == 8) {

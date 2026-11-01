@@ -16,16 +16,13 @@
 static grGWMarker sMarkerA(0xFF, 0);
 static grGWMarker sMarkerB(0xFF, 1);
 
-// MATCH-ONLY: the original flips the same bits of the joint's flag byte as a chain (HYPOTHESIS: they track "enabled").
+// Sets the joint's collision flag bits with one chained assignment (HYPOTHESIS: they track "enabled").
 static inline void gwJointEnable(grCollisionJoint* joint) {
-    joint->m_0x54_4 = true;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = true;
 }
 
 static inline void gwJointDisable(grCollisionJoint* joint) {
-    joint->m_0x54_7 = false;
-    joint->m_0x54_4 = joint->m_0x54_7;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
 }
 
 grGWSceneFire* grGWSceneFire::create(int modelIndex, const char* nodeName, const char* taskName) {

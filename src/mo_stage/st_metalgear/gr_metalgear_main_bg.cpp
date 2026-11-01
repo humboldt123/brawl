@@ -10,12 +10,6 @@
 #include <st_metalgear/gr_metalgear.h>
 #include <st_metalgear/gr_metalgear_anim.h>
 
-// MATCH-ONLY: the flag byte of a collision line (bit 0 tells that the line is solid)
-struct metalgearLineView {
-    u8 _pad[0x10];
-    u8 m_flags;
-};
-
 grMetalgearMainBg::grMetalgearMainBg(const char* taskName) : grMetalgear(taskName) {
     m_posGimmickWork = NULL;
     m_stateWork = NULL;
@@ -131,29 +125,23 @@ void grMetalgearMainBg::updateBreak(float deltaFrame) {
     }
 }
 
-// HYPOTHESIS: the flag byte is signed, so the clear keeps the wide mask
-struct metalgearSignedLineView {
-    u8 _pad[0x10];
-    s8 m_flags;
-};
-
 // The collisions of the walls stand while the walls do.
 void grMetalgearMainBg::updateColl(float deltaFrame) {
     grCollisionJoint* joint = m_jointLeft;
     if (joint != NULL) {
         if (m_stateWallWork[1] != 6) {
-            metalgearSignedLineView* line = reinterpret_cast<metalgearSignedLineView*>(joint->getLine(0));
-            line->m_flags = line->m_flags | 1;
+            grCollisionLine* line = joint->getLine(0);
+            line->m_isThroughable = true;
         } else {
-            metalgearSignedLineView* line = reinterpret_cast<metalgearSignedLineView*>(joint->getLine(0));
-            line->m_flags = line->m_flags & ~1;
+            grCollisionLine* line = joint->getLine(0);
+            line->m_isThroughable = false;
         }
         if (m_stateWallWork[3] != 6) {
-            metalgearSignedLineView* line = reinterpret_cast<metalgearSignedLineView*>(m_jointRight->getLine(0));
-            line->m_flags = line->m_flags | 1;
+            grCollisionLine* line = m_jointRight->getLine(0);
+            line->m_isThroughable = true;
         } else {
-            metalgearSignedLineView* line = reinterpret_cast<metalgearSignedLineView*>(m_jointRight->getLine(0));
-            line->m_flags = line->m_flags & ~1;
+            grCollisionLine* line = m_jointRight->getLine(0);
+            line->m_isThroughable = false;
         }
     }
 }

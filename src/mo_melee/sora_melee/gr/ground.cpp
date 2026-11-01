@@ -753,12 +753,10 @@ bool Ground::setNodeCollision(bool setCollision, u32 sceneModelIndex, u32 nodeIn
         if (joint != NULL) {
             joint->m_0x56_7 = true;
             if (setCollision) {
-                joint->m_0x54_4 = true;
-                joint->m_0x54_6 = joint->m_0x54_4;
+                joint->m_0x54_6 = joint->m_0x54_4 = true;
             } else {
                 joint->m_0x54_6 = false;
-                joint->m_0x54_4 = joint->m_0x54_1;
-                joint->m_0x54_6 = joint->m_0x54_4;
+                joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_1;
             }
             return true;
         }

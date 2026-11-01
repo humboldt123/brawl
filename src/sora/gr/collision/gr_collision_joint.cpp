@@ -128,12 +128,9 @@ void grCollisionJoint::updateStatus() {
         return;
     }
     if (m_ground->m_isEnableCollisionStatus) {
-        m_0x54_4 = true;
-        m_0x54_6 = m_0x54_4;
+        m_0x54_6 = m_0x54_4 = true;
     } else {
-        m_0x54_7 = false;
-        m_0x54_4 = m_0x54_7;
-        m_0x54_6 = m_0x54_4;
+        m_0x54_6 = m_0x54_4 = m_0x54_7 = false;
     }
     m_0x54_4 = m_0x54_6;
 }

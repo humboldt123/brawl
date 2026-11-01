@@ -63,16 +63,13 @@ grFzeroBg::grFzeroBg(const char* taskName) : grFzero(taskName) {
 grFzeroBg::~grFzeroBg() {
 }
 
-// MATCH-ONLY: the original flips the same bits of the joint's flag byte as a chain (HYPOTHESIS: they track "enabled").
+// Sets the joint's collision flag bits with one chained assignment (HYPOTHESIS: they track "enabled").
 static inline void grFzeroJointEnable(grCollisionJoint* joint) {
-    joint->m_0x54_4 = true;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = true;
 }
 
 static inline void grFzeroJointDisable(grCollisionJoint* joint) {
-    joint->m_0x54_7 = false;
-    joint->m_0x54_4 = joint->m_0x54_7;
-    joint->m_0x54_6 = joint->m_0x54_4;
+    joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
 }
 
 // HYPOTHESIS: the same fsel based clamp helper the glide statuses use.

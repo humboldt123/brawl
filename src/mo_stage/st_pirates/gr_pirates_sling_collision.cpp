@@ -9,13 +9,10 @@ void grPiratesSling::updateCollision(float deltaFrame) {
     switch (m_state) {
     case State_Active:
     case State_Lowering:
-        joint->m_0x54_7 = false;
-        joint->m_0x54_4 = joint->m_0x54_7;
-        joint->m_0x54_6 = joint->m_0x54_4;
+        joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
         break;
     default:
-        joint->m_0x54_4 = true;
-        joint->m_0x54_6 = joint->m_0x54_4;
+        joint->m_0x54_6 = joint->m_0x54_4 = true;
         break;
     }
 }

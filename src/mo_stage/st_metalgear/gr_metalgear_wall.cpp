@@ -24,14 +24,6 @@
 #include <st_metalgear/gr_metalgear.h>
 #include <st_metalgear/gr_metalgear_anim.h>
 
-// MATCH-ONLY: the flag word of a collision joint (the stage sets the collision kind in its second byte)
-struct metalgearJointView {
-    u8 _pad[0x48];
-    u32 _unused0 : 8;
-    u32 m_kind : 8;
-    u32 _unused1 : 16;
-};
-
 // HYPOTHESIS: an inline helper of the original (degrees to radians)
 static inline float metalgearDegToRad(float deg) {
     return deg * 0.017453292f;
@@ -388,7 +380,7 @@ void grMetalgearWall::updateCollision(float deltaFrame) {
             return;
         }
         m_joint = joint;
-        reinterpret_cast<metalgearJointView*>(joint)->m_kind = 3;
+        joint->m_0x49 = 3;
         u16* line = reinterpret_cast<u16*>(joint->getLine(0));
         int index = 0;
         for (u32 n = joint->m_vtxLen; n != 0; n--) {
