@@ -1517,8 +1517,7 @@ int grCollisionTestRhombus::testUp(grCollisionLineWork* lineWork, float* rate) {
           bool lineAbove = onLine.m_y > from.m_y;
           if (lineAbove) {
             lineWork->getNext(&next);
-            grCollisionLineWork* nextLw = &next; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check)
-            if (isEnabledLineWork(&next) && nextLw->m_collisionLine->m_isLeft) {
+            if (isEnabledLineWork(&next) && lineIsLeft(&next)) {
                 fn_80111968(next.m_collision, &nextSegment, next.m_collisionLine, 0);
                 if ((!nextSegment.m_segment.projectionY(cur->m_centerPos, proj) || !(cur->m_centerPos.m_x < proj.m_x)) &&
                     onLine.m_x <= segment.m_segment.m_p0Pos.m_x && to.m_y >= onLine.m_y) {
@@ -1533,8 +1532,7 @@ int grCollisionTestRhombus::testUp(grCollisionLineWork* lineWork, float* rate) {
                 }
             }
             lineWork->getPrev(&next);
-            grCollisionLineWork* prevLw = &next; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check)
-            if (isEnabledLineWork(&next) && prevLw->m_collisionLine->m_isRight) {
+            if (isEnabledLineWork(&next) && lineIsRight(&next)) {
                 fn_80111968(next.m_collision, &nextSegment, next.m_collisionLine, 0);
                 if ((!nextSegment.m_segment.projectionY(cur->m_centerPos, proj) || !(proj.m_x < cur->m_centerPos.m_x)) &&
                     segment.m_segment.m_p1Pos.m_x <= onLine.m_x && to.m_y >= onLine.m_y) {
@@ -1663,8 +1661,7 @@ int grCollisionTestRhombus::testLeft(grCollisionLineWork* lineWork, float* rate)
         grCollisionLineWork prev;
         Vec2f onLine;
         lineWork->getPrev(&prev);
-        grCollisionLineWork* prevLw = &prev; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check)
-        if (isEnabledLineWork(&prev) && prevLw->m_collisionLine->m_isUpper) {
+        if (isEnabledLineWork(&prev) && lineIsUpper(&prev)) {
             from = cur->m_upPos;
             to = m_shape2.m_rhombus.m_upPos;
             dir = to - from;
@@ -1692,8 +1689,7 @@ int grCollisionTestRhombus::testLeft(grCollisionLineWork* lineWork, float* rate)
         grCollisionLineWork next;
         Vec2f onLine;
         lineWork->getNext(&next);
-        grCollisionLineWork* nextLw = &next; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check)
-        if (isEnabledLineWork(&next) && nextLw->m_collisionLine->m_isUnder && (getLineAttr(next.m_collisionLine) & m_exclusiveLineAttr) == 0 &&
+        if (isEnabledLineWork(&next) && lineIsUnder(&next) && (getLineAttr(next.m_collisionLine) & m_exclusiveLineAttr) == 0 &&
             !fn_80137114(m_collStatus, &next)) {
             from = cur->m_downPos;
             to = m_shape2.m_rhombus.m_downPos;
@@ -1765,8 +1761,7 @@ int grCollisionTestRhombus::testRight(grCollisionLineWork* lineWork, float* rate
         grCollisionLineWork next;
         Vec2f onLine;
         lineWork->getNext(&next);
-        grCollisionLineWork* nextLw = &next; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check)
-        if (isEnabledLineWork(&next) && nextLw->m_collisionLine->m_isUpper) {
+        if (isEnabledLineWork(&next) && lineIsUpper(&next)) {
             from = cur->m_upPos;
             to = m_shape2.m_rhombus.m_upPos;
             dir = to - from;
@@ -1794,8 +1789,7 @@ int grCollisionTestRhombus::testRight(grCollisionLineWork* lineWork, float* rate
         grCollisionLineWork prev;
         Vec2f onLine;
         lineWork->getPrev(&prev);
-        grCollisionLineWork* prevLw = &prev; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check)
-        if (isEnabledLineWork(&prev) && prevLw->m_collisionLine->m_isUnder && (getLineAttr(prev.m_collisionLine) & m_exclusiveLineAttr) == 0 &&
+        if (isEnabledLineWork(&prev) && lineIsUnder(&prev) && (getLineAttr(prev.m_collisionLine) & m_exclusiveLineAttr) == 0 &&
             !fn_80137114(m_collStatus, &prev)) {
             from = cur->m_downPos;
             to = m_shape2.m_rhombus.m_downPos;
@@ -1965,8 +1959,7 @@ int grCollisionTestRhombus::testCollisionNotMoveSlatingLine(grCollisionLineWork*
                 moveX = 1;
             } else {
                 lineWork->getPrev(&prev);
-                grCollisionLineWork* prevLw = &prev; // MATCH-ONLY: pointer to the local (no CSE)
-                if (isActiveLineWorkR2(&prev) && prevLw->m_collisionLine->m_isUpper) {
+                if (isActiveLineWorkR2(&prev) && lineIsUpper(&prev)) {
                     moveX = 1;
                 }
             }
@@ -1981,8 +1974,7 @@ int grCollisionTestRhombus::testCollisionNotMoveSlatingLine(grCollisionLineWork*
                 moveX = 1;
             } else {
                 lineWork->getNext(&next);
-                grCollisionLineWork* nextLw = &next; // MATCH-ONLY: pointer to the local (no CSE)
-                if (isActiveLineWorkR2(&next) && nextLw->m_collisionLine->m_isUpper) {
+                if (isActiveLineWorkR2(&next) && lineIsUpper(&next)) {
                     moveX = 1;
                 }
             }
@@ -2104,8 +2096,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRight(grCollisionLi
         } else {
             active = false;
         }
-        grCollisionLineWork* nextLw = &next; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check above)
-        if (active && nextLw->m_collisionLine->m_isUnder) {
+        if (active && lineIsUnder(&next)) {
             int still = m_unmovedMask & 6; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
             if (still != 6 && still == 0) {
                 testCollisionMoveSlatingLineMoveXRightDown(lineWork, rate);
@@ -2123,8 +2114,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRight(grCollisionLi
         } else {
             active = false;
         }
-        grCollisionLineWork* prevLw = &prev; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check above)
-        if (active && prevLw->m_collisionLine->m_isUpper) {
+        if (active && lineIsUpper(&prev)) {
             int still = m_unmovedMask & 5; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
             if (still != 5 && still == 0) {
                 testCollisionMoveSlatingLineMoveXRightUp(lineWork, rate);
@@ -2151,8 +2141,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeft(grCollisionLin
         } else {
             active = false;
         }
-        grCollisionLineWork* prevLw = &prev; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check above)
-        if (active && prevLw->m_collisionLine->m_isUnder) {
+        if (active && lineIsUnder(&prev)) {
             int still = m_unmovedMask & 10; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
             if (still != 10 && still == 0) {
                 testCollisionMoveSlatingLineMoveXLeftDown(lineWork, rate);
@@ -2170,8 +2159,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeft(grCollisionLin
         } else {
             active = false;
         }
-        grCollisionLineWork* nextLw = &next; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check above)
-        if (active && nextLw->m_collisionLine->m_isUpper) {
+        if (active && lineIsUpper(&next)) {
             int still = m_unmovedMask & 9; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
             if (still != 9 && still == 0) {
                 testCollisionMoveSlatingLineMoveXLeftUp(lineWork, rate);
@@ -2502,8 +2490,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUp(grCollisionLineW
         } else {
             active = false;
         }
-        grCollisionLineWork* nextLw = &next; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check above)
-        if (active && nextLw->m_collisionLine->m_isUnder) {
+        if (active && lineIsUnder(&next)) {
             int still = m_unmovedMask & 6; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
             if (still != 6 && still == 0) {
                 testCollisionMoveSlatingLineMoveXUpRight(lineWork, rate);
@@ -2521,8 +2508,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUp(grCollisionLineW
         } else {
             active = false;
         }
-        grCollisionLineWork* prevLw = &prev; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check above)
-        if (active && prevLw->m_collisionLine->m_isUnder) {
+        if (active && lineIsUnder(&prev)) {
             int still = m_unmovedMask & 5; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
             if (still != 5 && still == 0) {
                 testCollisionMoveSlatingLineMoveXUpLeft(lineWork, rate);
@@ -2693,8 +2679,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDown(grCollisionLin
         } else {
             active = false;
         }
-        grCollisionLineWork* prevLw = &prev; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check above)
-        if (active && prevLw->m_collisionLine->m_isUpper) {
+        if (active && lineIsUpper(&prev)) {
             int still = m_unmovedMask & 6; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
             if (still != 6 && still == 0) {
                 testCollisionMoveSlatingLineMoveXDownRight(lineWork, rate);
@@ -2712,8 +2697,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDown(grCollisionLin
         } else {
             active = false;
         }
-        grCollisionLineWork* nextLw = &next; // MATCH-ONLY: the line flag is read through a pointer to the local (no CSE with the check above)
-        if (active && nextLw->m_collisionLine->m_isUpper) {
+        if (active && lineIsUpper(&next)) {
             int still = m_unmovedMask & 9; // MATCH-ONLY: the original compares the mask against 'all bits' and against 0
             if (still != 9 && still == 0) {
                 testCollisionMoveSlatingLineMoveXDownLeft(lineWork, rate);
