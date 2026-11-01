@@ -64,8 +64,8 @@ void wnGameWatchOctopus::activate(int founderTaskId, int resourceId, int team,
     desc.unk4D = (desc.unk4D & ~0xC0) | 0x40;
     Weapon::activate(&desc);
 
-    Vec3f rotation(0.0f, 90.0f, 0.0f);
-    m_moduleAccesser->getPostureModule().setRot(&rotation, 0);
+    soPostureModule& posture = m_moduleAccesser->getPostureModule();
+    posture.setRot(&Vec3f(0.0f, 90.0f, 0.0f), 0);
     m_moduleAccesser->getLinkModule().setAttribute(3, soLinkConnection::Attribute_Reference_Parent_Visibility, false);
     // HYPOTHESIS: the meaning of link attribute 12 is unknown.
     m_moduleAccesser->getLinkModule().setAttribute(3, (soLinkConnection::Attribute)12, true);
