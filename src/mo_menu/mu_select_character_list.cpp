@@ -3,7 +3,10 @@
 #include <gm/gm_global.h>
 #include <mu/mu_msg.h>
 #include <mu/selchar/mu_select_character_list.h>
+#include <ms/ms_message.h>
 #include <nw4r/g3d/g3d_scnmdlexpand.h>
+#include <snd/snd_system.h>
+#include <gf/gf_pad_status.h>
 #include <stdio.h>
 #include <types.h>
 
@@ -43,6 +46,13 @@ void MuSelctChrList::init(nw4r::g3d::ScnGroup* parentGroup, nw4r::g3d::ScnMdlExp
     }
     strcpy(m_defName, defName);
 }
+
+// The full-width digits and percent sign of the name entry (sora_menu_name, mu_name_letter_table.cpp).
+extern char* g_muNameDigits;
+extern char* g_muNamePercent;
+
+// The messages of the nine levels of the computer.
+static const int sCpLevelMsg[] = { 21, 22, 24, 25, 27, 28, 30, 31, 32 };
 
 // The order of the names in the list: the newest name first, then by the number of the name.
 int muselectcharacterlist_compare(const void* a, const void* b) {
@@ -100,12 +110,56 @@ void MuSelctChrList::open(int kind, int cursor, Vec3f* pos) {
 
     m_isOpen = true;
     if (kind == Kind_Name) {
-        m_ends[0]->setFrameVisible(0.0f);
-        m_ends[1]->setFrameVisible(0.0f);
+        setEndsVisible(0.0f);
     }
     m_unk160 = 0;
     dispList(m_cursor);
     dispScroll();
+}
+
+// The text of a line: a name or a number is written in the text; a level of the computer returns its message.
+int MuSelctChrList::getListStr(char* out, int line) {
+    int msgNo = -1;
+    switch (m_kind) {
+    case Kind_Name:
+        if (line <= 0) {
+            strcpy(out, m_defName);
+        } else {
+            Message::utf16to8(out, g_GameGlobal->getGlobalRecordNameDatap(m_names[line - 1])->m_name);
+        }
+        break;
+    case Kind_CpLevel:
+        msgNo = sCpLevelMsg[line];
+        break;
+    case Kind_Handi: {
+        out[0] = 0;
+        char num[0x20];
+        sprintf(num, "%d", line * 10);
+        for (char* digit = num; *digit; digit++) {
+            Message::appendSubstr(out, g_muNameDigits, *digit - '0', 1);
+        }
+        Message::appendSubstr(out, g_muNamePercent, 0, 1);
+        break;
+    }
+    case Kind_Hp:
+        if (line == 0) {
+            out[0] = 0;
+            char num[0x20];
+            sprintf(num, "%d", 1);
+            for (char* digit = num; *digit; digit++) {
+                Message::appendSubstr(out, g_muNameDigits, *digit - '0', 1);
+            }
+        } else {
+            out[0] = 0;
+            char num[0x20];
+            sprintf(num, "%d", line * 10);
+            for (char* digit = num; *digit; digit++) {
+                Message::appendSubstr(out, g_muNameDigits, *digit - '0', 1);
+            }
+        }
+        break;
+    }
+    return msgNo;
 }
 
 // Shows the lines of the list around a line (the cursor line is the fifth one of the window).
@@ -227,6 +281,149 @@ void MuSelctChrList::eraseList() {
         m_group->Remove(obj->m_sceneModel);
     }
     m_parentGroup->Remove(m_group);
+}
+
+// The list starts to scroll: the line of the cursor is drawn plain until the scroll ends.
+void MuSelctChrList::scrollStart(bool up) {
+    // The animations of the window when the list scrolls up or down.
+    static MuAnimNameData sScrollAnims[2] = {
+        { 1.0f, 5.0f, false, "MenSelchrWselbase", 1 },
+        { 6.0f, 10.0f, false, "MenSelchrWselbase", 1 },
+    };
+    m_base->setAnimName(&sScrollAnims[!up], false);
+    MuObject* obj;
+    if (m_kind == Kind_Name && m_cursor == -1) {
+        obj = m_ends[0];
+    } else {
+        obj = m_items[4];
+    }
+    obj->setFrameMatCol(0.0f);
+    if (m_cursor >= 0 && m_cursor < getListNum()) {
+        int msgIndex = m_msgBase + 4;
+        m_msg->setFontColor(msgIndex, 0x50, 0x50, 0x50, 0xFF);
+        m_msg->setFontColor(msgIndex + Item_Num, 0x50, 0x50, 0x50, 0xFF);
+        m_msg->setFontColor(msgIndex + Item_Num * 2, 0x50, 0x50, 0x50, 0xFF);
+        char str[40];
+        int msgNo = getListStr(str, m_cursor);
+        if (msgNo >= 0) {
+            if (m_kind == Kind_CpLevel) {
+                m_msg->printf(msgIndex, "");
+                m_msg->printf(msgIndex + Item_Num, "%d", m_cursor + 1);
+                m_msg->printIndex(msgIndex + Item_Num * 2, msgNo);
+            } else {
+                m_msg->printIndex(msgIndex, msgNo);
+                m_msg->printf(msgIndex + Item_Num, "");
+                m_msg->printf(msgIndex + Item_Num * 2, "");
+            }
+        } else {
+            m_msg->printf(msgIndex, str);
+            m_msg->printf(msgIndex + Item_Num, "");
+            m_msg->printf(msgIndex + Item_Num * 2, "");
+        }
+    }
+}
+
+// Moves the cursor with the pad and decides or cancels. Returns 0 when the list is closed, 1 while it is open, 2 when a line
+// was picked (written to out), 3 when it was cancelled, 4 to type a new name and 5 for no name.
+int MuSelctChrList::main(gfPadStatus* pad, int* out) {
+    if (!m_isOpen) {
+        return 0;
+    }
+    u32 trigger = pad->m_buttonsPressedThisFrame.bits;
+    if (trigger & gfPadButtons::A || trigger & gfPadButtons::B) {
+        int result;
+        if (trigger & gfPadButtons::A) {
+            int se = 0;
+            if (m_kind == Kind_Name) {
+                if (m_cursor == -1 || m_cursor >= getListNum()) {
+                    // The line after the names: a new name, if there is room for one.
+                    if (g_GameGlobal->getNameCapacityRest() <= 0) {
+                        m_unk160 = 0x78;
+                        setEndsVisible(1.0f);
+                        se = 3;
+                        result = 1;
+                    } else {
+                        result = 4;
+                    }
+                } else if (m_cursor == 0) {
+                    result = 5;
+                } else {
+                    int name = m_names[m_cursor - 1];
+                    if (isDisableName(name)) {
+                        se = 3;
+                        result = 1;
+                    } else {
+                        *out = name;
+                        result = 2;
+                    }
+                }
+            } else {
+                *out = m_cursor;
+                result = 2;
+            }
+            g_sndSystem->playSE(static_cast<SndID>(se), -1, 0, 0, -1);
+        } else if (m_kind != Kind_Name) {
+            result = 2;
+            *out = m_cursor;
+            g_sndSystem->playSE(static_cast<SndID>(0), -1, 0, 0, -1);
+        } else {
+            result = 3;
+            g_sndSystem->playSE(static_cast<SndID>(2), -1, 0, 0, -1);
+        }
+        if (result != 1) {
+            eraseList();
+            m_base->setFrame(0.0f);
+            m_base->m_modelAnim->setUpdateRate(0.0f);
+            m_isOpen = false;
+            return result;
+        }
+    }
+
+    if ((u32)(m_isOpen - State_ScrollUp) <= State_ScrollDown - State_ScrollUp) {
+        // The list scrolls: when the animation of the window stops, the lines are put at their new places.
+        bool done;
+        if (m_base->m_modelAnim->m_anmObjChrRes->GetUpdateRate() != 0.0f) {
+            done = false;
+        } else {
+            eraseList();
+            dispList(m_cursor);
+            if (m_kind == Kind_Name && m_unk160 > 0) {
+                setEndsVisible(0.0f);
+                m_unk160 = 0;
+            }
+            m_base->setFrameNode(0.0f);
+            done = true;
+        }
+        if (done) {
+            m_isOpen = State_Open;
+        }
+    }
+
+    if (m_isOpen == State_Open) {
+        // HYPOTHESIS: the repeat bits of the pad (8 up, 4 down).
+        if (pad->m_buttonsPressedThisFrame2.bits & 8 && m_cursor > (m_kind == Kind_Name ? -1 : 0)) {
+            scrollStart(true);
+            m_cursor--;
+            m_isOpen = State_ScrollUp;
+            dispScroll();
+            g_sndSystem->playSE(static_cast<SndID>(0), -1, 0, 0, -1);
+        }
+        if (pad->m_buttonsPressedThisFrame2.bits & 4 && m_cursor < getLastLine()) {
+            scrollStart(false);
+            m_cursor++;
+            m_isOpen = State_ScrollDown;
+            dispScroll();
+            g_sndSystem->playSE(static_cast<SndID>(0), -1, 0, 0, -1);
+        }
+    }
+
+    if (m_unk160 > 0) {
+        // The lines that say that there is no room for a name stay for a while.
+        if (--m_unk160 <= 0) {
+            setEndsVisible(0.0f);
+        }
+    }
+    return 1;
 }
 
 void MuSelctChrList::close() {

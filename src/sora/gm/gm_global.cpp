@@ -486,7 +486,7 @@ void GameGlobal::initSelCharData() {
     initSelCharDataBody();
 }
 
-gmGlobalRecord::NameData* GameGlobal::getGlobalRecordNameDatap(u8 index) {
+gmGlobalRecord::NameData* GameGlobal::getGlobalRecordNameDatap(int index) {
     return &m_nameRecords[index];
 }
 
@@ -501,11 +501,17 @@ int GameGlobal::getNumName() {
     return count;
 }
 
+// MATCH-ONLY: the name tag code inlines a getter of the record that narrows its index to a byte (clrlwi), while the
+// out-of-line GameGlobal::getGlobalRecordNameDatap takes an int; this twin stands for that inline getter.
+static inline gmGlobalRecord::NameData* nameRecordByte(GameGlobal* self, u8 index) {
+    return &self->m_nameRecords[index];
+}
+
 // Empties a name tag: no text, no counters, the factory buttons and the rumble switched on.
 static inline void clearNameTag(GameGlobal* self, int index) {
     gmSetAutosaveDirtyFlag();
     gmGlobalRecord::NameData* tag = &self->m_nameRecords[index];
-    gmGlobalRecord::NameData* name = self->getGlobalRecordNameDatap(index);
+    gmGlobalRecord::NameData* name = nameRecordByte(self, index);
     name->unk0 = 0;
     name->unk2 = 0;
     memset(name->unk4, 0, sizeof(name->unk4));
@@ -513,7 +519,7 @@ static inline void clearNameTag(GameGlobal* self, int index) {
         name->unk54[i] = 0;
     }
     name->unkEE = 0;
-    buttonConfigInit(reinterpret_cast<ipButtonConfig*>(self->getGlobalRecordNameDatap(index)->m_buttonConfig));
+    buttonConfigInit(reinterpret_cast<ipButtonConfig*>(nameRecordByte(self, index)->m_buttonConfig));
     tag->m_name[0] = 0;
     tag->m_rumble = 1;
 }

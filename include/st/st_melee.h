@@ -19,6 +19,8 @@ public:
     char _0xf;
 
     void initialize();
+    void destroy();
+    bool isValid();
 };
 static_assert(sizeof(stCollisionWork) == 0x10, "Class is wrong size!");
 
