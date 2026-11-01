@@ -2543,7 +2543,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpRight(grCollisio
             }
         }
     } else {
-        const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
+        const Vec2f& corner = to.m_segment.m_p0Pos;
         bool usable = false;
         if (to.m_segment.m_p0Pos.m_x <= seg.m_segment.m_p0Pos.m_x) {
             usable = true;
@@ -2554,7 +2554,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpRight(grCollisio
             }
         }
         if (usable && seg.m_segment.projectionX(corner, foot)) {
-            move = (foot - to.m_segment.m_p0Pos) + Vec2f(0.0f, -0.01f);
+            move = (foot - corner) + Vec2f(0.0f, -0.01f);
             if (move.m_y < 0.0f) {
                 hit = true;
             }
@@ -2614,7 +2614,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpLeft(grCollision
             }
         }
     } else {
-        const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
+        const Vec2f& corner = to.m_segment.m_p0Pos;
         bool usable = false;
         if (seg.m_segment.m_p1Pos.m_x <= to.m_segment.m_p0Pos.m_x) {
             usable = true;
@@ -2625,7 +2625,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXUpLeft(grCollision
             }
         }
         if (usable && seg.m_segment.projectionX(corner, foot)) {
-            move = (foot - to.m_segment.m_p0Pos) + Vec2f(0.0f, -0.01f);
+            move = (foot - corner) + Vec2f(0.0f, -0.01f);
             if (move.m_y < 0.0f) {
                 hit = true;
             }
@@ -2732,7 +2732,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownRight(grCollis
             }
         }
     } else {
-        const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
+        const Vec2f& corner = to.m_segment.m_p0Pos;
         bool usable = false;
         if (to.m_segment.m_p0Pos.m_x <= seg.m_segment.m_p1Pos.m_x) {
             usable = true;
@@ -2743,7 +2743,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownRight(grCollis
             }
         }
         if (usable && seg.m_segment.projectionX(corner, foot)) {
-            move = (foot - to.m_segment.m_p0Pos) + Vec2f(0.0f, 0.01f);
+            move = (foot - corner) + Vec2f(0.0f, 0.01f);
             if (move.m_y > 0.0f) {
                 hit = true;
             }
@@ -2803,7 +2803,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownLeft(grCollisi
             }
         }
     } else {
-        const Vec2f& corner = to.m_segment.m_p0Pos; // MATCH-ONLY: the corner's address stays in a register across the calls
+        const Vec2f& corner = to.m_segment.m_p0Pos;
         bool usable = false;
         if (seg.m_segment.m_p0Pos.m_x <= to.m_segment.m_p0Pos.m_x) {
             usable = true;
@@ -2814,7 +2814,7 @@ void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXDownLeft(grCollisi
             }
         }
         if (usable && seg.m_segment.projectionX(corner, foot)) {
-            move = (foot - to.m_segment.m_p0Pos) + Vec2f(0.0f, 0.01f);
+            move = (foot - corner) + Vec2f(0.0f, 0.01f);
             if (move.m_y > 0.0f) {
                 hit = true;
             }
