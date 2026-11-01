@@ -6650,6 +6650,7 @@ config.libs = [
             Object(NonMatching, "mo_menu/mu_proc_option.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_top.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_vs.cpp"),
+            Object(NonMatching, "mo_menu/mu_proc_wifi.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_wifi_friend.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_wifi_anybody.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_record.cpp"),

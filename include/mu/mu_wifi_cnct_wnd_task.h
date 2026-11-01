@@ -11,7 +11,8 @@
 // HYPOTHESIS: only what muProcTop reads is declared; the size (0x1F4) is the one create allocates.
 class muWifiCnctWndTask : public gfTask {
 public:
-    u8 m_unk40[0x128 - 0x40];
+    int m_mode;                     // 0x40 the mode create was called with; HYPOTHESIS: 1 disconnects (muProcWifi on B)
+    u8 m_unk44[0x128 - 0x44];
     int m_result;                   // 0x128 HYPOTHESIS: 0 when the connection was made
     u8 m_unk12C[0x138 - 0x12C];
     int m_step;                     // 0x138 the step the window is in; HYPOTHESIS: 12 once it has closed
