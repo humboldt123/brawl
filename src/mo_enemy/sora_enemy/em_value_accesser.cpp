@@ -1,6 +1,5 @@
 // The Vec2f::length calls go to the weak copy another unit of the REL carries; the vectors are copied word-wise.
 #define MT_VEC2F_LENGTH_OUT_OF_LINE
-#define MT_VEC2F_PLAIN_BASE
 #include <em/em_value_accesser.h>
 #include <em/em_extend_param_accesser.h>
 #include <em/enemy.h>

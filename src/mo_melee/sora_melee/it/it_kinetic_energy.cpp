@@ -120,13 +120,13 @@ void itKineticEnergy::updateEnergy(soModuleAccesser* moduleAccesser, float rate)
 }
 
 void itKineticEnergy::mulSpeed(Vec3f* speed) {
-    Vec2f mul = *speed->xy();
+    Vec2f mul(*speed);
     m_speed.m_x *= mul.m_x;
     m_speed.m_y *= mul.m_y;
 }
 
 void itKineticEnergy::mulAccel(Vec3f* accel) {
-    Vec2f mul = *accel->xy();
+    Vec2f mul(*accel);
     m_accel.m_x *= mul.m_x;
     m_accel.m_y *= mul.m_y;
 }
@@ -136,12 +136,12 @@ static inline void reflectVec(Vec2f& out, const Vec2f& v, const Vec2f& n) {
 }
 
 void itKineticEnergy::reflectSpeed(Vec3f* normal) {
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     reflectVec(m_speed, m_speed, n);
 }
 
 void itKineticEnergy::reflectAccel(Vec3f* normal) {
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     reflectVec(m_accel, m_accel, n);
 }
 
@@ -354,15 +354,17 @@ void itKineticEnergyGravity::mulAccel(Vec3f* accel) {
 }
 
 void itKineticEnergyGravity::reflectSpeed(Vec3f* normal) {
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     Vec2f speed(0.0f, m_speed);
-    Vec2f reflected = speed - n * 2.0f * (n.m_x * speed.m_x + n.m_y * speed.m_y);
+    Vec2f reflected;
+    reflectVec(reflected, speed, n);
     m_speed = reflected.m_y;
 }
 
 void itKineticEnergyGravity::reflectAccel(Vec3f* normal) {
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     Vec2f accel(0.0f, m_accel);
-    Vec2f reflected = accel - n * 2.0f * (n.m_x * accel.m_x + n.m_y * accel.m_y);
+    Vec2f reflected;
+    reflectVec(reflected, accel, n);
     m_accel = reflected.m_y;
 }

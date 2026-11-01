@@ -2,7 +2,6 @@
 #pragma scheduling on
 #include <math.h>
 #pragma scheduling reset
-#define MT_VEC2F_PLAIN_BASE
 #define MT_VEC3F_SET_NOINLINE
 #define MT_VEC2F_MUL_ASSIGN_DIRECT
 #include <ft/builder/ft_dol_array_list.h>

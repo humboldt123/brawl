@@ -1,7 +1,5 @@
 // The Vec3f subtraction stays a call to its weak out-of-line copy, as in the original.
 #define MT_VEC3F_SUB_NOINLINE
-// MATCH-ONLY: Vec2f copies are the aggregate word copies of a plain base, assignments the scalar float copies.
-#define MT_VEC2F_PLAIN_BASE
 // MATCH-ONLY: Vec2f::length and Vec2f's operator* stay calls to the weak copies the enemy kinetic module unit carries.
 #define MT_VEC2F_LENGTH_OUT_OF_LINE
 #define MT_VEC2F_MUL_OUT_OF_LINE

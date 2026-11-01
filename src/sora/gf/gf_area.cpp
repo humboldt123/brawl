@@ -1,5 +1,3 @@
-// MATCH-ONLY: this unit copies whole vectors with the aggregate word copy.
-#define MT_VEC2F_PLAIN_BASE
 #include <gf/gf_area.h>
 #include <gf/gf_area_manager.h>
 #include <mt/mt_coll2d.h>

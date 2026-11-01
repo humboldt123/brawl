@@ -5,7 +5,6 @@
 #define WN_ARTICLE_ANIMCMD_INT
 #define FT_REL_LINK_EXTERN
 #define MT_VEC3F_SUB_NOINLINE
-#define MT_VEC2F_PLAIN_BASE
 #include <wn/wn_module_accesser_builder.h>
 #include <wn/link/wn_link_boomerang.h>
 #include <so/status/so_status_module_impl.h>

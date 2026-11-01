@@ -1,7 +1,6 @@
 // Vec3f and Vec2f helpers the original calls out of line.
 #define MT_VEC3F_CTOR_NOINLINE
-// MATCH-ONLY: Vec2f copies are the aggregate word copies of a plain base, assignments out-of-line scalar float copies.
-#define MT_VEC2F_PLAIN_BASE
+// MATCH-ONLY: Vec2f assignments are out-of-line scalar float copies.
 #define MT_VEC2F_ASSIGN_NOINLINE
 // MATCH-ONLY: the weak out-of-line operator*= scales the components directly.
 #define MT_VEC2F_MUL_ASSIGN_DIRECT

@@ -1,3 +1,4 @@
+#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <wn/kirby/wn_kirby_final_cutter_status.h>
 #include <so/so_module_accesser.h>

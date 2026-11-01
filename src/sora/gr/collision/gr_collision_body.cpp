@@ -1,5 +1,3 @@
-// MATCH-ONLY: this unit copies whole vectors with the aggregate word copy of a plain base (see mt_vector.h).
-#define MT_VEC2F_PLAIN_BASE
 #include <gr/collision/gr_collision_collection.h>
 #include <gr/collision/gr_collision_status.h>
 #include <gr/collision/gr_collision_test.h>

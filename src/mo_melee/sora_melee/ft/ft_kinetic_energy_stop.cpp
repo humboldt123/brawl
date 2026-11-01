@@ -1,6 +1,5 @@
 #define MT_VEC2F_LENGTH_SQ_SINGLE_EXPR
 #define MT_VEC2F_MUL_ASSIGN_DIRECT // MATCH-ONLY: native compound scaling updates components directly.
-#define MT_VEC2F_PLAIN_BASE // MATCH-ONLY: returned vectors copy as word pairs, assignments as floats.
 #define FT_KINETIC_STOP_IMPLEMENTATION
 #include <ft/ft_kinetic_energy.h>
 #include <so/so_kinetic_utility.h>

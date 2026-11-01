@@ -9,7 +9,6 @@
 // constructor, length and operator- that other units of the REL carry (Vec2f is copied whole, word by word).
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
-#define MT_VEC2F_PLAIN_BASE
 #define MT_VEC2F_CTOR_OUT_OF_LINE
 #define MT_VEC2F_LENGTH_OUT_OF_LINE
 #define MT_VEC2F_SUB_NOINLINE

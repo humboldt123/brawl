@@ -5,7 +5,6 @@
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
 #define MT_VEC2F_CTOR_NOINLINE
-#define MT_VEC2F_PLAIN_BASE
 #include <ac/ac_anim_cmd_impl.h>
 #include <em/em_ai_module_impl.h>
 #include <em/em_area_module_impl.h>

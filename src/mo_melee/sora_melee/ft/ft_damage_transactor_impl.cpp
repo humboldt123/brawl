@@ -1,5 +1,3 @@
-// MATCH-ONLY: the composed damage speed copies whole vectors with the aggregate word copy.
-#define MT_VEC2F_PLAIN_BASE
 #include <ft/ft_damage_transactor_impl.h>
 #include <ft/fighter.h>
 #include <ft/ft_audience_manager.h>

@@ -9,7 +9,6 @@
 #define MT_VEC3F_MUL_INLINE
 #define MT_VEC3F_SCALE_SPLIT_RESULT
 #define MT_VEC3F_ADD_RHS_RESULT_XY_FIRST
-#define MT_VEC2F_PLAIN_BASE
 #define MT_VEC2F_CTOR_NOINLINE
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <wn/wn_module_accesser_builder.h>

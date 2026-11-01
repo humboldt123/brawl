@@ -1,4 +1,3 @@
-#define MT_VEC2F_PLAIN_BASE // MATCH-ONLY: retain aggregate copies of vector snapshots.
 #define MT_VEC3F_LENGTH_SQ_INLINE
 #define MT_VEC2F_ADD_ASSIGN_DIRECT // MATCH-ONLY: accumulate external transport in place.
 #include <so/so_kinetic_utility.h>

@@ -1,6 +1,4 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-// MATCH-ONLY: the native return-value copy preserves the vector as two words.
-#define MT_VEC2F_PLAIN_BASE
 #include <so/status/so_status_module_impl.h>
 #include <types.h>
 #include <math.h>

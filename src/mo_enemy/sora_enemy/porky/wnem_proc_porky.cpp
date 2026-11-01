@@ -1,7 +1,5 @@
 // MATCH-ONLY: Vec3f assignments stay calls to the weak out-of-line copy, as in the original.
 #define MT_VEC3F_ASSIGN_NOINLINE
-// MATCH-ONLY: Vec2f copies are the aggregate word copies of a plain base, assignments the scalar float copies.
-#define MT_VEC2F_PLAIN_BASE
 #include <em/em_scaled_value.h>
 #include <em/em_shot.h>
 #include <em/em_weapon_manager.h>

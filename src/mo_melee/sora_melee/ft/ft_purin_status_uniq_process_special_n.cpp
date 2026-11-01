@@ -1,3 +1,4 @@
+#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 // BYTES: use Fighter's native animcmd override and partner slot before getOwner.
 #define FT_FIGHTER_ANIMCMD_LONG
 #define FT_FIGHTER_GET_PARTNER_VIRTUAL

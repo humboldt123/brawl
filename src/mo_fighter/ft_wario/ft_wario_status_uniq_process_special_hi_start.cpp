@@ -22,7 +22,8 @@ void ftWarioStatusUniqProcessSpecialHiStart::initStatus(soModuleAccesser* a) {
     else kinetic.changeKinetic(10, a);
     ftKineticEnergyStop& horizontal = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
-    Vec2f speed = horizontal.getSpeed();
+    Vec2f speed;
+    speed = horizontal.getSpeed();
     speed.m_x *= param->startSpeedXMul;
     horizontal.m_speed = speed;
     speed = gravity.getSpeed();

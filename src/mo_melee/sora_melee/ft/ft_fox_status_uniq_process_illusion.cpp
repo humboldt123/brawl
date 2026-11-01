@@ -1,5 +1,4 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-#define MT_VEC2F_PLAIN_BASE
 #include <ft/ft_kinetic_energy.h>
 #include <so/so_module_accesser.h>
 #include <so/so_value_accesser.h>

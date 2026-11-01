@@ -1,5 +1,4 @@
-// MATCH-ONLY: retain native vector assignment calls and aggregate word copies.
-#define MT_VEC2F_PLAIN_BASE
+// MATCH-ONLY: retain native vector assignment calls.
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <wn/wario/wn_wario_bike_kinetic_transactor.h>
 #include <wn/wario/wn_wario_bike.h>

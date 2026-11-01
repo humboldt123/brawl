@@ -1,4 +1,3 @@
-#define MT_VEC2F_PLAIN_BASE
 #include <wn/pikmin/wn_pikmin_pikmin_general_term_decide_module_impl.h>
 #include <ac/ac_anim_cmd_impl.h>
 #include <so/so_module_accesser.h>

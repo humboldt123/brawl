@@ -14,8 +14,6 @@
 // MATCH-ONLY: and its weak copies of Vec2f::distance (subtracting through Vec2f::sub) and Vec3f::scale.
 #define MT_VEC2F_DISTANCE_NOINLINE
 #define MT_VEC3F_SCALE_NOINLINE
-// MATCH-ONLY: the unit copies whole Vec2f values (returned speeds, differences) with word copies.
-#define MT_VEC2F_PLAIN_BASE
 // The Enemy constructor builds every module of the enemy itself, like the fighter module builders: the module classes of
 // sora_melee have their full layout and their constructors are called (not expanded) under these macros.
 #define FT_MODULE_BUILDER

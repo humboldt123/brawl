@@ -47,13 +47,13 @@ void soKineticEnergyNormal::updateEnergy(soModuleAccesser* moduleAccesser) {
 }
 
 void soKineticEnergyNormal::mulSpeed(Vec3f* speed) {
-    Vec2f mul = *speed->xy();
+    Vec2f mul(*speed);
     m_speed.m_x *= mul.m_x;
     m_speed.m_y *= mul.m_y;
 }
 
 void soKineticEnergyNormal::mulAccel(Vec3f* accel) {
-    Vec2f mul = *accel->xy();
+    Vec2f mul(*accel);
     m_accel.m_x *= mul.m_x;
     m_accel.m_y *= mul.m_y;
 }
@@ -64,12 +64,12 @@ static inline void reflectVec(Vec2f& out, const Vec2f& v, const Vec2f& n) {
 }
 
 void soKineticEnergyNormal::reflectSpeed(Vec3f* normal) {
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     reflectVec(m_speed, m_speed, n);
 }
 
 void soKineticEnergyNormal::reflectAccel(Vec3f* normal) {
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     reflectVec(m_accel, m_accel, n);
 }
 

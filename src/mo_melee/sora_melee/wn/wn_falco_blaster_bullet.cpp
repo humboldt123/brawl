@@ -1,5 +1,3 @@
-// MATCH-ONLY: the original copies returned speed vectors with the aggregate word copy.
-#define MT_VEC2F_PLAIN_BASE
 #include <wn/falco/wn_falco_blaster_bullet.h>
 #include <types.h>
 #include <wn/wn_kinetic_energy_normal.h>

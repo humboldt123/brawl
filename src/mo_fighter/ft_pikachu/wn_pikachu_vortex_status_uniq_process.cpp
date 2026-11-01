@@ -1,3 +1,4 @@
+#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #define MT_VEC2F_FROM_VEC3_CTOR_NOINLINE
 #include <ft/fighter.h>

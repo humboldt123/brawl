@@ -7,9 +7,6 @@
 #define SO_ANIM_CMD_INTERPRET_CMD1_FRAME_LAST
 // Proposed opt-in (shared patch /private/tmp/claude-501/-Users-marino-gitdir-brawl-brawl--claude-worktrees-decomp-repo-review-parallelize-ba54dc/5099eb6b-1ae2-4d9d-a38d-fb4068230a82/scratchpad/batch2/E2): resetInterpreter2 takes the frame last too.
 #define SO_ANIM_CMD_RESET_INTERPRETER2_FRAME_LAST
-// MATCH-ONLY: the Paratroopa copies the returned sum speed with the aggregate word copy of Vec2f's plain base (see
-// mt/mt_vector.h).
-#define MT_VEC2F_PLAIN_BASE
 #include <em/patapata/em_patapata.h>
 #include <it/it_manager.h>
 #include <it/item.h>

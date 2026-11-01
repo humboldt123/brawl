@@ -179,14 +179,14 @@ static inline void reflectVec(Vec2f& out, const Vec2f& v, const Vec2f& n) {
 
 void wnKineticEnergyGravity::reflectSpeed(Vec3f* normal) {
     Vec2f v(0.0f, m_speedY);
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     reflectVec(v, v, n);
     m_speedY = v.m_y;
 }
 
 void wnKineticEnergyGravity::reflectAccel(Vec3f* normal) {
     Vec2f v(0.0f, m_gravity);
-    Vec2f n = *normal->xy();
+    Vec2f n(*normal);
     reflectVec(v, v, n);
     m_gravity = v.m_y;
 }

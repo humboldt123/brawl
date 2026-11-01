@@ -89,7 +89,7 @@ void ftYoshiKineticTransactor::changeKineticSub(bool*, void*, Vec2f* speed, soMo
 }
 
 // MATCH-ONLY: this unit owns the weak constructor between the ground and air helpers.
-__declspec(weak) Vec2f::Vec2f(float x, float y) : m_x(x), m_y(y) {}
+__declspec(weak) Vec2f::Vec2f(float x, float y) { m_x = x; m_y = y; }
 
 // Air Egg Roll separates the entry velocity into gravity and horizontal
 // control before applying the Egg Roll parameter record.
