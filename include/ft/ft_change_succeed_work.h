@@ -62,7 +62,16 @@ public:
     float unkF4;
     u8 unkF8;
     u32 unkFC;
-    int unk100[4];
+    // HYPOTHESIS: Wario stores his waft charge and level in the first two slots (ftWarioCommon); the other two are unused so far.
+    union {
+        int unk100[4];
+        struct {
+            int m_waftCharge;
+            int m_waftLevel;
+            int unk108;
+            int unk10C;
+        };
+    };
     soHeapModuleImpl* m_heapModule;
     wnDummyFighter* m_dummyFighter;
 

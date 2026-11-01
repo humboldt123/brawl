@@ -140,8 +140,9 @@ void ftWarioCommon::toChange(soModuleAccesser* acc, int entryId, bool unk1, bool
 
 void ftWarioCommon::changeSucceedCore(soModuleAccesser* acc, void* changeSucceedWork, int unk2) {
     soWorkManageModule& work = acc->getWorkManageModule();
-    work.setInt(*(int*)((u8*)changeSucceedWork + 0x100), Work_Int_WaftCharge);
-    work.setInt(*(int*)((u8*)changeSucceedWork + 0x104), Work_Int_WaftLevel);
+    ftChangeSucceedWork* succeedWork = (ftChangeSucceedWork*)changeSucceedWork;
+    work.setInt(succeedWork->m_waftCharge, Work_Int_WaftCharge);
+    work.setInt(succeedWork->m_waftLevel, Work_Int_WaftLevel);
 }
 
 // The rider is linked to what carries it (link 7); this event moves the link to the task the bike names, if any.
@@ -272,8 +273,9 @@ bool ftWarioCommon::activeArticle(StageObject* bike, soModuleAccesser* acc) {
 
 void ftWarioCommon::setupChangeSucceedWork(soModuleAccesser* acc, void* changeSucceedWork) {
     soWorkManageModule& work = acc->getWorkManageModule();
-    *(int*)((u8*)changeSucceedWork + 0x100) = work.getInt(Work_Int_WaftCharge);
-    *(int*)((u8*)changeSucceedWork + 0x104) = work.getInt(Work_Int_WaftLevel);
+    ftChangeSucceedWork* succeedWork = (ftChangeSucceedWork*)changeSucceedWork;
+    succeedWork->m_waftCharge = work.getInt(Work_Int_WaftCharge);
+    succeedWork->m_waftLevel = work.getInt(Work_Int_WaftLevel);
 
     float zeroB[4][2];
     float zeroA[4][2];
