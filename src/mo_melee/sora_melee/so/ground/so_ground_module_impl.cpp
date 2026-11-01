@@ -1,4 +1,5 @@
 #define MT_VEC2F_IMPLICIT_ASSIGN
+#define MT_VEC2F_LENGTH_SQ_SPLIT // MATCH-ONLY: getTouchNormal swaps two float registers with the one-expression lengthSq.
 #include <so/ground/so_ground_module_impl.h>
 #include <gr/collision/gr_collision.h>
 #include <so/so_heap_module.h>

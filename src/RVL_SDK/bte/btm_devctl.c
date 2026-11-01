@@ -31,7 +31,7 @@
  * macros
  */
 
-// MATCH-ONLY: local names for literals the headers don't spell out
+// HYPOTHESIS: local names for literals the headers don't spell out
 #define BTM_DEV_RESET_RETRIES		5
 #define BTM_DEV_STEP_RETRIES		4
 #define BTM_DEV_TIMEOUT_RESET		4

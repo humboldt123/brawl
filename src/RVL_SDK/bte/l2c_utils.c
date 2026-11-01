@@ -32,7 +32,7 @@
  * macros
  */
 
-// MATCH-ONLY: names for literals that headers don't have yet
+// HYPOTHESIS: names for literals that headers don't have yet
 #define L2CAP_MIN_MTU_VALUE				0x30
 #define HCI_MAX_AUTO_FLUSH_TOUT_VALUE	0x4ff
 #define L2CAP_ECHO_MAX_MTU				0x294

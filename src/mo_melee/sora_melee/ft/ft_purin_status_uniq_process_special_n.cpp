@@ -1,8 +1,7 @@
-#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 // BYTES: use Fighter's native animcmd override and partner slot before getOwner.
 #define FT_FIGHTER_ANIMCMD_LONG
-// BYTES: the effect offsets use XY-first paired-single vector addition.
-#define MT_VEC3F_ADD_NATIVE_ORDER
+// BYTES: effect vectors retain separate paired-single input/result lifetimes.
+#define MT_VEC3F_ADD_FRESH_REGS
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/purin/ft_purin_status_uniq_process_special_n.h>
 #include <ft/ft_kinetic_energy.h>
@@ -15,6 +14,11 @@
 #include <so/so_value_accesser.h>
 
 void ftKineticEnergyDisableAndClear(int, soModuleAccesser*);
+
+// HYPOTHESIS: original MSL inline fabs(double); the math.h macro loses its parameter copy.
+static inline double fabsInline(double value) {
+    return __fabs(value);
+}
 
 // Shared native deformation tables. Their enclosing source owner is unresolved.
 extern float lbl_27_data_A2010[4];
@@ -411,24 +415,25 @@ void ftPurinStatusUniqProcessSpecialNHoldMax::execFixPosCounter(soModuleAccesser
         float slopeAngle = 0.0f;
         if (acc->getSituationModule().getKind() == Situation_Ground) {
             Vec2f normal = acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0);
-            slopeAngle = atan2(-normal.m_x, normal.m_y);
+            slopeAngle = atan2f(-normal.m_x, normal.m_y);
         }
         float direction = acc->getPostureModule().getLr();
         Vec3f offset(0.0f, 0.0f, 0.0f);
         offset.m_x = randf() * 5.0f;
         offset.m_z = randf() * 5.0f;
-        Vec3f position = acc->getPostureModule().getPos() + offset;
-        Vec3f rotation(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, slopeAngle);
-        acc->getEffectModule().req(static_cast<EfID>(10), &position, &rotation, 1.0f, 0, -1);
+        acc->getEffectModule().req(static_cast<EfID>(10),
+            &(acc->getPostureModule().getPos() + offset),
+            &Vec3f(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, slopeAngle),
+            1.0f, 0, -1);
         acc->getWorkManageModule().setInt(0, 0x2000000a);
     }
     acc->getWorkManageModule().addInt(1, 0x2000000b);
     if (acc->getWorkManageModule().getInt(0x2000000b) >= 10) {
         EfID effect = static_cast<EfID>(acc->getStageObject().soGetSubKind() == 5 ? 0x1260001 : 0x260002);
         int node = acc->getStageObject().soGetSubKind() == 5 ? 0x199 : 6;
-        Vec3f rotation(0.0f, 0.0f, 0.0f);
-        Vec3f position(0.0f, 0.0f, 0.0f);
-        acc->getEffectModule().reqFollow(effect, node, &position, &rotation, 1.0f, false, 0, 0, -1);
+        acc->getEffectModule().reqFollow(effect, node,
+            &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f),
+            1.0f, false, 0, 0, -1);
         acc->getWorkManageModule().setInt(0, 0x2000000b);
     }
 }
@@ -720,6 +725,15 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
     acc->getWorkManageModule().setInt(situation, 0x20000008);
 }
 
+// HYPOTHESIS: repeated node effect helper boundary/name.
+static inline void requestPurinRollNodeEffect(const soModuleAccesser* acc, int node) {
+    float direction = acc->getPostureModule().getLr();
+    Vec3f rotation(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, 0.0f);
+    soEffectModule& effect = acc->getEffectModule();
+    Vec3f position = acc->getModelModule().getNodeGlobalPosition(node, false);
+    effect.req(static_cast<EfID>(0x1d), &position, &rotation, 1.0f, 0, -1);
+}
+
 void ftPurinStatusUniqProcessSpecialNRoll::execFixPosCounter(soModuleAccesser* acc) {
     if (acc->getWorkManageModule().isFlag(0x22000015)) {
         acc->getCollisionAttackModule().clearAll();
@@ -760,7 +774,7 @@ void ftPurinStatusUniqProcessSpecialNRoll::execFixPosCounter(soModuleAccesser* a
             float horizontal = acc->getWorkManageModule().getFloat(0x21000007);
             acc->getWorkManageModule().setFloat(bounceFactor * horizontal, 0x21000007);
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-            Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+            speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
             stop.m_speed = Vec2f(-speed.m_x * bounceFactor, 0.0f);
             float direction = stop.m_speed.m_x > 0.0f ? 1.0f : -1.0f;
             acc->getWorkManageModule().setFloat(direction, 0x2100000a);
@@ -771,22 +785,23 @@ void ftPurinStatusUniqProcessSpecialNRoll::execFixPosCounter(soModuleAccesser* a
             soWorkManageModule& work = acc->getWorkManageModule();
             work.setFloat(acc->getConstantFloatKirby(0xfa6), 0x21000008);
         }
-        double horizontalMagnitude = __fabsf(speed.m_x);
-    float effectThreshold = acc->getConstantFloatKirby(0xfc2);
-    if (horizontalMagnitude >= effectThreshold) {
+        double horizontalMagnitude = fabsInline(speed.m_x);
+        float effectThreshold = acc->getConstantFloatKirby(0xfc2);
+        if (horizontalMagnitude >= effectThreshold) {
             if (acc->getSituationModule().getKind() == Situation_Ground) {
                 acc->getWorkManageModule().addInt(1, 0x2000000a);
                 if (acc->getWorkManageModule().getInt(0x2000000a) >= 4) {
                     Vec2f normal;
                     Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0));
-                    float slopeAngle = atan2(-normal.m_x, normal.m_y);
+                    float slopeAngle = atan2f(-normal.m_x, normal.m_y);
                     float direction = acc->getPostureModule().getLr();
                     Vec3f offset(0.0f, 0.0f, 0.0f);
                     offset.m_x = randf() * 5.0f;
                     offset.m_z = randf() * 5.0f;
-                    Vec3f position = acc->getPostureModule().getPos() + offset;
-                    Vec3f rotation(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, slopeAngle);
-                    acc->getEffectModule().req(static_cast<EfID>(10), &position, &rotation, 1.0f, 0, -1);
+                    acc->getEffectModule().req(static_cast<EfID>(10),
+                        &(acc->getPostureModule().getPos() + offset),
+                        &Vec3f(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, slopeAngle),
+                        1.0f, 0, -1);
                     acc->getWorkManageModule().setInt(0, 0x2000000a);
                 }
             }
@@ -794,18 +809,14 @@ void ftPurinStatusUniqProcessSpecialNRoll::execFixPosCounter(soModuleAccesser* a
             acc->getWorkManageModule().addInt(1, 0x2000000b);
             if (acc->getWorkManageModule().getInt(0x2000000b) >= 8) {
                 EfID effect = static_cast<EfID>(acc->getStageObject().soGetSubKind() == 5 ? 0x1260001 : 0x260002);
-                Vec3f rotation(0.0f, 0.0f, 0.0f);
-                Vec3f position(0.0f, 0.0f, 0.0f);
-                acc->getEffectModule().reqFollow(effect, node, &position, &rotation, 1.0f, false, 0, 0, -1);
+                acc->getEffectModule().reqFollow(effect, node,
+                    &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f),
+                    1.0f, false, 0, 0, -1);
                 acc->getWorkManageModule().setInt(0, 0x2000000b);
             }
             acc->getWorkManageModule().addInt(1, 0x2000000c);
             if (acc->getWorkManageModule().getInt(0x2000000c) >= 4) {
-                float direction = acc->getPostureModule().getLr();
-                Vec3f rotation(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, 0.0f);
-                soEffectModule& effect = acc->getEffectModule();
-                Vec3f position = acc->getModelModule().getNodeGlobalPosition(node, false);
-                effect.req(static_cast<EfID>(0x1d), &position, &rotation, 1.0f, 0, -1);
+                requestPurinRollNodeEffect(acc, node);
                 acc->getWorkManageModule().setInt(0, 0x2000000c);
             }
             if (!acc->getWorkManageModule().isFlag(0x22000013)) {
@@ -1052,6 +1063,13 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
     acc->getWorkManageModule().setInt(situation, 0x20000008);
 }
 
+// HYPOTHESIS: repeated Rollout model pitch update boundary/name.
+static inline void setPurinRollNodeAngle(const soModuleAccesser* acc, int node, float angle) {
+    Vec3f rotation = acc->getModelModule().getNodeRotate(node);
+    rotation.m_x = angle * 57.29578f;
+    acc->getModelModule().setNodeRotate(node, &rotation);
+}
+
 void ftPurinStatusUniqProcessSpecialNRollAir::execFixPosCounter(soModuleAccesser* acc) {
     Vec2f speed;
     bool hitWall = false;
@@ -1110,9 +1128,7 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execFixPosCounter(soModuleAccesser
             }
             float angle = acc->getWorkManageModule().getFloat(0x21000006);
             int node = acc->getStageObject().soGetSubKind() == 5 ? 0x197 : 4;
-            Vec3f rotation = acc->getModelModule().getNodeRotate(node);
-            rotation.m_x = angle * 57.29578f;
-            acc->getModelModule().setNodeRotate(node, &rotation);
+            setPurinRollNodeAngle(acc, node, angle);
         }
         acc->getWorkManageModule().setInt(0, 0x20000002);
     }
@@ -1125,27 +1141,24 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execFixPosCounter(soModuleAccesser
             Vec3f offset(0.0f, 0.0f, 0.0f);
             offset.m_x = randf() * 5.0f;
             offset.m_z = randf() * 5.0f;
-            Vec3f position = acc->getPostureModule().getPos() + offset;
-            Vec3f rotation(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, 0.0f);
-            acc->getEffectModule().req(static_cast<EfID>(10), &position, &rotation, 1.0f, 0, -1);
+            acc->getEffectModule().req(static_cast<EfID>(10),
+                &(acc->getPostureModule().getPos() + offset),
+                &Vec3f(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, 0.0f),
+                1.0f, 0, -1);
             acc->getWorkManageModule().setInt(0, 0x2000000a);
         }
         int node = acc->getStageObject().soGetSubKind() == 5 ? 0x199 : 6;
         acc->getWorkManageModule().addInt(1, 0x2000000b);
         if (acc->getWorkManageModule().getInt(0x2000000b) >= 8) {
             EfID effect = static_cast<EfID>(acc->getStageObject().soGetSubKind() == 5 ? 0x1260001 : 0x260002);
-            Vec3f rotation(0.0f, 0.0f, 0.0f);
-            Vec3f position(0.0f, 0.0f, 0.0f);
-            acc->getEffectModule().reqFollow(effect, node, &position, &rotation, 1.0f, false, 0, 0, -1);
+            acc->getEffectModule().reqFollow(effect, node,
+                &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f),
+                1.0f, false, 0, 0, -1);
             acc->getWorkManageModule().setInt(0, 0x2000000b);
         }
         acc->getWorkManageModule().addInt(1, 0x2000000c);
         if (acc->getWorkManageModule().getInt(0x2000000c) >= 4) {
-            float direction = acc->getPostureModule().getLr();
-            Vec3f rotation(0.0f, direction == 1.0f ? 1.5707964f : -1.5707964f, 0.0f);
-            soEffectModule& effect = acc->getEffectModule();
-            Vec3f position = acc->getModelModule().getNodeGlobalPosition(node, false);
-            effect.req(static_cast<EfID>(0x1d), &position, &rotation, 1.0f, 0, -1);
+            requestPurinRollNodeEffect(acc, node);
             acc->getWorkManageModule().setInt(0, 0x2000000c);
         }
         if (!acc->getWorkManageModule().isFlag(0x22000013)) {
@@ -1658,7 +1671,7 @@ void ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(float d
     float multiplier = acc->getConstantFloatKirby(0xfbf);
     float threshold = multiplier * range;
     int kind = acc->getStageObject().soGetSubKind();
-    if (__fabsf(speed.m_x) >= __fabsf(threshold)) {
+    if (fabsInline(speed.m_x) >= fabsInline(threshold)) {
         if (kind == 5) {
             acc->getSoundModule().playSE(static_cast<SndID>(0xc2a), false, false, 0);
         } else {

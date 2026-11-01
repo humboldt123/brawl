@@ -74,7 +74,7 @@ typedef struct PartitionEntry {
     u32 type;
 } PartitionEntry;
 
-// MATCH-ONLY: the original reads the disc through a helper whose locals show up as dead constant stores,
+// BYTES: the original reads the disc through a helper whose locals show up as dead constant stores,
 // and checks the command status with a macro that calls the getter twice
 #define STATUS_OK(b) (DVDGetCommandBlockStatus(b) <= 2 && DVDGetCommandBlockStatus(b) >= 0)
 

@@ -36,7 +36,7 @@
 #include <gki_target.h>
 #include <l2c_int.h>
 
-// MATCH-ONLY: none of the little static helpers in here ended up inlined in the original
+// BYTES: none of the little static helpers in here ended up inlined in the original
 #pragma auto_inline off
 
 /*******************************************************************************
@@ -869,13 +869,13 @@ static void hcisu_usb_open(tHCISU_USB_ARGS *p_args,
 	}
 }
 
-// MATCH-ONLY: nothing to read from here, the usb reads are all async
+// nothing to read from here, the usb reads are all async
 static UINT16 hcisu_usb_read(UINT8 port, UINT8 *p_data, UINT16 len)
 {
 	return 0;
 }
 
-// MATCH-ONLY: callers hand over the message as a 4th argument that this never looks at
+// callers hand over the message as a 4th argument that this never looks at
 static UINT16 hcisu_usb_write(int type, UINT8 *p_data, UINT16 len, HC_BT_HDR *p_msg)
 {
 	int ret = 0;

@@ -637,7 +637,7 @@ static void gki_remove_from_pool_list(UINT8 pool_id)
 	}
 }
 
-// MATCH-ONLY: only reachable through inlining so the linker throws the standalone copy away
+// only reachable through inlining so the linker throws the standalone copy away
 UINT8 GKI_set_pool_permission(UINT8 pool_id, UINT8 permission)
 {
 	tGKI_COM_CB *p_cb = &gki_cb.com;

@@ -238,7 +238,7 @@ void DrawStripeStrategy::CalcAhead_ParticleBoth_Origin(
     }
 }
 
-// MATCH-ONLY: the original calls the header helpers (GetEmitterDrawSetting,
+// BYTES: the original calls the header helpers (GetEmitterDrawSetting,
 // GetNumDrawParticle, GXEnd) out of line inside DrawStripe.
 #pragma dont_inline on
 void DrawStripeStrategy::DrawStripe(AheadContextStripe* pContext, int param,

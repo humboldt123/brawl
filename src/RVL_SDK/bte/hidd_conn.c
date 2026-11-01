@@ -87,7 +87,7 @@ void HID_DevInit(void)
 	hd_cb.trace_level = BT_TRACE_LEVEL_NONE;
 }
 
-// MATCH-ONLY: the original is not inlined into the repage timer callback, no idea why
+// BYTES: the original is not inlined into the repage timer callback, no idea why
 #pragma dont_inline on
 // pages the host: opens the control channel and waits for l2cap to report back
 tHID_STATUS hidd_conn_initiate(void)

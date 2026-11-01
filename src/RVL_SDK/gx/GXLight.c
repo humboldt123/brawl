@@ -201,7 +201,7 @@ void GXGetLightColor(const GXLightObj *lt_obj, GXColor *color) {
     *(u32 *)color = lt->Color;
 }
 
-// MATCH-ONLY: the original copies with paired singles and stores the three reserved words as zero
+// BYTES: the original copies with paired singles and stores the three reserved words as zero
 static inline void WriteLightObj_i(register volatile void *dst, register const GXLightObjInt *src) {
     register u32 color;
     register f32 ps_0, ps_1, ps_2, ps_3, ps_4, ps_5;

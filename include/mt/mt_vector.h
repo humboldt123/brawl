@@ -97,38 +97,22 @@ public:
         return lhs * (1 / c);
     }
 
-    Vec2f& operator+=(const Vec2f& v)
-#ifdef MT_VEC2F_ADD_ASSIGN_DIRECT
-    { // MATCH-ONLY: the weak out-of-line copy in the Pikmin article adds the components directly.
+    Vec2f& operator+=(const Vec2f& v) {
         m_x = m_x + v.m_x;
         m_y = m_y + v.m_y;
         return *this;
     }
-#else
-    {
-        *this = *this + v;
-        return *this;
-    }
-#endif
 
     Vec2f& operator-=(const Vec2f& v) {
         *this = *this - v;
         return *this;
     }
 
-    Vec2f& operator*=(const float c)
-#ifdef MT_VEC2F_MUL_ASSIGN_DIRECT
-    { // MATCH-ONLY: Pikachu's Quick Attack scales the components directly in the out-of-line copy.
+    Vec2f& operator*=(const float c) {
         m_x = m_x * c;
         m_y = m_y * c;
         return *this;
     }
-#else
-    {
-        *this = *this * c;
-        return *this;
-    }
-#endif
 
     // HYPOTHESIS: native calls pass vector addresses; original reference qualifiers are unresolved.
     float mtVecAngle(Vec2f& other);
@@ -136,12 +120,12 @@ public:
     float lengthSq()
 #ifdef MT_VEC2F_LENGTH_SQ_OUT_OF_LINE
         __attribute__((never_inline)); // MATCH-ONLY: retain the owning Vanish unit's helper calls.
-#elif defined(MT_VEC2F_LENGTH_SQ_SINGLE_EXPR)
-    { // MATCH-ONLY: the item kinetic energy units square both components in place (one expression).
+#elif !defined(MT_VEC2F_LENGTH_SQ_SPLIT)
+    {
         return m_x * m_x + m_y * m_y;
     }
 #else
-    {
+    { // MATCH-ONLY: opt-in for a unit whose function still allocates better with named squares.
         float xSq = m_x * m_x;
         float ySq = m_y * m_y;
         return xSq + ySq;
@@ -286,9 +270,25 @@ public:
         ;
 
 #ifdef MATCHING
-    // MATCH-ONLY: paired-single form preserves the verified inline vector add.
+    // BYTES: use paired-single operations for the verified inline vector add.
     friend void Vec3fAdd(register Vec3f* pOut, register const Vec3f* lhs,
                      register const Vec3f* rhs) {
+#ifdef MT_VEC3F_ADD_FRESH_REGS
+        // BYTES: separate loaded halves and sums retain the native paired-single lifetimes.
+        register f32 leftXY, rightZ, rightXY, leftZ, resultXY, resultZ;
+        // clang-format off
+        asm {
+            psq_l leftXY, Vec3f.m_x(lhs), 0, 0
+            psq_l rightXY, Vec3f.m_x(rhs), 0, 0
+            psq_l leftZ, Vec3f.m_z(lhs), 1, 0
+            psq_l rightZ, Vec3f.m_z(rhs), 1, 0
+            ps_add resultXY, leftXY, rightXY
+            ps_add resultZ, leftZ, rightZ
+            psq_st resultXY, Vec3f.m_x(pOut), 0, 0
+            psq_st resultZ, Vec3f.m_z(pOut), 1, 0
+        }
+        // clang-format on
+#else
 #ifdef MT_VEC3F_ADD_RHS_RESULT_XY_FIRST
         // MATCH-ONLY: retain the native independent XY/Z input lifetimes.
         register f32 fr2, fr3, fr1, fr0;
@@ -320,6 +320,7 @@ public:
 #endif
         }
         // clang-format on
+#endif
     }
 
     friend void Vec3fSub(register Vec3f* pOut, register const Vec3f* lhs,

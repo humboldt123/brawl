@@ -29,7 +29,7 @@
  * macros
  */
 
-// MATCH-ONLY: local names for literals the headers don't spell out
+// HYPOTHESIS: local names for literals the headers don't spell out
 #define BTM_DEFAULT_SCAN_WINDOW		0x12
 #define BTM_DEFAULT_SCAN_INTERVAL	0x800
 #define BTM_MIN_SCAN_VALUE			0x12
@@ -41,7 +41,7 @@
  * variables
  */
 
-// MATCH-ONLY: 3-byte lap values that live in .sdata2
+// 3-byte lap values that live in .sdata2
 static const LAP general_inq_lap = {0x9e, 0x8b, 0x33};
 static const LAP limited_inq_lap = {0x9e, 0x8b, 0x00};
 

@@ -30,7 +30,7 @@
  * macros
  */
 
-// MATCH-ONLY: the security_required bit that marks a dedicated bonding in
+// HYPOTHESIS: the security_required bit that marks a dedicated bonding in
 // progress.  not a name from the original headers
 #define BTM_SEC_REQ_BONDING			0x40
 

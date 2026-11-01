@@ -527,7 +527,7 @@ BOOL SITransfer(s32 chan, void *output, u32 outputBytes, void *input, u32 inputB
 #define SI_WIRELESS_FIX_ID 0x00100000
 #define SI_WIRELESS_ID_MASK 0x00CFFF00
 
-// MATCH-ONLY: the loop that hands the finished type to whoever asked is repeated verbatim in the retail
+// BYTES: the loop that hands the finished type to whoever asked is repeated verbatim in the retail
 // code, once per exit of the wireless id fixing below
 #define RUN_TYPE_CALLBACKS()                                  \
     do {                                                      \

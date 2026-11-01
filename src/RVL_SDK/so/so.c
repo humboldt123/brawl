@@ -7,7 +7,7 @@
 #include <cstring>
 #include <cstdarg>
 
-// MATCH-ONLY: the helpers below (state check, alloc, error save) were not inlined in the original,
+// BYTES: the helpers below (state check, alloc, error save) were not inlined in the original,
 // so keep the auto inliner off for the whole file.
 #pragma auto_inline off
 
