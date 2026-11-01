@@ -172,4 +172,4 @@ static_assert(sizeof(soKineticEnergyJostle) == 0x14, "Jostle energy extent");
 // Sum speed helper (the real wrapper is probably an inline function of a util class)
 // MWCC only inlines these when each has a single call site in the TU, so the
 // wrapper is stamped out once per user (FT_DEFINE_GET_SUM_SPEED(name)).
-#define FT_DEFINE_GET_SUM_SPEED(name)     inline Vec2f name(soModuleAccesser* a) {         soKineticEnergy::AttributeFlag flag(1);         return a->getKineticModule().getSumSpeed(flag);     }
+#define FT_DEFINE_GET_SUM_SPEED(name)     inline Vec2f name(const soModuleAccesser* a) {         soKineticEnergy::AttributeFlag flag(1);         return a->getKineticModule().getSumSpeed(flag);     }

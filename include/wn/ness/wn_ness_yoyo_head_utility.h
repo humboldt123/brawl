@@ -5,7 +5,7 @@
 
 // The three yo-yo head statuses end their position fix the same way: the position is pulled back to the corrected ground
 // position on the axes the head touches the ground on, then the node transform is refreshed.
-inline void wnNessYoyoHeadFixGroundPos(soModuleAccesser* moduleAccesser) {
+inline void wnNessYoyoHeadFixGroundPos(const soModuleAccesser* moduleAccesser) {
     soGroundModule& ground = moduleAccesser->getGroundModule();
     soPostureModule& posture = moduleAccesser->getPostureModule();
     Vec3f pos = posture.getPos();

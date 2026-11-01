@@ -27,7 +27,7 @@ public:
     virtual bool unk3C();
 };
 
-static inline soCatchModuleKoopaView& getCatchView(soModuleAccesser* moduleAccesser) {
+static inline soCatchModuleKoopaView& getCatchView(const soModuleAccesser* moduleAccesser) {
     return *static_cast<soCatchModuleKoopaView*>(moduleAccesser->m_enumerationStart->m_catchModule);
 }
 

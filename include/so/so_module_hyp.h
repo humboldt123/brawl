@@ -212,19 +212,19 @@ struct soDebugModuleHyp {
 }  // namespace soHyp
 
 inline soHyp::soPhysicsModuleHyp& getPhysicsModule(soModuleAccesser* acc) { return *static_cast<soHyp::soPhysicsModuleHyp*>(acc->m_enumerationStart->m_physicsModule); }
-inline soHyp::soTargetSearchModuleHyp& getTargetSearchModule(soModuleAccesser* acc) { return *static_cast<soHyp::soTargetSearchModuleHyp*>(acc->m_enumerationStart->m_targetSearchModule); }
-inline soHyp::soAbnormalModuleHyp& getAbnormalModule(soModuleAccesser* acc) { return *static_cast<soHyp::soAbnormalModuleHyp*>(acc->m_enumerationStart->m_abnormalModule); }
-inline soHyp::soCaptureModuleHyp& getCaptureModule(soModuleAccesser* acc) { return *static_cast<soHyp::soCaptureModuleHyp*>(acc->m_enumerationStart->m_captureModule); }
+inline soHyp::soTargetSearchModuleHyp& getTargetSearchModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soTargetSearchModuleHyp*>(acc->m_enumerationStart->m_targetSearchModule); }
+inline soHyp::soAbnormalModuleHyp& getAbnormalModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soAbnormalModuleHyp*>(acc->m_enumerationStart->m_abnormalModule); }
+inline soHyp::soCaptureModuleHyp& getCaptureModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soCaptureModuleHyp*>(acc->m_enumerationStart->m_captureModule); }
 inline soHyp::soCatchModuleHyp& getCatchModule(soModuleAccesser* acc) { return *static_cast<soHyp::soCatchModuleHyp*>(acc->m_enumerationStart->m_catchModule); }
-inline soHyp::soCollisionCatchModuleHyp& getCollisionCatchModule(soModuleAccesser* acc) { return *static_cast<soHyp::soCollisionCatchModuleHyp*>(acc->m_enumerationStart->m_collisionCatchModule); }
-inline soHyp::soJostleModuleHyp& getJostleModule(soModuleAccesser* acc) { return *static_cast<soHyp::soJostleModuleHyp*>(acc->m_enumerationStart->m_jostleModule); }
-inline soHyp::soComboModuleHyp& getComboModule(soModuleAccesser* acc) { return *static_cast<soHyp::soComboModuleHyp*>(acc->m_enumerationStart->m_comboModule); }
-inline soHyp::soTerritoryModuleHyp& getTerritoryModule(soModuleAccesser* acc) { return *static_cast<soHyp::soTerritoryModuleHyp*>(acc->m_enumerationStart->m_territoryModule); }
-inline soHyp::soTurnModuleHyp& getTurnModule(soModuleAccesser* acc) { return *static_cast<soHyp::soTurnModuleHyp*>(acc->m_enumerationStart->m_turnModule); }
-inline soHyp::soShakeModuleHyp& getShakeModule(soModuleAccesser* acc) { return *static_cast<soHyp::soShakeModuleHyp*>(acc->m_enumerationStart->m_shakeModule); }
-inline soHyp::soGlowModuleHyp& getGlowModule(soModuleAccesser* acc) { return *static_cast<soHyp::soGlowModuleHyp*>(acc->m_enumerationStart->m_glowModule); }
-inline soHyp::soDebugModuleHyp& getDebugModule(soModuleAccesser* acc) { return *static_cast<soHyp::soDebugModuleHyp*>(acc->m_enumerationStart->m_debugModule); }
+inline soHyp::soCollisionCatchModuleHyp& getCollisionCatchModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soCollisionCatchModuleHyp*>(acc->m_enumerationStart->m_collisionCatchModule); }
+inline soHyp::soJostleModuleHyp& getJostleModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soJostleModuleHyp*>(acc->m_enumerationStart->m_jostleModule); }
+inline soHyp::soComboModuleHyp& getComboModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soComboModuleHyp*>(acc->m_enumerationStart->m_comboModule); }
+inline soHyp::soTerritoryModuleHyp& getTerritoryModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soTerritoryModuleHyp*>(acc->m_enumerationStart->m_territoryModule); }
+inline soHyp::soTurnModuleHyp& getTurnModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soTurnModuleHyp*>(acc->m_enumerationStart->m_turnModule); }
+inline soHyp::soShakeModuleHyp& getShakeModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soShakeModuleHyp*>(acc->m_enumerationStart->m_shakeModule); }
+inline soHyp::soGlowModuleHyp& getGlowModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soGlowModuleHyp*>(acc->m_enumerationStart->m_glowModule); }
+inline soHyp::soDebugModuleHyp& getDebugModule(const soModuleAccesser* acc) { return *static_cast<soHyp::soDebugModuleHyp*>(acc->m_enumerationStart->m_debugModule); }
 // The jostle module is checked for being a null object through its soNullable base.
-inline bool isJostleNull(soModuleAccesser* acc) { return reinterpret_cast<soNullable*>(acc->m_enumerationStart->m_jostleModule)->isNull(); }
+inline bool isJostleNull(const soModuleAccesser* acc) { return reinterpret_cast<soNullable*>(acc->m_enumerationStart->m_jostleModule)->isNull(); }
 // The slope module has a header but no getter on the accesser yet.
-inline soSlopeModule& getSlopeModule(soModuleAccesser* acc) { return *static_cast<soSlopeModule*>(acc->m_enumerationStart->m_slopeModule); }
+inline soSlopeModule& getSlopeModule(const soModuleAccesser* acc) { return *static_cast<soSlopeModule*>(acc->m_enumerationStart->m_slopeModule); }
