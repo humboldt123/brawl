@@ -45,7 +45,7 @@
  * macros
  */
 
-// MATCH-ONLY: local name for a literal the headers don't spell out
+// HYPOTHESIS: local name for a literal the headers don't spell out
 #define PORT_L2CAP_PKT_OVERHEAD		4
 
 /*******************************************************************************

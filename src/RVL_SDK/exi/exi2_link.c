@@ -3,7 +3,7 @@
 // forward to whatever callback the debug stub installed.
 #include <types.h>
 
-// MATCH-ONLY: in the original these live in another file, so the debugger driver below never inlines them.
+// BYTES: in the original these live in another file, so the debugger driver below never inlines them.
 // has to be said before the headers declare them
 extern "C" {
 void __DBEXIInit(void) __attribute__((never_inline));
@@ -19,7 +19,7 @@ BOOL __DBEXIWriteRam(u32 cmd, const void *mem, s32 size) __attribute__((never_in
 // openrvl headers want c++ (bool), keep c linkage
 extern "C" {
 
-// MATCH-ONLY: in the original these live in another file, so the debugger driver below never inlines them
+// BYTES: in the original these live in another file, so the debugger driver below never inlines them
 
 // ---- debugger driver ----
 

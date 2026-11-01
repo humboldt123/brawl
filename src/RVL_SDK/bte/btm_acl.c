@@ -30,7 +30,7 @@
  * macros
  */
 
-// MATCH-ONLY: local names for things the headers don't spell out
+// HYPOTHESIS: local names for things the headers don't spell out
 #define BTM_ACL_REPLY_TIMEOUT	3
 
 /*******************************************************************************

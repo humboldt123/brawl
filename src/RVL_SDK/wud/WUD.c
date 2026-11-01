@@ -7,7 +7,7 @@
 
 #define DEBUGPrint WUD_DEBUGPrint
 
-// MATCH-ONLY: names for the state numbers the headers have wrong or don't spell out
+// HYPOTHESIS: names for the state numbers the headers have wrong or don't spell out
 #define WUD_INIT_STATE_SC_FLUSHED    4
 #define WUD_INIT_STATE_RUNNING       5
 #define WUD_LIB_STATUS_READY         3

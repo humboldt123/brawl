@@ -87,7 +87,7 @@ void DrawDirectionalStrategy::Draw(const DrawInfo& rInfo,
 
     GXEnableTexOffsets(GX_TEXCOORD0, TRUE, TRUE);
 
-    // MATCH-ONLY: function-local table; a file-scope name would show up as a named reloc.
+    // BYTES: function-local table; a file-scope name would show up as a named reloc.
     static u8 texcoord[] = {0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01};
     GXSetArray(GX_VA_TEX0, texcoord, 2);
 
@@ -122,7 +122,7 @@ void DrawDirectionalStrategy::InitGraphics(const DrawInfo& rInfo,
 
     GXEnableTexOffsets(GX_TEXCOORD0, TRUE, TRUE);
 
-    // MATCH-ONLY: function-local table; a file-scope name would show up as a named reloc.
+    // BYTES: function-local table; a file-scope name would show up as a named reloc.
     static u8 texcoord[] = {0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01};
     GXSetArray(GX_VA_TEX0, texcoord, 2);
 

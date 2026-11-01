@@ -49,7 +49,7 @@
 #define BTU_HCIF_OPCODE_QOS_SETUP_ODD	0x000d	// no idea what this really is
 #define BTU_HCIF_OPCODE_VENDOR_4C		0xfc4c	// only vendor cmd that gets the mismatch check
 
-// MATCH-ONLY: trace mask is layer 7 (hci), type error/warning in the low bits
+// HYPOTHESIS: trace mask is layer 7 (hci), type error/warning in the low bits
 #define BTU_HCIF_TRACE_MASK_ERR			0x00070000
 #define BTU_HCIF_TRACE_MASK_WARN		0x00070001
 
@@ -204,7 +204,7 @@ static void btu_hcif_return_link_keys_evt(UINT8 *p)
 
 	if (num_keys)
 	{
-		// MATCH-ONLY: result struct wants the byte just before the keys set to 1
+		// HYPOTHESIS: the result struct starts one byte before the keys, the shipped code sets that byte to 1
 		p[-1] = 1;
 		btm_return_link_keys_evt((tBTM_RETURN_LINK_KEYS_EVT *)(p - 1));
 	}

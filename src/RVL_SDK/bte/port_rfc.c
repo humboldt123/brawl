@@ -325,7 +325,7 @@ void PORT_PortNegInd(tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars,
 
 		if (!p_port)
 		{
-			// MATCH-ONLY: the shipped code writes through a null port here
+			// BUG: the shipped code writes through a null port here (without the store the function no longer matches)
 			p_port->peer_port_pars = *p_pars;
 
 			RFCOMM_PortNegRsp(p_mcb, dlci, p_pars, 0);

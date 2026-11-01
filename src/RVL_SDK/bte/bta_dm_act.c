@@ -38,7 +38,7 @@
  * macros
  */
 
-// MATCH-ONLY: local names for literals the headers don't spell out
+// HYPOTHESIS: local names for literals the headers don't spell out
 #define BTA_DM_SDP_DB_SIZE				250
 #define BTA_DM_RNR_MAX_PAGE_TIMEOUT		30000
 #define BTA_DM_RNR_TIMER_SLACK			100

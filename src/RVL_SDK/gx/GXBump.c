@@ -153,7 +153,7 @@ void GXSetTevDirect(GXTevStageID tevStage) {
     GXSetTevIndirect(tevStage, GX_INDTEXSTAGE0, GX_ITF_8, GX_ITB_NONE, GX_ITM_OFF, GX_ITW_OFF, GX_ITW_OFF, GX_FALSE, GX_FALSE, GX_ITBA_OFF);
 }
 
-// MATCH-ONLY: empty, probably stripped body from the debug build
+// HYPOTHESIS: empty, the body is probably debug-build only
 void __GXUpdateBPMask(void) {}
 
 void __GXSetIndirectMask(u32 mask) {

@@ -25,7 +25,7 @@ typedef struct MEMiFrmHeapHead {
 
 // size of the shared head plus the frame head
 #define MEM_FRM_HEAP_HEAD_SIZE (sizeof(MEMiHeapHead) + sizeof(MEMiFrmHeapHead))
-// MATCH-ONLY: retail compares against 0x48, not head size + 4
+// BYTES: retail compares against 0x48, not head size + 4
 #define MEM_FRM_HEAP_MIN_SIZE 0x48
 
 static MEMiFrmHeapHead* GetFrmHeapHeadPtrFromHeapHead_(const MEMiHeapHead* heap) {

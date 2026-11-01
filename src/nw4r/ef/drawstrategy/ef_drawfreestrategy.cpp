@@ -54,7 +54,7 @@ static void DrawQuad(const math::MTX34& rMtx, const math::_VEC3* pPosArray,
 
 inline void DrawFreeStrategy::InitGraphics(const DrawInfo& rInfo,
                                     ParticleManager* pManager) {
-    // MATCH-ONLY: function-local table; a file-scope name would show up as a named reloc.
+    // BYTES: function-local table; a file-scope name would show up as a named reloc.
     static u8 texcoord[] = {0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01};
 
     const EmitterDrawSetting& rSetting =

@@ -144,7 +144,7 @@ BOOLEAN bta_hh_tod_spt(tBTA_HH_DEV_CB *p_cb, UINT8 sub_class)
 }
 
 // HYPOTHESIS: nothing in the wii build calls the two boot report parsers, they only
-// survive as strings. the code below is my own guess at what they did, MATCH-ONLY for the data
+// survive as strings. the code below is my own guess at what they did (only its strings are checked)
 void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data, UINT8 *p_report,
                             UINT16 report_len)
 {

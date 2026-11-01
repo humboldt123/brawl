@@ -9,7 +9,7 @@
 #include <cstring>
 #include <cstdarg>
 
-// MATCH-ONLY: the original is a bunch of separate source files, here they share one TU so mwcc would
+// BYTES: the original is a bunch of separate source files, here they share one TU so mwcc would
 // happily inline calls that crossed file boundaries. auto_inline is off for the whole file and the
 // helpers that really were inlined inside one original file are marked inline by hand. a few global
 // functions were both emitted and inlined into a sibling, those get an inline helper + thin wrapper.
