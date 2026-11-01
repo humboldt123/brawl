@@ -9,7 +9,7 @@
 
 extern "C" Vec2f* __ct__5Vec2fFff(Vec2f* self, float x, float y);
 
-// MATCH-ONLY: the unit carries its own weak copy of the Normal energy brake setter.
+// BYTES: the unit carries its own weak copy of the Normal energy brake setter.
 void soKineticEnergyNormal::setBrake(Vec2f* brake) {
     m_brake.m_x = brake->m_x;
     m_brake.m_y = brake->m_y;

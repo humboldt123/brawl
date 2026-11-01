@@ -58,7 +58,7 @@ public:
 #ifdef WN_ARTICLE_NATIVE_BUILDERS
     ~soKineticModuleImpl() { }
 #elif defined(FT_MODULE_BUILDER)
-    // MATCH-ONLY: the fighter RELs call this destructor out of line from soKineticModuleGenericImpl's (defined in ft_builder_noinline.h)
+    // BYTES: the fighter RELs call this destructor out of line from soKineticModuleGenericImpl's (defined in ft_builder_noinline.h)
     virtual ~soKineticModuleImpl();
 #endif
 

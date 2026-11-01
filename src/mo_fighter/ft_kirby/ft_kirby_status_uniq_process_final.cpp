@@ -1,5 +1,5 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-#define MT_VEC3F_CTOR_NOINLINE // MATCH-ONLY: the original calls the out-of-line Vec3f constructor.
+#define MT_VEC3F_CTOR_NOINLINE // BYTES: the original calls the out-of-line Vec3f constructor.
 #include <ft/fighter.h>
 #include <ft/ft_kinetic_energy.h>
 #include <ft/kirby/ft_kirby_min.h>

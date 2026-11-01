@@ -12,7 +12,7 @@ public:
     // The Enemy constructor expands it.
     soTeamImpl(int no) : soTeam(false), m_no(no), m_2nd(-1) { }
 #else
-    // MATCH-ONLY: not inlined into the article builders (weak copy in the unit).
+    // BYTES: not inlined into the article builders (weak copy in the unit).
     soTeamImpl(int no) __attribute__((never_inline)) : soTeam(false), m_no(no), m_2nd(-1) { }
 #endif
     virtual int getNo() const { return m_no; }

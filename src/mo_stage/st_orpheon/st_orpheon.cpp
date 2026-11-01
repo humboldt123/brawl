@@ -627,7 +627,7 @@ void stOrpheon::update(float deltaFrame) {
 }
 
 // The trainer's Pokemon (Squirtle, Ivysaur, Charizard) hide while the stage rolls over.
-// MATCH-ONLY: the original keeps this out of line.
+// BYTES: the original keeps this out of line.
 #pragma push
 #pragma dont_inline on
 void stOrpheon::setVisibilityTrainer(bool visible) {

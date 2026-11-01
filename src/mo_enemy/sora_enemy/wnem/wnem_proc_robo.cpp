@@ -1,6 +1,6 @@
 // Vec3f and Vec2f helpers the original calls out of line.
 #define MT_VEC3F_CTOR_NOINLINE
-// MATCH-ONLY: Vec2f assignments are out-of-line scalar float copies.
+// BYTES: Vec2f assignments are out-of-line scalar float copies.
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <em/em_shot.h>
 #include <em/em_weapon_manager.h>

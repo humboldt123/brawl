@@ -63,7 +63,7 @@ void wnPitIkarusStatusUniqProcessAttack::initStatus(soModuleAccesser* moduleAcce
     }
 }
 
-#pragma dont_inline on // MATCH-ONLY: the original keeps the helper out of line
+#pragma dont_inline on // BYTES: the original keeps the helper out of line
 static bool isNearZero(float value) {
     bool result = false;
     double magnitude = fabs(value); // MATCH-ONLY: the original keeps the double result before narrowing it

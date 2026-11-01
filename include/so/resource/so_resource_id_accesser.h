@@ -10,7 +10,7 @@ class soResourceIdAccesser : public soNullable {
 public:
     soResourceIdAccesser(bool isNull) : soNullable(isNull) { }
 #ifdef SO_BUILDER_HELPERS_WEAK
-    // MATCH-ONLY: soResourceIdAccesserImpl's destructor calls this one, a weak copy of the Enemy unit (the fighter units
+    // BYTES: soResourceIdAccesserImpl's destructor calls this one, a weak copy of the Enemy unit (the fighter units
     // define it in their .cpp).
     virtual ~soResourceIdAccesser() __attribute__((never_inline)) { }
 #else

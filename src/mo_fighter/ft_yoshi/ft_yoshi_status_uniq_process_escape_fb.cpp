@@ -1,4 +1,4 @@
-// MATCH-ONLY: keep the original shared Vec3f constructor calls out of line.
+// BYTES: keep the original shared Vec3f constructor calls out of line.
 #pragma dont_inline on
 #include <mt/mt_vector.h>
 #pragma dont_inline reset

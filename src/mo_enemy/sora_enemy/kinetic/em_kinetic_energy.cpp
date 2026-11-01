@@ -4,11 +4,11 @@
 // MATCH-ONLY: emKineticEnergyParam's assignment is defined below, after startEnergy: the original emits its weak copy
 // after Vec2f::operator= and Vec3f::add, which startEnergy calls; an inline defined before the function comes first.
 #define EM_KINETIC_ENERGY_PARAM_ASSIGN_LATE
-// MATCH-ONLY: emKineticEnergy's destructor calls soKineticEnergy's out of line (the module unit's weak copy).
+// BYTES: emKineticEnergy's destructor calls soKineticEnergy's out of line (the module unit's weak copy).
 #define SO_KINETIC_ENERGY_DTOR_NEVER_INLINE
 // soKineticEnergy's on/offConsiderGroundFriction and getSpeed3f are inline: this unit emits their weak copies.
 #define SO_KINETIC_ENERGY_INLINE_VIRTUALS
-// MATCH-ONLY: the unit calls the out-of-line copies of Vec2f::length and Vec2f::operator= (its own weak copy), and of
+// BYTES: the unit calls the out-of-line copies of Vec2f::length and Vec2f::operator= (its own weak copy), and of
 // the Vec3f constructor, assignment, subtraction and scale.
 #define MT_VEC2F_LENGTH_OUT_OF_LINE
 #define MT_VEC2F_ASSIGN_NOINLINE

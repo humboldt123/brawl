@@ -38,7 +38,7 @@ public:
     void execAnimCmdExec(soModuleAccesser* acc, int animCmdGroup);
     int getPriorty();
     int getStatusKind();
-    // MATCH-ONLY: never_inline, isTargetKind1 tail-calls it in the original.
+    // BYTES: never_inline, isTargetKind1 tail-calls it in the original.
     static bool isTargetKind(u32 mask, int area) __attribute__((never_inline));
     bool isTargetKind1(int area);
     bool isSetInfo();

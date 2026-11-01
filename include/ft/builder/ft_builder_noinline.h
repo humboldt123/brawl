@@ -11,7 +11,7 @@
 #endif
 
 #ifndef FT_NOINLINE_SKIP_SHARED_DEFS // units that were compiled next to the one holding these definitions skip them
-// MATCH-ONLY: the REL calls the module constructor out of line (it must be compiled outside of the dont_inline region)
+// BYTES: the REL calls the module constructor out of line (it must be compiled outside of the dont_inline region)
 soTransitionModuleImpl::soTransitionModuleImpl(soArray<soTransitionTermGroup>* groups) :
     m_transitionTermGroupArray(groups), m_groupID(0), m_transitionInfo(true) { }
 
@@ -47,17 +47,17 @@ ftTeamIndirect::~ftTeamIndirect() { }
 // Retain this destructor's call while inlining its empty sound-accesser base.
 #pragma dont_inline off
 #endif
-ftSound3dGeneratorAccesserImpl::~ftSound3dGeneratorAccesserImpl() { } // MATCH-ONLY: out of line in the REL
+ftSound3dGeneratorAccesserImpl::~ftSound3dGeneratorAccesserImpl() { } // BYTES: out of line in the REL
 #ifdef FT_SOUND_GENERATOR_DTOR_NOINLINE
 #pragma dont_inline on
 #endif
-soTransitionInfo::~soTransitionInfo() { } // MATCH-ONLY: out of line in the REL
-soNullable::soNullable(bool isNull) { m_isNull = isNull; } // MATCH-ONLY: out of line in the REL
-soKineticEnergy::~soKineticEnergy() { } // MATCH-ONLY: out of line in the REL
-soGeneralWorkAbstract::~soGeneralWorkAbstract() { } // MATCH-ONLY: out of line in the REL
+soTransitionInfo::~soTransitionInfo() { } // BYTES: out of line in the REL
+soNullable::soNullable(bool isNull) { m_isNull = isNull; } // BYTES: out of line in the REL
+soKineticEnergy::~soKineticEnergy() { } // BYTES: out of line in the REL
+soGeneralWorkAbstract::~soGeneralWorkAbstract() { } // BYTES: out of line in the REL
 #pragma dont_inline off
 
-// MATCH-ONLY: the REL calls soGeneralWorkSimple's work area constructor out of line (defined here, not in the class).
+// BYTES: the REL calls soGeneralWorkSimple's work area constructor out of line (defined here, not in the class).
 soGeneralWorkSimple::soGeneralWorkSimple(s32* ints, u32 numInts, float* floats, u32 numFloats, u32* flags, u32 numFlags) :
     soGeneralWorkAbstract(false), m_intWorks(ints), m_intWorkSize(numInts), m_floatWorks(floats), m_floatWorkSize(numFloats),
     m_flagWorks(flags), m_flagWorkSize(numFlags) { }

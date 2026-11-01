@@ -187,7 +187,7 @@ public:
 
     static bool isInvalidEnergyType(int kind);
     static int getEnergyTypeToGroup(int kind);
-    // MATCH-ONLY: never_inline: the energy unit calls it out of line where -ipa file would inline it.
+    // BYTES: never_inline: the energy unit calls it out of line where -ipa file would inline it.
     bool isInvalidEnergy() __attribute__((never_inline));
     static void loopReverseEnergyParam(emKineticEnergyParam* param);
     void loopReverseEnergy();

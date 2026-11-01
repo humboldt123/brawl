@@ -73,7 +73,7 @@ public:
 #if defined(WN_ARTICLE_NATIVE_BUILDERS) || defined(FT_KINETIC_STOP_IMPLEMENTATION)
     soKineticEnergy(bool isNull = false) : soNullable(isNull), soEnable(!isNull) { }
 #elif defined(WN_WEAPON_BUILDER) || defined(WN_KINETIC_GENERIC_BUILDER)
-    // MATCH-ONLY: the article RELs call this constructor out of line (weak copy in the unit).
+    // BYTES: the article RELs call this constructor out of line (weak copy in the unit).
     soKineticEnergy(bool isNull = false) __attribute__((never_inline)) : soNullable(isNull), soEnable(!isNull) { }
 #endif
     virtual void updateEnergy(soModuleAccesser* moduleAccesser);
@@ -95,9 +95,9 @@ public:
     virtual void offConsiderGroundFriction();
 #endif
 #ifdef FT_MODULE_BUILDER
-    virtual ~soKineticEnergy(); // MATCH-ONLY: out of line in the fighter RELs (ft_builder_noinline.h)
+    virtual ~soKineticEnergy(); // BYTES: out of line in the fighter RELs (ft_builder_noinline.h)
 #elif defined(SO_KINETIC_ENERGY_DTOR_NEVER_INLINE)
-    // MATCH-ONLY: the enemy kinetic units call this destructor out of line (a weak copy of the module unit).
+    // BYTES: the enemy kinetic units call this destructor out of line (a weak copy of the module unit).
     virtual ~soKineticEnergy() __attribute__((never_inline)) { }
 #else
     virtual ~soKineticEnergy() { }

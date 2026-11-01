@@ -154,13 +154,13 @@ public:
     u8 getCollisionId(); // HYPOTHESIS: return type (the low byte of grCollision::m_index)
     grCollisionLine* getLine(u16 index);
     // HYPOTHESIS: signatures of the update members; the map has no parameter types.
-    void updatePosNormal(Matrix* matrix) __attribute__((never_inline)); // MATCH-ONLY: the original calls it out of line from updatePos
-    void updatePosInit(Matrix* matrix) __attribute__((never_inline)); // MATCH-ONLY: the original calls it out of line from updatePos
-    void updateAABB() __attribute__((never_inline)); // MATCH-ONLY: the original calls it out of line from updatePos
+    void updatePosNormal(Matrix* matrix) __attribute__((never_inline)); // BYTES: the original calls it out of line from updatePos
+    void updatePosInit(Matrix* matrix) __attribute__((never_inline)); // BYTES: the original calls it out of line from updatePos
+    void updateAABB() __attribute__((never_inline)); // BYTES: the original calls it out of line from updatePos
     void updatePos(bool init);
     void clearVLink();
     void updateStatus();
-    void getWorldMatrix(Matrix* out) __attribute__((never_inline)); // MATCH-ONLY: the original calls it out of line from updatePos
+    void getWorldMatrix(Matrix* out) __attribute__((never_inline)); // BYTES: the original calls it out of line from updatePos
     void getSegment(u16 index, grCollSegmentEx* out);
 };
 static_assert(sizeof(grCollisionJoint) == 96, "Class is wrong size!");

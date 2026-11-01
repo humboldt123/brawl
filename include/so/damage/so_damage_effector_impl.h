@@ -34,7 +34,7 @@ public:
     soDamageEffector() : soNullable(false) { }
 #endif
 #if defined(WN_WEAPON_BUILDER) || defined(SO_DAMAGE_EFFECTOR_OUTLINE_DTOR)
-    // MATCH-ONLY: not inlined into the derived destructor (weak copy in the article units).
+    // BYTES: not inlined into the derived destructor (weak copy in the article units).
     virtual ~soDamageEffector() __attribute__((never_inline)) { }
 #else
     virtual ~soDamageEffector() { }

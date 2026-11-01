@@ -1,5 +1,5 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-// MATCH-ONLY: keep native out-of-line Vec3f construction for resetEnergy inputs.
+// BYTES: keep native out-of-line Vec3f construction for resetEnergy inputs.
 #define MT_VEC3F_CTOR_NOINLINE
 #include <ft/ft_kinetic_energy.h>
 #include <so/kinetic/so_kinetic_module_impl.h>

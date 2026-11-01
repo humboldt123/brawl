@@ -35,12 +35,12 @@ public:
     }
     inline Vec2f(const Vec3f& xyz)
 #ifdef MT_VEC2F_FROM_VEC3_CTOR_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: retain the native constructor call.
+        __attribute__((never_inline)) // BYTES: retain the native constructor call.
 #endif
         ;
     Vec2f(float x, float y)
 #ifdef MT_VEC2F_CTOR_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: retain a proved out-of-line constructor call.
+        __attribute__((never_inline)) // BYTES: retain a proved out-of-line constructor call.
 #endif
 #ifdef MT_VEC2F_CTOR_OUT_OF_LINE
         ; // MATCH-ONLY: an owning unit supplies the weak constructor in native order.
@@ -53,7 +53,7 @@ public:
 #ifndef MT_VEC2F_IMPLICIT_ASSIGN // MATCH-ONLY: some units copy with the implicit (word-wise) assignment and elide copy temporaries.
     Vec2f& operator=(const Vec2f& source)
 #ifdef MT_VEC2F_ASSIGN_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: preserve evidenced out-of-line assignments.
+        __attribute__((never_inline)) // BYTES: preserve evidenced out-of-line assignments.
 #endif
     {
         // MATCH-ONLY: retain the original assignment's scalar float copies.
@@ -72,7 +72,7 @@ public:
 
     friend Vec2f operator-(const Vec2f& lhs, const Vec2f& rhs)
 #ifdef MT_VEC2F_SUB_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: retain an evidenced out-of-line subtraction call.
+        __attribute__((never_inline)) // BYTES: retain an evidenced out-of-line subtraction call.
 #endif
     {
         Vec2f res;
@@ -83,7 +83,7 @@ public:
 
     friend Vec2f operator*(const Vec2f& lhs, const float c)
 #ifdef MT_VEC2F_MUL_OUT_OF_LINE
-        ; // MATCH-ONLY: the owning unit calls the weak copy another unit of the REL carries.
+        ; // BYTES: the owning unit calls the weak copy another unit of the REL carries.
 #else
     {
         Vec2f res;
@@ -119,7 +119,7 @@ public:
 
     float lengthSq()
 #ifdef MT_VEC2F_LENGTH_SQ_OUT_OF_LINE
-        __attribute__((never_inline)); // MATCH-ONLY: retain the owning Vanish unit's helper calls.
+        __attribute__((never_inline)); // BYTES: retain the owning Vanish unit's helper calls.
 #elif !defined(MT_VEC2F_LENGTH_SQ_SPLIT)
     {
         return m_x * m_x + m_y * m_y;
@@ -134,7 +134,7 @@ public:
 
     float length()
 #ifdef MT_VEC2F_LENGTH_OUT_OF_LINE
-        ; // MATCH-ONLY: the owning unit calls the weak copy another unit of the REL carries.
+        ; // BYTES: the owning unit calls the weak copy another unit of the REL carries.
 #else
     {
         float lengthSquared = this->lengthSq();
@@ -158,7 +158,7 @@ public:
     }
 
 #ifdef MT_VEC2F_DISTANCE_NOINLINE
-    // MATCH-ONLY: the Enemy unit calls its weak out-of-line copy, which subtracts through sub.
+    // BYTES: the Enemy unit calls its weak out-of-line copy, which subtracts through sub.
     float distance(Vec2f* v) __attribute__((never_inline)) {
         Vec2f disp;
         sub(v, &disp);
@@ -179,7 +179,7 @@ public:
     // Writes this vector scaled by c to out (the weapon articles call the out-of-line copy: opt in with MT_VEC2F_SCALE_NOINLINE).
     void scale(float c, Vec2f* out)
 #ifdef MT_VEC2F_SCALE_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: retain the out-of-line weak helper.
+        __attribute__((never_inline)) // BYTES: retain the out-of-line weak helper.
 #endif
     {
         out->m_x = m_x * c;
@@ -215,7 +215,7 @@ public:
     Vec3f() { }
     Vec3f(float x, float y, float z)
 #if defined(FT_MARTH_COLLISION_VEC3F_NOINLINE) || defined(MT_VEC3F_CTOR_NOINLINE)
-        __attribute__((never_inline)) // MATCH-ONLY: retain the original out-of-line constructor.
+        __attribute__((never_inline)) // BYTES: retain the original out-of-line constructor.
 #endif
         : m_x(x), m_y(y), m_z(z) { }
 
@@ -223,7 +223,7 @@ public:
     // HYPOTHESIS: the original XY parameter's const qualifier is unresolved.
     Vec3f(const Vec2f& xy, float z)
 #ifdef MT_VEC3F_FROM_VEC2_CTOR_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: retain the native constructor call.
+        __attribute__((never_inline)) // BYTES: retain the native constructor call.
 #endif
         : m_x(xy.m_x), m_y(xy.m_y), m_z(z) { }
 
@@ -234,7 +234,7 @@ public:
 #ifndef MT_VEC3F_IMPLICIT_ASSIGN
     Vec3f& operator=(const Vec3f& orig)
 #ifdef MT_VEC3F_ASSIGN_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: verified R.O.B. article assignment calls.
+        __attribute__((never_inline)) // BYTES: verified R.O.B. article assignment calls.
 #endif
     {
         m_x = orig.m_x;
@@ -246,7 +246,7 @@ public:
 
     void set(float x, float y, float z)
 #ifdef MT_VEC3F_SET_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: retain the out-of-line copy of Pikachu's Quick Attack.
+        __attribute__((never_inline)) // BYTES: retain the out-of-line copy of Pikachu's Quick Attack.
 #endif
     {
         m_x = x;
@@ -265,7 +265,7 @@ public:
     Vec3f operator+(const Vec3f& v);
     Vec3f operator-(const Vec3f& v)
 #ifdef MT_VEC3F_OPERATORS_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: the Enemy unit calls its weak out-of-line copy.
+        __attribute__((never_inline)) // BYTES: the Enemy unit calls its weak out-of-line copy.
 #endif
         ;
 
@@ -439,7 +439,7 @@ public:
 
     Vec3f& operator+=(const Vec3f& v)
 #ifdef MT_VEC3F_OPERATORS_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: the Enemy unit calls its weak out-of-line copy, which adds in place.
+        __attribute__((never_inline)) // BYTES: the Enemy unit calls its weak out-of-line copy, which adds in place.
     {
         Vec3fAdd(this, this, &v);
         return *this;
@@ -464,7 +464,7 @@ public:
     // Scales this vector by c in place.
     void scale(float c)
 #ifdef MT_VEC3F_SCALE_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: the Enemy unit calls its weak out-of-line copy.
+        __attribute__((never_inline)) // BYTES: the Enemy unit calls its weak out-of-line copy.
 #endif
     {
         m_x = m_x * c;
@@ -518,7 +518,7 @@ inline Vec3f Vec3f::operator*(const float c) {
 
 inline Vec3f Vec3f::operator-(const Vec3f& v)
 #ifdef MT_VEC3F_SUB_NOINLINE
-    __attribute__((never_inline)) // MATCH-ONLY: retain the module's shared out-of-line subtraction.
+    __attribute__((never_inline)) // BYTES: retain the module's shared out-of-line subtraction.
 #endif
 {
     Vec3f result;

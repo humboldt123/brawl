@@ -6,7 +6,7 @@ class wnKineticEnergyGravity : public soKineticEnergy {
 public:
     wnKineticEnergyGravity() : m_speedY(0.0f), m_gravity(0.0f), m_speedLimit(-1.0f) {}
 #ifdef WN_KINETIC_GENERIC_BUILDER
-    // MATCH-ONLY: the Pikmin transactor calls this constructor out of line.
+    // BYTES: the Pikmin transactor calls this constructor out of line.
     wnKineticEnergyGravity(float speedY, float gravity, float speedLimit) __attribute__((never_inline)) : m_speedY(speedY), m_gravity(gravity), m_speedLimit(speedLimit) {}
 #else
     wnKineticEnergyGravity(float speedY, float gravity, float speedLimit) : m_speedY(speedY), m_gravity(gravity), m_speedLimit(speedLimit) {}
@@ -22,7 +22,7 @@ public:
     virtual void reflectSpeed(Vec3f*);
     virtual void reflectAccel(Vec3f*);
 #ifdef WN_KINETIC_GRAVITY_INLINE_DTOR
-    // MATCH-ONLY: the Pikmin transactor's temporary calls the base destructor directly and assigns out of line.
+    // BYTES: the Pikmin transactor's temporary calls the base destructor directly and assigns out of line.
     wnKineticEnergyGravity& operator=(const wnKineticEnergyGravity& other) __attribute__((never_inline)) {
         soKineticEnergy::operator=(other);
         m_speedY = other.m_speedY;

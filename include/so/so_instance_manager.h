@@ -15,7 +15,7 @@ public:
 #endif
 #ifdef SO_INSTANCE_MANAGER_FIXED_DTOR_OUT_OF_LINE
     // Opt-in per unit (the Enemy): soInstanceManagerFullProperty's destructor calls this one (a 0x40-byte weak copy).
-    // MATCH-ONLY: never_inline reproduces the original's out-of-line call.
+    // BYTES: never_inline reproduces the original's out-of-line call.
     ~soInstanceManagerFixed() __attribute__((never_inline)) { }
 #endif
     virtual T& at(s32 index) = 0;
@@ -71,7 +71,7 @@ public:
     soInstanceManagerFixedSimple<T, soInstanceUnit<T>, soArray<soInstanceUnit<T> > > m_fixedSimple;
     U m_arrayVector;
 
-// MATCH-ONLY: fighter RELs call the sora_melee constructor (FT_REL_LINK_EXTERN: no weak copy).
+// BYTES: fighter RELs call the sora_melee constructor (FT_REL_LINK_EXTERN: no weak copy).
 #ifdef FT_REL_LINK_EXTERN
     soInstanceManagerSimpleEntity();
 #else
@@ -103,7 +103,7 @@ public:
     // Opt-in per unit: most fighter modules tear this base down with a call from the
     // soInstanceManagerFullPropertyVector destructors (0x70 bytes) and carry the 0x40-byte copy; a few (Marth, Purin,
     // Ike, Dedede, Diddy, R.O.B., zako) inline it (0x60 bytes), so the default stays inline.
-    // MATCH-ONLY: never_inline reproduces the original's out-of-line call; an out-of-class definition or
+    // BYTES: never_inline reproduces the original's out-of-line call; an out-of-class definition or
     // #pragma dont_inline around the caller does not keep it out of line.
     ~soInstanceManagerFullProperty() __attribute__((never_inline)) { }
 #else

@@ -1,6 +1,6 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-#define MT_VEC2F_CTOR_NOINLINE // MATCH-ONLY: the original builds the clamped speed pair through the out-of-line constructor
-#define MT_VEC2F_ASSIGN_NOINLINE // MATCH-ONLY: ... and assigns it through the out-of-line operator=
+#define MT_VEC2F_CTOR_NOINLINE // BYTES: the original builds the clamped speed pair through the out-of-line constructor
+#define MT_VEC2F_ASSIGN_NOINLINE // BYTES: ... and assigns it through the out-of-line operator=
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_kinetic_energy.h>
 #include <ft/ft_kinetic_energy_controller.h>

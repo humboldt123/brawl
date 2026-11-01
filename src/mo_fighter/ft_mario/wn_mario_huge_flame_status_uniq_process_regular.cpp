@@ -19,7 +19,7 @@ public:
     virtual ~wnMarioHugeFlameStatusUniqProcessRegular() { }
     virtual void initStatus(soModuleAccesser* moduleAccesser);
     virtual void execFixPos(soModuleAccesser* moduleAccesser);
-    // MATCH-ONLY: both node sweeps call this helper out of line.
+    // BYTES: both node sweeps call this helper out of line.
     void requestEffect(soModuleAccesser*, u32 node, Vec3f* previous, Vec3f* current) __attribute__((never_inline));
 };
 

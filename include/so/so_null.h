@@ -27,10 +27,10 @@ class soNullable {
 public:
     soNullable() { m_isNull = false; }
 #if defined(SO_BUILDER_HELPERS_WEAK)
-    // MATCH-ONLY: the Enemy unit calls its own weak copy of this constructor (never_inline keeps the call).
+    // BYTES: the Enemy unit calls its own weak copy of this constructor (never_inline keeps the call).
     soNullable(bool isNull) __attribute__((never_inline)) { m_isNull = isNull; }
 #elif defined(FT_MODULE_BUILDER) && !defined(SO_NULLABLE_INLINE_CTOR)
-    // MATCH-ONLY: the fighter RELs call this constructor out of line (defined in ft_builder_noinline.h).
+    // BYTES: the fighter RELs call this constructor out of line (defined in ft_builder_noinline.h).
     // (A unit whose original inlines it defines SO_NULLABLE_INLINE_CTOR to take the inline body.)
     soNullable(bool isNull);
 #else

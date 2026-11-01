@@ -11,9 +11,9 @@ public:
     // MATCH-ONLY: ctor of the fighter builders' work areas (not null); inlined into soGeneralWorkSimple's ctor.
     soGeneralWorkAbstract(bool isNull) : soNullable(isNull) { }
 #if defined(SO_BUILDER_HELPERS_WEAK)
-    ~soGeneralWorkAbstract() __attribute__((never_inline)) { } // MATCH-ONLY: a weak copy of the Enemy unit
+    ~soGeneralWorkAbstract() __attribute__((never_inline)) { } // BYTES: a weak copy of the Enemy unit
 #elif defined(FT_MODULE_BUILDER)
-    ~soGeneralWorkAbstract(); // MATCH-ONLY: out of line in the fighter RELs (defined in ft_builder_noinline.h)
+    ~soGeneralWorkAbstract(); // BYTES: out of line in the fighter RELs (defined in ft_builder_noinline.h)
 #else
     ~soGeneralWorkAbstract() { }
 #endif

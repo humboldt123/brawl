@@ -10,7 +10,7 @@ class StageObject;
 class soModuleAccesser;
 
 #ifdef FT_MODULE_BUILDER
-// MATCH-ONLY: the constructor, destructor and initialize of this base are out-of-line functions in sora_melee (the
+// BYTES: the constructor, destructor and initialize of this base are out-of-line functions in sora_melee (the
 // fighter and article RELs call them), so the class is specialized with them declared only.
 class soDamageEventObserver;
 template <>

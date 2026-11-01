@@ -107,7 +107,7 @@ public:
                   nw4r::g3d::ScnGroup* scnGroup, int drawPriority, Heaps::HeapType heap, Heaps::HeapType heap2,
                   Heaps::HeapType dataHeap, bool capture);
     virtual ~IfSnapSaveTask();
-    // MATCH-ONLY: never_inline keeps the native out-of-line calls.
+    // BYTES: never_inline keeps the native out-of-line calls.
     void createModel(nw4r::g3d::ResFile* resFile, int drawPriority, Heaps::HeapType heap, Heaps::HeapType heap2)
         __attribute__((never_inline));
     void initMsg(void* msgData, Heaps::HeapType heap, Heaps::HeapType heap2);

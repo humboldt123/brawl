@@ -115,7 +115,7 @@ class ftStatusGimmickUniqProcessPool : public soNullable {
 public:
     ftStatusGimmickUniqProcessPool(bool isNull) : soNullable(isNull) { }
 #ifdef FT_MODULE_BUILDER
-    // MATCH-ONLY: the fighter RELs call this destructor out of line from ftStatusGimmickUniqProcessPoolImpl's (defined in ft_builder_noinline.h)
+    // BYTES: the fighter RELs call this destructor out of line from ftStatusGimmickUniqProcessPoolImpl's (defined in ft_builder_noinline.h)
     virtual ~ftStatusGimmickUniqProcessPool();
 #else
     virtual ~ftStatusGimmickUniqProcessPool() { }

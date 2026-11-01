@@ -9,7 +9,7 @@
 #define EM_KINETIC_MODULE_IMPL_FULL
 // The module calls sora_melee's two-argument soKineticModuleImpl constructor.
 #define SO_KINETIC_MODULE_IMPL_CTOR_2
-// MATCH-ONLY: the jostle and ground movement energies' destructors call soKineticEnergy's out of line (a weak copy of
+// BYTES: the jostle and ground movement energies' destructors call soKineticEnergy's out of line (a weak copy of
 // this unit).
 #define SO_KINETIC_ENERGY_DTOR_NEVER_INLINE
 // soKineticModuleImpl's notifyEventAnimCmd (int) overrides the anim cmd observer's slot, as in the original.
@@ -18,14 +18,14 @@
 #define SO_EVENT_OBSERVER_DTOR_EXTERN
 // The energy pool's list constructor is the one of sora_melee.
 #define SO_ARRAY_LIST_CTOR_FLAG
-// MATCH-ONLY: the pool's destructor chain is not inlined (as in the Enemy unit): the pool calls the list destructor of
+// BYTES: the pool's destructor chain is not inlined (as in the Enemy unit): the pool calls the list destructor of
 // sora_melee and soInstanceManagerFullProperty's, which calls soInstanceManagerFixed's (weak copies of this unit).
 #define SO_ARRAY_LIST_DTOR_EXTERN
 // The anim cmd argument list destructor is the one of sora_melee.
 #define SO_ARRAY_CONTRACTIBLE_TABLE_DTOR_EXTERN
 #define SO_INSTANCE_MANAGER_FIXED_DTOR_OUT_OF_LINE
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
-// MATCH-ONLY: the unit calls the out-of-line copies of Vec2f::length and Vec2f * float.
+// BYTES: the unit calls the out-of-line copies of Vec2f::length and Vec2f * float.
 #define MT_VEC2F_LENGTH_OUT_OF_LINE
 #define MT_VEC2F_MUL_OUT_OF_LINE
 #include <em/kinetic/em_kinetic_module_impl.h>

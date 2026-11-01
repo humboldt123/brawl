@@ -1,7 +1,7 @@
 // Vec3f and Vec2f helpers the original calls out of line.
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
-// MATCH-ONLY: Vec2f's operator* stays a call to the weak copy the enemy kinetic module unit carries.
+// BYTES: Vec2f's operator* stays a call to the weak copy the enemy kinetic module unit carries.
 #define MT_VEC2F_MUL_OUT_OF_LINE
 #include <em/cataguard/wnem_proc_cataguard.h>
 #include <em/em_shot.h>

@@ -1,6 +1,6 @@
 // MATCH-ONLY: use the existing vector guard to preserve both original constructor calls.
 #define FT_MARTH_COLLISION_VEC3F_NOINLINE
-// MATCH-ONLY: preserve the shared out-of-line vector constructor calls.
+// BYTES: preserve the shared out-of-line vector constructor calls.
 #pragma dont_inline on
 #include <mt/mt_vector.h>
 #pragma dont_inline reset

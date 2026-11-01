@@ -11,7 +11,7 @@ class soVisibilityModuleImpl : public soVisibilityModuleSimple, public soStatusE
 public:
     soVisibilityModuleImpl(soModuleAccesser* acc, soVisibilityData* data, int n);
 #if !defined(FT_MODULE_BUILDER) || defined(FT_REL_LINK_EXTERN)
-    ~soVisibilityModuleImpl(); // MATCH-ONLY (fighter RELs): the destructor is a sora_melee function (not an inline weak copy)
+    ~soVisibilityModuleImpl(); // BYTES (fighter RELs): the destructor is a sora_melee function (not an inline weak copy)
 #endif
 #ifdef FT_MODULE_BUILDER
 private:

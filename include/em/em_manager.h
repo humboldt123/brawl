@@ -58,7 +58,7 @@ public:
 
     int createEnemy(emCreate* create);
     // Whether the enemy childCreateId was created as a child of parentCreateId.
-    // MATCH-ONLY: never_inline, with -ipa file it would be inlined into resetParentEnemyCreateId.
+    // BYTES: never_inline, with -ipa file it would be inlined into resetParentEnemyCreateId.
     bool isChild(int parentCreateId, int childCreateId) __attribute__((never_inline));
     // doFuncOtherEnemy callback of removeEnemy: detaches the child childCreateId from its removed parent.
     static bool resetParentEnemyCreateId(int parentCreateId, int childCreateId);

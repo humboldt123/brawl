@@ -2844,7 +2844,7 @@ extern const int lbl_8042DBD8[6];
 extern const int lbl_8042DB5C[5][5];
 extern const int lbl_8042DC00[6];
 
-// MATCH-ONLY: gm_data_collection.o was its own translation unit in the original, so gm_lib.o calls these out of line.
+// BYTES: gm_data_collection.o was its own translation unit in the original, so gm_lib.o calls these out of line.
 #pragma push
 #pragma auto_inline off
 

@@ -1,4 +1,4 @@
-// MATCH-ONLY: Keep the native out-of-line Vec3f constructor call.
+// BYTES: Keep the native out-of-line Vec3f constructor call.
 #define MT_VEC3F_CTOR_NOINLINE
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/luigi/ft_luigi_kinetic_transactor.h>

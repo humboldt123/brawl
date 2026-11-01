@@ -1,4 +1,4 @@
-// MATCH-ONLY: the Vec3f constructor stays out of line in this unit.
+// BYTES: the Vec3f constructor stays out of line in this unit.
 #define MT_VEC3F_CTOR_NOINLINE
 #include <ft/ft_kinetic_energy.h>
 #include <ft/ganon/ft_ganon_status_uniq_process_ganon_kick.h>

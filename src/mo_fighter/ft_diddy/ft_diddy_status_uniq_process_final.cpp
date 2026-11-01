@@ -1,4 +1,4 @@
-// MATCH-ONLY: this unit calls the out-of-line Vec3f constructor and Vec2f assignment, as ft_diddy.cpp does.
+// BYTES: this unit calls the out-of-line Vec3f constructor and Vec2f assignment, as ft_diddy.cpp does.
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <cm/cm_camera_controller.h>

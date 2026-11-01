@@ -9,7 +9,7 @@
 #include <wn/wn_kinetic_energy_gravity.h>
 #include <wn/wn_kinetic_transactor.h>
 
-// MATCH-ONLY: the Diddy barrel builds its normal energies with the out-of-line five-vector constructor; units that define
+// BYTES: the Diddy barrel builds its normal energies with the out-of-line five-vector constructor; units that define
 // WN_KINETIC_NORMAL_HOLDER_DEFAULT expand the constructor inline (tagged overload) instead.
 template <typename Next, typename InitInfo>
 class soKineticEnergyHolder<soKineticEnergyNormal, Next, InitInfo> {

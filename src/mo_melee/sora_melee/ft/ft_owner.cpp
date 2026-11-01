@@ -797,7 +797,7 @@ void ftOwnerImpl::offLogFlag(int index1, int index2) {
     }
 }
 
-// MATCH-ONLY: the original calls ftLog::setActionInfo out of line.
+// BYTES: the original calls ftLog::setActionInfo out of line.
 #pragma dont_inline on
 void ftOwnerImpl::setLogActionInfo(ftLogActionInfo info) {
     if (unkA == 1) {

@@ -8,7 +8,7 @@
 class soKineticMediatorNull : public soKineticMediator {
 public:
 #if defined(WN_ARTICLE_NATIVE_BUILDERS) && !defined(WN_KINETIC_MEDIATOR_INLINE_DTOR)
-    // MATCH-ONLY: These article builders retain this nonvirtual destructor out of line.
+    // BYTES: These article builders retain this nonvirtual destructor out of line.
     ~soKineticMediatorNull() __attribute__((never_inline)) { }
 #endif
     virtual void changeKinetic(int, soModuleAccesser*) { }

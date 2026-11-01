@@ -1,4 +1,4 @@
-// MATCH-ONLY: the native helpers call these vector operations out of line.
+// BYTES: the native helpers call these vector operations out of line.
 // Set the policy before any builder header can include mt_vector.h.
 #define MT_VEC2F_CTOR_OUT_OF_LINE
 #define MT_VEC2F_CTOR_NOINLINE

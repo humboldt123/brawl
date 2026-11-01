@@ -17,7 +17,7 @@ extern "C" Vec2f* __ct__5Vec2fFff(Vec2f* self, float x, float y);
 inline soMotionChangeParam::soMotionChangeParam(int kind, float frame, float rate, u8 a, u8 b, u8 c, u8 d) :
     m_kind(kind), m_frame(frame), m_rate(rate), _12(a), _13(b), _14(c), _15(d) {}
 
-// MATCH-ONLY: weak copy of the Normal energy setter that the originals call out of line.
+// BYTES: weak copy of the Normal energy setter that the originals call out of line.
 void soKineticEnergyNormal::setStableSpeed(Vec2f* speed) {
     m_speedTarget.m_x = speed->m_x;
     m_speedTarget.m_y = speed->m_y;

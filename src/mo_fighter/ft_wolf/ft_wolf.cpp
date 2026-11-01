@@ -55,7 +55,7 @@ ftWolfStatusUniqProcessReflectorImpl::~ftWolfStatusUniqProcessReflectorImpl() { 
 #pragma dont_inline off
 ftWolfStatusUniqProcessReflectorImpl g_ftWolfStatusUniqProcessReflector;
 
-// MATCH-ONLY: the trail's constructor is called out of line (the copy sora_melee owns).
+// BYTES: the trail's constructor is called out of line (the copy sora_melee owns).
 #pragma dont_inline on
 template soArrayVector<ftWolf::PostureInfo, 4>::soArrayVector(s32, const ftWolf::PostureInfo&, s32);
 #pragma dont_inline off

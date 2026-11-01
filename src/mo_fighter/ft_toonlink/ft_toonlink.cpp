@@ -426,7 +426,7 @@ float ftToonLink::getBoomerangAngle(soModuleAccesser* acc) {
     return angle;
 }
 
-// MATCH-ONLY: the native singleton getter of the transactor is out of line.
+// BYTES: the native singleton getter of the transactor is out of line.
 #pragma dont_inline on
 template ftToonLinkTransactor* soSingletonHolder<ftToonLinkTransactor>::getInstance();
 #pragma dont_inline off

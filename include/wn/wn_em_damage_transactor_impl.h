@@ -11,7 +11,7 @@
 // RTTI: wnemDamageTransactorImpl : soDamageTransactorActor : soDamageTransactor.
 class wnemDamageTransactorImpl : public soDamageTransactorActor {
 public:
-    // MATCH-ONLY: the static initializer calls an out-of-line (weak) copy of the constructor.
+    // BYTES: the static initializer calls an out-of-line (weak) copy of the constructor.
     wnemDamageTransactorImpl() __attribute__((never_inline)) { }
     // Inline: its weak copy follows the actor's inline members, as in the original.
     virtual ~wnemDamageTransactorImpl() { }

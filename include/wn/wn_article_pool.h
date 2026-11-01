@@ -130,7 +130,7 @@ public:
     // With the non-polymorphic root the second level calls this out of line on its own (Mario: no hack needed).
     virtual ~wnArticleHierarchy() { }
 #else
-    // MATCH-ONLY: the second level calls the first-level teardown out of line.
+    // BYTES: the second level calls the first-level teardown out of line.
     virtual ~wnArticleHierarchy() __attribute__((never_inline)) { }
 #endif
 };

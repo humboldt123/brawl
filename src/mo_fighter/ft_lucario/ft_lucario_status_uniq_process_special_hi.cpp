@@ -1,5 +1,5 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-// MATCH-ONLY: Extreme Speed calls the out-of-line Vec2f assignment.
+// BYTES: Extreme Speed calls the out-of-line Vec2f assignment.
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <ft/ft_kinetic_energy.h>
 #include <so/ground/so_ground_module_impl.h>

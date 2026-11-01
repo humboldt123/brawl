@@ -38,7 +38,7 @@ public:
     void createModel(nw4r::g3d::ResFile* resFile);
     // HYPOTHESIS: untyped tables as in IfStgedit::createObjResFile.
     void createObjResFile(const void* nodeInfo, s32 nodeCount, nw4r::g3d::ResFile* resFile);
-    // MATCH-ONLY: the original calls this out of line from createModel.
+    // BYTES: the original calls this out of line from createModel.
     void createExpMdl(const void* nodeInfo, s32 nodeCount) __attribute__((never_inline));
     static void createLocator(nw4r::g3d::ResFile* resFile);
     static void destroyLocator();

@@ -20,7 +20,7 @@ public:
     virtual bool checkEstablish(soGeneralTerm* term, soModuleAccesser* moduleAccesser, u32* returnWord,
                                 soGeneralTermCache* cache) = 0;
     virtual ~soGeneralTermDecideModule()
-        __attribute__((never_inline)) // MATCH-ONLY: the derived destructor calls this one out of line.
+        __attribute__((never_inline)) // BYTES: the derived destructor calls this one out of line.
     { }
 };
 

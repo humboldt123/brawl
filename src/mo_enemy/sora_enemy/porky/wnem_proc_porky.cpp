@@ -1,4 +1,4 @@
-// MATCH-ONLY: Vec3f assignments stay calls to the weak out-of-line copy, as in the original.
+// BYTES: Vec3f assignments stay calls to the weak out-of-line copy, as in the original.
 #define MT_VEC3F_ASSIGN_NOINLINE
 #include <em/em_scaled_value.h>
 #include <em/em_shot.h>

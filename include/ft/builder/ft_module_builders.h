@@ -552,7 +552,7 @@ public:
 #ifdef FT_SOUND_GENERATOR_DTOR_NOINLINE
         __attribute__((never_inline))
 #endif
-        ; // MATCH-ONLY: out of line (ft_builder_noinline.h)
+        ; // BYTES: out of line (ft_builder_noinline.h)
     virtual void activate(Vec3f* pos) {
         for (s32 i = 0; i < 2; i++) {
             allocateInstance(&m_instances[i], pos);

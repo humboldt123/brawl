@@ -8,11 +8,11 @@ class cmPhotoCallBack : public utListNode {
 public:
     cmPhotoCallBack();
 #if defined(FT_MARTH_PHOTO_CALLBACK_NOINLINE) && defined(FT_REL_LINK_EXTERN)
-    virtual ~cmPhotoCallBack(); // MATCH-ONLY: Marth calls the sora_melee destructor (out of line, no weak copy here).
+    virtual ~cmPhotoCallBack(); // BYTES: Marth calls the sora_melee destructor (out of line, no weak copy here).
 #else
     virtual ~cmPhotoCallBack()
 #ifdef FT_MARTH_PHOTO_CALLBACK_NOINLINE
-        __attribute__((never_inline)) // MATCH-ONLY: Marth tears down the photo base out of line.
+        __attribute__((never_inline)) // BYTES: Marth tears down the photo base out of line.
 #endif
     { }
 #endif

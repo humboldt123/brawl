@@ -6,7 +6,7 @@
 #define WN_WEAPON_ANIMCMD_LONG
 // soAnimCmdModule::interpretCmd1 takes the frame last (see so/anim/so_anim_cmd_module_impl.h).
 #define SO_ANIM_CMD_INTERPRET_CMD1_FRAME_LAST
-// MATCH-ONLY: the unit calls its weak out-of-line copies of Vec3f(float, float, float), operator- and operator+=.
+// BYTES: the unit calls its weak out-of-line copies of Vec3f(float, float, float), operator- and operator+=.
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_OPERATORS_NOINLINE
 // MATCH-ONLY: the add copy writes its paired-single results over the right-hand operand's registers.
@@ -20,7 +20,7 @@
 #define FT_REL_LINK_EXTERN
 #define EM_ENEMY_BUILDER
 #define SO_ARRAY_LIST_CTOR_FLAG
-// MATCH-ONLY: the unit's destructor chain is not inlined: soTeamImpl calls soTeam's destructor, the anim cmd control unit
+// BYTES: the unit's destructor chain is not inlined: soTeamImpl calls soTeam's destructor, the anim cmd control unit
 // manager calls soInstanceManagerFullProperty's, which calls soInstanceManagerFixed's (each a weak copy of this unit), and
 // the control unit list's destructor is the one of sora_melee. (Mario's unit shows the same for the FullProperty one.)
 #define SO_TEAM_DTOR_OUT_OF_LINE
@@ -39,7 +39,7 @@
 // MATCH-ONLY: IpNull::getButton returns the one-word mask (li r3, 0; blr), as in Mario's Mantle; the ipPadButton struct
 // return keeps a dead stack store at -O2,s.
 #define IP_INPUT_BUTTON_RAW
-// MATCH-ONLY: the helpers the fighter RELs define out of line (ft_builder_noinline.h and each fighter's .cpp) are weak
+// BYTES: the helpers the fighter RELs define out of line (ft_builder_noinline.h and each fighter's .cpp) are weak
 // copies of this unit: soNullable(bool), soGeneralWorkSimple's work-area constructor (with it the whole soGeneralWorkSimple /
 // soGeneralWorkAbstract vtable family) and the destructors of soGeneralWorkAbstract, soTransitionInfo, soResourceIdAccesser
 // and soSound3dGeneratorAccesserImpl.

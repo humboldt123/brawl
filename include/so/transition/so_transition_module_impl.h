@@ -12,7 +12,7 @@ class soGeneralTerm {
 public:
     soArrayContractibleTable<acCmdArgConv> m_animCmdTable;
 
-    // MATCH-ONLY: out-of-line copy constructor (so_general_term.cpp); defined elsewhere in the REL.
+    // BYTES: out-of-line copy constructor (so_general_term.cpp); defined elsewhere in the REL.
     soGeneralTerm(const soGeneralTerm& other);
 };
 static_assert(sizeof(soGeneralTerm) == 0x10, "Class is wrong size!");
@@ -81,9 +81,9 @@ public:
         _unk08 = 0;
     }
 #ifdef SO_BUILDER_HELPERS_WEAK
-    ~soTransitionInfo() __attribute__((never_inline)) { } // MATCH-ONLY: a weak copy of the Enemy unit
+    ~soTransitionInfo() __attribute__((never_inline)) { } // BYTES: a weak copy of the Enemy unit
 #else
-    ~soTransitionInfo(); // MATCH-ONLY: out of line in the fighter RELs (ft_builder_noinline.h)
+    ~soTransitionInfo(); // BYTES: out of line in the fighter RELs (ft_builder_noinline.h)
 #endif
 #endif
 };

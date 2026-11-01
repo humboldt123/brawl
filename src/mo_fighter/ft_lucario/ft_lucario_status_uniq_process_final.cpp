@@ -1,5 +1,5 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-// MATCH-ONLY: the Aura Storm statuses call the out-of-line Vec3f constructor and assignment, and this unit owns the weak Vec3f scale.
+// BYTES: the Aura Storm statuses call the out-of-line Vec3f constructor and assignment, and this unit owns the weak Vec3f scale.
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
 #define MT_VEC3F_MUL_INLINE

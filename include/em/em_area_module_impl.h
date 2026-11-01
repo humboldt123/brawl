@@ -129,7 +129,7 @@ public:
                                              float rotSign, float frameNum, u32 useLr);
     static s32 getTargetDistanceSub(soModuleAccesser* acc, Vec3f* pos);
     static s32 getTargetDistance(soModuleAccesser* acc, u32 area);
-    // MATCH-ONLY: never_inline, the original calls it out of line (also from the anim cmds).
+    // BYTES: never_inline, the original calls it out of line (also from the anim cmds).
     static float getTargetRealDistanceSub(soModuleAccesser* acc, Vec3f* pos) __attribute__((never_inline));
     static float getTargetRealDistance(soModuleAccesser* acc, u32 area);
     static s32 getTargetDirSub(soModuleAccesser* acc, Vec3f* pos);

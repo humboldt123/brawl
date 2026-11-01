@@ -31,7 +31,7 @@ void ftPikminKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcc
 
 #pragma opt_propagation reset
 
-// MATCH-ONLY: the native changeKinetic calls the mode function out of line.
+// BYTES: the native changeKinetic calls the mode function out of line.
 #pragma dont_inline on
 void ftPikminKineticTransactor::changeKineticSub(bool*, void* pools, Vec2f*, soModuleAccesser* moduleAccesser) {
     ftKineticTransactor::changeKineticImpl(0);

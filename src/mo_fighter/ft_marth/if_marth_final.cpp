@@ -151,7 +151,7 @@ void IfMarthFinalTask::dispOff(int) {
     }
 }
 
-// MATCH-ONLY: preserve the shared out-of-line scene-removal helper.
+// BYTES: preserve the shared out-of-line scene-removal helper.
 #pragma dont_inline on
 inline void IfMngr::removeGame2DObj(nw4r::g3d::ScnObj* object) {
     if (m_game2DGroup != NULL) m_game2DGroup->Remove(object);

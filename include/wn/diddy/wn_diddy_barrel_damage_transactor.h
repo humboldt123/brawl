@@ -9,7 +9,7 @@ extern const float lbl_115_rodata_13C;
 
 class wnDiddyBarrelDamageTransactorImpl : public wnDamageTransactorActor {
 public:
-    // MATCH-ONLY: preserve the out-of-line call from the module initializer.
+    // BYTES: preserve the out-of-line call from the module initializer.
     wnDiddyBarrelDamageTransactorImpl() __attribute__((never_inline)) { }
     virtual ~wnDiddyBarrelDamageTransactorImpl() __attribute__((never_inline)) { }
     // HYPOTHESIS: the native return register is pointer-sized; its pointed-to parameter type is unresolved.

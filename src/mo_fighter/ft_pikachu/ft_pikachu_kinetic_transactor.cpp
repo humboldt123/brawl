@@ -1,4 +1,4 @@
-// MATCH-ONLY: the native code assigns the vectors through the out-of-line operator=.
+// BYTES: the native code assigns the vectors through the out-of-line operator=.
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/builder/ft_builder_kinetic.h>

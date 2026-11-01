@@ -35,7 +35,7 @@ public:
     void startMelee(nw4r::g3d::ScnGroup* scnGroup);
     // HYPOTHESIS: parameter order of setDistanceWnd, dispHistory and setDistansModel, and the bool of dispResult
     void setDistance(float distance);
-    // MATCH-ONLY: the original calls it out of line from every caller.
+    // BYTES: the original calls it out of line from every caller.
     void setDistanceWnd(float distance, int wnd) __attribute__((never_inline));
     void dispHistory(int index, float distance, int color);
     int setDistansModel(nw4r::g3d::ScnMdlExpand* expand, int objectNo, float distance);

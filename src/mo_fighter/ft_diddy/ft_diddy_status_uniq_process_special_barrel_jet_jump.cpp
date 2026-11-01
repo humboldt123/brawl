@@ -1,4 +1,4 @@
-// MATCH-ONLY: keep native out-of-line Vec3f construction for resetEnergy inputs.
+// BYTES: keep native out-of-line Vec3f construction for resetEnergy inputs.
 #define MT_VEC3F_CTOR_NOINLINE
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_kinetic_energy.h>

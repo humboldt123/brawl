@@ -131,7 +131,7 @@ public:
     Vec2f m_pos;
     Vec2f m_vec;
 
-    // MATCH-ONLY: never_inline, the area module calls the weak copy out of line from the inlined clRay2D constructor.
+    // BYTES: never_inline, the area module calls the weak copy out of line from the inlined clRay2D constructor.
     clLine2DBase(const Vec2f& pos, const Vec2f& vec) __attribute__((never_inline)) : m_pos(pos), m_vec(vec) { }
 };
 

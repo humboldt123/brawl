@@ -69,7 +69,7 @@ template <class T>
 class soArrayContractible : public soArrayFixed<T> {
 public:
 #ifdef SO_ARRAY_CONTRACTIBLE_DTORS_NOINLINE
-    // MATCH-ONLY: preserve the native out-of-line teardown chain in the owning unit.
+    // BYTES: preserve the native out-of-line teardown chain in the owning unit.
     virtual ~soArrayContractible() __attribute__((never_inline)) { }
 #else
     virtual ~soArrayContractible() { }
@@ -107,7 +107,7 @@ public:
     }
 
 #ifdef SO_ARRAY_CONTRACTIBLE_DTORS_NOINLINE
-    // MATCH-ONLY: preserve the native out-of-line teardown chain in the owning unit.
+    // BYTES: preserve the native out-of-line teardown chain in the owning unit.
     virtual ~soArrayContractibleTable() __attribute__((never_inline)) { }
 #elif defined(SO_ARRAY_CONTRACTIBLE_TABLE_DTOR_EXTERN)
     // A unit whose original calls sora_melee's copies and emits none of its own.
@@ -310,7 +310,7 @@ public:
     virtual bool isEnd() const = 0;
     virtual T& getCurrent() const = 0;
 #ifdef SO_ARRAY_LIST_CTOR_FLAG
-    // MATCH-ONLY: the Pikmin troops manager unit emits the enumerator base destructor and calls it out of line.
+    // BYTES: the Pikmin troops manager unit emits the enumerator base destructor and calls it out of line.
     virtual ~soEnumerator() __attribute__((never_inline)) = 0;
 #else
     virtual ~soEnumerator() = 0;
@@ -350,7 +350,7 @@ public:
     }
 
 #ifdef SO_ARRAY_LIST_CTOR_FLAG
-    // MATCH-ONLY: the Pikmin troops manager unit keeps the enumerator's current-element accessor out of line.
+    // BYTES: the Pikmin troops manager unit keeps the enumerator's current-element accessor out of line.
     virtual ElementTy& getCurrent() const __attribute__((never_inline)) {
         return m_units[m_next].m_element;
     }
@@ -447,7 +447,7 @@ public:
     virtual s32 size() const;
 
 #ifdef SO_ARRAY_LIST_DTOR_EXTERN
-    // MATCH-ONLY: the Enemy unit calls the list destructor of sora_melee (no weak copy).
+    // BYTES: the Enemy unit calls the list destructor of sora_melee (no weak copy).
     virtual ~soArrayList();
 #else
     virtual ~soArrayList() { }
@@ -490,7 +490,7 @@ public:
 
     // Erase the element at position enm.getNext()
 #ifdef SO_ARRAY_LIST_CTOR_FLAG
-    // MATCH-ONLY: the Pikmin troops manager calls the enumerator erase from sora_melee out of line.
+    // BYTES: the Pikmin troops manager calls the enumerator erase from sora_melee out of line.
     void erase(const soArrayListEnumerator<T, IndexTy>& enm);
 #else
     void erase(const soArrayListEnumerator<T, IndexTy>& enm) {

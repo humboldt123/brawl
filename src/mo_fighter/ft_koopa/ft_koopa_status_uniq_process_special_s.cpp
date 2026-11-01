@@ -1,5 +1,5 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
-#define MT_VEC2F_ASSIGN_NOINLINE // MATCH-ONLY: the original assigns the stop speeds through the out-of-line operator=
+#define MT_VEC2F_ASSIGN_NOINLINE // BYTES: the original assigns the stop speeds through the out-of-line operator=
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_external_value_accesser.h>
 #include <so/collision/so_collision_attack_module_impl.h>

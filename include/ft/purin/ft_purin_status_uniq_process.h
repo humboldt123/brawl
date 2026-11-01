@@ -4,7 +4,7 @@
 
 class ftPurinStatusUniqProcessSpecialS : public soStatusUniqProcess {
 public:
-    // MATCH-ONLY: retain the native out-of-line global constructor.
+    // BYTES: retain the native out-of-line global constructor.
     ftPurinStatusUniqProcessSpecialS() __attribute__((never_inline)) { }
     virtual ~ftPurinStatusUniqProcessSpecialS() { }
     virtual void initStatus(soModuleAccesser* moduleAccesser);
@@ -16,7 +16,7 @@ public:
 
 class ftPurinStatusUniqProcessSpecialHi : public soStatusUniqProcess {
 public:
-    // MATCH-ONLY: retain the native out-of-line global constructor.
+    // BYTES: retain the native out-of-line global constructor.
     ftPurinStatusUniqProcessSpecialHi() __attribute__((never_inline)) { }
     virtual ~ftPurinStatusUniqProcessSpecialHi() { }
     virtual void initStatus(soModuleAccesser* moduleAccesser);
@@ -30,7 +30,7 @@ extern ftPurinStatusUniqProcessSpecialHi g_ftPurinStatusUniqProcessSpecialHi;
 
 class ftPurinStatusUniqProcessSpecialLw : public soStatusUniqProcess {
 public:
-    // MATCH-ONLY: the global instance retains an out-of-line constructor.
+    // BYTES: the global instance retains an out-of-line constructor.
     ftPurinStatusUniqProcessSpecialLw() __attribute__((never_inline)) { }
     virtual ~ftPurinStatusUniqProcessSpecialLw() { }
     virtual void initStatus(soModuleAccesser*);
@@ -40,7 +40,7 @@ public:
 
 class ftPurinStatusUniqProcessFinal : public soStatusUniqProcess {
 public:
-    // MATCH-ONLY: the global instance retains an out-of-line constructor.
+    // BYTES: the global instance retains an out-of-line constructor.
     ftPurinStatusUniqProcessFinal() __attribute__((never_inline)) { }
     virtual ~ftPurinStatusUniqProcessFinal() { }
     virtual void initStatus(soModuleAccesser*);

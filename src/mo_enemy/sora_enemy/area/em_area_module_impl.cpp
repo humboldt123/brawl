@@ -5,7 +5,7 @@
 // MATCH-ONLY: only the situation observer's addObserver is a weak copy of this unit (the others are sora_melee's).
 #define SO_SITUATION_OBSERVER_INLINE
 #define SO_EVENT_OBSERVER_ADD_SUB_EXTERN
-// MATCH-ONLY: the unit calls the weak out-of-line copies of Vec3f(float, float, float) and operator= and of the Vec2f
+// BYTES: the unit calls the weak out-of-line copies of Vec3f(float, float, float) and operator= and of the Vec2f
 // constructor, length and operator- that other units of the REL carry (Vec2f is copied whole, word by word).
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
@@ -110,7 +110,7 @@ void emAreaModuleImpl::setSideLineVec() {
     }
 }
 
-// MATCH-ONLY: the original calls the validators and the table lookups out of line.
+// BYTES: the original calls the validators and the table lookups out of line.
 #pragma dont_inline on
 bool emAreaModuleImpl::isInvalidAreaCommonKind(int kind) {
     if (kind <= -1 || kind >= 6) {

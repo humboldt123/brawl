@@ -49,7 +49,7 @@ template soArrayVector<s32, 8>::~soArrayVector();
 #pragma dont_inline off
 soStatusModuleImpl::~soStatusModuleImpl() { }
 
-// MATCH-ONLY: unlike the other fighters, ftPikmin calls the ftFighterBuilder constructor out of line (it has a large
+// BYTES: unlike the other fighters, ftPikmin calls the ftFighterBuilder constructor out of line (it has a large
 // constructor body of its own that MWCC's inliner no longer fits it into).
 #pragma dont_inline on
 template ftFighterBuilder<ftPikminBuildConfig>::ftFighterBuilder(s32, Heaps::HeapType, Heaps::HeapType, Heaps::HeapType, s32);
@@ -851,10 +851,10 @@ void ftPikmin::refreshOwnerInfoPos() {
     }
 }
 
-// MATCH-ONLY: the original calls the constructor and destructor of the local Vec2f array out of line (they live in the REL).
+// BYTES: the original calls the constructor and destructor of the local Vec2f array out of line (they live in the REL).
 FT_DOL_ARRAY_VECTOR(Vec2f, 10);
 
-// MATCH-ONLY: the REL carries the out-of-line helper (the declaration is never_inline, see MT_VEC2F_LENGTH_SQ_OUT_OF_LINE).
+// BYTES: the REL carries the out-of-line helper (the declaration is never_inline, see MT_VEC2F_LENGTH_SQ_OUT_OF_LINE).
 float Vec2f::lengthSq() {
     float xSq = m_x * m_x;
     float ySq = m_y * m_y;

@@ -27,7 +27,7 @@
 #define SO_COLLISION_LOG_CATEGORY_BYTE
 // The attack data's bitfields are plain members (reqCommonEffect copies their words one by one).
 #define SO_COLLISION_ATTACK_DATA_PLAIN_BITFIELDS
-// MATCH-ONLY: the effector base keeps its destructor out of line (the soDamageEffectorImpl destructor calls a weak copy of
+// BYTES: the effector base keeps its destructor out of line (the soDamageEffectorImpl destructor calls a weak copy of
 // it), as the article units' effector does (see so/damage/so_damage_effector_impl.h).
 #define SO_DAMAGE_EFFECTOR_OUTLINE_DTOR
 // MATCH-ONLY: the registration of an observer base (addObserverSub) is the sora_melee instance of the template member, a

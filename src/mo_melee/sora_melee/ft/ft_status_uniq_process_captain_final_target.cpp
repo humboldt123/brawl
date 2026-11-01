@@ -81,7 +81,7 @@ ftStatusUniqProcessCaptainFinalFuraFura g_ftStatusUniqProcessCaptainFinalFuraFur
 ftStatusUniqProcessCaptainFinalClash g_ftStatusUniqProcessCaptainFinalClash;
 ftStatusUniqProcessCaptainFinalEnd g_ftStatusUniqProcessCaptainFinalEnd;
 
-// MATCH-ONLY: the original keeps the one-caller fall step out of line.
+// BYTES: the original keeps the one-caller fall step out of line.
 static bool fall(soModuleAccesser* moduleAccesser) __attribute__((never_inline));
 static void set_clash_flying(soModuleAccesser* moduleAccesser);
 

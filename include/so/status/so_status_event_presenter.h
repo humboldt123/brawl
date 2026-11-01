@@ -8,7 +8,7 @@
 class soModuleAccesser;
 
 #ifdef FT_MODULE_BUILDER
-// MATCH-ONLY: the destructor of this base is an out-of-line function in sora_melee (fighter RELs call it), so the
+// BYTES: the destructor of this base is an out-of-line function in sora_melee (fighter RELs call it), so the
 // class is specialized with the destructor declared only.
 class soStatusEventObserver;
 template <>

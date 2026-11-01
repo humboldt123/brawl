@@ -13,7 +13,7 @@ public:
     virtual ~soTeam();
 #elif defined(SO_TEAM_DTOR_OUT_OF_LINE)
     // Opt-in per unit (the Enemy): soTeamImpl's destructor calls this one, a 0x40-byte weak copy of the unit.
-    // MATCH-ONLY: never_inline reproduces the original's out-of-line call.
+    // BYTES: never_inline reproduces the original's out-of-line call.
     virtual ~soTeam() __attribute__((never_inline)) { }
 #else
     virtual ~soTeam() { }

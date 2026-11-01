@@ -22,7 +22,7 @@ public:
     wnExtendParamAccesser(s32 kind) :
         m_kind(kind), m_floatBase(FloatBase), m_intBase(IntBase), m_indefiniteBase(IndefiniteBase) { }
 #ifdef WN_EXTEND_PARAM_ACCESSER_NOINLINE
-    // MATCH-ONLY: an owning unit whose derived accesser overrides the queries keeps the base ones out of line.
+    // BYTES: an owning unit whose derived accesser overrides the queries keeps the base ones out of line.
     virtual float getParamFloat(soModuleAccesser*, s32 id, s32 index) __attribute__((never_inline)) {
         return m_floats[id - m_floatBase - 1][index];
     }

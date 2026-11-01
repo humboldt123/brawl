@@ -54,7 +54,7 @@ void ftMarthStatusUniqProcessFinal::initStatus(soModuleAccesser* moduleAccesser)
     }
 }
 
-// MATCH-ONLY: the original keeps this two-coordinate constructor out of line.
+// BYTES: the original keeps this two-coordinate constructor out of line.
 #pragma dont_inline on
 static void constructWindowOffset(Vec2f* offset, float x, float y) {
     offset->m_x = x;
