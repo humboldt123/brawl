@@ -1,5 +1,3 @@
-// MATCH-ONLY: retain the original article callback scheduling.
-#pragma scheduling off
 // MATCH-ONLY: Spring's native getter relocations target sora_melee's existing
 // specialization; this TU must not inline or emit a replacement getter body.
 #define SO_EVENT_OBSERVER_ID_OUT_OF_LINE

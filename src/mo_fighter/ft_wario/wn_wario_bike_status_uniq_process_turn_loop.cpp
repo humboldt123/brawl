@@ -1,5 +1,3 @@
-// MATCH-ONLY: retain the native article status scheduling.
-#pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #define MT_VEC3F_CTOR_NOINLINE
 #include <wn/wario/wn_wario_bike_status_uniq_process.h>

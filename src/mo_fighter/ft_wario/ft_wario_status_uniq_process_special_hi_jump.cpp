@@ -1,5 +1,3 @@
-// MATCH-ONLY: retain the original fighter status scheduling.
-#pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 // MATCH-ONLY: declaration order preserves the original module-local RTTI order.
 #include <ft/ft_kinetic_energy.h>

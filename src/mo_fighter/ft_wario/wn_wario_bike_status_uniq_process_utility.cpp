@@ -1,9 +1,7 @@
-// MATCH-ONLY: retain native fighter-module scheduling.
-#pragma scheduling off
 // MATCH-ONLY: MSL's native atan2f wrapper retains the scheduled return sequence.
 #pragma scheduling 603
 #include <internal/math_double.h>
-#pragma scheduling off
+#pragma scheduling reset
 #define MT_VEC3F_CTOR_NOINLINE
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #define MT_VEC3F_BIKE_UTILITY_OPERATORS

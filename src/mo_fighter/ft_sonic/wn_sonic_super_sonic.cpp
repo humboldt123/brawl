@@ -1,5 +1,3 @@
-// MATCH-ONLY: original article callbacks use the unscheduled compiler policy.
-#pragma scheduling off
 #define MT_VEC3F_CTOR_NOINLINE
 #include <wn/sonic/wn_sonic_super_sonic.h>
 #include <wn/wn_activate_desc.h>

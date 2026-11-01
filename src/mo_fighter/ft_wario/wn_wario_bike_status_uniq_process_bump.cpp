@@ -1,4 +1,3 @@
-#pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <wn/wario/wn_wario_bike_status_uniq_process.h>
 #include <wn/wario/wn_wario_bike_link_event.h>

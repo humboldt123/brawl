@@ -1,5 +1,3 @@
-// MATCH-ONLY: preserve the original instruction scheduling.
-#pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/sonic/ft_sonic_status_uniq_process_final_end.h>
 #include <so/stageobject.h>

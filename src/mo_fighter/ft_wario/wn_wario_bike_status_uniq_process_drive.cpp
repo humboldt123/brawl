@@ -1,5 +1,3 @@
-// MATCH-ONLY: retain native fighter-module scheduling.
-#pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <wn/wario/wn_wario_bike_kinetic_transactor.h>
 #include <wn/wn_kinetic_energy_gravity.h>

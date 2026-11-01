@@ -4,7 +4,6 @@
 #include <so/so_module_accesser.h>
 #include <math.h>
 
-#pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 
 void wnWarioBikeStatusUniqProcessAppeal::execFixPosCounter(soModuleAccesser* a) {

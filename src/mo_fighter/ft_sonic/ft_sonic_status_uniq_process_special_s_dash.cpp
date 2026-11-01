@@ -1,5 +1,3 @@
-// MATCH-ONLY: retain the original instruction scheduling and out-of-line helpers.
-#pragma scheduling off
 // MATCH-ONLY: the argument-list table and its base are destroyed out of line here.
 #define SO_ARRAY_CONTRACTIBLE_DTORS_NOINLINE
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE

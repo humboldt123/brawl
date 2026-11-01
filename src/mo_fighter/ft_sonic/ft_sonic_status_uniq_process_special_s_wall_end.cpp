@@ -1,5 +1,3 @@
-// MATCH-ONLY: preserve the instruction order of this status process.
-#pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/sonic/ft_sonic_status_uniq_process_special_s_wall_end.h>
 #include <ft/ft_util.h>

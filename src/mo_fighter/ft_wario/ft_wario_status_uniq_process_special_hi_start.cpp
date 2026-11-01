@@ -1,5 +1,3 @@
-// MATCH-ONLY: retain the original fighter status scheduling.
-#pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/wario/ft_wario_status_uniq_process_special_hi.h>
 #include <ft/ft_kinetic_energy.h>

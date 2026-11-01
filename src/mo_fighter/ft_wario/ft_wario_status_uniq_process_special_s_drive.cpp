@@ -1,5 +1,3 @@
-// MATCH-ONLY: preserve the original status instruction scheduling.
-#pragma scheduling off
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #include <ft/wario/ft_wario_status_uniq_process_special_s_drive.h>
 #include <so/so_module_accesser.h>

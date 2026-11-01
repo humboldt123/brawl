@@ -1,5 +1,4 @@
-// MATCH-ONLY: preserve the original instruction scheduling.
-#pragma scheduling off
+// MATCH-ONLY: built without FT_MODULE_BUILDER (configure.py): the module-builder header layouts change the inlined soKineticEnergy destructors here.
 // MATCH-ONLY: native final-move updates call the scalar Vec2 assignment.
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <wn/sonic/wn_sonic_super_sonic_kinetic_transactor.h>

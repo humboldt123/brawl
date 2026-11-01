@@ -1,5 +1,3 @@
-// MATCH-ONLY: preserve native article instruction scheduling.
-#pragma scheduling off
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <wn/yoshi/wn_yoshi_star.h>
 #include <wn/wn_activate_desc.h>
