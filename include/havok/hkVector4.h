@@ -29,7 +29,8 @@ struct hkVector4 {
     }
 
     // Inline helpers in the Havok style (HYPOTHESIS: semantics from the Havok names, not asm-verified yet).
-    void setZero4() { set(0.0f, 0.0f, 0.0f, 0.0f); }
+    // Havok's FPU form: one chained assignment, which stores w first.
+    void setZero4() { x = y = z = w = 0.0f; }
     void setAbs4(const hkVector4& a) { set(fabsf(a.x), fabsf(a.y), fabsf(a.z), fabsf(a.w)); }
     void setNeg3(const hkVector4& a) { set(-a.x, -a.y, -a.z, a.w); }
     void setAdd4(const hkVector4& a, const hkVector4& b) { set(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
