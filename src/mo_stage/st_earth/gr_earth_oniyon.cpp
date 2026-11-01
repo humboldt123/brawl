@@ -349,7 +349,7 @@ void grEarthOniyon::setHit() {
     // MATCH-ONLY: the original allocates the hit data as raw storage (no element construction)
     m_hitData = new (Heaps::StageInstance) soCollisionHitData;
     m_hitSimple = new (Heaps::StageInstance) soCollisionHitData::Simple;
-    m_hitSet = reinterpret_cast<soSet<soCollisionHitData>*>(new (Heaps::StageInstance) grEarthSetView);
+    m_hitSet = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;
     m_dataGroup = new (Heaps::StageInstance) ykDataGroup;
     m_data = new (Heaps::StageInstance) ykData;
 
@@ -369,11 +369,10 @@ void grEarthOniyon::setHit() {
     m_hitSimple->m_height = soCollisionHitData::Height_Low;
     m_hitSimple->m_nodeIndex = 3;
 
-    // MATCH-ONLY: the members of soSet are private
-    grEarthSetView* set = reinterpret_cast<grEarthSetView*>(m_hitSet);
+    soSet<soCollisionHitData::Simple>* set = m_hitSet;
     set->m_elements = m_hitSimple;
     set->m_size = 1;
-    m_dataGroup->m_hitDataSimpleSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(m_hitSet);
+    m_dataGroup->m_hitDataSimpleSet = m_hitSet;
     m_dataGroup->m_hitGroupIndex = 0;
     m_data->m_dataGroups = m_dataGroup;
     m_data->m_dataGroupNum = 1;

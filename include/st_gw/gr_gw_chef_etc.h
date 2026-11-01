@@ -44,7 +44,7 @@ protected:
     char _27e[2];
     soCollisionHitData* m_hitData;              // 0x280 the capsules of the chefs
     soCollisionHitData::Simple* m_hitSimple;    // 0x284
-    soSet<soCollisionHitData>* m_hitSet;        // 0x288
+    soSet<soCollisionHitData::Simple>* m_hitSet;        // 0x288
     ykDataGroup* m_dataGroup;       // 0x28C
     ykData* m_data;                 // 0x290
     int m_dangerZone[4];            // 0x294 the danger zones of the AI (one for every pan)

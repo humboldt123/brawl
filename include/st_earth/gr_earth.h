@@ -284,7 +284,7 @@ protected:
     char _1a5[3];
     soCollisionHitData* m_hitData;           // 0x1A8 the hit sphere
     soCollisionHitData::Simple* m_hitSimple; // 0x1AC
-    soSet<soCollisionHitData>* m_hitSet;     // 0x1B0
+    soSet<soCollisionHitData::Simple>* m_hitSet;     // 0x1B0
     ykDataGroup* m_dataGroup;   // 0x1B4
     ykData* m_data;             // 0x1B8
     snd3DGenerator m_snd;       // 0x1BC
@@ -361,7 +361,7 @@ protected:
     char _169[3];
     soCollisionHitData* m_hitData;           // 0x16C the two hit spheres
     soCollisionHitData::Simple* m_hitSimple; // 0x170
-    soSet<soCollisionHitData>* m_hitSet;     // 0x174
+    soSet<soCollisionHitData::Simple>* m_hitSet;     // 0x174
     ykDataGroup* m_dataGroup;   // 0x178
     ykData* m_data;             // 0x17C
     snd3DGenerator m_snd;       // 0x180

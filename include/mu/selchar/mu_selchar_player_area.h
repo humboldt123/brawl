@@ -53,7 +53,8 @@ public:
     u8 m_teamSet;
     char _0x1C5[3];
     int m_nameId;
-    char _0x1CC[0x8];
+    char _0x1CC[0x4];
+    int m_handi;                        // 0x1D0 the handicap (the line of the list)
     int m_cpLevel;                      // 0x1D4 the level of the computer (the line of the list)
     char _0x1D8[0x4];
     int m_controllerNo;
@@ -76,7 +77,7 @@ public:
 
     void setCharPic(int charKind, int playerKind, int curCostume, bool isTeamBattle, int teamColor, int unk);
     nw4r::g3d::ResFile* getCharPicTexResFile(int charKind);
-    bool isTeamBattle();
+    bool isTeamBattle() __attribute__((never_inline)); // BYTES: the area calls it out of line, MWCC would inline it
     u8 exchangeCharKindDetail(MuSelchkind selCharKind);
     void dispMarkKind(MuSelchkind charKind);
     void setCharKind(MuSelchkind charKind);
@@ -109,6 +110,17 @@ public:
     void dispPlayerKindButtonColor(int playerKind, bool isTeamBattle, int teamColor);
     void dispCpLevelVisible(int playerKind);
     void dispNameEntryButtonVisible(int playerKind, int unk);
+    void dispHandi(int handi);
+    void setHandiVisible(bool visible);
+    void dispMarkColor(int playerKind, bool isTeamBattle, int teamColor);
+    void dispControllerKind(int playerKind, int controllerKind, int controllerNo);
+    void setZeldas(int zelda);
+    void setPoke3(int poke);
+    int getHandiDispMode();
+    void dispBaseMdlColor(int playerKind, bool isTeamBattle, int teamColor);
+    void dispBaseMdlAnim(int playerKind);
+    // The character kind of each of the three Pokemon of the Pokemon Trainer (and of the trainer).
+    static u8 exchangePoke3ToGmCharKind(int poke);
     void closeNameEntry();
 };
 static_assert(sizeof(muSelCharPlayerArea) == 0x448, "Wrong size for class!");

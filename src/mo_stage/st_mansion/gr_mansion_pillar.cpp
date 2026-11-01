@@ -274,7 +274,7 @@ void grMansionPillar::updateCallBack(float deltaFrame) {
 void grMansionPillar::setHit() {
     unk194 = new (Heaps::StageInstance) soCollisionHitData;
     unk198 = new (Heaps::StageInstance) soCollisionHitData::Simple;
-    unk19C = reinterpret_cast<soSet<soCollisionHitData>*>(new (Heaps::StageInstance) grMansionSetView);
+    unk19C = new (Heaps::StageInstance) soSet<soCollisionHitData::Simple>;
     unk1A0 = new (Heaps::StageInstance) ykDataGroup;
     unk1A4 = new (Heaps::StageInstance) ykData;
 
@@ -290,11 +290,10 @@ void grMansionPillar::setHit() {
     mansionCopyHit(unk198, unk194);
     unk198->m_height = soCollisionHitData::Height_Low;
     unk198->m_nodeIndex = m_nodeIndex;
-    // MATCH-ONLY: the members of soSet are private
-    grMansionSetView* set = reinterpret_cast<grMansionSetView*>(unk19C);
+    soSet<soCollisionHitData::Simple>* set = unk19C;
     set->m_elements = unk198;
     set->m_size = 1;
-    unk1A0->m_hitDataSimpleSet = reinterpret_cast<soSet<soCollisionHitData::Simple>*>(unk19C);
+    unk1A0->m_hitDataSimpleSet = unk19C;
     unk1A0->m_hitGroupIndex = 0;
     unk1A4->m_dataGroups = unk1A0;
     unk1A4->m_dataGroupNum = 1;

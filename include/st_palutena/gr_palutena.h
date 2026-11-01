@@ -28,12 +28,6 @@ struct grPalutenaHitByte {
     unsigned char m_rest : 7;
 };
 
-// MATCH-ONLY: layout of soSet<T> (its members are private)
-struct grPalutenaSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 // MATCH-ONLY: the bytes of the match settings the stages read (their names are unknown): byte 0 holds the game mode in its
 // upper six bits and byte 8 the event.
 struct grPalutenaMeleeBytes {

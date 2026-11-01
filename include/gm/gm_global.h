@@ -54,7 +54,7 @@ public:
 
     gmGlobalRecord::MenuData* getGlobalRecordMenuDatap();
     // Accessors below: names from the sora map; return types are HYPOTHESIS.
-    gmGlobalRecord::NameData* getGlobalRecordNameDatap(u8 index); // HYPOTHESIS: u8 from the inlined use in InitBattleRecord; target symbol stays fn_8004D138 (called by that name from mu_name.cpp)
+    gmGlobalRecord::NameData* getGlobalRecordNameDatap(int index); // the index is an int: the native function and its callers do not narrow it
     void initTournamentData();
     void InitHiScore();
     void InitBattleRecord();

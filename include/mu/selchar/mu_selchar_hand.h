@@ -8,6 +8,7 @@
 #include <mt/mt_vector.h>
 #include <mu/selchar/mu_selchar_coin.h>
 #include <nw4r/g3d/g3d_anmchr.h>
+#include <nw4r/g3d/g3d_anmchrblend.h>
 #include <nw4r/g3d/g3d_anmclr.h>
 #include <nw4r/g3d/g3d_anmtexpat.h>
 #include <nw4r/g3d/g3d_scngroup.h>
@@ -37,7 +38,7 @@ public:
     nw4r::g3d::AnmObjTexPatRes* m_texPatAnm;            // 0x48 the number of the player on the hand
     nw4r::g3d::AnmObjMatClrRes* m_clrAnm;               // 0x4C the color of the player
     nw4r::g3d::AnmObjChrRes* m_chrAnms[CharAnim_Num];   // 0x50 the poses of the hand
-    nw4r::g3d::G3dObj* m_chrBlend;                      // 0x7C the blend of the poses
+    nw4r::g3d::AnmObjChrBlend* m_chrBlend;              // 0x7C the blend of the poses
     int m_charAnimId;                                   // 0x80 the pose that the hand blends to
     Vec3f m_startPos;                                   // 0x84 where the hand started
     Vec3f m_pos;                                        // 0x90 where the hand is on the screen

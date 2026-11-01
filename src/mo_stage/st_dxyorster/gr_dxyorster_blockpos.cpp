@@ -27,12 +27,6 @@ struct dxyorsterWords3 {
     u32 w0, w1, w2;
 };
 
-// MATCH-ONLY: layout of soSet<T> (its members are private)
-struct dxyorsterSetView {
-    void* m_elements;
-    u32 m_size;
-};
-
 grDxYorsterBlockPos* grDxYorsterBlockPos::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
     grDxYorsterBlockPos* ground = new (Heaps::StageInstance) grDxYorsterBlockPos(taskName);
     if (ground != NULL) {
@@ -161,9 +155,8 @@ void grDxYorsterBlockPos::updateYakumono(float deltaFrame) {
             m_hitSimple[idx].m_height = soCollisionHitData::Height_Low;
             m_hitSimple[idx].m_nodeIndex = m_node[idx];
         }
-        // MATCH-ONLY: the members of soSet are private
-        reinterpret_cast<dxyorsterSetView*>(m_simpleSet)->m_elements = m_hitSimple;
-        reinterpret_cast<dxyorsterSetView*>(m_simpleSet)->m_size = 9;
+        m_simpleSet->m_elements = m_hitSimple;
+        m_simpleSet->m_size = 9;
         m_dataGroup->m_hitDataSimpleSet = m_simpleSet;
         m_dataGroup->m_hitGroupIndex = 0;
         m_data->m_dataGroupNum = 1;

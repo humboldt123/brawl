@@ -21,7 +21,7 @@ protected:
     char _18f;
     soCollisionHitData* m_hitData;              // 0x190 the hit sphere
     soCollisionHitData::Simple* m_hitSimple;    // 0x194
-    soSet<soCollisionHitData>* m_hitSet;        // 0x198
+    soSet<soCollisionHitData::Simple>* m_hitSet;        // 0x198
     ykDataGroup* m_dataGroup;       // 0x19C
     ykData* m_data;                 // 0x1A0
     snd3DGenerator m_snd;           // 0x1A4
