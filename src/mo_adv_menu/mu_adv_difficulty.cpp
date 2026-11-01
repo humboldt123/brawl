@@ -21,7 +21,6 @@ extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocat
 extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* expand, void* object, const char* name);
 // gfSceneRoot::layerUpdateFrame(layer) and gfSceneRoot::removeInfoCamResAnm()
 extern "C" void fn_8000DB40(gfSceneRoot* root, int layer);
-extern "C" void fn_8000D7B8(gfSceneRoot* root);
 // nw4r::g3d::ScnRoot::UpdateFrame()
 extern "C" void UpdateFrame__Q34nw4r3g3d7ScnRootFv(void* scnRoot);
 
@@ -108,7 +107,7 @@ muAdvDifficultyTask::~muAdvDifficultyTask() {
             delete m_objects[i];
         }
     }
-    fn_8000D7B8(g_gfSceneRoot);
+    g_gfSceneRoot->removeInfoCamResAnm();
     for (int i = 0; i < 3; i++) {
         m_handles[i].cancelRequest();
         gfHeapManager::free(m_handles[i].getBuffer());

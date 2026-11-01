@@ -25,8 +25,6 @@ extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocat
 extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* expand, void* object, const char* name);
 // gfSceneRoot::layerUpdateFrame(layer), gfSceneRoot::removeInfoCamResAnm() and gfSceneRoot::setInfoCamResAnm(animation)
 extern "C" void fn_8000DB40(gfSceneRoot* root, int layer);
-extern "C" void fn_8000D7B8(gfSceneRoot* root);
-extern "C" void fn_8000D6DC(gfSceneRoot* root, void* resAnmScn);
 // gfArchive::readFileRequest(path, heap, offset, size, archive id)
 extern "C" void fn_800151FC(gfArchive* archive, const char* path, Heaps::HeapType heap, int offset, int size, u32 id);
 // nw4r::g3d::ResFile::GetResTex(name), GetResAnmScn(index) and ResAnmScn::Bind(animation)
@@ -143,7 +141,7 @@ muFigureGetTask::~muFigureGetTask() {
     m_handles[500].release();
     delete m_archive;
     m_archive = NULL;
-    fn_8000D7B8(g_gfSceneRoot);
+    g_gfSceneRoot->removeInfoCamResAnm();
 }
 
 void muFigureGetTask::processDefault() {
@@ -264,7 +262,7 @@ int muFigureGetTask::mainStepGetResDataMain(muFigureGetTask* task) {
         anm = GetResAnmScn__Q34nw4r3g3d7ResFileCFi(&task->m_resFileCamera, 0);
         anm2 = anm;
         Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&anm, &anm2);
-        fn_8000D6DC(g_gfSceneRoot, &anm);
+        g_gfSceneRoot->setInfoCamResAnm(reinterpret_cast<nw4r::g3d::ResAnmScn*>(&anm));
         // HYPOTHESIS: the game global keeps a record whose second and third word are scales that are reset to 1.0 here
         float* record = *reinterpret_cast<float**>(reinterpret_cast<u8*>(g_GameGlobal) + 0x44);
         next = Step_DataSet;

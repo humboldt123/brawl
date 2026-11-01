@@ -18,12 +18,11 @@ extern "C" void changeMaterialTex__8MuObjectFPCciPQ34nw4r3g3d7ResFile(MuObject* 
 extern "C" void changeMaterialTex__8MuObjectFUlPCcPQ34nw4r3g3d7ResFile(MuObject* object, u32 material, const char* name,
                                                                          nw4r::g3d::ResFile* resFile);
 extern "C" u32 GetResMat__Q34nw4r3g3d6ResMdlCFPCc(nw4r::g3d::ResMdl* mdl, const char* name);
-// nw4r::g3d::ResFile::GetResAnmScn(index) and ResAnmScn::Bind(animation)
+// nw4r::g3d::ResFile::GetResAnmScn(index) and ResAnmScn::Bind(animation): the typed members put the copy that Bind takes
+// below the animation on the stack, the original has it above.
 extern "C" u32 GetResAnmScn__Q34nw4r3g3d7ResFileCFi(nw4r::g3d::ResFile* resFile, int index);
 extern "C" void Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(void* self, void* anm);
 // gfSceneRoot::removeInfoCamResAnm(), setInfoCamResAnm(animation) and layerUpdateFrame(layer)
-extern "C" void fn_8000D7B8(gfSceneRoot* root);
-extern "C" void fn_8000D6DC(gfSceneRoot* root, void* resAnmScn);
 extern "C" void fn_8000DB40(gfSceneRoot* root, int layer);
 // gfFileIOHandle::gfFileIOHandle()
 extern "C" void __ct__14gfFileIOHandleFv(gfFileIOHandle* handle);
@@ -81,7 +80,7 @@ muWifiTimeResultTask::muWifiTimeResultTask()
 
 muWifiTimeResultTask::~muWifiTimeResultTask() {
     delete m_object;
-    fn_8000D7B8(g_gfSceneRoot);
+    g_gfSceneRoot->removeInfoCamResAnm();
     for (int i = 0; i < FileNum; i++) {
         gfHeapManager::free(m_handles[i].getBuffer());
         m_handles[i].release();
@@ -189,7 +188,7 @@ void muWifiTimeResultTask::processDefault() {
         anim = GetResAnmScn__Q34nw4r3g3d7ResFileCFi(&m_resFileCamera, 0);
         bind = anim;
         Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&anim, &bind);
-        fn_8000D6DC(g_gfSceneRoot, &anim);
+        g_gfSceneRoot->setInfoCamResAnm(reinterpret_cast<nw4r::g3d::ResAnmScn*>(&anim));
         m_resFileModel = nw4r::g3d::ResFile(m_handles[2].getBuffer());
         nw4r::g3d::ResFile::Init(&m_resFileModel);
         createObjResFile(sModels, 1, &m_resFileModel, 0);

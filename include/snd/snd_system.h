@@ -58,6 +58,10 @@ public:
     bool playBGM(int bgmId, u32 fade, bool);
     void stopBGM(int fade);
     int getBGMId();
+    // HYPOTHESIS: the name (the map skips 0x80074018); it loads the music so that startBGM can start it without a wait.
+    bool prepareBGM(int bgmId, int unk);
+    bool isPreparedBGM(int bgmId);
+    void startBGM(int bgmId, int startFrame);   // HYPOTHESIS: the frame of the music it starts at
     void specialPause();
     void specialResume();
 

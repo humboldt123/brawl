@@ -10,8 +10,6 @@
 #include <mu/mu_word_of_song.h>
 
 // gfSceneRoot: main.dol has the functions, the shared header does not.
-extern "C" void fn_8000D6DC(gfSceneRoot* root, nw4r::g3d::ResAnmScn* anmScn);
-extern "C" void fn_8000D7B8(gfSceneRoot* root);
 // nw4r::g3d::ResAnmScn
 extern "C" void Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(nw4r::g3d::ResAnmScn* self, nw4r::g3d::ResAnmScn anmScn);
 extern "C" void Release__Q34nw4r3g3d9ResAnmScnFv(nw4r::g3d::ResAnmScn* self);
@@ -207,14 +205,14 @@ void muWordOfSongTask::addModel() {
     if (m_added != 1) {
         m_anmScn = m_resScene.GetResAnmScn(0);
         Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&m_anmScn, m_anmScn);
-        fn_8000D6DC(g_gfSceneRoot, &m_anmScn);
+        g_gfSceneRoot->setInfoCamResAnm(&m_anmScn);
         m_added = 1;
     }
 }
 
 void muWordOfSongTask::removeModel() {
     if (m_added) {
-        fn_8000D7B8(g_gfSceneRoot);
+        g_gfSceneRoot->removeInfoCamResAnm();
         Release__Q34nw4r3g3d9ResAnmScnFv(&m_anmScn);
         for (int i = 0; i < m_count; i++) {
             g_gfSceneRoot->remove(m_words[i]->m_scnMdl);

@@ -6,12 +6,6 @@ extern const GXColor g_greenhillCheckColorA; // 0x00, 0x50, 0x80, 0xFF
 extern const GXColor g_greenhillCheckColorB; // 0x80, 0x00, 0x00, 0xFF
 extern const char g_greenhillCheckMarkerBallMaterial[]; // "markerBall"
 
-// MATCH-ONLY: the real CopiedMatAccess is 0x34 bytes; the BrawlHeaders declaration is 0x30.
-struct grGreenhillCheckMatAccess : public nw4r::g3d::ScnMdl::CopiedMatAccess {
-    u32 unk30;
-    grGreenhillCheckMatAccess(nw4r::g3d::ScnMdl* mdl, u32 id) : CopiedMatAccess(mdl, id) {}
-};
-
 // Tints the ball's marker material: state 0 blue, state 1 red.
 void grGreenhillCheck::changeColor(int state) {
     nw4r::g3d::ResMdl resMdl;
@@ -23,7 +17,7 @@ void grGreenhillCheck::changeColor(int state) {
         if (resMdl.IsValid()) {
             resMat = resMdl.GetResMat(g_greenhillCheckMarkerBallMaterial);
             if (resMat.IsValid()) {
-                grGreenhillCheckMatAccess access(scnMdl, resMat->m_id);
+                nw4r::g3d::ScnMdl::CopiedMatAccess access(scnMdl, resMat->m_id);
                 tevColor = access.GetResMatTevColor(false);
                 if (tevColor.IsValid()) {
                     GXColor color;

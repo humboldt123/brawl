@@ -24,6 +24,7 @@ struct MuAnimIdxData {
 #include <memory.h>
 #include <nw4r/g3d/g3d_resfile.h>
 #include <nw4r/g3d/g3d_resmdl.h>
+#include <nw4r/g3d/g3d_resnode.h>
 #include <nw4r/g3d/g3d_scnobj.h>
 
 struct _GXTexObj;
@@ -89,6 +90,7 @@ public:
     // void anmPlayPolicyOneTime(float, float, float);
 
     void getNode(int objNode);
+    nw4r::g3d::ResNode getNode(const char* nodeName);
     void getNodeID(const char* nodeName);
     void getRect3D(Rect2D* rectangle, int nodeA, int nodeB);
     void getRect3D(Rect2D* rectangle, const char* nodeNameA, const char* nodeNameB);
@@ -140,6 +142,9 @@ public:
     virtual ~MuObject();
 };
 static_assert(sizeof(MuObject) == 0x60, "Class is wrong size!");
+
+// mu_object.cpp: sets the rotation of a node of a model (the movie screens use it to fit the model to the screen).
+void ResNode_SetRotate(nw4r::g3d::ResNode* node, float x, float y, float z);
 
 class muObjProcessTask : public gfTask {
 public:

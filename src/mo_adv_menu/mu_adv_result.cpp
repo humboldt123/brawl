@@ -31,8 +31,6 @@ extern "C" void fn_1_3C68(scResourceLoader* loader, int heap, const char* path, 
 extern "C" bool scResourceLoaderIsLoaded(scResourceLoader* loader);
 // gfSceneRoot::layerUpdateFrame(layer), gfSceneRoot::removeInfoCamResAnm() and gfSceneRoot::setInfoCamResAnm(animation)
 extern "C" void fn_8000DB40(gfSceneRoot* root, int layer);
-extern "C" void fn_8000D7B8(gfSceneRoot* root);
-extern "C" void fn_8000D6DC(gfSceneRoot* root, void* resAnmScn);
 extern "C" bool fn_8000D10C(gfSceneRoot* root, int layer, void* scnMdl);
 // nw4r::g3d::ResFile::GetResAnmScn(index) and ResAnmScn::Bind(animation)
 extern "C" void* GetResAnmScn__Q34nw4r3g3d7ResFileCFi(const nw4r::g3d::ResFile* resFile, int index);
@@ -147,7 +145,7 @@ muAdvResultTask::~muAdvResultTask() {
     for (int i = 0; i < ObjNum; i++) {
         delete m_objects[i];
     }
-    fn_8000D7B8(g_gfSceneRoot);
+    g_gfSceneRoot->removeInfoCamResAnm();
     m_msg->detachMuObject(m_listDisp->m_object);
     if (m_msg != NULL) {
         delete m_msg;
@@ -328,7 +326,7 @@ int muAdvResultTask::mainStepLoadMain(muAdvResultTask* task) {
     anm2 = GetResAnmScn__Q34nw4r3g3d7ResFileCFi(&task->m_resFileCamera, 0);
     anm = anm2;
     Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&anm, &anm2);
-    fn_8000D6DC(g_gfSceneRoot, &anm);
+    g_gfSceneRoot->setInfoCamResAnm(reinterpret_cast<nw4r::g3d::ResAnmScn*>(&anm));
     task->m_resFileMenu = nw4r::g3d::ResFile(task->m_archive->getData(0, Data_Type_Misc, 0, 0xFFFE));
     nw4r::g3d::ResFile::Init(&task->m_resFileMenu);
     task->m_resFileCoin = nw4r::g3d::ResFile(task->m_archive->getData(0, Data_Type_Misc, 10, 0xFFFE));

@@ -48,8 +48,6 @@ extern "C" int fn_800BA2E0();
 extern "C" const char* fn_800B96B0();
 // GameGlobal: the names that were saved
 extern "C" int fn_8004D9A8(GameGlobal* global, int nameNo);
-// GameGlobal::getLanguage(): a member function (the shared header declares it static)
-extern "C" int getLanguage__10GameGlobalFv(GameGlobal* global);
 // gfPadSystem::getSysPadStatus, WPADProbe(channel, type), the sound of the Wii Remote, gfPadSystem::fn_8002B504()
 extern "C" int fn_8021A024(int channel, int* type);
 extern "C" void fn_80077B98(sndSystem* system, int pad, int unk, int unk2, int unk3);
@@ -674,7 +672,7 @@ MuSelctChrNameEntry::MuSelctChrNameEntry() {
 
 void MuSelctChrNameEntry::init(void* scnGroup, nw4r::g3d::ScnMdl* scnMdl, MuObject* base, MuObject** setObjs, MuObject* cursorObj,
                                MuObject* lineObj, int msgIndex, MuMsg* msg, int posNo, bool allowEmpty) {
-    if (getLanguage__10GameGlobalFv(g_GameGlobal) == 0) {
+    if (g_GameGlobal->getLanguage() == 0) {
         memcpy(m_setList, sKeySetsJp, sizeof(sKeySetsJp));
         m_setCount = 4;
     } else {
@@ -1169,7 +1167,7 @@ int MuSelctChrNameEntry::decideButtonProc(gfPadStatus* pad, bool allowRandom) {
         if (pressed) {
             playSE(0x204C);
             const char* name;
-            if (getLanguage__10GameGlobalFv(g_GameGlobal) == 0) {
+            if (g_GameGlobal->getLanguage() == 0) {
                 name = sRandomNamesJp[randi(sCounts[1])];
             } else {
                 name = sRandomNamesEn[randi(sCounts[2])];
@@ -1191,7 +1189,7 @@ bool MuSelctChrNameEntry::isNameValid(const char* name) {
     char* guestPrefix;
     char* cpuPrefix;
     char** playerNames;
-    if (getLanguage__10GameGlobalFv(g_GameGlobal) == 0) {
+    if (g_GameGlobal->getLanguage() == 0) {
         cpuName = sJpCpuName;
         playerNames = sJpPlayerNames;
         guestPrefix = sJpGuestPrefix;

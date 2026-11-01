@@ -7,8 +7,6 @@
 #include <mu/mu_how_to_play.h>
 
 // gfSceneRoot: main.dol has the functions, the shared header does not.
-extern "C" void fn_8000D6DC(gfSceneRoot* root, nw4r::g3d::ResAnmScn* anmScn);
-extern "C" void fn_8000D7B8(gfSceneRoot* root);
 extern "C" void fn_8000D1B8(gfSceneRoot* root, int layer, nw4r::g3d::ScnMdl* model);
 // nw4r::g3d::ResAnmScn, ResNode
 extern "C" void Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(nw4r::g3d::ResAnmScn* self, nw4r::g3d::ResAnmScn anmScn);
@@ -51,24 +49,20 @@ void muHowToPlayTask::processDefault() {
 void muHowToPlayTask::renderOpa() {
     switch (m_state) {
     case 2:
-        m_frame = fn_8007EF70(m_movie, 0, 0, -1, -1);
+        m_frame = m_movie->drawFrame(0, 0, -1, -1);
         break;
     }
 }
 
 void muHowToPlayTask::initialize() {
     unk2C_b1 = false;
-    muMovie* movie = reinterpret_cast<muMovie*>(new (Heaps::MenuInstance) u8);
-    if (movie != NULL) {
-        movie = fn_8007E99C(movie);
-    }
-    m_movie = movie;
+    m_movie = new (Heaps::MenuInstance) mvMoviePlayer;
     m_frameCount = 0;
     m_frame = 0;
 }
 
 void muHowToPlayTask::release() {
-    fn_8000D7B8(g_gfSceneRoot);
+    g_gfSceneRoot->removeInfoCamResAnm();
     gfHeapManager::free(m_handleScene.getBuffer());
     m_handleScene.release();
     gfHeapManager::free(m_handleChr.getBuffer());
@@ -77,7 +71,7 @@ void muHowToPlayTask::release() {
     m_resChr.Release();
     delete m_object;
     m_object = NULL;
-    fn_8007EA78(m_movie, 1);
+    delete m_movie;
     m_movie = NULL;
 }
 
@@ -85,7 +79,7 @@ void muHowToPlayTask::release() {
 void muHowToPlayTask::openMovie() {
     m_handleScene.readRequest("/menu/defaultcamera/AdvMovieWide.brres", Heaps::MenuResource, 0, 0);
     m_handleChr.readRequest("/menu/adventure/visual.brres", Heaps::MenuResource, 0, 0);
-    fn_8007EC08(m_movie, "/movie/HowtoPlay.thp", 0, 0, 0);
+    m_movie->openMovie("/movie/HowtoPlay.thp", 0, 0, 0);
 }
 
 // Whether the files or the movie are still being read; when all is ready, takes how many frames the movie has.
@@ -96,10 +90,10 @@ bool muHowToPlayTask::isLoadingMovie() {
     if (!m_handleChr.isReady()) {
         return true;
     }
-    if (fn_8007EF64(m_movie) != 1) {
+    if (m_movie->getVideoState() != 1) {
         return true;
     }
-    m_frameCount = fn_8007EF68(m_movie);
+    m_frameCount = m_movie->getTotalFrame();
     return false;
 }
 
@@ -112,7 +106,7 @@ void muHowToPlayTask::createData() {
     nw4r::g3d::ResAnmScn anmScn;
     anmScn = m_resScene.GetResAnmScn(0);
     Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&anmScn, anmScn);
-    fn_8000D6DC(g_gfSceneRoot, &anmScn);
+    g_gfSceneRoot->setInfoCamResAnm(&anmScn);
     m_object = MuObject::create(&m_resChr, "MenAdvChrCmn1000_TopN", 1, NULL, Heaps::MenuInstance);
     void* node = getNode__8MuObjectFPCc(m_object, "dammy");
     if (!g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen) {
@@ -120,12 +114,12 @@ void muHowToPlayTask::createData() {
     } else {
         ResNode_SetRotate__FPQ34nw4r3g3d7ResNodefff(&node, 0.9756098f, 1.0f, 1.0f);
     }
-    fn_8007F2B4(m_movie, m_object->m_sceneModel, 0);
+    m_movie->setScnMdl(m_object->m_sceneModel, 0);
 }
 
 void muHowToPlayTask::startMovie() {
-    fn_8007F148(m_movie);
-    fn_8007EF70(m_movie, 0, 0, -1, -1);
+    m_movie->play();
+    m_movie->drawFrame(0, 0, -1, -1);
 }
 
 void muHowToPlayTask::addMovieModel() {

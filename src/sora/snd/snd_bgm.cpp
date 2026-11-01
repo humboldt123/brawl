@@ -7,11 +7,6 @@
 #include <types.h>
 #include <ut/ut_relocate.h>
 
-// HYPOTHESIS: stand-ins for sndSystem BGM entries, which are still fn_.
-extern "C" bool fn_80074018(sndSystem* system, u32 bgmId, int unk);
-extern "C" bool fn_80074184(sndSystem* system, u32 bgmId);
-extern "C" void fn_800741EC(sndSystem* system, u32 bgmId, u32 param);
-
 sndBgmRateSystem* lbl_805A01D8;
 
 sndBgmRateSystem::sndBgmRateSystem() {
@@ -132,20 +127,20 @@ int sndBgmRateSystem::prepareBGM(int category, u32 id, int bgmId) {
     if (m_bgmId == 0) {
         return -1;
     }
-    if (fn_80074018(g_sndSystem, m_bgmId, 1)) {
+    if (g_sndSystem->prepareBGM(m_bgmId, 1)) {
         return m_bgmId;
     }
     return -1;
 }
 
 bool sndBgmRateSystem::isPreparedBGM() {
-    return fn_80074184(g_sndSystem, m_bgmId);
+    return g_sndSystem->isPreparedBGM(m_bgmId);
 }
 
 void sndBgmRateSystem::startBGM(u32 param) {
     unk17C = param;
     m_frame = 0;
-    fn_800741EC(g_sndSystem, m_bgmId, param);
+    g_sndSystem->startBGM(m_bgmId, param);
 }
 
 u16 sndBgmRateSystem::getPlayTiming() {

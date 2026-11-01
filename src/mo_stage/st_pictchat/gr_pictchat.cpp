@@ -146,7 +146,7 @@ void grPictchatBg::updateMessage(float deltaFrame) {
     m_message->setScale(scale, scale);
     m_message->setCursorX(cursorX);
     m_message->setCursorY(cursorY);
-    if (GameGlobal::getLanguage() == 0) {
+    if (g_GameGlobal->getLanguage() == 0) {
         char text[0x80];
         char suffix[8];
         char* str;

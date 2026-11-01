@@ -20,8 +20,6 @@ extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocat
                                                                                          int capacity, void* scnMdl);
 extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* expand, void* object, const char* name);
 
-// GameGlobal::getLanguage(): a member function (the shared header declares it static)
-extern "C" int getLanguage__10GameGlobalFv(GameGlobal* global);
 
 // One model of the intro: the name, the slots of the task it fills (start, end), and the draw priority.
 struct muIntroModel {
@@ -266,7 +264,7 @@ void muIntroTask::makeSoundScript() {
             u32 voice = muMenu::exchangeSelchkind2SelCharVoice(m_players[i].m_charKind);
             if (voice != -1u) {
                 int frames;
-                if (getLanguage__10GameGlobalFv(g_GameGlobal) == 0) {
+                if (g_GameGlobal->getLanguage() == 0) {
                     frames = muMenu::exchangeSelCharVoice2SelCharVoiceLengthE(m_players[i].m_charKind);
                 } else {
                     frames = muMenu::exchangeSelCharVoice2SelCharVoiceLengthJ(m_players[i].m_charKind);

@@ -4,9 +4,6 @@
 #include <types.h>
 
 extern "C" {
-bool fn_80074018(sndSystem* system, int bgmId, int arg);
-bool fn_80074184(sndSystem* system, int bgmId);
-void fn_800741EC(sndSystem* system, int bgmId, int frame);
 void fn_27_23B36C(const char* format, ...);
 }
 
@@ -29,7 +26,7 @@ void stOperatorAdvBgm::phasePrepareRequest() {
         m_bgmVolume = stage->getBgmVolume();
         m_bgmPlayOffsetFrame = stage->getBgmPlayOffsetFrame();
         if (m_stepBgmId != -1) {
-            if (!fn_80074018(system, m_stepBgmId, 1)) {
+            if (!system->prepareBGM(m_stepBgmId, 1)) {
                 fn_27_23B36C("ADV BGM \x83\x8A\x83\x4E\x83\x47\x83\x58\x83\x67\x82\xC9\x8E\xB8\x94\x73 BgmId=%d \n", m_stepBgmId);
                 m_state = 0;
             } else {
@@ -45,7 +42,7 @@ void stOperatorAdvBgm::phasePrepareRequest() {
 }
 
 void stOperatorAdvBgm::phasePrepareWait() {
-    if (fn_80074184(g_sndSystem, m_stepBgmId)) {
+    if (g_sndSystem->isPreparedBGM(m_stepBgmId)) {
         m_state = 3;
     }
 }
@@ -53,7 +50,7 @@ void stOperatorAdvBgm::phasePrepareWait() {
 void stOperatorAdvBgm::phasePlayReady() {
     sndSystem* system = g_sndSystem;
     if (m_isRequestPlay) {
-        fn_800741EC(system, m_stepBgmId, m_bgmPlayOffsetFrame);
+        system->startBGM(m_stepBgmId, m_bgmPlayOffsetFrame);
         m_state = 4;
     }
 }

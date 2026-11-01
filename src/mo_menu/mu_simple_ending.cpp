@@ -5,6 +5,7 @@
 #include <gf/gf_pad_system.h>
 #include <gm/gm_global.h>
 #include <memory.h>
+#include <mv/mv_movie_player.h>
 #include <nw4r/g3d/g3d_anmclr.h>
 #include <snd/snd_system.h>
 #include <stdio.h>
@@ -27,19 +28,7 @@ extern "C" void Release__Q34nw4r3g3d7ResFileFv(nw4r::g3d::ResFile* resFile);
 extern "C" void* GetResAnmScn__Q34nw4r3g3d7ResFileCFi(const nw4r::g3d::ResFile* resFile, int index);
 extern "C" void Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(void* self, void* anm);
 // gfSceneRoot::setInfoCamResAnm(animation), gfSceneRoot::removeInfoCamResAnm() and gfSceneRoot::remove(layer, model)
-extern "C" void fn_8000D6DC(gfSceneRoot* root, void* resAnmScn);
-extern "C" void fn_8000D7B8(gfSceneRoot* root);
 extern "C" void fn_8000D1B8(gfSceneRoot* root, int layer, void* scnMdl);
-// mvMoviePlayer: the constructor, the destructor (with a flag), load(path), getVideoState(), getTotalFrame(),
-// drawFrame(...) (returns the frame that was drawn), play() and setScnMdl(model, unk)
-extern "C" mvMoviePlayer* fn_8007E99C(void* player);
-extern "C" void fn_8007EA78(mvMoviePlayer* player, int flag);
-extern "C" void fn_8007EC08(mvMoviePlayer* player, const char* path, int unk0, int unk1, int unk2);
-extern "C" int fn_8007EF64(mvMoviePlayer* player);
-extern "C" int fn_8007EF68(mvMoviePlayer* player);
-extern "C" int fn_8007EF70(mvMoviePlayer* player, int unk0, int unk1, int unk2, int unk3);
-extern "C" void fn_8007F148(mvMoviePlayer* player);
-extern "C" void fn_8007F2B4(mvMoviePlayer* player, void* scnMdl, int unk);
 
 // The flag of the menu data (of the record of the game) that says that the screen is wide.
 // HYPOTHESIS: the name; the flag is the high bit of the byte at 0x28.
@@ -299,45 +288,40 @@ void muEndMovieTask::processDefault() {
 void muEndMovieTask::renderOpa() {
     switch (m_step) {
     case Step_Play:
-        m_frameNo = fn_8007EF70(m_player, 0, 0, -1, -1);
+        m_frameNo = m_player->drawFrame(0, 0, -1, -1);
         break;
     }
 }
 
 void muEndMovieTask::initialize() {
     unk2C_b1 = false;
-    void* memory = operator new(1, Heaps::MenuInstance);
-    mvMoviePlayer* player = static_cast<mvMoviePlayer*>(memory);
-    if (memory != NULL) {
-        player = fn_8007E99C(memory);
-    }
-    m_player = player;
+    m_player = new (Heaps::MenuInstance) mvMoviePlayer;
     m_frameNum = 0;
     m_frameNo = 0;
 }
 
 void muEndMovieTask::release() {
-    fn_8000D7B8(g_gfSceneRoot);
+    g_gfSceneRoot->removeInfoCamResAnm();
     Release__Q34nw4r3g3d7ResFileFv(&m_resFile);
     Release__Q34nw4r3g3d7ResFileFv(&m_resFileModel);
     delete m_object;
     m_object = NULL;
-    fn_8007EA78(m_player, 1);
+    delete m_player;
     m_player = NULL;
 }
 
 // Starts to load the movie of a character.
 void muEndMovieTask::load(int index) {
-    fn_8007EC08(m_player, m_paths[index], 0, 0, 0);
+    m_player->openMovie(m_paths[index], 0, 0, 0);
 }
 
 // Whether the movie is still loading; when it is not the number of its frames is known.
 bool muEndMovieTask::isLoading() {
-    int state = fn_8007EF64(m_player);
+    int state = m_player->getVideoState();
     if (state != 1) {
         return true;
     }
-    m_frameNum = fn_8007EF68(m_player);
+    m_frameNum = m_player->getTotalFrame();
     return false;
 }
 
@@ -355,7 +339,7 @@ void muEndMovieTask::createData(gfArchive* archive) {
     anm2 = GetResAnmScn__Q34nw4r3g3d7ResFileCFi(&m_resFile, 0);
     anm = anm2;
     Bind__Q34nw4r3g3d9ResAnmScnFQ34nw4r3g3d9ResAnmScn(&anm, &anm2);
-    fn_8000D6DC(g_gfSceneRoot, &anm);
+    g_gfSceneRoot->setInfoCamResAnm(reinterpret_cast<nw4r::g3d::ResAnmScn*>(&anm));
     m_object = MuObject::create(&m_resFileModel, "MenAdvChrCmn1000_TopN", 1, NULL, Heaps::MenuInstance);
     node = getNode__8MuObjectFPCc(m_object, "dammy");
     if (wide == 0) {
@@ -363,7 +347,7 @@ void muEndMovieTask::createData(gfArchive* archive) {
     } else {
         ResNode_SetRotate__FPQ34nw4r3g3d7ResNodefff(&node, 0.8780488f, 0.8965517f, 1.0f);
     }
-    fn_8007F2B4(m_player, m_object->m_sceneModel, 0);
-    fn_8007F148(m_player);
-    fn_8007EF70(m_player, 0, 0, -1, -1);
+    m_player->setScnMdl(m_object->m_sceneModel, 0);
+    m_player->play();
+    m_player->drawFrame(0, 0, -1, -1);
 }
