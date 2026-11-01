@@ -29,6 +29,7 @@ wnPopoBlizzard::wnPopoBlizzard(s32 articleId, const wnArticleBuildInfo& info, co
 }
 
 void wnPopoBlizzard::activate(int founderTaskId, int team, const Vec3f* position, float lr) {
+    Vec2f accelVec;
     wnActivateDesc desc;
     desc.founderTaskId = founderTaskId;
     desc.resourceId = 0xFFFF;
@@ -83,7 +84,9 @@ void wnPopoBlizzard::activate(int founderTaskId, int team, const Vec3f* position
         float cosine = cos(angle);
         energy->resetEnergy(0, &Vec2f(speed * cosine, speed * sine), &Vec3f(0.0f, 0.0f, 0.0f), accesser);
         float accel = soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFA1, 0);
-        energy->m_accel = Vec2f(0.0f, accel);
+        accelVec.m_x = 0.0f;
+        accelVec.m_y = accel;
+        energy->m_accel = accelVec;
         energy->enable();
     }
 }

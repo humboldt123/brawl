@@ -238,14 +238,14 @@ public:
     virtual void unk194Int(int, int, bool);
 };
 
-inline wnLassoAltStatusView* wnLassoGetAltStatus(soModuleAccesser* moduleAccesser) {
+inline wnLassoAltStatusView* wnLassoGetAltStatus(const soModuleAccesser* moduleAccesser) {
     return (wnLassoAltStatusView*)moduleAccesser->m_enumerationStart->m_physicsModule;
 }
 
-inline wnLassoAltModelView* wnLassoGetAltModel(soModuleAccesser* moduleAccesser) {
+inline wnLassoAltModelView* wnLassoGetAltModel(const soModuleAccesser* moduleAccesser) {
     return (wnLassoAltModelView*)moduleAccesser->m_enumerationStart->m_modelModule;
 }
 
-inline wnLassoLinkView* wnLassoGetLink(soModuleAccesser* moduleAccesser) {
+inline wnLassoLinkView* wnLassoGetLink(const soModuleAccesser* moduleAccesser) {
     return (wnLassoLinkView*)moduleAccesser->m_enumerationStart->m_linkModule;
 }
