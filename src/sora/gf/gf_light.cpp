@@ -55,11 +55,10 @@ void gfLoupe::setup() {
         infos[i].m_subject = NULL;
     }
     for (nw4r::ut::LinkList<cmSubject, 0>::Iterator it = lbl_8049DEDC.GetBeginIter(); it != lbl_8049DEDC.GetEndIter(); ++it) {
-        // MATCH-ONLY: the header's bitfields at +0x8 are laid out differently; the raw word reads the original's fields.
-        u32 bits = *(u32*)&it->_0[8];
-        if ((bits >> 16) & 1) {
-            if ((u8)(((bits >> 0x1A) & 7) + 0xFE) <= 1U) {
-                u32 no = (bits >> 0x14) & 7;
+        if (it->m_isLoupeTarget) {
+            u8 kind = it->m_stateB;
+            if (kind == 2 || kind == 3) {
+                u32 no = it->m_playerNo;
                 if (no < 7) {
                     infos[no].m_subject = &*it;
                 }
