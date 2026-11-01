@@ -17,33 +17,8 @@
 #include <st_mariopast/gr_mariopast.h>
 #include <st_mariopast/st_mariopast.h>
 
-// HYPOTHESIS: tear down and validity check of a stCollisionWork (unnamed functions of sora_melee).
-extern "C" void fn_27_239F6C(stCollisionWork* work);
-extern "C" int fn_27_239FD8(stCollisionWork* work);
-
-// MATCH-ONLY: the data pointers of stCollisionWork are private in the header.
-struct stCollisionWorkView {
-    grCollData::VtxData* m_vtxDatas;
-    grCollData::LineData* m_lineDatas;
-    grCollData::JointData* m_jointDatas;
-};
 
 
-// MATCH-ONLY: views of the node data of a model; the header names neither the name offset (+8), the id (+0xC) nor the offset
-// to the parent node (+0x5C).
-static inline const char* mpNodeName(nw4r::g3d::ResNode& node) {
-    u8* data = reinterpret_cast<u8*>(node.ptr());
-    s32 offset = *reinterpret_cast<s32*>(data + 8);
-    return offset != 0 ? reinterpret_cast<const char*>(data + offset) : NULL;
-}
-static inline int mpNodeId(u8* data) {
-    return *reinterpret_cast<int*>(data + 0xC);
-}
-static inline u8* mpNodeParent(nw4r::g3d::ResNode& node) {
-    u8* data = reinterpret_cast<u8*>(node.ptr());
-    s32 offset = *reinterpret_cast<s32*>(data + 0x5C);
-    return offset != 0 ? data + offset : NULL;
-}
 
 stClassInfoImpl<Stages::MarioPast, stMarioPast> stMarioPast::bss_loc_14;
 
@@ -91,7 +66,7 @@ stMarioPast::~stMarioPast() {
         *mpCameraFlags() = *mpCameraFlags() & 0xFFFFFF;
     }
     for (int i = 0; i < 2; i++) {
-        fn_27_239F6C(&m_collWork[i]);
+        m_collWork[i].destroy();
     }
     if (m_blockWork.m_data != NULL) {
         delete[] m_blockWork.m_data;
@@ -476,23 +451,21 @@ void stMarioPast::createObjBlockPos(int) {
 // points, four lines, one joint).
 void stMarioPast::initCollDatafromCollWorkBlock(grCollData* data, stCollisionWork* work, Ground* ground, u32 count,
                                                 stMarioPastBlockDt* blocks) {
-    if (data == NULL || work == NULL || ground == NULL || count == 0 || blocks == NULL || !fn_27_239FD8(work)) {
+    if (data == NULL || work == NULL || ground == NULL || count == 0 || blocks == NULL || !work->isValid()) {
         return;
     }
-    // MATCH-ONLY: the three data pointers are private in the header; this view reads them at their offsets.
-    stCollisionWorkView* wv = reinterpret_cast<stCollisionWorkView*>(work);
     u32 vtxNum = work->m_vtxLen * count;
     double minX = 0.0;
     double maxX = 0.0;
     double minY = 0.0;
     double maxY = 0.0;
-    wv->m_vtxDatas = reinterpret_cast<grCollData::VtxData*>(new (Heaps::StageInstance) u8[(vtxNum * 8) & 0x7FFF8]);
-    wv->m_lineDatas = reinterpret_cast<grCollData::LineData*>(new (Heaps::StageInstance) u8[(vtxNum & 0xFFFF) << 4]);
-    wv->m_jointDatas = reinterpret_cast<grCollData::JointData*>(new (Heaps::StageInstance) u8[(count & 0xFFFF) * 0x6C]);
-    memset(wv->m_vtxDatas, 0, (vtxNum & 0xFFFF) << 3);
-    memset(wv->m_lineDatas, 0, (vtxNum & 0xFFFF) << 4);
-    memset(wv->m_jointDatas, 0, (count & 0xFFFF) * 0x6C);
-    float* vtx = reinterpret_cast<float*>(wv->m_vtxDatas);
+    work->m_vtxDatas = reinterpret_cast<grCollData::VtxData*>(new (Heaps::StageInstance) u8[(vtxNum * 8) & 0x7FFF8]);
+    work->m_lineDatas = reinterpret_cast<grCollData::LineData*>(new (Heaps::StageInstance) u8[(vtxNum & 0xFFFF) << 4]);
+    work->m_jointDatas = reinterpret_cast<grCollData::JointData*>(new (Heaps::StageInstance) u8[(count & 0xFFFF) * 0x6C]);
+    memset(work->m_vtxDatas, 0, (vtxNum & 0xFFFF) << 3);
+    memset(work->m_lineDatas, 0, (vtxNum & 0xFFFF) << 4);
+    memset(work->m_jointDatas, 0, (count & 0xFFFF) * 0x6C);
+    float* vtx = reinterpret_cast<float*>(work->m_vtxDatas);
     for (u32 i = 0; i < count; i++) {
         float x0 = blocks[i].m_pos.m_x - 4.25f;
         float y1 = blocks[i].m_pos.m_y + 4.25f;
@@ -522,7 +495,7 @@ void stMarioPast::initCollDatafromCollWorkBlock(grCollData* data, stCollisionWor
         }
         vtx += 8;
     }
-    short* line = reinterpret_cast<short*>(wv->m_lineDatas);
+    short* line = reinterpret_cast<short*>(work->m_lineDatas);
     short base = 0;
     for (u32 i = 0; i < count; i++) {
         static const short sLineKind[4] = { 0x11, 0x14, 0x12, 0x18 };
@@ -541,7 +514,7 @@ void stMarioPast::initCollDatafromCollWorkBlock(grCollData* data, stCollisionWor
         }
         base += 4;
     }
-    short* joint = reinterpret_cast<short*>(wv->m_jointDatas);
+    short* joint = reinterpret_cast<short*>(work->m_jointDatas);
     base = 0;
     for (u32 i = 0; i < count; i++) {
         joint[0] = base;
@@ -559,9 +532,9 @@ void stMarioPast::initCollDatafromCollWorkBlock(grCollData* data, stCollisionWor
     data->m_lineLen = vtxNum;
     data->m_jointLen = count;
     data->m_unk1 = 0;
-    data->m_vtxDatas = wv->m_vtxDatas;
-    data->m_lineDatas = wv->m_lineDatas;
-    data->m_jointDatas = wv->m_jointDatas;
+    data->m_vtxDatas = work->m_vtxDatas;
+    data->m_lineDatas = work->m_lineDatas;
+    data->m_jointDatas = work->m_jointDatas;
 }
 
 // Counts the blocks (nodes that contain "block_dummy" or "hatena_dummy" in their name) below the given node.
@@ -570,9 +543,9 @@ int stMarioPast::countBlockNum(nw4r::g3d::ResMdl* model, int node) {
     u32 num = model->GetResNodeNumEntries();
     for (u32 i = 0; i < num; i++) {
         nw4r::g3d::ResNode resNode = model->GetResNode(i);
-        u8* parent = mpNodeParent(resNode);
-        if (parent != NULL && node == mpNodeId(parent)) {
-            const char* name = mpNodeName(resNode);
+        nw4r::g3d::ResNode parent = resNode.GetParentNode();
+        if (parent.IsValid() && node == parent.GetID()) {
+            const char* name = resNode.GetName();
             if (strstr(name, "block_dummy") != NULL || strstr(name, "hatena_dummy") != NULL) {
                 count++;
             }
@@ -603,7 +576,7 @@ bool stMarioPast::setupBlockWork(float scale, stMarioPastBlockWork* work, nw4r::
         if (group.ptr() == NULL) {
             return false;
         }
-        groupId[i] = mpNodeId(reinterpret_cast<u8*>(group.ptr()));
+        groupId[i] = group.GetID();
         int num = countBlockNum(model, groupId[i]);
         work->m_num[i] = num;
         total += num;
@@ -619,13 +592,14 @@ bool stMarioPast::setupBlockWork(float scale, stMarioPastBlockWork* work, nw4r::
     u32 num = model->GetResNodeNumEntries();
     for (u32 i = 0; i < num; i++) {
         nw4r::g3d::ResNode node = model->GetResNode(i);
-        const char* name = mpNodeName(node);
+        const char* name = node.GetName();
         int group = -1;
-        u8* parent = mpNodeParent(node);
-        if (parent != NULL) {
-            if (mpNodeId(parent) == groupId[0]) {
+        nw4r::g3d::ResNode parent = node.GetParentNode();
+        if (parent.IsValid()) {
+            u32 id = parent.GetID();
+            if (id == groupId[0]) {
                 group = 0;
-            } else if (mpNodeId(parent) == groupId[1]) {
+            } else if (id == groupId[1]) {
                 group = 1;
             }
             if (group >= 0) {

@@ -24,8 +24,6 @@
 // Unnamed helpers of other modules the stage calls directly.
 // efScreen: ends a fill requested with requestFill (HYPOTHESIS: fades it out over `frames`).
 extern "C" void fn_8005E3C8(efScreen* screen, efScreenHandle* handle, float frames);
-// stCollisionWork: releases the collision lines the work owns (HYPOTHESIS).
-extern "C" void fn_27_239F6C(stCollisionWork* work);
 // Stage: HYPOTHESIS: true while the stage is the active one (not the one used for the menu preview).
 extern "C" int fn_27_2249E0(Stage* stage);
 // grMadein: HYPOTHESIS: switches the looping flag of the ground's motion.
@@ -178,7 +176,7 @@ stDxZebes::stDxZebes() : stMelee("stDxZebes", Stages::DxZebes) {
 
 stDxZebes::~stDxZebes() {
     releaseArchive();
-    fn_27_239F6C(&m_collision);
+    m_collision.destroy();
     if (m_screenHandle.isValid() == 1) {
         efScreenHandle handle = m_screenHandle;
         fn_8005E3C8(g_efScreen, &handle, 1.0f);

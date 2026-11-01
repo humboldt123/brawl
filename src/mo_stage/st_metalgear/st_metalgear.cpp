@@ -18,8 +18,6 @@
 #include <st_metalgear/nw4r_camera.h>
 #include <st_metalgear/st_metalgear.h>
 
-// stCollisionWork::destroy (sora_melee, unnamed)
-extern "C" void fn_27_239F6C(stCollisionWork* work);
 
 // MATCH-ONLY: the owner of a fighter as the stage calls it: its virtual part starts at +0xC, and the functions get the
 // object pointer itself (the slots are those of ftOwner).
@@ -93,8 +91,8 @@ stMetalgear::stMetalgear() : stMelee("stMetalgear", Stages::MetalGear) {
 }
 
 stMetalgear::~stMetalgear() {
-    fn_27_239F6C(&m_collLeft);
-    fn_27_239F6C(&m_collRight);
+    m_collLeft.destroy();
+    m_collRight.destroy();
     releaseArchive();
     if (m_appearTask != NULL) {
         m_appearTask->exit();

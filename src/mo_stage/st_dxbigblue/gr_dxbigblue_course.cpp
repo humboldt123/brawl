@@ -6,17 +6,6 @@
 #include <st_dxbigblue/st_dxbigblue_data.h>
 #include <string.h>
 
-// MATCH-ONLY: views of the node data of a model; the header names neither the name offset (+8) nor the id (+0xC).
-static inline const char* dxbigblueNodeName(nw4r::g3d::ResNode& node) {
-    u8* data = reinterpret_cast<u8*>(node.ptr());
-    s32 offset = *reinterpret_cast<s32*>(data + 8);
-    return offset != 0 ? reinterpret_cast<const char*>(data + offset) : NULL;
-}
-static inline u32 dxbigblueNodeId(nw4r::g3d::ResNode& node) {
-    u8* data = reinterpret_cast<u8*>(node.ptr());
-    return data != NULL ? *reinterpret_cast<u32*>(data + 0xC) : 0;
-}
-
 grDxBigBlueCourse* grDxBigBlueCourse::create(int mdlIndex, const char* nodeName, const char* taskName) {
     grDxBigBlueCourse* ground = new (Heaps::StageInstance) grDxBigBlueCourse(taskName);
     if (ground != NULL) {
@@ -155,14 +144,14 @@ bool grDxBigBlueCourse::setNode() {
     for (; i != count; i++) {
         nw4r::g3d::ResNode node = resMdl.GetResNode(i);
         if (!foundStart) {
-            if (strstr(dxbigblueNodeName(node), "StartN") != NULL) {
-                m_nodeStart = dxbigblueNodeId(node);
+            if (strstr(node.GetName(), "StartN") != NULL) {
+                m_nodeStart = node.GetID();
                 foundStart = true;
             }
         }
         if (!foundEnd) {
-            if (strstr(dxbigblueNodeName(node), "EndN") != NULL) {
-                m_nodeEnd = dxbigblueNodeId(node);
+            if (strstr(node.GetName(), "EndN") != NULL) {
+                m_nodeEnd = node.GetID();
                 foundEnd = true;
             }
         }

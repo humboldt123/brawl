@@ -44,6 +44,22 @@ namespace nw4r {
             inline ResNode() : ResCommon() {}
             inline ResNode(void* data) : ResCommon(data) {}
             void SetTranslate(float x, float y, float z);
+
+            // The offsets are relative to the node data; zero means none.
+            const char* GetName() const {
+                ResNodeData* data = ptr();
+                s32 offset = data->m_nodeNameStrOffset;
+                return offset != 0 ? reinterpret_cast<const char*>(data) + offset : NULL;
+            }
+            u32 GetID() const {
+                ResNodeData* data = ptr();
+                return data != NULL ? data->m_nodeIndex : 0;
+            }
+            ResNode GetParentNode() const {
+                ResNodeData* data = ptr();
+                s32 offset = data->m_toParent;
+                return ResNode(offset != 0 ? reinterpret_cast<u8*>(data) + offset : NULL);
+            }
         };
 
     } // namespace g3d
