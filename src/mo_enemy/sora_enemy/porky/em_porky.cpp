@@ -1,3 +1,4 @@
+#define MT_VEC3F_SUB_FRESH_REGS
 // The Enemy unit builds the StageObject virtuals that the SDK defines inline (getInput, isActive, ...) as weak copies,
 // like the yakumono stage units: the vtables reference them.
 #define YK_STAGE_FULL
@@ -5,8 +6,6 @@
 #define WN_WEAPON_ANIMCMD_LONG
 // Its IpNull vtable points at Input::getContNo, as the Enemy unit's does.
 #define IP_NULL_INPUT_CONT_NO
-// MATCH-ONLY: the Vec3f subtraction in updateNodeSRT allocates its four registers in ascending order (f0..f3).
-#define MT_VEC3F_SUB_ASCENDING
 #include <em/porky/em_porky.h>
 #include <em/em_shot.h>
 #include <em/em_weapon_manager.h>

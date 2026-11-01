@@ -1,4 +1,4 @@
-#define MT_VEC3F_SUB_AIR_LASSO // MATCH-ONLY: subtraction register form of the original
+#define MT_VEC3F_SUB_FRESH_REGS
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 // Use the native Fighter observer override before transitive Fighter includes (same as the shoot scope unit).
 #define FT_MODULE_BUILDER

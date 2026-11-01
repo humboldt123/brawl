@@ -1,4 +1,4 @@
-#define MT_VEC3F_SUB_DISTINCT // MATCH-ONLY: subtraction register form of the original
+#define MT_VEC3F_SUB_FRESH_REGS
 #define MT_VEC3F_MUL_INLINE // paired-single Vec3f scale, as in the original code
 #include <ft/fighter.h>
 #include <ft/ft_external_value_accesser.h>

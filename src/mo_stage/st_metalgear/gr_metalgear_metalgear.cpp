@@ -1,3 +1,4 @@
+#define MT_VEC3F_SUB_FRESH_REGS
 #include <gf/gf_model.h>
 #include <gr/gr_calc_world_callback.h>
 #include <math.h>

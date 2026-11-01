@@ -1,3 +1,4 @@
+#define MT_VEC3F_SUB_FRESH_REGS
 // The Enemy unit builds the StageObject virtuals that the SDK defines inline (getInput, isActive, ...) as weak copies,
 // like the yakumono stage units: the vtables reference them.
 #define YK_STAGE_FULL
@@ -8,9 +9,8 @@
 // MATCH-ONLY: the unit calls its weak out-of-line copies of Vec3f(float, float, float), operator- and operator+=.
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_OPERATORS_NOINLINE
-// MATCH-ONLY: both copies write their paired-single results over the right-hand operand's registers.
+// MATCH-ONLY: the add copy writes its paired-single results over the right-hand operand's registers.
 #define MT_VEC3F_ADD_NATIVE_ORDER
-#define MT_VEC3F_SUB_NATIVE_ORDER
 // MATCH-ONLY: and its weak copies of Vec2f::distance (subtracting through Vec2f::sub) and Vec3f::scale.
 #define MT_VEC2F_DISTANCE_NOINLINE
 #define MT_VEC3F_SCALE_NOINLINE
