@@ -214,9 +214,6 @@ void* fn_114_5B8C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator de
 // Small helpers of this unit; the native callers reach them with a call.
 #pragma dont_inline on
 extern "C" {
-#pragma scheduling 603 // MATCH-ONLY: the epilogue lwz precedes the frsp
-float fn_114_B6DC(double y, double x) { return (float)atan2(y, x); }
-#pragma scheduling reset
 float fn_114_C4CC(float x) { return __fabsf(x); }
 // (Vec3f____ct) copy constructor, out of line in the original
 Vec3f* fn_114_B6C0(Vec3f* p, const Vec3f* src) {
@@ -534,7 +531,6 @@ struct ftLucasStarStormParam {
 };
 
 extern "C" float fn_114_C4CC(float x);
-extern "C" float fn_114_B6DC(double y, double x);
 extern "C" void fn_114_C4D4(Vec3f* p, const Vec3f* src, float z);
 
 bool ftLucas::activeArticle2(wnLucasPKStarStorm* weapon, soModuleAccesser* acc) {
@@ -589,7 +585,7 @@ bool ftLucas::activeArticle2(wnLucasPKStarStorm* weapon, soModuleAccesser* acc) 
     dir.m_y = from.m_y - to.m_y;
     Vec2f dirCopy = dir;
     Vec2f dirCopy2 = dirCopy;
-    float angle = fn_114_B6DC(-dirCopy2.m_x, dirCopy2.m_y);
+    float angle = atan2f(-dirCopy2.m_x, dirCopy2.m_y);
     s32 taskId = founder.m_taskId;
     Vec3f pos;
     fn_114_C4D4(&pos, reinterpret_cast<const Vec3f*>(&from), 0.0f);
@@ -828,7 +824,7 @@ void ftLucas::notifyEventCollisionAbsorber(soCollisionAttackModule* attackModule
         Vec3f hitCopy;
         Vec3f effectPos;
         Vec3fSub(&delta, &pos, fn_114_B6C0(&hitCopy, &collisionLog->m_pos));
-        float angle = fn_114_B6DC(delta.m_y, delta.m_x);
+        float angle = atan2f(delta.m_y, delta.m_x);
         rot.m_x = 0.0f;
         rot.m_y = 0.0f;
         rot.m_z = angle;
