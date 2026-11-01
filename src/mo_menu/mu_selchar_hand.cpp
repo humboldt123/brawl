@@ -155,6 +155,27 @@ void muSelCharHand::updateTeamColor() {
     m_clrAnm->SetFrame(frame);
 }
 
+// The hand blends to its pose: the weight of the pose grows and the weights of the others fall, a quarter a frame.
+void muSelCharHand::processDefault() {
+    for (int i = 0; i < CharAnim_Num; i++) {
+        float weight = m_chrBlend->GetWeight(i);
+        if (i == m_charAnimId) {
+            if (weight < 1.0f) {
+                weight += 0.25f;
+                if (weight > 1.0f) {
+                    weight = 1.0f;
+                }
+            }
+        } else if (weight > 0.0f) {
+            weight -= 0.25f;
+            if (weight < 0.0f) {
+                weight = 0.0f;
+            }
+        }
+        m_chrBlend->SetWeight(i, weight);
+    }
+}
+
 void muSelCharHand::setMode(int mode, int arg) {
     bool visible = isVisibleMode(mode);
     setVisible(visible);

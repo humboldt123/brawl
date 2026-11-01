@@ -47,7 +47,6 @@ extern "C" int fn_800BA2E0();
 // The name of the player that is given when there is no name (the "new name" line of the list).
 extern "C" const char* fn_800B96B0();
 // GameGlobal: the names that were saved
-extern "C" void* fn_8004D138(GameGlobal* global, int index);                        // the record of a name
 extern "C" int fn_8004D9A8(GameGlobal* global, int nameNo);
 // GameGlobal::getLanguage(): a member function (the shared header declares it static)
 extern "C" int getLanguage__10GameGlobalFv(GameGlobal* global);
@@ -1634,8 +1633,8 @@ static int compareNameSlots(const void* a, const void* b) {
         return -1;
     }
     GameGlobal* global = g_GameGlobal;
-    char* dataA = static_cast<char*>(fn_8004D138(global, nameA));
-    char* dataB = static_cast<char*>(fn_8004D138(global, nameB));
+    char* dataA = reinterpret_cast<char*>(global->getGlobalRecordNameDatap(nameA));
+    char* dataB = reinterpret_cast<char*>(global->getGlobalRecordNameDatap(nameB));
     int result = nameA - nameB;
     int diff = *reinterpret_cast<int*>(dataB + 0xF0) - *reinterpret_cast<int*>(dataA + 0xF0);
     if (diff != 0) {
@@ -1689,8 +1688,8 @@ void muNameTask::deleteName(int index) {
     }
     int count = global->getNumName();
     for (int i = nameNo; i < count - 1; i++) {
-        char* dst = static_cast<char*>(fn_8004D138(global, i));
-        char* src = static_cast<char*>(fn_8004D138(global, i + 1));
+        char* dst = reinterpret_cast<char*>(global->getGlobalRecordNameDatap(i));
+        char* src = reinterpret_cast<char*>(global->getGlobalRecordNameDatap(i + 1));
         memcpy(dst, src, 0x124);
     }
     global->delName(count - 1);

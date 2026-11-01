@@ -4,6 +4,7 @@
 // knows a part of the size of the class (it is 0x174 bytes: the area of a player has no gap after it).
 
 #include <StaticAssert.h>
+#include <gf/gf_pad_status.h>
 #include <mu/mu_msg.h>
 #include <mu/mu_object.h>
 #include <nw4r/g3d/g3d_scngroup.h>
@@ -20,6 +21,14 @@ public:
         Kind_CpLevel = 1,       // the nine levels of the computer (lines of text)
         Kind_Handi = 2,         // HYPOTHESIS: the damage handicap, 0 to 300 in steps of 10
         Kind_Hp = 3,            // HYPOTHESIS: the stamina, 1 and then 10 to 300 in steps of 10
+    };
+
+    // m_isOpen: the list is closed (0), open (1) or scrolls.
+    enum State {
+        State_Closed = 0,
+        State_Open = 1,
+        State_ScrollUp = 2,
+        State_ScrollDown = 3,
     };
 
     enum {
@@ -56,6 +65,8 @@ public:
     bool delDisableName(int name);
     void clearDisableName();
     void eraseList();
+    void scrollStart(bool up);
+    int main(gfPadStatus* pad, int* out);
     void close();
 
 private:
@@ -89,15 +100,25 @@ private:
         return -1;
     }
 
-    // The arrows of the window show whether the list goes on above and below the cursor.
-    // HYPOTHESIS: an inline helper; the name is not known.
-    void dispScroll() {
-        bool up = (m_kind == Kind_Name ? -1 : 0) < m_cursor;
+    void setEndsVisible(float frame) {
+        m_ends[0]->setFrameVisible(frame);
+        m_ends[1]->setFrameVisible(frame);
+    }
+
+    // The last line that the cursor can be on.
+    int getLastLine() {
         int last = getListNum();
         if (m_kind == Kind_Name) {
             last++;
         }
-        bool down = m_cursor < last - 1;
+        return last - 1;
+    }
+
+    // The arrows of the window show whether the list goes on above and below the cursor.
+    // HYPOTHESIS: an inline helper; the name is not known.
+    void dispScroll() {
+        bool up = (m_kind == Kind_Name ? -1 : 0) < m_cursor;
+        bool down = m_cursor < getLastLine();
         float frame;
         if (down) {
             frame = up ? 1.0f : 2.0f;
