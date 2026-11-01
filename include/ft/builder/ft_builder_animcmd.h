@@ -152,7 +152,7 @@ inline const u8* ftAddressOf(u8 value) {
 }
 
 // The manage id is read through the soEventManager part of the event manage module.
-inline s16 ftGetManageId(soModuleAccesser* acc) {
+inline s16 ftGetManageId(const soModuleAccesser* acc) {
     soEventManager& manager = acc->getEventManageModule();
     return manager.getManageId();
 }

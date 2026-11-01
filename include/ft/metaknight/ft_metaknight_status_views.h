@@ -55,10 +55,10 @@ public:
     virtual void unk54();   // 0x54, no arguments; name unknown
 };
 
-static inline ftMetaknightControllerView& ftMetaknightController(soModuleAccesser* moduleAccesser) {
+static inline ftMetaknightControllerView& ftMetaknightController(const soModuleAccesser* moduleAccesser) {
     return reinterpret_cast<ftMetaknightControllerView&>(moduleAccesser->getControllerModule());
 }
-static inline ftMetaknightPostureView& ftMetaknightPosture(soModuleAccesser* moduleAccesser) {
+static inline ftMetaknightPostureView& ftMetaknightPosture(const soModuleAccesser* moduleAccesser) {
     return reinterpret_cast<ftMetaknightPostureView&>(moduleAccesser->getPostureModule());
 }
 
