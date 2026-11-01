@@ -303,7 +303,7 @@ void soInstanceManagerFullPropertyVector<T, C>::getAttributeArray(soAttributeFla
         }
     }
 
-// MATCH-ONLY: Mutation units call the separately owned lookup member.
+// BYTES: split-unit weak-copy ownership: Mutation units call the separately owned lookup member.
 #ifndef SO_INSTANCE_MANAGER_EXTERNAL_AT
 template <class T, u32 C>
 T& soInstanceManagerFullPropertyVector<T, C>::at(s32 id) {
@@ -314,7 +314,7 @@ T& soInstanceManagerFullPropertyVector<T, C>::at(s32 id) {
     }
 #endif
 
-// MATCH-ONLY: Add units retain the separately owned containment definition.
+// BYTES: split-unit weak-copy ownership: Add units retain the separately owned containment definition.
 #ifndef SO_INSTANCE_MANAGER_EXTERNAL_IS_CONTAIN
 template <class T, u32 C>
 bool soInstanceManagerFullPropertyVector<T, C>::isContain(s32 id) const {
@@ -344,7 +344,7 @@ s32 soInstanceManagerFullPropertyVector<T, C>::getId(s32 idx) {
         return m_arrayVector.at(idx).m_id;
     }
 
-// MATCH-ONLY: Lookup units call the separately owned size member.
+// BYTES: split-unit weak-copy ownership: Lookup units call the separately owned size member.
 #ifndef SO_INSTANCE_MANAGER_EXTERNAL_SIZE
 template <class T, u32 C>
 u32 soInstanceManagerFullPropertyVector<T, C>::size() const {
@@ -367,7 +367,7 @@ soInstanceUnitFullProperty<T>& soInstanceManagerFullPropertyVector<T, C>::atUnit
         return m_arrayVector.atFast(idx);
     }
 
-// MATCH-ONLY: Add units call the separately owned free-ID definition.
+// BYTES: split-unit weak-copy ownership: Add units call the separately owned free-ID definition.
 #ifndef SO_INSTANCE_MANAGER_EXTERNAL_FREE_ID
 template<typename T, u32 C>
 s32 soInstanceManagerFullPropertyVector<T, C>::getFreeId() const {

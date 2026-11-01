@@ -92,14 +92,14 @@ public:
 };
 
 
-// MATCH-ONLY: Managers call the separately owned record constructor.
+// BYTES: split-unit weak-copy ownership: Managers call the separately owned record constructor.
 #ifndef SO_INSTANCE_UNIT_EXTERNAL_FULL_PROPERTY_CTOR
 template<class T>
 soInstanceUnitFullProperty<T>::soInstanceUnitFullProperty(T& elm, s32 id, soAttributeFlag attr, s16 p4) :
     soInstanceUnit<T>(elm, id), m_attribute(attr.m_mask), m_10(p4) { }
 #endif
 
-// MATCH-ONLY: Managers call the separately owned signed mask getter.
+// BYTES: split-unit weak-copy ownership: Managers call the separately owned signed mask getter.
 #ifndef SO_INSTANCE_UNIT_EXTERNAL_GET_ATTRIBUTE
 template<class T>
 soAttributeFlag soInstanceUnitFullProperty<T>::getAttribute() const {
@@ -112,7 +112,7 @@ template<class T>
 soInstanceUnitFullProperty<T>::soInstanceUnitFullProperty() :
     m_attribute(0), m_10(-1) { }
 
-// MATCH-ONLY: Array destruction calls the separately owned element destructor.
+// BYTES: split-unit weak-copy ownership: Array destruction calls the separately owned element destructor.
 #ifndef SO_INSTANCE_UNIT_EXTERNAL_FULL_PROPERTY_DTOR
 template<class T>
 soInstanceUnitFullProperty<T>::~soInstanceUnitFullProperty() { }

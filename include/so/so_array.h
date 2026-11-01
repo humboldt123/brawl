@@ -502,7 +502,7 @@ public:
 };
 
 // Individual definitions permit explicit list member instantiations.
-// MATCH-ONLY: range units omit definitions owned by other reconstructed ranges.
+// BYTES: split-unit weak-copy ownership: range units omit definitions owned by other reconstructed ranges.
 template <typename T, s32 C>
 bool soArrayList<T, C>::isNull() const {
         return false;
@@ -811,7 +811,7 @@ bool soArrayVectorAbstract<T>::isNull() const {
     return false;
 }
 
-// MATCH-ONLY: Allow isolated callers to retain the existing helper owner.
+// BYTES: split-unit weak-copy ownership: Allow isolated callers to retain the existing helper owner.
 #ifndef SO_ARRAY_EXTERNAL_ABSTRACT_AT
 template <class T>
 T& soArrayVectorAbstract<T>::at(s32 index) {
@@ -819,7 +819,7 @@ T& soArrayVectorAbstract<T>::at(s32 index) {
 }
 #endif
 
-// MATCH-ONLY: Keep the const helper in its existing source range.
+// BYTES: split-unit weak-copy ownership: Keep the const helper in its existing source range.
 #ifndef SO_ARRAY_EXTERNAL_ABSTRACT_CONST_AT
 template <class T>
 const T& soArrayVectorAbstract<T>::at(s32 index) const {
@@ -842,7 +842,7 @@ void soArrayVectorAbstract<T>::pop() {
     this->setSize(this->size() - 1);
 }
 
-// MATCH-ONLY: Preserve the separately owned array helper.
+// BYTES: split-unit weak-copy ownership: Preserve the separately owned array helper.
 #ifndef SO_ARRAY_EXTERNAL_ABSTRACT_CLEAR
 template <class T>
 void soArrayVectorAbstract<T>::clear() {
@@ -867,7 +867,7 @@ void soArrayVectorAbstract<T>::push(const T& newElement) {
     this->setSize(this->size() + 1);
 }
 
-// MATCH-ONLY: Preserve the separately owned array insertion helper.
+// BYTES: split-unit weak-copy ownership: Preserve the separately owned array insertion helper.
 #ifndef SO_ARRAY_EXTERNAL_ABSTRACT_INSERT
 template <class T>
 void soArrayVectorAbstract<T>::insert(s32 index, const T& newElement) {
@@ -879,7 +879,7 @@ void soArrayVectorAbstract<T>::insert(s32 index, const T& newElement) {
 
 #endif
 
-// MATCH-ONLY: Preserve the separately owned array helper.
+// BYTES: split-unit weak-copy ownership: Preserve the separately owned array helper.
 #ifndef SO_ARRAY_EXTERNAL_ABSTRACT_ERASE
 template <class T>
 void soArrayVectorAbstract<T>::erase(s32 index) {
@@ -989,7 +989,7 @@ inline soArrayVector<T, C>::soArrayVector(s32 size, s32) : m_topIndex(0), m_last
 #endif
 
 // Individual member definitions permit explicit accessor instantiations.
-// MATCH-ONLY: Allow isolated callers to retain the existing helper owner.
+// BYTES: split-unit weak-copy ownership: Allow isolated callers to retain the existing helper owner.
 #ifndef SO_ARRAY_EXTERNAL_VECTOR_SIZE
 template <class T, s32 C>
 s32 soArrayVector<T, C>::size() const {
@@ -997,7 +997,7 @@ s32 soArrayVector<T, C>::size() const {
 }
 #endif
 
-// MATCH-ONLY: Allow isolated callers to retain the existing helper owner.
+// BYTES: split-unit weak-copy ownership: Allow isolated callers to retain the existing helper owner.
 #ifndef SO_ARRAY_EXTERNAL_VECTOR_CAPACITY
 template <class T, s32 C>
 s32 soArrayVector<T, C>::capacity() const {
@@ -1005,7 +1005,7 @@ s32 soArrayVector<T, C>::capacity() const {
 }
 #endif
 
-// MATCH-ONLY: Preserve the separately owned capacity check.
+// BYTES: split-unit weak-copy ownership: Preserve the separately owned capacity check.
 #ifndef SO_ARRAY_EXTERNAL_VECTOR_IS_FULL
 template <class T, s32 C>
 bool soArrayVector<T, C>::isFull() const {

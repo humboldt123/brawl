@@ -12,7 +12,7 @@ public:
     virtual bool isContain(s32) const = 0;
 };
 
-// MATCH-ONLY: Preserve the separately owned emptiness query.
+// BYTES: split-unit weak-copy ownership: Preserve the separately owned emptiness query.
 #ifndef SO_INSTANCE_MANAGER_EXTERNAL_FIXED_IS_EMPTY
 template<class T>
 bool soInstanceManagerFixed<T>::isEmpty() const { return size() == 0; }

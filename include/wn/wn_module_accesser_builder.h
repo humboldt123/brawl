@@ -64,7 +64,7 @@ FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 8);
     }
 
 // Same, for empty-vector constructors whose callers pass an unused zero word.
-// MATCH-ONLY: selected fighter-owned article teardowns retain this holder call.
+// BYTES: selected fighter-owned article teardowns retain this holder call. (an out-of-line call boundary)
 #ifdef WN_STATUS_PROC_ARG_HOLDER_DTOR_NOINLINE
 #define WN_STATUS_PROC_ARG_HOLDER_DTOR_ATTR __attribute__((never_inline))
 #else
