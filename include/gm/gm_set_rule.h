@@ -30,6 +30,11 @@ struct gmSetRule {
     u8 m_spMeleeSetting6; // 0x1D
     u8 m_spMeleeSetting7; // 0x1E
     u8 m_spMeleeSetting8; // 0x1F
-    char _32[0x68];       // 0x20
+    char _32[0x4];        // 0x20
+    int m_ctrlNamePlayerNo;     // 0x24 HYPOTHESIS: the player number of the name whose controls are set (muProcOptBtn stores the
+                                // muNameTask::m_playerNo of the name chosen before the Controls scene opens)
+    u8 m_ctrlNameNo;            // 0x28 HYPOTHESIS: the name whose controls are set (muProcOptBtn stores the chosen name)
+    char _29[0x7];
+    char _30[0x58];       // 0x30
 };
 static_assert(sizeof(gmSetRule) == 0x88, "Class is wrong size!");

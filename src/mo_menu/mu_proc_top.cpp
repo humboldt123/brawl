@@ -127,8 +127,8 @@ int muProcTop::proc() {
             if (m_cursor == Entry_Wifi) {
                 g_sndSystem->playSE(static_cast<SndID>(1), -1, 0, 0, -1);
                 muMenuMain* menu = dynamic_cast<muMenuMain*>(gfSceneManager::getInstance()->m_currentScene);
-                m_wifiWnd = muWifiCnctWndTask::create(0, &menu->m_unkA94, menu->getBuffer(9), m_group, 0x29,
-                                                      &menu->m_unkA98, &menu->m_unkA9C);
+                m_wifiWnd = muWifiCnctWndTask::create(0, &menu->m_resFileA94, menu->getBuffer(9), m_group, 0x29,
+                                                      &menu->m_resFileA98, &menu->m_resFileA9C);
             } else {
                 m_panel->frameCancel();
                 setOutAnim(true);
@@ -158,8 +158,8 @@ int muProcTop::proc() {
             if (m_cursor == Entry_Wifi) {
                 g_sndSystem->playSE(static_cast<SndID>(1), -1, 0, 0, -1);
                 muMenuMain* menu = dynamic_cast<muMenuMain*>(gfSceneManager::getInstance()->m_currentScene);
-                m_wifiWnd = muWifiCnctWndTask::create(0, &menu->m_unkA94, menu->getBuffer(9), m_group, 0x29,
-                                                      &menu->m_unkA98, &menu->m_unkA9C);
+                m_wifiWnd = muWifiCnctWndTask::create(0, &menu->m_resFileA94, menu->getBuffer(9), m_group, 0x29,
+                                                      &menu->m_resFileA98, &menu->m_resFileA9C);
             } else {
                 setOutAnim(true);
                 m_unk664 = 4;

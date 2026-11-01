@@ -2,6 +2,7 @@
 
 #include <StaticAssert.h>
 #include <mu/menu.h>
+#include <nw4r/g3d/g3d_resfile.h>
 #include <types.h>
 
 class muProcMenu;
@@ -14,10 +15,15 @@ public:
     muProcMenu* m_proc;             // 0x3AC the screen that is running (HYPOTHESIS: the menu runs one proc at a time)
     u8 m_unk3B0[0x3D8 - 0x3B0];
     int m_padNo;                    // 0x3D8 the pad the scene was started with
-    u8 m_unk3DC[0xA94 - 0x3DC];
-    int m_unkA94;                   // 0xA94 HYPOTHESIS: three words the Wi-Fi connection window works with
-    int m_unkA98;                   // 0xA98
-    int m_unkA9C;                   // 0xA9C
+    u8 m_unk3DC[0xA8C - 0x3DC];
+    // HYPOTHESIS: model files of the menu archive that the screens hand to the name menu and the windows they open
+    // (muProcOptBtn passes 0xA98 to muNameTask::create1 as the keyboard models and 0xA8C/0xA9C as the Wii Remote and
+    // window models; the Wi-Fi connection window, which asks for a name, takes 0xA94, 0xA98 and 0xA9C).
+    nw4r::g3d::ResFile m_resFileA8C;    // 0xA8C
+    nw4r::g3d::ResFile m_resFileA90;    // 0xA90
+    nw4r::g3d::ResFile m_resFileA94;    // 0xA94
+    nw4r::g3d::ResFile m_resFileA98;    // 0xA98 the keyboard of the name menu
+    nw4r::g3d::ResFile m_resFileA9C;    // 0xA9C the windows
     int m_startCode;                // 0xAA0 how the scene was started (the code of the menu that opens)
     u8 m_unkAA4[0xAB0 - 0xAA4];
     int m_exitCode;                 // 0xAB0 the menu that opens when this one closes

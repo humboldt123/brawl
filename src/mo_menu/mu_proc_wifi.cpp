@@ -169,7 +169,7 @@ int muProcWifi::proc() {
         } else if (pad & Pad_Cancel) {
             // B disconnects first
             muMenuMain* menu = dynamic_cast<muMenuMain*>(gfSceneManager::getInstance()->m_currentScene);
-            m_wifiWnd = muWifiCnctWndTask::create(1, &menu->m_unkA94, menu->getBuffer(9), m_group, 0x29, NULL, NULL);
+            m_wifiWnd = muWifiCnctWndTask::create(1, &menu->m_resFileA94, menu->getBuffer(9), m_group, 0x29, NULL, NULL);
         }
         break;
     }
@@ -208,7 +208,7 @@ int muProcWifi::proc() {
             return 2;
         } else if (pad & Pad_Cancel) {
             muMenuMain* menu = dynamic_cast<muMenuMain*>(gfSceneManager::getInstance()->m_currentScene);
-            m_wifiWnd = muWifiCnctWndTask::create(1, &menu->m_unkA94, menu->getBuffer(9), m_group, 0x29, NULL, NULL);
+            m_wifiWnd = muWifiCnctWndTask::create(1, &menu->m_resFileA94, menu->getBuffer(9), m_group, 0x29, NULL, NULL);
         }
         break;
     }
