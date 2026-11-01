@@ -44,7 +44,7 @@
 // soGeneralWorkAbstract vtable family) and the destructors of soGeneralWorkAbstract, soTransitionInfo, soResourceIdAccesser
 // and soSound3dGeneratorAccesserImpl.
 #define SO_BUILDER_HELPERS_WEAK
-#define SO_GENERAL_WORK_CLEAR_RELOADS_SIZE
+#define SO_GENERAL_WORK_BOUNDED_CLEAR
 // The vtables of the observer bases and of the status transition module point at this unit's copies of the default
 // handlers (soCaptureEventObserver::notifyEventCaptureStatus, the collision *Check defaults,
 // soStatusEventObserver::notifyEventChangeStatus) and of soTransitionModuleImpl::getLastTransitionInfo.

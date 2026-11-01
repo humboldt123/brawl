@@ -9,48 +9,27 @@ class soGeneralWorkSimple : public soGeneralWorkAbstract {
     void clearInts(const u32& count);
     void clearFloats(const u32& count);
     void clearFlags(const u32& count);
-    // (clearWorkAll: Marth's copy and the Enemy's (SO_GENERAL_WORK_CLEAR_RELOADS_SIZE) load each size twice and take the
-    // minimum; the other fighters' copies load it once.)
+    // (clearWorkAll: the fighter and Enemy units (SO_GENERAL_WORK_BOUNDED_CLEAR) clamp each size through the bounded
+    // helpers below, which load it twice; the other units' copies load it once.)
     void clearInts() {
-#if defined(FT_MARTH_RUNTIME_HELPERS) || defined(SO_GENERAL_WORK_CLEAR_RELOADS_SIZE)
-        u32 intWorkSize = m_intWorkSize;
-        // MATCH-ONLY: retain the original second size load before taking the minimum.
-        u32 currentSize = *(volatile u32*)&m_intWorkSize;
-        if (intWorkSize >= currentSize) intWorkSize = currentSize;
-#else
         s32 intWorkSize = m_intWorkSize;
         intWorkSize = (intWorkSize != m_intWorkSize) ? m_intWorkSize : intWorkSize;
-#endif
         for (s32 i = 0; i < (s32)intWorkSize; i++) {
             m_intWorks[i] = 0;
         }
     }
 
     void clearFloats() {
-#if defined(FT_MARTH_RUNTIME_HELPERS) || defined(SO_GENERAL_WORK_CLEAR_RELOADS_SIZE)
-        u32 floatWorkSize = m_floatWorkSize;
-        // MATCH-ONLY: retain the original second size load before taking the minimum.
-        u32 currentSize = *(volatile u32*)&m_floatWorkSize;
-        if (floatWorkSize >= currentSize) floatWorkSize = currentSize;
-#else
         s32 floatWorkSize = m_floatWorkSize;
         floatWorkSize = (floatWorkSize != m_floatWorkSize) ? m_floatWorkSize : floatWorkSize;
-#endif
         for (s32 i = 0; i < (s32)floatWorkSize; i++) {
             m_floatWorks[i] = 0;
         }
     }
 
     void clearFlags() {
-#if defined(FT_MARTH_RUNTIME_HELPERS) || defined(SO_GENERAL_WORK_CLEAR_RELOADS_SIZE)
-        u32 flagWorkSize = m_flagWorkSize;
-        // MATCH-ONLY: retain the original second size load before taking the minimum.
-        u32 currentSize = *(volatile u32*)&m_flagWorkSize;
-        if (flagWorkSize >= currentSize) flagWorkSize = currentSize;
-#else
         s32 flagWorkSize = m_flagWorkSize;
         flagWorkSize = (flagWorkSize != m_flagWorkSize) ? m_flagWorkSize : flagWorkSize;
-#endif
         for (s32 i = 0; i < (s32)flagWorkSize; i++) {
             m_flagWorks[i] = 0;
         }
@@ -65,7 +44,7 @@ public:
 
     soGeneralWorkSimple() { }
 #ifdef SO_BUILDER_HELPERS_WEAK
-    // MATCH-ONLY: the Enemy unit calls its own weak copy of the work-area constructor (the fighter RELs define it in
+    // BYTES: the Enemy unit calls its own weak copy of the work-area constructor (the fighter RELs define it in
     // ft_builder_noinline.h); the copy brings the class's vtable and every accessor with it.
     soGeneralWorkSimple(s32* ints, u32 numInts, float* floats, u32 numFloats, u32* flags, u32 numFlags)
         __attribute__((never_inline))
