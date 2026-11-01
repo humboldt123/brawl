@@ -1,7 +1,6 @@
 #define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 // BYTES: use Fighter's native animcmd override and partner slot before getOwner.
 #define FT_FIGHTER_ANIMCMD_LONG
-#define FT_FIGHTER_GET_PARTNER_VIRTUAL
 // BYTES: the effect offsets use XY-first paired-single vector addition.
 #define MT_VEC3F_ADD_NATIVE_ORDER
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE

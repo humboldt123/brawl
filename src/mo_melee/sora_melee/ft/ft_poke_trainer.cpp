@@ -1,6 +1,5 @@
 // The trainer's long animation-command override puts an extra Fighter virtual before getOwner.
 #define FT_FIGHTER_ANIMCMD_LONG
-#define FT_FIGHTER_GET_PARTNER_VIRTUAL // MATCH-ONLY: the original reaches Fighter::getPartner through the vtable
 #define SO_EVENT_PRESENTER_STORE_NULL_LIST
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_manager.h>

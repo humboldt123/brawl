@@ -1,5 +1,4 @@
 #define FT_FIGHTER_ANIMCMD_LONG // MATCH-ONLY: Fighter::notifyEventAnimCmd(long) overrides the StageObject slot
-#define FT_FIGHTER_GET_PARTNER_VIRTUAL // MATCH-ONLY: Fighter::getPartner is the virtual slot after postCreate
 #include <ft/fighter.h>
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_manager.h>

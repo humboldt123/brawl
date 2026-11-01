@@ -1409,7 +1409,7 @@ public:
 #else
     virtual bool isObserv(char unk1);
 #endif
-#if defined(FT_MODULE_BUILDER) || defined(FT_FIGHTER_GET_PARTNER_VIRTUAL)
+#if defined(FT_MODULE_BUILDER) || defined(FT_FIGHTER_ANIMCMD_LONG)
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3); // overrides the soAnimCmdEventObserver one (the BrawlHeaders signature uses int)
 #else
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, int unk3);
@@ -1425,9 +1425,10 @@ public:
     // TODO: Verify parameters
     virtual void postCreate();
     // The slot after postCreate; the base returns no partner (the Ice Climbers override it).
-    // HYPOTHESIS: unless the long notifyEventAnimCmd merges the two animcmd slots (FT_MODULE_BUILDER with FT_FIGHTER_ANIMCMD_LONG) the
-    // vtable already has this slot's room, so only that variant models it as a real virtual (it replaces the old placeholder slot).
-#if (defined(FT_MODULE_BUILDER) || defined(FT_FIGHTER_GET_PARTNER_VIRTUAL)) && defined(FT_FIGHTER_ANIMCMD_LONG)
+    // HYPOTHESIS: unless the long notifyEventAnimCmd merges the two animcmd slots (FT_FIGHTER_ANIMCMD_LONG) the vtable already has
+    // this slot's room, so only that variant models it as a real virtual (it replaces the old placeholder slot). The former
+    // FT_FIGHTER_GET_PARTNER_VIRTUAL opt-in was only ever set together with it.
+#ifdef FT_FIGHTER_ANIMCMD_LONG
     virtual Fighter* getPartner();
 #else
     Fighter* getPartner();

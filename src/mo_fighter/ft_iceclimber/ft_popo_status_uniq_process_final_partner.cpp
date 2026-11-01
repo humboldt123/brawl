@@ -1,5 +1,4 @@
 #define FT_FIGHTER_ANIMCMD_LONG
-#define FT_FIGHTER_GET_PARTNER_VIRTUAL // MATCH-ONLY: Fighter::getPartner is reached through the vtable
 #define MT_VEC3F_CTOR_NOINLINE
 #include <ft/fighter.h>
 #include <so/so_external_value_accesser.h>
