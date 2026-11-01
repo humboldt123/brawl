@@ -304,8 +304,7 @@ void GameGlobal::init() {
     m_record->m_menuData.m_volBalance = 50;
     g_sndSystem->setVolBalance(0.5f, 0.5f);
 
-    // MATCH-ONLY: the native code sets the melee and normal stage switches as two words of one 64-bit store.
-    *reinterpret_cast<u64*>(&m_record->m_menuData.m_stageSwitch) = 0xFFFFFFFFFFFFFFFFULL;
+    m_record->m_menuData.m_stageSwitch.m_mask = 0xFFFFFFFFFFFFFFFFULL;
     gmSetCoinNum(500);
     for (int i = 0; i < 8; i++) {
         m_record->m_menuData.m_unk10[i] = 1;
@@ -341,8 +340,7 @@ void GameGlobal::init() {
     initResultInfoData();
 
     m_record->m_menuData.m_itemFrequency = 2;
-    // MATCH-ONLY: the native code sets the item switches as two words.
-    *reinterpret_cast<u64*>(&m_record->m_menuData.m_itemSwitch) = 0xFFFFFFFFFFFFFFFFULL;
+    m_record->m_menuData.m_itemSwitch.m_mask = 0xFFFFFFFFFFFFFFFFULL;
 
     // The widescreen options follow the console's aspect ratio setting.
     while (SCCheckStatus() != 0) {
@@ -977,13 +975,9 @@ void GameGlobal::InitAllRecord() {
 
     m_record->m_menuData.m_volBalance = 50;
     g_sndSystem->setVolBalance(0.5f, 0.5f);
-    gmGlobalRecord::MenuData::StageSwitch* stages = &m_record->m_menuData.m_stageSwitch;
-    stages->m_normalMask = 0xFFFFFFFF;
-    stages->m_meleeMask = 0xFFFFFFFF;
+    m_record->m_menuData.m_stageSwitch.m_mask = 0xFFFFFFFFFFFFFFFFULL;
     m_record->m_menuData.m_itemFrequency = gmItSwitch::Frequency_Medium;
-    u32* items = reinterpret_cast<u32*>(&m_record->m_menuData.m_itemSwitch);
-    items[1] = 0xFFFFFFFF;
-    items[0] = 0xFFFFFFFF;
+    m_record->m_menuData.m_itemSwitch.m_mask = 0xFFFFFFFFFFFFFFFFULL;
 
     gmSetCoinNum(500);
     m_record->m_menuData.m_unk10[0] = 1;

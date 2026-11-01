@@ -367,10 +367,9 @@ void gmInitMeleeDataDefault(gmMeleeInitData* melee) {
     melee->m_hideDamageGauge = false;
     melee->m_0x3_0 = false;
     melee->m_scoreDisplay = false;
-    // MATCH-ONLY: the native code sets the three item switches as one doubleword and two words.
-    *reinterpret_cast<u64*>(&melee->m_itSwitch.m_item) = 0xFFFFFFFFFFFFFFFFULL;
-    *reinterpret_cast<u32*>(&melee->m_itSwitch.m_pokemon) = 0xFFFFFFFF;
-    *reinterpret_cast<u32*>(&melee->m_itSwitch.m_assist) = 0xFFFFFFFF;
+    melee->m_itSwitch.m_item.m_mask = 0xFFFFFFFFFFFFFFFFULL;
+    melee->m_itSwitch.m_pokemon.m_mask = 0xFFFFFFFF;
+    melee->m_itSwitch.m_assist.m_mask = 0xFFFFFFFF;
     melee->m_charaFlags = fn_80051F28();
     melee->m_itemFrequency = gmItSwitch::Frequency_Medium;
     melee->m_0x10 = 0x78;

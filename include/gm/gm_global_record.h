@@ -243,6 +243,9 @@ struct gmGlobalRecord {
                 u32 m_meleeMask;
                 u32 m_normalMask;
             };
+            // HYPOTHESIS: both masks as one doubleword: InitAllRecord and GameGlobal::setDefault set them with one
+            // 64-bit store (normal word first), and MenuData pads it to an 8-byte boundary (_27).
+            u64 m_mask;
         };
 
         u8 m_itemFrequency;
@@ -371,7 +374,7 @@ struct gmGlobalRecord {
 
     MenuData m_menuData; // 2064
 
-    char _spacer[0xDF8];
+    char _spacer[0xDF4]; // MenuData ends at 0x840: its doubleword switches make it 8-byte aligned
     CharaNumData m_charaNumData[35];        // 0x1634
     u8 unk34D4[0x74];
     u8 unk3548[0x44];
