@@ -121,13 +121,11 @@ void ftDiddyStatusUniqProcessSpecialBarrelJetJump::execStatus(soModuleAccesser* 
 }
 
 void ftDiddyStatusUniqProcessSpecialBarrelJetJump::execFixPos(soModuleAccesser* moduleAccesser) {
-    Vec2f speed;
-    Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
     case 0x127:
         if (moduleAccesser->getGroundModule().isTouch(grCollStatus::TouchMask(0xff), 0)) {
-            Vec2f normal;
-            Vec2f::copy(normal, moduleAccesser->getGroundModule().getTouchNormal(0xff, 0));
+            Vec2f normal = moduleAccesser->getGroundModule().getTouchNormal(0xff, 0);
             float angle = vec2fAngle(&speed, &normal);
             if (angle - 1.5707964f >= 0.017453292f * soValueAccesser::getConstantFloat(moduleAccesser, 0xfb5, 0)) {
                 float bounce = soValueAccesser::getConstantFloat(moduleAccesser, 0xfb8, 0);
@@ -170,8 +168,7 @@ void ftDiddyStatusUniqProcessSpecialBarrelJetJump::exitStatus(soModuleAccesser* 
 }
 
 float ftDiddyStatusUniqProcessSpecialBarrelJetJump::setBodyRotationMoveDir(soModuleAccesser* moduleAccesser, float maxStep) {
-    Vec2f dir;
-    Vec2f::copy(dir, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f dir = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     dir.normalize();
     float lr = moduleAccesser->getPostureModule().getLr();
     float target = lr * (57.29578f * atan2f(dir.m_x, dir.m_y));

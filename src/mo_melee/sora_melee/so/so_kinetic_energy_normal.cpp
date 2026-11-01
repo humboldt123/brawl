@@ -6,10 +6,8 @@
 
 void soKineticEnergyNormal::updateEnergy(soModuleAccesser* moduleAccesser) {
     if (m_accel.lengthSq() != 0.0f || m_speed.lengthSq() != 0.0f) {
-        Vec2f accel;
-        Vec2f::copy(accel, m_accel);
-        Vec2f brake;
-        Vec2f::copy(brake, m_brake);
+        Vec2f accel = m_accel;
+        Vec2f brake = m_brake;
         if (moduleAccesser->getSituationModule().getKind() == Situation_Ground) {
             if (m_unk30 == true || (m_considerGroundFriction == true && m_unk32 == true)) {
                 if (moduleAccesser->getGroundModule().isTouch(8, 0)) {
@@ -29,8 +27,7 @@ void soKineticEnergyNormal::updateEnergy(soModuleAccesser* moduleAccesser) {
                     }
                     if (m_unk30 == true) {
                         if (accel.lengthSq() != 0.0f) {
-                            Vec2f normal;
-                            Vec2f::copy(normal, moduleAccesser->getGroundModule().getTouchNormal(8, 0));
+                            Vec2f normal = moduleAccesser->getGroundModule().getTouchNormal(8, 0);
                             accel = soKineticUtility::projectionNormalFollow(&accel, &normal);
                         }
                     }

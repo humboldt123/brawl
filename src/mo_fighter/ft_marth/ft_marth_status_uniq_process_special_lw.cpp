@@ -11,8 +11,7 @@ void ftKineticEnergyDisableAndClear(int index, soModuleAccesser* moduleAccesser)
 void ftMarthStatusUniqProcessSpecialLw::initStatus(soModuleAccesser* moduleAccesser) {
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     // MATCH-ONLY: copy the returned vector with the original integer-load/store path.
     float speedX = sumSpeed.m_x;
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
@@ -68,8 +67,7 @@ void ftMarthStatusUniqProcessSpecialLw::execStatus(soModuleAccesser* moduleAcces
             if (situation.getKind() != work.getInt(ftMarthWork::SpecialLw_Situation)) {
                 ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
                 ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
-                Vec2f sumSpeed;
-                Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+                Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
                 float speedX = sumSpeed.m_x;
                 float speedY = sumSpeed.m_y;
                 if (moduleAccesser->getSituationModule().getKind() == 2) {

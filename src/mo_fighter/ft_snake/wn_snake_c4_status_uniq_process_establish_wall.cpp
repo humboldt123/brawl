@@ -71,8 +71,7 @@ bool fn_122_1ACA4(wnSnakeC4StatusUniqProcessEstablishWall* process, soModuleAcce
     moduleAccesser->getGroundModule().setCorrect(soGroundShapeImpl::Correct_Air, 0);
     moduleAccesser->getPostureModule().setPos(pos);
     if (moduleAccesser->getLinkModule().isValidParentShape(3) == true) {
-        Vec2f center;
-        Vec2f::copy(center, moduleAccesser->getLinkModule().getParentShapeCenterPos(3));
+        Vec2f center = moduleAccesser->getLinkModule().getParentShapeCenterPos(3);
         moduleAccesser->getGroundModule().setShapeSafePos(&center, 0);
     }
     moduleAccesser->getGroundModule().update(1);

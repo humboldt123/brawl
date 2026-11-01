@@ -27,8 +27,7 @@ void wnWarioBikeStatusUniqProcessTurnEnd::execFixPos(soModuleAccesser* a) {
     soGroundModule& ground = a->getGroundModule();
     if (ground.isTouch((grCollStatus::TouchMask)8, 0)) {
         float lr = a->getPostureModule().getLr();
-        Vec2f normal;
-        Vec2f::copy(normal, ground.getTouchNormal((grCollStatus::TouchMask)8, 0));
+        Vec2f normal = ground.getTouchNormal((grCollStatus::TouchMask)8, 0);
         // MATCH-ONLY: keep the native Y-then-X loads before atan2.
         float normalY = normal.m_y;
         float normalX = normal.m_x;

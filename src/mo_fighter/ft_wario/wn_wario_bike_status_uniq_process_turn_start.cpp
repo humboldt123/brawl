@@ -37,8 +37,7 @@ void wnWarioBikeStatusUniqProcessTurnStart::execStatus(soModuleAccesser* a) {
     soPostureModule& posture = a->getPostureModule();
     soKineticEnergyNormal& normal = dynamic_cast<soKineticEnergyNormal&>(
         *a->getKineticModule().getEnergy(0));
-    Vec2f speed;
-    Vec2f::copy(speed, normal.getSpeed());
+    Vec2f speed = normal.getSpeed();
     float lr = posture.getLr();
     if (1.0f == lr) {
         if (speed.m_x <= 0.0f) work.onFlag(0x22000003);
@@ -55,8 +54,7 @@ void wnWarioBikeStatusUniqProcessTurnStart::execFixPos(soModuleAccesser* a) {
     soGroundModule& ground = a->getGroundModule();
     if (ground.isTouch((grCollStatus::TouchMask)8, 0)) {
         float lr = a->getPostureModule().getLr();
-        Vec2f normal;
-        Vec2f::copy(normal, ground.getTouchNormal((grCollStatus::TouchMask)8, 0));
+        Vec2f normal = ground.getTouchNormal((grCollStatus::TouchMask)8, 0);
         // MATCH-ONLY: keep the native Y-then-X loads before atan2.
         float normalY = normal.m_y;
         float normalX = normal.m_x;

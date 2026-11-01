@@ -42,8 +42,7 @@ struct ftIkeSpecialSSearchData {
 void ftIkeStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccesser) {
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float speedX = sumSpeed.m_x;
     float speedY = sumSpeed.m_y;
     float lr = moduleAccesser->getPostureModule().getLr();
@@ -116,8 +115,7 @@ void ftIkeStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccesser
 }
 
 void ftIkeStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccesser) {
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float speedX = sumSpeed.m_x;
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
     case 0x113:
@@ -167,8 +165,7 @@ void ftIkeStatusUniqProcessSpecialS::execStatus(soModuleAccesser* moduleAccesser
         if (situation.getKind() != work.getInt(0x20000000)) {
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
             ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
-            Vec2f newSpeed;
-            Vec2f::copy(newSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+            Vec2f newSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
             if (moduleAccesser->getSituationModule().getKind() == 2) {
                 stop.resetEnergy(6, &Vec2f(newSpeed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
                 gravity.resetEnergy(0, &Vec2f(0.0f, newSpeed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);

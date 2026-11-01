@@ -29,8 +29,7 @@ void ftCaptainStatusUniqProcessFalconKnuckle::execStatus(soModuleAccesser* modul
             Vec2f scaled;
             scaled.m_x = speed.m_x * scale;
             scaled.m_y = speed.m_y * scale;
-            Vec2f copy;
-            Vec2f::copy(copy, scaled);
+            Vec2f copy = scaled;
             energy.m_speed.m_x = copy.m_x;
             energy.m_speed.m_y = copy.m_y;
         }

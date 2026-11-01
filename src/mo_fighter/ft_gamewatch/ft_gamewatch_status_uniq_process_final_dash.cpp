@@ -28,8 +28,7 @@ void ftGameWatchStatusUniqProcessFinalDash::exitStatus(soModuleAccesser* moduleA
         // Outside that sequence, scale the controller kinetic energy's horizontal speed.
         ftKineticEnergyController& energy =
             dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
-        Vec2f speed;
-        Vec2f::copy(speed, energy.getSpeed());
+        Vec2f speed = energy.getSpeed();
         speed.m_x *= soValueAccesser::getConstantFloat(moduleAccesser, 0xc35, 0);
         energy.m_speed.m_x = speed.m_x;
         energy.m_speed.m_y = speed.m_y;

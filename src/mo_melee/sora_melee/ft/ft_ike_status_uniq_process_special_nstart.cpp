@@ -16,8 +16,7 @@ ftIkeStatusUniqProcessSpecialNStart g_ftIkeStatusUniqProcessSpecialNStart;
 
 // HYPOTHESIS: work 0x20000002 holds the situation (ground or air) the move started in.
 void ftIkeStatusUniqProcessSpecialNStart::initStatus(soModuleAccesser* acc) {
-    Vec2f speed;
-    Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     // HYPOTHESIS: constants 0xfa0 (speed ratio) and 0xfa1 (brake) from the Ike constant table.
     float speedX = speed.m_x * acc->getConstantFloatKirby(0xfa0);
     float speedY = speed.m_y;
@@ -55,8 +54,7 @@ void ftIkeStatusUniqProcessSpecialNStart::execStatus(soModuleAccesser* acc) {
     if (kind != savedSituation) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
-        Vec2f speed;
-        Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         float brake = acc->getConstantFloatKirby(0xfa1);
         if (acc->getSituationModule().getKind() == 2) {
             stop.resetEnergy(6, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), acc);

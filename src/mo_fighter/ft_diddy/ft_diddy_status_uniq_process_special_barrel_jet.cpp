@@ -53,8 +53,7 @@ void ftDiddyStatusUniqProcessSpecialBarrelJet::initStatus(soModuleAccesser* modu
         break;
     case 0x129: {
         moduleAccesser->getDamageModule().addDamage(soValueAccesser::getConstantFloat(moduleAccesser, 0xfb6, 0), 0);
-        Vec2f speed;
-        Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         float bounceX = moduleAccesser->getWorkManageModule().getFloat(0x21000007);
         float bounceY = moduleAccesser->getWorkManageModule().getFloat(0x21000008);
         speed.m_x *= soValueAccesser::getConstantFloat(moduleAccesser, 0xfb7, 0);
@@ -99,8 +98,7 @@ void ftDiddyStatusUniqProcessSpecialBarrelJet::exitStatus(soModuleAccesser* modu
 }
 
 void ftDiddyStatusUniqProcessSpecialBarrelJet::changeKineticAir(soModuleAccesser* moduleAccesser) {
-    Vec2f speed;
-    Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     ftDiddyAirParam param = *reinterpret_cast<ftDiddyAirParam*>(g_ftCommonDataAccesser.getParam(Fighter_Diddy));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
     gravity.resetEnergy(0, &Vec2f(0.0f, speed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);

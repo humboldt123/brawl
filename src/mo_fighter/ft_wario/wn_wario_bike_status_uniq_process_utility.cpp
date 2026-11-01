@@ -135,8 +135,7 @@ void wnWarioBikeStatusUniqProcessUtility::execMapCorrection(soModuleAccesser* a)
             Vec3f difference = hit17 - hit11;
             groundAngle = 57.29578f * atan2f(difference.m_y, wnWarioBikeKineticTransactor::ABS(difference.m_x));
         } else {
-            Vec2f normal;
-            Vec2f::copy(normal, ground.getTouchNormal((grCollStatus::TouchMask)8, 0));
+            Vec2f normal = ground.getTouchNormal((grCollStatus::TouchMask)8, 0);
             groundAngle = 57.29578f * atan2f(-(normal.m_x * lr), normal.m_y);
         }
     } else if (contact17 && contact11 && !wheelie) {

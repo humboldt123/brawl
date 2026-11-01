@@ -57,8 +57,7 @@ void ftStatusUniqProcessThrowKirby::initStatus(soModuleAccesser* moduleAccesser)
 // Falling out of the camera range ends the throw: above the camera's vertical band the fighter is put in the air.
 void ftStatusUniqProcessThrowKirby::execFixPos(soModuleAccesser* moduleAccesser) {
     moduleAccesser->getGroundModule().setTestCollStopStatus(true, 0);
-    Vec2f speed;
-    Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     if (speed.m_y < 0.0f) {
         Vec3f position = moduleAccesser->getPostureModule().getPos();
         float rangeTop = *reinterpret_cast<float*>(reinterpret_cast<u8*>(CameraController::getInstance()) + 0x160);

@@ -11,8 +11,7 @@ void ftWarioStatusUniqProcessSpecialSStart::exitStatus(soModuleAccesser* a, int 
     if (next == 0x124) {
         soLinkModule& link = a->getLinkModule();
         if (link.isLink(6)) {
-            Vec2f speed;
-            Vec2f::copy(speed, a->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+            Vec2f speed = a->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
             ftWarioBikeSpeedEvent event(0x455);
             event.speed.m_x = speed.m_x;
             event.speed.m_y = speed.m_y;

@@ -124,8 +124,7 @@ void wnWolfBlasterBullet::processUpdate() {
 }
 
 void wnWolfBlasterBullet::updateNodeSRT() {
-    Vec2f speed;
-    Vec2f::copy(speed, m_moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = m_moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float negativeLr = -m_moduleAccesser->getPostureModule().getLr();
     float angle = (float)atan2(speed.m_y, speed.m_x * negativeLr);
     Vec3f position = m_moduleAccesser->getPostureModule().getPos();

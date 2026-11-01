@@ -139,8 +139,7 @@ void Weapon::activate(wnActivateDesc* desc) {
             }
             if (m_moduleAccesser->getGroundModule().isNull() != true) {
                 if (m_moduleAccesser->getLinkModule().isValidParentShape(3) == true) {
-                    Vec2f center;
-                    Vec2f::copy(center, m_moduleAccesser->getLinkModule().getParentShapeCenterPos(3));
+                    Vec2f center = m_moduleAccesser->getLinkModule().getParentShapeCenterPos(3);
                     m_moduleAccesser->getGroundModule().setShapeSafePos(&center, 0);
                 } else {
                     u32 ownerTask = m_moduleAccesser->getTeamModule().getTeamOwnerId();
@@ -490,8 +489,7 @@ void Weapon::notifyEventCollisionAttack(float power, soCollisionLog* collisionLo
                     if (length > 0.00001f) {
                         dir.m_x *= 1.0f / length;
                         dir.m_y *= 1.0f / length;
-                        Vec2f speed;
-                        Vec2f::copy(speed, attack.getSpeed());
+                        Vec2f speed = attack.getSpeed();
                         if (vec2fAngle(&dir, &speed) * 57.29578f < 135.0f) {
                             m_reflectDirX = dir.m_x;
                             m_reflectDirY = dir.m_y;
@@ -700,8 +698,7 @@ void Weapon::setAttackPowerMulPattern(float pattern) {
 void Weapon::setGroundShapeSafePosWithAncestor() {
     if (m_moduleAccesser->getGroundModule().isNull() != true) {
         if (m_moduleAccesser->getLinkModule().isValidParentShape(3) == true) {
-            Vec2f center;
-            Vec2f::copy(center, m_moduleAccesser->getLinkModule().getParentShapeCenterPos(3));
+            Vec2f center = m_moduleAccesser->getLinkModule().getParentShapeCenterPos(3);
             m_moduleAccesser->getGroundModule().setShapeSafePos(&center, 0);
         } else {
             u32 ownerTask = m_moduleAccesser->getTeamModule().getTeamOwnerId();

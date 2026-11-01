@@ -60,8 +60,7 @@ void ftStatusUniqProcessCaptureDamageYoshi::exitStatus(soModuleAccesser* moduleA
     if (nextStatus != 0x108 && nextStatus != 0x109 && nextStatus != 0x42) {
         soLinkModule& link = moduleAccesser->getLinkModule();
         if (link.isLink(0)) {
-            Vec2f center;
-            Vec2f::copy(center, link.getParentShapeCenterPos(0));
+            Vec2f center = link.getParentShapeCenterPos(0);
             reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot4c(0);
             moduleAccesser->getGroundModule().setShapeSafePos(&center, 0);
         }

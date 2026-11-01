@@ -17,8 +17,7 @@ ftStatusUniqProcessCatchCut g_ftStatusUniqProcessCatchCut;
 
 void ftStatusUniqProcessCatchCut::initStatus(soModuleAccesser* moduleAccesser) {
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
-    Vec2f speed;
-    Vec2f::copy(speed, stop.getSpeed());
+    Vec2f speed = stop.getSpeed();
     float lr = moduleAccesser->getPostureModule().getLr();
     float negLr = -lr;
     // HYPOTHESIS: param 0xcc5 is the cut-throw horizontal push scale.

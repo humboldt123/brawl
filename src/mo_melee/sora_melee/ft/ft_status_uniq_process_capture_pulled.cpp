@@ -97,8 +97,7 @@ void ftStatusUniqProcessCapturePulled::initStatus(soModuleAccesser* moduleAccess
 // Per frame: the stop energy follows the pull offset of the grab; while airborne-free (situation 0) the near/far status is
 // re-evaluated and, when the pull is done, the fighter is put on the ground; otherwise the new status's motion is started.
 void ftStatusUniqProcessCapturePulled::execStatusCommon(soModuleAccesser* moduleAccesser, int nearStatus, int farStatus, u32 workIndex) {
-    Vec2f pull;
-    Vec2f::copy(pull, reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot28(1));
+    Vec2f pull = reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot28(1);
     dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3)).m_speed = pull;
     if (moduleAccesser->getSituationModule().getKind() == 0) {
         int status;
@@ -121,8 +120,7 @@ void ftStatusUniqProcessCapturePulled::execStatusCommon(soModuleAccesser* module
 
 
 static inline void execPullCommon(ftStatusUniqProcessCapturePulled* self, soModuleAccesser* moduleAccesser, int nearStatus, int farStatus, u32 workIndex) {
-    Vec2f pull;
-    Vec2f::copy(pull, reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot28(1));
+    Vec2f pull = reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot28(1);
     dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3)).m_speed = pull;
     if (moduleAccesser->getSituationModule().getKind() == 0) {
         int status;

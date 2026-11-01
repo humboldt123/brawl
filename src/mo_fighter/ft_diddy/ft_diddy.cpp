@@ -189,8 +189,7 @@ bool ftDiddy::activeArticle1(wnDiddyBarrel* weapon, soModuleAccesser* acc) {
         speed.m_y = sine * soValueAccesser::getConstantFloat(acc, 0xfaf, 0);
         rot = acc->getWorkManageModule().getInt(0x20000000);
     } else if (mode == 1) {
-        Vec2f kinetic;
-        Vec2f::copy(kinetic, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f kinetic = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         speed.m_x = kinetic.m_x * soValueAccesser::getConstantFloat(acc, 0xfb4, 0);
         speed.m_y = kinetic.m_y * soValueAccesser::getConstantFloat(acc, 0xfb4, 0);
         rot = acc->getWorkManageModule().getInt(0x20000000);

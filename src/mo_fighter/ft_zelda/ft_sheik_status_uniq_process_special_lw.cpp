@@ -23,8 +23,7 @@ void ftSheikStatusUniqProcessSpecialLw::initStatus(soModuleAccesser* moduleAcces
         float* divisor = static_cast<float*>(g_ftCommonDataAccesser.getData(Fighter_Sheik)->extendParam[3]);
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
-        Vec2f sumSpeed;
-        Vec2f::copy(sumSpeed, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1)));
+        Vec2f sumSpeed = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1));
         kinetic.clearSpeedAll();
         sumSpeed.m_x = sumSpeed.m_x / divisor[0];
         stop.m_speed = Vec2f(sumSpeed.m_x, 0.0f);

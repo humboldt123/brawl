@@ -246,8 +246,7 @@ void ftStatusUniqProcessSwallowedThrownStar::exitStatus(soModuleAccesser* module
         data.m_kind = 0x19;
         data.m_flag = 0;
         if (status == 0xd4) {
-            Vec2f offset;
-            Vec2f::copy(offset, reinterpret_cast<ftLinkModuleSlotView*>(moduleAccesser->m_enumerationStart->m_linkModule)->slotAC(0));
+            Vec2f offset = reinterpret_cast<ftLinkModuleSlotView*>(moduleAccesser->m_enumerationStart->m_linkModule)->slotAC(0);
             moduleAccesser->getWorkManageModule().setFloat(offset.m_x, 0x21000005);
             moduleAccesser->getWorkManageModule().setFloat(offset.m_y, 0x21000006);
             float linkLr = reinterpret_cast<ftLinkModuleSlotView*>(&moduleAccesser->getLinkModule())->slotA8(0);

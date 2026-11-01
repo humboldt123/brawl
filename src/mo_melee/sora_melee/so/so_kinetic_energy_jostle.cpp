@@ -15,8 +15,7 @@ void soKineticEnergyJostle::updateEnergy(soModuleAccesser* acc) {
         // Use the supporting floor's normal to make separation follow its slope.
         if (push.lengthSq() != 0.0f && acc->getSituationModule().getKind() == Situation_Ground &&
             acc->getGroundModule().isTouch(grCollStatus::TouchMask(8), 0)) {
-            Vec2f normal;
-            Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(8, 0));
+            Vec2f normal = acc->getGroundModule().getTouchNormal(8, 0);
             push = soKineticUtility::projectionNormalFollow(&push, &normal);
         }
         Vec3f position = acc->getPostureModule().getPos();

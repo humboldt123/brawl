@@ -53,8 +53,7 @@ void ftKineticEnergyMotion::resetEnergy(int mode, Vec2f* speed, Vec3f*, soModule
     case 2:
     case 3:
         if (mode != 3) {
-            Vec2f projected;
-            Vec2f::copy(projected, soKineticUtility::projectionGroundSpeed(&getSpeed(), acc));
+            Vec2f projected = soKineticUtility::projectionGroundSpeed(&getSpeed(), acc);
             m_speed = projected;
         }
         m_brake = Vec2f(soValueAccesser::getConstantFloat(acc, 0xBBC, 0), 0.0f);

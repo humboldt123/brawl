@@ -62,8 +62,7 @@ void ftSamusStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccess
     switch (statusKind) {
     case ftSamusSpecialSStatus::Unk122:
     case ftSamusSpecialSStatus::Unk124: {
-        Vec2f sumSpeed;
-        Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         unableKineticsS(moduleAccesser);
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
         stop.resetEnergy(0, &Vec2f(sumSpeed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
@@ -72,8 +71,7 @@ void ftSamusStatusUniqProcessSpecialS::initStatus(soModuleAccesser* moduleAccess
     }
     case ftSamusSpecialSStatus::Unk123:
     case ftSamusSpecialSStatus::Unk125: {
-        Vec2f sumSpeed;
-        Vec2f::copy(sumSpeed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         ftSamusExtendParamSpecialS* param = static_cast<ftSamusExtendParamSpecialS*>(g_ftCommonDataAccesser.getData(Fighter_Samus)->extendParam[3]);
         unableKineticsS(moduleAccesser);
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));

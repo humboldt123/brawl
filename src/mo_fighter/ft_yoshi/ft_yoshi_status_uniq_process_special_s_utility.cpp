@@ -110,12 +110,8 @@ void ftYoshiStatusUniqProcessSpecialSUtility::procHit(soModuleAccesser* acc) {
     work.setFloat(speed, 0x21000006);
 }
 void ftYoshiStatusUniqProcessSpecialSUtility::procHitWall(soModuleAccesser* acc, int touch) {
-    // MATCH-ONLY: retain the original aggregate word copy.
-    Vec2f normal;
-    Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(touch, 0));
-    // MATCH-ONLY: retain the original aggregate word copy.
-    Vec2f position;
-    Vec2f::copy(position, acc->getGroundModule().getTouchPos(touch, 0));
+    Vec2f normal = acc->getGroundModule().getTouchNormal(touch, 0);
+    Vec2f position = acc->getGroundModule().getTouchPos(touch, 0);
     float normalY = normal.m_y;
     float angle = atan2(-normal.m_x, normalY);
     acc->getEffectModule().req(static_cast<EfID>(9), &Vec3f(position.m_x, position.m_y, 0.0f), &Vec3f(0.0f, 0.0f, angle), 1.0f, 0, -1);
@@ -149,9 +145,7 @@ void ftYoshiStatusUniqProcessSpecialSUtility::setPower(soModuleAccesser* acc) {
     soCollisionAttackModule& attack = acc->getCollisionAttackModule();
     ftYoshiSpecialSParam* param = static_cast<ftYoshiSpecialSParam*>(g_ftCommonDataAccesser.getData(Fighter_Yoshi)->extendParam[0]);
     if (attack.isAttack(0, false)) {
-        // MATCH-ONLY: retain the original aggregate word copy.
-        Vec2f speed;
-        Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(-1)));
+        Vec2f speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(-1));
         int power = (param->attackPowerBase + ftyoshi::ABS(speed.m_x)) * param->attackPowerMultiplier;
         if (power < 1) power = 1;
         attack.setPower(0, power, false);

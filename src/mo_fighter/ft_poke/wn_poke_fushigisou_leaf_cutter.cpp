@@ -106,8 +106,7 @@ bool wnPokeFushigisouLeafCutter::notifyEventAnimCmd(acAnimCmd* cmd,
     case 6: {
         wnKineticEnergyNormal& normal =
             dynamic_cast<wnKineticEnergyNormal&>(*accesser->getKineticModule().getEnergy(0));
-        Vec2f velocity;
-        Vec2f::copy(velocity, normal.getSpeed());
+        Vec2f velocity = normal.getSpeed();
         Vec2f surface;
         Vec2f::copy(surface, accesser->getGroundModule().getTouchNormal(
             static_cast<grCollStatus::TouchMask>(0xFF), 0));
@@ -119,14 +118,11 @@ bool wnPokeFushigisouLeafCutter::notifyEventAnimCmd(acAnimCmd* cmd,
             // MATCH-ONLY: retain the native vector expression value copies.
             Vec2f doubledResult;
             surface.scale(2.0f, &doubledResult);
-            Vec2f doubledNormal;
-            Vec2f::copy(doubledNormal, doubledResult);
+            Vec2f doubledNormal = doubledResult;
             Vec2f projectionResult;
             doubledNormal.scale(dot, &projectionResult);
-            Vec2f projection;
-            Vec2f::copy(projection, projectionResult);
-            Vec2f reflected;
-            Vec2f::copy(reflected, velocity - projection);
+            Vec2f projection = projectionResult;
+            Vec2f reflected = velocity - projection;
             velocity.m_x = reflected.m_x;
             velocity.m_y = reflected.m_y;
             velocity.scale(retention, &velocity);

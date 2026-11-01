@@ -21,8 +21,7 @@ void ftZeldaStatusUniqProcessSpecialHi3::initStatus(soModuleAccesser* moduleAcce
     soSituationModule& situation = moduleAccesser->getSituationModule();
     // Farore's Wind parameters are stored in ftData::extendParam[2] (+0x84).
     float* params = static_cast<float*>(g_ftCommonDataAccesser.getData(Fighter_Zelda)->extendParam[2]);
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1)));
+    Vec2f sumSpeed = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1));
     kinetic.clearSpeedAll();
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
@@ -50,8 +49,7 @@ void ftZeldaStatusUniqProcessSpecialHi3::execFixPosCounter(soModuleAccesser* mod
     if (situation.getKind() != 0) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
-        Vec2f sumSpeed;
-        Vec2f::copy(sumSpeed, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f sumSpeed = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1));
         if (workManage.isFlag(0x22000011)) {
             // HYPOTHESIS: the native limit value is a float in the parameter record at +0x7C.
             float* params = static_cast<float*>(g_ftCommonDataAccesser.getData(Fighter_Zelda)->extendParam[2]);

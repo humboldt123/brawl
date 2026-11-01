@@ -39,10 +39,8 @@ void itKineticEnergyStop::updateEnergy(soModuleAccesser* moduleAccesser) {
         float rest = length - brake;
         if (rest < 0.0f) {
             if (m_mode == 10) {
-                Vec2f accel;
-                Vec2f::copy(accel, getSpeed());
-                Vec2f stableSpeed;
-                Vec2f::copy(stableSpeed, m_stableSpeed);
+                Vec2f accel = getSpeed();
+                Vec2f stableSpeed = m_stableSpeed;
                 accel.m_x *= -1.0f;
                 accel.m_y *= -1.0f;
                 if (accel.m_x > 0.0f) {
@@ -62,8 +60,7 @@ void itKineticEnergyStop::updateEnergy(soModuleAccesser* moduleAccesser) {
                 m_accel = Vec2f(0.0f, 0.0f);
             }
         } else {
-            Vec2f accel;
-            Vec2f::copy(accel, getSpeed() * (rest / length - 1.0f));
+            Vec2f accel = getSpeed() * (rest / length - 1.0f);
             m_accel = accel;
         }
     }

@@ -32,9 +32,7 @@ void ftYoshiStatusUniqProcessSpecialSTurn::execStatus(soModuleAccesser* acc) {
     soPostureModule& posture = acc->getPostureModule();
     soModelModule& model = acc->getModelModule();
     ftYoshiSpecialSParam* param = static_cast<ftYoshiSpecialSParam*>(g_ftCommonDataAccesser.getData(Fighter_Yoshi)->extendParam[0]);
-    // MATCH-ONLY: retain the original aggregate word copy.
-    Vec2f velocity;
-    Vec2f::copy(velocity, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1)));
+    Vec2f velocity = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1));
     float angle = work.getFloat(0x21000005);
     float oldSpeed = work.getFloat(0x21000004);
     ftYoshiStatusUniqProcessSpecialSUtility::setBodyChange(acc);
@@ -104,9 +102,7 @@ void ftYoshiStatusUniqProcessSpecialSTurn::execFixPosCounter(soModuleAccesser* a
     soModelModule& model = acc->getModelModule();
     ftYoshiSpecialSParam* param = static_cast<ftYoshiSpecialSParam*>(g_ftCommonDataAccesser.getData(Fighter_Yoshi)->extendParam[0]);
     bool grounded = situation.getKind() == Situation_Ground;
-    // MATCH-ONLY: retain the original aggregate word copy.
-    Vec2f speed;
-    Vec2f::copy(speed, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1)));
+    Vec2f speed = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1));
     bool hitWall;
     if (speed.m_x > 0.0f) {
         hitWall = ground.isTouch(static_cast<grCollStatus::TouchMask>(4), 0);
@@ -144,9 +140,7 @@ void ftYoshiStatusUniqProcessSpecialSTurn::execFixPosCounter(soModuleAccesser* a
             ground.setCorrect(static_cast<soGroundShapeImpl::CorrectKind>(2), 0);
         int counter = work.getInt(0x20000004);
         if (counter % param->dustInterval == 0) {
-            // MATCH-ONLY: retain the original aggregate word copy.
-            Vec2f normal;
-            Vec2f::copy(normal, ground.getTouchNormal(static_cast<grCollStatus::TouchMask>(8), 0));
+            Vec2f normal = ground.getTouchNormal(static_cast<grCollStatus::TouchMask>(8), 0);
             float yaw = speed.m_x < 0.0f ? -1.5707964f : 1.5707964f;
             float normalY = normal.m_y;
             float slope = atan2(-normal.m_x, normalY);

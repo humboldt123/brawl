@@ -8,8 +8,7 @@
 ftKineticEnergyController::ftKineticEnergyController() : m_mode(-1), m_unk38(1.0f) { }
 
 void ftKineticEnergyController::updateEnergy(soModuleAccesser* moduleAccesser) {
-    Vec2f savedTarget;
-    Vec2f::copy(savedTarget, m_speedTarget);
+    Vec2f savedTarget = m_speedTarget;
     float stickX = moduleAccesser->getControllerModule().getStickX();
     float stickY = moduleAccesser->getControllerModule().getStickY();
     float accelX = 0.0f;
@@ -115,8 +114,7 @@ void ftKineticEnergyController::updateEnergy(soModuleAccesser* moduleAccesser) {
         addY = stickY > 0.0f ? addY : -addY;
         accelY += addY;
         {
-            Vec2f t;
-            Vec2f::copy(t, m_speedTarget);
+            Vec2f t = m_speedTarget;
             double absY = fabs(stickY);
             t.m_y = (float)absY * m_speedTarget.m_y;
             m_speedTarget = t;
@@ -327,8 +325,7 @@ void ftKineticEnergyController::resetEnergy(int mode, Vec2f* speed, Vec3f*, soMo
 }
 
 void ftKineticEnergyController::mulXSpeedMax(float mul) {
-    Vec2f v;
-    Vec2f::copy(v, m_speedTarget);
+    Vec2f v = m_speedTarget;
     v.m_x *= mul;
     m_speedTarget = v;
 }

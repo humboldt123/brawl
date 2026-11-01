@@ -33,8 +33,7 @@ void ftLuigiStatusUniqProcessSpecialSWall::initStatus(soModuleAccesser* moduleAc
     soKineticEnergyGroundMovement& groundMovement =
         dynamic_cast<soKineticEnergyGroundMovement&>(
             *moduleAccesser->getKineticModule().getEnergy(6));
-    Vec2f attachNormal;
-    Vec2f::copy(attachNormal, moduleAccesser->getGroundModule().getAttachNormal(0));
+    Vec2f attachNormal = moduleAccesser->getGroundModule().getAttachNormal(0);
     groundMovement.enableRot(&attachNormal);
 
     moduleAccesser->getKineticModule().getEnergy(5)->disable();

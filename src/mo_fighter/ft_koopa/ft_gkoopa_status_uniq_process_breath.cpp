@@ -150,10 +150,8 @@ extern "C" void fn_102_15788(soModuleAccesser* moduleAccesser) {
     work.offFlag(0x1200003f);
     if (situation == 2) {
         float* param = reinterpret_cast<float*>(g_ftCommonDataAccesser.getData(Fighter_GKoopa)->extendParam[2]);
-        Vec2f speed;
-        Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
-        Vec2f airSpeed;
-        Vec2f::copy(airSpeed, speed);
+        Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
+        Vec2f airSpeed = speed;
         airSpeed.m_y = param[1];
         fn_102_156C0(moduleAccesser);
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));

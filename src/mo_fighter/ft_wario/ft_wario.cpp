@@ -719,10 +719,9 @@ void ftWarioKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
         ftKineticTransactor::changeKinetic(mode, pools, acc);
         return;
     }
-    Vec2f speed;
     soModuleAccesser* processAccesser = acc;
     bool process = true;
-    Vec2f::copy(speed, ftKineticTransactHelper::preHelpProcess(processAccesser, process, process));
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
     switch (mode) {
     case 0x64: {
         bool result = false;
@@ -744,8 +743,7 @@ void ftWarioKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
 // Stop, enables Damage, and installs Wario's own gravity tuning. The gameplay
 // name of this mode is unresolved; its selection may come from motion scripts.
 void ftWarioKineticTransactor::changeKineticSub(bool*, void*, Vec2f* speed, soModuleAccesser* acc) {
-    Vec2f initialSpeed;
-    Vec2f::copy(initialSpeed, *speed);
+    Vec2f initialSpeed = *speed;
     Vec2f gravitySpeed;
     float verticalSpeed = initialSpeed.m_y;
     gravitySpeed.m_x = 0.0f;

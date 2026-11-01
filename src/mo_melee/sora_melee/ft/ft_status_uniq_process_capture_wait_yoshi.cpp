@@ -74,8 +74,7 @@ void ftStatusUniqProcessCaptureWaitYoshi::exitStatus(soModuleAccesser* moduleAcc
     }
     ftLinkModuleSlotView* link = reinterpret_cast<ftLinkModuleSlotView*>(moduleAccesser->m_enumerationStart->m_linkModule);
     if (link->slot2c(0)) {
-        Vec2f offset;
-        Vec2f::copy(offset, link->slotDC(0));
+        Vec2f offset = link->slotDC(0);
         reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot4c(0);
         moduleAccesser->getGroundModule().setShapeSafePos(&offset, 0);
     }

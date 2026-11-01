@@ -35,14 +35,12 @@ void ftStatusUniqProcessPitFall::initStatus(soModuleAccesser* moduleAccesser) {
     moduleAccesser->getMotionModule().changeMotionRequest(&param);
     float slope = 0.0f;
     if (moduleAccesser->getGroundModule().isTouch(static_cast<grCollStatus::TouchMask>(8), 0)) {
-        Vec2f normal;
-        Vec2f::copy(normal, moduleAccesser->getGroundModule().getTouchNormal(8, 0));
+        Vec2f normal = moduleAccesser->getGroundModule().getTouchNormal(8, 0);
         float normalX = normal.m_x;
         float normalY = normal.m_y;
         slope = (float) atan2(normalX, normalY);
     }
-    Vec2f touchPos;
-    Vec2f::copy(touchPos, moduleAccesser->getGroundModule().getTouchPos(8, 0));
+    Vec2f touchPos = moduleAccesser->getGroundModule().getTouchPos(8, 0);
     float px = touchPos.m_x;
     float py = touchPos.m_y;
     Vec3f pos;

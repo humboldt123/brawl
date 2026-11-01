@@ -22,13 +22,11 @@ ftStatusUniqProcessBuryWait g_ftStatusUniqProcessBuryWait;
 void ftStatusUniqProcessBuryWait::execFixPosCounter(soModuleAccesser* moduleAccesser) {
     soGroundModule* ground = &moduleAccesser->getGroundModule();
     if (ground->isTouch(8, 0)) {
-        Vec2f normal;
-        Vec2f::copy(normal, ground->getTouchNormal(8, 0));
+        Vec2f normal = ground->getTouchNormal(8, 0);
         float normalX = normal.m_x;
         float normalY = normal.m_y;
         float angle = (float) atan2(normalX, normalY);
-        Vec2f touchPos;
-        Vec2f::copy(touchPos, ground->getTouchPos(8, 0));
+        Vec2f touchPos = ground->getTouchPos(8, 0);
         int effectHandle = moduleAccesser->getWorkManageModule().getInt(0x20000001);
         Vec3f position;
         position.m_x = touchPos.m_x;

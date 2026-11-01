@@ -23,8 +23,7 @@ void ftZeldaStatusUniqProcessSpecialHi::initStatus(soModuleAccesser* moduleAcces
     float* scale = static_cast<float*>(g_ftCommonDataAccesser.getData(Fighter_Zelda)->extendParam[2]);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
-    Vec2f sumSpeed;
-    Vec2f::copy(sumSpeed, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1)));
+    Vec2f sumSpeed = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1));
     kinetic.clearSpeedAll();
     sumSpeed.m_x /= scale[0];
     sumSpeed.m_y /= scale[1];

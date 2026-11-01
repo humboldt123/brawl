@@ -12,9 +12,7 @@ void ftYoshiStatusUniqProcessSpecialSEnd::initStatus(soModuleAccesser* acc) {
     soPostureModule& posture = acc->getPostureModule();
     soModelModule& model = acc->getModelModule();
     ftYoshiSpecialSParam* param = static_cast<ftYoshiSpecialSParam*>(g_ftCommonDataAccesser.getData(Fighter_Yoshi)->extendParam[0]);
-    // MATCH-ONLY: retain the original aggregate word copy.
-    Vec2f speed;
-    Vec2f::copy(speed, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1)));
+    Vec2f speed = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(-1));
     if (situation.getKind() == Situation_Ground) {
         kinetic.changeKinetic(6, acc);
         speed.m_x *= param->endHorizontalMultiplier;

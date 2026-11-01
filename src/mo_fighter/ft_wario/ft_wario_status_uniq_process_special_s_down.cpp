@@ -11,8 +11,7 @@ void ftWarioStatusUniqProcessSpecialSDown::initStatus(soModuleAccesser* a) {
     if (link.isLink(6)) {
         ftWarioBikeSpeedEvent event(0x458);
         link.sendEventParents(6, event);
-        Vec2f speed;
-        Vec2f::copy(speed, event.speed);
+        Vec2f speed = event.speed;
         ftKineticEnergyStop& horizontal = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
         horizontal.m_speed = Vec2f(speed.m_x, 0.0f);

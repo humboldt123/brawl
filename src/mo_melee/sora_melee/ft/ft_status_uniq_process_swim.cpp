@@ -260,8 +260,7 @@ void ftStatusUniqProcessSwim::execFixPos(soModuleAccesser* moduleAccesser) {
             moduleAccesser->getStatusModule().changeStatusRequest(0xb4, moduleAccesser);
         } else {
             soKineticEnergy::AttributeFlag flag(-1);
-            Vec2f total;
-            Vec2f::copy(total, moduleAccesser->getKineticModule().getSumSpeed(flag));
+            Vec2f total = moduleAccesser->getKineticModule().getSumSpeed(flag);
             if (total.m_y > 0.0f) {
                 int areaId = moduleAccesser->getWorkManageModule().getInt(0x20000002);
                 stAreaManager* manager = getAreaManager();

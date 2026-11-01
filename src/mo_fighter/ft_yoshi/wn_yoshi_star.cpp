@@ -44,8 +44,7 @@ void wnYoshiStar::activate(int founderTaskId, int team, Vec3f* pos, float lr) {
     // Preserve the default horizontal limit while applying the spawn tunings.
     Vec2f speed;
     Vec2f accel;
-    Vec2f limit;
-    Vec2f::copy(limit, normal.m_speedLimit);
+    Vec2f limit = normal.m_speedLimit;
     speed.m_x = m_param->horizontalSpeed * lr;
     speed.m_y = m_param->verticalSpeed;
     accel.m_x = m_param->horizontalAcceleration * lr;

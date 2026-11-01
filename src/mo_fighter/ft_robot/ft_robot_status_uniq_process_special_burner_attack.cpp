@@ -23,8 +23,7 @@ void ftRobotStatusUniqProcessSpecialBurnerAttack::execStatus(soModuleAccesser* m
 void ftRobotStatusUniqProcessSpecialBurnerAttack::execFixPos(soModuleAccesser* moduleAccesser) {
     if (moduleAccesser->getGroundModule().isTouch(static_cast<grCollStatus::TouchMask>(2), 0) || moduleAccesser->getGroundModule().isTouch(static_cast<grCollStatus::TouchMask>(4), 0)) {
         ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
-        Vec2f speed;
-        Vec2f::copy(speed, controller.getSpeed());
+        Vec2f speed = controller.getSpeed();
         speed.m_x = -speed.m_x * soValueAccesser::getConstantFloat(moduleAccesser, 0xfcb, 0);
         controller.m_speed = speed;
     }

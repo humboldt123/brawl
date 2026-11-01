@@ -9,8 +9,7 @@ wnRobotBeamStatusUniqProcess g_wnRobotBeamStatusUniqProcess;
 // Turns the beam model around X so that it points along the direction it is travelling in.
 static inline void alignToVelocity(soModuleAccesser* moduleAccesser) {
     Vec3f rot = moduleAccesser->getPostureModule().getRot(0);
-    Vec2f velocity;
-    Vec2f::copy(velocity, moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f velocity = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     velocity.normalize();
     float lr = moduleAccesser->getPostureModule().getLr();
     float vy = velocity.m_y;

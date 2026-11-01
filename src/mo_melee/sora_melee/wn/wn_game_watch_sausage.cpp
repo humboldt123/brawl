@@ -139,8 +139,7 @@ bool wnGameWatchSausage::notifyEventCollisionAttackCheck(u32 flags) {
         reflectSettingTeam();
         wnKineticEnergyNormal& movement = dynamic_cast<wnKineticEnergyNormal&>(
             *m_moduleAccesser->getKineticModule().getEnergy(0));
-        Vec2f speed;
-        Vec2f::copy(speed, movement.getSpeed());
+        Vec2f speed = movement.getSpeed();
         if (speed.m_y < 0.0f) {
             speed.m_y *= -1.0f;
             movement.m_speed = speed;

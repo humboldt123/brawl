@@ -74,9 +74,8 @@ void ftStatusUniqProcessDamageFlyReflect::initNormalDamage(soModuleAccesser* mod
     ftStatusUniqProcessDamageFly::initNormalDamageCommon(moduleAccesser);
     switch (statusKind) {
     case 0x47: {
-        Vec2f speed;
         soKineticEnergy::AttributeFlag flag(static_cast<soKineticEnergy::AttributeMask>(2));
-        Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(flag));
+        Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(flag);
         float dir = 0.0f;
         if (moduleAccesser->getGroundModule().isTouch(static_cast<grCollStatus::TouchMask>(4), 0)) {
             dir = -1.0f;
@@ -151,9 +150,8 @@ void ftStatusUniqProcessDamageFlyReflect::initNormalDamage(soModuleAccesser* mod
         break;
     }
     case 0x48: {
-        Vec2f speed;
         soKineticEnergy::AttributeFlag flag(static_cast<soKineticEnergy::AttributeMask>(2));
-        Vec2f::copy(speed, moduleAccesser->getKineticModule().getSumSpeed(flag));
+        Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(flag);
         soMotionChangeParam param;
         param.m_kind = 0xd1;
         param.m_frame = 0.0f;

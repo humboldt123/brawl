@@ -26,8 +26,7 @@ void ftSheikStatusUniqProcessSpecialHiEnd::initStatus(soModuleAccesser* moduleAc
         dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
     ftKineticEnergyStop& stop =
         dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
-    Vec2f speed;
-    Vec2f::copy(speed, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1));
     if (situation.getKind() == 0) {
         kinetic.changeKinetic(6, moduleAccesser);
         speed.m_x *= p[10];

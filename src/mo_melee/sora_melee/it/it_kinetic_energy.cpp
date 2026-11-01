@@ -7,10 +7,8 @@
 #include <types.h>
 
 void itKineticEnergy::updateEnergy(soModuleAccesser* moduleAccesser) {
-    Vec2f accel;
-    Vec2f::copy(accel, m_accel);
-    Vec2f brake;
-    Vec2f::copy(brake, m_brake);
+    Vec2f accel = m_accel;
+    Vec2f brake = m_brake;
     if (m_considerGroundFriction || m_isFollowGroundNormal) {
         if (moduleAccesser->getSituationModule().getKind() == Situation_Ground) {
             if (moduleAccesser->getGroundModule().isTouch(0xFF, 0)) {
@@ -24,8 +22,7 @@ void itKineticEnergy::updateEnergy(soModuleAccesser* moduleAccesser) {
                     }
                 }
                 if (m_isFollowGroundNormal == true) {
-                    Vec2f normal;
-                    Vec2f::copy(normal, moduleAccesser->getGroundModule().getTouchNormal(8, 0));
+                    Vec2f normal = moduleAccesser->getGroundModule().getTouchNormal(8, 0);
                     accel = soKineticUtility::projectionNormalFollow(&accel, &normal);
                 }
             }
@@ -33,8 +30,7 @@ void itKineticEnergy::updateEnergy(soModuleAccesser* moduleAccesser) {
     }
     m_speed.m_x += accel.m_x;
     m_speed.m_y += accel.m_y;
-    Vec2f stableSpeed;
-    Vec2f::copy(stableSpeed, m_stableSpeed);
+    Vec2f stableSpeed = m_stableSpeed;
     if (stableSpeed.m_x < 0.0f) {
         stableSpeed.m_x = 0.0f;
     }
@@ -103,10 +99,8 @@ void itKineticEnergy::updateEnergy(soModuleAccesser* moduleAccesser) {
 
 void itKineticEnergy::updateEnergy(soModuleAccesser* moduleAccesser, float rate) {
     if (rate != 1.0f) {
-        Vec2f accel;
-        Vec2f::copy(accel, m_accel);
-        Vec2f brake;
-        Vec2f::copy(brake, m_brake);
+        Vec2f accel = m_accel;
+        Vec2f brake = m_brake;
         m_accel.m_x *= rate;
         m_accel.m_y *= rate;
         m_brake.m_x *= rate;
@@ -161,8 +155,7 @@ void itKineticEnergy3f::updateEnergy(soModuleAccesser* moduleAccesser) {
                     }
                 }
                 if (m_isFollowGroundNormal == true) {
-                    Vec2f normal;
-                    Vec2f::copy(normal, moduleAccesser->getGroundModule().getTouchNormal(8, 0));
+                    Vec2f normal = moduleAccesser->getGroundModule().getTouchNormal(8, 0);
                     Vec2f planar(accel.m_x, accel.m_y);
                     Vec2f follow = soKineticUtility::projectionNormalFollow(&planar, &normal);
                     accel.m_x = follow.m_x;

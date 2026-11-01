@@ -53,9 +53,7 @@ void ftYoshiStatusUniqProcessSpecialAirSJump::execFixPosCounter(soModuleAccesser
     soPostureModule& posture = acc->getPostureModule();
     soGroundModule& ground = acc->getGroundModule();
     ftYoshiSpecialSParam* param = static_cast<ftYoshiSpecialSParam*>(g_ftCommonDataAccesser.getData(Fighter_Yoshi)->extendParam[0]);
-    // MATCH-ONLY: retain the original aggregate word copy.
-    Vec2f velocity;
-    Vec2f::copy(velocity, kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f velocity = kinetic.getSumSpeed(soKineticEnergy::AttributeFlag(1));
     float speed = work.getFloat(0x21000006);
     float lr = posture.getLr();
     bool grounded = situation.getKind() == Situation_Ground;

@@ -98,8 +98,7 @@ void wnKineticModuleImpl::initializeNormal(int kineticType, soModuleAccesser* ac
     soKineticEnergy* main = manager->at(0);
     soKineticEnergy* sub = manager->at(1);
     if (kineticType == 0) {
-        Vec2f speed;
-        Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         Vec3f zero3(0.0f, 0.0f, 0.0f);
         main->resetEnergy(0, &speed, &zero3, acc);
         Vec3f zeroRot(0.0f, 0.0f, 0.0f);
@@ -115,8 +114,7 @@ void wnKineticModuleImpl::initializeStop(int kineticType, soModuleAccesser* acc)
     soKineticEnergy* main = manager->at(0);
     soKineticEnergy* sub = manager->at(1);
     if (kineticType == 0) {
-        Vec2f speed;
-        Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+        Vec2f speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
         Vec3f zero3(0.0f, 0.0f, 0.0f);
         main->resetEnergy(1, &speed, &zero3, acc);
         Vec3f zeroRot(0.0f, 0.0f, 0.0f);

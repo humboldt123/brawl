@@ -414,8 +414,7 @@ bool wnPikminPikmin::isEnableHold() {
     case 0x29:
         return false;
     }
-    Vec2f diff;
-    Vec2f::copy(diff, getTargetDiffVec());
+    Vec2f diff = getTargetDiffVec();
     int normal = mtIsNormal(diff.m_x) && mtIsNormal(diff.m_y);
     bool enable = normal == 1;
     if (enable) {
@@ -432,8 +431,7 @@ bool wnPikminPikmin::isEnableSort() {
         return false;
     }
     if (isAutonomy() == true || isLiberty() == true) {
-        Vec2f diff;
-        Vec2f::copy(diff, getTargetDiffVec());
+        Vec2f diff = getTargetDiffVec();
         int normal = mtIsNormal(diff.m_x) && mtIsNormal(diff.m_y);
         if (normal != 0) {
             PIKMIN_PARAM_FLOAT(limit, 0xFBC);
@@ -762,8 +760,7 @@ void wnPikminPikmin::processFixPosition() {
                 Vec2f current(pos.m_x, pos.m_y);
                 soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
                 Vec2f target(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY));
-                Vec2f diff;
-                Vec2f::copy(diff, target - current);
+                Vec2f diff = target - current;
                 float lr = m_moduleAccesser->getPostureModule().getLr();
                 float ownerLr = m_moduleAccesser->getWorkManageModule().getFloat(Work_Float_OwnerLrCurrent);
                 if (lr * diff.m_x < 0.0f && lr * ownerLr < 0.0f) {
@@ -800,8 +797,7 @@ void wnPikminPikmin::updateAutonomy() {
     if (status == 0x33 || (u32)(status - 0x2E) <= 1) {
         return;
     }
-    Vec2f diff;
-    Vec2f::copy(diff, getTargetDiffVec());
+    Vec2f diff = getTargetDiffVec();
     bool normal = mtIsNormal(diff.m_x) && mtIsNormal(diff.m_y);
     if (normal == 1) {
         if (m_moduleAccesser->getWorkManageModule().isFlag(Work_Flag_Autonomy) == false) {
@@ -863,8 +859,7 @@ void wnPikminPikmin::notifyEventChangeStatus(int statusKind, int prevStatusKind,
     }
     case 4:
         if (m_moduleAccesser->getLinkModule().isValidParentShape(3) == true) {
-            Vec2f center;
-            Vec2f::copy(center, m_moduleAccesser->getLinkModule().getParentShapeCenterPos(3));
+            Vec2f center = m_moduleAccesser->getLinkModule().getParentShapeCenterPos(3);
             m_moduleAccesser->getGroundModule().setShapeSafePos(&center, 0);
         }
         break;
@@ -1285,8 +1280,7 @@ void wnPikminPikminKineticTransactor::addSpeedOutside(int type, float* speed, vo
         result.m_x = 0.0f;
         result.m_y = 0.0f;
         if (acc->getSituationModule().getKind() == 0) {
-            Vec2f normal;
-            Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(8, 0));
+            Vec2f normal = acc->getGroundModule().getTouchNormal(8, 0);
             Vec2f along;
             along.m_x = speed[0];
             along.m_y = 0.0f;
@@ -1507,8 +1501,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub(void* pools, soModuleAcce
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub1(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     soKineticEnergyNormal* normal;
     soParamAccesser* params = PK_PARAMS(acc);
@@ -1549,8 +1542,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub1(void* pools, soModuleAcc
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub2(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     soKineticEnergyNormal* normal;
     soParamAccesser* params = PK_PARAMS(acc);
@@ -1579,8 +1571,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub2(void* pools, soModuleAcc
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub3(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     soKineticEnergyNormal* normal;
     soParamAccesser* params = PK_PARAMS(acc);
@@ -1595,8 +1586,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub3(void* pools, soModuleAcc
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub4(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     PK_PARAMS(acc);
     soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
@@ -1615,8 +1605,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub4(void* pools, soModuleAcc
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub5(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     soKineticEnergyNormal* normal;
     soParamAccesser* params = PK_PARAMS(acc);
@@ -1638,8 +1627,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub5(void* pools, soModuleAcc
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub6(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
     soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
@@ -1666,8 +1654,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub7(void* pools, soModuleAcc
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub8(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
     wnKineticEnergyGravity* gravity = pkGetEnergy(pools, soIntToType<1>());
@@ -1678,8 +1665,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub8(void* pools, soModuleAcc
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub9(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
     soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
@@ -1812,8 +1798,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub16(void* pools, soModuleAc
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub17(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
     soKineticEnergyNormal* normal = PK_NORMAL(pools);
@@ -1892,8 +1877,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub20(void* pools, soModuleAc
 }
 
 void wnPikminPikminKineticTransactor::changeKineticSub21(void* pools, soModuleAccesser* acc) {
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     wnPikminPikminKineticTransactor empty = {};
     empty.changeKineticSub3(pools, acc);
     soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
@@ -1905,8 +1889,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub21(void* pools, soModuleAc
 
 void wnPikminPikminKineticTransactor::changeKineticSub22(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     normal->m_unk30 = false;
     normal->offConsiderGroundFriction();
@@ -1927,8 +1910,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub22(void* pools, soModuleAc
 
 void wnPikminPikminKineticTransactor::changeKineticSub23(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->m_unk30 = false;
@@ -1939,8 +1921,7 @@ void wnPikminPikminKineticTransactor::changeKineticSub23(void* pools, soModuleAc
 
 void wnPikminPikminKineticTransactor::changeKineticSub24(void* pools, soModuleAccesser* acc) {
     acc->getKineticModule().unableEnergyAll();
-    Vec2f current;
-    Vec2f::copy(current, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->m_unk30 = false;
@@ -2004,16 +1985,14 @@ void wnPikminPikminKineticTransactor::updateEnergy1(soKineticEnergyNormal* energ
     soPostureModule& posture = acc->getPostureModule();
     Vec2f pos(posture.getPos().m_x, posture.getPos().m_y);
     soWorkManageModule& work = acc->getWorkManageModule();
-    Vec2f diff;
-    Vec2f::copy(diff, pos - Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)));
+    Vec2f diff = pos - Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY));
     float distSq = diff.lengthSq();
     if (distSq == 0.0f) {
         energy->m_speed = PK_V2(0.0f, 0.0f);
     } else {
         energy->updateEnergy(acc);
         if (energy->getSpeed().lengthSq() > distSq) {
-            Vec2f dir;
-            Vec2f::copy(dir, energy->getSpeed());
+            Vec2f dir = energy->getSpeed();
             dir.normalize();
             scale(&dir, mtSqrtf(distSq));
             energy->m_speed = dir;
@@ -2025,8 +2004,7 @@ void wnPikminPikminKineticTransactor::updateEnergy2(soKineticEnergyNormal* energ
     soPostureModule& posture = acc->getPostureModule();
     Vec2f pos(posture.getPos().m_x, posture.getPos().m_y);
     soWorkManageModule& work = acc->getWorkManageModule();
-    Vec2f diff;
-    Vec2f::copy(diff, pos - Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)));
+    Vec2f diff = pos - Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY));
     float distSq = diff.lengthSq();
     if (distSq == 0.0f) {
         energy->m_speed = PK_V2(0.0f, 0.0f);
@@ -2042,8 +2020,7 @@ void wnPikminPikminKineticTransactor::updateEnergy2(soKineticEnergyNormal* energ
         energy->m_accel = PK_V2(accel, 0.0f);
         energy->updateEnergy(acc);
         if (energy->getSpeed().lengthSq() > distSq) {
-            Vec2f dir;
-            Vec2f::copy(dir, energy->getSpeed());
+            Vec2f dir = energy->getSpeed();
             dir.normalize();
             scale(&dir, mtSqrtf(distSq));
             energy->m_speed = dir;
@@ -2056,8 +2033,7 @@ void wnPikminPikminKineticTransactor::updateEnergy3(soKineticEnergyNormal* energ
     Vec2f pos(posture.getPos().m_x, posture.getPos().m_y);
     soWorkManageModule& work = acc->getWorkManageModule();
     Vec2f target(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY));
-    Vec2f diff;
-    Vec2f::copy(diff, target - pos);
+    Vec2f diff = target - pos;
     float distSq = diff.lengthSq();
     if (distSq == 0.0f) {
         energy->m_speed = PK_V2(0.0f, 0.0f);
@@ -2066,8 +2042,7 @@ void wnPikminPikminKineticTransactor::updateEnergy3(soKineticEnergyNormal* energ
     } else {
         energy->updateEnergy(acc);
         if (energy->m_speedTarget.lengthSq() > distSq) {
-            Vec2f dir;
-            Vec2f::copy(dir, energy->getSpeed());
+            Vec2f dir = energy->getSpeed();
             dir.normalize();
             scale(&dir, mtSqrtf(distSq) * 0.05f);
             energy->m_speed = dir;
@@ -2079,16 +2054,14 @@ void wnPikminPikminKineticTransactor::updateEnergy8(soKineticEnergyNormal* energ
     soPostureModule& posture = acc->getPostureModule();
     Vec2f pos(posture.getPos().m_x, posture.getPos().m_y);
     soWorkManageModule& work = acc->getWorkManageModule();
-    Vec2f diff;
-    Vec2f::copy(diff, Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)) - pos);
+    Vec2f diff = Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)) - pos;
     float distSq = diff.lengthSq();
     if (distSq == 0.0f) {
         energy->m_speed = PK_V2(0.0f, 0.0f);
     } else {
         energy->updateEnergy(acc);
         if (energy->getSpeed().lengthSq() > distSq) {
-            Vec2f dir;
-            Vec2f::copy(dir, energy->getSpeed());
+            Vec2f dir = energy->getSpeed();
             dir.normalize();
             scale(&dir, mtSqrtf(distSq));
             energy->m_speed = dir;
@@ -2224,8 +2197,7 @@ void wnPikminPikminKineticTransactor::updateEnergy4(soKineticEnergyNormal* energ
     soPostureModule& posture = acc->getPostureModule();
     Vec2f pos(posture.getPos().m_x, posture.getPos().m_y);
     soWorkManageModule& work = acc->getWorkManageModule();
-    Vec2f diff;
-    Vec2f::copy(diff, Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)) - pos);
+    Vec2f diff = Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)) - pos;
     float distSq = diff.lengthSq();
     if (distSq == 0.0f) {
         energy->m_speed = PK_V2(0.0f, 0.0f);
@@ -2254,14 +2226,12 @@ void wnPikminPikminKineticTransactor::updateEnergy4(soKineticEnergyNormal* energ
                 energy->m_speedLimit = PK_V2(limitValue, limitValue);
                 float speedSq = energy->getSpeed().lengthSq();
                 if (speedSq != 0.0f) {
-                    Vec2f dir;
-                    Vec2f::copy(dir, diff);
+                    Vec2f dir = diff;
                     dir.normalize();
                     scale(&dir, mtSqrtf(speedSq));
                     energy->m_speed = dir;
                 }
-                Vec2f accelDir;
-                Vec2f::copy(accelDir, diff);
+                Vec2f accelDir = diff;
                 accelDir.normalize();
                 scale(&accelDir, soValueAccesser::getConstantFloat(acc, 0xFC6, 0));
                 energy->m_accel = accelDir;
@@ -2270,8 +2240,7 @@ void wnPikminPikminKineticTransactor::updateEnergy4(soKineticEnergyNormal* energ
         energy->updateEnergy(acc);
         if (distSq != 0.0f) {
             if (energy->getSpeed().lengthSq() > distSq) {
-                Vec2f dir;
-                Vec2f::copy(dir, energy->getSpeed());
+                Vec2f dir = energy->getSpeed();
                 dir.normalize();
                 scale(&dir, mtSqrtf(distSq));
                 if (dir.m_y < 0.0f) {
@@ -2293,8 +2262,7 @@ void wnPikminPikminKineticTransactor::updateEnergy5(soKineticEnergyNormal* energ
         offset *= -1.0f;
     }
     target.m_x = target.m_x + offset;
-    Vec2f diff;
-    Vec2f::copy(diff, target - pos);
+    Vec2f diff = target - pos;
     double absX = __fabs(diff.m_x);
     float dx = absX;
     if (dx == 0.0f) {
@@ -2312,8 +2280,7 @@ void wnPikminPikminKineticTransactor::updateEnergy5(soKineticEnergyNormal* energ
         }
         energy->m_accel = PK_V2_REF(accel);
         energy->updateEnergy(acc);
-        Vec2f speed;
-        Vec2f::copy(speed, energy->getSpeed());
+        Vec2f speed = energy->getSpeed();
         if (speed.lengthSq() > dx * dx) {
             speed.normalize();
             scale(&speed, dx);
@@ -2326,8 +2293,7 @@ void wnPikminPikminKineticTransactor::updateEnergy6(soKineticEnergyNormal* energ
     soPostureModule& posture = acc->getPostureModule();
     Vec2f pos(posture.getPos().m_x, posture.getPos().m_y);
     soWorkManageModule& work = acc->getWorkManageModule();
-    Vec2f diff;
-    Vec2f::copy(diff, Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)) - pos);
+    Vec2f diff = Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)) - pos;
     float dist = diff.length();
     if (dist == 0.0f) {
         energy->m_speed = PK_V2(0.0f, 0.0f);
@@ -2355,14 +2321,12 @@ void wnPikminPikminKineticTransactor::updateEnergy7(soKineticEnergyNormal* energ
         move.m_x = move.m_z * acc->getPostureModule().getLr();
         soGroundModule* ground = &acc->getGroundModule();
         if (ground->isTouch(8, 0) == true) {
-            Vec2f result;
-            Vec2f::copy(result, soKineticUtility::projectionNormalFollow(&Vec2f(move.m_x, move.m_y), &ground->getTouchNormal(8, 0)));
+            Vec2f result = soKineticUtility::projectionNormalFollow(&Vec2f(move.m_x, move.m_y), &ground->getTouchNormal(8, 0));
             move.m_x = result.m_x;
             move.m_y = result.m_y;
         }
     }
-    Vec2f diff;
-    Vec2f::copy(diff, Vec2f(move.m_x, move.m_y) - energy->getSpeed());
+    Vec2f diff = Vec2f(move.m_x, move.m_y) - energy->getSpeed();
     if (acc->getPostureModule().getScale() < 1.0f) {
         float scaleValue = acc->getPostureModule().getScale();
         diff.m_x = diff.m_x * scaleValue;
