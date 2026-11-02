@@ -26,12 +26,6 @@ extern "C" void fn_801F2C58(GXTexObj* texObj, int wrapS, int wrapT);
 extern "C" void fn_801341D8(grCollStatus* collStatus, void* shape);
 extern "C" void Destroy__Q34nw4r3g3d6G3dObjFv(void* obj);
 
-// MATCH-ONLY: a flag byte of a line of a collision joint (the top bit makes it a line without ledge)
-struct famicomLineView {
-    u8 _pad[0x10];
-    u8 m_flags;
-};
-
 // HYPOTHESIS: the clamp helper that the other stages use as well.
 static inline float famicomClamp(float value, float lo, float hi) {
     value = nw4r::math::FSelect(value - lo, value, lo);
@@ -245,13 +239,13 @@ void grFamicomYuka::updateColl(float deltaFrame) {
             grCollData::VtxData* vtx = joint->m_vtxDatas;
             if (vtx != NULL) {
                 joint->m_0x49 = 3;
-                famicomLineView* line = reinterpret_cast<famicomLineView*>(joint->getLine(m_ctrl));
+                grCollisionLine* line = joint->getLine(m_ctrl);
                 if (line != NULL) {
-                    line->m_flags |= 0x80;
+                    line->m_noAttach = true;
                 }
-                line = reinterpret_cast<famicomLineView*>(joint->getLine(m_ctrl + 2));
+                line = joint->getLine(m_ctrl + 2);
                 if (line != NULL) {
-                    line->m_flags |= 0x80;
+                    line->m_noAttach = true;
                 }
                 u32 i = 0;
                 int count = m_ctrl + 3;

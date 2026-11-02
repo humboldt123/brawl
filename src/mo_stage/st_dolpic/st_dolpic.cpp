@@ -36,13 +36,6 @@ struct dolpicVertex {
     u32 m_y;
 };
 
-// MATCH-ONLY: a view of the joint's flag word (HYPOTHESIS: byte 2 selects the joint's collision mode).
-struct stDolpicJointBits {
-    unsigned m_hi : 8;
-    unsigned m_mode : 8;
-    unsigned m_lo : 16;
-};
-
 stClassInfoImpl<Stages::Dolpic, stDolpic> stDolpic::bss_loc_14;
 
 stDolpic* stDolpic::create() {
@@ -1260,7 +1253,7 @@ void stDolpic::updateCollision1(float deltaFrame, u32 scene, bool enable) {
             joint->m_matrix = collisionMtx();
             i++;
             joint->m_0x54_3 = 1;
-            reinterpret_cast<stDolpicJointBits*>(reinterpret_cast<u8*>(joint) + 0x48)->m_mode = 2;
+            joint->m_0x49 = 2;
         }
     }
 }

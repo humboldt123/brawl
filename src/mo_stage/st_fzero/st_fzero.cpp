@@ -14,13 +14,6 @@
 extern const char g_fzeroEmptyString[];
 
 
-// MATCH-ONLY: a view of the joint's flag word (HYPOTHESIS: byte 2 selects the joint's collision mode).
-struct fzeroJointBits {
-    unsigned m_hi : 8;
-    unsigned m_mode : 8;
-    unsigned m_lo : 16;
-};
-
 stClassInfoImpl<Stages::FZero, stFzero> stFzero::bss_loc_14;
 
 stFzero* stFzero::create() {
@@ -588,7 +581,7 @@ void stFzero::updateFloor(float deltaFrame) {
         if (vtx == NULL) {
             return;
         }
-        reinterpret_cast<fzeroJointBits*>(reinterpret_cast<u8*>(joint) + 0x48)->m_mode = 3;
+        joint->m_0x49 = 3;
         vtx[0] = a.m_x;
         vtx[1] = a.m_y;
         vtx[2] = b.m_x;

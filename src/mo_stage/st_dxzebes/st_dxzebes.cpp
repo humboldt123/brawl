@@ -29,16 +29,6 @@ extern "C" int fn_27_2249E0(Stage* stage);
 // grMadein: HYPOTHESIS: switches the looping flag of the ground's motion.
 extern "C" void fn_27_279228(grMadein* ground, int loop);
 
-// MATCH-ONLY: the flag byte of a collision joint at +0x54 (the shared header only names the bits of the word at +0x48).
-struct stDxZebesJointView {
-    char _0[0x54];
-    bool m_bit80 : 1;
-    bool m_bit40 : 1;
-    bool m_bit20 : 1;
-    bool m_bit10 : 1;
-    u8 _rest : 4;
-};
-
 // The frames the acid stays at one level before it moves to the next one (see grZebesWaterProc): the base, a spare,
 // the random extra and the height the level is around. A line of zeros ends the table. HYPOTHESIS: names follow their
 // use in grZebesWaterInit.
@@ -1251,16 +1241,16 @@ void stDxZebes::grZebesMapProc() {
         }
         ZEBES_GROUND(0xE)->setEnableCollisionStatus(true);
         grCollision* collision = ZEBES_GROUND(0xE)->m_collision;
-        stDxZebesJointView* joint = reinterpret_cast<stDxZebesJointView*>(collision->getJoint(0));
-        joint->m_bit40 = joint->m_bit10 = true;
-        float* vertices = reinterpret_cast<float*>(*reinterpret_cast<u8**>(reinterpret_cast<u8*>(collision->getJoint(0)) + 0x38));
+        grCollisionJoint* joint = collision->getJoint(0);
+        joint->m_0x54_6 = joint->m_0x54_4 = true;
+        float* vertices = reinterpret_cast<float*>(collision->getJoint(0)->m_vtxDatas);
         for (int i = 0; i < 6; i++) {
             vertices[i * 2] = edge[i];
             vertices[i * 2 + 1] = top[i];
         }
     } else {
-        stDxZebesJointView* joint = reinterpret_cast<stDxZebesJointView*>(ZEBES_GROUND(0xE)->m_collision->getJoint(0));
-        joint->m_bit40 = joint->m_bit10 = joint->m_bit80 = false;
+        grCollisionJoint* joint = ZEBES_GROUND(0xE)->m_collision->getJoint(0);
+        joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
     }
 }
 
