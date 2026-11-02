@@ -80,16 +80,30 @@ public:
     enum { PlayerMax = 4 };
     enum { FileHandleCount = 12 };
 
+    // HYPOTHESIS: the ten ResFile of the screen (m_resFiles[n]). The constructor builds them as 1 + 4 + 5 members (one,
+    // an array of four, then five single ones), which a plain ResFile[10] does not reproduce; operator[] keeps the
+    // numbering of the notes below.
+    struct ResFileSet {
+        nw4r::g3d::ResFile m_result;       // [0]
+        nw4r::g3d::ResFile m_busts[4];     // [1..4]
+        nw4r::g3d::ResFile m_stockFace;    // [5]
+        nw4r::g3d::ResFile m_camera;       // [6]
+        nw4r::g3d::ResFile m_noticeWnd;    // [7]
+        nw4r::g3d::ResFile m_wifiCount;    // [8]
+        nw4r::g3d::ResFile m_snapSave;     // [9]
+        nw4r::g3d::ResFile& operator[](int index) { return (&m_result)[index]; }
+    };
+
     // ---- gfTask: 0x00..0x3F ----
     s32 m_state;                              // 0x40 State; isLoadEnd() is m_state != 0
     s32 m_unk44;                              // 0x44 cleared by the constructor, set to 1 once the files are bound
-    s32 m_unk48[4];                           // 0x48 per player step of subPlayerControl (0..3), all > 2: the rows are ready
-    s32 m_unk58[4];                           // 0x58 per player, 1 = set by jumpStandby/backStep, read by backStep
+    s32 m_unk48[4];                           // 0x48 per player page of subPlayerControl (role: 0 hit counters, 1 statistics lines (drawExt1), 2 textured table (m_texObjs), 3 absent player, 4 Wifi "next game?" window open); all > 0: panel may go on
+    s32 m_unk58[4];                           // 0x58 per player, set by jumpStandby/backStep and by subPlayerControl (role: the page the rows were left from: 0, 1 or 2)
     u8 m_unk68[4];                            // 0x68 per player, set once printHitPanel was called for the player
-    s32 m_unk6C;                              // 0x6C the step of subPanelControl (0..3)
+    s32 m_unk6C;                              // 0x6C the step of subPanelControl (0..3) (role: 1 wait for the HitNum animation, 2 wait for a player on page 0, 3 wait until all players left page 0)
     u8 m_unk70;                               // 0x70 set to 1 when State_PanelOpen ends
-    s32 m_unk74;                              // 0x74 frame counter of the current State
-    u32 m_unk78[4];                           // 0x78 per player frame counter (>= 120: the player can move the rows)
+    u32 m_unk74;                              // 0x74 frame counter of the current State (unsigned: processAnim compares it as such)
+    u32 m_unk78[4];                           // 0x78 per player frame counter of the page (role: 120 frames until the controller icon shows and the rows can be scrolled)
     u32 m_unk88[4];                           // 0x88 per player scroll position of the rows (in steps of 200)
     s32 m_unk98[4];                           // 0x98 per player scroll line (drawExt1 shows this line)
     s32 m_playerState[4];                     // 0xA8 copy of gmPlayerResultInfo::m_state (0 human, 1 cpu, 3 none)
@@ -99,7 +113,7 @@ public:
     u8 m_unkC1;                               // 0xC1 bit mask of those that have a controller (Contl and Replay objects)
     u8 m_unkC2;                               // 0xC2 bit mask of those with m_state 0 and bit 4 of byte +7 clear
     u8 m_unkC3;                               // 0xC3 bit mask of the players with m_state 1
-    s32 m_unkC4[4];                           // 0xC4 per player step of the scroll (0..3), read and written by subPlayerControl
+    s32 m_unkC4[4];                           // 0xC4 per player auto scroll step of subPlayerControl (role: 0 waiting, 1 auto scrolling by 9 per frame, 2 at the end (go to the next page), 3 the player scrolled)
     u8 m_unkD4;                               // 0xD4 set when the screen shows the tournament-like result (gmResultInfo+0xE < 0 and gmSetRule+0x18 == 2)
     s32 m_bgmHandle;                          // 0xD8 the id that sndSystem::playBGM returned (-1: none), soundProcess
     u32 m_unkDC;                              // 0xDC frames counted for the winner voice (soundProcess, step 0)
@@ -118,9 +132,9 @@ public:
     s32 m_timer;                              // 0x664 starts at 900 (15 seconds), counts down while the counter window exists
     u8 m_unk668;                              // 0x668 starts as 1; subPlayerControl clears/sets it
     u8 m_unk669;                              // 0x669 starts as 1; the player wants the next game
-    u8 m_unk66A;                              // 0x66A set while a window of subPlayerControl is open
+    u8 m_unk66A;                              // 0x66A set while the Wifi "next game?" window of subPlayerControl is open (role: lets every player's rows follow)
     s32 m_unk66C;                             // 0x66C counts to 10 in the Wifi states
-    nw4r::g3d::ResFile m_resFiles[10];        // 0x670 [0] Result.brres, [1..4] the character busts (one per player),
+    ResFileSet m_resFiles;                    // 0x670 [0] Result.brres, [1..4] the character busts (one per player),
                                               //       [5] StockFaceTex, [6] the camera, [7] wifi_notice_wnd, [8] wifi_count, [9] snap_save
     msTexObj m_texObjs[PlayerMax * TexObjsPerPlayer];  // 0x698 the textures of storeTexExt2, 58 per player (0xF68 bytes)
     u32 m_texCount[4];                        // 0x4438 per player, what storeTexExt2 returned
@@ -155,7 +169,7 @@ public:
     void backStep(int player);                // 0x800E83AC moves the rows of the player back
     void drawExt1(int player, int line);      // 0x800E88CC shows a line of the table of the player (the Stockface textures)
     int lineCalcExt1(int player);             // 0x800E8CFC number of lines of the table of the player
-    int calcScrollLv(const gfPadStatus* pad); // 0x800E8DC4 scroll speed from the stick (+-75) or the d-pad (+-60), negated
+    int calcScrollLv(const gfPadStatus* pad); // 0x800E8DC4 scroll speed from the stick (+-75) or the d-pad (+-60), negated (HYPOTHESIS: the original takes the pad by value: subPlayerControl passes a 64 byte copy)
     float getMarkColAnimFrame(int player, bool plus);  // 0x800E8E60 frame of the color animation of the player's mark
     u32 storeTexExt2(int player, bool store); // 0x800E8F1C draws the table texts of the player and (store) copies them
                                               //            from the EFB into m_texObjs; returns how many it drew
@@ -164,7 +178,7 @@ public:
     void soundProcess();                      // 0x800EB0E4 BGM, voice and SE of the screen
     bool isLoadEnd();                         // 0x800EB300 m_state != 0
     void adjustResultinfo();                  // 0x800EB314 rescales the values of gmResultInfo (prints them with OSReport)
-    void subPanelControl();                   // 0x800EB564 the step m_unk6C of the main panel
+    void subPanelControl();                   // 0x800EB564 the step m_unk6C of the main panel (role: starts the HitNum animations when the players go on)
     void subPlayerControl(int player);        // 0x800EB684 input and animation of one player's rows
 };
 static_assert(sizeof(ifVsResultTask) == 0x44AC, "Class is the wrong size!");
