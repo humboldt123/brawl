@@ -886,12 +886,21 @@ sora/if/if_player.cpp:
 	.sdata2     start:0x805A23A8 end:0x805A2468
 
 sora/if/if_vs_result_task.cpp:
-	.text       start:0x800E5858 end:0x800ED474
+	.text       start:0x800E5858 end:0x800E7BD0
 	.rodata     start:0x804088C0 end:0x80408B20
 	.data       start:0x8045A428 end:0x8045AF7C
 	.bss        start:0x8049E0D0 end:0x8049E0F0
 	.sdata      start:0x8059E280 end:0x8059E2F0
 	.sdata2     start:0x805A2468 end:0x805A2510
+
+sora/if/if_vs_result_task_b.cpp:
+	.text       start:0x800E7BD0 end:0x800E9878
+
+sora/if/if_vs_result_task_c.cpp:
+	.text       start:0x800E9878 end:0x800EB0E4
+
+sora/if/if_vs_result_task_d.cpp:
+	.text       start:0x800EB0E4 end:0x800ED474
 
 sora/if/if_simple_result_task.cpp:
 	.text       start:0x800ED474 end:0x800EFBC0
