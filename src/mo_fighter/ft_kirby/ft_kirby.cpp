@@ -841,7 +841,6 @@ void ftKirby::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modu
         {
             soLinkModule& link = moduleAccesser->getLinkModule();
             soEffectModule& effect = moduleAccesser->getEffectModule();
-            // MATCH-ONLY: the arguments are address-of temporaries (the target builds the zero vector before the node position).
             effect.req(static_cast<EfID>(0xe60008), &link.getParentModelNodeGlobalPosition(6, u32(0), false), &Vec3f(0.0f, 0.0f, 0.0f), 1.0f, 0, -1);
         }
         switch (soValueAccesser::getConstantInt(moduleAccesser, 0x59e8, 0)) {

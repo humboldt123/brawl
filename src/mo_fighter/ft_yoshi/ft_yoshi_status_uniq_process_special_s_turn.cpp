@@ -115,7 +115,6 @@ void ftYoshiStatusUniqProcessSpecialSTurn::execFixPosCounter(soModuleAccesser* a
         speed.m_x *= -param->wallReboundHorizontal;
         speed.m_y = param->wallReboundVertical;
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
-        // MATCH-ONLY: retain the original temporary assignment lifetime.
         stop.m_speed = Vec2f(speed.m_x, 0.0f);
         situation.setKind(Situation_Air, false);
         ground.setCorrect(static_cast<soGroundShapeImpl::CorrectKind>(5), 0);

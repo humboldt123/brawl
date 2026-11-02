@@ -125,7 +125,6 @@ void ftYoshiStatusUniqProcessSpecialSLoop::execFixPosCounter(soModuleAccesser* a
         ground.setCorrect(static_cast<soGroundShapeImpl::CorrectKind>(1), 0);
         kinetic.changeKinetic(0x64, acc);
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
-        // MATCH-ONLY: retain the original call-temporary stack order.
         stop.setSpeed(&Vec2f(velocity.m_x, 0.0f));
         work.incInt(0x20000006);
     } else {
@@ -134,7 +133,6 @@ void ftYoshiStatusUniqProcessSpecialSLoop::execFixPosCounter(soModuleAccesser* a
         kinetic.changeKinetic(0x65, acc);
         ftKineticEnergyController& control = dynamic_cast<ftKineticEnergyController&>(*kinetic.getEnergy(2));
         ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
-        // MATCH-ONLY: retain the original call-temporary stack order.
         control.setSpeed(&Vec2f(velocity.m_x, 0.0f));
         gravity.m_speedY = velocity.m_y;
         work.setInt(0, 0x20000006);

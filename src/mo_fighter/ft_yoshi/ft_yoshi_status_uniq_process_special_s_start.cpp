@@ -32,7 +32,6 @@ void ftYoshiStatusUniqProcessSpecialSStart::initStatus(soModuleAccesser* acc) {
     work.setInt(0, 0x20000005);
     work.setInt(0, 0x20000006);
     Vec3f rotation;
-    // MATCH-ONLY: keep native x/y/z store order in the Vec3f temporary.
     rotation.m_x = 0.0f;
     rotation.m_y = 0.0f;
     rotation.m_z = 0.0f;

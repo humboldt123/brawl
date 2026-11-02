@@ -99,7 +99,6 @@ void ftYoshiStatusUniqProcessSpecialAirSJump::execFixPosCounter(soModuleAccesser
     }
     work.setFloat(speed, 0x21000006);
     ftKineticEnergyController& control = dynamic_cast<ftKineticEnergyController&>(*kinetic.getEnergy(2));
-    // MATCH-ONLY: retain the original temporary assignment lifetime.
     control.m_speed = Vec2f(velocity.m_x, 0.0f);
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
     gravity.m_speedY = velocity.m_y;

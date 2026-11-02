@@ -35,8 +35,7 @@ void wnYoshiStar::activate(int founderTaskId, int team, Vec3f* pos, float lr) {
 bool wnYoshiStar::notifyEventCollisionAttackCheck(u32 flags) {
     if (flags & 0x13) return true;
     if (flags & 4) {
-        // MATCH-ONLY: express the high-bit test as the native extracted bit value.
-        if (((static_cast<u32>(unkA4) >> 7) & 1) == 1) return hop();
+        if (unkA4Bit7 == 1) return hop();
         return true;
     }
     // Reflection changes both facing and attack ownership before the inherited
