@@ -218,7 +218,7 @@ public:
             (soPostureModule*)m_postureModuleBuilder.getModule(),
             (soGroundModule*)m_groundModuleBuilder.getModule(),
             (soSituationModule*)m_situationModuleBuilder.getModule(),
-            (void*)m_teamBuilder.getModule(),
+            (soTeamModule*)m_teamBuilder.getModule(),
             (soCollisionAttackModule*)ftBuilderModule<__typeof__(m_attackModuleBuilder)>::get(&m_attackModuleBuilder),
             (soCollisionHitModule*)ftBuilderModule<__typeof__(m_hitModuleBuilder)>::get(&m_hitModuleBuilder),
             (soCollisionShieldModule*)m_shieldModuleBuilder.getModule(),

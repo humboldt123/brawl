@@ -17,7 +17,7 @@ inline soModuleAccesserBuilder<wnFoxIllusionModuleAccesserBuildConfig>::soModule
         (soPostureModule*)m_postureModuleBuilder.getModule(),
         (soGroundModule*)m_groundModuleBuilder.getModule(),
         (soSituationModule*)m_situationModuleBuilder.getModule(),
-        (void*)m_teamBuilder.getModule(),
+        (soTeamModule*)m_teamBuilder.getModule(),
         (soCollisionAttackModule*)m_attackModuleBuilder.getModule(),
         (soCollisionHitModule*)m_hitModuleBuilder.getModule(),
         (soCollisionShieldModule*)m_shieldModuleBuilder.getModule(),
