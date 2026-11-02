@@ -11,29 +11,8 @@ wnClassInfoImpl<91, wnPitBowArrow, wnPitBowArrowData> g_wnPitBowArrowClassInfo;
 void wnPitBowArrow::activate(int founderTaskId, int resourceId, int team) {
     int life = m_param->unk24;
     Vec3f pos(0.0f, 0.0f, 0.0f);
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = resourceId;
-    desc.unk8 = resourceId;
-    desc.unkC = resourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, &pos, sizeof(Vec3f));
-#else
-    desc.pos = pos;
-#endif
-    desc.lr = 0.0f;
-    desc.team = team;
-    desc.life = life;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, pos, 0.0f, team, life, 2, 0x80,
+                        0, 0x35F, 0);
     desc.flagsHighPair = 3;
     desc.flagsMidPair = 0;
     desc.flagsBit3 = 1;

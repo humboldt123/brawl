@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #define WN_PARAM_ACCESSER_INLINE_DTOR
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
@@ -47,11 +48,7 @@ void wnFoxBlasterBullet::activate(int founderTaskId, int, int team, Vec3f* pos,
     desc.unk14 = -1;
     desc.unk18 = 0;
     desc.unk1C = 0;
-#ifdef MATCHING
-    __memcpy(&desc.pos, pos, sizeof(Vec3f));
-#else
     desc.pos = *pos;
-#endif
     desc.lr = -lr;
     desc.team = team;
     desc.life = m_param->unk0;

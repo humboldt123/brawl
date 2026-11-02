@@ -102,25 +102,8 @@ void wnMarioPump::activate(int founderTaskId, int modelResourceId, int team, int
     origin.m_x = lbl_91_rodata_40;
     origin.m_y = lbl_91_rodata_40;
     origin.m_z = lbl_91_rodata_40;
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = modelResourceId;
-    desc.unk8 = modelResourceId;
-    desc.unkC = modelResourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-    // MATCH-ONLY: the original copies the position word by word instead of as three float stores.
-    __memcpy(&desc.pos, &origin, sizeof(Vec3f));
-    desc.lr = lbl_91_rodata_40;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, modelResourceId, modelResourceId, modelResourceId, -1, -1, 0, 0, origin,
+                        lbl_91_rodata_40, team, 0, 2, 0x80, 0, 0x35F, 0);
     desc.flagsHighPair = 3;
     desc.flagsMidPair = 0;
     desc.flagsBit3 = 1;

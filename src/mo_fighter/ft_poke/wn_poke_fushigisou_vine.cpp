@@ -49,24 +49,8 @@ wnPokeFushigisouVine::wnPokeFushigisouVine(s32 articleId, const wnArticleBuildIn
 
 void wnPokeFushigisouVine::activate(int founderTaskId, int resourceId, int unkC, int unk10, int unk14, int team, Vec3f* position,
                                     float lr, bool attach) {
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = resourceId;
-    desc.unk8 = resourceId;
-    desc.unkC = resourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-    __memcpy(&desc.pos, position, sizeof(Vec3f));
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35f;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, *position, lr, team, 0, 2,
+                        0x80, 0, 0x35f, 0);
     desc.flagsHighPair = 3;
     desc.flagsMidPair = 0;
     desc.flagsBit3 = 1;

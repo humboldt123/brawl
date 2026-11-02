@@ -64,6 +64,17 @@ struct wnActivateDesc {
         };
     };
     u8 unk4E[2];
+
+    wnActivateDesc() { }
+    // HYPOTHESIS: the activators that copy the position as words build the descriptor through a member-wise
+    // constructor: pos is copy-constructed (aggregate word moves) while the unit's own Vec3f assignments stay float
+    // copies. The flag bytes are then written field by field.
+    wnActivateDesc(u32 founderTaskId_, u32 resourceId_, int unk8_, int unkC_, int unk10_, int unk14_, int unk18_,
+                   int unk1C_, const Vec3f& pos_, float lr_, int team_, int life_, int unk38_, int unk3C_, int unk40_,
+                   int unk44_, int unk48_)
+        : founderTaskId(founderTaskId_), resourceId(resourceId_), unk8(unk8_), unkC(unkC_), unk10(unk10_),
+          unk14(unk14_), unk18(unk18_), unk1C(unk1C_), pos(pos_), lr(lr_), team(team_), life(life_), unk38(unk38_),
+          unk3C(unk3C_), unk40(unk40_), unk44(unk44_), unk48(unk48_) { }
 };
 static_assert(sizeof(wnActivateDesc) == 0x50, "Weapon activation descriptor size");
 static_assert(offsetof(wnActivateDesc, pos) == 0x20, "Activation position offset");

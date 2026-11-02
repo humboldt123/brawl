@@ -57,29 +57,8 @@ void wnMarioPumpWater::activate(int founderTaskId, int resourceId, int team, Vec
     Vec3fScale(&displacement, direction, 3.0f * scale);
     Vec3fAdd(&origin, position, &displacement);
     int life = m_param->m_life;
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = resourceId;
-    desc.unk8 = resourceId;
-    desc.unkC = resourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: native activation copies the position as aggregate words.
-    __memcpy(&desc.pos, &origin, sizeof(Vec3f));
-#else
-    desc.pos = origin;
-#endif
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = life;
-    desc.unk38 = 5;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, origin, lr, team, life, 5,
+                        0x80, 0, 0x35F, 0);
     desc.flagBit7 = true;
     desc.flagBit6 = false;
     desc.flagBit5 = false;

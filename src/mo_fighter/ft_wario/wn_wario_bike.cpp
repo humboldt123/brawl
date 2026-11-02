@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 // MATCH-ONLY: retain native vector assignment calls.
 #define MT_VEC2F_ASSIGN_NOINLINE
 #include <wn/wario/wn_wario_bike_kinetic_transactor.h>
@@ -427,7 +428,7 @@ void wnWarioBike::activate(int founderTaskId, int riderTaskId, int resourceId,
     desc.unk14 = -1;
     desc.unk18 = 0;
     desc.unk1C = 0;
-    __memcpy(&desc.pos, position, sizeof(Vec3f));
+    desc.pos = *position;
     desc.lr = lr;
     desc.team = team;
     desc.life = 0;

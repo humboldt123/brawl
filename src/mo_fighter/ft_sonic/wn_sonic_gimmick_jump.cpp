@@ -24,29 +24,8 @@ soGimmickEventPresenter::~soGimmickEventPresenter() { }
 void wnSonicGimmickJump::activate(int founderTaskId, int resourceId, int team,
                                  Vec2f* pos, float lr, bool unk) {
     Vec3f position(pos->m_x, pos->m_y, 0.0f);
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = resourceId;
-    desc.unk8 = resourceId;
-    desc.unkC = resourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the original aggregate word copy.
-    __memcpy(&desc.pos, &position, sizeof(Vec3f));
-#else
-    desc.pos = position;
-#endif
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, position, lr, team, 0, 2, 0x80,
+                        0, 0x35F, 0);
     // HYPOTHESIS: original bitfield names. All bits of flags are defined by
     // native stores; only the cleared top two bits of unk4D are consumed.
     desc.flagsHigh = 1;

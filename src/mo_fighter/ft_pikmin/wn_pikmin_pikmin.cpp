@@ -1122,24 +1122,8 @@ void wnPikminPikmin::onDeactivate() {
 
 void wnPikminPikmin::activate(float lr, float unk2, float unk3, int variation, Vec3f* pos, int founderTaskId, int resourceId, int team,
                               int initStatus, bool unk10, int unk11) {
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = resourceId;
-    desc.unk8 = resourceId;
-    desc.unkC = resourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = variation;
-    desc.unk1C = 0;
-    __memcpy(&desc.pos, pos, sizeof(Vec3f));
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, variation, 0, *pos, lr, team, 0, 2,
+                        0x80, 0, 0x35F, 0);
     desc.flagsHigh = 1;
     desc.flagsMidHigh = 0;
     desc.flagsMidLow = 1;
