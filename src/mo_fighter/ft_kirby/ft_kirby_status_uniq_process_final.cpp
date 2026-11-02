@@ -1,6 +1,11 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #define MT_VEC3F_CTOR_NOINLINE // BYTES: the original calls the out-of-line Vec3f constructor.
+#define MT_VEC3F_ADD_NOINLINE // BYTES: ... and the out-of-line sum and difference.
+#define MT_VEC3F_OPERATORS_NOINLINE
+#define MT_VEC3F_MUL_INLINE
 #include <ft/fighter.h>
+#include <ft/ft_external_value_accesser.h>
+#include <so/ground/so_ground_util.h>
 #include <ft/ft_kinetic_energy.h>
 #include <ft/kirby/ft_kirby_min.h>
 #include <ft/kirby/ft_kirby_unk8.h>
@@ -9,6 +14,7 @@
 #include <it/item.h>
 #include <so/article/so_generate_article_manage_module.h>
 #include <so/link/so_link_module_impl.h>
+#include <so/so_external_value_accesser.h>
 #include <so/so_module_accesser.h>
 #include <so/so_value_accesser.h>
 #include <so/stageobject.h>
@@ -19,19 +25,13 @@
 void ftKineticEnergyDisableAndClear(int index, soModuleAccesser* moduleAccesser);
 
 // HYPOTHESIS: the map names a free function template ABS<f> (no class or namespace) emitted in this unit.
-template <class T> T ABS(T x) {
-    return __fabsf(x);
-}
+template <class T> T ABS(T x) __attribute__((never_inline)); // MATCH-ONLY: the original calls its out-of-line instantiation
 
 static ftKirbyUnk8 g_ftKirbyUnk8A(0xff, 0);
 static ftKirbyUnk8 g_ftKirbyUnk8B(0xff, 1);
 
-// HYPOTHESIS: ftKirbyStatusUniqProcessFinal::getCenterPos (the midpoint of two positions), not yet exact; stand-in until then.
-extern "C" Vec3f fn_96_1BDB4(Vec3f* a, Vec3f* b);
 class ftKirbyStatusUniqProcessFinal;
-// HYPOTHESIS: ftKirbyStatusUniqProcessFinal::execFixPosFighterCalling and execFixPosDownNabe (map names),
-// not yet reconstructed; stand-ins until then.
-extern "C" void fn_96_1A4F4(ftKirbyStatusUniqProcessFinal* process, soModuleAccesser* moduleAccesser);
+// HYPOTHESIS: ftKirbyStatusUniqProcessFinal::execFixPosDownNabe (map name), not yet reconstructed; stand-in until then.
 extern "C" void fn_96_1AB54(ftKirbyStatusUniqProcessFinal* process, soModuleAccesser* moduleAccesser);
 
 // HYPOTHESIS: Kirby's Final Smash (Cook Kirby). Helper names come from the original map; their parameter lists are read
@@ -55,11 +55,17 @@ public:
     bool checkWeaponInhaledAll();
     bool checkWeaponArriveAll();
     void execFixPosAttack(soModuleAccesser* moduleAccesser);
+    void execFixPosItemWeaponCalling(soModuleAccesser* moduleAccesser);
+    void execFixPosItemCallingAll(soModuleAccesser* moduleAccesser);
+    void execFixPosWeaponCallingAll(soModuleAccesser* moduleAccesser);
+    void execFixPosFighterCalling(soModuleAccesser* moduleAccesser);
     void setKineticStartGround(soModuleAccesser* moduleAccesser);
     void setKineticStartAir(soModuleAccesser* moduleAccesser);
     void setModelTurn(soModuleAccesser* moduleAccesser);
     Vec3f getStraightPosition(Vec3f* start, Vec3f* end, float rate);
+    Vec3f getCurvePosition(Vec3f* start, Vec3f* mid, Vec3f* end, float rate);
     static Vec3f getTargetPosCalling(soModuleAccesser* moduleAccesser);
+    static Vec3f getCenterPos(Vec3f* a, Vec3f* b);
     static Vec3f getCenterPosAddHeight(Vec3f* a, Vec3f* b, float height, bool useHigher);
     void offInhaledAll(soModuleAccesser* moduleAccesser);
     void removeCallingItemAll();
@@ -67,11 +73,122 @@ public:
     bool checkNabePositionRayCheck(soModuleAccesser* moduleAccesser);
 };
 
+// HYPOTHESIS: pulls every inhalable item towards Kirby along a curved path, and removes it once it has arrived.
+void ftKirbyStatusUniqProcessFinal::execFixPosItemCallingAll(soModuleAccesser* moduleAccesser) {
+    int count = itManager::getInstance()->m_itemArrayList.size();
+    Vec3f targetPos = getTargetPosCalling(moduleAccesser);
+    float height = soValueAccesser::getConstantFloat(moduleAccesser, 0xfc1, 0);
+    float inhaledFrames = soValueAccesser::getConstantInt(moduleAccesser, 0x5dc8, 0);
+    bool callingTick = false;
+    if (moduleAccesser->getWorkManageModule().isFlag(0x2200001f)) {
+        callingTick = moduleAccesser->getWorkManageModule().isFlag(0x2200001d);
+    }
+    for (int i = 0; i < count; i++) {
+        Vec3f startPos;
+        Vec3f midPos;
+        Vec3f curvePos;
+        Vec3f straightPos;
+        BaseItem* item = itManager::getInstance()->getSafeItemFromIndex(i);
+        if (item != NULL && item->isCanInhaled()) {
+            if (item->isInhaled()) {
+                startPos = item->getStartInhaledPos();
+                midPos = getCenterPosAddHeight(&startPos, &targetPos, height, true);
+                float rate = item->getInhaledCount() / inhaledFrames;
+                if (rate > 1.0f) {
+                    rate = 1.0f;
+                }
+                curvePos = getCurvePosition(&startPos, &midPos, &targetPos, rate);
+                straightPos = getStraightPosition(&startPos, &targetPos, rate);
+                curvePos.m_z = straightPos.m_z;
+                item->inhaled(1.0f, &curvePos);
+                if (item->getParam(itValueAccesser::ParamInt(0x5bce)) & 0xc00) {
+                    float scale = item->getParam(itValueAccesser::ParamFloat(0xd71));
+                    item->setScale(scale + rate * (0.5f - scale));
+                }
+                if (item->getInhaledCount() > 1.0f + inhaledFrames) {
+                    soWorkManageModule& work = moduleAccesser->getWorkManageModule();
+                    work.addInt(soValueAccesser::getConstantInt(moduleAccesser, 0x5dca, 0), 0x2000000a);
+                    itManager::getInstance()->removeItem(item);
+                    soLinkModule& link = moduleAccesser->getLinkModule();
+                    soEffectModule& effect = moduleAccesser->getEffectModule();
+                    effect.req(EfID(0xe60008), &link.getParentModelNodeGlobalPosition(6, u32(0), false), &Vec3f(0.0f, 0.0f, 0.0f), 1.0f, 0, -1);
+                    moduleAccesser->getSoundModule().playSE((SndID)0xba, false, false, 0);
+                    moduleAccesser->getControllerModule().setRumble(0, 0xa, false, -1);
+                    i--;
+                    count--;
+                }
+            } else if (callingTick) {
+                curvePos = soExternalValueAccesser::getPos(item);
+                item->inhaled(1.0f, &curvePos);
+                callingTick = false;
+            }
+        }
+    }
+}
+
+// HYPOTHESIS: the weapon counterpart of execFixPosItemCallingAll.
+void ftKirbyStatusUniqProcessFinal::execFixPosWeaponCallingAll(soModuleAccesser* moduleAccesser) {
+    int i = 0;
+    gfTask* task = gfTaskScheduler::getInstance()->getTask(gfTask::Category_Weapon, 0);
+    float height = soValueAccesser::getConstantFloat(moduleAccesser, 0xfc1, 0);
+    float inhaledFrames = soValueAccesser::getConstantInt(moduleAccesser, 0x5dc8, 0);
+    float arriveCount = 1.0f + inhaledFrames;
+    Vec3f startPos;
+    Vec3f midPos;
+    Vec3f targetPos;
+    Vec3f curvePos;
+    Vec3f straightPos;
+    Vec3f offset(0.0f, soValueAccesser::getConstantFloat(moduleAccesser, 0xfc3, 0),
+                 soValueAccesser::getConstantFloat(moduleAccesser, 0xfc2, 0));
+    targetPos = moduleAccesser->getLinkModule().getParentModelNodeGlobalPosition(6, u32(0), false) + offset;
+    bool callingTick = false;
+    if (moduleAccesser->getWorkManageModule().isFlag(0x2200001f)) {
+        callingTick = moduleAccesser->getWorkManageModule().isFlag(0x2200001e);
+    }
+    while (task != NULL) {
+        Weapon* weapon = dynamic_cast<Weapon*>(task);
+        if (weapon != NULL) {
+            if (weapon->isCanInhaled()) {
+                if (weapon->isInhaled()) {
+                    startPos = *weapon->getInhaledStartPos();
+                    midPos = getCenterPosAddHeight(&startPos, &targetPos, height, true);
+                    weapon->updateInhaled();
+                    float rate = float(weapon->getInhaledCount()) / inhaledFrames;
+                    if (rate > 1.0f) {
+                        rate = 1.0f;
+                    }
+                    curvePos = getCurvePosition(&startPos, &midPos, &targetPos, rate);
+                    straightPos = getStraightPosition(&startPos, &targetPos, rate);
+                    curvePos.m_z = straightPos.m_z;
+                    weapon->setPosForce(&curvePos);
+                } else if (callingTick) {
+                    curvePos = weapon->startInhaled();
+                    callingTick = false;
+                }
+            }
+            if (float(weapon->getInhaledCount()) >= arriveCount) {
+                soWorkManageModule& work = moduleAccesser->getWorkManageModule();
+                work.addInt(soValueAccesser::getConstantInt(moduleAccesser, 0x5dca, 0), 0x2000000a);
+                weapon->endInhaled();
+            } else {
+                i++;
+            }
+        } else {
+            i++;
+        }
+        task = gfTaskScheduler::getInstance()->getTask(gfTask::Category_Weapon, i);
+    }
+}
+
 void ftKirbyStatusUniqProcessFinal::initStatus(soModuleAccesser* moduleAccesser) {
     // HYPOTHESIS: body not yet reconstructed; left as a stub.
 }
 
 void ftKirbyStatusUniqProcessFinal::execStatus(soModuleAccesser* moduleAccesser) {
+}
+
+template <class T> T ABS(T x) {
+    return __fabsf(x);
 }
 
 template float ABS<float>(float);
@@ -88,7 +205,7 @@ void ftKirbyStatusUniqProcessFinal::execFixPosCounter(soModuleAccesser* moduleAc
         }
         break;
     case 0x12e:
-        fn_96_1A4F4(this, moduleAccesser);
+        execFixPosFighterCalling(moduleAccesser);
         break;
     case 0x12f:
         break;
@@ -241,6 +358,92 @@ void ftKirbyStatusUniqProcessFinal::execFixPosAttack(soModuleAccesser* moduleAcc
     }
 }
 
+// HYPOTHESIS: flags 0x2200001d/e/f alternate between calling items and calling weapons on each tick of the calling counter.
+void ftKirbyStatusUniqProcessFinal::execFixPosItemWeaponCalling(soModuleAccesser* moduleAccesser) {
+    if (moduleAccesser->getWorkManageModule().isFlag(0x22000020)) {
+        moduleAccesser->getWorkManageModule().offFlag(0x2200001f);
+    } else {
+        bool tick = updateCallingItemWeaponCount(moduleAccesser);
+        bool itemCalling = checkItemCallingAll();
+        bool weaponCalling = checkWeaponCallingAll();
+        if (tick) {
+            moduleAccesser->getWorkManageModule().onFlag(0x2200001f);
+            if (moduleAccesser->getWorkManageModule().isFlag(0x2200001d)) {
+                if (weaponCalling) {
+                    moduleAccesser->getWorkManageModule().onFlag(0x2200001e);
+                    moduleAccesser->getWorkManageModule().offFlag(0x2200001d);
+                }
+            } else if (moduleAccesser->getWorkManageModule().isFlag(0x2200001e)) {
+                if (itemCalling) {
+                    moduleAccesser->getWorkManageModule().onFlag(0x2200001d);
+                    moduleAccesser->getWorkManageModule().offFlag(0x2200001e);
+                }
+            } else if (itemCalling) {
+                moduleAccesser->getWorkManageModule().onFlag(0x2200001d);
+            } else if (weaponCalling) {
+                moduleAccesser->getWorkManageModule().onFlag(0x2200001e);
+            }
+        } else {
+            moduleAccesser->getWorkManageModule().offFlag(0x2200001f);
+        }
+    }
+    execFixPosItemCallingAll(moduleAccesser);
+    execFixPosWeaponCallingAll(moduleAccesser);
+}
+
+// HYPOTHESIS: link event 0x2c hands the Final Smash's victim (a task id and the parent link's task id) to the fighter being pulled in.
+struct ftKirbyFinalCallEvent : soLinkEventArgs {
+    int unk8;
+    int unkC;
+    bool unk10;
+    ftKirbyFinalCallEvent() : soLinkEventArgs(0x2c), unk8(0), unkC(0), unk10(false) { }
+};
+
+// HYPOTHESIS: pulls the swallowed fighters in one at a time (counter 0x2000000c paces them, 0x2000000b is the next index).
+void ftKirbyStatusUniqProcessFinal::execFixPosFighterCalling(soModuleAccesser* moduleAccesser) {
+    soWorkManageModule& work = moduleAccesser->getWorkManageModule();
+    int count = work.getInt(0x20000006);
+    if (work.getInt(0x2000000b) < count) {
+        moduleAccesser->getWorkManageModule().subInt(1, 0x2000000c);
+        if (moduleAccesser->getWorkManageModule().getInt(0x2000000c) < 0) {
+            do {
+                int index = moduleAccesser->getWorkManageModule().getInt(0x2000000b);
+                u32 taskId = moduleAccesser->getWorkManageModule().getInt(index + 0x20000000);
+                gfTask* task = gfTaskScheduler::getInstance()->getTaskById(gfTask::Category_Fighter, taskId);
+                moduleAccesser->getWorkManageModule().addInt(1, 0x2000000b);
+                if (task != NULL) {
+                    bool rayOk = checkNabePositionRayCheck(moduleAccesser);
+                    bool blocked = false;
+                    if (rayOk == true) {
+                        Vec3f fighterPos = soExternalValueAccesser::getPos(&dynamic_cast<StageObject&>(*task));
+                        Vec3f targetPos = getTargetPosCalling(moduleAccesser);
+                        blocked = soGroundUtil::rayCheck(moduleAccesser, &targetPos, &(fighterPos - targetPos), false);
+                    }
+                    Fighter* fighter = dynamic_cast<Fighter*>(task);
+                    if (fighter->isInhaled() == true && ftExternalValueAccesser::getsoCollisionHitModule(fighter)->getTotalStatus(0) == 0 &&
+                        !blocked) {
+                        ftKirbyFinalCallEvent event;
+                        event.unk8 = moduleAccesser->getStageObject().m_taskId;
+                        event.unkC = moduleAccesser->getLinkModule().getParentTaskId(6);
+                        moduleAccesser->getLinkModule().link(4, taskId);
+                        moduleAccesser->getLinkModule().sendEventParents(4, event);
+                        moduleAccesser->getLinkModule().unlink(4);
+                        soWorkManageModule& callWork = moduleAccesser->getWorkManageModule();
+                        callWork.setInt(soValueAccesser::getConstantInt(moduleAccesser, 0x5dc6, 0), 0x2000000c);
+                        fighter->offInhaled();
+                        return;
+                    }
+                    moduleAccesser->getWorkManageModule().setInt(-1, index + 0x20000000);
+                    moduleAccesser->getWorkManageModule().addInt(1, 0x20000020);
+                } else {
+                    moduleAccesser->getWorkManageModule().setInt(-1, index + 0x20000000);
+                    moduleAccesser->getWorkManageModule().addInt(1, 0x20000020);
+                }
+            } while (moduleAccesser->getWorkManageModule().getInt(0x2000000b) != moduleAccesser->getWorkManageModule().getInt(0x20000006));
+        }
+    }
+}
+
 void ftKirbyStatusUniqProcessFinal::exitStatus(soModuleAccesser* moduleAccesser, int nextStatus) {
     switch (nextStatus) {
     case 0x116:
@@ -309,6 +512,37 @@ Vec3f ftKirbyStatusUniqProcessFinal::getStraightPosition(Vec3f* start, Vec3f* en
     return pos;
 }
 
+// HYPOTHESIS: the quadratic through three points (start, mid, end) evaluated at the fraction `rate` of the x range; when the three x
+// values are too close together for the determinant the points are spread by 0.05 and the result keeps the x of the start.
+Vec3f ftKirbyStatusUniqProcessFinal::getCurvePosition(Vec3f* start, Vec3f* mid, Vec3f* end, float rate) {
+    Vec3f p = *start;
+    Vec3f q = *mid;
+    Vec3f r = *end;
+    bool spread = false;
+    float det = (p.m_x - r.m_x) * (p.m_x * p.m_x - q.m_x * q.m_x) - (p.m_x - q.m_x) * (p.m_x * p.m_x - r.m_x * r.m_x);
+    if (0.0f == det || ABS<float>(p.m_x - r.m_x) < 0.1f) {
+        q.m_x = 0.05f + p.m_x;
+        r.m_x = 0.05f + q.m_x;
+        det = (p.m_x - r.m_x) * (p.m_x * p.m_x - q.m_x * q.m_x) - (p.m_x - q.m_x) * (p.m_x * p.m_x - r.m_x * r.m_x);
+        spread = true;
+    }
+    float a = (r.m_y * (p.m_x - q.m_x) + ((p.m_y - q.m_y) * (p.m_x - r.m_x) - p.m_y * (p.m_x - q.m_x))) / det;
+    float b = ((p.m_y - r.m_y) - a * (p.m_x * p.m_x - r.m_x * r.m_x)) / (p.m_x - r.m_x);
+    float c = p.m_y - p.m_x * (a * p.m_x) - b * p.m_x;
+    Vec3f pos;
+    pos.m_x = p.m_x + rate * (r.m_x - p.m_x);
+    pos.m_y = c + (pos.m_x * (a * pos.m_x) + b * pos.m_x);
+    pos.m_z = 0.0f;
+    if (spread) {
+        pos.m_x = start->m_x;
+    }
+    return pos;
+}
+
+Vec3f ftKirbyStatusUniqProcessFinal::getCenterPos(Vec3f* a, Vec3f* b) {
+    return *a + (*b - *a) * 0.5f;
+}
+
 Vec3f ftKirbyStatusUniqProcessFinal::getTargetPosCalling(soModuleAccesser* moduleAccesser) {
     Vec3f pos = moduleAccesser->getLinkModule().getParentModelNodeGlobalPosition(6, u32(0), false);
     pos.m_x += soValueAccesser::getConstantFloat(moduleAccesser, 0xfc2, 0);
@@ -317,7 +551,7 @@ Vec3f ftKirbyStatusUniqProcessFinal::getTargetPosCalling(soModuleAccesser* modul
 }
 
 Vec3f ftKirbyStatusUniqProcessFinal::getCenterPosAddHeight(Vec3f* a, Vec3f* b, float height, bool useHigher) {
-    Vec3f pos = fn_96_1BDB4(a, b);
+    Vec3f pos = getCenterPos(a, b);
     if (useHigher) {
         if (a->m_y > b->m_y) {
             pos.m_y = a->m_y + height;
