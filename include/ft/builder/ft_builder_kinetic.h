@@ -41,6 +41,10 @@ public:
     static void notifyEventChangeStatus(void* a, void* b, void* c, void* d);
     template <typename E>
     static void updateEnergy(E* energy, soModuleAccesser* acc) {
+#ifdef FT_KINETIC_MEDIATOR_TRANSACTOR
+        // Fighter-local overloads implement movement specific to the selected transactor.
+        return FT_KINETIC_MEDIATOR_TRANSACTOR::updateEnergy(energy, acc);
+#else
         if (energy->isEnable() != true) {
             return;
         }
@@ -48,6 +52,7 @@ public:
             return;
         }
         return energy->updateEnergy(acc);
+#endif
     }
 };
 
