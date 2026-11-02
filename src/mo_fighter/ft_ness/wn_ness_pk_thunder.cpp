@@ -161,14 +161,13 @@ bool wnNessPKThunderMediator::shoot(soModuleAccesser*, soArticle* article) {
 bool wnNessPKThunder::activeArticle(wnNessPKThunderChild* weapon, soModuleAccesser* acc) {
     soGenerateArticleManageModule& articles = acc->getGenerateArticleManageModule();
     s32 count = articles.getActiveNum(0);
-    s32 ownerTaskId;
     s32 linkTaskId;
     if (count >= 1) {
         linkTaskId = articles.getArticleFromNo(0, count - 1)->getTaskId();
     } else {
         linkTaskId = acc->m_stageObject->m_taskId;
     }
-    ownerTaskId = acc->m_stageObject->m_taskId;
+    s32 ownerTaskId = acc->m_stageObject->m_taskId;
     weapon->activate(ownerTaskId, linkTaskId, acc->getTeamModule().getTeam()->getNo(), count);
     return true;
 }
