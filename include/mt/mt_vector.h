@@ -262,7 +262,11 @@ public:
     // (wnem_proc_common.cpp), which calls it out of line.
     bool testNormal() __attribute__((never_inline));
 
-    Vec3f operator+(const Vec3f& v);
+    Vec3f operator+(const Vec3f& v)
+#ifdef MT_VEC3F_ADD_NOINLINE
+        __attribute__((never_inline)) // BYTES: the Kirby Final unit calls its weak out-of-line sum.
+#endif
+        ;
     Vec3f operator-(const Vec3f& v)
 #ifdef MT_VEC3F_OPERATORS_NOINLINE
         __attribute__((never_inline)) // BYTES: the Enemy unit calls its weak out-of-line copy.
