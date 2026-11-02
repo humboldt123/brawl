@@ -160,26 +160,26 @@ public:
     virtual ~ifVsResultTask();                // 0x800E7CA8 vtable slot 22
 
     // HYPOTHESIS for the signatures below: from the register use of the bodies and the callers.
-    void loadResource(gfArchive* archive);    // 0x800E5E34 stores archive in m_archive, starts the reads of the files
-    void printHitPanel(int player);           // 0x800E60E4 fills the numbers of the player's panel
-    void printHitNum(int msgSlot, u32 value, bool plus);  // 0x800E636C prints a number (at most 99999) into m_msg
-    void printTime(int msgSlot, u32 frames, bool format); // 0x800E6608 prints a time (at most 99:59.99) into m_msg
-    void setWinnerName();                     // 0x800E7BD0 plays the winner voice SE and prints the name into m_msgName
-    void jumpStandby(int player, bool flag);  // 0x800E8040 moves the rows of the player to the standby position
-    void backStep(int player);                // 0x800E83AC moves the rows of the player back
-    void drawExt1(int player, int line);      // 0x800E88CC shows a line of the table of the player (the Stockface textures)
-    int lineCalcExt1(int player);             // 0x800E8CFC number of lines of the table of the player
-    int calcScrollLv(const gfPadStatus* pad); // 0x800E8DC4 scroll speed from the stick (+-75) or the d-pad (+-60), negated (HYPOTHESIS: the original takes the pad by value: subPlayerControl passes a 64 byte copy)
-    float getMarkColAnimFrame(int player, bool plus);  // 0x800E8E60 frame of the color animation of the player's mark
-    u32 storeTexExt2(int player, bool store); // 0x800E8F1C draws the table texts of the player and (store) copies them
+    void loadResource(gfArchive* archive) __attribute__((never_inline));    // 0x800E5E34 stores archive in m_archive, starts the reads of the files
+    void printHitPanel(int player) __attribute__((never_inline));           // 0x800E60E4 fills the numbers of the player's panel
+    void printHitNum(int msgSlot, u32 value, bool plus) __attribute__((never_inline));  // 0x800E636C prints a number (at most 99999) into m_msg
+    void printTime(int msgSlot, u32 frames, bool format) __attribute__((never_inline)); // 0x800E6608 prints a time (at most 99:59.99) into m_msg
+    void setWinnerName() __attribute__((never_inline));                     // 0x800E7BD0 plays the winner voice SE and prints the name into m_msgName
+    void jumpStandby(int player, bool flag) __attribute__((never_inline));  // 0x800E8040 moves the rows of the player to the standby position
+    void backStep(int player) __attribute__((never_inline));                // 0x800E83AC moves the rows of the player back
+    void drawExt1(int player, int line) __attribute__((never_inline));      // 0x800E88CC shows a line of the table of the player (the Stockface textures)
+    int lineCalcExt1(int player) __attribute__((never_inline));             // 0x800E8CFC number of lines of the table of the player
+    int calcScrollLv(const gfPadStatus* pad) __attribute__((never_inline)); // 0x800E8DC4 scroll speed from the stick (+-75) or the d-pad (+-60), negated (HYPOTHESIS: the original takes the pad by value: subPlayerControl passes a 64 byte copy)
+    float getMarkColAnimFrame(int player, bool plus) __attribute__((never_inline));  // 0x800E8E60 frame of the color animation of the player's mark
+    u32 storeTexExt2(int player, bool store) __attribute__((never_inline)); // 0x800E8F1C draws the table texts of the player and (store) copies them
                                               //            from the EFB into m_texObjs; returns how many it drew
-    void storeMessageData(float scale, Message* message, const void* data, int size, const float* pos, bool shadow);  // 0x800E975C
-    void initMdlData();                       // 0x800E9878 creates every object, model, message and texture of the screen
-    void soundProcess();                      // 0x800EB0E4 BGM, voice and SE of the screen
-    bool isLoadEnd();                         // 0x800EB300 m_state != 0
-    void adjustResultinfo();                  // 0x800EB314 rescales the values of gmResultInfo (prints them with OSReport)
-    void subPanelControl();                   // 0x800EB564 the step m_unk6C of the main panel (role: starts the HitNum animations when the players go on)
-    void subPlayerControl(int player);        // 0x800EB684 input and animation of one player's rows
+    void storeMessageData(float scale, Message* message, const void* data, int size, const float* pos, bool shadow) __attribute__((never_inline));  // 0x800E975C
+    void initMdlData() __attribute__((never_inline));                       // 0x800E9878 creates every object, model, message and texture of the screen
+    void soundProcess() __attribute__((never_inline));                      // 0x800EB0E4 BGM, voice and SE of the screen
+    bool isLoadEnd() __attribute__((never_inline));                         // 0x800EB300 m_state != 0
+    void adjustResultinfo() __attribute__((never_inline));                  // 0x800EB314 rescales the values of gmResultInfo (prints them with OSReport)
+    void subPanelControl() __attribute__((never_inline));                   // 0x800EB564 the step m_unk6C of the main panel (role: starts the HitNum animations when the players go on)
+    void subPlayerControl(int player) __attribute__((never_inline));        // 0x800EB684 input and animation of one player's rows
 };
 static_assert(sizeof(ifVsResultTask) == 0x44AC, "Class is the wrong size!");
 static_assert(sizeof(ifVsResultTask::PlayerNodes) == 0x108, "Class is the wrong size!");
