@@ -55,12 +55,57 @@ MuAnimNameData lbl_8045A530[54] = {
     {0.0f, 9.0f, 0, "InfResultHitnum_TopN__6", 0x13},
     {0.0f, 9.0f, 0, "InfResultHitnum_TopN__7", 0x13},
     {0.0f, 9.0f, 0, "InfResultHitnum_TopN__8", 0x13},
+    // row of player 0
+    {0.0f, 19.0f, 0, lbl_8049E0D0[0], 0x17},
+    {0.0f, 230.0f, 0, lbl_8049E0D0[1], 3},
+    {0.0f, 29.0f, 0, lbl_8049E0D0[2], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[3], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[4], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[5], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[6], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[7], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[8], 3},
+    // row of player 1
+    {0.0f, 19.0f, 0, lbl_8049E0D0[9], 0x17},
+    {0.0f, 230.0f, 0, lbl_8049E0D0[10], 3},
+    {0.0f, 29.0f, 0, lbl_8049E0D0[11], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[12], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[13], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[14], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[15], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[16], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[17], 3},
+    // row of player 2
+    {0.0f, 19.0f, 0, lbl_8049E0D0[18], 0x17},
+    {0.0f, 230.0f, 0, lbl_8049E0D0[19], 3},
+    {0.0f, 29.0f, 0, lbl_8049E0D0[20], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[21], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[22], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[23], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[24], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[25], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[26], 3},
+    // row of player 3
+    {0.0f, 19.0f, 0, lbl_8049E0D0[27], 0x17},
+    {0.0f, 230.0f, 0, lbl_8049E0D0[28], 3},
+    {0.0f, 29.0f, 0, lbl_8049E0D0[29], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[30], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[31], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[32], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[33], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[34], 3},
+    {0.0f, 9.0f, 0, lbl_8049E0D0[35], 3},
 };
 
 // The controller icon of a player: the animation plays a minute at frame 59, then stops at frame 0.
 MuAnimNameData lbl_8045A980[2] = {
     {0.0f, 59.0f, 1, "InfResultContl_TopN__0", 0x10},
     {0.0f, 0.0f, 0, "InfResultContl_TopN__0", 0x14},
+};
+
+// The animation of the nodes of the table of the player (initMdlData gives it to the "InfStockface_TopN" objects).
+MuAnimNameData lbl_8045A9C0[1] = {
+    {0.0f, 0.0f, 0, "InfStockface_TopN__0", 4},
 };
 
 // ---- code ----
@@ -621,10 +666,8 @@ void ifVsResultTask::processAnim() {
         soundProcess();
         m_unk74++;
         if (m_unk74 >= 0x78) {
-            // MATCH-ONLY: the controller number is read through a pointer that steps by the size of a player entry
-            const u8* playerBytes = reinterpret_cast<const u8*>(resultInfo);
-            for (int i = 0; i < PlayerMax; i++, playerBytes += sizeof(gmPlayerResultInfo)) {
-                int padNo = playerBytes[0x28];
+            for (int i = 0; i < PlayerMax; i++) {
+                int padNo = getResultPadNo(resultInfo, i);
                 if ((m_unkC1 & (1 << i)) && padNo > 0) {
                     gfPadStatus padStatus;
                     g_gfPadSystem->getSysPadStatus(padNo - 1, &padStatus);

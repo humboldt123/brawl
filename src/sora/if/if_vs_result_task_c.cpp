@@ -38,14 +38,14 @@ extern const char* lbl_8045B674[];
 
 // The bytes of gmResultInfo that the header hides.
 struct VsResultInfoView {
-    u8 m_gameKind;          // 0x00 1 and 0x18 have their own title
-    u8 m_gameRule;          // 0x01 0 time, 1 stock, 2 coin
+    u8 m_gameMode;          // 0x00 GameMode: the tournament and the Wifi for-fun mode have their own title
+    u8 m_gameRule;          // 0x01 GameRule: time, stock or coin
     u8 m_isTeams;           // 0x02
     u8 _3;
     u32 m_timeOrCoins;      // 0x04 the limit of the time and coin rules
     u32 m_stockCount;       // 0x08 the limit of the stock rule
     s8 _C[2];
-    u8 m_tournament : 1;    // 0x0E bit 7: a tournament-like result
+    u8 m_flag0E_7 : 1;      // 0x0E bit 7. HYPOTHESIS: a result that is rated (it is set by the ctor to m_unkD4 together with the set rule)
     u8 : 7;
 };
 
@@ -72,12 +72,16 @@ static inline float getPanelColorFrame(gmResultInfo* info, int state, u32 player
     return frame;
 }
 
-// Whether the sequence that is running is the one with this name.
-static inline bool isCurrentSequence(const char* name) {
+// Whether the sequence that is running is sqQuMelee.
+static inline void copySequenceName(char* dst, const char* src) {
+    dst[0] = 0;
+    strcat(dst, src);
+}
+
+static inline bool isQuMeleeSequence() {
     char sequence[0x44];
-    sequence[0] = 0;
-    strcat(sequence, gfSceneManager::getInstance()->m_currentSequence->m_sequenceName);
-    return strcmp(sequence, name) == 0;
+    copySequenceName(sequence, gfSceneManager::getInstance()->m_currentSequence->m_sequenceName);
+    return strcmp(sequence, "sqQuMelee") == 0;
 }
 
 void ifVsResultTask::initMdlData() {
@@ -201,7 +205,7 @@ void ifVsResultTask::initMdlData() {
     // HYPOTHESIS: local tables; the originals are const data that the function copies to the stack where it uses them.
     const int constructFlags[5] = { 0x36, 5, 5, 5, 5 };   // the capacity of the groups (the panel, the four player rows)
     const int groupObject[5] = { 0, 8, 9, 10, 11 };       // the object of m_objects that each group is made for
-    for (u32 g = 0; g < 5; g++) {
+    for (u32 g = 0; g <= 4; g++) {
         m_expands[g] = nw4r::g3d::ScnMdlExpand::Construct(allocator, &groupSize, constructFlags[g], m_objects[groupObject[g]]->m_scnMdl);
     }
     for (u32 i = 0; i < PlayerMax; i++) {
@@ -272,11 +276,11 @@ void ifVsResultTask::initMdlData() {
     // HYPOTHESIS: the frame of the texture animation that picks the title of the hit numbers (per rule) and of the player rows.
     float hitFrame = 0.0f;
     float rowFrame = hitFrame;
-    if (view->m_gameRule == 2) {
+    if (view->m_gameRule == Game_Rule_Coin) {
         hitFrame = 1.0f;
         rowFrame = hitFrame;
     }
-    if (view->m_gameRule == 1) {
+    if (view->m_gameRule == Game_Rule_Stock) {
         hitFrame = 3.0f;
     }
     if (m_unkD4) {
@@ -328,7 +332,7 @@ void ifVsResultTask::initMdlData() {
     m_msgName->allocMsgBuf(0x80, 6);
     m_msgName->attachScnMdlSimple(0, m_objects[Obj_Panel]->m_sceneModel, 0, 1.0f / 6.0f);
     m_msgName->attachScnMdlSimple(1, m_objects[Obj_Panel]->m_sceneModel, 1, 0.0625f);
-    for (int c = 0; c < 2; c++) {
+    for (int c = 0; c <= 1; c++) {
         m_msgName->setAlignMode(c, MuMsg::Align_Center);
         m_msgName->setFontColor(c, 0xFF, 0xFF, 0xFF, 0xFF);
         m_msgName->setFontType(c, 1);
@@ -342,11 +346,13 @@ void ifVsResultTask::initMdlData() {
             m_msgName->setEdge(2 + i, 0x2D, 0x2D, 0x2D, 2.0f);
             m_msgName->setFontType(2 + i, 1);
             if (m_playerState[i] == 0) {
+                gmPlayerResultInfo* player = &g_GameGlobal->m_resultInfo->m_playersResultInfo[i];
                 if (resultInfo->m_isTeams == 0) {
-                    m_msgName->setFontColor(2 + i, fontColor[3 * i], fontColor[3 * i + 1], fontColor[3 * i + 2], 0xFF);
+                    const u8* rgb = &fontColor[3 * i];
+                    m_msgName->setFontColor(2 + i, rgb[0], rgb[1], rgb[2], 0xFF);
                 } else {
                     const int teamColor[3] = { 0, 1, 3 };
-                    int color = teamColor[reinterpret_cast<u8*>(g_GameGlobal->m_resultInfo)[0x2A + i * 0x2AC]] * 3;
+                    int color = teamColor[player->m_teamNo] * 3;
                     m_msgName->setFontColor(2 + i, fontColor[color], fontColor[color + 1], fontColor[color + 2], 0xFF);
                 }
                 // The name that the player typed in: the player of the match whose number is this player's.
@@ -377,21 +383,21 @@ void ifVsResultTask::initMdlData() {
     m_msg = MuMsg::create(1, Heaps::MenuInstance, 0x2B);
     m_msg->allocMsgBuf(0x100, 0x13);
     m_msg->setMsgData(m_msgData);
-    for (int c = 0; c < 3; c++) {
+    for (int c = 0; c <= 2; c++) {
         m_msg->setAlignMode(c, MuMsg::Align_Center);
         m_msg->setFontColor(c, 0xFF, 0xFF, 0xFF, 0xFF);
         m_msg->setFontWidthModeAuto(c);
     }
     m_msg->attachScnMdlSimple(0, m_objects[Obj_Panel]->m_sceneModel, 2, 0.0625f);
-    switch (view->m_gameKind) {
-    case 1:
+    switch (view->m_gameMode) {
+    case Game_Mode_Tournament:
         m_msg->printIndex(0, 0x30);
         break;
-    case 0x18:
+    case Game_Mode_Net_Okiraku:
         m_msg->printIndex(0, 0x31);
         break;
     default: {
-        if (isCurrentSequence("sqQuMelee")) {
+        if (isQuMeleeSequence()) {
             u32 index = 0x2E;
             if (reinterpret_cast<u8*>(g_GameGlobal->m_tournamentData)[2] == 0) {
                 index = 0x2F;
@@ -399,7 +405,7 @@ void ifVsResultTask::initMdlData() {
             m_msg->printIndex(0, index);
         } else if (view->m_isTeams == 1) {
             m_msg->printIndex(0, 1);
-        } else if (view->m_tournament) {
+        } else if (view->m_flag0E_7) {
             m_msg->printIndex(0, 2);
         } else {
             m_msg->printIndex(0, 0);
@@ -414,18 +420,18 @@ void ifVsResultTask::initMdlData() {
         m_msg->printIndex(1, 6);
     } else {
         switch (view->m_gameRule) {
-        case 0:
+        case Game_Rule_Time:
             m_msg->attachScnMdlSimple(1, m_objects[Obj_Panel]->m_sceneModel, 3, 1.0f / 28.0f);
             m_msg->printIndex(1, 3);
             limit = view->m_timeOrCoins;
             break;
-        case 1:
+        case Game_Rule_Stock:
             m_msg->attachScnMdlSimple(1, m_objects[Obj_Panel]->m_sceneModel, 3, 1.0f / 32.0f);
             m_msg->printIndex(1, 5);
             limit = view->m_stockCount;
             isStock = true;
             break;
-        case 2:
+        case Game_Rule_Coin:
             m_msg->attachScnMdlSimple(1, m_objects[Obj_Panel]->m_sceneModel, 3, 1.0f / 28.0f);
             m_msg->printIndex(1, 4);
             limit = view->m_timeOrCoins;
@@ -439,7 +445,10 @@ void ifVsResultTask::initMdlData() {
         } else {
             // The limit in full width digits followed by its unit.
             int length = 0;
-            char text[0x20] = { 0 };
+            char text[0x20];
+            for (int j = 0; j < 0x20; j++) {
+                text[j] = 0;
+            }
             if (limit >= 10) {
                 length = sprintf(text, "%s", lbl_8045B674[limit / 10]);
             }
@@ -460,7 +469,7 @@ void ifVsResultTask::initMdlData() {
     for (int i = 0; i < PlayerMax; i++) {
         u32 channel = 3 + 4 * i;
         if (m_playerState[i] != 3) {
-            if (view->m_gameRule == 2 || m_unkD4) {
+            if (view->m_gameRule == Game_Rule_Coin || m_unkD4) {
                 m_msg->attachScnMdlSimple(channel, m_objects[Obj_HitNum]->m_sceneModel, 0x10 + i, 0.0625f);
                 m_msg->setAlignMode(channel, MuMsg::Align_Right);
                 m_msg->setFontColor(channel, 0x90, 0xC9, 0xEB, 0xFF);
