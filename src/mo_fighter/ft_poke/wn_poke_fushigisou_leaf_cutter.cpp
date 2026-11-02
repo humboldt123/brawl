@@ -27,24 +27,8 @@ void wnPokeFushigisouLeafCutter::activate(int founderTaskId, int resourceId, int
                                         Vec3f* position, float lr, float speed, float angle) {
     const wnPokeFushigisouLeafCutterParam* param;
     int life = m_param->lifeFrames;
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = resourceId;
-    desc.unk8 = resourceId;
-    desc.unkC = resourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-    __memcpy(&desc.pos, position, sizeof(Vec3f));
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = life;
-    desc.unk38 = 5;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, *position, lr, team, life, 5,
+                        0x80, 0, 0x35F, 0);
     desc.flagsHigh = 1;
     desc.flagsMidHigh = 0;
     desc.flagsMidLow = 1;

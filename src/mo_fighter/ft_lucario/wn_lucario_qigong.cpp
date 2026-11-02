@@ -23,29 +23,8 @@ wnLucarioQigong::wnLucarioQigong(s32 articleId, const wnArticleBuildInfo& info, 
 
 // The aura sphere is activated at the position with the facing and the attack power multiplier of its charge.
 void wnLucarioQigong::activate(int founderTaskId, int team, const Vec3f* position, float lr, float powerMul) {
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = 0xFFFF;
-    desc.unk8 = 0xFFFF;
-    desc.unkC = 0xFFFF;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: retain the native aggregate word copy of the position.
-    __memcpy(&desc.pos, position, sizeof(Vec3f));
-#else
-    desc.pos = *position;
-#endif
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, 0xFFFF, 0xFFFF, 0xFFFF, -1, -1, 0, 0, *position, lr, team, 0, 2, 0x80, 0, 0x35F,
+                        0);
     desc.flagsHigh = 1;
     desc.flagsMidHigh = 0;
     desc.flagsMidLow = 1;

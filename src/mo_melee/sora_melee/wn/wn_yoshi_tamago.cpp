@@ -35,25 +35,8 @@ wnYoshiTamago::wnYoshiTamago(s32 articleId, const wnArticleBuildInfo& info, cons
 // starts at Yoshi's mouth and is given its trajectory by shoot().
 void wnYoshiTamago::activate(int founderTaskId, int resourceId, int team,
                             const Vec3f* position, u32 captureNode, float lr) {
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = resourceId;
-    desc.unk8 = resourceId;
-    desc.unkC = resourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-    // MATCH-ONLY: retain the original activation descriptor's word copy.
-    __memcpy(&desc.pos, position, sizeof(Vec3f));
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35f;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, *position, lr, team, 0, 2,
+                        0x80, 0, 0x35f, 0);
     desc.flagBit7 = true;
     desc.flagBit6 = captureNode == 0xffffffffu;
     desc.flagsMidPair = 0;

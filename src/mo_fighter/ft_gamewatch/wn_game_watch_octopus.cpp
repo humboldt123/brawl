@@ -35,28 +35,8 @@ wnGameWatchOctopus::wnGameWatchOctopus(s32 articleId, const wnArticleBuildInfo& 
 void wnGameWatchOctopus::activate(int founderTaskId, int resourceId, int team,
                                   const Vec3f& position, float lr,
                                   float unkFloatFromDB2, float fighterColor) {
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = resourceId;
-    desc.unk8 = resourceId;
-    desc.unkC = resourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-#ifdef MATCHING
-    __memcpy(&desc.pos, &position, sizeof(Vec3f));
-#else
-    desc.pos = position;
-#endif
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, position, lr, team, 0, 2, 0x80,
+                        0, 0x35F, 0);
     desc.flagsHigh = 1;
     desc.flagsMidHigh = 0;
     desc.flagsMidLow = 1;

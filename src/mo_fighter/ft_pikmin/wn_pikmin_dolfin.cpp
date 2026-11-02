@@ -149,24 +149,7 @@ wnPikminDolfin::wnPikminDolfin(s32 articleId, const wnArticleBuildInfo& info, co
 }
 
 void wnPikminDolfin::activate(int founderTaskId, int kind, int team, Vec3f* pos) {
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = kind;
-    desc.unk8 = kind;
-    desc.unkC = kind;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-    __memcpy(&desc.pos, pos, sizeof(Vec3f));
-    desc.lr = 0.0f;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35f;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, kind, kind, kind, -1, -1, 0, 0, *pos, 0.0f, team, 0, 2, 0x80, 0, 0x35f, 0);
     desc.flagsHigh = 1;
     desc.flagsMidHigh = 0;
     desc.flagsMidLow = 1;

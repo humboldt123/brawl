@@ -202,24 +202,7 @@ struct wnLucasPKThunderLinkEvent : soLinkEventArgs {
 
 // Launches the head of the bolt: it flies off along the angle given by its parameters at the speed of the parameter block.
 void wnLucasPKThunder::activate(int founderTaskId, int team, Vec3f* pos, float lr) {
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = 0xFFFF;
-    desc.unk8 = 0xFFFF;
-    desc.unkC = 0xFFFF;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-    __memcpy(&desc.pos, pos, sizeof(Vec3f));
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35f;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, 0xFFFF, 0xFFFF, 0xFFFF, -1, -1, 0, 0, *pos, lr, team, 0, 2, 0x80, 0, 0x35f, 0);
     desc.flagsHigh = 1;
     desc.flagsMidHigh = 0;
     desc.flagsMidLow = 1;

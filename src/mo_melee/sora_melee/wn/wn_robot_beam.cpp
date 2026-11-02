@@ -1,3 +1,4 @@
+#define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
 #include <wn/robot/wn_robot_beam.h>
 #include <wn/wn_activate_desc.h>
 #include <wn/wn_kinetic_energy_normal.h>
@@ -24,8 +25,7 @@ void wnRobotBeam::activate(float lr, float angle, s32 founderTaskId, u32 resourc
     desc.unk14 = -1;
     desc.unk18 = 0;
     desc.unk1C = 0;
-    // MATCH-ONLY: the original copies the position with integer moves.
-    __memcpy(&desc.pos, position, sizeof(Vec3f));
+    desc.pos = *position;
     desc.lr = lr;
     desc.team = team;
     desc.life = life;

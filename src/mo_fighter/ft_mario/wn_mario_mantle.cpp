@@ -35,29 +35,8 @@ wnMarioMantle::wnMarioMantle(s32 articleId, const wnArticleBuildInfo& info, cons
 
 void wnMarioMantle::activate(int founderTaskId, int resourceId, int team, int situationKind) {
     Vec3f origin(0.0f, 0.0f, 0.0f);
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = resourceId;
-    desc.unk8 = resourceId;
-    desc.unkC = resourceId;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-#ifdef MATCHING
-    // MATCH-ONLY: native activation copies the position as aggregate words.
-    __memcpy(&desc.pos, &origin, sizeof(Vec3f));
-#else
-    desc.pos = origin;
-#endif
-    desc.lr = 0.0f;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, origin, 0.0f, team, 0, 2, 0x80,
+                        0, 0x35F, 0);
     desc.flagBit7 = true;
     desc.flagBit6 = true;
     desc.flagBit5 = false;

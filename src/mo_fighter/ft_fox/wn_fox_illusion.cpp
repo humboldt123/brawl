@@ -128,28 +128,7 @@ wnFoxIllusion::wnFoxIllusion(s32 articleId, const wnArticleBuildInfo& info, cons
 
 void wnFoxIllusion::activate(s32 founderTaskId, s32 unk1, s32 team, float lr, s32 unk2, s32 unk3) {
     Vec3f pos(0.0f, 0.0f, 0.0f);
-    wnActivateDesc desc;
-    desc.founderTaskId = founderTaskId;
-    desc.resourceId = 0xFFFF;
-    desc.unk8 = 0xFFFF;
-    desc.unkC = 0xFFFF;
-    desc.unk10 = -1;
-    desc.unk14 = -1;
-    desc.unk18 = 0;
-    desc.unk1C = 0;
-#ifdef MATCHING
-    __memcpy(&desc.pos, &pos, sizeof(Vec3f));
-#else
-    desc.pos = pos;
-#endif
-    desc.lr = lr;
-    desc.team = team;
-    desc.life = 0;
-    desc.unk38 = 2;
-    desc.unk3C = 0x80;
-    desc.unk40 = 0;
-    desc.unk44 = 0x35F;
-    desc.unk48 = 0;
+    wnActivateDesc desc(founderTaskId, 0xFFFF, 0xFFFF, 0xFFFF, -1, -1, 0, 0, pos, lr, team, 0, 2, 0x80, 0, 0x35F, 0);
     desc.flagsHigh = 1;
     desc.flagsMidHigh = 0;
     desc.flagsMidLow = 1;
