@@ -55,6 +55,9 @@ public:
     void startSE(s32 p1, s32 p2, s32 p3);
     bool isPlay(s32 handleId);
     bool isPlaySEID(SndID sndID);
+    // Plays a sound effect at a fixed volume and pitch (map: sndSystem::playSEwithFixEffect); the menus pass 1.0 and 1.0.
+    // HYPOTHESIS: the two floats are the volume and the pitch.
+    void playSEwithFixEffect(SndID sndID, float volume, float pitch);
     bool playBGM(int bgmId, u32 fade, bool);
     void stopBGM(int fade);
     int getBGMId();

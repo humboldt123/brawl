@@ -66,6 +66,8 @@ public:
     void beginPrint(u32 msgIndex);
     void printf(u32 msgIndex, const char* format, ...);
     bool printIndex(u32 msgIndex, u32 lineIndex, void* msgBinData = NULL);
+    // Shows a text of bytes that is not one of the messages of the file (length: in bytes).
+    void printData(u32 msgIndex, const void* data, int length);
     void setWindowRectVisible(u32 msgIndex, bool isVisible);
 
     // The third argument is not a HeapType in the symbol (create__5MuMsgFUlQ25Heaps8HeapTypeUl).

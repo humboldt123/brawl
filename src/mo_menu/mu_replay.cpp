@@ -41,7 +41,6 @@ extern "C" int exchangeGmCharacterKind2MuStockchkind__6muMenuFi(int kind);
 extern "C" int exchangeGmCharacterKind2Something__6muMenuFi(int kind);
 extern "C" const char* exchangeMuStockchkind2MuCharName__6muMenuFi(int kind);
 // MuMsg::printData(msg, index, data, size)
-extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int size);
 // nw4r::g3d::ScnMdlExpand::PushBack(object, node name)
 extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void* expand, void* object, const char* name);
 // gfSceneManager of the match: the character that is preloaded for a player, and if it is done
@@ -528,7 +527,7 @@ void muReplayTask::dispPreviewStage(muReplayInfo* info) {
         getPrintIndexData__7MessageFPvUlPPcPUl(data, 5, &label2.m_text, &label2.m_size);
         buf.append(label2.m_text, label2.m_size);
         buf.append(label1.m_text, label1.m_size);
-        printData__5MuMsgFUlPCvi(m_work->m_msg, 0x11, buf.m_data, buf.m_size);
+        m_work->m_msg->printData(0x11, buf.m_data, buf.m_size);
         break;
     }
     case 7:

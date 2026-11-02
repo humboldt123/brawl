@@ -27,8 +27,6 @@ extern "C" int fn_800BA2E0();
 // CameraController::getInstance() and changeInput(kind)
 extern "C" void* getInstance__16CameraControllerFv();
 extern "C" void changeInput__16CameraControllerFQ216CameraController4Kind(void* camera, int kind);
-// sndSystem::playSEwithFixEffect(id, volume?, pitch?) and sndSystem::playBGM
-extern "C" void fn_80074ECC(sndSystem* system, int id, float volume, float pitch);
 // The system that keeps the picture of the screen while a menu changes
 extern "C" void startKeepScreen__17gfKeepFrameBufferFv(void* keeper);
 extern "C" void endKeepScreen__17gfKeepFrameBufferFv(void* keeper);
@@ -1584,7 +1582,7 @@ void muTourRuleTask::processAnim() {
                             entrant->m_slot = -1;
                         }
                     }
-                    fn_80074ECC(g_sndSystem, 0x1FF0, 1.0f, 1.0f);
+                    g_sndSystem->playSEwithFixEffect(static_cast<SndID>(0x1FF0), 1.0f, 1.0f);
                     break;
                 case Mode_Edit:
                     scene->Insert(scene->sceneItemsCount, reinterpret_cast<nw4r::g3d::ScnObj*>(m_mdls[0]));

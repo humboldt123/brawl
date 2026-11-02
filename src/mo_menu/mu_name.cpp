@@ -34,7 +34,6 @@ extern "C" void setFontWidthModeFixed__5MuMsgFUlf(MuMsg* msg, u32 index, float w
 // qsort of the library of the program
 extern "C" void qsort(void* base, unsigned long count, unsigned long size, int (*compare)(const void*, const void*));
 // MuMsg::printData(text number, data, size)
-extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 index, const void* data, int size);
 // nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model) and PushBack(object, node name)
 extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(MEMAllocator* allocator, u32* size, int capacity,
                                                                                                     void* scnMdl);
@@ -2163,7 +2162,7 @@ void muNameTask::printBaseNameHelp(int msgIndexA, const u16* name, int msgIndexB
     memcpy(text + size, part, partLen);
     size += partLen;
     text[size] = 0;
-    printData__5MuMsgFUlPCvi(m_msg, 6, text, size);
+    m_msg->printData(6, text, size);
     m_objects[Obj_RemoteWindow]->setFrameVisible(shown ? 1.0f : 0.0f);
 }
 

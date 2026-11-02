@@ -29,7 +29,6 @@ extern "C" nw4r::g3d::ScnGroup* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAlloc
     MEMAllocator* allocator, u32* size, int capacity, nw4r::g3d::ScnMdl* scnMdl);
 extern "C" bool PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(nw4r::g3d::ScnGroup* expand,
                                                                          nw4r::g3d::ScnObj* obj, const char* nodeName);
-extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int length);
 
 // HYPOTHESIS: IfSnapSaveTask::makeDataSizeMsg (0x800F227C has no map line of its own, still fn_) writes the
 // free size text and returns its length.
@@ -398,7 +397,7 @@ void IfSnapSaveTask::printMediaStatus(u32 msgIndex, u32 lineIndex, s32 status, u
     if (status == 1) {
         char buf[0x100];
         int length = fn_800F227C(this, buf, freeSize, 1);
-        printData__5MuMsgFUlPCvi(msg, msgIndex, buf, length);
+        msg->printData(msgIndex, buf, length);
     } else {
         switch (status) {
         case 2:
