@@ -12,6 +12,16 @@
 #include <wn/wn_activate_desc.h>
 #include <so/so_module_accesser.h>
 #include <wn/wn_kinetic_energy_normal.h>
+#include <wn/wn_kinetic_energy_gravity.h>
+#include <wn/wn_kinetic_transactor.h>
+#include <wn/dedede/wn_dedede_follower_kinetic_transactor.h>
+#include <so/kinetic/so_kinetic_module_impl.h>
+#include <so/link/so_link_module_impl.h>
+#include <so/situation/so_situation_module_impl.h>
+#include <so/so_value_accesser.h>
+#include <so/so_kinetic_utility.h>
+#include <so/ground/so_ground_module_impl.h>
+#include <ft/ft_kinetic_energy.h>
 #include <math.h>
 
 wnDededeStar::wnDededeStar(s32 articleId, const wnArticleBuildInfo& info, const wnDededeStarData* data) :
@@ -70,6 +80,522 @@ void wnDededeStar::activate(int founderTaskId, int unused, int team, const Vec3f
     normal.m_speed.m_x = velocity.m_x;
     normal.m_speed.m_y = velocity.m_y;
     m_moduleAccesser->getStatusModule().changeStatusForce(0, m_moduleAccesser);
+}
+
+extern const float lbl_117_rodata_C8;
+
+// HYPOTHESIS: the follower's kinetic energy pools (normal, gravity, normal, ground movement, wind): the transactor reaches them
+// through an overload selected by an empty soIntToType<pool level> tag (as in the Diddy Kong barrel transactor); the
+// value-initialized one-byte tag temporary is the zero byte stored before each lookup.
+static inline soKineticEnergyNormal* getEnergy(void* pools, const soIntToType<0>&) {
+    return reinterpret_cast<soKineticEnergyNormal*>(static_cast<u8*>(pools) + 0x10);
+}
+static inline wnKineticEnergyGravity* getEnergy(void* pools, const soIntToType<1>&) {
+    return reinterpret_cast<wnKineticEnergyGravity*>(static_cast<u8*>(pools) + 0x50);
+}
+
+// HYPOTHESIS: the unit's out-of-line vector sum (unnamed in the map): writes a + b to out.
+void addVec2(const Vec2f* a, const Vec2f* b, Vec2f* out) __attribute__((never_inline));
+void addVec2(const Vec2f* a, const Vec2f* b, Vec2f* out) {
+    out->m_x = a->m_x + b->m_x;
+    out->m_y = a->m_y + b->m_y;
+}
+
+static inline Vec2f addVec2f(const Vec2f& a, const Vec2f& b) {
+    Vec2f sum;
+    addVec2(&a, &b, &sum);
+    return sum;
+}
+
+// MATCH-ONLY: this unit's other users call the out-of-line Vec2f constructor; the transactor builds its temporaries inline.
+struct InlineVec2f : Vec2f {
+    InlineVec2f(float x, float y) {
+        m_x = x;
+        m_y = y;
+    }
+};
+static inline soKineticEnergyNormal* getEnergy(void* pools, const soIntToType<2>&) {
+    return reinterpret_cast<soKineticEnergyNormal*>(static_cast<u8*>(pools) + 0x70);
+}
+static inline soKineticEnergyGroundMovement* getEnergy(void* pools, const soIntToType<3>&) {
+    return reinterpret_cast<soKineticEnergyGroundMovement*>(static_cast<u8*>(pools) + 0xB0);
+}
+static inline soKineticEnergyWindNormal* getEnergy(void* pools, const soIntToType<4>&) {
+    return reinterpret_cast<soKineticEnergyWindNormal*>(static_cast<u8*>(pools) + 0xEC);
+}
+
+// HYPOTHESIS: the follower takes outside movement (moving ground, wind, hits) into its ground movement, wind and normal energies.
+void wnDededeFollowerKineticTransactor::addSpeedOutside(int type, void* speedData, void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f* speed = static_cast<Vec2f*>(speedData);
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    switch (type) {
+    case soKineticEnergy::Outside_Movement_Ground: {
+        Vec2f outside;
+        outside.m_x = 0.0f;
+        outside.m_y = 0.0f;
+        switch (moduleAccesser->getSituationModule().getKind()) {
+        case Situation_Ground: {
+            Vec2f normal = moduleAccesser->getGroundModule().getTouchNormal(8, 0);
+            outside = soKineticUtility::projectionNormalFollow(&InlineVec2f(speed->m_x, 0.0f), &normal);
+            break;
+        }
+        }
+        if (0.0f != outside.m_x || 0.0f != outside.m_y) {
+            soKineticEnergyGroundMovement* ground = getEnergy(pools, soIntToType<3>());
+            addVec2(&ground->m_outsideSpeed, &outside, &ground->m_outsideSpeed);
+            // MATCH-ONLY: the original adds a zero it loads from the pool (a rotation input the follower never sets).
+            ground->m_rotation = ground->m_rotation + lbl_117_rodata_C8;
+            ground->enable();
+        }
+        break;
+    }
+    case soKineticEnergy::Outside_Wind: {
+        Vec2f delta;
+        delta.m_x = 0.0f;
+        delta.m_y = 0.0f;
+        Vec2f brake;
+        brake.m_x = 0.0f;
+        brake.m_y = 0.0f;
+        switch (moduleAccesser->getSituationModule().getKind()) {
+        case Situation_Ground:
+            delta.m_x = speed->m_x;
+            brake.m_x = paramAccesser->getParamFloat(moduleAccesser, 0xFAE, 0);
+            break;
+        case Situation_Air:
+        case Situation_Water:
+            delta.m_x = speed->m_x;
+            delta.m_y += speed->m_y;
+            brake.m_x = paramAccesser->getParamFloat(moduleAccesser, 0xFAE, 0);
+            break;
+        }
+        if (0.0f != delta.m_x || 0.0f != delta.m_y) {
+            soKineticEnergyWindNormal* wind = getEnergy(pools, soIntToType<4>());
+            addVec2(&wind->m_windSpeed, &delta, &wind->m_windSpeed);
+            wind->m_responseRetention = paramAccesser->getParamFloat(moduleAccesser, 0xFB5, 0);
+            wind->m_brake = brake;
+            wind->enable();
+        }
+        break;
+    }
+    case soKineticEnergy::Outside_Attack: {
+        Vec2f push;
+        push.m_x = 0.0f;
+        push.m_y = 0.0f;
+        switch (moduleAccesser->getSituationModule().getKind()) {
+        case Situation_Ground:
+            push.m_x = speed->m_x;
+            break;
+        case Situation_Air:
+        case Situation_Water:
+            push.m_x = speed->m_x;
+            push.m_y = speed->m_y;
+            break;
+        }
+        if (0.0f != push.m_x) {
+            soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<2>());
+            normal->m_speed = addVec2f(normal->getSpeed(), push);
+            normal->m_speedTarget = InlineVec2f(0.0f, 0.0f);
+            if (moduleAccesser->getSituationModule().getKind() == Situation_Air) {
+                normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+            } else {
+                normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAE, 0), 0.0f);
+            }
+            normal->enable();
+        }
+        if (0.0f != push.m_y) {
+            wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+            gravity->m_speedY = push.m_y + gravity->getSpeed().m_y;
+            if (moduleAccesser->getKineticModule().getEnergy(1)->isEnable()) {
+                gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+                gravity->m_speedLimit = paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+                gravity->enable();
+            }
+        }
+        break;
+    }
+    }
+}
+
+void wnDededeFollowerKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* moduleAccesser) {
+    if (mode <= 0x1F) {
+        wnKineticTransactor::changeKinetic(mode, pools, moduleAccesser);
+        return;
+    }
+    switch (mode) {
+    case 0x20: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub(pools, moduleAccesser);
+        break;
+    }
+    case 0x21: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub1(pools, moduleAccesser);
+        break;
+    }
+    case 0x22: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub2(pools, moduleAccesser);
+        break;
+    }
+    case 0x23: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub3(pools, moduleAccesser);
+        break;
+    }
+    case 0x24: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub4(pools, moduleAccesser);
+        break;
+    }
+    case 0x25: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub5(pools, moduleAccesser);
+        break;
+    }
+    case 0x26: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub6(pools, moduleAccesser);
+        break;
+    }
+    case 0x27: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub7(pools, moduleAccesser);
+        break;
+    }
+    case 0x28: {
+        wnDededeFollowerKineticTransactor empty = {};
+        break;
+    }
+    case 0x29: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub8(pools, moduleAccesser);
+        break;
+    }
+    case 0x2a: {
+        wnDededeFollowerKineticTransactor empty = {};
+        moduleAccesser->getKineticModule().unableEnergyAll();
+        break;
+    }
+    case 0x2b: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub9(pools, moduleAccesser);
+        break;
+    }
+    case 0x2c: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub10(pools, moduleAccesser);
+        break;
+    }
+    case 0x2d: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub11(pools, moduleAccesser);
+        break;
+    }
+    case 0x2e: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub12(pools, moduleAccesser);
+        break;
+    }
+    case 0x2f: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub13(pools, moduleAccesser);
+        break;
+    }
+    case 0x30: {
+        wnDededeFollowerKineticTransactor empty = {};
+        empty.changeKineticSub14(pools, moduleAccesser);
+        break;
+    }
+    }
+}
+
+// HYPOTHESIS: launches along the angle (work float 0x21000005, scaled to radians) at the speed in work float 0x21000006.
+void wnDededeFollowerKineticTransactor::changeKineticSub(void* pools, soModuleAccesser* moduleAccesser) {
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    float angle = 0.017453292f * moduleAccesser->getWorkManageModule().getFloat(0x21000005);
+    float launchSpeed = moduleAccesser->getWorkManageModule().getFloat(0x21000006);
+    float lr = moduleAccesser->getPostureModule().getLr();
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(lr * (launchSpeed * (float)cos(angle)), 0.0f);
+    normal->m_speedTarget = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFB0, 0), 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = launchSpeed * (float)sin(angle);
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: bounces off with the current speed reversed and damped (0xFB3), rising by 0xFB4 on top of it.
+void wnDededeFollowerKineticTransactor::changeKineticSub1(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(-speed.m_x * paramAccesser->getParamFloat(moduleAccesser, 0xFB3, 0), 0.0f);
+    normal->m_speedTarget = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFB0, 0), 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = speed.m_y + paramAccesser->getParamFloat(moduleAccesser, 0xFB4, 0);
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: keeps the horizontal speed it had, but never less than the 0xFA9 limit (towards the facing side).
+void wnDededeFollowerKineticTransactor::changeKineticSub2(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = addVec2f(moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)),
+                           moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2)));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    float lr = moduleAccesser->getPostureModule().getLr();
+    float limit = lr * paramAccesser->getParamFloat(moduleAccesser, 0xFA9, 0);
+    if (limit < 0.0f) {
+        if (speed.m_x < limit) {
+            limit = speed.m_x;
+        }
+    } else {
+        if (speed.m_x > limit) {
+            limit = speed.m_x;
+        }
+    }
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(limit, 0.0f);
+    normal->m_speedTarget = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFA9, 0), 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAE, 0), 0.0f);
+    normal->enable();
+}
+
+// HYPOTHESIS: stops dead and brakes by 0xFAE.
+void wnDededeFollowerKineticTransactor::changeKineticSub3(void* pools, soModuleAccesser* moduleAccesser) {
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(0.0f, 0.0f);
+    normal->m_speedTarget = InlineVec2f(0.0f, 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAE, 0), 0.0f);
+    normal->enable();
+}
+
+// HYPOTHESIS: keeps its horizontal speed and brakes by 0xFAE.
+void wnDededeFollowerKineticTransactor::changeKineticSub4(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = addVec2f(moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)),
+                           moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2)));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(speed.m_x, 0.0f);
+    normal->m_speedTarget = InlineVec2f(0.0f, 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAE, 0), 0.0f);
+    normal->enable();
+}
+
+// HYPOTHESIS: keeps both components of the speed (gravity takes the vertical one).
+void wnDededeFollowerKineticTransactor::changeKineticSub5(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = addVec2f(moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)),
+                           moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2)));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(speed.m_x, 0.0f);
+    normal->m_speedTarget = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFB0, 0), 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = speed.m_y;
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: adds a push of 0xFAC (towards the facing side) to the horizontal speed and launches upwards at 0xFAD.
+void wnDededeFollowerKineticTransactor::changeKineticSub6(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = addVec2f(moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)),
+                           moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2)));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    float lr = moduleAccesser->getPostureModule().getLr();
+    float pushX = lr * paramAccesser->getParamFloat(moduleAccesser, 0xFAC, 0);
+    pushX += speed.m_x;
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(pushX, 0.0f);
+    normal->m_speedTarget = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFB0, 0), 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = paramAccesser->getParamFloat(moduleAccesser, 0xFAD, 0);
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = -paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: the same as Sub6 with the 0xFA0/0xFA1 launch parameters.
+void wnDededeFollowerKineticTransactor::changeKineticSub7(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = addVec2f(moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)),
+                           moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2)));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    float lr = moduleAccesser->getPostureModule().getLr();
+    float pushX = lr * paramAccesser->getParamFloat(moduleAccesser, 0xFA0, 0);
+    pushX += speed.m_x;
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(pushX, 0.0f);
+    normal->m_speedTarget = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFB0, 0), 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = paramAccesser->getParamFloat(moduleAccesser, 0xFA1, 0);
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = -paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: launches the second normal energy (work floats 0x21000002/3 are its horizontal and the gravity energy's vertical speed).
+void wnDededeFollowerKineticTransactor::changeKineticSub8(void* pools, soModuleAccesser* moduleAccesser) {
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    Vec2f launchSpeed;
+    launchSpeed.m_x = moduleAccesser->getWorkManageModule().getFloat(0x21000002);
+    launchSpeed.m_y = moduleAccesser->getWorkManageModule().getFloat(0x21000003);
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<2>());
+    normal->m_speed = InlineVec2f(launchSpeed.m_x, 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = launchSpeed.m_y;
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = -paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: falls straight down from rest.
+void wnDededeFollowerKineticTransactor::changeKineticSub9(void* pools, soModuleAccesser* moduleAccesser) {
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = 0.0f;
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = -paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: keeps the horizontal speed, but at least the 0xFB6 limit towards the facing side.
+void wnDededeFollowerKineticTransactor::changeKineticSub10(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = addVec2f(moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)),
+                           moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2)));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    float lr = moduleAccesser->getPostureModule().getLr();
+    float limit = lr * paramAccesser->getParamFloat(moduleAccesser, 0xFB6, 0);
+    if (limit < 0.0f) {
+        if (speed.m_x < limit) {
+            limit = speed.m_x;
+        }
+    } else {
+        if (speed.m_x > limit) {
+            limit = speed.m_x;
+        }
+    }
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(limit, 0.0f);
+    normal->m_speedTarget = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFB6, 0), 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAE, 0), 0.0f);
+    normal->enable();
+}
+
+// HYPOTHESIS: the same with the 0xFB7 limit, braking by 0xFAF, then launching upwards at 0xFAD.
+void wnDededeFollowerKineticTransactor::changeKineticSub11(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = addVec2f(moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)),
+                           moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2)));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    float lr = moduleAccesser->getPostureModule().getLr();
+    float limit = lr * paramAccesser->getParamFloat(moduleAccesser, 0xFB7, 0);
+    if (limit < 0.0f) {
+        if (speed.m_x < limit) {
+            limit = speed.m_x;
+        }
+    } else {
+        if (speed.m_x > limit) {
+            limit = speed.m_x;
+        }
+    }
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(limit, 0.0f);
+    normal->m_speedTarget = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFB7, 0), 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = paramAccesser->getParamFloat(moduleAccesser, 0xFAD, 0);
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = -paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: stops horizontally and falls from rest, braking by 0xFAF.
+void wnDededeFollowerKineticTransactor::changeKineticSub12(void* pools, soModuleAccesser* moduleAccesser) {
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(0.0f, 0.0f);
+    normal->m_speedTarget = InlineVec2f(0.0f, 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = 0.0f;
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = -paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: like Sub11, keeping the vertical speed instead of launching upwards.
+void wnDededeFollowerKineticTransactor::changeKineticSub13(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = addVec2f(moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)),
+                           moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2)));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    float lr = moduleAccesser->getPostureModule().getLr();
+    float limit = lr * paramAccesser->getParamFloat(moduleAccesser, 0xFB7, 0);
+    if (limit < 0.0f) {
+        if (speed.m_x < limit) {
+            limit = speed.m_x;
+        }
+    } else {
+        if (speed.m_x > limit) {
+            limit = speed.m_x;
+        }
+    }
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(limit, 0.0f);
+    normal->m_speedTarget = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFB7, 0), 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = speed.m_y;
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = -paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
+}
+
+// HYPOTHESIS: stops horizontally and keeps the vertical speed.
+void wnDededeFollowerKineticTransactor::changeKineticSub14(void* pools, soModuleAccesser* moduleAccesser) {
+    Vec2f speed = addVec2f(moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)),
+                           moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2)));
+    moduleAccesser->getKineticModule().unableEnergyAll();
+    soParamAccesser* paramAccesser = static_cast<soParamAccesser*>(moduleAccesser->getWorkManageModule().getParamAccesser());
+    soKineticEnergyNormal* normal = getEnergy(pools, soIntToType<0>());
+    normal->m_speed = InlineVec2f(0.0f, 0.0f);
+    normal->m_speedTarget = InlineVec2f(0.0f, 0.0f);
+    normal->m_brake = InlineVec2f(paramAccesser->getParamFloat(moduleAccesser, 0xFAF, 0), 0.0f);
+    normal->enable();
+    wnKineticEnergyGravity* gravity = getEnergy(pools, soIntToType<1>());
+    gravity->m_speedY = speed.m_y;
+    gravity->m_gravity = -paramAccesser->getParamFloat(moduleAccesser, 0xFB1, 0);
+    gravity->m_speedLimit = -paramAccesser->getParamFloat(moduleAccesser, 0xFB2, 0);
+    gravity->enable();
 }
 
 wnDededeFollowerParamAccesser::wnDededeFollowerParamAccesser(const wnParamDededeFollower* param,
