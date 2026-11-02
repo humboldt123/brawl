@@ -6667,6 +6667,7 @@ config.libs = [
             Object(NonMatching, "mo_menu/mu_proc_movie.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_movie_adv.cpp"),
             Object(NonMatching, "mo_menu/mu_proc_movie_player.cpp"),
+            Object(NonMatching, "mo_menu/mu_proc_special.cpp"),
         ],
     },
     {

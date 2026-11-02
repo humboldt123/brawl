@@ -12,7 +12,6 @@
 #include <mu/mu_adv_comer.h>
 
 // MuMsg::printData(message, data, length)
-extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int length);
 
 // What the game keeps in the data of the adventure mode about the pad of the player: the second word is the number of the
 // pad (-1: there is none).
@@ -216,5 +215,5 @@ void muAdvComerTask::createWindow() {
     memcpy(text, data, length);
     strcat(name, muMenu::exchangeMuStockchkind2MuCharName(m_kind));
     strcat(name, text);
-    printData__5MuMsgFUlPCvi(m_msg, 0, name, strlen(name));
+    m_msg->printData(0, name, strlen(name));
 }

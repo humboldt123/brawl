@@ -21,7 +21,6 @@ extern "C" void setMsgData__5MuMsgFPv(MuMsg* msg, void* data);
 extern "C" void* getMsgData__5MuMsgFUlPi(MuMsg* msg, u32 index, int* length);
 extern "C" void setHScale__5MuMsgFUlf(MuMsg* msg, u32 index, float scale);
 extern "C" void getHScale__5MuMsgFUlf(MuMsg* msg, u32 index, float scale);
-extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 index, const void* data, int size);
 // nw4r::g3d::ScnMdl: set the matrix of a node, and the matrix of a node of a ScnObj
 extern "C" void ScnMdl_SetNodeMtx__FPQ34nw4r3g3d6ScnMdlUlPC6Matrix(void* scnMdl, u32 node, const Mtx mtx);
 extern "C" void GetMtx__Q34nw4r3g3d6ScnObjCFQ44nw4r3g3d6ScnObj13ScnObjMtxTypePQ34nw4r4math5MTX34(void* scnObj, int type, Mtx mtx);
@@ -544,7 +543,7 @@ void muAdvStaffrollTask::setupExcelParam() {
         int length;
         void* data = getMsgData__5MuMsgFUlPi(m_msg, m_textParam[offset / sizeof(muAdvStaffText)].m_msgIndex, &length);
         memcpy(buffer, data, length);
-        printData__5MuMsgFUlPCvi(m_msg, i, buffer, strlen(buffer));
+        m_msg->printData(i, buffer, strlen(buffer));
         offset += sizeof(muAdvStaffText);
     }
     for (int i = 0; i < 2; i++) {

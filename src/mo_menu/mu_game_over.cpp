@@ -16,13 +16,9 @@
 #include <mu/mu_game_over.h>
 #include <mu/mu_menu_controller.h>
 
-// main.dol functions that have no names (or no matching declarations) yet.
-// sndSystem::playSEwithFixEffect(id, volume?, pitch?)
-// HYPOTHESIS: the two floats are the volume and the pitch (both 1.0 here).
-extern "C" void fn_80074ECC(sndSystem* system, int id, float volume, float pitch);
+// MuMsg::setFontWidthModeFixed(msg, width): the shared header lacks the argument
 // MuMsg::setFontWidthModeFixed(msg, width) and MuMsg::printData(msg, data, size): the shared header lacks the arguments
 extern "C" void setFontWidthModeFixed__5MuMsgFUlf(MuMsg* msg, u32 msgIndex, float width);
-extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int size);
 
 // One model of the screen: the name, the slots of the task it fills (start, end), and the draw priority.
 struct muGameOverModel {
@@ -255,7 +251,7 @@ int muGameOverTask::mainStepAppearMain(muGameOverTask* task) {
 void muGameOverTask::mainStepSelectContinueInit(muGameOverTask* task) {
     task->setGameOverObjAction(1);
     task->m_isContinue = 1;
-    fn_80074ECC(g_sndSystem, 0x1FFF, 1.0f, 1.0f);
+    g_sndSystem->playSEwithFixEffect(static_cast<SndID>(0x1FFF), 1.0f, 1.0f);
 }
 
 // The player picks "Continue" or "Give up" with the directions and decides with A, B or Start.
@@ -357,7 +353,7 @@ int muGameOverTask::mainStepContinueMain(muGameOverTask* task) {
 
 void muGameOverTask::mainStepGameOverInit(muGameOverTask* task) {
     task->setGameOverObjAction(4);
-    fn_80074ECC(g_sndSystem, 0x2000, 1.0f, 1.0f);
+    g_sndSystem->playSEwithFixEffect(static_cast<SndID>(0x2000), 1.0f, 1.0f);
     g_sndSystem->playBGM(0x2864, 0, true);
 }
 
@@ -391,9 +387,9 @@ void muGameOverTask::mainStepGameOverStartInit(muGameOverTask* task) {
         const char* msgData = task->m_msg->getMsgData(0, &size);
         memcpy(text + length, msgData, size);
         text[length + size] = '\0';
-        printData__5MuMsgFUlPCvi(task->m_msg, 3, text, length + size + 1);
+        task->m_msg->printData(3, text, length + size + 1);
     }
-    fn_80074ECC(g_sndSystem, 0x2000, 1.0f, 1.0f);
+    g_sndSystem->playSEwithFixEffect(static_cast<SndID>(0x2000), 1.0f, 1.0f);
     g_sndSystem->playBGM(0x2864, 0, true);
 }
 

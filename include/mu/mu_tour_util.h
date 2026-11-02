@@ -31,9 +31,8 @@ static inline void tourDetach(MenuRoot* root, nw4r::g3d::ScnMdl* mdl) {
 }
 
 // MuMsg::printData(message, data, length): shows a text of bytes that is not one of the messages of the file.
-extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int length);
 static inline void tourPrintData(MuMsg* msg, u32 msgIndex, const void* data, int length) {
-    printData__5MuMsgFUlPCvi(msg, msgIndex, data, length);
+    msg->printData(msgIndex, data, length);
 }
 
 // Copies the position of an object of the menu (the fields one by one).

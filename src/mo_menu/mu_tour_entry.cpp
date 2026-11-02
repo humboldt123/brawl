@@ -18,8 +18,7 @@ long randi(long max);
 // CameraController::getInstance() and changeInput(kind)
 extern "C" void* getInstance__16CameraControllerFv();
 extern "C" void changeInput__16CameraControllerFQ216CameraController4Kind(void* camera, int kind);
-// sndSystem::playSEwithFixEffect(id, volume?, pitch?) and sndSystem::isPlaySEID(id)
-extern "C" void fn_80074ECC(sndSystem* system, int id, float volume, float pitch);
+// sndSystem::isPlaySEID(id)
 extern "C" int fn_80074DEC(sndSystem* system, int id);
 // The system that keeps the picture of the screen while a menu changes
 extern "C" void startKeepScreen__17gfKeepFrameBufferFv(void* keeper);
@@ -343,7 +342,7 @@ void muTourEntryTask::setFinalWinner(u32 winner) {
 // Plays the narration of the winner of the tournament: the jingle first, then the voice of the fighter two seconds later.
 static inline void playFinalNarration(muTourEntryTask* task) {
     if (task->m_voiceState == 1) {
-        fn_80074ECC(g_sndSystem, 0x203A, 1.0f, 1.0f);
+        g_sndSystem->playSEwithFixEffect(static_cast<SndID>(0x203A), 1.0f, 1.0f);
         task->m_voiceTimer = 0x78;
         task->m_voiceState = 2;
     } else if (task->m_voiceState > 0 && task->m_voiceState < 3) {
@@ -351,7 +350,7 @@ static inline void playFinalNarration(muTourEntryTask* task) {
         task->m_voiceTimer = timer - 1;
         if (timer < 1) {
             int sound = exchangeSelchkind2SelCharNarrationSndID__6muMenuFiii(task->m_fighters[task->m_finalWinner].m_character);
-            fn_80074ECC(g_sndSystem, sound, 1.0f, 1.0f);
+            g_sndSystem->playSEwithFixEffect(static_cast<SndID>(sound), 1.0f, 1.0f);
             task->m_voiceState = 0;
         }
     }

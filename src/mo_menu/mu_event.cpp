@@ -26,7 +26,6 @@ extern "C" void fn_800BA364(muMenuController* controller, int buttons);
 extern "C" int fn_800BA3D8(muMenuController* controller);
 // GameGlobal::getName(number, buffer) and GameGlobal::isEventOpen(list, event)
 // MuMsg::printData(message, data, length) and MuMsg::setFontWidthModeFixed(message, width)
-extern "C" void printData__5MuMsgFUlPCvi(MuMsg* msg, u32 msgIndex, const void* data, int length);
 extern "C" void setFontWidthModeFixed__5MuMsgFUlf(MuMsg* msg, u32 msgIndex, float width);
 // nw4r::g3d::ScnMdlExpand::Construct(allocator, size, capacity, base model) and PushBack(object, node name)
 extern "C" nw4r::g3d::G3dObj* Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(MEMAllocator* allocator, u32* size,
@@ -35,8 +34,6 @@ extern "C" void PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(void*
 // The archive: the resource of a node of the pack and the data of a file (archive, id, type, index, size, file id)
 extern "C" void* fn_800B03F0(gfArchive* archive, int index);
 extern "C" void* fn_80015E34(gfArchive* archive, int id, int type, int index, int* size, u16 fileId);
-// The sound system: play a sound with a volume and a pitch
-extern "C" void fn_80074ECC(sndSystem* system, int id, float volume, float pitch);
 // The window of the module of the name menus where a player picks a name: create(group, kind, resource, resource, pad, heap, model,
 // node, ...)
 extern "C" muEventNameWnd* fn_16_1CB0(void* group, int kind, nw4r::g3d::ResFile* resFileA, nw4r::g3d::ResFile* resFileB, int pad, int heap,
@@ -717,7 +714,7 @@ static inline void showHighScore(muEventTask* task, int level) {
         score = 0;
     }
     int length = task->makeHighScoreMsgData(buffer, hasScore, score, task->m_mode, entry->m_isTime);
-    printData__5MuMsgFUlPCvi(task->m_msg, 1, buffer, length);
+    task->m_msg->printData(1, buffer, length);
     float frame;
     if (level == 3) {
         frame = 0.0f;
@@ -743,7 +740,7 @@ void muEventTask::setCurEventListPos(int pos, int mode) {
     const char* title = m_msg->getMsgData(entry->m_msgNo, &msgLength);
     memcpy(name + length, title, msgLength);
     msgLength += length;
-    printData__5MuMsgFUlPCvi(m_msg, 0, name, msgLength);
+    m_msg->printData(0, name, msgLength);
     m_msg->printIndex(3, entry->m_descNo, NULL);
     int level = getClearedLevel(&m_records[mode][pos]);
     if (level == 3) {
@@ -828,7 +825,7 @@ int muEventTask::mainStepAppearMain(muEventTask* task) {
         panel->setFrameNode(9.0f);
         panel->m_modelAnim->m_anmObjChrRes->SetUpdateRate(0.0f);
         if (!task->m_unk17E8) {
-            fn_80074ECC(g_sndSystem, 0x1FF2, 1.0f, 1.0f);
+            g_sndSystem->playSEwithFixEffect(static_cast<SndID>(0x1FF2), 1.0f, 1.0f);
         }
         return Step_SelectEvent;
     }
