@@ -29,6 +29,10 @@ public:
     void setFace(u8);
     void setFixedWidth(float);
     void setColor(int);
+    void setColor2(int);                            // the second (gradient) color; added for ifVsResultTask
+    void setWidthModeAuto(u8);                      // added for ifVsResultTask
+    void write(const void* data, int size);         // writes the bytes of a text (added for ifVsResultTask)
+    void writeIndexData(void* msgbin, u32 index);   // writes a text of a message file (added for ifVsResultTask)
     void setScale(float);
     void setScale(float, float);
     void setCursorX(float);
