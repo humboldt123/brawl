@@ -1,5 +1,7 @@
 // BYTES: Keep the native out-of-line Vec3f constructor call.
 #define MT_VEC3F_CTOR_NOINLINE
+// BYTES: the native kinetic helpers call vector assignment out of line.
+#define MT_VEC2F_ASSIGN_NOINLINE
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/luigi/ft_luigi_kinetic_transactor.h>
 #include <ft/builder/ft_builder_kinetic.h>
@@ -11,48 +13,69 @@
 #undef MT_VEC3F_CTOR_NOINLINE
 
 
+// BYTES: retain the shared preprocessing flag copy in the native dispatcher.
+#pragma push
+#pragma opt_propagation off
 void ftLuigiKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* moduleAccesser) {
     if (mode <= 0x63) {
         ftKineticTransactor::changeKinetic(mode, pools, moduleAccesser);
         return;
     }
 
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(moduleAccesser, 1, 1);
-    bool result = false;
+    soModuleAccesser* processAccesser = moduleAccesser;
+    bool process = true;
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
     switch (mode) {
-    case 0x64:
+    case 0x64: {
+        bool result = false;
         ftLuigiKineticTransactor::changeKineticSub(&result, pools, &speed, moduleAccesser);
         break;
-    case 0x65:
+    }
+    case 0x65: {
+        bool result = false;
         ftLuigiKineticTransactor::changeKineticSub1(&result, pools, &speed, moduleAccesser);
         break;
-    case 0x66:
+    }
+    case 0x66: {
+        bool result = false;
         ftLuigiKineticTransactor::changeKineticSub2(&result, pools, &speed, moduleAccesser);
         break;
-    case 0x67:
+    }
+    case 0x67: {
+        bool result = false;
         ftLuigiKineticTransactor::changeKineticSub3(&result, pools, &speed, moduleAccesser);
         break;
-    case 0x68:
+    }
+    case 0x68: {
+        bool result = false;
         ftLuigiKineticTransactor::changeKineticSub4(&result, pools, &speed, moduleAccesser);
         break;
-    case 0x69:
+    }
+    case 0x69: {
+        bool result = false;
         ftLuigiKineticTransactor::changeKineticSub5(&result, pools, &speed, moduleAccesser);
         break;
-    case 0x6A:
+    }
+    case 0x6A: {
+        bool result = false;
         ftLuigiKineticTransactor::changeKineticSub6(&result, pools, &speed, moduleAccesser);
         break;
-    case 0x6B:
+    }
+    case 0x6B: {
+        bool result = false;
         ftLuigiKineticTransactor::changeKineticSub7(&result, pools, &speed, moduleAccesser);
         break;
+    }
     case 0x6C:
     case 0x6D:
-        result = false;
         break;
     default:
         return;
     }
     ftKineticTransactor::enableOutsideEnergy(moduleAccesser);
 }
+
+#pragma pop
 
 void ftLuigiKineticTransactor::changeKineticSub(bool*, void*, Vec2f*, soModuleAccesser* moduleAccesser) {
     ftKineticTransactor::changeKineticImpl(6);
@@ -121,13 +144,13 @@ void ftLuigiKineticTransactor::changeKineticSub4(bool*, void*, Vec2f*, soModuleA
     ftKineticTransactor::changeKineticImpl(10);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(
         *moduleAccesser->getKineticModule().getEnergy(3));
+    stop.m_brake = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xFB7, 0), 0.0f);
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(
         *moduleAccesser->getKineticModule().getEnergy(1));
-    stop.m_brake = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xFB7, 0), 0.0f);
     gravity.m_gravity = -soValueAccesser::getConstantFloat(moduleAccesser, 0xFB8, 0);
 
-    soWorkManageModule& work = moduleAccesser->getWorkManageModule();
-    if (!work.isFlag(0x22000014) && work.isFlag(0x22000013)) {
+    if (!moduleAccesser->getWorkManageModule().isFlag(0x22000014) &&
+        moduleAccesser->getWorkManageModule().isFlag(0x22000013) == true) {
         stop.m_speed = Vec2f(0.0f, 0.0f);
         Vec2f gravitySpeed = gravity.getSpeed();
         if (gravitySpeed.m_y > 0.0f) {
@@ -137,33 +160,29 @@ void ftLuigiKineticTransactor::changeKineticSub4(bool*, void*, Vec2f*, soModuleA
 }
 
 void ftLuigiKineticTransactor::changeKineticSub5(bool*, void*, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    Vec2f initialSpeed = *speed;
     ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(
         *moduleAccesser->getKineticModule().getEnergy(2));
-    Vec3f rotation(0.0f, 0.0f, 0.0f);
-    Vec2f initialSpeed = *speed;
-    controller.resetEnergy(0x11, &initialSpeed, &rotation, moduleAccesser);
+    controller.resetEnergy(0x11, &initialSpeed, &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
     controller.m_accelMul = soValueAccesser::getConstantFloat(moduleAccesser, 0xFBF, 0);
-    controller.m_speedTarget = Vec2f(0.0f, 0.0f);
+    controller.m_speedTarget = Vec2f(-1.0f, -1.0f);
     controller.m_brake = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xBBC, 0), 0.0f);
     controller.m_speedLimit = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xFBE, 0), 0.0f);
     controller.enable();
 }
 
 void ftLuigiKineticTransactor::changeKineticSub6(bool*, void*, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    Vec2f initialSpeed = *speed;
     ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(
         *moduleAccesser->getKineticModule().getEnergy(2));
-    Vec3f rotation(0.0f, 0.0f, 0.0f);
-    Vec2f initialSpeed = *speed;
-    controller.resetEnergy(0x12, &initialSpeed, &rotation, moduleAccesser);
+    controller.resetEnergy(0x12, &initialSpeed, &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
     controller.m_accelMul = soValueAccesser::getConstantFloat(moduleAccesser, 0xFC4, 0);
-    controller.m_speedTarget = Vec2f(0.0f, 0.0f);
+    controller.m_speedTarget = Vec2f(-1.0f, -1.0f);
     controller.m_brake = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xBD6, 0), 0.0f);
     controller.m_speedLimit = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xFC3, 0), 0.0f);
     controller.enable();
 
-    Vec2f gravitySpeed(0.0f, initialSpeed.m_y);
-    Vec3f gravityRotation(0.0f, 0.0f, 0.0f);
-    soKineticUtility::resetEnableEnergy(1, moduleAccesser, 0, &gravitySpeed, &gravityRotation);
+    soKineticUtility::resetEnableEnergy(1, moduleAccesser, 0, &Vec2f(0.0f, initialSpeed.m_y), &Vec3f(0.0f, 0.0f, 0.0f));
 }
 
 void ftLuigiKineticTransactor::changeKineticSub7(bool*, void*, Vec2f*, soModuleAccesser* moduleAccesser) {
@@ -187,8 +206,8 @@ void ftLuigiKineticTransactor::updateEnergy(ftKineticEnergyMotion* energy, soMod
 }
 
 void ftLuigiKineticTransactor::updateEnergy(ftKineticEnergyController* energy, soModuleAccesser* moduleAccesser) {
-    int kineticType = moduleAccesser->getKineticModule().getKineticType();
-    if (kineticType == 0x6A) {
+    switch (moduleAccesser->getKineticModule().getKineticType()) {
+    case 0x6A: {
         float addSpeedY = moduleAccesser->getWorkManageModule().getFloat(0x21000005);
         if (addSpeedY > 0.0f) {
             Vec2f speed = energy->getSpeed();
@@ -199,9 +218,13 @@ void ftLuigiKineticTransactor::updateEnergy(ftKineticEnergyController* energy, s
             }
             energy->m_speed.m_y = speed.m_y;
         }
-    } else if (kineticType == 0x66 &&
-               moduleAccesser->getWorkManageModule().isFlag(0x22000014)) {
-        energy->m_accel.m_x = -soValueAccesser::getConstantFloat(moduleAccesser, 0xFB8, 0);
+        break;
+    }
+    case 0x66:
+        if (moduleAccesser->getWorkManageModule().isFlag(0x22000014) == true) {
+            energy->m_accel.m_x = -soValueAccesser::getConstantFloat(moduleAccesser, 0xFB8, 0);
+        }
+        break;
     }
     energy->updateEnergy(moduleAccesser);
 }

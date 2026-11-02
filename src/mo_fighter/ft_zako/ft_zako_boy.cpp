@@ -1,6 +1,12 @@
+// BYTES: native pool teardown follows the shared runtime-helper boundaries.
+#define FT_MARTH_RUNTIME_HELPERS
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #include <ft/builder/ft_dol_array_list.h>
+
+// BYTES: this capacity uses the vector destructor owned by sora_melee.
+template <> soArrayVector<ftAnimCmdConvPtr, 280>::~soArrayVector();
 #include <ft/ft_class_info_impl.h>
 #include <ft/ft_util.h>
 #include <ft/zako/ft_zako.h>
@@ -11,6 +17,9 @@
 // definitions (the linker kept the first copy of every weak function).
 #define FT_BC ftZakoBoyBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// The kinetic controller destructor is local to this REL, as its pool teardown requires.
+ftKineticEnergyController::~ftKineticEnergyController() { }
 
 // The matrix pool owns the shared base teardown retained by the REL.
 #pragma dont_inline on
