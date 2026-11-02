@@ -55,7 +55,7 @@ public:
         soPostureModule* postureModule,
         soGroundModule* groundModule,
         soSituationModule* situationModule,
-        void* teamModule,
+        soTeamModule* teamModule,
         soCollisionAttackModule* collisionAttackModule,
         soCollisionHitModule* collisionHitModule,
         soCollisionShieldModule* collisionShieldModule,
@@ -165,7 +165,7 @@ public:
     soPostureModule* m_postureModule;
     soGroundModule* m_groundModule;
     soSituationModule* m_situationModule;
-    void* m_teamModule;
+    soTeamModule* m_teamModule;
     soCollisionAttackModule* m_collisionAttackModule;
     soCollisionHitModule* m_collisionHitModule;
     soCollisionShieldModule* m_collisionShieldModule;
@@ -230,7 +230,7 @@ public:
         soPostureModule* postureModule,
         soGroundModule* groundModule,
         soSituationModule* situationModule,
-        void* teamModule,
+        soTeamModule* teamModule,
         soCollisionAttackModule* collisionAttackModule,
         soCollisionHitModule* collisionHitModule,
         soCollisionShieldModule* collisionShieldModule,
@@ -322,7 +322,7 @@ public:
     }
 
     soTeamModule& getTeamModule() const {
-        return *static_cast<soTeamModule*>(m_enumerationStart->m_teamModule);
+        return *m_enumerationStart->m_teamModule;
     }
 
     soReflectModule& getReflectModule() const {

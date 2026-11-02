@@ -158,8 +158,26 @@ FT_DOL_POLY_END;
 // ---- team / area modules ----------------------------------------------------------------------------------
 #include <ft/ft_team.h>
 
-FT_DOL_POLY_BEGIN(soTeamModuleImpl, 0x44);
+// Derives from the real interface so the module accessers can take it as a soTeamModule* (the layout stays opaque).
+#include <so/team/so_team_module.h>
+class soTeamModuleImpl : public soTeamModule {
+    u8 m_opaque[0x44 - sizeof(soTeamModule)];
+public:
     soTeamModuleImpl(soTeam* a, soTeam* b, soTeam* c, soModuleAccesser* acc, void* nullTeam);
-FT_DOL_POLY_END;
+    virtual ~soTeamModuleImpl();
+    virtual soTeam* getTeam();
+    virtual void setTeam(s32 team, bool notify);
+    virtual soTeam* getHitTeam();
+    virtual soTeam* getIndirectTeam();
+    virtual void setHitTeam(s32 team);
+    virtual void setTeamOwnerId(s32 taskId);
+    virtual s32 getTeamOwnerId();
+    virtual void set2nd(s32);
+    virtual void setHit2nd(s32);
+    virtual void activate();
+    virtual void deactivate();
+    virtual void reset();
+    virtual void setEnableOwnerEvent(bool);
+};
 
 #include <ft/ft_area_module_impl.h>

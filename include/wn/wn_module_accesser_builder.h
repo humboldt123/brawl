@@ -743,7 +743,7 @@ public:
     soTeamModuleBuilder(s32 team, soModuleAccesser* acc) :
         m_team(team), m_teamIndirect(team), m_module(&m_team, &m_teamIndirect, &m_team, acc, g_soTeamModuleNullArg) { }
     ~soTeamModuleBuilder() { }
-    void* getModule() { return &m_module; }
+    soTeamModuleImpl* getModule() { return &m_module; }
 };
 
 // Attack collision without absolute attacks: the absolute array is the null array.
@@ -1109,7 +1109,7 @@ inline soModuleAccesserBuilder<BC>::soModuleAccesserBuilder(StageObject* owner, 
         (soPostureModule*)m_postureModuleBuilder.getModule(),
         (soGroundModule*)m_groundModuleBuilder.getModule(),
         (soSituationModule*)m_situationModuleBuilder.getModule(),
-        (void*)m_teamBuilder.getModule(),
+        (soTeamModule*)m_teamBuilder.getModule(),
         (soCollisionAttackModule*)m_attackModuleBuilder.getModule(),
         (soCollisionHitModule*)m_hitModuleBuilder.getModule(),
         (soCollisionShieldModule*)m_shieldModuleBuilder.getModule(),

@@ -36,7 +36,7 @@ public:
         m_team(getEntryId(acc)),
         m_teamIndirect(getEntryId(acc)),
         m_module(&m_team, &m_team, &m_teamIndirect, acc, g_soTeamModuleNullArg) { }
-    void* getModule() { return &m_module; }
+    soTeamModuleImpl* getModule() { return &m_module; }
 };
 
 ////////////////////////////////////////
