@@ -4,6 +4,9 @@
 #include <gf/gf_scene.h>
 #include <types.h>
 
+void srReportLessRelease(const char* format, ...);
+void srReportLessMastar(const char* format, ...);
+
 class sqAdventure : public gfSequence {
 public:
     s32 unk8;
@@ -15,6 +18,8 @@ public:
     s32 unk28;
 
     static sqAdventure* create();
+    // HYPOTHESIS: signed map index and step identifier inferred from register use.
+    static s32 getStartStepId(s32 index);
     sqAdventure(const char* name) : gfSequence(name), unk8(0), unk10(0), unk14(0), unk24(0), unk28(0) { }
     virtual void start();
     virtual void setNext();
