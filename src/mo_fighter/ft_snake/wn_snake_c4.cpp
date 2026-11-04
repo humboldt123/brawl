@@ -4,10 +4,10 @@
 #define WN_SHARED_ARRAYS_1
 #define WN_ARTICLE_ANIMCMD_INT
 #define FT_REL_LINK_EXTERN
-#define SO_EVENT_OBSERVER_CTOR_EXTERN
+#define SO_EVENT_OBSERVER_CTOR_EXTERN // BYTES: the search observer base calls the sora_melee constructor and initialize
 // MATCH-ONLY: retain the native one-word null-input result (as in the Mario cape unit).
 #define IP_INPUT_BUTTON_RAW
-#define SO_COLLISION_SEARCH_OBSERVER_INLINE
+#define SO_COLLISION_SEARCH_OBSERVER_INLINE // BYTES: the observer subobject is built inline and its default check is weak here
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
 #include <types.h>
