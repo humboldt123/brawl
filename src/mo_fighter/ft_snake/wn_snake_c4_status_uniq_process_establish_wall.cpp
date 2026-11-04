@@ -8,6 +8,7 @@
 #include <so/posture/so_posture_module_impl.h>
 #include <so/work/so_work_manage_module_impl.h>
 #include <types.h>
+#include <wn/snake/wn_snake_c4_def.h>
 
 extern "C" {
 // wnSnakeC4Utility::detachConstraint, stickStageRot and dropFall (module map); outside any configured unit.
@@ -31,7 +32,7 @@ wnSnakeC4StatusUniqProcessEstablishWall g_wnSnakeC4StatusUniqProcessEstablishWal
 void wnSnakeC4StatusUniqProcessEstablishWall::execFixCamera(soModuleAccesser* moduleAccesser) {
     Vec3f nodePos = moduleAccesser->getModelModule().getNodeGlobalPosition(3, false);
     nodePos.m_z = moduleAccesser->getGroundModule().getZ();
-    if (moduleAccesser->getWorkManageModule().isFlag(0x22000001) == true) {
+    if (moduleAccesser->getWorkManageModule().isFlag(wnSnakeC4Def::WorkFlag_StickMoved) == true) {
         Vec3f pos = moduleAccesser->getPostureModule().getPos();
         Vec3f side;
         Vec3f dir;
@@ -40,9 +41,9 @@ void wnSnakeC4StatusUniqProcessEstablishWall::execFixCamera(soModuleAccesser* mo
             if (fn_122_1ACA4(this, moduleAccesser, &nodePos) == true) {
                 return;
             }
-            moduleAccesser->getWorkManageModule().onFlag(0x22000002);
+            moduleAccesser->getWorkManageModule().onFlag(wnSnakeC4Def::WorkFlag_Drop);
         } else {
-            side.m_x = moduleAccesser->getWorkManageModule().getFloat(0x21000000);
+            side.m_x = moduleAccesser->getWorkManageModule().getFloat(wnSnakeC4Def::WorkFloat_StickRange);
             side.m_y = 0.0f;
             side.m_z = 0.0f;
             if (moduleAccesser->getPostureModule().getLr() < 0.0f) {
@@ -54,11 +55,11 @@ void wnSnakeC4StatusUniqProcessEstablishWall::execFixCamera(soModuleAccesser* mo
                 if (fn_122_1ACA4(this, moduleAccesser, &target) == true) {
                     return;
                 }
-                moduleAccesser->getWorkManageModule().onFlag(0x22000002);
+                moduleAccesser->getWorkManageModule().onFlag(wnSnakeC4Def::WorkFlag_Drop);
             }
         }
     }
-    if (moduleAccesser->getWorkManageModule().isFlag(0x22000002) == true) {
+    if (moduleAccesser->getWorkManageModule().isFlag(wnSnakeC4Def::WorkFlag_Drop) == true) {
         fn_122_1B130(moduleAccesser);
     }
     moduleAccesser->getPostureModule().setPos(&nodePos);
@@ -82,6 +83,6 @@ bool fn_122_1ACA4(wnSnakeC4StatusUniqProcessEstablishWall* process, soModuleAcce
     }
     moduleAccesser->getGroundModule().attach(touchFlag, 0);
     fn_122_1B000(moduleAccesser);
-    moduleAccesser->getWorkManageModule().onFlag(0x22000000);
+    moduleAccesser->getWorkManageModule().onFlag(wnSnakeC4Def::WorkFlag_Established);
     return true;
 }

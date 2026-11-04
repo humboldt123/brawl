@@ -9,6 +9,7 @@
 #include <so/posture/so_posture_module_impl.h>
 #include <so/work/so_work_manage_module_impl.h>
 #include <types.h>
+#include <wn/snake/wn_snake_c4_def.h>
 
 extern "C" {
 // wnSnakeC4Utility::detachConstraint, stickStageRot and dropFall (module map); outside any configured unit.
@@ -33,7 +34,7 @@ void wnSnakeC4StatusUniqProcessEstablishGround::execFixCamera(soModuleAccesser* 
     }
     Vec3f nodePos = moduleAccesser->getModelModule().getNodeGlobalPosition(3, false);
     nodePos.m_z = moduleAccesser->getGroundModule().getZ();
-    if (moduleAccesser->getWorkManageModule().isFlag(0x22000001) == true) {
+    if (moduleAccesser->getWorkManageModule().isFlag(wnSnakeC4Def::WorkFlag_StickMoved) == true) {
         Vec3f pos = moduleAccesser->getPostureModule().getPos();
         Vec3f hitPos(0.0f, 0.0f, 0.0f);
         Vec3f normal(0.0f, 0.0f, 0.0f);
@@ -45,9 +46,9 @@ void wnSnakeC4StatusUniqProcessEstablishGround::execFixCamera(soModuleAccesser* 
             if (stickGround(moduleAccesser, &hitPos) == true) {
                 return;
             }
-            moduleAccesser->getWorkManageModule().onFlag(0x22000002);
+            moduleAccesser->getWorkManageModule().onFlag(wnSnakeC4Def::WorkFlag_Drop);
         } else {
-            float length = moduleAccesser->getWorkManageModule().getFloat(0x21000000);
+            float length = moduleAccesser->getWorkManageModule().getFloat(wnSnakeC4Def::WorkFloat_StickRange);
             down.m_x = 0.0f;
             down.m_y = -length;
             down.m_z = 0.0f;
@@ -58,11 +59,11 @@ void wnSnakeC4StatusUniqProcessEstablishGround::execFixCamera(soModuleAccesser* 
                 if (stickGround(moduleAccesser, &target) == true) {
                     return;
                 }
-                moduleAccesser->getWorkManageModule().onFlag(0x22000002);
+                moduleAccesser->getWorkManageModule().onFlag(wnSnakeC4Def::WorkFlag_Drop);
             }
         }
     }
-    if (moduleAccesser->getWorkManageModule().isFlag(0x22000002) == true) {
+    if (moduleAccesser->getWorkManageModule().isFlag(wnSnakeC4Def::WorkFlag_Drop) == true) {
         fn_122_1B130(moduleAccesser);
     }
     moduleAccesser->getPostureModule().setPos(&nodePos);
@@ -76,7 +77,7 @@ bool wnSnakeC4StatusUniqProcessEstablishGround::stickGround(soModuleAccesser* mo
     if (moduleAccesser->getGroundModule().attachGround(0) == false) {
         return false;
     }
-    moduleAccesser->getWorkManageModule().onFlag(0x22000000);
+    moduleAccesser->getWorkManageModule().onFlag(wnSnakeC4Def::WorkFlag_Established);
     fn_122_1B000(moduleAccesser);
     return true;
 }
