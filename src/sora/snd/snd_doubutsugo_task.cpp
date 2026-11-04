@@ -16,7 +16,6 @@ extern "C" void fn_803EF1D0(Doubutsugo* doubutsugo);
 extern "C" void fn_803EF2AC(Doubutsugo* doubutsugo, const s16* words);
 extern "C" void fn_803EF3CC(Doubutsugo* doubutsugo, const void* script);
 extern "C" void fn_803EF478(Doubutsugo* doubutsugo, float volume);
-extern "C" float fn_80077054(sndSystem* system);
 
 sndDoubutsugoTask::sndDoubutsugoTask(const void* archiveData, Heaps::HeapType heapType) :
     gfTask("sndDoubutsugoTask", Category_None, 0xE, 6, true) {
@@ -39,7 +38,7 @@ sndDoubutsugoTask::sndDoubutsugoTask(const void* archiveData, Heaps::HeapType he
     }
     sndSystem* system = g_sndSystem;
     float seVolume = system->unk70C;
-    fn_803EF478(m_doubutsugo, 2.0f * (seVolume * fn_80077054(system)));
+    fn_803EF478(m_doubutsugo, 2.0f * (seVolume * system->getBalanceSE()));
     unk9C = 0;
     for (int i = 0; i < 32; i++) {
         m_words[i] = 0xD3;

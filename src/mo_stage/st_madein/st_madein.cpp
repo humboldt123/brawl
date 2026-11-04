@@ -102,8 +102,6 @@ extern "C" Stage* lbl_27_bss_5668;
 // itManager::lotCreateItem
 extern "C" void fn_27_2AA7AC(itManager* manager, ItemKind kind, int a, Vec3f* pos, int b, int c, int d);
 // sndSystem::getRemEnable, and the call that plays a sound on the speaker of a Wii remote
-extern "C" int fn_80077D54(sndSystem* system, int slot);
-extern "C" void fn_80077B98(sndSystem* system, int slot, int sound, int a, int b);
 
 #define MADEIN(index) static_cast<grMadein*>(getGround(index))
 
@@ -2388,13 +2386,13 @@ void stMadein::update(float deltaFrame) {
                                     }
                                 }
                                 if (slot != -1) {
-                                    if (fn_80077D54(g_sndSystem, slot) == 1) {
+                                    if (g_sndSystem->getRemEnable(slot) == 1) {
                                         played = true;
                                     }
                                 }
                             }
                             if (played == true) {
-                                fn_80077B98(g_sndSystem, slot, m_unk9AD[m_unk9B3] + 0x1CB6, -1, 0);
+                                g_sndSystem->playSERem(slot, static_cast<SndID>(m_unk9AD[m_unk9B3] + 0x1CB6), -1, 0);
                                 m_unk9B3 = m_unk9B3 + 1;
                                 if (m_unk9B3 >= 6) {
                                     m_unk9B3 = 0;
@@ -2421,13 +2419,13 @@ void stMadein::update(float deltaFrame) {
                                     }
                                 }
                                 if (slot != -1) {
-                                    if (fn_80077D54(g_sndSystem, slot) == 1) {
+                                    if (g_sndSystem->getRemEnable(slot) == 1) {
                                         played = true;
                                     }
                                 }
                             }
                             if (played == true) {
-                                fn_80077B98(g_sndSystem, slot, m_unk9AD[m_unk9B3] + 0x1CBD, -1, 0);
+                                g_sndSystem->playSERem(slot, static_cast<SndID>(m_unk9AD[m_unk9B3] + 0x1CBD), -1, 0);
                                 m_unk9B3 = m_unk9B3 + 1;
                                 if (m_unk9B3 >= 6) {
                                     m_unk9B3 = 0;

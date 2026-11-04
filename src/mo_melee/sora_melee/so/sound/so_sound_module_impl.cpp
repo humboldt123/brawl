@@ -9,11 +9,6 @@
 
 // HYPOTHESIS: parameter lists of the unnamed main.dol sndSystem stopGroupId, setVol, setPitch, setSeqSpeed and getVol
 // (sora map); the stage units still call them through their own stand-ins.
-extern "C" void fn_800765B0(sndSystem* system, int groupId, int unk);
-extern "C" void fn_800777DC(sndSystem* system, int handle, float volume, int unk);
-extern "C" void fn_800778CC(sndSystem* system, int handle, float pitch);
-extern "C" void fn_80076E30(sndSystem* system, int handle, float speed);
-extern "C" float fn_80077A64(sndSystem* system, int handle);
 
 // HYPOTHESIS: partial view of soStatusData (the real definition is empty in the headers)
 struct soSoundStatusDataView {
@@ -64,8 +59,8 @@ void soSoundModuleImpl::activate(Vec3f* pos) {
 }
 
 void soSoundModuleImpl::deactivate() {
-    fn_800765B0(g_sndSystem, m_seGroupId, 0);
-    fn_800765B0(g_sndSystem, m_statusSEGroupId, 0);
+    g_sndSystem->stopGroup(m_seGroupId, 0);
+    g_sndSystem->stopGroup(m_statusSEGroupId, 0);
     m_sePitch = 1.0f;
     m_soundGeneratorAccesser->deactivate();
     m_checkSoundGroup = -1;
@@ -93,7 +88,7 @@ int soSoundModuleImpl::playSE(SndID sndId, bool setPitch, bool noGroup, int inde
         handle = soSoundUtil::playSE(m_soundGeneratorAccesser, index, id, m_seGroupId, m_checkSoundGroup);
     }
     if (m_sePitch != 1.0f && setPitch == true && handle >= 0) {
-        fn_800778CC(g_sndSystem, handle, m_sePitch);
+        g_sndSystem->setPitch(handle, m_sePitch);
     }
     return handle;
 }
@@ -121,25 +116,25 @@ int soSoundModuleImpl::playStatusSE(SndID sndId, bool setPitch, int index) {
     }
     int handle = soSoundUtil::playSE(m_soundGeneratorAccesser, index, id, m_statusSEGroupId, m_checkSoundGroup);
     if (m_sePitch != 1.0f && setPitch == true && handle >= 0) {
-        fn_800778CC(g_sndSystem, handle, m_sePitch);
+        g_sndSystem->setPitch(handle, m_sePitch);
     }
     return handle;
 }
 
 void soSoundModuleImpl::setSEVol(int handle, float volume, int unk) {
-    fn_800777DC(g_sndSystem, handle, volume, unk);
+    g_sndSystem->setVol(handle, volume, unk);
 }
 
 float soSoundModuleImpl::getSEVol(int handle) {
-    return fn_80077A64(g_sndSystem, handle);
+    return g_sndSystem->getVol(handle);
 }
 
 void soSoundModuleImpl::setSEPitch(u32 handle, double pitch) {
-    fn_800778CC(g_sndSystem, handle, pitch);
+    g_sndSystem->setPitch(handle, pitch);
 }
 
 void soSoundModuleImpl::stopStatusSE() {
-    fn_800765B0(g_sndSystem, m_statusSEGroupId, 0);
+    g_sndSystem->stopGroup(m_statusSEGroupId, 0);
 }
 
 void soSoundModuleImpl::stopSE(int unk, int index) {
@@ -158,7 +153,7 @@ void soSoundModuleImpl::playDamageSE(u32 index1, u32 index2) {
 }
 
 void soSoundModuleImpl::setSESpeed(int handle, float speed) {
-    fn_80076E30(g_sndSystem, handle, speed);
+    g_sndSystem->setSeqSpeed(handle, speed);
 }
 
 bool soSoundModuleImpl::isPlay(int handle) {

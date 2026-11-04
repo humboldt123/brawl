@@ -18,7 +18,6 @@
 
 // sndSystem::setSeqSpeed (main, unnamed): it changes how fast a sequence plays (the sound of the picture follows the speed
 // of the game)
-extern "C" void fn_80076E30(sndSystem* sndSystem, s32 handle, float speed);
 // sndSystem::isPlay (main, unnamed)
 extern "C" bool fn_80077DA0(sndSystem* sndSystem, s32 handle);
 
@@ -1001,7 +1000,7 @@ void stPictchat::updatePict(float deltaFrame) {
                     if (rate > 1.0f) {
                         speed = deltaFrame * rate;
                     }
-                    fn_80076E30(g_sndSystem, m_seHandle, speed);
+                    g_sndSystem->setSeqSpeed(m_seHandle, speed);
                 } else {
                     m_seHandle = -1;
                 }

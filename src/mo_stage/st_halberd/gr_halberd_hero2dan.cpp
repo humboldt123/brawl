@@ -18,7 +18,6 @@
 #include <st_halberd/gr_halberd_anim.h>
 
 // HYPOTHESIS: sets the pitch of the sounds of the sound system (an unnamed function of the main binary).
-extern "C" void fn_800778CC(sndSystem* system, float pitch);
 
 grHalberdHero2Dan* grHalberdHero2Dan::create(int mdlIndex, const char* tgtNodeName, const char* taskName) {
     grHalberdHero2Dan* ground = new (Heaps::StageInstance) grHalberdHero2Dan(taskName);
@@ -152,7 +151,7 @@ void grHalberdHero2Dan::updateMotion(float deltaFrame) {
             m_pos.m_y = start.m_y + arc * sine + rise * rate;
             m_snd.setPos(&m_pos);
             if (m_seId != -1) {
-                fn_800778CC(g_sndSystem, 1.0f - rate * 0.1f);
+                g_sndSystem->setPitch(m_seId, 1.0f - rate * 0.1f);
             }
             Vec2f zoneMin(m_posTgtWork->m_x - 30.0f, m_posTgtWork->m_y + 30.0f);
             Vec2f zoneMax(m_posTgtWork->m_x + 30.0f, m_posTgtWork->m_y - 30.0f);

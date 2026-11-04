@@ -1,3 +1,4 @@
+#include <snd/snd_system.h>
 #include <ft/ft_sound_id_exchanger_impl.h>
 #include <so/so_module_accesser.h>
 #include <so/so_value_accesser.h>
@@ -9,7 +10,6 @@
 extern "C" const int lbl_27_rodata_1C60[];
 extern "C" const int lbl_27_rodata_1D3C[];
 // HYPOTHESIS: returns whether the sound id belongs to the sound group (main.dol sound system).
-extern "C" bool fn_80077E94(int soundGroup, int sndID);
 
 struct ftStepLandingSoundId {
     int step;
@@ -26,12 +26,12 @@ ftSoundIdExchangerImpl g_ftSoundIdExchangerImpl;
 ftKirbySoundIdExchangerImpl g_ftKirbySoundIdExchangerImpl;
 
 bool ftSoundIdExchangerImpl::isVoiceId(int sndID, soModuleAccesser* moduleAccesser) {
-    return fn_80077E94(lbl_27_rodata_1C60[moduleAccesser->getStageObject().soGetSubKind()], sndID);
+    return sndSystem::isVoice(lbl_27_rodata_1C60[moduleAccesser->getStageObject().soGetSubKind()], sndID);
 }
 
 bool ftKirbySoundIdExchangerImpl::isVoiceId(int sndID, soModuleAccesser* moduleAccesser) {
     int copyKind = moduleAccesser->getWorkManageModule().getInt(0x10000048);
-    if (copyKind != -1 && fn_80077E94(lbl_27_rodata_1D3C[copyKind], sndID) == true) {
+    if (copyKind != -1 && sndSystem::isVoice(lbl_27_rodata_1D3C[copyKind], sndID) == true) {
         return true;
     }
     return ftSoundIdExchangerImpl::isVoiceId(sndID, moduleAccesser);

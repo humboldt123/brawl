@@ -19,7 +19,6 @@ extern "C" void getPrintIndexData__7MessageFPvUlPPcPUl(void* data, u32 index, ch
 extern "C" muCollectionFileName fn_800C3538(const char* names, int index);
 extern "C" int fn_800C39D8(void* collection);
 // sndSystem::resumeClear(system)
-extern "C" void fn_80076C78(sndSystem* system);
 // the section of the save data that holds a replay: constructor, setSection(section), extractData(heap), destructor
 struct nteSection {
     u8 m_unk[0x10];
@@ -302,7 +301,7 @@ void muReplayTask::controlLoadFinish() {
     m_work->m_exitRequest = 1;
     getWork()->m_exitWait = 0x20;
     g_sndSystem->stopBGM(0x1E);
-    fn_80076C78(g_sndSystem);
+    g_sndSystem->resumeClear();
     g_sndSystem->playSE(static_cast<SndID>(0x16), -1, 0, 0, -1);
     getWork()->m_preloaded = false;
     setMelee();

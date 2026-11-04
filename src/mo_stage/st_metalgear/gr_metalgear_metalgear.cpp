@@ -14,7 +14,6 @@
 #include <st_metalgear/gr_metalgear_anim.h>
 
 // sndSystem::setVol (main, unnamed): the volume of a sound that plays, changed over the given frames
-extern "C" void fn_800777DC(sndSystem* sndSystem, int handle, int frames, float volume);
 
 grMetalgearMetalgear::grMetalgearMetalgear(const char* taskName) : grMetalgear(taskName) {
     m_posWork = NULL;
@@ -310,7 +309,7 @@ void grMetalgearGekko::updateActive(float deltaFrame) {
             if (m_seHandle == -1 && getMotionFrame(0) >= 28.0f) {
                 m_seHandle = g_sndSystem->playSE(snd_se_stage_Metalgear_09, 0, 0, 0, -1);
                 if (m_seHandle != -1) {
-                    fn_800777DC(g_sndSystem, m_seHandle, 0, 0.6f);
+                    g_sndSystem->setVol(m_seHandle, 0.6f, 0);
                 }
             }
         case 2: {

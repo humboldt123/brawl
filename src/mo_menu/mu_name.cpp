@@ -46,7 +46,6 @@ extern "C" int fn_800BA3D8(muMenuController* controller);
 extern "C" const char* fn_800B96B0();
 // GameGlobal: the names that were saved
 // gfPadSystem::getSysPadStatus, WPADProbe(channel, type), the sound of the Wii Remote, gfPadSystem::fn_8002B504()
-extern "C" void fn_80077B98(sndSystem* system, int pad, int unk, int unk2, int unk3);
 extern "C" void fn_8002B504(gfPadSystem* system);
 // Wii Remote name storage: the owner name of the Wii Remote, and the name it has to have
 extern "C" int fn_802253B4(int channel, const u16** name);
@@ -2435,7 +2434,7 @@ void muNameTask::mainStepRemoteMenuAppearInit(muNameTask* task) {
     task->m_objects[Obj_RemoteWindow]->changeAnimN(1, 0x11, true, false);
     task->m_remoteConnectedPad = task->m_remotePadNo + 4;
     playSE(0x23);
-    fn_80077B98(g_sndSystem, task->m_remotePadNo, 1, -1, 0);
+    g_sndSystem->playSERem(task->m_remotePadNo, static_cast<SndID>(1), -1, 0);
 }
 
 int muNameTask::mainStepRemoteMenuAppearMain(muNameTask* task) {

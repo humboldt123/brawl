@@ -555,22 +555,13 @@ sora/ms/ms_tex_obj.cpp:
 	.sdata2     start:0x805A1AC0 end:0x805A1AC8
 
 sora/snd/snd_system.cpp:
-	.text       start:0x80072968 end:0x80073DB0
+	.text       start:0x80072968 end:0x800783EC
 	.rodata     start:0x80407688 end:0x804078E0
 	.data       start:0x804543F0 end:0x80454488
 	.bss        start:0x80497F00 end:0x8049DC00
 	.sdata      start:0x8059DB68 end:0x8059DB70
 	.sbss       start:0x805A01D0 end:0x805A01D8
 	.sdata2     start:0x805A1AC8 end:0x805A1B08
-
-sora/snd/snd_system_b.cpp:
-	.text       start:0x80073DB0 end:0x800754E8
-
-sora/snd/snd_system_c.cpp:
-	.text       start:0x800754E8 end:0x80076C78
-
-sora/snd/snd_system_d.cpp:
-	.text       start:0x80076C78 end:0x800783EC
 
 sora/snd/snd_bgm.cpp:
 	.text       start:0x800783EC end:0x80079550

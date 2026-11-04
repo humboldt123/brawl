@@ -23,8 +23,6 @@
 // grCollision::setJointStatus (unnamed function of main)
 extern "C" void fn_80110B98(grCollision* collision, int status, int unk);
 // sndSystem::setVol / setPitch / setPan / stopSE (unnamed functions of main)
-extern "C" void fn_800777DC(sndSystem* system, float volume, int handle, int fadeFrames);
-extern "C" void fn_800778CC(sndSystem* system, float pitch, int handle);
 extern "C" void fn_80075F1C(sndSystem* system, int handle, int fadeFrames);
 // Matrix helpers of main: place a matrix with a translation / scale
 extern "C" void fn_8003F074(float x, float y, float z, Matrix* matrix);
@@ -1051,7 +1049,7 @@ void stDolpic::updateSE(float deltaFrame) {
             volume = dolpicClamp(volume, 0.125f, 0.5f);
             break;
         }
-        fn_800777DC(g_sndSystem, volume, m_seHandle[0], 0);
+        g_sndSystem->setVol(m_seHandle[0], volume, 0);
     }
 
     plaza->getNodePosition(&pos, 0, "StgDolpic_SEPoint3");
@@ -1073,7 +1071,7 @@ void stDolpic::updateSE(float deltaFrame) {
             volume = 0.125f;
             break;
         }
-        fn_800777DC(g_sndSystem, volume, m_seHandle[1], 0);
+        g_sndSystem->setVol(m_seHandle[1], volume, 0);
     }
 
     plaza->getNodePosition(&pos, 0, "StgDolpic_SEPoint1");
@@ -1164,7 +1162,7 @@ void stDolpic::updateSE(float deltaFrame) {
         int handle = g_sndSystem->playSE(id, 0, 0, 0, -1);
         if (0 < handle) {
             g_sndSystem->setPan(handle, pan);
-            fn_800777DC(g_sndSystem, volume, handle, 0x78);
+            g_sndSystem->setVol(handle, volume, 0x78);
         }
         float time = (5.0f + 5.0f * randf()) * 60.0f;
         m_seTimer = time;
@@ -1650,8 +1648,8 @@ void stDolpic::setSEVolAshibaSet(float volume, int index) {
         pos.m_z = 0.0f;
         m_snd5.setPos(&pos);
     } else if (handle != -1) {
-        fn_800777DC(g_sndSystem, volume, handle, 0);
-        fn_800778CC(g_sndSystem, volume, m_seHandle[6]);
+        g_sndSystem->setVol(handle, volume, 0);
+        g_sndSystem->setPitch(m_seHandle[6], volume);
         if (volume == 0.0f) {
             m_snd5.stopSE(m_seHandle[6], 0);
             m_seHandle[6] = -1;

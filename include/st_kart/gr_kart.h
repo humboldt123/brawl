@@ -37,7 +37,6 @@ static inline float grKartVecLength(const Vec3f& v) {
 // Matrix helper of the main binary that has no name yet.
 extern "C" void fn_8003F074(Matrix* mtx, float x, float y, float z); // HYPOTHESIS: adds a translation
 // The setter for the pitch of a sound (sndSystem, no name yet).
-extern "C" void fn_800778CC(sndSystem* system, s32 handleId, float pitch);
 
 // Yakumono::getDamage (sora_melee, unnamed)
 extern "C" void fn_27_26399C(Yakumono* yakumono);

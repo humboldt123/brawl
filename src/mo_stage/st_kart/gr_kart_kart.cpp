@@ -539,7 +539,7 @@ void grKartKart::updateSE(float deltaFrame) {
                 clamped = rate;
             }
             float cosine = nw4r::math::CosFIdx(NW4R_MATH_IDX_TO_FIDX(nw4r::math::U16ToF32((u16)(int)(clamped * 16384.0f))));
-            fn_800778CC(g_sndSystem, m_seIdDoppler, cosine * 0.5f + 0.5f);
+            g_sndSystem->setPitch(m_seIdDoppler, cosine * 0.5f + 0.5f);
         }
     }
     if (m_seIdMain < 0) {
