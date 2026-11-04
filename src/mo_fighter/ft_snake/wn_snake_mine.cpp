@@ -51,15 +51,15 @@ wnSnakeMine::wnSnakeMine(s32 articleId, const wnArticleBuildInfo& info, const wn
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
                                   0, 0, 0, 0, 0, 0, 0)),
     soCollisionSearchEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1),
-    soDamageEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1), m_param(data->m_param), m_paramAccesser(data->m_param),
-    m_energyGround() {
+    soDamageEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1),
+    m_param(data->m_param), m_paramAccesser(data->m_param), m_energyGround() {
     m_moduleAccesser->getCollisionHitModule().add(reinterpret_cast<soSet<soCollisionHitData>*>(const_cast<u8*>(data->unk38)), 0);
     m_moduleAccesser->getKineticModule().addEnergy(&m_energyGround, 2, soKineticEnergy::AttributeFlag(8), -1);
     wnKineticModuleImpl::setOutsideMovementGroundEnergyId(&m_moduleAccesser->getKineticModule(), 2);
     Weapon::deactivate(false);
 }
 
-// Snake plants the mine: it sits in the held state (status 0) with only its ground movement energy running.
+// Snake brings the mine out (status 0): only its ground movement energy runs; powerMul scales the explosion.
 void wnSnakeMine::activate(int founderTaskId, int etcResourceId, int team, float powerMul) {
     Vec3f position(0.0f, 0.0f, 0.0f);
     wnActivateDesc desc;
@@ -125,7 +125,10 @@ void wnSnakeMine::notifyEventCollisionSearch(soCollisionLog* collisionLog, soMod
     if (collisionLog != NULL) {
         StageObject* object = dynamic_cast<StageObject*>(gfTaskScheduler::getInstance()->getTask(collisionLog->m_taskId));
         // HYPOTHESIS: kind 3 is an item; items do not set the mine off.
-        if (object != NULL && object->soGetKind() != 3 && m_moduleAccesser->getStatusModule().getStatusKind() == 1) {
+        if (object == NULL || object->soGetKind() == 3) {
+            return;
+        }
+        if (m_moduleAccesser->getStatusModule().getStatusKind() == 1) {
             m_moduleAccesser->getWorkManageModule().onFlag(0x22000000);
         }
     }
