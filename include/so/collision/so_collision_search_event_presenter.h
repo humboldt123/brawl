@@ -12,8 +12,9 @@ class soCollisionSearchEventObserver : public soEventObserver<soCollisionSearchE
 public:
     soCollisionSearchEventObserver() : soEventObserver<soCollisionSearchEventObserver>(0x11) {};
     soCollisionSearchEventObserver(short unitID) : soEventObserver<soCollisionSearchEventObserver>(unitID) {};
-#if defined(EM_ENEMY_BUILDER) || defined(SO_COLLISION_SEARCH_OBSERVER_INLINE)
-    // The Enemy constructor and Snake's C4 (opt-in SO_COLLISION_SEARCH_OBSERVER_INLINE) expand it.
+#if defined(EM_ENEMY_BUILDER) || defined(SO_COLLISION_SEARCH_OBSERVER_INLINE) || defined(SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR)
+    // The Enemy constructor and Snake's C4 (opt-in SO_COLLISION_SEARCH_OBSERVER_INLINE) expand it; Snake's mine
+    // (SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR) expands only this constructor, without the weak default check below.
     soCollisionSearchEventObserver(short manageId, s8 p2) : soEventObserver<soCollisionSearchEventObserver>(0x11) { initialize(manageId, p2); }
 #else
     soCollisionSearchEventObserver(short, s8);

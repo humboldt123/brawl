@@ -1,4 +1,5 @@
 #define SO_EVENT_OBSERVER_CTOR_EXTERN // BYTES: the observer bases call the sora_melee constructor and initialize
+#define SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR // BYTES: the search observer's (manage id, priority) constructor is expanded in this unit
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
 #define WN_SHARED_ARRAYS_1
@@ -36,12 +37,6 @@ inline bool mtIsZero(const Vec2f& v) {
     bool result = false;
     if (mtIsZero(v.m_x) && mtIsZero(v.m_y)) result = true;
     return result;
-}
-
-// BYTES: the observer's (manage id, priority) constructor is expanded in this unit (only the Enemy header form is inline).
-inline soCollisionSearchEventObserver::soCollisionSearchEventObserver(short manageId, s8 priority) :
-    soEventObserver<soCollisionSearchEventObserver>(0x11) {
-    initialize(manageId, priority);
 }
 
 wnSnakeMine::wnSnakeMine(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeMineData* data) :
