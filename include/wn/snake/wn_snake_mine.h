@@ -113,6 +113,35 @@ public:
     typedef soAreaModuleBuildConfigWeapon<1, 4> AreaModuleBuildConfig;
 };
 
+// The mine's statuses (status data order).
+enum wnSnakeMineStatus {
+    wnSnakeMine_Status_Carried = 0, // HYPOTHESIS: brought out by Snake, before shoot() puts it down
+    wnSnakeMine_Status_Armed = 1,   // lying on the ground, waiting for a target (proximity search active)
+    wnSnakeMine_Status_Fall = 2,    // put down in the air: thrown with a spin until it lands
+    wnSnakeMine_Status_Explode = 3, // detonation (proximity, or any damage)
+};
+
+// Work ids of the mine.
+enum wnSnakeMineWork {
+    wnSnakeMine_WorkFloat_PowerMul = 0x11000001,     // attack power multiplier handed to activate(), applied on explosion
+    wnSnakeMine_WorkFlag_TargetInRange = 0x22000000, // a target was seen by the collision search this frame
+};
+
+// Parameter ids of the float parameters (wnSnakeMineParam unk0, unk8, unkC, unk10).
+enum wnSnakeMineParamId {
+    wnSnakeMine_Param_TriggerLift = 4000, // HYPOTHESIS: height model node 1 is raised by while armed
+    wnSnakeMine_Param_FallSpeedY = 4001,
+    wnSnakeMine_Param_FallAccelY = 4002,
+    wnSnakeMine_Param_FallSpeedLimitY = 4003,
+};
+
+// Kinetic energy ids: the builder's common energies, then the mine's own ground movement.
+enum wnSnakeMineEnergy {
+    wnSnakeMine_Energy_Normal = 0, // the fall throw
+    wnSnakeMine_Energy_Rot = 1,    // the spin while falling
+    wnSnakeMine_Energy_Ground = 2, // ground movement (moves with the floor it lies on)
+};
+
 class wnSnakeMine : public wnWeaponBuilder<wnSnakeMineModuleAccesserBuildConfig>,
                     public soCollisionSearchEventObserver,
                     public soDamageEventObserver {

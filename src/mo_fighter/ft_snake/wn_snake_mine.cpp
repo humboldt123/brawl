@@ -54,12 +54,12 @@ wnSnakeMine::wnSnakeMine(s32 articleId, const wnArticleBuildInfo& info, const wn
     soDamageEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1),
     m_param(data->m_param), m_paramAccesser(data->m_param), m_energyGround() {
     m_moduleAccesser->getCollisionHitModule().add(reinterpret_cast<soSet<soCollisionHitData>*>(const_cast<u8*>(data->unk38)), 0);
-    m_moduleAccesser->getKineticModule().addEnergy(&m_energyGround, 2, soKineticEnergy::AttributeFlag(8), -1);
-    wnKineticModuleImpl::setOutsideMovementGroundEnergyId(&m_moduleAccesser->getKineticModule(), 2);
+    m_moduleAccesser->getKineticModule().addEnergy(&m_energyGround, wnSnakeMine_Energy_Ground, soKineticEnergy::AttributeFlag(8), -1);
+    wnKineticModuleImpl::setOutsideMovementGroundEnergyId(&m_moduleAccesser->getKineticModule(), wnSnakeMine_Energy_Ground);
     Weapon::deactivate(false);
 }
 
-// Snake brings the mine out (status 0): only its ground movement energy runs; powerMul scales the explosion.
+// Snake brings the mine out (carried status): only its ground movement energy runs; powerMul scales the explosion.
 void wnSnakeMine::activate(int founderTaskId, int etcResourceId, int team, float powerMul) {
     Vec3f position(0.0f, 0.0f, 0.0f);
     wnActivateDesc desc;
@@ -86,17 +86,17 @@ void wnSnakeMine::activate(int founderTaskId, int etcResourceId, int team, float
     desc.flagsLow = 0;
     desc.unk4DHigh = 0;
     Weapon::activate(&desc);
-    m_moduleAccesser->getStatusModule().changeStatusForce(0, m_moduleAccesser);
+    m_moduleAccesser->getStatusModule().changeStatusForce(wnSnakeMine_Status_Carried, m_moduleAccesser);
     // The attack power multiplier of the explosion (read back when the mine goes off).
-    m_moduleAccesser->getWorkManageModule().setFloat(powerMul, 0x11000001);
-    m_moduleAccesser->getKineticModule().unableEnergy(0);
-    m_moduleAccesser->getKineticModule().unableEnergy(1);
-    m_moduleAccesser->getKineticModule().enableEnergy(2);
+    m_moduleAccesser->getWorkManageModule().setFloat(powerMul, wnSnakeMine_WorkFloat_PowerMul);
+    m_moduleAccesser->getKineticModule().unableEnergy(wnSnakeMine_Energy_Normal);
+    m_moduleAccesser->getKineticModule().unableEnergy(wnSnakeMine_Energy_Rot);
+    m_moduleAccesser->getKineticModule().enableEnergy(wnSnakeMine_Energy_Ground);
     m_moduleAccesser->getGroundModule().setCalcLineMove(false, 0);
 }
 
 // The mine is put down at the given position (on the ground depth): it arms itself when it lands on the ground
-// (status 1), otherwise it falls (status 2).
+// (armed), otherwise it falls.
 void wnSnakeMine::shoot(const Vec3f& position) {
     m_moduleAccesser->getLinkModule().removeModelConstraint(true);
     Vec3f pos = position;
@@ -104,41 +104,41 @@ void wnSnakeMine::shoot(const Vec3f& position) {
     m_moduleAccesser->getPostureModule().setPos(&pos);
     if (m_moduleAccesser->getGroundModule().attachGround(0) == true) {
         m_moduleAccesser->getSituationModule().setKind(Situation_Ground, false);
-        m_moduleAccesser->getStatusModule().changeStatusRequest(1, m_moduleAccesser);
+        m_moduleAccesser->getStatusModule().changeStatusRequest(wnSnakeMine_Status_Armed, m_moduleAccesser);
     } else {
         m_moduleAccesser->getSituationModule().setKind(Situation_Air, false);
-        m_moduleAccesser->getStatusModule().changeStatusRequest(2, m_moduleAccesser);
+        m_moduleAccesser->getStatusModule().changeStatusRequest(wnSnakeMine_Status_Fall, m_moduleAccesser);
     }
     m_moduleAccesser->getStageObject().updateNodeSRT();
 }
 
 // The proximity flag is cleared each frame before the collision search refreshes it.
 void wnSnakeMine::processCollision() {
-    if (m_moduleAccesser->getStatusModule().getStatusKind() == 1) {
-        m_moduleAccesser->getWorkManageModule().offFlag(0x22000000);
+    if (m_moduleAccesser->getStatusModule().getStatusKind() == wnSnakeMine_Status_Armed) {
+        m_moduleAccesser->getWorkManageModule().offFlag(wnSnakeMine_WorkFlag_TargetInRange);
     }
     StageObject::processCollision();
 }
 
-// A stage object other than an item in the search area of an armed mine sets the proximity flag.
+// A fighter, enemy, weapon or item (not a stage gimmick) in the search area of an armed mine sets the proximity flag.
 void wnSnakeMine::notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
     if (collisionLog != NULL) {
         StageObject* object = dynamic_cast<StageObject*>(gfTaskScheduler::getInstance()->getTask(collisionLog->m_taskId));
-        // HYPOTHESIS: kind 3 is an item; items do not set the mine off.
-        if (object == NULL || object->soGetKind() == 3) {
+        // Stage gimmicks (yakumono) do not set the mine off.
+        if (object == NULL || object->soGetKind() == StageObject_Yakumono) {
             return;
         }
-        if (m_moduleAccesser->getStatusModule().getStatusKind() == 1) {
-            m_moduleAccesser->getWorkManageModule().onFlag(0x22000000);
+        if (m_moduleAccesser->getStatusModule().getStatusKind() == wnSnakeMine_Status_Armed) {
+            m_moduleAccesser->getWorkManageModule().onFlag(wnSnakeMine_WorkFlag_TargetInRange);
         }
     }
 }
 
-// An armed mine that saw a target in range detonates (status 3).
+// An armed mine that saw a target in range detonates.
 bool wnSnakeMine::notifyEventCollisionSearchCheck() {
-    if (m_moduleAccesser->getStatusModule().getStatusKind() == 1 &&
-        m_moduleAccesser->getWorkManageModule().isFlag(0x22000000)) {
-        m_moduleAccesser->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
+    if (m_moduleAccesser->getStatusModule().getStatusKind() == wnSnakeMine_Status_Armed &&
+        m_moduleAccesser->getWorkManageModule().isFlag(wnSnakeMine_WorkFlag_TargetInRange)) {
+        m_moduleAccesser->getStatusModule().changeStatusRequest(wnSnakeMine_Status_Explode, m_moduleAccesser);
         return true;
     }
     return false;
@@ -147,7 +147,7 @@ bool wnSnakeMine::notifyEventCollisionSearchCheck() {
 // While armed or exploding on the ground, the mine is tilted to lie flat on the floor below it; the model follows the
 // posture, and an armed mine raises its node 1 (HYPOTHESIS: the trigger) by the float parameter 4000.
 void wnSnakeMine::updateNodeSRT() {
-    if ((m_moduleAccesser->getStatusModule().getStatusKind() == 1 || m_moduleAccesser->getStatusModule().getStatusKind() == 3) &&
+    if ((m_moduleAccesser->getStatusModule().getStatusKind() == wnSnakeMine_Status_Armed || m_moduleAccesser->getStatusModule().getStatusKind() == wnSnakeMine_Status_Explode) &&
         m_moduleAccesser->getGroundModule().isTouch(grCollStatus::TOUCH_MASK_DOWN, 0)) {
         Vec2f normal = m_moduleAccesser->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0);
         if (mtIsNormal(normal) == true && !mtIsZero(normal)) {
@@ -162,8 +162,8 @@ void wnSnakeMine::updateNodeSRT() {
     Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
     Vec3f rot = m_moduleAccesser->getPostureModule().getRot(0);
     m_moduleAccesser->getModelModule().setNodeSRT(0, &scale, &rot, &pos);
-    if (m_moduleAccesser->getStatusModule().getStatusKind() == 1) {
-        float lift = soValueAccesser::getConstantFloat(m_moduleAccesser, 4000, 0);
+    if (m_moduleAccesser->getStatusModule().getStatusKind() == wnSnakeMine_Status_Armed) {
+        float lift = soValueAccesser::getConstantFloat(m_moduleAccesser, wnSnakeMine_Param_TriggerLift, 0);
         Vec3f translate;
         translate.m_x = 0.0f;
         translate.m_y = lift;
@@ -187,20 +187,20 @@ bool mtIsZero(float value) {
     return result;
 }
 
-// Exploding (status 3) applies the power multiplier Snake gave the mine and stops its spin; falling (status 2) throws
+// Exploding applies the power multiplier Snake gave the mine and stops its spin; falling throws
 // it with the speeds of the float parameters 4001-4003 and a random spin.
 void wnSnakeMine::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) {
     Weapon::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
-    if (statusKind == 3) {
-        m_moduleAccesser->getCollisionAttackModule().setPowerMulStatus(m_moduleAccesser->getWorkManageModule().getFloat(0x11000001));
-        m_moduleAccesser->getKineticModule().unableEnergy(1);
-    } else if (statusKind == 2) {
-        soKineticEnergyRotNormal* rotEnergy = dynamic_cast<soKineticEnergyRotNormal*>(m_moduleAccesser->getKineticModule().getEnergy(1));
-        soKineticEnergyNormal* energy = dynamic_cast<soKineticEnergyNormal*>(m_moduleAccesser->getKineticModule().getEnergy(0));
+    if (statusKind == wnSnakeMine_Status_Explode) {
+        m_moduleAccesser->getCollisionAttackModule().setPowerMulStatus(m_moduleAccesser->getWorkManageModule().getFloat(wnSnakeMine_WorkFloat_PowerMul));
+        m_moduleAccesser->getKineticModule().unableEnergy(wnSnakeMine_Energy_Rot);
+    } else if (statusKind == wnSnakeMine_Status_Fall) {
+        soKineticEnergyRotNormal* rotEnergy = dynamic_cast<soKineticEnergyRotNormal*>(m_moduleAccesser->getKineticModule().getEnergy(wnSnakeMine_Energy_Rot));
+        soKineticEnergyNormal* energy = dynamic_cast<soKineticEnergyNormal*>(m_moduleAccesser->getKineticModule().getEnergy(wnSnakeMine_Energy_Normal));
         if (rotEnergy != NULL && energy != NULL) {
-            energy->m_speed = Vec2f(0.0f, soValueAccesser::getConstantFloat(m_moduleAccesser, 4001, 0));
-            energy->m_accel = Vec2f(0.0f, soValueAccesser::getConstantFloat(m_moduleAccesser, 4002, 0));
-            energy->m_speedLimit = Vec2f(-1.0f, soValueAccesser::getConstantFloat(m_moduleAccesser, 4003, 0));
+            energy->m_speed = Vec2f(0.0f, soValueAccesser::getConstantFloat(m_moduleAccesser, wnSnakeMine_Param_FallSpeedY, 0));
+            energy->m_accel = Vec2f(0.0f, soValueAccesser::getConstantFloat(m_moduleAccesser, wnSnakeMine_Param_FallAccelY, 0));
+            energy->m_speedLimit = Vec2f(-1.0f, soValueAccesser::getConstantFloat(m_moduleAccesser, wnSnakeMine_Param_FallSpeedLimitY, 0));
             energy->enable();
             Vec3f spin(45.0f * randf(), 45.0f * randf(), 45.0f * randf());
             // BYTES: copied member by member (float moves; this unit's Vec3f assignment is the aggregate one).
@@ -214,5 +214,5 @@ void wnSnakeMine::notifyEventChangeStatus(int statusKind, int prevStatusKind, so
 
 // Any hit sets the mine off.
 void wnSnakeMine::notifyEventOnDamage(soDamage* damage, bool, soModuleAccesser* moduleAccesser) {
-    m_moduleAccesser->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
+    m_moduleAccesser->getStatusModule().changeStatusRequest(wnSnakeMine_Status_Explode, m_moduleAccesser);
 }
