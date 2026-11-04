@@ -12,8 +12,8 @@ class soCollisionSearchEventObserver : public soEventObserver<soCollisionSearchE
 public:
     soCollisionSearchEventObserver() : soEventObserver<soCollisionSearchEventObserver>(0x11) {};
     soCollisionSearchEventObserver(short unitID) : soEventObserver<soCollisionSearchEventObserver>(unitID) {};
-#ifdef EM_ENEMY_BUILDER
-    // The Enemy constructor expands it.
+#if defined(EM_ENEMY_BUILDER) || defined(SO_COLLISION_SEARCH_OBSERVER_INLINE)
+    // The Enemy constructor and Snake's C4 (opt-in SO_COLLISION_SEARCH_OBSERVER_INLINE) expand it.
     soCollisionSearchEventObserver(short manageId, s8 p2) : soEventObserver<soCollisionSearchEventObserver>(0x11) { initialize(manageId, p2); }
 #else
     soCollisionSearchEventObserver(short, s8);
@@ -24,8 +24,8 @@ public:
 #else
     virtual void addObserver(short param1, s8 param2);
 #endif
-#ifdef SO_EVENT_OBSERVER_DEFAULTS_INLINE
-    // Opt-in per unit (the Enemy): a null vtable slot for the handler, a weak copy of the default check (see
+#if defined(SO_EVENT_OBSERVER_DEFAULTS_INLINE) || defined(SO_COLLISION_SEARCH_OBSERVER_INLINE)
+    // Opt-in per unit (the Enemy, and Snake's C4 for this presenter only): a null vtable slot for the handler, a weak copy of the default check (see
     // so_capture_event_presenter.h).
     virtual void notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) = 0;
     virtual bool notifyEventCollisionSearchCheck() { return false; }
