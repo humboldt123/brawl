@@ -1,5 +1,6 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #define MT_VEC3F_CTOR_NOINLINE
+#define SO_GROUND_ATTACH_WORD_MASK
 #include <so/status/so_status_module_impl.h>
 #include <so/so_module_accesser.h>
 #include <so/ground/so_ground_module_impl.h>
@@ -21,11 +22,10 @@ class wnSnakeC4StatusUniqProcessEstablishWall : public soStatusUniqProcess {
 public:
     virtual ~wnSnakeC4StatusUniqProcessEstablishWall() { }
     virtual void execFixCamera(soModuleAccesser* moduleAccesser);
+    // Moves the charge to pos and sticks it to the wall found there; false when no stage surface touches it.
+    bool stickWall(soModuleAccesser* moduleAccesser, Vec3f* pos);
 };
 
-// MATCH-ONLY: wnSnakeC4StatusUniqProcessEstablishWall::stickWall (module map) keeps its address name: the
-// original passes the word-sized touch mask to soGroundModule::attach, whose header parameter is u8.
-extern "C" bool fn_122_1ACA4(wnSnakeC4StatusUniqProcessEstablishWall* process, soModuleAccesser* moduleAccesser, Vec3f* pos);
 
 wnSnakeC4StatusUniqProcessEstablishWall g_wnSnakeC4StatusUniqProcessEstablishWall;
 
@@ -38,7 +38,7 @@ void wnSnakeC4StatusUniqProcessEstablishWall::execFixCamera(soModuleAccesser* mo
         Vec3f dir;
         Vec3fSub(&dir, &nodePos, &pos);
         if (moduleAccesser->getGroundModule().rayCheck(&pos, &dir, true) == true) {
-            if (fn_122_1ACA4(this, moduleAccesser, &nodePos) == true) {
+            if (stickWall(moduleAccesser, &nodePos) == true) {
                 return;
             }
             moduleAccesser->getWorkManageModule().onFlag(wnSnakeC4Def::WorkFlag_Drop);
@@ -52,7 +52,7 @@ void wnSnakeC4StatusUniqProcessEstablishWall::execFixCamera(soModuleAccesser* mo
             if (moduleAccesser->getGroundModule().rayCheck(&nodePos, &side, true) == true) {
                 Vec3f target;
                 Vec3fAdd(&target, &nodePos, &side);
-                if (fn_122_1ACA4(this, moduleAccesser, &target) == true) {
+                if (stickWall(moduleAccesser, &target) == true) {
                     return;
                 }
                 moduleAccesser->getWorkManageModule().onFlag(wnSnakeC4Def::WorkFlag_Drop);
@@ -65,7 +65,7 @@ void wnSnakeC4StatusUniqProcessEstablishWall::execFixCamera(soModuleAccesser* mo
     moduleAccesser->getPostureModule().setPos(&nodePos);
 }
 
-bool fn_122_1ACA4(wnSnakeC4StatusUniqProcessEstablishWall* process, soModuleAccesser* moduleAccesser, Vec3f* pos) {
+bool wnSnakeC4StatusUniqProcessEstablishWall::stickWall(soModuleAccesser* moduleAccesser, Vec3f* pos) {
     if (moduleAccesser->getLinkModule().isModelConstraint() == true) {
         moduleAccesser->getLinkModule().removeModelConstraint(true);
     }

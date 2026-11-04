@@ -145,7 +145,13 @@ public:
     virtual float getZ();
     virtual bool attachGround(u32 index);
     virtual bool isAttachable(int touchMask, u32 index);
+#ifdef SO_GROUND_ATTACH_WORD_MASK
+    // BYTES: callers through the interface pass the word-sized touch mask from getTouchFlag unnarrowed (the C4 wall
+    // stick). HYPOTHESIS: the interface declared this slot with the mask type; the implementation is attach(u8, u32).
+    virtual void attach(int touchMask, u32 index);
+#else
     virtual void attach(u8, u32 index);
+#endif
     virtual bool isAttach(u32 index);
     virtual void detach(u32 index);
     virtual void setAttackPoint(bool, bool, bool, bool, bool, u32 index);
