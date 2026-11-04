@@ -1,17 +1,28 @@
-#define FT_SNAKE_ARTICLE_POOLS
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
 #define WN_SHARED_ARRAYS_1
 #define WN_ARTICLE_ANIMCMD_INT
+#define WN_TRANSITION_CTOR_INLINE
 #define FT_REL_LINK_EXTERN
+#define WN_WEAPON_NO_COMMON_ENERGIES
+#define WN_STATUS_NO_TAIL
 #include <types.h>
-#include <ft/snake/ft_snake_builder.h>
+#include <wn/wn_module_accesser_builder.h>
+#include <wn/snake/wn_snake_c4_switch.h>
 #include <wn/wn_activate_desc.h>
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
+// BYTES: the constructor addresses each singleton and string separately (no pooled data/bss anchor register).
+#pragma push
+#pragma pool_data off
+wnSnakeC4Switch::wnSnakeC4Switch(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeC4SwitchData* data) :
+    wnWeaponBuilder<wnSnakeC4SwitchModuleAccesserBuildConfig>(
+        "SnakeC4Switch", articleId, info,
+        wnModuleAccesserBuildData(0x19, data, info.getHeapModule()->getInstanceHeap(), info.getHeapModule()->getNWModelInstanceHeap(),
+                                  info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &g_soParamAccesserNull,
+                                  0, 0, 0, 0, 0, 0, 0)) {
+    Weapon::deactivate(false);
+}
+#pragma pop
 
 void wnSnakeC4Switch::activate(int founderTaskId, int etcResourceId, int team) {
     Vec3f pos(0.0f, 0.0f, 0.0f);
