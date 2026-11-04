@@ -50,6 +50,7 @@ void sndSystem::resumeClear() {
 }
 
 void sndSystem::setFinalSeqSpeed(float speed) {
+    // BYTES: m_curSeKind is compared unsigned (cmplwi); the header declares it s32.
     if ((u32)m_curSeKind == 1 && m_seqSpeed != speed) {
         u32 idx = findSlot(this, m_curSeId);
         if (idx != -1 && m_seEnable) {
@@ -90,6 +91,7 @@ void sndSystem::setVolBalance(float bgm, float se) {
 }
 
 float sndSystem::getBalanceSE() {
+    // MATCH-ONLY: a plain `m_seBalance * 0.5f` loads the constant first; the local and *= give the target's order.
     float balance = m_seBalance;
     balance *= 0.5f;
     return balance;
@@ -254,8 +256,7 @@ void sndSystem::setPan(s32 handleId, float pan) {
     m_seHandle[idx].m_handle.SetPan(clampf(pan, 1.0f, -1.0f));
 }
 
-// HYPOTHESIS: reads the volume the sound was given when it was started (the float at BasicSound + 0x28), 1.0 when the
-// handle id is not valid.
+// Volume of the ambient parameters of the playing sound (BasicSound + 0x28), 1.0 when the handle id is not valid.
 float sndSystem::getVol(s32 handleId) {
     u32 idx = findSlot(this, handleId);
     float* volume;
@@ -265,7 +266,7 @@ float sndSystem::getVol(s32 handleId) {
         volume = NULL;
     } else {
         nw4r::snd::detail::BasicSound* sound = m_seHandle[idx].m_handle.detail_GetAttachedSound();
-        volume = sound != NULL ? (float*)((u8*)sound + 0x28) : NULL;
+        volume = sound != NULL ? &sound->GetAmbientParam().volume : NULL;
     }
     if (volume == NULL) {
         return 1.0f;
