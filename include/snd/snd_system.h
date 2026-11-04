@@ -53,8 +53,8 @@ public:
 
     u32 GetRequiredMemSize();
     bool SetParam(const ReverbHiParam& rParam);
-    // HYPOTHESIS: fn_801C07AC (8 bytes: this + 0x18) is the out-of-line accessor of the parameter block at 0x18.
-    const ReverbHiParam& GetParam() const { return *reinterpret_cast<const ReverbHiParam*>(reinterpret_cast<const char*>(this) + 0x18); }
+    // The out-of-line accessor of the parameter block at 0x18 (map: GetParam, 8 bytes at 0x801C07AC).
+    const ReverbHiParam& GetParam() const;
 
 private:
     char unkC[0x190 - 0xC]; // AxfxImpl at 0xC, ReverbHiParam at 0x18, AXFX_REVERBHI at 0x30
@@ -83,8 +83,8 @@ public:
 
     u32 GetRequiredMemSize();
     bool SetParam(const DelayParam& rParam);
-    // HYPOTHESIS: fn_801C0390 (8 bytes: this + 0x18) is the out-of-line accessor of the parameter block at 0x18.
-    const DelayParam& GetParam() const { return *reinterpret_cast<const DelayParam*>(reinterpret_cast<const char*>(this) + 0x18); }
+    // The out-of-line accessor of the parameter block at 0x18 (map: GetParam, 8 bytes at 0x801C0390).
+    const DelayParam& GetParam() const;
 
 private:
     char unkC[0x88 - 0xC]; // AxfxImpl at 0xC, DelayParam at 0x18, AXFX_DELAY at 0x24
@@ -97,6 +97,8 @@ static_assert(sizeof(FxDelay) == 0x88, "Class is wrong size!");
 class sndHeapSys
 {
 public:
+    sndHeapSys();       // 0x80079EB8
+    ~sndHeapSys();      // 0x8007A1EC (called as __dt(heap, 1) by the sndSystem destructor)
     char _0[0x258];
     nw4r::snd::SoundHeap m_heapArr[0xC];
     char _468[0xC];
@@ -134,8 +136,8 @@ public:
         s32 m_id;            // 0x04
         // Owner tag given to playSE (0x10000 survives allStopSE, -1 none, otherwise a group id for stopGroup).
         s32 m_tag;           // 0x08
-        s32 m_sndId;         // 0x0C SndID (-1 none)
-        s32 m_kind;          // 0x10 nw4r::snd::SoundArchive::GetSoundUserParam (1/2: queued voices, 0xB: unique)
+        u32 m_sndId;         // 0x0C SndID (-1 none); unsigned: the code compares it with -1 as addis/cmplwi and with cmplw
+        u32 m_kind;          // 0x10 nw4r::snd::SoundArchive::GetSoundUserParam (1/2: queued voices, 0xB: unique)
         s32 m_priority;      // 0x14 SoundInfo playerPriority, 0x40 when unknown
         s32 m_curPriority;   // 0x18 m_priority + the live priority of the sound (refreshed by update)
         u16 m_count;         // 0x1C HYPOTHESIS: reservation count of a queued voice (kind 1/2) before the handle attaches
@@ -145,8 +147,11 @@ public:
         ~sndHandle() {}
 
         // HYPOTHESIS: inlined everywhere ("slot in use"): an id is reserved and counted, or a sound is attached.
+        bool isReserved() const {
+            return m_sndId != -1 && m_count != 0;
+        }
         bool isUsed() const {
-            if (m_sndId != -1 && m_count != 0) {
+            if (isReserved()) {
                 return true;
             }
             return m_handle.IsAttachedSound();
@@ -228,30 +233,49 @@ public:
     void loadGroupThread(SndGroupID, int);
     void freeGroupThread(int, int);
 
-    bool playBGM(int bgmId, u32 fade, bool);
+    // fade: fade-in frames; the bool cuts the music still playing (it is stopped at once before the new one starts)
+    bool playBGM(int bgmId, u32 fade, bool interrupt);
     void stopBGM(int fade);
     int getBGMId();
     // HYPOTHESIS: the name (the map skips 0x80074018); it loads the music so that startBGM can start it without a wait.
     bool prepareBGM(int bgmId, int unk);
     bool isPreparedBGM(int bgmId);
-    void startBGM(int bgmId, int startFrame);   // HYPOTHESIS: the frame of the music it starts at
+    void startBGM(int bgmId, int startFrame);   // starts the prepared music; startFrame: fade-in frames
 
-    s32 playSE(SndID sndID, int unk, int unk2, int unk3, int unk4);
+    // Plays a sound effect and returns its handle id (-1 when it did not start). tag: owner tag (stopGroup);
+    // fadeIn: fade-in frames; unique: stop the slot already playing this id first (also forced for user param 0xB);
+    // group: sound group the id is loaded from (-1: derive it from the id).
+    s32 playSE(SndID sndID, int tag, int fadeIn, int unique, int group);
     bool isPlaySEID(SndID sndID);
     // Plays a sound effect at a fixed volume and pitch (map: sndSystem::playSEwithFixEffect); the menus pass 1.0 and 1.0.
-    // HYPOTHESIS: the two floats are the volume and the pitch.
-    void playSEwithFixEffect(SndID sndID, float volume, float pitch);
+    // The floats are not used: it plays the id with the defaults of playSE (tag -1, no fade, no group).
+    s32 playSEwithFixEffect(SndID sndID, float volume, float pitch);
+
+    // Inline helpers of the SE slot table (no symbols; the compiler expands them in playSE / play3DSE / prepareSE /
+    // prepare3DSE / playSERem ...), defined at the end of this header:
+    //   findSE      slot (0..31) holding this sound id while reserved or playing, -1 if none
+    //   allocSE     round-robin search for a free slot from m_seSearchIdx (stores it back); takes a fresh handle id; -1 if full
+    //   freeSE      stops and detaches the slot, resets its fields and gives it a fresh handle id
+    //   getSEPriority  player priority of the sound in the archive (0x40 if unknown)
+    //   findSEId     the slot a handle id addresses (id & 0xFF) if that slot still holds exactly this id and is in use, else -1
+    u32 findSE(SndID sndID);
+    u32 findSEId(s32 handleId);
+    u32 allocSE();
+    void freeSE(u32 slot);
+    s32 getSEPriority(SndID sndID);
+    //   findLowestSE  no free slot: the slot with no reserved voice and the lowest live priority (not above that of the sound), -1 if none
+    u32 findLowestSE(SndID sndID);
     // HYPOTHESIS (map order play3DSE, prepare3DSE): playSE / prepareSE on the SoundStartable of a Sound3DActor
     // (snd3DGenerator calls them); params: id, startable, tag, fadeIn, flag, group. fn_80074EF8 / fn_80075830.
     s32 play3DSE(SndID sndID, nw4r::snd::SoundStartable* startable, int tag, int fadeIn, int flag, int groupId);
     s32 prepareSE(SndID p1, s32 p2, s32 p3);
-    s32 prepare3DSE(SndID sndID, nw4r::snd::SoundStartable* startable, int tag);
+    s32 prepare3DSE(SndID sndID, nw4r::snd::SoundStartable* startable, int tag, int groupId);   // groupId: isSeLoaded's group
     bool isPreparedSE(s32 handleId);       // fn_80075B7C
     void startSE(s32 p1, s32 p2, s32 p3);
-    void startSE1(int slot, int fadeIn);   // fn_80075D1C startSE after the handle id became a slot index
+    void startSE1(unsigned int slot, int fadeIn, int unique);   // fn_80075D1C startSE after the handle id became a slot index; unique: free the other slots playing the same sound id first (always done for kind 0xB)
     void stopSE(s32 handleId, s32 p2);
     void stopSE(s8 handleIndex, s32 p2);
-    void stopSE1(int slot, int fade);      // fn_80075FAC stopSE after the handle id became a slot index
+    void stopSE1(unsigned int slot, int fade);      // fn_80075FAC stopSE after the handle id became a slot index
     // HYPOTHESIS: fn_800765B0 stops every slot with the tag (map stopGroup) and fn_80076674 those with the tag and the id.
     void stopGroup(int tag, int fade);
     void stopGroupId(int tag, SndID sndID, int fade);
@@ -292,9 +316,9 @@ public:
     bool isPlay(s32 handleId);
     // HYPOTHESIS: fn_80077E94 (map isVoice) tells whether an id lies in the voice ranges of a sound group (tables
     // lbl_80407728 / lbl_80407858); it uses no member, ft_sound_id_exchanger calls it with (group, id).
-    static bool isVoice(int soundGroup, u32 sndID);
+    static bool isVoice(u32 soundGroup, u32 sndID);  // group compared unsigned (cmplwi) in the asm
     // HYPOTHESIS: fn_80078068 (map isSeLoaded): whether the group of the sound (given, or looked up from id ranges) is loaded.
-    bool isSeLoaded(SndID sndID, int groupId);
+    bool isSeLoaded(u32 sndID, u32 groupId);   // both parameters are compared unsigned (cmplwi) in the asm
     // HYPOTHESIS: fn_80078380 (map getPlayQueIndex): index into m_seQueue of a queued voice, -1 / 0 .. 5.
     int getPlayQueIndex(SndID sndID, u32 kind);
 
@@ -340,3 +364,89 @@ extern sndSystem* g_sndSystem;
 // HYPOTHESIS: sequence of the SE handle ids (sbss 0x805A01D4): the next id is `lbl_805A01D4 + slot index`, then it
 // advances by 0x100 and keeps bits 8..30.
 extern s32 lbl_805A01D4;
+
+inline u32 sndSystem::findSE(SndID sndID) {
+    sndHandle* h = m_seHandle;
+    for (u32 i = 0; i < 32; h++, i++) {
+        if (h->m_sndId == sndID && h->isUsed()) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+inline u32 sndSystem::allocSE() {
+    u32 start = m_seSearchIdx;
+    u32 i = start;
+    do {
+        i = (i + 1) & 31;
+        sndHandle* h = &m_seHandle[i];
+        if (!h->isUsed()) {
+            m_seSearchIdx = i;
+            h->m_id = lbl_805A01D4 + h->m_index;
+            lbl_805A01D4 = (lbl_805A01D4 + 0x100) & 0x7FFFFF00;
+            return i;
+        }
+    } while (i != start);
+    return -1;
+}
+
+inline void sndSystem::freeSE(u32 slot) {
+    if (slot == (u32)-1) {
+        return;
+    }
+    m_seHandle[slot].m_handle.Stop(0);
+    m_seHandle[slot].m_handle.DetachSound();
+    m_seHandle[slot].m_id = -1;
+    m_seHandle[slot].m_tag = -1;
+    m_seHandle[slot].m_sndId = -1;
+    m_seHandle[slot].m_kind = 0;
+    m_seHandle[slot].m_priority = 0x40;
+    m_seHandle[slot].m_curPriority = 0;
+    m_seHandle[slot].m_count = 0;
+    m_seHandle[slot].m_id = lbl_805A01D4 + m_seHandle[slot].m_index;
+    lbl_805A01D4 = (lbl_805A01D4 + 0x100) & 0x7FFFFF00;
+}
+
+inline s32 sndSystem::getSEPriority(SndID sndID) {
+    if (!m_loadFinished) {
+        return 0x40;
+    }
+    nw4r::snd::SoundArchive::SoundInfo info;
+    if (m_dvdSoundArchive.ReadSoundInfo(sndID, &info)) {
+        return info.playerPriority;
+    }
+    return 0x40;
+}
+
+inline u32 sndSystem::findLowestSE(SndID sndID) {
+    u32 slot = -1;
+    int best = 0x7F;
+    if ((u32)sndID != (u32)-1) {
+        best = getSEPriority(sndID);
+    }
+    for (u32 i = 0; i < 32; i++) {
+        if (m_seHandle[i].m_count == 0 && m_seHandle[i].m_curPriority <= best) {
+            best = m_seHandle[i].m_curPriority;
+            slot = i;
+        }
+    }
+    return slot;
+}
+
+inline u32 sndSystem::findSEId(s32 handleId) {
+    if (handleId == -1) {
+        return -1;
+    }
+    bool found = false;
+    u32 slot = handleId & 0xFF;
+    sndHandle* h = &m_seHandle[slot];
+    if (h->m_id == handleId && h->isUsed()) {
+        found = true;
+    }
+    u32 result = -1;
+    if (found) {
+        result = slot;
+    }
+    return result;
+}

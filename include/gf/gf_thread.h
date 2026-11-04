@@ -38,6 +38,12 @@ public:
     }
     virtual void run() { }
     ~gfThread();
+    // HYPOTHESIS: names for the inline thread operations sndSystem performs on its worker threads.
+    void resume() { OSResumeThread(&m_thread); }
+    void setPriority(u32 priority) {
+        m_priority = priority;
+        OSSetThreadPriority(&m_thread, priority);
+    }
     void createThread(gfRunnable* startRoutine, u32 priority, u32 stackSize, Heaps::HeapType heap);
     static void* startThread(void* arg);
 };
