@@ -76,6 +76,21 @@ public:
     // BYTES: the article RELs call this constructor out of line (weak copy in the unit).
     soKineticEnergy(bool isNull = false) __attribute__((never_inline)) : soNullable(isNull), soEnable(!isNull) { }
 #endif
+#ifdef SO_KINETIC_ENERGY_ABSTRACT
+    // The class is abstract in some article units: its vtable (with empty pure-virtual slots) and the empty
+    // ground-friction switches below are emitted there as weak copies.
+    virtual void updateEnergy(soModuleAccesser* moduleAccesser) = 0;
+    virtual Vec2f getSpeed() = 0;
+    virtual Vec3f getSpeed3f();
+    virtual Vec3f getRotation() = 0;
+    virtual void resetEnergy(int, Vec2f*, Vec3f*, soModuleAccesser* moduleAccesser) = 0;
+    virtual void clearSpeed() = 0;
+    virtual void clearRotSpeed() = 0;
+    virtual void mulSpeed(Vec3f* speed) = 0;
+    virtual void mulAccel(Vec3f* accel) = 0;
+    virtual void reflectSpeed(Vec3f* speed) = 0;
+    virtual void reflectAccel(Vec3f* accel) = 0;
+#else
     virtual void updateEnergy(soModuleAccesser* moduleAccesser);
     virtual Vec2f getSpeed();
     virtual Vec3f getSpeed3f();
@@ -87,6 +102,7 @@ public:
     virtual void mulAccel(Vec3f* accel);
     virtual void reflectSpeed(Vec3f* speed);
     virtual void reflectAccel(Vec3f* accel);
+#endif
 #if defined(WN_WEAPON_BUILDER) || defined(SO_KINETIC_ENERGY_INLINE_VIRTUALS) // inline in the article / enemy RELs (weak copies)
     virtual void onConsiderGroundFriction() { }
     virtual void offConsiderGroundFriction() { }
