@@ -396,28 +396,32 @@ NWC24Err fn_803A50EC(NWC24iDlTask *task) {
 }
 
 // clears a task's slot in the file and in the list header
+static inline void InitDlTaskEntry_i(u16 id) {
+    memset(&((NWC24iDlHeader *)NWC24WorkP->dlHeader)->entries[id], 0, sizeof(NWC24iDlEntry));
+}
+
+static inline NWC24Err ClearDlTaskEntry_i(u16 id, NWC24File *file) {
+    NWC24iDlTask *empty = (NWC24iDlTask *)NWC24WorkP->dlTask;
+    memset(empty, 0, DL_TASK_SIZE);
+    empty->type = 0xFF;
+    empty->id = id;
+    InitDlTaskEntry_i(id);
+    return WriteDlTaskEntry_i(empty, file);
+}
+
 NWC24Err fn_803A58C8(NWC24iDlTask *task) {
     NWC24File file;
     NWC24Err result;
     NWC24Err close;
-    u16 id;
-    NWC24iDlTask *empty;
 
     result = NWC24FOpen(&file, DLFilePath, NWC24_OPEN_NAND_RW);
     if (result < 0) {
         return result;
     }
 
-    empty = (NWC24iDlTask *)NWC24WorkP->dlTask;
-    id = task->id;
-    memset(empty, 0, DL_TASK_SIZE);
-    empty->type = 0xFF;
-    empty->id = id;
-    memset(&NWC24WorkP->dlHeader[sizeof(NWC24iDlEntry) * id + 0x80], 0, sizeof(NWC24iDlEntry));
-
-    result = WriteDlTaskEntry_i(empty, &file);
+    result = ClearDlTaskEntry_i(task->id, &file);
     if (result >= 0) {
-        memset(&NWC24WorkP->dlHeader[sizeof(NWC24iDlEntry) * task->id + 0x80], 0, sizeof(NWC24iDlEntry));
+        InitDlTaskEntry_i(task->id);
         result = WriteDlHeader_i(&file);
     }
 
@@ -481,10 +485,11 @@ static inline NWC24Err DeleteDlTaskForced_i(NWC24iDlTask *task) {
     }
 
     result = fn_803A58C8(task);
-    if (result >= 0) {
-        task->id = 0xFFFF;
+    if (result < 0) {
+        return result;
     }
 
+    task->id = 0xFFFF;
     return result;
 }
 

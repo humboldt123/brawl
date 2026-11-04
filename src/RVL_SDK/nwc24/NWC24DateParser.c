@@ -24,32 +24,7 @@ static inline BOOL IsLeapYear_i(int year) {
     return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
 }
 
-// days since 1 jan 1900, -1 when the date does not exist
-s32 fn_803A1678(u16 year, u8 month, u8 day) {
-    int days;
-    int y;
-
-    if (year < NWC24i_YEAR_MIN || month < NWC24i_MONTH_MIN || month > NWC24i_MONTH_MAX) {
-        return -1;
-    }
-
-    if (month == 2 && IsLeapYear_i(year)) {
-        if (day < NWC24i_DAY_MIN || day > 29) {
-            return -1;
-        }
-    } else if (day < NWC24i_DAY_MIN || DaysInMonth[month - 1] < day) {
-        return -1;
-    }
-
-    days = day - 1;
-    days += DaysBeforeMonth[month - 1];
-    if (month >= 3 && IsLeapYear_i(year)) {
-        days++;
-    }
-
-    y = year - NWC24i_YEAR_MIN;
-    return days + y * 365 + (y + 299) / 400 + ((y - 1) / 4 - (y - 1) / 100);
-}
+s32 fn_803A1678(u16 year, u8 month, u8 day);
 
 static inline s32 MinutesOfDay(u8 hour, u8 minute) {
     if (hour > 23 || minute > 59) return -1;
@@ -81,22 +56,22 @@ void fn_803A183C(u16 *year, u8 *month, u8 *day, int days);
 NWC24Err fn_803A1344(NWC24Date *date, s32 minutes) {
     int clamped = minutes;
     int days;
-    int rem;
 
     if (minutes < 0) {
         clamped = 0;
     }
 
     days = clamped / 1440;
-    rem = clamped % 1440;
-    date->hour = rem / 60;
-    date->min = rem % 60;
+    clamped %= 1440;
+    date->hour = clamped / 60;
+    date->min = clamped % 60;
     fn_803A183C(&date->year, &date->month, &date->day, days);
     return NWC24_OK;
 }
 
 NWC24Err NWC24iEpochSecondsToDate(NWC24Date *date, s64 timestamp) {
     int minutes;
+    int days;
 
     if (timestamp + NWC24i_EPOCH_1900_TO_1970 < 0) {
         timestamp = -NWC24i_EPOCH_1900_TO_1970;
@@ -108,9 +83,11 @@ NWC24Err NWC24iEpochSecondsToDate(NWC24Date *date, s64 timestamp) {
         minutes = 0;
     }
 
-    date->hour = minutes % 1440 / 60;
-    date->min = minutes % 1440 % 60;
-    fn_803A183C(&date->year, &date->month, &date->day, minutes / 1440);
+    days = minutes / 1440;
+    minutes %= 1440;
+    date->hour = minutes / 60;
+    date->min = minutes % 60;
+    fn_803A183C(&date->year, &date->month, &date->day, days);
     return NWC24_OK;
 }
 
@@ -135,6 +112,36 @@ NWC24Err NWC24iDateToOSCalendarTime(OSCalendarTime *ct, const NWC24Date *date) {
 
     ct->wday = (fn_803A1678(date->year, date->month, date->day) + 1) % 7;
     return NWC24_OK;
+}
+
+// days since 1 jan 1900, -1 when the date does not exist
+s32 fn_803A1678(u16 year, u8 month, u8 day) {
+    int days;
+    int y;
+
+    if (year < NWC24i_YEAR_MIN || month < NWC24i_MONTH_MIN || month > NWC24i_MONTH_MAX) {
+        return -1;
+    }
+
+    if (month == 2 && IsLeapYear_i(year)) {
+        if (day < NWC24i_DAY_MIN || day > 29) {
+            return -1;
+        }
+    } else if (day < NWC24i_DAY_MIN || DaysInMonth[month - 1] < day) {
+        return -1;
+    }
+
+    days = day - 1;
+    days += DaysBeforeMonth[month - 1];
+    if (month >= 3 && IsLeapYear_i(year)) {
+        days++;
+    }
+
+    y = year - NWC24i_YEAR_MIN;
+    days += y * 365;
+    // Count leap days through the preceding year.
+    y--;
+    return days + (y + 300) / 400 + (y / 4 - y / 100);
 }
 
 void fn_803A183C(u16 *year, u8 *month, u8 *day, int days) {

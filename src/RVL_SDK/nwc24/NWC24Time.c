@@ -47,8 +47,9 @@ static void TimeInitMutex(void);
 static void TimeLockRight(void);
 static void TimeUnlockRight(void);
 
-// Scratch retained for the SDK time formatter (NWC24Time.c in OpenRVL).
-u8 nwc24TimeUnusedBuf[128];
+// BYTES: explicit zero initialization retains the SDK formatter scratch
+// before the mutex and IPC buffers in the original pooled storage.
+u8 nwc24TimeUnusedBuf[128] = {0};
 
 NWC24Err NWC24iGetUniversalTime(s64 *timeOut) {
     static s64 whenCached = 0;

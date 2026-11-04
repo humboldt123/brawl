@@ -44,17 +44,29 @@ static inline u8 UnscrambleByte(u8 value) {
 
 // Undo the XOR, 53-bit rotation, byte permutation, nibble substitution and
 // final rotation/XOR so the caller can validate the original CRC polynomial.
+static inline u8 GetIdByte(u64 id, unsigned int pos) {
+    return (id >> (pos * 8)) & 0xFF;
+}
+
 static u64 getUnScrambleId(u64 id) {
     u64 value = (id & 0x001FFFFFFFFFFFFFULL) ^ 0x00005E5E5E5E5E5EULL;
-    u64 decoded;
+    u64 permuted;
 
-    value = (value >> 1) | ((value & 1) << 52);
-    decoded = value;
-    decoded = (decoded & ~(0xFFULL << 16)) | ((u64)UnscrambleByte(value >> 0) << 16);
-    decoded = (decoded & ~(0xFFULL << 0)) | ((u64)UnscrambleByte(value >> 8) << 0);
-    decoded = (decoded & ~(0xFFULL << 8)) | ((u64)UnscrambleByte(value >> 40) << 8);
-    decoded = (decoded & ~(0xFFULL << 40)) | ((u64)UnscrambleByte(value >> 24) << 40);
-    decoded = (decoded & ~(0xFFULL << 32)) | ((u64)UnscrambleByte(value >> 16) << 32);
-    decoded = (decoded & ~(0xFFULL << 24)) | ((u64)UnscrambleByte(value >> 32) << 24);
-    return (((decoded << 10) | (decoded >> 43)) & 0x001FFFFFFFFFFFFFULL) ^ 0x0000B3B3B3B3B3B3ULL;
+    value = ((value >> 1) | ((value & 1) << 52));
+    // Preserve the input bytes while permuting, then substitute in place.
+    permuted = value;
+    permuted = (permuted & ~(0xFFULL << 0)) | ((u64)(GetIdByte(value, 1)) << 0);
+    permuted = (permuted & ~(0xFFULL << 8)) | ((u64)(GetIdByte(value, 5)) << 8);
+    permuted = (permuted & ~(0xFFULL << 16)) | ((u64)(GetIdByte(value, 0)) << 16);
+    permuted = (permuted & ~(0xFFULL << 24)) | ((u64)(GetIdByte(value, 4)) << 24);
+    permuted = (permuted & ~(0xFFULL << 32)) | ((u64)(GetIdByte(value, 2)) << 32);
+    permuted = (permuted & ~(0xFFULL << 40)) | ((u64)(GetIdByte(value, 3)) << 40);
+
+    permuted = (permuted & ~(0xFFULL << 0)) | ((u64)(UnscrambleByte(GetIdByte(permuted, 0))) << 0);
+    permuted = (permuted & ~(0xFFULL << 8)) | ((u64)(UnscrambleByte(GetIdByte(permuted, 1))) << 8);
+    permuted = (permuted & ~(0xFFULL << 16)) | ((u64)(UnscrambleByte(GetIdByte(permuted, 2))) << 16);
+    permuted = (permuted & ~(0xFFULL << 24)) | ((u64)(UnscrambleByte(GetIdByte(permuted, 3))) << 24);
+    permuted = (permuted & ~(0xFFULL << 32)) | ((u64)(UnscrambleByte(GetIdByte(permuted, 4))) << 32);
+    permuted = (permuted & ~(0xFFULL << 40)) | ((u64)(UnscrambleByte(GetIdByte(permuted, 5))) << 40);
+    return (((permuted & 0x000007FFFFFFFFFFULL) << 10) | (permuted >> 43)) ^ 0x0000B3B3B3B3B3B3ULL;
 }
