@@ -4681,12 +4681,58 @@ RVL_SDK/nhttp/nhttp.c:
 	.sbss       start:0x805A1148 end:0x805A1158
 
 RVL_SDK/nwc24/nwc24.c:
-	.text       start:0x80397610 end:0x803A5E40
-	.rodata     start:0x80416918 end:0x80416950
-	.data       start:0x80491A78 end:0x80492490
-	.bss        start:0x805372C0 end:0x80537680
-	.sdata      start:0x8059FCC0 end:0x8059FE10
-	.sbss       start:0x805A1158 end:0x805A11E0
+	.text       start:0x80397610 end:0x803A072C
+	.data       start:0x80491A78 end:0x804922F0
+	.bss        start:0x805372C0 end:0x805373C0
+	.sdata      start:0x8059FCC0 end:0x8059FDD8
+	.sbss       start:0x805A1158 end:0x805A1198
+
+RVL_SDK/nwc24/NWC24Schedule.c:
+	.text       start:0x803A072C end:0x803A129C
+	.data       start:0x804922F0 end:0x80492368
+	.bss        start:0x805373C0 end:0x80537540
+	.sbss       start:0x805A1198 end:0x805A11A8
+
+RVL_SDK/nwc24/NWC24DateParser.c:
+	.text       start:0x803A129C end:0x803A19D8
+	.rodata     start:0x80416918 end:0x80416940
+
+RVL_SDK/nwc24/NWC24FriendList.c:
+	.text       start:0x803A19D8 end:0x803A1ED4
+	.data       start:0x80492368 end:0x80492388
+	.sdata      start:0x8059FDD8 end:0x8059FDE0
+
+RVL_SDK/nwc24/NWC24SecretFList.c:
+	.text       start:0x803A1ED4 end:0x803A1FF0
+	.data       start:0x80492388 end:0x804923A8
+	.sdata      start:0x8059FDE0 end:0x8059FDE8
+
+RVL_SDK/nwc24/NWC24UserId.c:
+	.text       start:0x803A1FF0 end:0x803A230C
+	.rodata     start:0x80416940 end:0x80416950
+
+RVL_SDK/nwc24/NWC24Time.c:
+	.text       start:0x803A230C end:0x803A279C
+	.data       start:0x804923A8 end:0x804923E8
+	.bss        start:0x80537540 end:0x80537620
+	.sbss       start:0x805A11A8 end:0x805A11C0
+
+RVL_SDK/nwc24/NWC24Ipc.c:
+	.text       start:0x803A279C end:0x803A2910
+	.sbss       start:0x805A11C0 end:0x805A11C8
+
+RVL_SDK/nwc24/NWC24Download.c:
+	.text       start:0x803A2910 end:0x803A5CB0
+	.data       start:0x804923E8 end:0x80492448
+	.sdata      start:0x8059FDE8 end:0x8059FE08
+	.sbss       start:0x805A11C8 end:0x805A11D0
+
+RVL_SDK/nwc24/NWC24System.c:
+	.text       start:0x803A5CB0 end:0x803A5E40
+	.data       start:0x80492448 end:0x80492490
+	.bss        start:0x80537620 end:0x80537680
+	.sdata      start:0x8059FE08 end:0x8059FE10
+	.sbss       start:0x805A11D0 end:0x805A11E0
 
 RVL_SDK/so/so.c:
 	.text       start:0x803A5E40 end:0x803A88D4
