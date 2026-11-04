@@ -47,12 +47,18 @@ public:
 // The parameter block of the charge (reached through the data block at +0x34).
 // HYPOTHESIS: meaning of the fields.
 struct wnSnakeC4Param {
-    u8 unk0[4];
+    float m_throwSpeedY; // +0x0: vertical speed the thrown charge starts falling with
     float m_gravity;    // +0x4: downward acceleration while the charge falls
     float m_speedLimit; // +0x8: falling speed limit
-    u8 unkC[0x10];
+    // HYPOTHESIS: the mash-off frames of a fighter the charge sticks to are m_clatterFrames - m_clatterFramesBase.
+    s32 m_clatterFrames;     // +0xC
+    s32 m_clatterFramesBase; // +0x10
+    float m_clatterRate;     // +0x14
+    float m_dropDamage; // +0x18: damage to the fighter it sticks to that makes it fall off for sure
     s32 m_life;         // +0x1C: frames the charge stays before it fizzles out
     float m_blinkChance; // +0x20: 1 / chance of the alternate look on activation
+    float m_groundStickRange; // +0x24: reach of the stick test below the charge while stuck to the ground
+    float m_wallStickRange;   // +0x28: reach of the stick test to the side while stuck to a wall
 };
 
 // The static data block of the article (read by its wnModuleAccesserBuildData).
@@ -135,6 +141,12 @@ public:
     typedef wnKineticModuleBuildConfigSized<wnKineticModuleImpl, soKineticMediatorNull, 4> KineticModuleBuildConfig;
     typedef soAreaModuleBuildConfigWeapon<1, 4> AreaModuleBuildConfig;
     typedef wnAnimCmdModuleSubBuildConfigDefault<1, 8, 0, 0, 1, 7, 0, 0, 1, 7, 0, 0, 1, 7, 0, 0> AnimCmdModuleSubBuildConfig;
+};
+
+// The link event that sets the charge's visibility (kind 0x37; same layout as the Pikmin one).
+struct wnSnakeC4LinkEventVisibility : soLinkEventArgs {
+    u8 m_visible; // +0x5
+    wnSnakeC4LinkEventVisibility(int kind) : soLinkEventArgs(kind), m_visible(0) { }
 };
 
 class wnSnakeC4 : public wnWeaponBuilder<wnSnakeC4ModuleAccesserBuildConfig>, public soCollisionSearchEventObserver {
