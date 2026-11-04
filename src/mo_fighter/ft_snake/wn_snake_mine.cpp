@@ -147,28 +147,28 @@ bool wnSnakeMine::notifyEventCollisionSearchCheck() {
 // While armed or exploding on the ground, the mine is tilted to lie flat on the floor below it; the model follows the
 // posture, and an armed mine raises its node 1 (HYPOTHESIS: the trigger) by the float parameter 4000.
 void wnSnakeMine::updateNodeSRT() {
-    if ((m_moduleAccesser->getStatusModule().getStatusKind() == wnSnakeMine_Status_Armed || m_moduleAccesser->getStatusModule().getStatusKind() == wnSnakeMine_Status_Explode) &&
-        m_moduleAccesser->getGroundModule().isTouch(grCollStatus::TOUCH_MASK_DOWN, 0)) {
-        Vec2f normal = m_moduleAccesser->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0);
+    if ((getModuleAccesser()->getStatusModule().getStatusKind() == wnSnakeMine_Status_Armed || getModuleAccesser()->getStatusModule().getStatusKind() == wnSnakeMine_Status_Explode) &&
+        getModuleAccesser()->getGroundModule().isTouch(grCollStatus::TOUCH_MASK_DOWN, 0)) {
+        Vec2f normal = getModuleAccesser()->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0);
         if (mtIsNormal(normal) == true && !mtIsZero(normal)) {
             float angle = atan2f(normal.m_x, normal.m_y) * -1.0f * 57.29578f;
             Vec3f rot(0.0f, 0.0f, angle);
-            m_moduleAccesser->getPostureModule().setRot(&rot, 0);
+            getModuleAccesser()->getPostureModule().setRot(&rot, 0);
         }
     }
-    float scaleValue = m_moduleAccesser->getPostureModule().getScale();
+    float scaleValue = getModuleAccesser()->getPostureModule().getScale();
     Vec3f scale;
     scale.m_x = scale.m_y = scale.m_z = scaleValue;
-    Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
-    Vec3f rot = m_moduleAccesser->getPostureModule().getRot(0);
-    m_moduleAccesser->getModelModule().setNodeSRT(0, &scale, &rot, &pos);
-    if (m_moduleAccesser->getStatusModule().getStatusKind() == wnSnakeMine_Status_Armed) {
+    Vec3f pos = getModuleAccesser()->getPostureModule().getPos();
+    Vec3f rot = getModuleAccesser()->getPostureModule().getRot(0);
+    getModuleAccesser()->getModelModule().setNodeSRT(0, &scale, &rot, &pos);
+    if (getModuleAccesser()->getStatusModule().getStatusKind() == wnSnakeMine_Status_Armed) {
         float lift = soValueAccesser::getConstantFloat(m_moduleAccesser, wnSnakeMine_Param_TriggerLift, 0);
         Vec3f translate;
         translate.m_x = 0.0f;
         translate.m_y = lift;
         translate.m_z = 0.0f;
-        m_moduleAccesser->getModelModule().setNodeTranslate(1, &translate);
+        getModuleAccesser()->getModelModule().setNodeTranslate(1, &translate);
     }
 }
 
