@@ -6,6 +6,8 @@ The same assembly can come from very different C++ (`add r3,r3,r4` could be `x +
 
 ## Source review before accepting a match
 
+- **An error guard with `beq` followed by an unconditional return branch can be a one-case `switch`:** `switch (result) { case NWC24_OK: break; default: return result; }`. NWC24's sender-header writers retain the status condition for a later successful-write check; a plain `if` recomputes it. Keep error propagation and buffer bounds unchanged when reconstructing this form. Seen: `fn_8039EEF8` and `fn_8039F0F4` in `src/RVL_SDK/nwc24/nwc24.c`. **MED**
+
 Adapted from [decomp-triage](https://github.com/KakarottoCake/decomp-triage/tree/ccdf17ba8ad68f4615fe0aef3db523dcd7f906bf), reviewed against Brawl main `8310c2ff`. These checks are advisory evidence prompts, not automatic verdicts.
 
 - **Raw offsets and flattened copies:** verify the receiver, member extent, access width and callers. Use existing typed members when they describe the observed accesses; keep unknown names `unkN`. Casting an entire structure to a float array can cross non-float fields and hides its layout. `hkMotion::getMotionStateAndVelocities` is a review example. **HIGH**

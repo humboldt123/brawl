@@ -3401,24 +3401,27 @@ void NWC24InitBase64Table(char *table) {
 }
 
 static NWC24Err fn_8039D30C(const u8 *data, int dataSize, int *dataRead, char *text, int textSize, int *textWritten) {
-    int out = 0;
-    int in = 0;
-    NWC24Err result = NWC24_OK;
+    int out;
+    NWC24Err result;
+    int in;
+
+    in = 0;
+    result = NWC24_OK;
+    out = 0;
 
     for (; in < dataSize; in += 3) {
-        u32 value;
-        BOOL has1;
         BOOL has2;
+        BOOL has1;
+        u32 value;
 
         if (out + 3 >= textSize) {
             result = NWC24_ERR_OVERFLOW;
             break;
         }
 
-        value = data[in];
-        has1 = FALSE;
+        value = (u32)data[in] << 8;
         has2 = FALSE;
-        value <<= 8;
+        has1 = FALSE;
         if (in + 1 < dataSize) {
             value |= data[in + 1];
             has1 = TRUE;
@@ -3439,7 +3442,7 @@ static NWC24Err fn_8039D30C(const u8 *data, int dataSize, int *dataRead, char *t
 
     *textWritten = out;
     if (dataRead != NULL) {
-        *dataRead = in < dataSize ? in : dataSize;
+        *dataRead = dataSize < in ? dataSize : in;
     }
 
     return result;
@@ -3451,18 +3454,19 @@ NWC24Err NWC24Base64Encode(const u8 *data, s32 dataSize, char *text, s32 textSiz
 
 // goes the other way, skips everything that is not in the alphabet
 NWC24Err fn_8039D45C(const u8 *data, int dataSize, u8 *out, u32 outSize, u32 *outWritten) {
-    char *table = NWC24WorkP->base64Work;
     int bits = 0;
-    u32 n = 0;
     int acc = 0;
+    u32 n = 0;
+    char *table = NWC24WorkP->base64Work;
     int i;
 
     for (i = 0; i < dataSize; i++) {
-        s8 value = table[*data];
+        int value = table[*data];
 
         if (value >= 0 && value < 64) {
             bits += 6;
-            acc = (acc << 6) | value;
+            acc <<= 6;
+            acc |= value;
             if (bits >= 8) {
                 if (n >= outSize) {
                     *outWritten = outSize;
@@ -3811,8 +3815,8 @@ NWC24Err fn_803A0240(u32 appId) {
 static BOOL fn_803A0594(MsgListState *state, NWC24iMBCEntry *entry) {
     u32 flags;
     u32 mode;
-    u32 y;
-    u32 x;
+    u32 messageTag;
+    u32 filterTag;
     BOOL ok;
 
     if (!fn_8039B4C8(entry)) {
@@ -3840,24 +3844,24 @@ static BOOL fn_803A0594(MsgListState *state, NWC24iMBCEntry *entry) {
 
     if (flags & 0x100) {
         mode = state->tagFilter >> 16;
-        x = state->tagFilter & 0xFFFF;
-        y = entry->tag & 0xFFFF;
+        filterTag = state->tagFilter & 0xFFFF;
+        messageTag = entry->tag & 0xFFFF;
 
         switch (mode) {
         case 0:
-            ok = x != y;
+            ok = messageTag != filterTag;
             break;
         case 1:
-            ok = x == y;
+            ok = messageTag == filterTag;
             break;
         case 2:
-            ok = x >= y;
+            ok = filterTag >= messageTag;
             break;
         case 3:
-            ok = x <= y;
+            ok = filterTag <= messageTag;
             break;
         case 4:
-            ok = (x & y) != 0;
+            ok = (messageTag & filterTag) != 0;
             break;
         default:
             ok = FALSE;
@@ -4070,14 +4074,18 @@ NWC24Err fn_8039EEF8(NWC24iMsgObj *msg) {
     }
 
     result = fn_8039EDE8(&msg->from, mode, p, 0x3FE, &n);
-    if (result == NWC24_OK) {
-        p += n;
-        p[0] = '\r';
-        p[1] = '\n';
-        len = n + 13;
-        if (0x3FE - len <= 0) {
-            return NWC24_ERR_NOMEM;
-        }
+    switch (result) {
+    case NWC24_OK:
+        break;
+    default:
+        return result;
+    }
+    p += n;
+    p[0] = '\r';
+    p[1] = '\n';
+    len = n + 13;
+    if (0x3FE - len <= 0) {
+        return NWC24_ERR_NOMEM;
     }
 
     if (result == NWC24_OK) {
@@ -4154,14 +4162,18 @@ NWC24Err fn_8039F0F4(NWC24iMsgObj *msg) {
     }
 
     result = fn_8039EDE8(&msg->from, mode, p, 0x3FE, &n);
-    if (result == NWC24_OK) {
-        p += n;
-        p[0] = '\r';
-        p[1] = '\n';
-        len = n + 8;
-        if (0x3FE - len <= 0) {
-            return NWC24_ERR_NOMEM;
-        }
+    switch (result) {
+    case NWC24_OK:
+        break;
+    default:
+        return result;
+    }
+    p += n;
+    p[0] = '\r';
+    p[1] = '\n';
+    len = n + 8;
+    if (0x3FE - len <= 0) {
+        return NWC24_ERR_NOMEM;
     }
 
     if (result == NWC24_OK) {
@@ -4321,12 +4333,12 @@ NWC24Err fn_8039F494(NWC24iMsgObj *msg) {
 
 // X-WiiFace: (base64, folded)
 NWC24Err fn_8039F5B0(NWC24iMsgObj *msg) {
-    int remaining;
-    u32 n;
-    int pos;
     const u8 *data;
-    NWC24Err result;
+    int pos;
+    int remaining;
     int chunk;
+    u32 n;
+    NWC24Err result;
     char *buf;
 
     if (msg->face.size == 0) {
