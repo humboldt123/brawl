@@ -78,7 +78,10 @@ class soControllerModuleBuilder<wnControllerModuleBuildConfig<soControllerModule
 public:
     soControllerModuleBuilder(soModuleAccesser* acc, s16 manageId) :
         soArraySelectHolder<1, soArrayVector<soControllerImpl, 1>, soArrayNull<soControllerImpl> >(1, 0), m_clatters(1, 0),
-        m_controllerModule(acc, manageId, this->get(), m_clatters.get()) { }
+        m_controllerModule(acc, manageId, this->get(), &clatters()) { }
+    // BYTES: passing the clatter slot through a base-class reference makes the compiler form its address right after
+    // the slot is constructed, as the original does (m_clatters.get() forms it at the call).
+    soArray<soControllerClatter>& clatters() { return m_clatters.m_array; }
     soControllerModuleLinkRef* getModule() { return &m_controllerModule; }
 };
 
