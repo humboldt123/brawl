@@ -1,5 +1,6 @@
 #define SO_ARRAY_LIST_CTOR_FLAG // MATCH-ONLY: the launcher calls the sora_melee vector constructor with a zero argument
 #define FT_POOL_ROOT_NONPOLYMORPHIC // the missile pool's root has no vtable (the first pool level owns it)
+#define SO_EVENT_OBSERVER_CTOR_EXTERN // BYTES: the search observer base calls the sora_melee constructor and initialize
 #define SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR // BYTES: the search observer's (manage id, priority) constructor is a weak copy in this unit
 #define WN_WEAPON_BUILDER
 #define WN_SHARED_ARRAYS_1
@@ -60,6 +61,11 @@ inline void setRotBrake(soKineticEnergyRotNormal* energy, const Vec3f& brake) {
     energy->m_brake = brake;
 }
 
+// The constructor's weak copy (fn_122_245D0, map wnSnakeNikitaMissileStatusUniqProcessFly::getInstance).
+inline wnSnakeNikitaMissileStatusUniqProcessFly* wnSnakeNikitaMissileStatusUniqProcessFly::getInstance() {
+    return &g_wnSnakeNikitaMissileStatusUniqProcessFly;
+}
+
 #pragma dont_inline on // BYTES: the native missile constructor calls every helper (accessors included) out of line
 wnSnakeNikitaMissile::wnSnakeNikitaMissile(s32 articleId, const wnArticleBuildInfo& info,
                                            const wnSnakeNikitaMissileData* data) :
@@ -100,6 +106,41 @@ wnWeaponBuilder<wnSnakeNikitaMissileModuleAccesserBuildConfig>::wnWeaponBuilder(
     Weapon::initialize();
     m_moduleAccesser->getKineticModule().addEnergy(&m_energyNormal, 0, soKineticEnergy::AttributeFlag(1), -1);
     m_moduleAccesser->getKineticModule().addEnergy(&m_energyRotNormal, 1, soKineticEnergy::AttributeFlag(1), -1);
+}
+
+void wnSnakeNikitaMissile::updateNodeSRT() {
+    float scale = m_moduleAccesser->getPostureModule().getScale();
+    Vec3f scaling;
+    scaling.m_z = scale;
+    scaling.m_y = scale;
+    scaling.m_x = scale;
+    Vec3f position = m_moduleAccesser->getPostureModule().getPos();
+    Vec3f rotation = m_moduleAccesser->getPostureModule().getRot(1);
+    m_moduleAccesser->getModelModule().setNodeSRT(0, &scaling, &rotation, &position);
+    // Rotation 0 is the steering roll; keep it below a full turn.
+    Vec3f roll = m_moduleAccesser->getPostureModule().getRot(0);
+    if (roll.m_z >= 360.0f) {
+        roll.m_z -= 360.0f;
+        m_moduleAccesser->getPostureModule().setRot(&roll, 0);
+    }
+    m_moduleAccesser->getModelModule().setNodeRotate(1, &roll);
+}
+
+void wnSnakeNikitaMissile::notifyEventOnDamage(soDamage* damage, bool, soModuleAccesser* moduleAccesser) {
+}
+
+void wnSnakeNikitaMissile::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData,
+                                                   soModuleAccesser* moduleAccesser) {
+    Weapon::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
+    if (statusKind == 2) {
+        if (prevStatusKind == 0) {
+            if (m_param->m_life - m_moduleAccesser->getWorkManageModule().getInt(0x20000000) > m_param->m_armFrame) {
+                m_moduleAccesser->getWorkManageModule().onFlag(0x22000000);
+                return;
+            }
+        }
+        m_moduleAccesser->getWorkManageModule().offFlag(0x22000000);
+    }
 }
 
 void wnSnakeNikitaMissile::processCollision() {
@@ -193,6 +234,21 @@ bool wnSnakeNikitaMissile::notifyEventCollisionAttackCheck(u32 flags) {
     }
     Weapon::notifyEventCollisionAttackCheck(flags);
     return false;
+}
+
+void wnSnakeNikitaMissile::onDeactivate() {
+    if (!m_moduleAccesser->getWorkManageModule().isFlag(0x12000003)) {
+        u32 category = 0;
+        category |= 3;
+        if (m_moduleAccesser->getStatusModule().isCollisionAttackOccer() == 1 &&
+            m_moduleAccesser->getStatusModule().isCollisionAttackTarget(&category)) {
+            SnakeNikitaEndEvent event(0x838);
+            m_moduleAccesser->getLinkModule().sendEventParents(3, event);
+        } else {
+            SnakeNikitaEndEvent event(0x839);
+            m_moduleAccesser->getLinkModule().sendEventParents(3, event);
+        }
+    }
 }
 
 // Leaf functions shared with other fighter modules (same module-map names and bodies).
