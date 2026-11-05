@@ -135,7 +135,7 @@ void wnSnakeNikita::onDeactivate() {
             }
         }
         if (isNew) {
-            m_unkMissileTaskIds.push(missile->m_taskId);
+            m_unkMissileTaskIds.push(static_cast<unsigned long>(missile->m_taskId));
         }
     }
 }
