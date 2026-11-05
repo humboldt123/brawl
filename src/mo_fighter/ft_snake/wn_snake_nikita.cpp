@@ -130,6 +130,14 @@ inline soKineticEnergyLocalNormal::soKineticEnergyLocalNormal(float angle, const
 inline soParamAccesser* getNullParamAccesser() {
     return &g_soParamAccesserNull;
 }
+// HYPOTHESIS: stand in for soKineticEnergyRotNormal::setAccel/setBrake (fn_122_245FC/24604, map names), which the
+// shared soKineticEnergyRotNormal header does not declare.
+inline void setRotAccel(soKineticEnergyRotNormal* energy, const Vec3f& accel) {
+    energy->m_accel = accel;
+}
+inline void setRotBrake(soKineticEnergyRotNormal* energy, const Vec3f& brake) {
+    energy->m_brake = brake;
+}
 
 #pragma dont_inline on // BYTES: the native missile constructor calls every helper (accessors included) out of line
 wnSnakeNikitaMissile::wnSnakeNikitaMissile(s32 articleId, const wnArticleBuildInfo& info,
@@ -157,10 +165,8 @@ wnSnakeNikitaMissile::wnSnakeNikitaMissile(s32 articleId, const wnArticleBuildIn
     soKineticEnergyRotNormal* rot = dynamic_cast<soKineticEnergyRotNormal*>(
         getModuleAccesser()->getKineticModule().getEnergy(wnSnakeNikitaMissile_Energy_Rot));
     if (rot != NULL) {
-        // HYPOTHESIS: the original calls weak setAccel/setBrake helpers (fn_122_245FC/24604) that the shared
-        // soKineticEnergyRotNormal header does not declare yet.
-        rot->m_accel = Vec3f(0.0f, 0.0f, m_param->m_rotAccel);
-        rot->m_brake = Vec3f(0.0f, 0.0f, m_param->m_rotBrake);
+        setRotAccel(rot, Vec3f(0.0f, 0.0f, m_param->m_rotAccel));
+        setRotBrake(rot, Vec3f(0.0f, 0.0f, m_param->m_rotBrake));
     }
     Weapon::deactivate(false);
 }
