@@ -1,5 +1,6 @@
 #pragma optimization_level 2
 #pragma optimize_for_size on
+#pragma scheduling off
 #define SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR // BYTES: the search observer's (manage id, priority) constructor is a weak copy in this unit
 #define FT_MODULE_BUILDER // a fighter REL unit (configure.py builds it with the plain REL flags)
 #define WN_WEAPON_BUILDER

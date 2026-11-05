@@ -13,6 +13,36 @@
 
 struct wnSnakeNikitaModuleAccesserBuildConfig;
 
+// The array instances the sora_melee constructors build (the land mine's header declares the others).
+WN_STATUS_PROC_VECTOR_ARG_CTOR(3);
+FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 2);
+FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 4);
+// The manager of the missile's four energies: its constructor and methods are sora_melee's (as for the C4).
+template <>
+class soInstanceManagerFullPropertyVector<soKineticEnergy*, 4> : public soInstanceManagerFullProperty<soKineticEnergy*> {
+    soArrayVector<soInstanceUnitFullProperty<soKineticEnergy*>, 4> m_arrayVector; // 0x10
+    bool m_unk1;
+public:
+    soInstanceManagerFullPropertyVector(bool p1);
+    ~soInstanceManagerFullPropertyVector() { }
+    virtual soKineticEnergy*& at(s32 id);
+    virtual soKineticEnergy*& atIndex(s32 idx);
+    virtual s32 getId(s32 idx);
+    virtual u32 size() const;
+    virtual bool isContain(s32 id) const;
+    virtual void erase(s32 id);
+    virtual void clear();
+    virtual void set(soKineticEnergy* const& elm, s32 id);
+    virtual s32 add(soKineticEnergy*& elm, s32 id, soAttributeFlag attr, s16 p4);
+    virtual u32 capacity();
+    virtual soKineticEnergy*& atIndexFast(s32 idx);
+    virtual soInstanceUnitFullProperty<soKineticEnergy*>& atUnitIndexFast(s32 idx);
+    virtual s32 getIndex(s32 id) const;
+    virtual void getAttributeArray(soAttributeFlag targetAttr, soArray<soKineticEnergy**>& arr);
+    virtual soAttributeFlag getAttribute(s32 id) const;
+    virtual void getPriorityArray(soArray<soKineticEnergy**>& arr);
+};
+
 // HYPOTHESIS: The constructor places the missile-task vector immediately
 // after the owner builder's embedded module storage at +0x67B0.
 template <>
