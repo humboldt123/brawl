@@ -97,7 +97,8 @@ void wnSnakeNikitaMissileStatusUniqProcessFly::execStatus(soModuleAccesser* modu
             } else if (localEnergy->getSpeed().m_x >= upperLimit) {
                 speedTarget = lowSpeed;
             } else {
-                float blend = (rotationEnergy->getRotation().m_z - lowerLimit) / (upperLimit - lowerLimit);
+                Vec3f rotation = rotationEnergy->getRotation();
+                float blend = (rotation.m_z - lowerLimit) / (upperLimit - lowerLimit);
                 speedTarget = lowSpeed * blend + highSpeed * (1.0f - blend);
             }
 
