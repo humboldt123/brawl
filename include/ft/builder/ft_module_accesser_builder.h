@@ -209,7 +209,15 @@ public:
     soGlowModuleBuilder<typename BC::GlowModuleBuildConfig> m_glowModuleBuilder;                                                              // +0x66A8
     // end: +0x6828
 
+#ifdef FT_MODULE_ACCESSER_BUILDER_BASE_BUILD_DATA
+    // The so-level builder takes the base build data: fbd's inherited getters name soModuleAccesserBuildData's
+    // inline defaults, so MWCC emits the weak getSlopeAngleLimit() (20.0f) whose copy the linker later drops,
+    // leaving the literal in the unit's pool (ft_snake). Opt-in until every fighter is checked (ft_diddy keeps a
+    // tagged stand-in for the same literal).
+    soModuleAccesserBuilder(const soModuleAccesserBuildData& fbd, StageObject* owner) :
+#else
     soModuleAccesserBuilder(const ftFighterBuildData& fbd, StageObject* owner) :
+#endif
         m_moduleAccsr(
             owner,
             (soResourceModule*)((u8*)&m_resourceModuleBuilder + sizeof(typename BC::ResourceModuleBuildConfig::IdAccesserType)), // soResourceModuleBuilder::getModule() is not inlined by MWCC

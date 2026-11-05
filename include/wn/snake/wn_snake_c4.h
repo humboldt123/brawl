@@ -12,37 +12,11 @@
 #include <wn/wn_weapon_builder.h>
 
 WN_STATUS_PROC_VECTOR_ARG_CTOR(8);
-// The array instances the sora_melee constructors build.
-FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 2);
+// The array instances the sora_melee constructors build (the shared ones and the four-energy manager are in
+// wn_snake_shared_arrays.h).
+#include <wn/snake/wn_snake_shared_arrays.h>
 FT_DOL_ARRAY_VECTOR(soControllerImpl, 1);
 FT_DOL_ARRAY_VECTOR(soControllerClatter, 1);
-FT_DOL_ARRAY_VECTOR(soAreaContactLog, 4);
-FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 4);
-// The manager of the charge's four energies: its constructor and methods are sora_melee's.
-template <>
-class soInstanceManagerFullPropertyVector<soKineticEnergy*, 4> : public soInstanceManagerFullProperty<soKineticEnergy*> {
-    soArrayVector<soInstanceUnitFullProperty<soKineticEnergy*>, 4> m_arrayVector; // 0x10
-    bool m_unk1;
-public:
-    soInstanceManagerFullPropertyVector(bool p1);
-    ~soInstanceManagerFullPropertyVector() { }
-    virtual soKineticEnergy*& at(s32 id);
-    virtual soKineticEnergy*& atIndex(s32 idx);
-    virtual s32 getId(s32 idx);
-    virtual u32 size() const;
-    virtual bool isContain(s32 id) const;
-    virtual void erase(s32 id);
-    virtual void clear();
-    virtual void set(soKineticEnergy* const& elm, s32 id);
-    virtual s32 add(soKineticEnergy*& elm, s32 id, soAttributeFlag attr, s16 p4);
-    virtual u32 capacity();
-    virtual soKineticEnergy*& atIndexFast(s32 idx);
-    virtual soInstanceUnitFullProperty<soKineticEnergy*>& atUnitIndexFast(s32 idx);
-    virtual s32 getIndex(s32 id) const;
-    virtual void getAttributeArray(soAttributeFlag targetAttr, soArray<soKineticEnergy**>& arr);
-    virtual soAttributeFlag getAttribute(s32 id) const;
-    virtual void getPriorityArray(soArray<soKineticEnergy**>& arr);
-};
 
 // The parameter block of the charge (reached through the data block at +0x34).
 // HYPOTHESIS: meaning of the fields.
@@ -133,12 +107,20 @@ public:
     typedef soCollisionAttackModuleBuildConfig<soCollision::Category_Fighter, 1, 0, soCollisionAttackModuleImpl, 1, false, true>
         CollisionAttackModuleBuildConfig;
     typedef soCollisionHitModuleBuildConfigNull CollisionHitModuleBuildConfig;
+#ifdef WN_SNAKE_C4_MINE_BUILDERS // the fighter unit: the mine's builder types (one shared out-of-line teardown each)
+    typedef soCollisionSearchModuleBuilder<soCollisionSearchModuleBuildConfigWeapon<soCollisionSearchModuleImpl> > CollisionSearchModuleBuilder;
+#else
     typedef soCollisionSearchModuleBuilder<wnCollisionSearchModuleBuildConfig<soCollisionSearchModuleImpl> > CollisionSearchModuleBuilder;
+#endif
     typedef soDamageModuleBuildConfigNull DamageModuleBuildConfig;
     typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;
     typedef soVisibilityModuleBuildConfig<soVisibilityModuleImpl, 1> VisibilityModuleBuildConfig;
     typedef wnControllerModuleBuildConfig<soControllerModuleLinkRef, 1, 1> ControllerModuleBuildConfig;
+#ifdef WN_SNAKE_C4_MINE_BUILDERS
+    typedef soCameraModuleBuildConfigNoSubject<soCameraModuleSimple> CameraModuleBuildConfig;
+#else
     typedef wnCameraModuleBuildConfigNoSubject<soCameraModuleSimple> CameraModuleBuildConfig;
+#endif
     typedef wnStatusModuleBuildConfig<8, soGeneralWorkBuildConfig<2, 2, 1>, 8, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> >
         StatusModuleBuildConfig;
     typedef wnKineticModuleBuildConfigSized<wnKineticModuleImpl, soKineticMediatorNull, 4> KineticModuleBuildConfig;

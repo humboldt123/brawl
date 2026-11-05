@@ -4,7 +4,7 @@
 // motion, collision, kinetic or animation-command modules of its own, only one status.
 
 #include <wn/wn_weapon_builder.h>
-
+#include <wn/snake/wn_snake_status_builder.h>
 
 // The static data block of the article (read by its wnModuleAccesserBuildData).
 // HYPOTHESIS: layout of the untouched part.
@@ -26,15 +26,34 @@ public:
     typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;
     typedef soVisibilityModuleBuildConfigNull VisibilityModuleBuildConfig;
     typedef soAnimCmdModuleBuildConfigNull AnimCmdModuleBuildConfig;
-    typedef wnStatusModuleBuildConfig<1, soGeneralWorkBuildConfig<2, 2, 1>, 1, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> >
-        StatusModuleBuildConfig;
+    typedef wnSnakeOneStatusBuildConfig StatusModuleBuildConfig; // no tail word (wn_snake_status_builder.h)
     typedef soKineticModuleBuildConfigNull KineticModuleBuildConfig;
     typedef wnAnimCmdModuleSubBuildConfigNoUniq<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0> AnimCmdModuleSubBuildConfig;
     typedef soGlowModuleBuildConfigNull GlowModuleBuildConfig;
 };
 
-// The builder of this article carries no appended common energies (WN_WEAPON_NO_COMMON_ENERGIES in the unit), and its
-// status builder ends without the tail word (WN_STATUS_NO_TAIL).
+// The builder of this article carries no appended common energies (what WN_WEAPON_NO_COMMON_ENERGIES selects for a
+// whole unit). Specialized for this config, as the Mario cape does.
+template <>
+class wnWeaponBuilder<wnSnakeC4SwitchModuleAccesserBuildConfig> : public Weapon {
+protected:
+    wnModuleAccesserBuilder<wnSnakeC4SwitchModuleAccesserBuildConfig> m_modules;
+    // HYPOTHESIS: trailing alignment of the animation-command storage, as in the no-common-energies builder.
+    u32 m_modulesPad;
+public:
+    // A member template so its body (and the module builders it instantiates) is only analyzed where the article is
+    // built: ft_snake.cpp owns this article but instantiates the shared builders itself, later (ft_builder_noinline.h).
+    template <class BuildData>
+    wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const BuildData& bd,
+                    bool weaponFlag = true) :
+        Weapon(name, bd.m_kind, bd.m_data, articleId, &info, this->m_modules.getModuleAccesser(), weaponFlag),
+        m_modules(this, bd) {
+        Weapon::initialize();
+    }
+    virtual ~wnWeaponBuilder() { }
+    virtual void deactivateDescendantForce() { wnDeactivateArticleDescendants(m_modules.m_generateArticleBuilder); }
+};
+
 class wnSnakeC4Switch : public wnWeaponBuilder<wnSnakeC4SwitchModuleAccesserBuildConfig> {
 public:
     wnSnakeC4Switch(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeC4SwitchData* data);

@@ -44,6 +44,11 @@ struct ftData {
         };
     };
     void* extendParam[6];
+#ifdef FT_DATA_SIMPLE_ARTICLE_DATA
+    u8 unk94[0x34];
+    // HYPOTHESIS: the fighter's simple-article data (ftSnake::activeArticle12 passes it to the copy-ability process).
+    const struct wnSimpleData* simpleArticleData; // 0xC8
+#endif
 };
 
 

@@ -4,6 +4,7 @@
 #include <so/collision/so_collision_search_event_presenter.h>
 #include <so/damage/so_damage_event_presenter.h>
 #include <wn/wn_weapon_builder.h>
+#include <wn/snake/wn_snake_status_builder.h>
 #include <wn/wn_article_pool.h>
 #include <wn/weapon.h>
 #include <so/controller/so_controller_module_link_ref.h>
@@ -16,33 +17,7 @@ struct wnSnakeNikitaModuleAccesserBuildConfig;
 
 // The array instances the sora_melee constructors build (the land mine's header declares the others).
 WN_STATUS_PROC_VECTOR_ARG_CTOR(3);
-FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 2);
-FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soKineticEnergy*>, 4);
-// The manager of the missile's four energies: its constructor and methods are sora_melee's (as for the C4).
-template <>
-class soInstanceManagerFullPropertyVector<soKineticEnergy*, 4> : public soInstanceManagerFullProperty<soKineticEnergy*> {
-    soArrayVector<soInstanceUnitFullProperty<soKineticEnergy*>, 4> m_arrayVector; // 0x10
-    bool m_unk1;
-public:
-    soInstanceManagerFullPropertyVector(bool p1);
-    ~soInstanceManagerFullPropertyVector() { }
-    virtual soKineticEnergy*& at(s32 id);
-    virtual soKineticEnergy*& atIndex(s32 idx);
-    virtual s32 getId(s32 idx);
-    virtual u32 size() const;
-    virtual bool isContain(s32 id) const;
-    virtual void erase(s32 id);
-    virtual void clear();
-    virtual void set(soKineticEnergy* const& elm, s32 id);
-    virtual s32 add(soKineticEnergy*& elm, s32 id, soAttributeFlag attr, s16 p4);
-    virtual u32 capacity();
-    virtual soKineticEnergy*& atIndexFast(s32 idx);
-    virtual soInstanceUnitFullProperty<soKineticEnergy*>& atUnitIndexFast(s32 idx);
-    virtual s32 getIndex(s32 id) const;
-    virtual void getAttributeArray(soAttributeFlag targetAttr, soArray<soKineticEnergy**>& arr);
-    virtual soAttributeFlag getAttribute(s32 id) const;
-    virtual void getPriorityArray(soArray<soKineticEnergy**>& arr);
-};
+#include <wn/snake/wn_snake_shared_arrays.h> // the 2-slot interpolations and the four-energy manager
 
 // The missile's parameter block (read by its constructor).
 // HYPOTHESIS: layout of the untouched part and the field meanings.
@@ -186,24 +161,9 @@ public:
 FT_DOL_ARRAY_VECTOR(soArticle*, 2);
 typedef wnArticleManageModuleBuilder<wnSnakeNikitaMediator, 2> wnSnakeNikitaArticleManageModuleBuilder;
 
-// One status (no kinetic module follows, so no tail word as in the F.L.U.D.D. status builder).
-typedef wnStatusModuleBuildConfig<1, soGeneralWorkBuildConfig<2, 2, 1>, 1,
-    soTransitionModuleBuildConfig<wnStatusTransitionTypeList> > wnSnakeNikitaStatusBuildConfig;
-template <>
-class soStatusModuleBuilder<wnSnakeNikitaStatusBuildConfig> {
-    soArrayContractibleTable<const soStatusData> m_statusTable;
-    soGeneralWorkBuilder<soGeneralWorkBuildConfig<2, 2, 1> > m_generalWork;
-    soTransitionModuleBuilder<soTransitionModuleBuildConfig<wnStatusTransitionTypeList> > m_transition;
-    soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, 1>, soSingletonHolder<soArrayNull<soStatusUniqProcess*> > > m_processes;
-    soArrayQueueImpl<soArrayVector<s32, 1> > m_requests;
-    soStatusModuleImpl m_module;
-public:
-    soStatusModuleBuilder(soModuleAccesser* acc, const soStatusData* data, void* preCheck) :
-        m_statusTable(data, 1), m_generalWork(), m_transition(), m_processes(), m_requests(-1),
-        m_module(acc, &m_statusTable, m_processes.get(), m_generalWork.getModule(), m_transition.getModule(), &m_requests,
-                 preCheck, 1, 1) { }
-    soStatusModule* getModule() { return &m_module; }
-};
+// One status (no kinetic module follows, so no tail word as in the F.L.U.D.D. status builder): the builder shared with
+// the C4 switch (wn/snake/wn_snake_status_builder.h).
+typedef wnSnakeOneStatusBuildConfig wnSnakeNikitaStatusBuildConfig;
 
 class wnSnakeNikitaModuleAccesserBuildConfig : public wnCommonBuildConfig {
 public:

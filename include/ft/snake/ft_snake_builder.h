@@ -78,6 +78,7 @@ public:
             Heaps::HeapType nwMotionInstHeap);
     virtual void onActivate();
     virtual void onStart(int startKind);
+    virtual void analyzeSeal(void* seal);
     virtual void onEndFinal();
     virtual void playEatSE();
     virtual void notifyEventOnDamage(soDamage* damage, bool flag, soModuleAccesser* moduleAccesser);

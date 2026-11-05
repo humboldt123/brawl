@@ -13,9 +13,8 @@
 WN_STATUS_PROC_VECTOR_ARG_CTOR(5);
 // The array instances the sora_melee constructors build.
 FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 3);
-FT_DOL_ARRAY_VECTOR(soCollisionHitPart, 1);
+#include <wn/snake/wn_snake_shared_arrays.h> // the hit parts and the contact logs
 FT_DOL_ARRAY_VECTOR(soCollisionAttackAbsolute, 1);
-FT_DOL_ARRAY_VECTOR(soAreaContactLog, 4);
 FT_DOL_ARRAY_VECTOR(soInterpolation<Vec3f>, 3);
 
 // The parameter block of the mine (4 float and 1 int parameters, ids 4000.. and 24000).

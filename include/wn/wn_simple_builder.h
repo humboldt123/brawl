@@ -8,6 +8,9 @@
 #include <so/resource/so_resource_id_accesser.h>
 #include <so/team/so_team_impl.h>
 
+// WN_SIMPLE_AFTER_ARTICLE_BUILDERS (opt-in, default off): the unit included wn/wn_module_accesser_builder.h first (a
+// fighter that owns complete article types next to the simple article); the shared specializations come from there.
+
 // Zero-capacity selections own no array; alignment before the next real member
 // accounts for their four-byte occupied interval in the shared weapon builder.
 template <class V, class T>
@@ -31,6 +34,7 @@ public:
     ~soArraySelectHolder() { }
 };
 
+#ifndef WN_SIMPLE_AFTER_ARTICLE_BUILDERS
 template <> class soEventUnitWithWorkArea<soStatusEventObserver,16> : public soEventUnitImpl<soStatusEventObserver> {
     soInstanceManagerFullPropertyVector<soStatusEventObserver*,16> m_observerList;
 public:
@@ -66,10 +70,12 @@ public:
     virtual ~soEventUnitWithWorkArea();
     virtual u32 getObserverNum() const;
 };
+#endif
 
 typedef soInsideEventManageModuleBuildConfig<16,32,4,2,4,4,4,5,2,4,4,4,4,4,1,1,0,0,0,wnInsideEventManageModuleTypes> wnSimpleInsideEventManageModuleBuildConfig;
 static_assert(sizeof(soInsideEventManageModuleBuilder<wnSimpleInsideEventManageModuleBuildConfig,wnInsideEventManageModuleTypes>) == 0x804, "WN events");
 
+#ifndef WN_SIMPLE_AFTER_ARTICLE_BUILDERS
 FT_DOL_ARRAY_VECTOR(soModelNodeSetUp,5);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>,4);
 FT_DOL_ARRAY_VECTOR(soLinkConnection,5);
@@ -100,6 +106,7 @@ public:
     virtual soAttributeFlag getAttribute(s32 id) const;
     virtual void getPriorityArray(soArray<soAnimCmdControlUnit*>& arr);
 };
+#endif
 
 // Native motion construction registers one group of four transition terms.
 typedef soTransitionModuleBuildConfig<soTypeList<soIntToType<4>,soTypeListNullType> > wnSimpleMotionTransitionBuildConfig;
@@ -129,6 +136,7 @@ static_assert(sizeof(soMotionModuleBuilder<wnSimpleMotionBuildConfig>) == 0x248,
 static_assert(sizeof(soModelModuleBuilder<soModelModuleBuildConfig<5,0,soModelModuleImpl> >) == 0x1E0, "WN model extent");
 
 // Empty interpolation storage selects the shared null array.
+#ifndef WN_SIMPLE_AFTER_ARTICLE_BUILDERS
 template <>
 class soPostureModuleBuilder<soPostureModuleBuildConfig<0,soPostureModuleSimple> > :
     public soArraySelectHolder<0,soArrayVector<soInterpolation<Vec3f>,0>,soArrayNull<soInterpolation<Vec3f> > > {
@@ -137,9 +145,11 @@ public:
     soPostureModuleBuilder(soModuleAccesser*,soEventObserverRegistrationDesc*);
     ~soPostureModuleBuilder() { }
 };
+#endif
 static_assert(sizeof(soPostureModuleBuilder<soPostureModuleBuildConfig<0,soPostureModuleSimple> >) == 0x48, "WN posture extent");
 
 typedef soTeamModuleBuildConfig<soTeamImpl,soTeamModuleImpl> wnSimpleTeamBuildConfig;
+#ifndef WN_SIMPLE_AFTER_ARTICLE_BUILDERS
 template <>
 class soTeamModuleBuilder<wnSimpleTeamBuildConfig> {
 public:
@@ -149,11 +159,13 @@ public:
     soTeamModuleBuilder(s32,soModuleAccesser*);
     ~soTeamModuleBuilder() { }
 };
+#endif
 static_assert(sizeof(soTeamModuleBuilder<wnSimpleTeamBuildConfig>) == 0x64, "WN team extent");
 
 // HYPOTHESIS: source spelling of these disabled module selections.
 // Separate empty members account for the native byte slots, not padding arrays.
 struct wnDisabledModuleBuilder { };
+#ifndef WN_SIMPLE_AFTER_ARTICLE_BUILDERS
 // Storage and base identity verified through construction, teardown and RTTI.
 // Remaining shake virtual methods are not yet declared here; this view is used
 // only as owned storage with an imported destructor.
@@ -169,15 +181,18 @@ public:
 template <> class soShakeModuleBuilder<soShakeModuleBuildConfig<0,soShakeModuleSimple> > : public soArraySelectHolder<0,soArrayVector<soShakeTerm,0>,soArrayNull<soShakeTerm> > {
 public: soShakeModuleSimple m_module;
 };
+#endif
 static_assert(sizeof(soShakeModuleBuilder<soShakeModuleBuildConfig<0,soShakeModuleSimple> >)==0xC,"WN shake extent");
 // HYPOTHESIS: visibility config's node-selection parameter is still unresolved.
 struct wnSimpleVisibilityBuilder {
     soVisibilityModuleSimple m_module;
 };
 static_assert(sizeof(wnSimpleVisibilityBuilder)==0x14,"WN visibility extent");
+#ifndef WN_SIMPLE_AFTER_ARTICLE_BUILDERS
 template <> class soSlowModuleBuilder<soSlowModuleBuildConfig<soSlowModuleSimple> > {
 public: soSlowModuleSimple m_module;
 };
+#endif
 static_assert(sizeof(soSlowModuleBuilder<soSlowModuleBuildConfig<soSlowModuleSimple> >)==0x18,"WN slow extent");
 // HYPOTHESIS: use a named prototype until the full effect config schema is recovered.
 struct wnSimpleEffectBuilder {
@@ -199,6 +214,13 @@ struct wnSimpleAnimCmdSubBuilder {
 };
 static_assert(sizeof(wnSimpleAnimCmdSubBuilder)==0x134,"WN ACMD subbuilder extent");
 class wnSimpleModuleAccesserBuildConfig { };
+// A unit can spell the color blend config another way (Snake's map names it <-1, 0>).
+#ifndef WN_SIMPLE_VISIBILITY_BUILDER // a unit can use the article visibility builder type (Snake, by the map)
+#define WN_SIMPLE_VISIBILITY_BUILDER wnSimpleVisibilityBuilder
+#endif
+#ifndef WN_SIMPLE_COLOR_BLEND_BUILD_CONFIG
+#define WN_SIMPLE_COLOR_BLEND_BUILD_CONFIG soColorBlendModuleBuildConfig<1,1,soColorBlendModuleImpl>
+#endif
 template <> class soModuleAccesserBuilder<wnSimpleModuleAccesserBuildConfig> {
 public:
     soInsideEventManageModuleBuilder<wnSimpleInsideEventManageModuleBuildConfig,wnInsideEventManageModuleTypes> m_event;
@@ -217,7 +239,7 @@ public:
     soLinkModuleBuilder<soLinkModuleBuildConfigCap<5,soLinkModuleImpl> > m_link;
     // HYPOTHESIS: disabled selection type; extent and ownership are verified.
     wnDisabledModuleBuilder m_visibilitySelection;
-    wnSimpleVisibilityBuilder m_visibility;
+    WN_SIMPLE_VISIBILITY_BUILDER m_visibility;
     wnDisabledModuleBuilder m_controller,m_camera;
     soWorkManageModuleBuilder<soWorkManageModuleBuildConfig<soWorkManageModuleImpl> > m_workManage;
     soAnimCmdModuleBuilder<soAnimCmdModuleBuildConfig<6,soAnimCmdModuleImpl> > m_animCmd;
@@ -230,7 +252,7 @@ public:
     wnDisabledModuleBuilder m_slope;
     soShadowModuleBuilder<soShadowModuleBuildConfig<soShadowModuleImpl> > m_shadow;
     wnDisabledModuleBuilder m_item;
-    soColorBlendModuleBuilder<soColorBlendModuleBuildConfig<1,1,soColorBlendModuleImpl> > m_color;
+    soColorBlendModuleBuilder<WN_SIMPLE_COLOR_BLEND_BUILD_CONFIG> m_color;
     wnDisabledModuleBuilder m_jostle,m_abnormal;
     soSlowModuleBuilder<soSlowModuleBuildConfig<soSlowModuleSimple> > m_slow;
     wnDisabledModuleBuilder m_glow;

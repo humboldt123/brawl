@@ -224,5 +224,8 @@ class soColorBlendModuleBuilder {
     typename BC::ModuleType m_module;
 public:
     soColorBlendModuleBuilder(soModuleAccesser* acc) : m_module(acc, BC::Arg0, BC::Arg1) { }
+#ifdef SO_COLOR_BLEND_BUILDER_DTOR_OUT_OF_LINE // the unit defines the teardown (a weak copy it calls out of line)
+    ~soColorBlendModuleBuilder() __attribute__((never_inline));
+#endif
     typename BC::ModuleType* getModule() { return &m_module; }
 };

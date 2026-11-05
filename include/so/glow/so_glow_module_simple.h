@@ -12,6 +12,14 @@ class soModuleAccesser;
 class soGlowModule : public soNullable {
 public:
     virtual ~soGlowModule() { }
+#ifdef SO_GLOW_MODULE_ATTACK_API
+    // Slots from the soGlowModuleSimple vtable (sora_melee lbl_27_data_17C58).
+    virtual void clear();               // 0x10: refLinkNo = -1, glowAttack = 0, isGlow = false (HYPOTHESIS name)
+    virtual void update();              // 0x14: empty in the simple module (HYPOTHESIS name)
+    virtual s32 getGlowAttack();        // 0x18: returns the glow attack (HYPOTHESIS name)
+    virtual void setGlowAttack(s32 attack); // 0x1C: stores the attack and sets the glow flag
+    virtual bool isGlow();              // 0x20: the local glow flag, or the linked parent's (HYPOTHESIS name)
+#endif
 };
 
 class soGlowModuleSimple : public soGlowModule {

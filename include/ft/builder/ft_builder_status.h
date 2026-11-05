@@ -48,7 +48,8 @@ class soStatusModuleBuilder {
     soArrayContractibleTable<const soStatusData> m_statusTable;                                           // +0x0
     soGeneralWorkBuilder<typename BC::GeneralWorkBuildConfig> m_generalWorkBuilder;                       // +0x10
     soTransitionModuleBuilder<typename BC::TransitionBuildConfig> m_transitionBuilder;                    // +0xF0
-#if defined(WN_ARTICLE_NATIVE_BUILDERS) && !defined(WN_STATUS_PLAIN_NULL_ARRAY)
+// SO_STATUS_SINGLETON_NULL_ARRAY: a unit whose fighter builder also uses the singleton type (Snake, by the map names).
+#if (defined(WN_ARTICLE_NATIVE_BUILDERS) || defined(SO_STATUS_SINGLETON_NULL_ARRAY)) && !defined(WN_STATUS_PLAIN_NULL_ARRAY)
     soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, BC::StatusKindCap>, soSingletonHolder<soArrayNull<soStatusUniqProcess*> > > m_uniqProcs;
 #else
     soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, BC::StatusKindCap>, soArrayNull<soStatusUniqProcess*> > m_uniqProcs; // +0x964

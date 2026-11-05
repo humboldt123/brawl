@@ -1,14 +1,21 @@
 #define MT_VEC3F_SUB_FRESH_REGS
+#define MT_VEC3F_CTOR_NOINLINE // BYTES: the original keeps Vec3f(x, y, z) out of line (weak copy at 0xD580), also inside processFixCamera's helper.
 #define FT_POOL_ROOT_NONPOLYMORPHIC
+#define FT_MODULE_ACCESSER_BUILDER_BASE_BUILD_DATA // the so-level builder takes soModuleAccesserBuildData (ft/builder/ft_module_accesser_builder.h)
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
 #define FT_TEAM_TYPED_INTERFACE
+#define FT_MARTH_PHOTO_CALLBACK_NOINLINE // BYTES: soPhotoCallBack's weak destructor (0xAA80) calls cmPhotoCallBack's out of line.
 #define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define FT_NOINLINE_SEARCH_BUILDER
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_SNAKE_ARTICLE_POOLS
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define FT_PARAM_ACCESSER_TYPED_DTOR
+#define FT_DATA_SIMPLE_ARTICLE_DATA
+#define SO_GLOW_MODULE_ATTACK_API
+#define SO_COLOR_BLEND_BUILDER_DTOR_OUT_OF_LINE
+#define SO_STATUS_SINGLETON_NULL_ARRAY
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/snake/ft_snake_builder.h>
@@ -25,9 +32,29 @@
 #include <math.h>
 
 #include <so/glow/so_glow_module_simple.h>
+#include <it/item.h>
+#include <ft/kirby/ft_kirby_copy_ability_process.h>
+#include <cm/cm_controller_ai.h>
+#include <cm/cm_camera_controller.h>
+#include <so/so_external_value_accesser.h>
 
 #define FT_BC ftSnakeBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// The article destructors call these empty destructors out of line: soParamAccesser (0x3860, same form as
+// ft_fox.cpp), soDamageEventObserver (0x38A0) and wnKineticEnergyGravity (0x5438).
+#pragma dont_inline on
+soParamAccesser::~soParamAccesser() { }
+soDamageEventObserver::~soDamageEventObserver() { }
+wnKineticEnergyGravity::~wnKineticEnergyGravity() { }
+#pragma dont_inline off
+
+// The launcher's and the sight's link-ref controller modules are torn down by a weak copy in this unit (as in ft_mario.cpp).
+inline soControllerModuleLinkRef::~soControllerModuleLinkRef() { }
+// The articles' sound builder (0x45C4) inlines this empty destructor (same form as ft_mario.cpp).
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
+// The launcher's missile task id list is torn down by sora_melee's weak copy.
+template <> soArrayVector<unsigned long, 2>::~soArrayVector();
 
 // Status teardown destroys its owned change-request queue before observers.
 #pragma dont_inline on
@@ -36,6 +63,14 @@ template soArrayVector<s32, 8>::~soArrayVector();
 #endif
 #pragma dont_inline off
 soStatusModuleImpl::~soStatusModuleImpl() { }
+// Weak copy every fighter REL emits (same form as ft_diddy.cpp / ft_marth.cpp).
+ftKineticEnergyController::~ftKineticEnergyController() { }
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
 
 extern soStatusUniqProcess g_ftSnakeStatusUniqProcessCypherHang;
 extern soStatusUniqProcess g_ftSnakeStatusUniqProcessNikitaOperation;
@@ -92,6 +127,9 @@ void ftSnake::onStart(int startKind) {
     // HYPOTHESIS: the work 0x10000033 holds the grenade count of the fighter.
     m_moduleAccesser->getWorkManageModule().setInt(6, 0x10000033);
 }
+
+// Snake does nothing when sealed (an empty override of Fighter::analyzeSeal).
+void ftSnake::analyzeSeal(void* seal) { }
 
 // The Final Smash gave the model its own scale; the end puts the scale back from the work float.
 void ftSnake::onEndFinal() {
@@ -211,7 +249,14 @@ extern float lbl_27_rodata_EFC;
 
 // While the grenade launcher is raised the fighter follows the camera: he stands at the offset of the constants in front of
 // the main camera and turns with it.
-// HYPOTHESIS: the offset constants (0xFA9-0xFAB) and the field at 0xE4 of the camera (a screen ratio).
+// HYPOTHESIS: the offset constants (0xFA9-0xFAB); the x offset is scaled by the camera's aspect ratio.
+// HYPOTHESIS: the rotation (degrees) was set through an inline helper; its arguments are evaluated last to first.
+static inline float ftSnakeRadToDeg(float rad) {
+    return 57.29578f * rad;
+}
+static inline void ftSnakeSetRot(soPostureModule& posture, float x, float y, float z) {
+    posture.setRot(&Vec3f(x, y, z), 0);
+}
 void ftSnake::processFixCamera() {
     switch (m_moduleAccesser->getStatusModule().getStatusKind()) {
     case 0x130:
@@ -219,9 +264,9 @@ void ftSnake::processFixCamera() {
     case 0x132:
         if (gfCameraManager::getManager() != NULL) {
             if (gfCameraManager::getManager() != NULL) {
-                gfCamera* camera = reinterpret_cast<gfCamera*>(gfCameraManager::getManager());
+                gfCamera* camera = gfCameraManager::getManager()->getCamera(0);
                 if (camera != NULL) {
-                    Matrix cameraMtx = *reinterpret_cast<Matrix*>(camera);
+                    Matrix cameraMtx = static_cast<const Matrix&>(camera->m_viewMatrix);
                     Matrix inverse(true);
                     cameraMtx.inverse(&inverse);
                     soModuleAccesser* acc = m_moduleAccesser;
@@ -233,12 +278,12 @@ void ftSnake::processFixCamera() {
                     float correction = tangent <= 0.0f ? 1.0f : reference / tangent;
                     offset.m_z *= correction;
                     float divisor = lbl_27_rodata_EFC;
-                    offset.m_x *= *reinterpret_cast<float*>(reinterpret_cast<u8*>(camera) + 0xE4) / divisor;
+                    offset.m_x *= camera->m_aspect / divisor;
                     inverse.mulPos(&offset, &position);
                     Vec3f rotation;
                     inverse.getRotate(&rotation);
                     m_moduleAccesser->getPostureModule().setPos(&position);
-                    m_moduleAccesser->getPostureModule().setRot(&Vec3f(57.29578f * rotation.m_x, 57.29578f * rotation.m_y, 57.29578f * rotation.m_z), 0);
+                    ftSnakeSetRot(m_moduleAccesser->getPostureModule(), ftSnakeRadToDeg(rotation.m_x), ftSnakeRadToDeg(rotation.m_y), ftSnakeRadToDeg(rotation.m_z));
                     updateNodeSRT();
                 }
             }
@@ -389,12 +434,14 @@ bool ftSnake::activeArticle(wnSnakeMine* weapon, soModuleAccesser* acc) {
 }
 
 // The trench mortar shell starts at the stage object of the fighter with its team and facing.
+// HYPOTHESIS: an inline helper; its arguments are evaluated last to first (task id, resources, facing, team).
+static inline void ftSnakeActivateMortar(wnSnakeTrenchMortar* weapon, int team, float lr, soResourceModule& resources, int founderTaskId) {
+    weapon->activate(resources.getResourceIdAccesser()->getEtcResId(), team, lr, founderTaskId);
+}
 bool ftSnake::activeArticle1(wnSnakeTrenchMortar* weapon, soModuleAccesser* acc) {
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
-    int founderTaskId = acc->getStageObject().m_taskId;
-    soResourceModule& resources = acc->getResourceModule();
-    float lr = acc->getPostureModule().getLr();
-    weapon->activate(resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), lr, founderTaskId);
+    ftSnakeActivateMortar(weapon, fighter.getOwner()->getTeam(), acc->getPostureModule().getLr(), acc->getResourceModule(),
+                          acc->getStageObject().m_taskId);
     return true;
 }
 
@@ -407,17 +454,19 @@ bool ftSnake::activeArticle2(wnSnakeRpg7* weapon, soModuleAccesser* acc) {
 }
 
 // The Cypher starts with the team of the fighter.
+// HYPOTHESIS: an inline helper; its arguments are evaluated last to first (task id, resources, team).
+static inline void ftSnakeActivateCypher(wnSnakeCypher* weapon, int team, soResourceModule& resources, int founderTaskId) {
+    weapon->activate(resources.getResourceIdAccesser()->getEtcResId(), team, founderTaskId);
+}
 bool ftSnake::activeArticle3(wnSnakeCypher* weapon, soModuleAccesser* acc) {
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
-    soResourceModule& resources = acc->getResourceModule();
-    weapon->activate(resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), acc->getStageObject().m_taskId);
+    ftSnakeActivateCypher(weapon, fighter.getOwner()->getTeam(), acc->getResourceModule(), acc->getStageObject().m_taskId);
     return true;
 }
 
 // The Cypher is shot with the speed of the fighter.
 bool ftSnake::shootArticle(wnSnakeCypher* weapon, soModuleAccesser* acc) {
-    const Vec2f& speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
-    weapon->shoot(&speed.m_x);
+    weapon->shoot(&acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)).m_x);
     return true;
 }
 
@@ -453,6 +502,66 @@ bool ftSnake::activeArticle6(wnSnakeNikita* weapon, soModuleAccesser* acc) {
     return true;
 }
 
+// The first Snake parameter block (ftData::extendParam[0]): the grenade throw speeds.
+// HYPOTHESIS: which throw each pair belongs to (chosen by the motion kind in shootItem).
+struct ftSnakeGrenadeParam {
+    u8 unk0[8];
+    float m_throwSpeedAX; // 0x8: motions 0x1DE and 0x1E4
+    float m_throwSpeedAY;
+    float m_throwSpeedX;  // 0x10: the other motions
+    float m_throwSpeedY;
+    float m_throwSpeedBX; // 0x18: motions 0x1DF and 0x1E5
+    float m_throwSpeedBY;
+};
+
+// A grenade is thrown (status 0x12D) with the speed of the throw motion, mirrored to the facing; a glowing fighter adds
+// its glow attack bonus (work int 0x10000040) to the grenade. In any other status the grenade is dropped in place.
+// HYPOTHESIS: status 0x12D is the grenade throw and work int 0x10000040 the glow attack bonus.
+// HYPOTHESIS: the drop went through an inline helper (its arguments are evaluated last to first: posture, then the vector).
+static inline void ftSnakeFallItem(BaseItem* item, Vec3f* speed, soPostureModule& posture) {
+    item->fall(speed, posture.getLr());
+}
+bool ftSnake::shootItem(soArticle* article, bool* flag, soModuleAccesser* acc) {
+    BaseItem* item = dynamic_cast<BaseItem*>(article);
+    if (item == NULL) {
+        return false;
+    }
+    ftSnake* snake = dynamic_cast<ftSnake*>(&acc->getStageObject());
+    if (snake == NULL) {
+        return false;
+    }
+    ftData* data = snake->m_data;
+    if (acc->getStatusModule().getStatusKind() == 0x12D) {
+        Vec3f speed(static_cast<ftSnakeGrenadeParam*>(data->extendParam[0])->m_throwSpeedX,
+                    static_cast<ftSnakeGrenadeParam*>(data->extendParam[0])->m_throwSpeedY, 0.0f);
+        switch (acc->getMotionModule().getKind()) {
+        case 0x1DE:
+        case 0x1E4:
+            speed.m_x = static_cast<ftSnakeGrenadeParam*>(data->extendParam[0])->m_throwSpeedAX;
+            speed.m_y = static_cast<ftSnakeGrenadeParam*>(data->extendParam[0])->m_throwSpeedAY;
+            break;
+        case 0x1DF:
+        case 0x1E5:
+            speed.m_x = static_cast<ftSnakeGrenadeParam*>(data->extendParam[0])->m_throwSpeedBX;
+            speed.m_y = static_cast<ftSnakeGrenadeParam*>(data->extendParam[0])->m_throwSpeedBY;
+            break;
+        }
+        if (acc->getPostureModule().getLr() < 0.0f) {
+            speed.m_x = -speed.m_x;
+        }
+        item->throwAttack(acc->getPostureModule().getLr(), &speed, 1.0f);
+        if (static_cast<soGlowModule*>(acc->m_enumerationStart->m_glowModule)->isGlow() == true) {
+            int bonus = acc->getWorkManageModule().getInt(0x10000040);
+            int attack = item->getGlowAttack();
+            attack += bonus;
+            item->setGlowAttack(attack);
+        }
+    } else {
+        ftSnakeFallItem(item, &Vec3f(0.0f, 0.0f, 0.0f), acc->getPostureModule());
+    }
+    return true;
+}
+
 // The ladder starts with the Final Smash resource of the fighter.
 bool ftSnake::activeArticle7(wnSnakeLadder* weapon, soModuleAccesser* acc) {
     int founderTaskId = acc->getStageObject().m_taskId;
@@ -485,6 +594,97 @@ bool ftSnake::activeArticle10(wnSnakeRgb6Clip* weapon, soModuleAccesser* acc) {
     return true;
 }
 
+// A grenade launcher round starts at the muzzle of the launcher (article 8) and flies at the point under the sight
+// (article 9, its work floats 0x11000001/0x11000002 are the sight position on screen) shifted by the camera target.
+// HYPOTHESIS: the sight work float meanings. The pool keeps the round inactive (returns false).
+// The task id is read through StageObject::getTaskId() (the m_taskId field form colors registers differently).
+bool ftSnake::activeArticle11(wnSnakeRgb6Bullet* weapon, soModuleAccesser* acc) {
+    wnSnakeRgb6* launcher = dynamic_cast<wnSnakeRgb6*>(acc->getGenerateArticleManageModule().getArticle(8));
+    if (launcher == NULL) {
+        return false;
+    }
+    Vec3f shootPos = launcher->getShootPos();
+    wnSnakeRgb6Sight* sight = dynamic_cast<wnSnakeRgb6Sight*>(acc->getGenerateArticleManageModule().getArticle(9));
+    if (sight == NULL) {
+        return false;
+    }
+    if (g_cmAIController == NULL) {
+        return false;
+    }
+    gfCamera* camera = CameraController::getInstance()->getCameraInternal();
+    if (camera == NULL) {
+        return false;
+    }
+    Vec3f target(soExternalValueAccesser::getWorkFloat(sight, 0x11000001), soExternalValueAccesser::getWorkFloat(sight, 0x11000002), 0.0f);
+    Vec3f cameraTarget(0.0f, 0.0f, 0.0f);
+    cameraTarget = camera->m_targetPos;
+    Vec3fAdd(&target, &target, &cameraTarget);
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = acc->getStageObject().getTaskId();
+    weapon->activate(founderTaskId, dynamic_cast<ftResourceIdAccesserImpl&>(*resources.getResourceIdAccesser()).getFinalResId(),
+                     acc->getTeamModule().getTeam()->getNo(), &shootPos, &target);
+    return false;
+}
+
+// Snake's copy-ability process (sora_melee; RTTI name ftSnakeTransactor, base ftKirbyCopyAbilityProcess). Its constructor
+// (fn_27_3BAEF0), destructor (fn_27_3BAF00) and simple-article starter (fn_27_3BB0B4) are out of line in sora_melee.
+// HYPOTHESIS: the starter's name; it activates the simple article at the founder with a zero offset and returns true.
+class ftSnakeTransactor : public ftKirbyCopyAbilityProcess {
+public:
+    ftSnakeTransactor();
+    virtual ~ftSnakeTransactor();
+    bool activeSimple(wnSimple* weapon, soModuleAccesser* acc, int etcResId, const wnSimpleData* data);
+};
+
+// The simple article is started by the shared copy-ability process with the simple data of the fighter kind.
+// BYTES: the native function addresses the local static's guard, object and destructor registration separately
+// instead of from one pooled BSS base (same as ftSonicTransactor::getInstance).
+#pragma pool_data off
+bool ftSnake::activeArticle12(wnSimple* weapon, soModuleAccesser* acc) {
+    static ftSnakeTransactor transactor;
+    soResourceModule& resources = acc->getResourceModule();
+    ftData* data = g_ftCommonDataAccesser.getData(Fighter_Snake);
+    return transactor.activeSimple(weapon, acc, resources.getResourceIdAccesser()->getEtcResId(), data->simpleArticleData);
+}
+#pragma pool_data reset
+
+// The second item (slot 14) is let go: in status 0x10F it is thrown with no speed, otherwise it is tossed backwards, up
+// and dropped while work flag 0x22000010 is set, down and thrown when it is clear.
+// HYPOTHESIS: the status and flag meanings.
+// HYPOTHESIS: the two let-go speeds were inline helpers; their vectors sit below the inline zero vector in the frame.
+static inline void ftSnakeDropItem(BaseItem* item, soModuleAccesser* acc) {
+    Vec3f speed;
+    speed.m_x = -1.0f * acc->getPostureModule().getLr();
+    speed.m_y = 2.6f;
+    speed.m_z = 0.0f;
+    item->fall(&speed, acc->getPostureModule().getLr());
+}
+static inline void ftSnakeTossItem(BaseItem* item, soModuleAccesser* acc) {
+    Vec3f speed;
+    speed.m_x = -1.0f * acc->getPostureModule().getLr();
+    speed.m_y = -0.6f;
+    speed.m_z = 0.0f;
+    item->throwAttack(acc->getPostureModule().getLr(), &speed, 1.0f);
+}
+bool ftSnake::shootItem1(soArticle* article, bool* flag, soModuleAccesser* acc) {
+    BaseItem* item = dynamic_cast<BaseItem*>(article);
+    if (item == NULL) {
+        return false;
+    }
+    ftSnake* snake = dynamic_cast<ftSnake*>(&acc->getStageObject());
+    if (snake == NULL) {
+        return false;
+    }
+    if (acc->getStatusModule().getStatusKind() == 0x10F) {
+        item->throwAttack(acc->getPostureModule().getLr(), &Vec3f(0.0f, 0.0f, 0.0f), 1.0f);
+    } else if (acc->getWorkManageModule().isFlag(0x22000010)) {
+        ftSnakeDropItem(item, acc);
+    } else {
+        ftSnakeTossItem(item, acc);
+    }
+    return false;
+}
+
 // ---- the article holders --------------------------------------------------------------------------------------------
 // What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Snake, copied into the
 // descriptor), the heap module and the data block of the fighter kind.
@@ -493,6 +693,7 @@ struct ftSnakeArticleDataTag {
     bool m_unused;
     bool m_resourceGroup;
     ftSnakeArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
+    ftSnakeArticleDataTag& get() { return *this; }
 };
 
 struct ftSnakeArticleKind : wnArticleKindInfo {
@@ -500,11 +701,12 @@ struct ftSnakeArticleKind : wnArticleKindInfo {
         kind = 0;
         subKind = Fighter_Snake;
     }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling (the lookup reads the kind through a call)
 };
 
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
+// The descriptor keeps the address of the kind temporary of the caller.
 struct ftSnakeArticleBuildInfo : wnArticleBuildInfo {
-    ftSnakeArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
+    ftSnakeArticleBuildInfo(const wnArticleKindInfo& kindArg, soHeapModule* heap) {
         kindInfo = &kindArg;
         heapModule = heap;
     }
@@ -524,46 +726,38 @@ extern "C" void* fn_27_148014(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_148028(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_14803C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftSnakeArticleTraits;
-#define FT_SNAKE_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftSnakeArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftSnakeArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_Snake, &tag.m_resourceGroup)); \
-        } \
-    };
+// Every article of the fighter is built from the data of the fighter kind; the data lookup is called in the argument
+// list, after the descriptor (the inline holder constructors are spliced into the article manage builder).
+#define FT_SNAKE_ARTICLE_HOLDER(W, DATA, ID, GETTER) \
+    template <> inline wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc), \
+        m_instance(ID, ftSnakeArticleBuildInfo(ftSnakeArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), \
+                   static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, ftSnakeArticleKind().getSubKind(), \
+                                                   &ftSnakeArticleDataTag().get().m_resourceGroup))) { }
 
-FT_SNAKE_TRAITS(wnSnakeMine, wnSnakeMineData, 0, fn_27_147F38)
-FT_SNAKE_TRAITS(wnSnakeTrenchMortar, wnSnakeTrenchMortarData, 1, fn_27_147F4C)
-FT_SNAKE_TRAITS(wnSnakeRpg7, wnSnakeRpg7Data, 2, fn_27_147F74)
-FT_SNAKE_TRAITS(wnSnakeCypher, wnSnakeCypherData, 3, fn_27_147F88)
-FT_SNAKE_TRAITS(wnSnakeC4, wnSnakeC4Data, 4, fn_27_147F9C)
-FT_SNAKE_TRAITS(wnSnakeC4Switch, wnSnakeC4SwitchData, 5, fn_27_147FB0)
-FT_SNAKE_TRAITS(wnSnakeNikita, wnSnakeNikitaData, 6, fn_27_147FC4)
-FT_SNAKE_TRAITS(wnSnakeLadder, wnSnakeLadderData, 7, fn_27_147FEC)
-FT_SNAKE_TRAITS(wnSnakeRgb6, wnSnakeRgb6Data, 8, fn_27_148000)
-FT_SNAKE_TRAITS(wnSnakeRgb6Sight, wnSnakeRgb6SightData, 9, fn_27_148014)
-FT_SNAKE_TRAITS(wnSnakeRgb6Clip, wnSnakeRgb6ClipData, 10, fn_27_148028)
-FT_SNAKE_TRAITS(wnSnakeRgb6Bullet, wnSnakeRgb6BulletData, 11, fn_27_14803C)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftSnakeArticleTraits<W>::ArticleId, ftSnakeArticleBuildInfo(ftSnakeArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftSnakeArticleTraits<W>::getData()) { }
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeMine, wnSnakeMineData, 0, fn_27_147F38)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeTrenchMortar, wnSnakeTrenchMortarData, 1, fn_27_147F4C)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeRpg7, wnSnakeRpg7Data, 2, fn_27_147F74)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeCypher, wnSnakeCypherData, 3, fn_27_147F88)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeC4, wnSnakeC4Data, 4, fn_27_147F9C)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeC4Switch, wnSnakeC4SwitchData, 5, fn_27_147FB0)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeNikita, wnSnakeNikitaData, 6, fn_27_147FC4)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeLadder, wnSnakeLadderData, 7, fn_27_147FEC)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeRgb6, wnSnakeRgb6Data, 8, fn_27_148000)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeRgb6Sight, wnSnakeRgb6SightData, 9, fn_27_148014)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeRgb6Clip, wnSnakeRgb6ClipData, 10, fn_27_148028)
+FT_SNAKE_ARTICLE_HOLDER(wnSnakeRgb6Bullet, wnSnakeRgb6BulletData, 11, fn_27_14803C)
 
 
 // The two simple articles (the shared generic article) are built from the simple data of the fighter kind.
-struct ftSnakeSimpleBuildInfo : wnSimpleConstructionInfo {
-    ftSnakeSimpleBuildInfo(wnSimpleKindInfo kindArg, void* heap) : wnSimpleConstructionInfo(kindArg, heap) { }
+struct ftSnakeSimpleKind : wnSimpleKindInfo {
+    ftSnakeSimpleKind() : wnSimpleKindInfo(Fighter_Snake) { }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling, as the article kind's
 };
-static wnSimpleData* ftSnakeSimpleData() {
-    ftSnakeArticleDataTag tag;
-    return g_ftCommonDataAccesser.getSimpleData(Fighter_Snake, &tag.m_resourceGroup);
-}
 template <>
 wnArticleHolder<wnSimple>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(12, ftSnakeSimpleBuildInfo(wnSimpleKindInfo(Fighter_Snake), acc->m_enumerationStart->m_heapModule), ftSnakeSimpleData(), false) { }
+    m_instance(12, wnSimpleConstructionInfo(wnSimpleKindInfo(Fighter_Snake), acc->m_enumerationStart->m_heapModule),
+               g_ftCommonDataAccesser.getSimpleData(static_cast<ftKind>(ftSnakeSimpleKind().getSubKind()),
+                                                    &ftSnakeArticleDataTag().get().m_resourceGroup), false) { }
 
 // ---- the articles and their mediator --------------------------------------------------------------------------------
 
@@ -576,6 +770,9 @@ wnArticleSubPool<W, N>::~wnArticleSubPool() { }
 template wnArticleHolder<wnSnakeMine>::~wnArticleHolder();
 template wnArticleHolder<wnSnakeTrenchMortar>::~wnArticleHolder();
 template wnArticleHolder<wnSnakeRpg7>::~wnArticleHolder();
+template <class BC>
+soColorBlendModuleBuilder<BC>::~soColorBlendModuleBuilder() { }
+template soColorBlendModuleBuilder<wnSnakeCypherModuleAccesserBuildConfig::ColorBlendModuleBuildConfig>::~soColorBlendModuleBuilder();
 template wnArticleHolder<wnSnakeCypher>::~wnArticleHolder();
 template wnArticleHolder<wnSnakeC4>::~wnArticleHolder();
 template wnArticleHolder<wnSnakeC4Switch>::~wnArticleHolder();
@@ -599,6 +796,8 @@ template wnArticleManageModuleBuilder<ftSnakeArticleMediator, 7>::~wnArticleMana
 template wnArticleManageModuleBuilder<ftSnakeArticleMediator, 7>::wnArticleManageModuleBuilder(soModuleAccesser*);
 ftSnakeArticleMediator::~ftSnakeArticleMediator() { }
 #pragma dont_inline off
+soArticleMediator::~soArticleMediator() { } // the base of every mediator (its teardown is in this unit, as in ft_mario.cpp)
+wnSimple::~wnSimple() { } // the simple article's teardown is a copy in each fighter that pools one (as in ft_purin.cpp)
 
 s32 ftSnakeArticleMediator::getMediateNum() { return 15; }
 void ftSnakeArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
@@ -856,7 +1055,7 @@ inline soArticle* ftSnakeGenerateSlot13(soModuleAccesser* acc, const soIntToType
     if (acc->getGenerateArticleManageModule().getNum(13) >= 2) {
         return wnGetNullArticle();
     }
-    BaseItem* item = soArticleMediatorHelper::createItem(0x59, 13, acc->getStageObject().m_taskId);
+    BaseItem* item = soArticleMediatorHelper::createItem(0x59, 13, acc->getStageObject().getTaskId());
     if (item == NULL) {
         return wnGetNullArticle();
     }
@@ -868,7 +1067,7 @@ inline soArticle* ftSnakeGenerateSlot14(soModuleAccesser* acc, const soIntToType
     if (acc->getGenerateArticleManageModule().getNum(14) >= 1) {
         return wnGetNullArticle();
     }
-    BaseItem* item = soArticleMediatorHelper::createItem(0x53, 14, acc->getStageObject().m_taskId);
+    BaseItem* item = soArticleMediatorHelper::createItem(0x53, 14, acc->getStageObject().getTaskId());
     if (item == NULL) {
         return wnGetNullArticle();
     }
@@ -958,887 +1157,3 @@ void testBuilder() {
     soInsideEventManageModuleBuilder<ftSnakeInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
     soResourceIdAccesserImpl idAccImpl(0, 1, 2);
 }
-soInsideEventManageModuleBuilder<ftSnakeInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
-
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-// Virtual-slot view used only to emit virtual tail calls; the slots are never defined in this unit.
-struct ftSnakeVirtualSlots {
-    virtual void slot0();
-    virtual void slot1();
-    virtual void slot2();
-    virtual void slot3();
-    virtual void slot4();
-    virtual void slot5();
-    virtual void slot6();
-    virtual void slot7();
-    virtual void slot8();
-    virtual void slot9();
-    virtual void slot10();
-    virtual void slot11();
-    virtual void slot12();
-    virtual void slot13();
-    virtual void slot14();
-    virtual void slot15();
-    virtual void slot16();
-    virtual void slot17();
-    virtual void slot18();
-    virtual void slot19();
-    virtual void slot20();
-};
-
-// Empty virtual overrides.
-void fn_122_CF10() {}
-void fn_122_EFD0() {}
-void fn_122_F1C4() {}
-void fn_122_13394() {}
-void fn_122_13418() {}
-void fn_122_13500() {}
-void fn_122_135E8() {}
-void fn_122_136D0() {}
-void fn_122_137B8() {}
-void fn_122_138A0() {}
-void fn_122_13988() {}
-void fn_122_13A70() {}
-
-// Constant returns.
-int fn_122_F094() { return 0; }
-int fn_122_11DBC() { return 15; }
-int fn_122_133D0() { return 8; }
-int fn_122_134C4() { return 0; }
-int fn_122_135AC() { return 0; }
-int fn_122_13694() { return 0; }
-int fn_122_1377C() { return 0; }
-int fn_122_13864() { return 0; }
-int fn_122_1394C() { return 0; }
-int fn_122_13A34() { return 0; }
-int fn_122_13B1C() { return 0; }
-
-// Byte store at +0x24900.
-void fn_122_11DC4(u8* p, u8 v) { *(u8*)(p + 0x24900) = v; }
-
-// Virtual tail call through slot 20.
-void fn_122_11E3C(void* p) { return ((ftSnakeVirtualSlots*)p)->slot20(); }
-
-// Sub-object thunks: adjust this by a constant, then tail-call the sibling function.
-void* fn_122_5A94(void* p, s32 flags);
-void* fn_122_11708(void* p, s32 flags);
-void* fn_122_3254(void* p, s32 flags);
-void* fn_122_F284(void* p, s32 flags);
-void* fn_122_D7C8(void* p, s32 flags);
-void* fn_122_CFC4(void* p, s32 flags);
-void* fn_122_D188(void* p, s32 flags);
-void* fn_122_DC1C(void* p, s32 flags);
-void* fn_122_D25C(void* p, s32 flags);
-void* fn_122_EE8C(void* p, s32 flags);
-void* fn_122_EDF4(void* p, s32 flags);
-
-void* fn_122_13D20(void* p, s32 flags) { return fn_122_5A94((u8*)p - 0x4, flags); }
-void* fn_122_13D28(void* p, s32 flags) { return fn_122_11708((u8*)p - 0x4, flags); }
-void* fn_122_13D30(void* p, s32 flags) { return fn_122_3254((u8*)p - 0x4, flags); }
-void* fn_122_13D68(void* p, s32 flags) { return fn_122_F284((u8*)p - 0x40, flags); }
-void* fn_122_13D80(void* p, s32 flags) { return fn_122_D7C8((u8*)p - 0x54, flags); }
-void* fn_122_13D88(void* p, s32 flags) { return fn_122_CFC4((u8*)p - 0x64, flags); }
-void* fn_122_13D90(void* p, s32 flags) { return fn_122_D188((u8*)p - 0x70, flags); }
-void* fn_122_13DF8(void* p, s32 flags) { return fn_122_DC1C((u8*)p - 0xB8, flags); }
-void* fn_122_13E60(void* p, s32 flags) { return fn_122_D25C((u8*)p - 0xE8, flags); }
-void* fn_122_13E90(void* p, s32 flags) { return fn_122_F284((u8*)p - 0x2D020, flags); }
-void* fn_122_13E9C(void* p, s32 flags) { return fn_122_EE8C((u8*)p - 0x2D020, flags); }
-void* fn_122_13EA8(void* p, s32 flags) { return fn_122_EDF4((u8*)p - 0x2D020, flags); }
-
-// Pointer offset returned only for selector 0 (ignores the sub-object if the selector is nonzero).
-u8* fn_122_11E74(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11E8C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11EA4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11EBC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11ED4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11EEC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11F04(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11F1C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11F34(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11F4C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11F64(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_11F7C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_1341C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_13504(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_135EC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_136D4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_137BC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_138A4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_1398C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_122_13A74(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-
-// Selector 0 and 1 sub-object pointers.
-u8* fn_122_11E4C(u8* p, int x) {
-    if (x == 1) {
-        return p + 0x16DC;
-    }
-    if (x == 0) {
-        return p + 0x10;
-    }
-    return 0;
-}
-
-// Delete the object when flags > 0 (no destructor call).
-void* fn_122_1D5C(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_1DF8(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-#pragma dont_inline on
-void* fn_122_3820(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-#pragma dont_inline reset
-void* fn_122_3860(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_3EE4(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_3F94(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_4394(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-#pragma dont_inline on
-void* fn_122_48DC(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-#pragma dont_inline reset
-
-// Vec3 copy.
-void fn_122_D564(float* dst, float* src) {
-    dst[0] = src[0];
-    dst[1] = src[1];
-    dst[2] = src[2];
-}
-
-
-// Sub-object destructor wrappers: destroy a sub-object (flag 0 or -1), then delete when flags > 0.
-void* fn_122_12BB4(void* p, s16 flags);
-void* fn_122_3320(void* p, s16 flags);
-void* fn_27_D3B50(void* p, s16 flags);
-void* fn_27_64874(void* p, s16 flags);
-
-void* fn_27_63EBC(void* p, s16 flags);
-void* fn_27_5C674(void* p, s16 flags);
-void* fn_27_5AE44(void* p, s16 flags);
-void __dt__16soStopModuleImplFv(void* p, s16 flags);
-void __dt__22soVisibilityModuleImplFv(void* p, s16 flags);
-void __dt__22soColorBlendModuleImplFv(void* p, s16 flags);
-void __dt__22soControllerModuleImplFv(void* p, s16 flags);
-void __dt__15cmPhotoCallBackFv(void* p, s16 flags);
-void __dt__21ftExtendParamAccesserFv(void* p, s16 flags);
-void* fn_122_A734(void* p, s16 flags);
-void* fn_27_6880C(void* p, s16 flags);
-void* fn_122_12054(void* p, s16 flags);
-void __dt__25soKineticEnergyWindNormalFv(void* p, s16 flags);
-void* fn_122_12828(void* p, s16 flags);
-void* fn_122_37C4(void* p, s16 flags);
-void* fn_122_12960(void* p, s16 flags);
-void* fn_122_33FC(void* p, s16 flags);
-void* fn_122_345C(void* p, s16 flags);
-void __dt__19soGeneralWorkSimpleFv(void* p, s16 flags);
-void* fn_27_B4780(void* p, s16 flags);
-void __dt__17soSoundModuleImplFv(void* p, s16 flags);
-void* fn_122_4F20(void* p, s16 flags);
-
-void* fn_122_12C2C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_12BB4(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_32C4(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_3320(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_38A0(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_D3B50(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_38FC(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_64874(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_3958(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_3820(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_3BC4(void* p, s16 flags) {
-    if (p != 0) {
-        static_cast<soGlowModuleSimple*>(p)->soGlowModuleSimple::~soGlowModuleSimple();
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_3C20(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_63EBC(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_3C7C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_5C674(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_44FC(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_5AE44(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_5438(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_3820(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_5754(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_63EBC(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_4684(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__16soStopModuleImplFv(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_593C(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__22soVisibilityModuleImplFv(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_6498(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__22soColorBlendModuleImplFv(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_6B18(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__22soControllerModuleImplFv(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_A3D0(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_48DC(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_AA80(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__15cmPhotoCallBackFv(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_F228(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__21ftExtendParamAccesserFv(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_A6D8(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_A734(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_4624(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_6880C((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_120B4(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_12054((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_12828(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__25soKineticEnergyWindNormalFv((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_12888(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_12828((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_12960(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_37C4((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_129C0(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_12960((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_339C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_33FC((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_33FC(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_345C((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_3DE8(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__19soGeneralWorkSimpleFv((u8*)p + 0x38, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_42AC(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__19soGeneralWorkSimpleFv((u8*)p + 0x14, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_449C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_B4780((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_45C4(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__17soSoundModuleImplFv((u8*)p + 0xC, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_4EC0(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_4F20((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-
-// Sub-object destructor wrappers (batch 2): destroy a sub-object, then delete when flags > 0.
-void* fn_122_5D1C(void* p, s16 flags);
-void* fn_122_5D7C(void* p, s16 flags);
-void* fn_122_5FE4(void* p, s16 flags);
-void* fn_122_6044(void* p, s16 flags);
-void* fn_122_6648(void* p, s16 flags);
-void* fn_122_66A8(void* p, s16 flags);
-void* fn_122_6CC4(void* p, s16 flags);
-void* fn_122_6D24(void* p, s16 flags);
-void* fn_122_6FF0(void* p, s16 flags);
-void* fn_122_7050(void* p, s16 flags);
-void* fn_122_77B8(void* p, s16 flags);
-void* fn_122_7818(void* p, s16 flags);
-void* fn_122_7B08(void* p, s16 flags);
-void* fn_122_7B68(void* p, s16 flags);
-void* fn_122_7ED0(void* p, s16 flags);
-void* fn_122_7F30(void* p, s16 flags);
-void* fn_122_8224(void* p, s16 flags);
-void* fn_122_8284(void* p, s16 flags);
-void* fn_122_8628(void* p, s16 flags);
-void* fn_122_8688(void* p, s16 flags);
-void* fn_122_8944(void* p, s16 flags);
-void* fn_122_8A10(void* p, s16 flags);
-void* fn_122_89B0(void* p, s16 flags);
-void* fn_122_90CC(void* p, s16 flags);
-void* fn_122_12304(void* p, s16 flags);
-void* fn_122_12364(void* p, s16 flags);
-
-void* fn_122_5CBC(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_5D1C((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_5D1C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_5D7C((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_5F84(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_5FE4((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_5FE4(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_6044((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_65E8(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_6648((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_6648(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_66A8((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_6C64(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_6CC4((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_6CC4(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_6D24((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_6F90(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_6FF0((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_6FF0(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_7050((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_767C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_6B18((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_7758(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_77B8((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_77B8(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_7818((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_7AA8(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_7B08((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_7B08(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_7B68((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_7E70(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_7ED0((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_7ED0(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_7F30((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_81C4(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_8224((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_8224(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_8284((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_85C8(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_8628((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_8628(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_8688((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_88E4(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_8944((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_89B0(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_8A10((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_8D58(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_89B0((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_FBAC(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_12C2C((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_12364(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_12304((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_123C4(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_12364((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-
-// Delete the object when flags > 0 (no destructor call).
-void* fn_122_4C3C(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_4C7C(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_5AD4(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_5B14(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-void* fn_122_CDAC(void* p, s16 flags) {
-    if (p != 0) {
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-
-// Sub-object destructor wrapper: destroy the sub-object at +0x4, then delete when flags > 0.
-void* fn_122_4F80(void* p, s16 flags);
-void* fn_122_4F20(void* p, s16 flags) {
-    if (p != 0) {
-        fn_122_4F80((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-
-} // extern "C"
-
-// Fighter event thunks: adjust `this` back to the Fighter base, then tail-call the Fighter method.
-extern "C" {
-void fn_122_13D40(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) { ((Fighter*)(self - 0x54))->Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4); }
-void fn_122_13D48(u8* self, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x64))->Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser); }
-void fn_122_13D50(u8* self, SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x70))->Fighter::notifyEventChangeSituation(kind, prevKind, moduleAccesser); }
-void fn_122_13D58(u8* self, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xB8))->Fighter::notifyEventCollisionSearch(collisionLog, moduleAccesser); }
-void fn_122_13D60(u8* self, soDamage* damage, bool unk2, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xE8))->Fighter::notifyEventOnDamage(damage, unk2, moduleAccesser); }
-bool fn_122_13D98(u8* self, u32 flags) { return ((Fighter*)(self - 0x7C))->Fighter::notifyEventCollisionAttackCheck(flags); }
-void fn_122_13DA0(u8* self, float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x7C))->Fighter::notifyEventCollisionAttack(power, collisionLog, moduleAccesser); }
-void fn_122_13DA8(u8* self, int index, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x88))->Fighter::notifyEventChangeCollisionHit(index, moduleAccesser); }
-bool fn_122_13DB0(u8* self) { return ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShieldCheck(); }
-bool fn_122_13DC8(u8* self) { return ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorCheck(); }
-bool fn_122_13DE0(u8* self) { return ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorberCheck(); }
-bool fn_122_13DF0(u8* self) { return ((Fighter*)(self - 0xB8))->Fighter::notifyEventCollisionSearchCheck(); }
-bool fn_122_13E00(u8* self, soModuleAccesser* moduleAccesser, int taskId, int unk2, int unk3) { return ((Fighter*)(self - 0xC4))->Fighter::notifyEventCaptureStatus(moduleAccesser, taskId, unk2, unk3); }
-void fn_122_13E08(u8* self, BaseItem* item, int unk2, bool unk3, u8 unk4) { ((Fighter*)(self - 0xD0))->Fighter::notifyVisibilityItem(item, unk2, unk3, unk4); }
-void fn_122_13E10(u8* self, BaseItem* item, u32 index, bool unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyEjectAttachItem(item, index, unk3); }
-void fn_122_13E18(u8* self, BaseItem* item, u32 index, bool unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyEjectItem(item, index, unk3); }
-void fn_122_13E20(u8* self, BaseItem* item) { ((Fighter*)(self - 0xD0))->Fighter::notifyShootBulletItem(item); }
-void fn_122_13E28(u8* self, BaseItem* item) { ((Fighter*)(self - 0xD0))->Fighter::notifyDropItem(item); }
-void fn_122_13E30(u8* self, BaseItem* item, u32 nodeIndex, int* unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyThrowItem(item, nodeIndex, unk3); }
-void fn_122_13E38(u8* self, BaseItem* item, u32 nodeIndex, int* unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyUseItem(item, nodeIndex, unk3); }
-void fn_122_13E40(u8* self, BaseItem* item, u32 nodeIndex, u32 attachNodeIndex, bool unk4, bool unk5) { ((Fighter*)(self - 0xD0))->Fighter::notifyAttachItem(item, nodeIndex, attachNodeIndex, unk4, unk5); }
-void fn_122_13E48(u8* self, itParam::SizeKind sizeKind, BaseItem* item, u32 nodeIndex, u32 index, bool unk5) { ((Fighter*)(self - 0xD0))->Fighter::notifyHaveItem(sizeKind, item, nodeIndex, index, unk5); }
-bool fn_122_13E50(u8* self, BaseItem* item, bool* unk2) { return ((Fighter*)(self - 0xD0))->Fighter::notifyHaveItemPreCheck(item, unk2); }
-void fn_122_13E58(u8* self, soDamage* damage, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xE8))->Fighter::notifyEventAddDamage(damage, moduleAccesser); }
-void fn_122_13E68(u8* self, float unk1, int unk2) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventPikminFinalAttack(unk1, unk2); }
-void fn_122_13E70(u8* self) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventChangeAdvUnit(); }
-void fn_122_13E78(u8* self) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventBeat(); }
-void fn_122_13E80(u8* self, float unk1) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventSetDamage(unk1); }
-void fn_122_13E88(u8* self, float unk1, float unk2, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x100))->Fighter::notifyEventTurn(unk1, unk2, moduleAccesser); }
-bool fn_122_13D70(u8* self, acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3) { return ((Fighter*)(self - 0x48))->Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3); }
-void fn_122_13DB8(u8* self, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShieldSearch(searchModule, collisionLog, groupIndex, moduleAccesser); }
-void fn_122_13DC0(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-void fn_122_13DD0(u8* self, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorSearch(searchModule, collisionLog, groupIndex, moduleAccesser); }
-void fn_122_13DD8(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-void fn_122_13DE8(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-} // extern "C"
