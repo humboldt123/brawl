@@ -7,6 +7,8 @@
 #include <mt/mt_vector.h>
 #include <so/so_external_value_accesser.h>
 #include <so/so_value_accesser.h>
+#define SO_PHYSICS_MODULE_IMPL_FULL
+#include <so/physics/so_physics_module_impl.h>
 #include <so/so_module_accesser.h>
 #include <so/work/so_work_manage_module_impl.h>
 
@@ -39,14 +41,9 @@ void ftSnakeStatusUniqProcessFinalEnd::exitStatus(soModuleAccesser* acc, int nex
     CameraController* camera = CameraController::getInstance();
     if (camera) {
         soPostureModule& posture = acc->getPostureModule();
-        char* fields = reinterpret_cast<char*>(camera);
-        posture.initPos(&Vec3f(0.5f * (*reinterpret_cast<float*>(fields + 0x148) +
-                                     *reinterpret_cast<float*>(fields + 0x14C)),
-                              *reinterpret_cast<float*>(fields + 0x150), 0.0f));
-        // Native soPhysicsModuleImpl vtable +0xE4 is sync2ndSavedPosition().
-        void* physics = acc->m_enumerationStart->m_physicsModule;
-        reinterpret_cast<void (*)(void*)>(
-            (*reinterpret_cast<void***>(reinterpret_cast<unsigned char*>(physics) + 8))[0xE4 / 4])(physics);
+        Rect2D& bounds = camera->m_stageCameraBounds;
+        posture.initPos(&Vec3f((bounds.m_left + bounds.m_right) / 2.0f, bounds.m_up, 0.0f));
+        static_cast<soPhysicsModule*>(acc->m_enumerationStart->m_physicsModule)->sync2ndSavedPosition();
         acc->getStageObject().updateNodeSRT();
         acc->getStageObject().updateRoughPos();
     }
