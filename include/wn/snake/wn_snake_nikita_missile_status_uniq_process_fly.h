@@ -12,7 +12,7 @@ public:
     virtual void execStatus(soModuleAccesser* moduleAccesser);
     static wnSnakeNikitaMissileStatusUniqProcessFly* getInstance();
 private:
-    void processSoundEffect(soModuleAccesser* moduleAccesser, float turnDelta);
+    void processSoundEffect(float turnDelta, soModuleAccesser* moduleAccesser);
 };
 
 extern wnSnakeNikitaMissileStatusUniqProcessFly g_wnSnakeNikitaMissileStatusUniqProcessFly;

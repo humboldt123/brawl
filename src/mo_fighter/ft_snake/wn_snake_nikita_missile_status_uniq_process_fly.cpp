@@ -30,7 +30,10 @@ void wnSnakeNikitaMissileStatusUniqProcessFly::execStatus(soModuleAccesser* modu
         moduleAccesser->getKineticModule().getEnergy(2));
     soKineticEnergyRotNormal* rotationEnergy = dynamic_cast<soKineticEnergyRotNormal*>(
         moduleAccesser->getKineticModule().getEnergy(1));
-    if (localEnergy == 0 || rotationEnergy == 0) {
+    if (localEnergy == 0) {
+        return;
+    }
+    if (rotationEnergy == 0) {
         return;
     }
 
@@ -40,7 +43,8 @@ void wnSnakeNikitaMissileStatusUniqProcessFly::execStatus(soModuleAccesser* modu
         moduleAccesser->getWorkManageModule().decInt(0x10000006);
         float angle = localEnergy->unk34;
         angle += moduleAccesser->getWorkManageModule().getFloat(0x11000001);
-        moduleAccesser->getWorkManageModule().setFloat(localEnergy->unk34, 0x21000002);
+        float prevAngle = localEnergy->unk34;
+        moduleAccesser->getWorkManageModule().setFloat(prevAngle, 0x21000002);
         localEnergy->unk34 = angle;
 
         Vec3f rot(-angle, 90.0f, 0.0f);
@@ -65,17 +69,18 @@ void wnSnakeNikitaMissileStatusUniqProcessFly::execStatus(soModuleAccesser* modu
                 turn *= 0.5f;
             }
 
-            moduleAccesser->getWorkManageModule().setFloat(localEnergy->unk34, 0x21000002);
+            float prevAngle = localEnergy->unk34;
+            moduleAccesser->getWorkManageModule().setFloat(prevAngle, 0x21000002);
             float angle = turn + localEnergy->unk34;
             if (static_cast<float>(fabs(angle)) >= 360.0f) {
                 angle += 360.0f * (angle >= 0.0f ? -1.0f : 1.0f);
             }
             localEnergy->unk34 = angle;
 
-            Vec3f rot(-(turn + angle), 90.0f, 0.0f);
+            Vec3f rot(-(turn + localEnergy->unk34), 90.0f, 0.0f);
             moduleAccesser->getPostureModule().setRot(&rot, true);
         }
-        processSoundEffect(moduleAccesser, turnDelta);
+        processSoundEffect(turnDelta, moduleAccesser);
     }
 
     float lowerLimit = moduleAccesser->getWorkManageModule().getFloat(0x21000004);
@@ -124,8 +129,8 @@ void soKineticEnergyRotNormal::setStableSpeed(Vec3f* speed) {
 }
 
 void wnSnakeNikitaMissileStatusUniqProcessFly::processSoundEffect(
-    soModuleAccesser* moduleAccesser,
-    float turnDelta
+    float turnDelta,
+    soModuleAccesser* moduleAccesser
 ) {
     if (moduleAccesser->getWorkManageModule().getInt(0x20000003) > 0) {
         moduleAccesser->getWorkManageModule().decInt(0x20000003);

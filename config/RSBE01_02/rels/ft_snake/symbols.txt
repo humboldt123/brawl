@@ -1057,7 +1057,7 @@ deactivateDescendantForce__64wnWeaponBuilder<45wnSnakeNikitaMissileModuleAccesse
 initStatus__40wnSnakeNikitaMissileStatusUniqProcessFlyFP16soModuleAccesser = .text:0x000272CC; // type:function size:0x24
 execStatus__40wnSnakeNikitaMissileStatusUniqProcessFlyFP16soModuleAccesser = .text:0x000272F0; // type:function size:0x690
 setStableSpeed__24soKineticEnergyRotNormalFP5Vec3f = .text:0x00027980; // type:function size:0x1C
-processSoundEffect__40wnSnakeNikitaMissileStatusUniqProcessFlyFP16soModuleAccesserf = .text:0x0002799C; // type:function size:0xF0
+processSoundEffect__40wnSnakeNikitaMissileStatusUniqProcessFlyFfP16soModuleAccesser = .text:0x0002799C; // type:function size:0xF0
 __dt__40wnSnakeNikitaMissileStatusUniqProcessFlyFv = .text:0x00027A8C; // type:function size:0x40
 __sinit_\wn_snake_nikita_missile_status_uniq_process_fly_cpp = .text:0x00027ACC; // type:function size:0x48
 __ct__40wnSnakeNikitaMissileStatusUniqProcessFlyFv = .text:0x00027B14; // type:function size:0x10
