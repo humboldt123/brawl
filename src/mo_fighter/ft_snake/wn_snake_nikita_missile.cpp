@@ -176,22 +176,20 @@ void wnSnakeNikitaMissile::notifyEventCollisionSearch(soCollisionLog* collisionL
 }
 
 bool wnSnakeNikitaMissile::notifyEventCollisionSearchCheck() {
-    soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
-    const int statusKind = m_moduleAccesser->getStatusModule().getStatusKind();
-    bool shouldReflect = false;
-    if (statusKind == 0) {
-        shouldReflect = work.isFlag(0x22000002);
-        if (shouldReflect) {
-            work.offFlag(0x22000002);
-        }
-    } else if (statusKind == 1) {
-        shouldReflect = work.isFlag(0x22000001);
-        if (shouldReflect) {
-            work.offFlag(0x22000001);
-        }
+    // A reflector hit flags the missile (status 0: 0x22000002, status 1: 0x22000001); consume the flag.
+    bool reflected = false;
+    if (m_moduleAccesser->getStatusModule().getStatusKind() == 0 &&
+        m_moduleAccesser->getWorkManageModule().isFlag(0x22000002)) {
+        m_moduleAccesser->getWorkManageModule().offFlag(0x22000002);
+        reflected = true;
+    } else if (m_moduleAccesser->getStatusModule().getStatusKind() == 1 &&
+               m_moduleAccesser->getWorkManageModule().isFlag(0x22000001)) {
+        m_moduleAccesser->getWorkManageModule().offFlag(0x22000001);
+        reflected = true;
     }
 
-    if (shouldReflect) {
+    if (reflected) {
+        // Reflected: Snake loses control and the missile joins the reflector's team.
         setAutonomy();
         SnakeNikitaEndEvent event(0x839);
         m_moduleAccesser->getLinkModule().sendEventParents(3, event);
@@ -199,27 +197,43 @@ bool wnSnakeNikitaMissile::notifyEventCollisionSearchCheck() {
         const int team = m_moduleAccesser->getReflectModule().getTeam();
         m_moduleAccesser->getTeamModule().setTeam(team, true);
         m_moduleAccesser->getTeamModule().setHitTeam(team);
+        m_moduleAccesser->getTeamModule().setTeamOwnerId(m_moduleAccesser->getReflectModule().getTaskId());
 
         soKineticEnergyLocalNormal* energy = dynamic_cast<soKineticEnergyLocalNormal*>(
-            m_moduleAccesser->getKineticModule().getEnergy(2));
+            m_moduleAccesser->getKineticModule().getEnergy(wnSnakeNikitaMissile_Energy_LocalNormal));
         if (energy != NULL) {
-            energy->unk34 -= 0.3846154f;
-            if (energy->unk34 < 0.0f) {
-                energy->unk34 += 360.0f;
+            float angle = energy->unk34 - 0.3846154f;
+            if (angle < 0.0f) {
+                angle += 360.0f;
             }
-            Vec3f rotation(-energy->unk34, 90.0f, 0.0f);
+            energy->unk34 = angle;
+            Vec3f rotation;
+            rotation.m_x = -angle;
+            rotation.m_y = 90.0f;
+            rotation.m_z = 0.0f;
             m_moduleAccesser->getPostureModule().setRot(&rotation, 1);
         }
         return false;
     }
 
-    // HYPOTHESIS: these two work flags represent the native status-specific
-    // collision transition gates; the flags themselves remain unnamed.
-    if (statusKind == 0 && work.isFlag(0x22000001)) {
-        m_moduleAccesser->getStatusModule().changeStatusRequest(2, m_moduleAccesser);
-        return true;
+    // HYPOTHESIS: a hit flag of the current status (status 0: 0x22000001, status 1: 0x22000000) explodes the missile.
+    bool flyHit = false;
+    if (m_moduleAccesser->getStatusModule().getStatusKind() == 0 &&
+        m_moduleAccesser->getWorkManageModule().isFlag(0x22000001)) {
+        flyHit = true;
     }
-    if (statusKind == 1 && work.isFlag(0x22000000)) {
+    bool hit = true;
+    if (!flyHit) {
+        bool fallHit = false;
+        if (m_moduleAccesser->getStatusModule().getStatusKind() == 1 &&
+            m_moduleAccesser->getWorkManageModule().isFlag(0x22000000)) {
+            fallHit = true;
+        }
+        if (!fallHit) {
+            hit = false;
+        }
+    }
+    if (hit == true) {
         m_moduleAccesser->getStatusModule().changeStatusRequest(2, m_moduleAccesser);
         return true;
     }
