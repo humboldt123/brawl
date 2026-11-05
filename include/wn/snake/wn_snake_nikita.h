@@ -150,6 +150,7 @@ typedef wnArticleHierarchy<wnSnakeNikitaMissile, 2, soInstancePoolRoot> wnSnakeN
 class wnSnakeNikitaMediator : public soArticleMediator {
     wnSnakeNikitaMissilePool m_pools; // +0x8
     u8 m_autoRecycle;                 // +0x4AE0
+    WN_ARTICLE_SLOT_FRIENDS
 public:
     wnSnakeNikitaMediator(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~wnSnakeNikitaMediator() { }

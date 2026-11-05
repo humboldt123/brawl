@@ -230,3 +230,55 @@ void wnSnakeNikita::forceFallMissile() {
         }
     }
 }
+
+// ---- the launcher's article mediator: article slot 0 is the pool of two missiles, slots 1-16 are unused ------------
+
+// The pool activates a missile through its launcher.
+struct wnSnakeNikitaActivator {
+    static bool activate(wnSnakeNikitaMissile* missile, soModuleAccesser* acc) {
+        return wnSnakeNikita::activeArticle(missile, acc);
+    }
+};
+
+soArticle* wnSnakeNikitaMediator::generate(s32 articleId, soModuleAccesser* acc) {
+    switch (articleId) {
+    case 0: return wnArticleSlotGenerate<wnSnakeNikitaActivator>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOTS_FROM_1(wnGetNullArticle())
+    default: return wnGetNullArticle();
+    }
+}
+bool wnSnakeNikitaMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
+    switch (articleId) {
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnSnakeNikitaMissile, 2, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOTS_FROM_1(false)
+    default: return false;
+    }
+}
+s32 wnSnakeNikitaMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
+    switch (articleId) {
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnSnakeNikitaMissile, 2, soInstancePoolRoot>, wnArticleSlotCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOTS_FROM_1(0)
+    default: return 0;
+    }
+}
+s32 wnSnakeNikitaMediator::getGenerateMaxNum(s32 articleId) {
+    switch (articleId) {
+    case 0: return wnArticleSlotGenerateMaxNum(2, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOTS_FROM_1(0)
+    default: return 0;
+    }
+}
+bool wnSnakeNikitaMediator::shoot(soModuleAccesser*, soArticle* article) {
+    switch (article->getArticleId()) {
+    case 0: return wnArticleSlotShoot<wnSnakeNikitaMissile>(article, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOTS_FROM_1(true)
+    default: return false;
+    }
+}
+void wnSnakeNikitaMediator::deactivate() {
+    for (s32 i = 0; i < 2; ++i) {
+        if (!static_cast<soArticle&>(*m_pools.getSub().getInstanceAt(i)).setDeactivateDescendant()) return;
+    }
+}
+s32 wnSnakeNikitaMediator::getMediateNum() { return 1; }
+void wnSnakeNikitaMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
