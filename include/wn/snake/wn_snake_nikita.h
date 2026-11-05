@@ -52,7 +52,10 @@ struct wnSnakeNikitaMissileParam {
     float m_rotBrake;   // +0x20: rotation energy brake (z)
     u8 unk24[0x8];
     int m_life;         // +0x2C: HYPOTHESIS: flight frames before the missile falls
-    u8 unk30[0x18];
+    u8 unk30[0xC];
+    float m_damageTurn; // +0x3C: HYPOTHESIS: turn speed per damage point when knocked aside
+    int m_damageTurnFrame; // +0x40: HYPOTHESIS: frames a hit keeps turning the missile
+    int m_damageFrame;  // +0x44: HYPOTHESIS: frame count written when a flying missile is hit
     float m_gravity;    // +0x48: gravity energy acceleration (negated)
     float m_speedLimit; // +0x4C: gravity energy speed limit
     int m_armFrame;     // +0x50: HYPOTHESIS: flown frames after which a fall keeps the explode-on-hit flag

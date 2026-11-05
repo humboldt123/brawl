@@ -19,6 +19,8 @@
 #include <wn/snake/so_kinetic_energy_local_normal.h>
 
 #include <gf/gf_task_scheduler.h>
+#include <mt/mt_prng.h>
+#include <so/stop/so_stop_module_impl.h>
 #include <so/article/so_article.h>
 #include <so/article/so_generate_article_manage_module.h>
 #include <so/link/so_link_module_impl.h>
@@ -127,6 +129,49 @@ void wnSnakeNikitaMissile::updateNodeSRT() {
 }
 
 void wnSnakeNikitaMissile::notifyEventOnDamage(soDamage* damage, bool, soModuleAccesser* moduleAccesser) {
+    // HYPOTHESIS: task category 2 destroys the missile outright (its hit points drop to zero).
+    if (damage->m_collisionLog.m_taskCategory == 2) {
+        m_moduleAccesser->getWorkManageModule().setInt(0, 0x10000005);
+        return;
+    }
+    m_moduleAccesser->getWorkManageModule().subInt(damage->m_damageAdd, 0x10000005);
+    if (damage->m_powerMax <= 0.0f) {
+        return;
+    }
+
+    m_moduleAccesser->getCollisionSearchModule().clearAll();
+    if (m_moduleAccesser->getStatusModule().getStatusKind() == 0) {
+        m_moduleAccesser->getWorkManageModule().setInt(m_param->m_damageFrame, 0x20000002);
+    }
+    if (m_param->m_damageTurnFrame > 0) {
+        // The hit turns the missile towards the attack's angle, the short way round.
+        m_moduleAccesser->getWorkManageModule().setInt(m_param->m_damageTurnFrame, 0x10000006);
+        const float vector = damage->m_attackData.m_vector;
+        const float angle = m_energyLocal.unk34;
+        float turn = vector - angle;
+        if (vector >= 361.0f) {
+            // HYPOTHESIS: the "Sakurai angle" 361 turns relative to the stored steering angle.
+            turn = angle - m_moduleAccesser->getWorkManageModule().getFloat(0x21000002);
+            if (0.0f == turn) {
+                turn = randf() - 0.5f;
+            }
+        }
+        if (0.0f != turn) {
+            if (turn < -180.0f) {
+                turn += 360.0f;
+            } else if (turn > 180.0f) {
+                turn -= 360.0f;
+            }
+            turn = turn > 0.0f ? 1.0f : -1.0f; // only the direction is kept
+            const wnSnakeNikitaMissileParam* param = m_param;
+            const float turnSpeed = damage->m_damageAdd * param->m_damageTurn * turn;
+            m_moduleAccesser->getWorkManageModule().setFloat(turnSpeed / param->m_damageTurnFrame, 0x11000001);
+        }
+    }
+    if (damage->m_reaction > 0.0f) {
+        const int hitStopFrame = soStopModuleImpl::calcHitStopFrame(damage->m_powerMax, 0.3846154f, 5.0f, 1.0f, 30.0f);
+        m_moduleAccesser->getStopModule().setHitStopFrame(hitStopFrame, 1);
+    }
 }
 
 void wnSnakeNikitaMissile::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData,
@@ -202,7 +247,7 @@ bool wnSnakeNikitaMissile::notifyEventCollisionSearchCheck() {
         soKineticEnergyLocalNormal* energy = dynamic_cast<soKineticEnergyLocalNormal*>(
             m_moduleAccesser->getKineticModule().getEnergy(wnSnakeNikitaMissile_Energy_LocalNormal));
         if (energy != NULL) {
-            float angle = energy->unk34 - 0.3846154f;
+            float angle = energy->unk34 - 180.0f;
             if (angle < 0.0f) {
                 angle += 360.0f;
             }
