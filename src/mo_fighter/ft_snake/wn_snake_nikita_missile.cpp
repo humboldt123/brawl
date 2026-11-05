@@ -248,10 +248,9 @@ void wnSnakeNikitaMissile::notifyEventOnDamage(soDamage* damage, bool, soModuleA
             } else if (turn > 180.0f) {
                 turn -= 360.0f;
             }
-            turn = turn > 0.0f ? 1.0f : -1.0f; // only the direction is kept
-            const wnSnakeNikitaMissileParam* param = m_param;
-            const float turnSpeed = damage->m_damageAdd * param->m_damageTurn * turn;
-            m_moduleAccesser->getWorkManageModule().setFloat(turnSpeed / param->m_damageTurnFrame, 0x11000001);
+            // Only the direction of the turn is kept.
+            const float turnSpeed = damage->m_damageAdd * m_param->m_damageTurn * (turn > 0.0f ? 1.0f : -1.0f);
+            m_moduleAccesser->getWorkManageModule().setFloat(turnSpeed / m_param->m_damageTurnFrame, 0x11000001);
         }
     }
     if (damage->m_reaction > 0.0f) {
