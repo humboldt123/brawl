@@ -134,6 +134,7 @@ wnWeaponBuilder<wnSnakeNikitaMissileModuleAccesserBuildConfig>::wnWeaponBuilder(
     m_moduleAccesser->getKineticModule().addEnergy(&m_energyRotNormal, 1, soKineticEnergy::AttributeFlag(1), -1);
 }
 
+#pragma dont_inline on // BYTES: the native missile constructor calls every helper (accessors included) out of line
 wnSnakeNikitaMissile::wnSnakeNikitaMissile(s32 articleId, const wnArticleBuildInfo& info,
                                            const wnSnakeNikitaMissileData* data) :
     wnWeaponBuilder<wnSnakeNikitaMissileModuleAccesserBuildConfig>(
@@ -166,6 +167,7 @@ wnSnakeNikitaMissile::wnSnakeNikitaMissile(s32 articleId, const wnArticleBuildIn
     }
     Weapon::deactivate(false);
 }
+#pragma dont_inline reset
 
 void wnSnakeNikitaMissile::processCollision() {
     const int statusKind = m_moduleAccesser->getStatusModule().getStatusKind();

@@ -108,7 +108,8 @@ public:
     typedef wnStatusModuleBuildConfig<3, soGeneralWorkBuildConfig<4, 5, 1>, 3, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> >
         StatusModuleBuildConfig;
     typedef wnKineticModuleBuildConfigSized<wnKineticModuleImpl, soKineticMediatorNull, 4> KineticModuleBuildConfig;
-    typedef wnAnimCmdModuleSubBuildConfigDefault<1, 3, 0, 0, 1, 3, 0, 0, 1, 3, 0, 0, 1, 3, 0, 0> AnimCmdModuleSubBuildConfig;
+    typedef wnAnimCmdModuleSubBuildConfigDefault<1, 3, 0, 0, 1, 4, 0, 0, 1, 4, 0, 0, 1, 4, 0, 0> AnimCmdModuleSubBuildConfig;
+    typedef soReflectModuleBuildConfig<1, soReflectModuleImpl> ReflectModuleBuildConfig; // the missile can be reflected
 };
 
 // The generic weapon builder (module storage and the two common energies); only its constructor is a separate
