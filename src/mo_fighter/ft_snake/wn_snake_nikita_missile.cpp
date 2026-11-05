@@ -19,7 +19,16 @@
 #include <wn/snake/so_kinetic_energy_local_normal.h>
 
 #include <gf/gf_task_scheduler.h>
+#include <wn/wn_activate_desc.h>
 #include <mt/mt_prng.h>
+#include <mt/mt_matrix.h>
+#include <math.h>
+
+extern "C" {
+// HYPOTHESIS: DOL Matrix helpers (map names wrong or missing): rotation from Euler angles, matrix-vector product.
+void fn_8003ECA0(Matrix* mtx, float x, float y, float z);
+void fn_8003E3BC(const Matrix* mtx, const Vec3f* in, Vec3f* out);
+}
 #include <so/stop/so_stop_module_impl.h>
 #include <so/article/so_article.h>
 #include <so/article/so_generate_article_manage_module.h>
@@ -108,6 +117,76 @@ wnWeaponBuilder<wnSnakeNikitaMissileModuleAccesserBuildConfig>::wnWeaponBuilder(
     Weapon::initialize();
     m_moduleAccesser->getKineticModule().addEnergy(&m_energyNormal, 0, soKineticEnergy::AttributeFlag(1), -1);
     m_moduleAccesser->getKineticModule().addEnergy(&m_energyRotNormal, 1, soKineticEnergy::AttributeFlag(1), -1);
+}
+
+void wnSnakeNikitaMissile::activate(int founderTaskId, int resourceId, int team, Vec3f pos, Vec3f rot) {
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, pos, 0.0f,
+                        team, 0, 2, 0x80, 0, 0x35F, 0);
+    desc.flagsHigh = 1;
+    desc.flagsMidHigh = 0;
+    desc.flagsMidLow = 1;
+    desc.flagsLow = 0;
+    desc.unk4DHigh = 0;
+    Weapon::activate(&desc);
+    m_moduleAccesser->getLinkModule().setAttribute(3, static_cast<soLinkConnection::Attribute>(4), true);
+
+    soKineticEnergyLocalNormal* energy = dynamic_cast<soKineticEnergyLocalNormal*>(
+        m_moduleAccesser->getKineticModule().getEnergy(wnSnakeNikitaMissile_Energy_LocalNormal));
+    if (energy != NULL) {
+        Vec2f speed;
+        speed.m_x = m_param->m_speed;
+        speed.m_y = 0.0f;
+        energy->m_speed = speed;
+        Vec2f accel;
+        accel.m_x = m_param->m_accel;
+        accel.m_y = 0.0f;
+        energy->m_accel = accel;
+        Vec2f target;
+        target.m_x = m_param->m_targetSpeed;
+        target.m_y = 0.0f;
+        energy->m_speedTarget = target;
+        Vec2f brake(m_param->m_brake, m_param->m_brake);
+        energy->m_brake = brake;
+
+        // The launch rotation (degrees) turns the forward axis; its angle in the xy plane is the steering angle.
+        Vec3f dir(0.0f, 0.0f, 1.0f);
+        Matrix mtx; // the default constructor sets the identity
+        fn_8003ECA0(&mtx, 0.017453292f * rot.m_x, 0.017453292f * rot.m_y, 0.017453292f * rot.m_z);
+        fn_8003E3BC(&mtx, &dir, &dir);
+        const float angle = 57.29578f * static_cast<float>(atan2(dir.m_y, dir.m_x));
+        energy->unk34 = angle;
+        Vec3f rotation;
+        rotation.m_x = -angle;
+        rotation.m_y = 90.0f;
+        rotation.m_z = 0.0f;
+        m_moduleAccesser->getPostureModule().setRot(&rotation, 1);
+        m_moduleAccesser->getWorkManageModule().setFloat(angle, 0x21000002);
+    }
+
+    soKineticEnergyRotNormal* rotEnergy = dynamic_cast<soKineticEnergyRotNormal*>(
+        m_moduleAccesser->getKineticModule().getEnergy(wnSnakeNikitaMissile_Energy_Rot));
+    if (rotEnergy != NULL) {
+        const float rotSpeedZ = m_param->m_rotSpeed;
+        Vec3f rotSpeed;
+        rotSpeed.m_x = 0.0f;
+        rotSpeed.m_y = 0.0f;
+        rotSpeed.m_z = rotSpeedZ;
+        rotEnergy->m_rotSpeed = rotSpeed;
+    }
+    updateNodeSRT();
+
+    // HYPOTHESIS: work ids (hit points, flight timers and steering parameters).
+    m_moduleAccesser->getWorkManageModule().setInt(m_param->m_hp, 0x10000005);
+    m_moduleAccesser->getWorkManageModule().setFloat(m_param->unk24, 0x11000002);
+    m_moduleAccesser->getWorkManageModule().setFloat(m_param->unk28, 0x11000003);
+    m_moduleAccesser->getWorkManageModule().setInt(m_param->m_life, 0x20000000);
+    m_moduleAccesser->getWorkManageModule().setInt(m_param->unk30, 0x20000001);
+    m_moduleAccesser->getStatusModule().changeStatusForce(0, m_moduleAccesser);
+    m_moduleAccesser->getWorkManageModule().setFloat(m_param->unk10, 0x21000000);
+    m_moduleAccesser->getWorkManageModule().setFloat(m_param->unk14, 0x21000001);
+    m_moduleAccesser->getWorkManageModule().setFloat(m_param->m_targetSpeed, 0x21000003);
+    m_moduleAccesser->getWorkManageModule().setFloat(m_param->unkC, 0x21000004);
+    m_moduleAccesser->getWorkManageModule().offFlag(0x12000003);
 }
 
 void wnSnakeNikitaMissile::updateNodeSRT() {

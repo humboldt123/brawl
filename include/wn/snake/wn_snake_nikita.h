@@ -47,12 +47,21 @@ public:
 // The missile's parameter block (read by its constructor).
 // HYPOTHESIS: layout of the untouched part and the field meanings.
 struct wnSnakeNikitaMissileParam {
-    u8 unk0[0x1C];
+    float m_speed;       // +0x0: launch speed (local energy x)
+    float m_accel;       // +0x4: local energy acceleration (x)
+    float m_targetSpeed; // +0x8: local energy target speed (x), also work float 0x21000003
+    float unkC;          // +0xC: work float 0x21000004
+    float unk10;         // +0x10: work float 0x21000000
+    float unk14;         // +0x14: work float 0x21000001
+    float m_rotSpeed;    // +0x18: rotation energy speed (z) at launch
     float m_rotAccel;   // +0x1C: rotation energy acceleration (z)
     float m_rotBrake;   // +0x20: rotation energy brake (z)
-    u8 unk24[0x8];
+    float unk24;        // +0x24: work float 0x11000002
+    float unk28;        // +0x28: work float 0x11000003
     int m_life;         // +0x2C: HYPOTHESIS: flight frames before the missile falls
-    u8 unk30[0xC];
+    int unk30;          // +0x30: work int 0x20000001
+    float m_brake;      // +0x34: local energy brake (x and y)
+    int m_hp;           // +0x38: HYPOTHESIS: hit points (work int 0x10000005, lowered by damage)
     float m_damageTurn; // +0x3C: HYPOTHESIS: turn speed per damage point when knocked aside
     int m_damageTurnFrame; // +0x40: HYPOTHESIS: frames a hit keeps turning the missile
     int m_damageFrame;  // +0x44: HYPOTHESIS: frame count written when a flying missile is hit
