@@ -206,7 +206,8 @@ void wnSnakeNikita::onDeactivate() {
 
         bool isNew = true;
         for (s32 i = 0; i < m_unkMissileTaskIds.size(); i++) {
-            if (m_unkMissileTaskIds.at(i) == missile->m_taskId) {
+            unsigned long taskId = m_unkMissileTaskIds.at(i);
+            if (taskId == missile->m_taskId) {
                 isNew = false;
             }
         }
