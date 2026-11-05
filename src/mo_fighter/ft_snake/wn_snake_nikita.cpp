@@ -1,4 +1,19 @@
+#pragma optimization_level 2
+#pragma optimize_for_size on
+#define SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR // BYTES: the search observer's (manage id, priority) constructor is a weak copy in this unit
+#define FT_MODULE_BUILDER // a fighter REL unit (configure.py builds it with the plain REL flags)
+#define WN_WEAPON_BUILDER
+#define WN_SHARED_ARRAYS_1
+#define WN_ARTICLE_ANIMCMD_INT
+#define WN_KINETIC_GENERIC_BUILDER
+#define WN_KINETIC_NORMAL_EXTERN
+#define FT_REL_LINK_EXTERN
+#define MT_VEC2F_CTOR_NOINLINE
+#define MT_VEC3F_CTOR_NOINLINE
+#define MT_VEC3F_ASSIGN_NOINLINE
+#include <wn/wn_module_accesser_builder.h>
 #include <wn/snake/wn_snake_nikita.h>
+#include <wn/snake/wn_snake_nikita_missile_status_uniq_process_fly.h>
 
 #include <so/kinetic/so_kinetic_module_impl.h>
 #include <wn/snake/so_kinetic_energy_local_normal.h>
@@ -10,20 +25,6 @@
 #include <so/work/so_work_manage_module_impl.h>
 #include <so/so_external_value_accesser.h>
 
-class wnSnakeNikitaMissile
-    : public wnWeaponBuilder<wnSnakeNikitaMissileModuleAccesserBuildConfig>,
-      public soDamageEventObserver,
-      public soCollisionSearchEventObserver {
-public:
-    void setAutonomy();
-    virtual void processCollision();
-    virtual void notifyEventCollisionSearch(soCollisionLog* collisionLog,
-                                            soModuleAccesser* moduleAccesser);
-    virtual bool notifyEventCollisionSearchCheck();
-    virtual bool notifyEventCollisionAttackCheck(u32 flags);
-};
-static_assert(sizeof(wnSnakeNikitaMissile) == 0x2510,
-              "Snake Nikita missile builder and observer layout");
 
 namespace {
 soGenerateArticleManageModule& getArticleManage(soModuleAccesser& accesser) {
@@ -116,6 +117,53 @@ void wnSnakeNikita::forceFallMissile() {
             missile->changeStatus(1);
         }
     }
+}
+
+inline soKineticEnergyLocalNormal::soKineticEnergyLocalNormal(float angle, const Vec2f& speed, const Vec2f& accel,
+                                                              const Vec2f& target, const Vec2f& brake,
+                                                              const Vec2f& limit, bool unk30) :
+    soKineticEnergyNormal(speed, accel, target, brake, limit, unk30, false, 0), unk34(angle) { }
+
+wnWeaponBuilder<wnSnakeNikitaMissileModuleAccesserBuildConfig>::wnWeaponBuilder(
+    const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd) :
+    Weapon(name, bd.m_kind, bd.m_data, articleId, &info, m_modules.getModuleAccesser(), true), m_modules(this, bd),
+    m_energyNormal(), m_energyRotNormal() {
+    Weapon::initialize();
+    m_moduleAccesser->getKineticModule().addEnergy(&m_energyNormal, 0, soKineticEnergy::AttributeFlag(1), -1);
+    m_moduleAccesser->getKineticModule().addEnergy(&m_energyRotNormal, 1, soKineticEnergy::AttributeFlag(1), -1);
+}
+
+wnSnakeNikitaMissile::wnSnakeNikitaMissile(s32 articleId, const wnArticleBuildInfo& info,
+                                           const wnSnakeNikitaMissileData* data) :
+    wnWeaponBuilder<wnSnakeNikitaMissileModuleAccesserBuildConfig>(
+        "SnakeNikitaMissile", articleId, info,
+        wnModuleAccesserBuildData(0x1D, data, info.getHeapModule()->getInstanceHeap(), info.getHeapModule()->getNWModelInstanceHeap(),
+                                  info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1,
+                                  &g_soParamAccesserNull, 0, 0, 0, 0, 0, 0, 0)),
+    soDamageEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1),
+    soCollisionSearchEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1),
+    m_param(data->m_param),
+    m_energyLocal(0.0f, Vec2f(0.0f, 0.0f), Vec2f(0.0f, 0.0f), Vec2f(-1.0f, -1.0f), Vec2f(0.0f, 0.0f), Vec2f(-1.0f, -1.0f), false),
+    m_energyGravity(0.0f, -m_param->m_gravity, m_param->m_speedLimit) {
+    m_moduleAccesser->getCollisionHitModule().add(reinterpret_cast<soSet<soCollisionHitData>*>(const_cast<u8*>(data->unk38)), 0);
+
+    soStatusUniqProcess* uniqProcs[3] = { 0 };
+    uniqProcs[0] = wnSnakeNikitaMissileStatusUniqProcessFly::getInstance();
+    m_moduleAccesser->getStatusModule().addRangeUniqProc(uniqProcs, 3);
+
+    m_moduleAccesser->getKineticModule().addEnergy(&m_energyLocal, wnSnakeNikitaMissile_Energy_LocalNormal,
+                                                   soKineticEnergy::AttributeFlag(1), -1);
+    m_moduleAccesser->getKineticModule().addEnergy(&m_energyGravity, wnSnakeNikitaMissile_Energy_Gravity,
+                                                   soKineticEnergy::AttributeFlag(1), -1);
+    soKineticEnergyRotNormal* rot = dynamic_cast<soKineticEnergyRotNormal*>(
+        m_moduleAccesser->getKineticModule().getEnergy(wnSnakeNikitaMissile_Energy_Rot));
+    if (rot != nullptr) {
+        // HYPOTHESIS: the original calls weak setAccel/setBrake helpers (fn_122_245FC/24604) that the shared
+        // soKineticEnergyRotNormal header does not declare yet.
+        rot->m_accel = Vec3f(0.0f, 0.0f, m_param->m_rotAccel);
+        rot->m_brake = Vec3f(0.0f, 0.0f, m_param->m_rotBrake);
+    }
+    Weapon::deactivate(false);
 }
 
 void wnSnakeNikitaMissile::processCollision() {
