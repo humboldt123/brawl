@@ -35,7 +35,7 @@ struct SnakeNikitaEndEvent : soLinkEventArgs {
 void wnSnakeNikitaMissile::setAutonomy() {
     m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
 
-    if (m_moduleAccesser->getLinkModule().isLink(3)) {
+    if (m_moduleAccesser->getLinkModule().isLink(3) == true) {
         // HYPOTHESIS: the enum names attribute 4 as unknown; its meaning is unverified.
         m_moduleAccesser->getLinkModule().setAttribute(
             3, soLinkConnection::Attribute_Reference_Parent_Unknown_4, false);
@@ -144,10 +144,9 @@ void wnSnakeNikitaMissile::notifyEventChangeStatus(int statusKind, int prevStatu
 }
 
 void wnSnakeNikitaMissile::processCollision() {
-    const int statusKind = m_moduleAccesser->getStatusModule().getStatusKind();
-    if (statusKind == 0) {
+    if (m_moduleAccesser->getStatusModule().getStatusKind() == 0) {
         m_moduleAccesser->getWorkManageModule().offFlag(0x22000001);
-    } else if (statusKind == 1) {
+    } else if (m_moduleAccesser->getStatusModule().getStatusKind() == 1) {
         m_moduleAccesser->getWorkManageModule().offFlag(0x22000000);
     }
     StageObject::processCollision();
@@ -155,8 +154,7 @@ void wnSnakeNikitaMissile::processCollision() {
 
 void wnSnakeNikitaMissile::notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser*) {
     if (collisionLog != NULL) {
-        int statusKind = m_moduleAccesser->getStatusModule().getStatusKind();
-        if (statusKind == 0) {
+        if (m_moduleAccesser->getStatusModule().getStatusKind() == 0) {
             if (collisionLog->m_kind == 3) {
                 if (collisionLog->m_teamNo != m_moduleAccesser->getTeamModule().getTeam()->getNo() &&
                     m_moduleAccesser->getReflectModule().isReflect() == 1) {
@@ -165,7 +163,7 @@ void wnSnakeNikitaMissile::notifyEventCollisionSearch(soCollisionLog* collisionL
             } else {
                 m_moduleAccesser->getWorkManageModule().onFlag(0x22000001);
             }
-        } else if (statusKind == 1) {
+        } else if (m_moduleAccesser->getStatusModule().getStatusKind() == 1) {
             if (collisionLog->m_kind == 3) {
                 if (collisionLog->m_teamNo != m_moduleAccesser->getTeamModule().getTeam()->getNo()) {
                     m_moduleAccesser->getWorkManageModule().onFlag(0x22000001);
