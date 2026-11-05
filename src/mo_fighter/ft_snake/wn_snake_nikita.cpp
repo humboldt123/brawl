@@ -1,3 +1,5 @@
+#define SO_ARRAY_LIST_CTOR_FLAG // MATCH-ONLY: the launcher calls the sora_melee vector constructor with a zero argument
+#define FT_POOL_ROOT_NONPOLYMORPHIC // the missile pool's root has no vtable (the first pool level owns it)
 #define SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR // BYTES: the search observer's (manage id, priority) constructor is a weak copy in this unit
 #define WN_WEAPON_BUILDER
 #define WN_SHARED_ARRAYS_1
@@ -35,6 +37,58 @@ struct SnakeNikitaEndEvent : soLinkEventArgs {
     explicit SnakeNikitaEndEvent(int eventKind) : soLinkEventArgs(eventKind) { }
 };
 }
+
+// The original built the launcher (0x206A4-0x23B40, ending with its own thunk block) and the missile
+// (0x23B40-0x272CC) from two source files. In one file MWCC refuses to inline every module builder the two
+// constructors share (-ipa file), so both constructors drop. Until the unit is split, the launcher constructor
+// is only compiled with WN_SNAKE_NIKITA_LAUNCHER_TU (it is exact when the missile code is not in the file).
+#ifdef WN_SNAKE_NIKITA_LAUNCHER_TU
+#pragma push
+#pragma pool_data off // MATCH-ONLY: native addresses each module global and singleton guard separately
+wnSnakeNikita::wnSnakeNikita(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeNikitaData* data) :
+    wnWeaponBuilder<wnSnakeNikitaModuleAccesserBuildConfig>(
+        "SnakeNikita", articleId, info,
+        wnModuleAccesserBuildData(0x1C, data, info.getHeapModule()->getInstanceHeap(), info.getHeapModule()->getNWModelInstanceHeap(),
+                                  info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1,
+                                  &g_soParamAccesserNull, 0, 0, 0, 0, 0, 0, 0)),
+    m_unkMissileTaskIds(0) {
+    Weapon::deactivate(false);
+}
+#pragma pop
+
+// The owner kind words Weapon construction copies from wnArticleBuildInfo (+0xC4 kind info, +0xC8 fighter kind).
+// HYPOTHESIS: view name.
+struct wnSnakeNikitaOwnerView {
+    u8 unk0[0xC4];
+    wnArticleKindInfo kindInfo;
+};
+// HYPOTHESIS: the lookup flags form this two-byte record; only the second byte's role is known (as for F.L.U.D.D.).
+struct wnSnakeNikitaMissileDataArgs {
+    bool unk0;
+    bool resourceGroup;
+    wnSnakeNikitaMissileDataArgs() : unk0(false), resourceGroup(false) { }
+};
+
+static inline wnSnakeNikitaOwnerView* ownerView(soModuleAccesser* acc) {
+    return reinterpret_cast<wnSnakeNikitaOwnerView*>(&dynamic_cast<Weapon&>(acc->getStageObject()));
+}
+struct wnSnakeNikitaMissileArgs {
+    wnArticleBuildInfo info;
+    wnSnakeNikitaMissileArgs(const wnArticleKindInfo& kind, soHeapModule* heap) {
+        info.kindInfo = &kind;
+        info.heapModule = heap;
+    }
+};
+
+// One pooled missile (map: wnInstanceHolder<wnSnakeNikitaMissile, soKindInfoGeneric<2, 28>, soIntToType<0> > ctor):
+// built with the owner's kind info and heap module and Snake's weapon data 24.
+template <>
+wnArticleHolder<wnSnakeNikitaMissile>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
+    m_instance(0, wnSnakeNikitaMissileArgs(ownerView(acc)->kindInfo, &acc->getHeapModule()).info,
+               static_cast<const wnSnakeNikitaMissileData*>(g_ftCommonDataAccesser.getWeaponData24(
+                   static_cast<ftKind>(ownerView(acc)->kindInfo.subKind), &wnSnakeNikitaMissileDataArgs().resourceGroup))) { }
+
+#endif // WN_SNAKE_NIKITA_LAUNCHER_TU
 
 void wnSnakeNikitaMissile::setAutonomy() {
     m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);

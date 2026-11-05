@@ -4,6 +4,7 @@
 #include <so/collision/so_collision_search_event_presenter.h>
 #include <so/damage/so_damage_event_presenter.h>
 #include <wn/wn_weapon_builder.h>
+#include <wn/wn_article_pool.h>
 #include <wn/weapon.h>
 #include <so/controller/so_controller_module_link_ref.h>
 #include <wn/wn_kinetic_energy_gravity.h>
@@ -41,29 +42,6 @@ public:
     virtual void getAttributeArray(soAttributeFlag targetAttr, soArray<soKineticEnergy**>& arr);
     virtual soAttributeFlag getAttribute(s32 id) const;
     virtual void getPriorityArray(soArray<soKineticEnergy**>& arr);
-};
-
-// HYPOTHESIS: The constructor places the missile-task vector immediately
-// after the owner builder's embedded module storage at +0x67B0.
-template <>
-class wnWeaponBuilder<wnSnakeNikitaModuleAccesserBuildConfig> : public Weapon {
-    char m_unkBeforeMissileTaskIds[0x67B0 - sizeof(Weapon)];
-};
-
-class wnSnakeNikita : public wnWeaponBuilder<wnSnakeNikitaModuleAccesserBuildConfig> {
-public:
-    virtual void notifyArticleEventRemove(int unk1, int* unk2);
-    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser,
-                                 StageObject* linkedObject, int unk4);
-    virtual void onDeactivate();
-    void forceFallMissile();
-
-private:
-    void notifyEnd(int isEnd);
-
-    // HYPOTHESIS: The constructor's soArrayVector_Ul_2 at this offset records
-    // task IDs for Nikita missiles managed by this owner.
-    soArrayVector<unsigned long, 2> m_unkMissileTaskIds;
 };
 
 // The missile's parameter block (read by its constructor).
@@ -153,4 +131,119 @@ public:
                                             soModuleAccesser* moduleAccesser);
     virtual bool notifyEventCollisionSearchCheck();
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
+};
+
+// ---- the launcher (article kind 0x1C): Snake's Nikita, which pools two missiles ------------------------------------
+
+// The static data block of the launcher (read by its wnModuleAccesserBuildData).
+// HYPOTHESIS: layout beyond the resource group.
+struct wnSnakeNikitaData {
+    s32 m_resGroupNo;
+};
+
+// The mediator of the launcher's article manage module: one pool of two missiles (map: soArticleMediatorImpl over
+// soInstancePoolInfo<wnSnakeNikitaMissile, 2, wnInstanceHolder, soIntToType<0> >, kind info soKindInfoGeneric<2, 28>).
+// HYPOTHESIS: wrapper names (the pool templates of wn/wn_article_pool.h).
+typedef wnArticleHierarchy<wnSnakeNikitaMissile, 2, soInstancePoolRoot> wnSnakeNikitaMissilePool;
+class wnSnakeNikitaMediator : public soArticleMediator {
+    wnSnakeNikitaMissilePool m_pools; // +0x8
+    u8 m_autoRecycle;                 // +0x4AE0
+public:
+    wnSnakeNikitaMediator(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
+    virtual ~wnSnakeNikitaMediator() { }
+    virtual soArticle* generate(s32 articleId, soModuleAccesser* acc);
+    virtual bool shoot(soModuleAccesser* acc, soArticle* article);
+    virtual s32 getMediateNum();
+    virtual void setAutoRecycle(bool enabled);
+    virtual void deactivate();
+    virtual s32 getGenerateMaxNum(s32 articleId);
+    virtual s32 getActiveNum(soModuleAccesser*, s32 articleId);
+    virtual bool isGeneratable(soModuleAccesser*, s32 articleId);
+};
+FT_DOL_ARRAY_VECTOR(soArticle*, 2);
+typedef wnArticleManageModuleBuilder<wnSnakeNikitaMediator, 2> wnSnakeNikitaArticleManageModuleBuilder;
+
+// One status (no kinetic module follows, so no tail word as in the F.L.U.D.D. status builder).
+typedef wnStatusModuleBuildConfig<1, soGeneralWorkBuildConfig<2, 2, 1>, 1,
+    soTransitionModuleBuildConfig<wnStatusTransitionTypeList> > wnSnakeNikitaStatusBuildConfig;
+template <>
+class soStatusModuleBuilder<wnSnakeNikitaStatusBuildConfig> {
+    soArrayContractibleTable<const soStatusData> m_statusTable;
+    soGeneralWorkBuilder<soGeneralWorkBuildConfig<2, 2, 1> > m_generalWork;
+    soTransitionModuleBuilder<soTransitionModuleBuildConfig<wnStatusTransitionTypeList> > m_transition;
+    soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, 1>, soSingletonHolder<soArrayNull<soStatusUniqProcess*> > > m_processes;
+    soArrayQueueImpl<soArrayVector<s32, 1> > m_requests;
+    soStatusModuleImpl m_module;
+public:
+    soStatusModuleBuilder(soModuleAccesser* acc, const soStatusData* data, void* preCheck) :
+        m_statusTable(data, 1), m_generalWork(), m_transition(), m_processes(), m_requests(-1),
+        m_module(acc, &m_statusTable, m_processes.get(), m_generalWork.getModule(), m_transition.getModule(), &m_requests,
+                 preCheck, 1, 1) { }
+    soStatusModule* getModule() { return &m_module; }
+};
+
+class wnSnakeNikitaModuleAccesserBuildConfig : public wnCommonBuildConfig {
+public:
+    typedef soInsideEventManageModuleBuildConfig<16, 32, 4, 2, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 1, 1, 0, 0, 0, wnInsideEventManageModuleTypes>
+        InsideEventManageModuleBuildConfig;
+    typedef soModelModuleBuildConfig<5, 0, soModelModuleImpl> ModelModuleBuildConfig;
+    typedef soMotionModuleBuildConfig<2, soMotionModuleImpl, 0, 0, soTransitionModuleBuildConfig<wnMotionTransitionTypeList>,
+                                      soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > MotionModuleBuildConfig;
+    typedef soPostureModuleBuildConfig<3, soPostureModuleImpl> PostureModuleBuildConfig;
+    typedef soGroundModuleBuildConfigNull GroundModuleBuildConfig;
+    typedef soSituationModuleBuildConfigNull SituationModuleBuildConfig;
+    typedef soCollisionAttackModuleBuildConfigNull CollisionAttackModuleBuildConfig;
+    typedef soCollisionHitModuleBuildConfigNull CollisionHitModuleBuildConfig;
+    typedef soDamageModuleBuildConfigNull DamageModuleBuildConfig;
+    typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;
+    typedef soVisibilityModuleBuildConfigNull VisibilityModuleBuildConfig;
+    typedef wnControllerModuleBuildConfig<soControllerModuleLinkRef, 0, 0> ControllerModuleBuildConfig;
+    typedef wnSnakeNikitaStatusBuildConfig StatusModuleBuildConfig;
+    typedef soKineticModuleBuildConfigNull KineticModuleBuildConfig;
+    typedef wnSnakeNikitaArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
+    typedef wnAnimCmdModuleSubBuildConfigDefault<1, 1, 0, 0, 1, 2, 0, 0, 1, 2, 0, 0, 1, 2, 0, 0> AnimCmdModuleSubBuildConfig;
+};
+
+// The launcher owns no movement energies. Its module storage is only spelled out in the launcher's own translation
+// unit (WN_SNAKE_NIKITA_LAUNCHER_TU): elsewhere the weak builder teardown it brings changes the missile builder.
+#ifdef WN_SNAKE_NIKITA_LAUNCHER_TU
+template <>
+class wnWeaponBuilder<wnSnakeNikitaModuleAccesserBuildConfig> : public Weapon {
+protected:
+    wnModuleAccesserBuilder<wnSnakeNikitaModuleAccesserBuildConfig> m_modules; // +0xCC
+    // HYPOTHESIS: trailing alignment of the animation-command storage, as in the F.L.U.D.D. builder.
+    u32 m_modulesPad;
+public:
+    wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd) :
+        Weapon(name, bd.m_kind, bd.m_data, articleId, &info, m_modules.getModuleAccesser(), true), m_modules(this, bd) {
+        Weapon::initialize();
+    }
+    virtual ~wnWeaponBuilder() { }
+    virtual void deactivateDescendantForce() { wnDeactivateArticleDescendants(m_modules.m_generateArticleBuilder); }
+};
+#else
+template <>
+class wnWeaponBuilder<wnSnakeNikitaModuleAccesserBuildConfig> : public Weapon {
+    u8 m_opaqueModules[0x67B0 - sizeof(Weapon)]; // the module storage above (+0xCC) and its trailing word
+public:
+    wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd);
+};
+#endif
+
+// Snake's Nikita launcher: it shoots and steers the missiles it pools.
+class wnSnakeNikita : public wnWeaponBuilder<wnSnakeNikitaModuleAccesserBuildConfig> {
+public:
+    wnSnakeNikita(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeNikitaData* data);
+    virtual void notifyArticleEventRemove(int unk1, int* unk2);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser,
+                                 StageObject* linkedObject, int unk4);
+    virtual void onDeactivate();
+    void forceFallMissile();
+
+private:
+    void notifyEnd(int isEnd);
+
+    // HYPOTHESIS: The constructor's soArrayVector_Ul_2 at this offset records
+    // task IDs for Nikita missiles managed by this owner.
+    soArrayVector<unsigned long, 2> m_unkMissileTaskIds; // +0x67B0
 };
