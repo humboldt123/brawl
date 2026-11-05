@@ -33,11 +33,15 @@ struct ftSnakeArticleDataTag {
 // symbols.txt): the Cypher's article data, also used by ft_snake.cpp's Cypher holder.
 extern "C" void* fn_27_147F88(ftCommonDataAccesser* accesser, int kind, bool* resourceGroup);
 
-void ftSnakeStatusUniqProcessCypherHang::initStatus(soModuleAccesser* moduleAccesser) {
+// The Cypher data of the fighter kind that owns this status.
+static inline const wnSnakeCypherData* getCypherData(soModuleAccesser* moduleAccesser) {
     ftSnakeArticleDataTag tag;
     int ownerKind = moduleAccesser->getStageObject().soGetSubKind();
-    const wnSnakeCypherParam* param = static_cast<const wnSnakeCypherData*>(
-        fn_27_147F88(&g_ftCommonDataAccesser, ownerKind, &tag.m_resourceGroup))->m_param;
+    return static_cast<const wnSnakeCypherData*>(fn_27_147F88(&g_ftCommonDataAccesser, ownerKind, &tag.m_resourceGroup));
+}
+
+void ftSnakeStatusUniqProcessCypherHang::initStatus(soModuleAccesser* moduleAccesser) {
+    const wnSnakeCypherParam* param = getCypherData(moduleAccesser)->m_param;
 
     Vec2f speed;
     Vec2f::copy(
