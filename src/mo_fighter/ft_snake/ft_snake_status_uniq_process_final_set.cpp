@@ -10,16 +10,12 @@
 #include <so/so_module_accesser.h>
 #include <so/so_value_accesser.h>
 #include <so/work/so_work_manage_module_impl.h>
-extern char lbl_122_data_78AC[], lbl_122_data_8554[];
-// HYPOTHESIS: the native call ABI sign-extends the final argument from a short.
-extern "C" void* __dynamic_cast(void*, int, void*, void*, short);
 ftSnakeStatusUniqProcessFinalSet g_ftSnakeStatusUniqProcessFinalSet;
 void ftSnakeStatusUniqProcessFinalSet::execFixPos(soModuleAccesser* acc) {
     soGenerateArticleManageModule& articles = *static_cast<soGenerateArticleManageModule*>(
         acc->m_enumerationStart->m_generateArticleManageModule);
     soArticle* article = articles.getArticle(9);
-    wnSnakeRgb6Sight* sight = static_cast<wnSnakeRgb6Sight*>(
-        __dynamic_cast(article, 0, lbl_122_data_78AC, lbl_122_data_8554, 0));
+    wnSnakeRgb6Sight* sight = dynamic_cast<wnSnakeRgb6Sight*>(article);
     if (!sight) return;
     if (acc->getWorkManageModule().isFlag(0x22000010)) {
         acc->getWorkManageModule().offFlag(0x22000010);
