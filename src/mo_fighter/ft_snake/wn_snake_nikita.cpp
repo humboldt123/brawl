@@ -1,5 +1,5 @@
 #define WN_SNAKE_NIKITA_LAUNCHER_TU // this file is the launcher half of the original pair (the missile is wn_snake_nikita_missile.cpp)
-#define SO_ARRAY_LIST_CTOR_FLAG // MATCH-ONLY: the launcher calls the sora_melee vector constructor with a zero argument
+#define SO_ARRAY_LIST_CTOR_FLAG // BYTES: the native passes 0 to soArrayVector<Ul,2>'s constructor (sora_melee 0x1A7480, ignores it; its only caller is this one). Its symbols.txt name `...Fv` comes from a map without signatures, so the one-argument form is likely the real one
 #define FT_POOL_ROOT_NONPOLYMORPHIC // the missile pool's root has no vtable (the first pool level owns it)
 #define SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR // BYTES: the search observer's (manage id, priority) constructor is a weak copy in this unit
 #define WN_WEAPON_BUILDER
@@ -48,7 +48,7 @@ struct SnakeNikitaEndEvent : soLinkEventArgs {
 }
 
 #pragma push
-#pragma pool_data off // MATCH-ONLY: native addresses each module global and singleton guard separately
+#pragma pool_data off // BYTES: the native constructor addresses each module global and singleton guard with its own lis/addi (pool data off for this function)
 wnSnakeNikita::wnSnakeNikita(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeNikitaData* data) :
     wnWeaponBuilder<wnSnakeNikitaModuleAccesserBuildConfig>(
         "SnakeNikita", articleId, info,
