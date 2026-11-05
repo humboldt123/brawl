@@ -3,10 +3,12 @@
 #define FT_POOL_ROOT_NONPOLYMORPHIC // the missile pool's root has no vtable (the first pool level owns it)
 #define SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR // BYTES: the search observer's (manage id, priority) constructor is a weak copy in this unit
 #define WN_WEAPON_BUILDER
+#define WN_ARTICLE_NATIVE_BUILDERS
 #define WN_SHARED_ARRAYS_1
 #define WN_ARTICLE_ANIMCMD_INT
 #define WN_KINETIC_GENERIC_BUILDER
 #define WN_KINETIC_NORMAL_EXTERN
+#define WN_KINETIC_GRAVITY_INLINE_DTOR // BYTES: the missile destructor expands the gravity energy destructor
 #define FT_REL_LINK_EXTERN
 #define MT_VEC2F_CTOR_NOINLINE
 #define MT_VEC3F_CTOR_NOINLINE
