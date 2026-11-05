@@ -3085,9 +3085,9 @@ NWC24Err NWC24iMBoxCheck(NWC24MsgBoxId id, u32 size) {
 NWC24Err fn_8039C16C(NWC24MsgBoxId id, u32 msgId, BOOL checkAccess) {
     NWC24Err err;
     char *path;
-    u32 off = MBC_FIRST_ENTRY;
+    u32 count = 0;
     NWC24File file;
-    u32 count;
+    u32 off;
     u32 foundOff = 0;
     NWC24Err removeErr;
     NWC24Err writeErr;
@@ -3118,8 +3118,7 @@ NWC24Err fn_8039C16C(NWC24MsgBoxId id, u32 msgId, BOOL checkAccess) {
     }
 
     result = NWC24_ERR_NOT_FOUND;
-    count = 0;
-    for (; off < hdr->fileSize; off += MBC_BLOCK_SIZE) {
+    for (off = MBC_FIRST_ENTRY; off < hdr->fileSize; off += MBC_BLOCK_SIZE) {
         writeErr = NWC24FSeek(&file, off, NWC24_SEEK_BEG);
         if (writeErr != NWC24_OK) {
             result = writeErr;
@@ -4193,13 +4192,13 @@ NWC24Err fn_8039F0F4(NWC24iMsgObj *msg) {
 
 // To: (comma separated, folded)
 NWC24Err fn_8039F1F4(NWC24iMsgObj *msg) {
-    int i;
+    NWC24iAddr *addr;
     int n;
     char *p;
     char *buf = NWC24WorkP->stringWork;
     int total;
+    int i;
     int avail;
-    NWC24iAddr *addr;
     NWC24Err result = NWC24_OK;
 
     Mail_memset(buf, 0, NWC24i_STRING_WORK_SIZE);
@@ -4208,9 +4207,10 @@ NWC24Err fn_8039F1F4(NWC24iMsgObj *msg) {
 
     p = buf + 4;
     addr = msg->to;
+    i = 0;
     total = 4;
     avail = 0x3FC;
-    for (i = 0; i < msg->numTo; i++, addr++) {
+    for (; i < msg->numTo; addr++, i++) {
         result = fn_8039EDE8(addr, msg->flags, p, avail, &n);
         if (result != NWC24_OK) {
             break;
@@ -4595,11 +4595,11 @@ NWC24Err fn_8039FB14(const u8 *data, int size, u32 *written) {
 
 // quoted printable text, the soft line break has to go out between the chunks
 NWC24Err fn_8039FC78(const char *data, int size, u32 *written) {
-    int remaining = size;
-    const char *cursor = data;
     char *buf = NWC24WorkP->stringWork;
-    NWC24Err result = NWC24_OK;
+    const char *cursor = data;
+    int remaining = size;
     u32 total = 0;
+    NWC24Err result = NWC24_OK;
     u32 inN;
     u32 outN;
 
