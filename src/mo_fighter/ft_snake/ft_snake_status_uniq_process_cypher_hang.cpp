@@ -1,7 +1,4 @@
-// Reconstructed native Cypher Hang status behavior.
-// HYPOTHESIS: the accessor result has a +0x34 field pointing to
-// this parameter block. The accessor identity and the seven parameter meanings
-// still need source-interface review; field labels stay unknown pending that review.
+// Snake's Cypher Hang status: hang under the Cypher with the gravity and air control of the Cypher's parameters.
 #define MT_VEC2F_ASSIGN_NOINLINE
 #define MT_VEC3F_CTOR_NOINLINE
 #include <ft/fighter.h>
@@ -29,7 +26,7 @@ struct ftSnakeArticleDataTag {
     ftSnakeArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
 };
 
-// sora_melee ftCommonDataAccesser::getWeaponData20 (map name; the symbol is still unnamed in sora_melee's
+// BYTES: sora_melee ftCommonDataAccesser::getWeaponData20 (map name; the symbol is still unnamed in sora_melee's
 // symbols.txt): the Cypher's article data, also used by ft_snake.cpp's Cypher holder.
 extern "C" void* fn_27_147F88(ftCommonDataAccesser* accesser, int kind, bool* resourceGroup);
 
@@ -43,11 +40,7 @@ static inline const wnSnakeCypherData* getCypherData(soModuleAccesser* moduleAcc
 void ftSnakeStatusUniqProcessCypherHang::initStatus(soModuleAccesser* moduleAccesser) {
     const wnSnakeCypherParam* param = getCypherData(moduleAccesser)->m_param;
 
-    Vec2f speed;
-    Vec2f::copy(
-        speed,
-        moduleAccesser->getKineticModule().getSumSpeed(
-            soKineticEnergy::AttributeFlag(1)));
+    Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
 
     ftKineticEnergyGravity& gravity =
         dynamic_cast<ftKineticEnergyGravity&>(
@@ -55,8 +48,7 @@ void ftSnakeStatusUniqProcessCypherHang::initStatus(soModuleAccesser* moduleAcce
     gravity.enable();
     if (speed.m_y < -param->m_hangFallSpeedLimit)
         speed.m_y = -param->m_hangFallSpeedLimit;
-    Vec2f gravitySpeed(0.0f, speed.m_y);
-    gravity.resetEnergy(1, &gravitySpeed, &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
+    gravity.resetEnergy(1, &Vec2f(0.0f, speed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
     gravity.m_gravity = param->m_hangGravity;
     gravity.m_fallSpeedMax = param->m_hangFallSpeedMax;
     gravity.unk1C = param->m_hangGravityUnk1C;
@@ -66,13 +58,10 @@ void ftSnakeStatusUniqProcessCypherHang::initStatus(soModuleAccesser* moduleAcce
         dynamic_cast<ftKineticEnergyController&>(
             *moduleAccesser->getKineticModule().getEnergy(2));
     controller.enable();
-    Vec2f controllerSpeed(speed.m_x, 0.0f);
-    controller.resetEnergy(0, &controllerSpeed, &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
+    controller.resetEnergy(0, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
     controller.m_accelMul = param->m_hangAirAccelMul;
-    Vec2f speedTarget(param->m_hangAirSpeedTarget, 0.0f);
-    controller.m_speedTarget = speedTarget;
-    Vec2f speedLimit(param->m_hangAirSpeedLimit, 0.0f);
-    controller.m_speedLimit = speedLimit;
+    controller.m_speedTarget = Vec2f(param->m_hangAirSpeedTarget, 0.0f);
+    controller.m_speedLimit = Vec2f(param->m_hangAirSpeedLimit, 0.0f);
 
     moduleAccesser->getKineticModule().getEnergy(0)->disable();
     moduleAccesser->getKineticModule().getEnergy(3)->disable();
