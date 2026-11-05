@@ -3,7 +3,8 @@
 #define FT_POOL_ROOT_NONPOLYMORPHIC // the missile pool's root has no vtable (the first pool level owns it)
 #define SO_COLLISION_SEARCH_OBSERVER_INLINE_CTOR // BYTES: the search observer's (manage id, priority) constructor is a weak copy in this unit
 #define WN_WEAPON_BUILDER
-#define WN_ARTICLE_NATIVE_BUILDERS
+#define WN_ARTICLE_NATIVE_BUILDERS // BYTES: the missile destructor expands the rotation energy destructor
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR
 #define WN_SHARED_ARRAYS_1
 #define WN_ARTICLE_ANIMCMD_INT
 #define WN_KINETIC_GENERIC_BUILDER
@@ -27,6 +28,8 @@
 #include <so/work/so_work_manage_module_impl.h>
 #include <so/so_external_value_accesser.h>
 
+// BYTES: the missile destructor expands the damage observer's (empty) destructor and calls only its base's.
+inline soDamageEventObserver::~soDamageEventObserver() { }
 
 namespace {
 soGenerateArticleManageModule& getArticleManage(soModuleAccesser& accesser) {
