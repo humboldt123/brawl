@@ -76,12 +76,13 @@ inline wnSnakeNikitaMissileStatusUniqProcessFly* wnSnakeNikitaMissileStatusUniqP
     return &g_wnSnakeNikitaMissileStatusUniqProcessFly;
 }
 
-// MATCH-ONLY: the native .rodata starts with Weapon::setHitStop's three literals from a copy compiled before the
-// constructor (stripped from the REL), and notifyEventOnDamage pools its own second copy of them later (never read:
-// they only pad the pool). An unreferenced array of the same three values reproduces those bytes without letting the
-// later literals merge into it.
-extern const float g_wnSnakeNikitaMissileHitStopLiterals[3];
-const float g_wnSnakeNikitaMissileHitStopLiterals[3] = { 0.3846154f, 5.0f, 30.0f };
+// Hit-stop constants passed to soStopModuleImpl::calcHitStopFrame (same values as Weapon::setHitStop). MWCC keeps
+// these external-linkage objects at the start of .rodata and folds their values into notifyEventOnDamage's own
+// literal pool, which is the native layout (the same unread leading copy opens wn_pit_ikarus and Pikmin's weapon).
+// HYPOTHESIS: names and the exact original declaration (likely an extern declared in a shared weapon header).
+extern const float g_wnHitStopFrameMul = 0.3846154f;
+extern const float g_wnHitStopFrameAdd = 5.0f;
+extern const float g_wnHitStopFrameMax = 30.0f;
 
 #pragma dont_inline on // BYTES: the native missile constructor calls every helper (accessors included) out of line
 wnSnakeNikitaMissile::wnSnakeNikitaMissile(s32 articleId, const wnArticleBuildInfo& info,
@@ -253,7 +254,8 @@ void wnSnakeNikitaMissile::notifyEventOnDamage(soDamage* damage, bool, soModuleA
         }
     }
     if (damage->m_reaction > 0.0f) {
-        const int hitStopFrame = soStopModuleImpl::calcHitStopFrame(damage->m_powerMax, 0.3846154f, 5.0f, 1.0f, 30.0f);
+        const int hitStopFrame = soStopModuleImpl::calcHitStopFrame(damage->m_powerMax, g_wnHitStopFrameMul, g_wnHitStopFrameAdd, 1.0f,
+                                                                    g_wnHitStopFrameMax);
         m_moduleAccesser->getStopModule().setHitStopFrame(hitStopFrame, 1);
     }
 }
