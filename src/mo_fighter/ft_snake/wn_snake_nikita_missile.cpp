@@ -160,7 +160,7 @@ void wnSnakeNikitaMissile::activate(int founderTaskId, int resourceId, int team,
         Matrix mtx; // the default constructor sets the identity
         fn_8003ECA0(&mtx, 0.017453292f * rot.m_x, 0.017453292f * rot.m_y, 0.017453292f * rot.m_z);
         fn_8003E3BC(&mtx, &dir, &dir);
-        const float angle = 57.29578f * static_cast<float>(atan2(dir.m_y, dir.m_x));
+        const float angle = 57.29578f * atan2f(dir.m_y, dir.m_x);
         energy->unk34 = angle;
         Vec3f rotation;
         rotation.m_x = -angle;
