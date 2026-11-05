@@ -12,15 +12,22 @@
 // Defined inline before that declaration, so that this unit emits it.
 inline bool wnArticleIsActive(soArticle* article) { return article->isActiveArticle(); }
 
+// MATCH-ONLY: the original's weak copies come out as wnArticleIsActive, the wnemSwHolder pool's getInstanceAt, the
+// wnemSimple pool's getInstanceAt. Declaring the soArticleMediatorSlot primary template before the mediator header
+// puts the thunk first, and the unused probe below, which names a member of the pool 1 slot while the file is parsed,
+// moves the wnemSwHolder copy before the wnemSimple one (see SO_ARTICLE_MEDIATOR_POOL_1_FIRST in
+// em/em_article_mediator.h for the older probe that only swaps the pair). The probe is never emitted.
+template <class Mediator, class AssignTL, int N, bool Exists>
+struct soArticleMediatorSlot;
+
 #include <em/siralamos/em_siralamos.h>
 
-// MATCH-ONLY: names the wnemSwHolder pool's getInstanceAt first, so its weak copy comes out before the wnemSimple
-// pool's as in the original (see SO_ARTICLE_MEDIATOR_POOL_1_FIRST in em/em_article_mediator.h).
-// TODO(link): the original also has wnArticleIsActive before the two getInstanceAt copies; ours emits it after them
-// (naming it first in an unused function does not move it), so the unit is exact but not linked yet. Declaring the
-// soArticleMediatorSlot primary template before the mediator class moves wnArticleIsActive to the front, but then
-// the copies come out in pool order whatever this probe names first (see em/em_article_mediator.h).
-SO_ARTICLE_MEDIATOR_POOL_1_FIRST(emSiralamosArticleMediator)
+typedef soTypeList<emSiralamosArticleAssignment, soTypeList<emSiralamosArticleAssignment, soTypeListNullType> >
+    emSiralamosAssignmentList;
+static inline s32 emSiralamosNamePool1First() {
+    return soArticleMediatorSlot<emSiralamosArticleMediator, emSiralamosAssignmentList, 1, true>::getGenerateMaxNum(
+        SO_ARTICLE_SLOT_TAGS);
+}
 
 // The Sir Alamos: an Enemy with two wnemSimple shots and two wnemSwHolder articles. The class overrides only its
 // destructor, and its articles use the shared activation of the Enemy unit, so this unit holds no behavior of its own:

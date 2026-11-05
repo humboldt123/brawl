@@ -88,10 +88,11 @@ bool emBosspackun::activeArticle(wnemSimple* article, soModuleAccesser* moduleAc
 
 // ---- events ---------------------------------------------------------------------------------------------------------
 
-// TODO(nonmatching): 98.08%, (a) register allocation only: the target keeps the five arguments in r27-r31 and the
-// locals (the shared reference-cast flag, the AI module, the saved work flag, the status module) in r23-r26; ours
-// gives the cast flag / status module r31 and shifts the arguments to r26-r30. Same instruction count; calls,
-// arguments, constants and branches agree (masked diff).
+// MATCH-ONLY: copy propagation off for this function. With it on, the saved work flag is coloured after the work flag
+// id and the reference-cast flag (the arguments then shift to r26-r30, or with a widening copy of the flag the locals
+// still come out in the wrong order). The original probably had it off for a reason this source does not show yet.
+#pragma push
+#pragma opt_propagation off
 void emBosspackun::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* sender, int unk4) {
     emBosspackunLinkEventArgs* args = static_cast<emBosspackunLinkEventArgs*>(eventInfo);
     switch (eventInfo->m_eventKind) {
@@ -103,22 +104,25 @@ void emBosspackun::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser*
             bool wasFlagged = m_moduleAccesser->getWorkManageModule().isFlag(WorkFlag_TransitionCheck);
             m_moduleAccesser->getWorkManageModule().onFlag(WorkFlag_TransitionCheck);
             bool changed;
+            // The AI module is declared once and taken in each branch (one reference hoisted above the if schedules
+            // its address before the branch).
+            emAIModuleImpl* ai;
             if (args->m_armId == 0) {
-                emAIModuleImpl& ai = m_aiModule;
-                ai.setFlag(1, 6);
+                ai = &m_aiModule;
+                ai->setFlag(1, 6);
                 emStatusModuleImpl& status = dynamic_cast<emStatusModuleImpl&>(m_moduleAccesser->getStatusModule());
                 status.setAIUpdatePri(-198, -198);
                 changed = status.checkTransition(m_moduleAccesser);
                 status.initAIUpdatePri();
-                ai.setFlag(0, 6);
+                ai->setFlag(0, 6);
             } else {
-                emAIModuleImpl& ai = m_aiModule;
-                ai.setFlag(1, 7);
+                ai = &m_aiModule;
+                ai->setFlag(1, 7);
                 emStatusModuleImpl& status = dynamic_cast<emStatusModuleImpl&>(m_moduleAccesser->getStatusModule());
                 status.setAIUpdatePri(-197, -197);
                 changed = status.checkTransition(m_moduleAccesser);
                 status.initAIUpdatePri();
-                ai.setFlag(0, 7);
+                ai->setFlag(0, 7);
             }
             if (wasFlagged == true) {
                 m_moduleAccesser->getWorkManageModule().onFlag(WorkFlag_TransitionCheck);
@@ -169,19 +173,19 @@ void emBosspackun::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser*
     // HYPOTHESIS: statuses 2 and 3 are the ones an arm event interrupts; the others ignore it (and skip the Enemy's
     // handler).
     case LinkEvent_Arm: {
-        if (m_moduleAccesser->getStatusModule().getStatusKind() == 2 ||
-            m_moduleAccesser->getStatusModule().getStatusKind() == 3) {
-            if (args->m_armId == 0) {
-                m_moduleAccesser->getStatusModule().changeStatusRequest(0xd, m_moduleAccesser);
-            } else {
-                m_moduleAccesser->getStatusModule().changeStatusRequest(0xe, m_moduleAccesser);
-            }
-            eventInfo->_0x4 = true;
-        } else {
+        if (m_moduleAccesser->getStatusModule().getStatusKind() != 2 &&
+            m_moduleAccesser->getStatusModule().getStatusKind() != 3) {
             return;
         }
+        if (args->m_armId == 0) {
+            m_moduleAccesser->getStatusModule().changeStatusRequest(0xd, m_moduleAccesser);
+        } else {
+            m_moduleAccesser->getStatusModule().changeStatusRequest(0xe, m_moduleAccesser);
+        }
+        eventInfo->_0x4 = true;
         break;
     }
     }
     Enemy::notifyEventLink(eventInfo, moduleAccesser, sender, unk4);
 }
+#pragma pop

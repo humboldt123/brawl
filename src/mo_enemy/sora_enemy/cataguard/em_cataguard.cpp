@@ -5,20 +5,29 @@
 #define WN_WEAPON_ANIMCMD_LONG
 // Its IpNull vtable points at Input::getContNo, as the Enemy unit's does.
 #define IP_NULL_INPUT_CONT_NO
+// MATCH-ONLY: see the probe below.
+template <class Mediator, class AssignTL, int N, bool Exists>
+struct soArticleMediatorSlot;
 #include <em/cataguard/em_cataguard.h>
 #include <em/em_shot.h>
+
+// MATCH-ONLY: the original's weak copies come out as the counting functor, then the getInstanceAt copies of pools 2,
+// 1, 0. Declaring the soArticleMediatorSlot primary template before the mediator header puts the functor first, and
+// the unused probe below, which names a member of the slots 2 and 1 while the file is parsed, moves their pools'
+// copies before pool 0's (see SO_ARTICLE_MEDIATOR_POOL_1_FIRST in em/em_article_mediator.h). The probe is never emitted.
+typedef soTypeList<emCataguardArticleAssignment,
+                   soTypeList<emCataguardArticleAssignment, soTypeList<emCataguardArticleAssignment, soTypeListNullType> > >
+    emCataguardAssignmentList;
+static inline s32 emCataguardNameHighPoolsFirst() {
+    s32 n = soArticleMediatorSlot<emCataguardArticleMediator, emCataguardAssignmentList, 2, true>::getGenerateMaxNum(
+        SO_ARTICLE_SLOT_TAGS);
+    return n + soArticleMediatorSlot<emCataguardArticleMediator, emCataguardAssignmentList, 1, true>::getGenerateMaxNum(
+                   SO_ARTICLE_SLOT_TAGS);
+}
 
 // The Cataguard: an Enemy with three pools of wnemSwHolder articles. The class overrides only its destructor; its own
 // code is the activator of its articles, which throws shots of kind 4 at the angle the shot work float holds. Everything
 // else in this unit is the module storage and the template instances of em/em_article_mediator.h.
-//
-// TODO(link): every function is exact, but the weak tail is the original's reversed: the original emits the counting
-// functor (soEachCounter<...>::operator()<wnemSwHolder>, 0x43B8C, called out of line from the three getActiveNum
-// cases) first and then the pools' getInstanceAt copies in reverse pool order (id 2, 1, 0); ours emits the copies in
-// pool order and the functor last, so the calls relocate to the wrong copies. The functor is a member template, so
-// MWCC defers it behind the getInstanceAt copies, which are plain members slotted when the slot bodies are analysed;
-// an out-of-class getInstanceAt puts the functor first but orders the copies by class completion (0, 1, 2), the same
-// list that lays out the pools' RTTI and vtables in .data, so it cannot be reordered without moving .data.
 
 // The shared shot helpers of the enemy activators are declared in em/em_shot.h.
 
