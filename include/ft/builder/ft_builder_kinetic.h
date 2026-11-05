@@ -264,7 +264,9 @@ public:
 #endif
 };
 
-#ifdef WN_KINETIC_GENERIC_BUILDER
+// WN_KINETIC_GENERIC_IN_FIGHTER_TU (opt-in, with WN_KINETIC_GENERIC_BUILDER): a fighter unit that also owns article
+// generic kinetic modules (Pit's Ikarus) keeps one pool template family; the article members are added below.
+#if defined(WN_KINETIC_GENERIC_BUILDER) && !defined(WN_KINETIC_GENERIC_IN_FIGHTER_TU)
 class ftKineticMediatorImpl;
 #include <wn/wn_kinetic_mediator_impl.h>
 #else
@@ -311,6 +313,9 @@ private:
     Holder m_holder;
 public:
     soInstancePoolSub(soModuleAccesser* acc) : m_holder(acc) { }
+#ifdef WN_KINETIC_GENERIC_IN_FIGHTER_TU
+    E* getEnergy() { return m_holder.getEnergy(); }
+#endif
     E* getInstanceAt(int index) {
         if (index == 0) {
             return m_holder.getEnergy();
@@ -342,6 +347,11 @@ public:
 #endif
     template <typename Helper>
     int forEachHolderModuleAccesser(const Helper&, soModuleAccesser*) { return 0; }
+#ifdef WN_KINETIC_GENERIC_IN_FIGHTER_TU
+    void clearSpeed() { }
+    template <typename T> void updateEnergy(soModuleAccesser*) { }
+    template <typename Helper> void updateEnergy1(const Helper&, soModuleAccesser*) { }
+#endif
 };
 
 template <typename Info, typename Parent, typename Next, int Index>
@@ -365,6 +375,27 @@ public:
         m_sub.forEachHolderModuleAccesser(helper, acc);
         return Parent::forEachHolderModuleAccesser(helper, acc);
     }
+#ifdef WN_KINETIC_GENERIC_IN_FIGHTER_TU
+    // The article generic mediator (wn_kinetic_mediator_impl.h) walks the same pools.
+    typename Info::Type* getEnergy(const soIntToType<Index>&) { return m_sub.getEnergy(); }
+    void clearSpeed() {
+        for (int i = 0; i < Info::Count; i++)
+            soKineticTransactHelper::checkClearSpeed(m_sub.getInstanceAt(i));
+        Parent::clearSpeed();
+    }
+    template <typename T> void updateEnergy(soModuleAccesser* acc) {
+        for (int i = 0; i < Info::Count; i++) {
+            typename Info::Type* energy = m_sub.getInstanceAt(i);
+            if (energy->isEnable() == true && !energy->isSuspend())
+                T::updateEnergy(energy, acc);
+        }
+        Parent::template updateEnergy<T>(acc);
+    }
+    template <typename Helper> void updateEnergy1(const Helper& helper, soModuleAccesser* acc) {
+        m_sub.forEachHolderModuleAccesser(helper, acc);
+        Parent::updateEnergy1(helper, acc);
+    }
+#endif
 };
 
 // ---- the energies of a fighter (index, attribute: the ids passed to soKineticModule::addEnergy) ---------------
@@ -522,6 +553,9 @@ public:
     virtual int getMediateNum() { return 8; }
 };
 
+#ifdef WN_KINETIC_GENERIC_IN_FIGHTER_TU
+#include <wn/wn_kinetic_mediator_impl.h>
+#endif
 #endif
 
 #ifdef WN_KINETIC_GENERIC_BUILDER

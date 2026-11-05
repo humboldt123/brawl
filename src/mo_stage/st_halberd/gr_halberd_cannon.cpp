@@ -194,7 +194,7 @@ void grHalberdCannon::updateMotion(float deltaFrame) {
                     if (data->unk80 < randf()) {
                         break;
                     }
-                    Fighter* fighter = g_ftManager->searchNearFighter(0.0f, 20.0f, m_posTgtWork, -1, 0);
+                    Fighter* fighter = g_ftManager->searchNearFighter(m_posTgtWork, 0.0f, 20.0f, -1, 0);
                     if (fighter == NULL) {
                         break;
                     }

@@ -34,12 +34,13 @@ void wnPitIkarusStatusUniqProcessAttack::initStatus(soModuleAccesser* moduleAcce
     Vec3f pos = moduleAccesser->getPostureModule().getPos();
     ftManager* manager = g_ftManager;
     int team = moduleAccesser->getTeamModule().getTeam()->getNo();
-    Fighter* target = manager->searchNearFighter(0.0f, -1.0f, &pos, team, true);
+    Fighter* target = manager->searchNearFighter(&pos, 0.0f, -1.0f, team, true);
     Vec3f targetPos;
     if (target != NULL) {
         targetPos = soExternalValueAccesser::getPos(target);
     } else {
-        targetPos = getStageCenter();
+        const Vec3f& center = getStageCenter();
+        targetPos = center;
     }
     Vec2f dir;
     dir.m_x = targetPos.m_x - pos.m_x;
@@ -66,8 +67,7 @@ void wnPitIkarusStatusUniqProcessAttack::initStatus(soModuleAccesser* moduleAcce
 #pragma dont_inline on // BYTES: the original keeps the helper out of line
 static bool isNearZero(float value) {
     bool result = false;
-    double magnitude = fabs(value); // MATCH-ONLY: the original keeps the double result before narrowing it
-    if ((float)magnitude < 1.0e-5f) {
+    if ((float)fabs(value) < 1.0e-5f) {
         result = true;
     }
     return result;

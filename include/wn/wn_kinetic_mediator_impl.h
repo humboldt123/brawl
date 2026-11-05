@@ -35,6 +35,8 @@ public:
     soKineticEnergyNormal* getEnergy() { return &m_energy; }
 };
 
+// With WN_KINETIC_GENERIC_IN_FIGHTER_TU the fighter pool templates (ft_builder_kinetic.h) carry these members instead.
+#ifndef WN_KINETIC_GENERIC_IN_FIGHTER_TU
 template <typename Info>
 class soInstancePoolSubNull {
 public:
@@ -107,6 +109,7 @@ public:
         Parent::updateEnergy1(helper, acc);
     }
 };
+#endif
 
 template <typename Change, typename Update, typename Speed, typename Helper>
 struct soKineticTransactorInfo {

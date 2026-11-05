@@ -26,5 +26,14 @@ public:
     Vec3f m_limit3f;       // +0x38
     bool unk44;
     bool unk45;
+#ifdef SO_KINETIC_ENERGY_3F_DEFAULT_CTOR
+    // Opt-in (Pit's Ikarus pool constructs the energy in its unit): the default vectors are built as default
+    // arguments, last first, then copied into the members (same values as soKineticEnergyNormal's defaults).
+    soKineticEnergy3f(const Vec3f& speed = Vec3f(0.0f, 0.0f, 0.0f), const Vec3f& accel = Vec3f(0.0f, 0.0f, 0.0f),
+                      const Vec3f& target = Vec3f(-1.0f, -1.0f, -1.0f), const Vec3f& brake = Vec3f(0.0f, 0.0f, 0.0f),
+                      const Vec3f& limit = Vec3f(-1.0f, -1.0f, -1.0f)) :
+        soKineticEnergy(false), m_speed3f(speed), m_accel3f(accel), m_targetSpeed3f(target), m_brake3f(brake),
+        m_limit3f(limit), unk44(false), unk45(false) { }
+#endif
 #endif
 };

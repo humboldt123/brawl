@@ -1,3 +1,4 @@
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
@@ -7,7 +8,29 @@
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define FT_PARAM_ACCESSER_TYPED_DTOR
 #define FT_TEAM_TYPED_INTERFACE
+#define WN_WEAPON_BUILDER // the fighter owns the complete bow and arrow types (their weak teardowns are emitted here)
+#define WN_PIT_BOW_FULL_BUILDER
+#define WN_PIT_IKARUS_FULL_BUILDER // the fighter owns the complete Ikarus type (its holder teardown is emitted here)
+#define WN_KINETIC_GENERIC_IN_FIGHTER_TU
+#define WN_KINETIC_GENERIC_BUILDER
+#define WN_KINETIC_GRAVITY_INLINE_DTOR // BYTES: the Ikarus holder teardown expands the gravity energy teardown
 #include <ft/builder/ft_dol_array_list.h>
+// The arrow and Ikarus status vectors and the Ikarus hit-part vector: their teardowns are sora_melee's copies.
+FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 3);
+FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 5);
+FT_DOL_ARRAY_VECTOR(soCollisionHitPart, 1);
+FT_DOL_ARRAY_VECTOR(soCollisionHitPart, 11); // the hit module builder calls sora_melee's constructor out of line
+FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 1);
+FT_DOL_ARRAY_VECTOR(soCollisionGroup, 4); // the reflector builder calls sora_melee's constructor (fn_27_199694) out of line
+// BYTES: StageObject's weapon-builder inlines are defined here and after the globals instead of in the class
+// body: the native .bss places getInput's local static after this unit's globals, so its body was parsed after them.
+#undef WN_WEAPON_BUILDER
+#define SO_INPUT_NULL_CTOR
+#include <so/stageobject.h>
+#include <ip/ip_null.h>
+#define WN_WEAPON_BUILDER
+inline bool StageObject::checkTransitionStatus(u32) { return true; }
+inline bool StageObject::isTreadPassive() { return false; }
 #include <ft/ft_reflector_group.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/pit/ft_pit.h>
@@ -16,9 +39,19 @@
 #include <ft/ft_owner.h>
 #include <ft/ft_resource_id_accesser_impl.h>
 #include <so/article/so_article_mediator.h>
+#include <so/so_slow.h>
+#include <ft/ft_util.h>
 
 #define FT_BC ftPitBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// The Ikarus holder teardown expands the observer teardown here and calls soEventObserver<soDamageEventObserver>'s
+// directly (as Nikita's unit does).
+inline soDamageEventObserver::~soDamageEventObserver() { }
+// The arrow teardown expands the controller link teardown (as Mario's and Snake's units do).
+inline soControllerModuleLinkRef::~soControllerModuleLinkRef() { }
+// The articles' sound builder teardown inlines this empty destructor (same form as ft_mario.cpp and ft_snake.cpp).
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
 
 // Status teardown destroys its owned change-request queue before observers.
 #pragma dont_inline on
@@ -38,6 +71,12 @@ extern soStatusUniqProcess lbl_112_bss_1CC;
 ftPitExtendParamAccesser g_ftPitExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_Pit, ftPit> g_ftClassInfoPit;
+
+// StageObject's null input (declared early, see the top of the file).
+inline Input* StageObject::getInput() {
+    static IpNull sNullInput;
+    return &sNullInput;
+}
 
 ftPit::ftPit(s32 entryId,
                  Heaps::HeapType instHeap,
@@ -116,7 +155,6 @@ extern "C" void* fn_27_1491AC(const ftCommonDataAccesser* accesser, s32 subKind,
 
 // Keep explicit holder bodies where the pool calls them out of line.
 FT_DEFINE_ARTICLE_HOLDER(inline, wnPitBow, wnPitBowData, 0, ftPitArticleKind, fn_27_149064)
-FT_DEFINE_ARTICLE_HOLDER(, wnPitBowArrow, wnPitBowArrowData, 1, ftPitArticleKind, fn_27_1490FC)
 FT_DEFINE_ARTICLE_HOLDER(inline, wnPitParthena, wnPitParthenaData, 2, ftPitArticleKind, fn_27_1491AC)
 
 // ---- the articles and their mediator --------------------------------------------------------------------------------
@@ -146,6 +184,12 @@ ftPitArticleMediator::~ftPitArticleMediator() { }
 
 s32 ftPitArticleMediator::getMediateNum() { return 3; }
 void ftPitArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
+
+FT_DEFINE_ARTICLE_HOLDER(, wnPitBowArrow, wnPitBowArrowData, 1, ftPitArticleKind, fn_27_1490FC)
+#ifdef WN_PIT_IKARUS_FULL_BUILDER
+// The weak Final Smash teardown is emitted by this unit (native 0x5024, right after the Parthena holder chain).
+wnPitParthena::~wnPitParthena() { }
+#endif
 
 // ---- the article mediator -------------------------------------------------------------------------------------------
 // Slots: 0 Bow, 1 BowArrow, 2 Parthena (the rest are unused).
@@ -267,7 +311,6 @@ void testBuilder() {
     soInsideEventManageModuleBuilder<ftPitInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
     soResourceIdAccesserImpl idAccImpl(0, 1, 2);
 }
-soInsideEventManageModuleBuilder<ftPitInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
 
 // Virtual slot table of the kinetic and checkActivate forwarders: slot k sits at vtable offset 8 + 4k.
 // Declared only; the slots are never defined here.
@@ -304,278 +347,12 @@ int soValueAccesser::getValueVariation() { return g_soValueVariation; }
 
 ftKineticEnergyController::~ftKineticEnergyController() { }
 
-// Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
-extern "C" {
-
-u8 fn_112_774C(u8* p) { return *(u8*)(p + 0x4); }
-void fn_112_956C() {}
-int fn_112_A2E0() { return 0x0; }
-void fn_112_A448() {}
-void fn_112_A5C0() {}
-u8 fn_112_A5C4(u8* p) { return *(u8*)(p + 0x44); }
-void fn_112_A5CC() {}
-void fn_112_A60C() {}
-void fn_112_A610() {}
-void fn_112_A6A0() {}
-void fn_112_A6CC() {}
-void fn_112_A6D0() {}
-void fn_112_A6D4() {}
-void fn_112_A6D8() {}
-void fn_112_A6DC() {}
-void fn_112_A6E0() {}
-void fn_112_A6E4() {}
-void fn_112_A6E8() {}
-void fn_112_A6EC() {}
-void fn_112_A6F0() {}
-void fn_112_A6F4() {}
-void fn_112_A6F8() {}
-void fn_112_A6FC() {}
-void fn_112_A700() {}
-void fn_112_A704() {}
-int fn_112_A708() { return 0x0; }
-void fn_112_A710() {}
-void fn_112_A714() {}
-void fn_112_A718() {}
-void fn_112_A71C() {}
-void fn_112_A748() {}
-void fn_112_A74C() {}
-void fn_112_A750() {}
-void fn_112_A754() {}
-void fn_112_A758() {}
-int fn_112_A75C(u8* p) { return *(int*)(p + 0x110); }
-int fn_112_A774() { return 0x0; }
-void fn_112_A77C() {}
-void fn_112_A780() {}
-void fn_112_A784() {}
-void fn_112_A788() {}
-int fn_112_A78C() { return 0x0; }
-int fn_112_A794() { return 0x0; }
-void fn_112_A79C() {}
-void fn_112_A7A0() {}
-void fn_112_A7A4() {}
-void fn_112_A7A8() {}
-void fn_112_A7AC() {}
-int fn_112_A920(u8* p) { return *(int*)(p + 0x20); }
-int fn_112_A9FC(u8* p) { return *(int*)(p + 0x18); }
-int fn_112_AA94(u8* p) { return *(int*)(p + 0x10); }
-int fn_112_BDA8() { return 0x3; }
-void fn_112_CC00() {}
-void fn_112_D390() {}
-int fn_112_D43C() { return 0x0; }
-void fn_112_D478() {}
-int fn_112_D524() { return 0x0; }
-int fn_112_D5D4() { return 0x0; }
-void fn_112_D610() {}
-int fn_112_D6BC() { return 0x0; }
-void fn_112_D6F8() {}
-int fn_112_D7A4() { return 0x0; }
-void fn_112_D7E0() {}
-int fn_112_D88C() { return 0x0; }
-void fn_112_D8C8() {}
-int fn_112_D974() { return 0x0; }
-void fn_112_D9B0() {}
-int fn_112_DA5C() { return 0x0; }
-
-// Deleting-destructor leaves: return this, and free it when the flag is positive.
 #pragma dont_inline on
-void* fn_112_1E8C(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-void* fn_112_3BA4(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-void* fn_112_3E4C(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-void* fn_112_3E8C(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-void* fn_112_4480(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-void* fn_112_4808(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-void* fn_112_4AFC(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-void* fn_112_5958(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-void* fn_112_5998(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-void* fn_112_59D8(void* self, s16 flag) {
-    if (self != 0) {
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-
+ftVirtualNodeMatrixPool::~ftVirtualNodeMatrixPool() { }
+soTeam::~soTeam() { }
+soParamAccesser::~soParamAccesser() { }
 #pragma dont_inline off
-
-// ftTeam deleting destructor: runs the base destructor (fn_112_3BA4) without freeing, then frees if flagged.
-void* fn_112_6FC4(void* self, s16 flag) {
-    if (self != 0) {
-        fn_112_3BA4(self, 0);
-        if (flag > 0) {
-            ::operator delete(self);
-        }
-    }
-    return self;
-}
-
-// Single-field and virtual-slot accessors.
-// HYPOTHESIS: the 0x21580 byte is the setAutoRecycle flag of the article mediator stored in the fighter tail.
-void fn_112_BDB0(u8* self, u8 value) { *(u8*)(self + 0x21580) = value; }
-
-// Instance-pool getInstanceAt for the Parthena and Bow pools: index 0 yields the first instance slot.
-void* fn_112_BE38(u8* self, s32 index) {
-    if (index == 0) {
-        return self + 0xC;
-    }
-    return 0;
-}
-void* fn_112_BE98(u8* self, s32 index) {
-    if (index == 0) {
-        return self + 0xC;
-    }
-    return 0;
-}
-
-// Bow arrow pool getInstanceAt: each index selects a fixed offset into the pool object.
-void* fn_112_BE50(u8* self, s32 index) {
-    if (index == 3) {
-        return self + 0x5FAC;
-    }
-    if (index == 2) {
-        return self + 0x3FD0;
-    }
-    if (index == 1) {
-        return self + 0x1FF4;
-    }
-    if (index == 0) {
-        return self + 0x18;
-    }
-    return 0;
-}
-
-// Virtual slot 0x58 forwarder (checkActivate).
-void* fn_112_BE28(u8* self) {
-    return ((ftPitVirtualSlots*)self)->slot20();
-}
-
-// Kinetic energy update forwarders: call slot 1 when the top bit of byte 5 is set and byte 6 is clear.
-struct ftPitKineticUpdateFlags {
-    bool active : 1;
-    u8 unk : 7;
-};
-#define PIT_KINETIC_UPDATE_FORWARDER(name)                                   \
-    void name(u8* self) {                                                    \
-        bool active = ((ftPitKineticUpdateFlags*)(self + 5))->active;        \
-        if (active != true) {                                                \
-            return;                                                          \
-        }                                                                    \
-        if (self[6] != 0) {                                                  \
-            return;                                                          \
-        }                                                                    \
-        ((ftPitVirtualSlots*)self)->slot1();                                 \
-    }
-PIT_KINETIC_UPDATE_FORWARDER(fn_112_D35C)
-PIT_KINETIC_UPDATE_FORWARDER(fn_112_D444)
-PIT_KINETIC_UPDATE_FORWARDER(fn_112_D5DC)
-PIT_KINETIC_UPDATE_FORWARDER(fn_112_D6C4)
-PIT_KINETIC_UPDATE_FORWARDER(fn_112_D7AC)
-PIT_KINETIC_UPDATE_FORWARDER(fn_112_D894)
-PIT_KINETIC_UPDATE_FORWARDER(fn_112_D97C)
-
-}
-
-// Fighter event thunks: adjust `this` back to the Fighter base, then tail-call the Fighter method.
-extern "C" {
-void fn_112_DC80(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) { ((Fighter*)(self - 0x54))->Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4); }
-void fn_112_DC88(u8* self, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x64))->Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser); }
-void fn_112_DC90(u8* self, SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x70))->Fighter::notifyEventChangeSituation(kind, prevKind, moduleAccesser); }
-bool fn_112_DC98(u8* self) { return ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShieldCheck(); }
-bool fn_112_DCA8(u8* self) { return ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorCheck(); }
-bool fn_112_DCE8(u8* self, u32 flags) { return ((Fighter*)(self - 0x7C))->Fighter::notifyEventCollisionAttackCheck(flags); }
-void fn_112_DCF0(u8* self, float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x7C))->Fighter::notifyEventCollisionAttack(power, collisionLog, moduleAccesser); }
-void fn_112_DCF8(u8* self, int index, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x88))->Fighter::notifyEventChangeCollisionHit(index, moduleAccesser); }
-bool fn_112_DD30(u8* self) { return ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorberCheck(); }
-bool fn_112_DD40(u8* self) { return ((Fighter*)(self - 0xB8))->Fighter::notifyEventCollisionSearchCheck(); }
-void fn_112_DD48(u8* self, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xB8))->Fighter::notifyEventCollisionSearch(collisionLog, moduleAccesser); }
-bool fn_112_DD50(u8* self, soModuleAccesser* moduleAccesser, int taskId, int unk2, int unk3) { return ((Fighter*)(self - 0xC4))->Fighter::notifyEventCaptureStatus(moduleAccesser, taskId, unk2, unk3); }
-void fn_112_DD58(u8* self, BaseItem* item, int unk2, bool unk3, u8 unk4) { ((Fighter*)(self - 0xD0))->Fighter::notifyVisibilityItem(item, unk2, unk3, unk4); }
-void fn_112_DD60(u8* self, BaseItem* item, u32 index, bool unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyEjectAttachItem(item, index, unk3); }
-void fn_112_DD68(u8* self, BaseItem* item, u32 index, bool unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyEjectItem(item, index, unk3); }
-void fn_112_DD70(u8* self, BaseItem* item) { ((Fighter*)(self - 0xD0))->Fighter::notifyShootBulletItem(item); }
-void fn_112_DD78(u8* self, BaseItem* item) { ((Fighter*)(self - 0xD0))->Fighter::notifyDropItem(item); }
-void fn_112_DD80(u8* self, BaseItem* item, u32 nodeIndex, int* unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyThrowItem(item, nodeIndex, unk3); }
-void fn_112_DD88(u8* self, BaseItem* item, u32 nodeIndex, int* unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyUseItem(item, nodeIndex, unk3); }
-void fn_112_DD90(u8* self, BaseItem* item, u32 nodeIndex, u32 attachNodeIndex, bool unk4, bool unk5) { ((Fighter*)(self - 0xD0))->Fighter::notifyAttachItem(item, nodeIndex, attachNodeIndex, unk4, unk5); }
-void fn_112_DD98(u8* self, itParam::SizeKind sizeKind, BaseItem* item, u32 nodeIndex, u32 index, bool unk5) { ((Fighter*)(self - 0xD0))->Fighter::notifyHaveItem(sizeKind, item, nodeIndex, index, unk5); }
-bool fn_112_DDA0(u8* self, BaseItem* item, bool* unk2) { return ((Fighter*)(self - 0xD0))->Fighter::notifyHaveItemPreCheck(item, unk2); }
-void fn_112_DDA8(u8* self, soDamage* damage, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xE8))->Fighter::notifyEventAddDamage(damage, moduleAccesser); }
-void fn_112_DDB0(u8* self, soDamage* damage, bool unk2, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xE8))->Fighter::notifyEventOnDamage(damage, unk2, moduleAccesser); }
-void fn_112_DDB8(u8* self, float unk1, int unk2) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventPikminFinalAttack(unk1, unk2); }
-void fn_112_DDC0(u8* self) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventChangeAdvUnit(); }
-void fn_112_DDC8(u8* self) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventBeat(); }
-void fn_112_DDD0(u8* self, float unk1) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventSetDamage(unk1); }
-void fn_112_DDD8(u8* self, float unk1, float unk2, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x100))->Fighter::notifyEventTurn(unk1, unk2, moduleAccesser); }
-void fn_112_DCA0(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-void fn_112_DCB0(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-bool fn_112_DCC0(u8* self, acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3) { return ((Fighter*)(self - 0x48))->Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3); }
-void fn_112_DD08(u8* self, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShieldSearch(searchModule, collisionLog, groupIndex, moduleAccesser); }
-void fn_112_DD20(u8* self, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorSearch(searchModule, collisionLog, groupIndex, moduleAccesser); }
-void fn_112_DD38(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-} // extern "C"
+soArticleMediator::~soArticleMediator() { }
 
 void ftPit::notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser) {
     Fighter::notifyEventChangeSituation(kind, prevKind, moduleAccesser);
@@ -627,6 +404,37 @@ void ftPit::onStart(int kind) {
     Fighter::onStart(kind);
 }
 
+void ftPit::processUpdate() {
+    Fighter::processUpdate();
+    if (soSlow::getInstance()->isEstimate() == true) {
+        // HYPOTHESIS: 0x11000013 is the accumulated mirror-shield power, decayed by a constant while slowdown is estimated.
+        float value = m_moduleAccesser->getWorkManageModule().getFloat(0x11000013);
+        value += soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFB7, 0);
+        int limit = soValueAccesser::getConstantInt(m_moduleAccesser, 0x5DC3, 0);
+        if (value > (float)limit) {
+            value = (float)limit;
+        }
+        m_moduleAccesser->getWorkManageModule().setFloat(value, 0x11000013);
+        m_moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x11000015);
+        switch (m_moduleAccesser->getStatusModule().getStatusKind()) {
+        case 0x11F:
+        case 0x115:
+            break;
+        default: {
+            float timer = m_moduleAccesser->getWorkManageModule().getFloat(0x11000014);
+            timer += soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFBC, 0);
+            if (timer > soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFBB, 0)) {
+                timer = soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFBB, 0);
+            }
+            m_moduleAccesser->getWorkManageModule().setFloat(timer, 0x11000014);
+            break;
+        }
+        }
+    }
+    unk297B5 = 0;
+    unk297B4 = 0;
+}
+
 void ftPit::notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
     if (groupIndex == 1) {
         int collisionIndex = collisionLog->m_collsionIndex;
@@ -637,4 +445,38 @@ void ftPit::notifyEventCollisionShield(soCollisionAttackModule* attackModule, fl
         }
     }
     Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser);
+}
+
+bool ftPit::notifyEventCollisionShieldCheck() {
+    float power = m_moduleAccesser->getWorkManageModule().getFloat(0x11000015);
+    if (power > 0.0f) {
+        soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFBD, 0);
+        m_moduleAccesser->getStopModule().setHitStop((float)(int)power, 0);
+        soModuleAccesser* accesser = m_moduleAccesser;
+        ftUtil::setShieldSetoffSpeed(accesser, power, accesser->getWorkManageModule().getFloat(0x11000016));
+        float remain = m_moduleAccesser->getWorkManageModule().getFloat(0x11000014) - power;
+        if (remain < 0.0f) {
+            m_moduleAccesser->getCollisionShieldModule().setStatus(0, 0, 1);
+            remain = 0.0f;
+        }
+        m_moduleAccesser->getWorkManageModule().setFloat(remain, 0x11000014);
+        return false;
+    }
+    return Fighter::notifyEventCollisionShieldCheck();
+}
+
+bool ftPit::notifyEventCollisionReflectorCheck() {
+    if (unk297B4 == 1) {
+        if (unk297B0 == 3) {
+            m_moduleAccesser->getEffectModule().reqFollow(static_cast<EfID>(0x180010), 0x2C, &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), 1.0f, false, 1, 0, -1);
+            int soundHandle = m_moduleAccesser->getWorkManageModule().getInt(0x10000041);
+            if (soundHandle == -1 || !m_moduleAccesser->getSoundModule().isPlay(soundHandle)) {
+                int handle = m_moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0x2C8), false, false, 0);
+                m_moduleAccesser->getWorkManageModule().setInt(handle, 0x10000041);
+            }
+        }
+    } else if (unk297B5 == 1) {
+        m_moduleAccesser->getCollisionReflectorModule().setStatus(0, 0, unk297B0);
+    }
+    return Fighter::notifyEventCollisionReflectorCheck();
 }

@@ -41,6 +41,43 @@ public:
 };
 static_assert(sizeof(wnPitBowArrowParamAccesser) == 0x50, "Pit bow arrow parameter accesser extent");
 
+#if defined(WN_PIT_IKARUS_FULL_BUILDER) || defined(WN_PIT_BOW_FULL_BUILDER)
+#include <so/controller/so_controller_module_link_ref.h>
+// HYPOTHESIS: drafted from Snake's cypher config (closest destructor); status count 3 from the destructor's
+// status-process vector. Not yet checked module by module.
+class wnPitBowArrowModuleAccesserBuildConfig : public wnCommonBuildConfig {
+public:
+    typedef soInsideEventManageModuleBuildConfig<16, 32, 4, 2, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 1, 1, 0, 0, 0, wnInsideEventManageModuleTypes>
+        InsideEventManageModuleBuildConfig;
+    typedef soModelModuleBuildConfig<5, 0, soModelModuleImpl> ModelModuleBuildConfig;
+    typedef soMotionModuleBuildConfig<4, soMotionModuleImpl, 0, 1, soTransitionModuleBuildConfigNull,
+                                      soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > MotionModuleBuildConfig;
+    typedef soCollisionAttackModuleBuildConfig<soCollision::Category_Fighter, 1, 0, soCollisionAttackModuleImpl, 1, false, true>
+        CollisionAttackModuleBuildConfig;
+    typedef soGroundModuleBuildConfig<1, soGroundModuleImpl> GroundModuleBuildConfig;
+    typedef soCollisionHitModuleBuildConfigNull CollisionHitModuleBuildConfig;
+    typedef soDamageModuleBuildConfigNull DamageModuleBuildConfig;
+    typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;
+    typedef soVisibilityModuleBuildConfigNull VisibilityModuleBuildConfig;
+    typedef wnControllerModuleBuildConfig<soControllerModuleLinkRef, 0, 0> ControllerModuleBuildConfig;
+    typedef wnStatusModuleBuildConfig<3, soGeneralWorkBuildConfig<2, 2, 1>, 3, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> >
+        StatusModuleBuildConfig;
+    typedef wnAnimCmdModuleSubBuildConfigDefault<1, 3, 0, 0, 1, 3, 0, 0, 1, 3, 0, 0, 1, 3, 0, 0> AnimCmdModuleSubBuildConfig;
+    typedef soColorBlendModuleBuildConfigNull ColorBlendModuleBuildConfig;
+};
+
+class wnPitBowArrow : public wnWeaponBuilder<wnPitBowArrowModuleAccesserBuildConfig> {
+public:
+    const wnPitBowArrowParam* m_param;
+    wnPitBowArrowParamAccesser m_paramAccesser;
+    wnPitBowArrow(s32 articleId, const wnArticleBuildInfo& info, const wnPitBowArrowData* data);
+    virtual ~wnPitBowArrow() { }
+    // HYPOTHESIS: parameter names (see the shell below).
+    void activate(int founderTaskId, int resourceId, int team);
+    virtual void updateNodeSRT();
+    virtual bool reflect();
+};
+#else
 // Extent known from the class info createArray allocation (0x1FD8); the internal layout and the builder
 // chain stay blob-provided until the constructor is reconstructed.
 class wnPitBowArrow : public Weapon {
@@ -57,3 +94,4 @@ public:
     virtual bool reflect();
 };
 static_assert(sizeof(wnPitBowArrow) == 0x1FD8, "Pit bow arrow article extent");
+#endif

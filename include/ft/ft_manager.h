@@ -383,7 +383,7 @@ public:
     float getFighterLr(int entryId, int unk) const;
     int getFighterOperationType(int entryId);
     int getFighterOperationStatus(int entryId);
-    Fighter* searchNearFighter(float unk1, float radius, Vec3f* pos, int team, bool unk4);
+    Fighter* searchNearFighter(Vec3f* pos, float unk1, float radius, int team, bool unk4); // pos first: Pit Ikarus attack sets r4 before f1/f2
     void setHeal(int entryId, float heal);
     void setCurry(int entryId);
     void setSuperStar(int entryId);

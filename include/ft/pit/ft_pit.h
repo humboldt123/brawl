@@ -60,7 +60,7 @@ class wnPitParthena;
 class ftPit : public ftFighterBuilder<ftPitBuildConfig> {
     soArrayContractibleTable<const soStatusData> m_statusDataTable;
     ftData* m_data;
-    u32 unk297B0;
+    s32 unk297B0;
     u8 unk297B4;
     u8 unk297B5;
 public:
@@ -69,6 +69,9 @@ public:
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
     virtual void onStart(int kind);
+    virtual void processUpdate();
+    virtual bool notifyEventCollisionShieldCheck();
+    virtual bool notifyEventCollisionReflectorCheck();
     virtual void notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser);
     virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4);

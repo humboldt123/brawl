@@ -870,7 +870,7 @@ void stIce::updateYasai(float deltaFrame) {
                             pos.m_y = end.m_y + dir.m_y;
                             pos.m_z = end.m_z + dir.m_z;
                         }
-                        if (g_ftManager->searchNearFighter(0.0f, data->unk68, &pos, -1, 0) == NULL) {
+                        if (g_ftManager->searchNearFighter(&pos, 0.0f, data->unk68, -1, 0) == NULL) {
                             if (randf() < data->foodSpawnChance * data->unk64) {
                                 BaseItem* item = items->createItem(Item_Stage_Yasai, m_yasaiKind, -1, NULL, 0, 0xFFFF, 0, 0xFFFF);
                                 if (item != NULL) {
