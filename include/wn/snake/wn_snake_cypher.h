@@ -9,28 +9,7 @@ WN_STATUS_PROC_VECTOR_ARG_CTOR(4);
 // The hit part vector is built by the sora_melee constructor (wn_snake_shared_arrays.h).
 #include <wn/snake/wn_snake_shared_arrays.h>
 
-// The parameter block of the article (reached through the data block at +0x34).
-// HYPOTHESIS: meaning of the fields.
-struct wnSnakeCypherParam {
-    u8 unk0[0x1C];
-    float unk1C; // life base
-    float unk20; // life divisor input
-    float unk24; // vertical speed
-    float unk28; // vertical acceleration
-    float unk2C; // vertical speed target
-    s32 unk30;   // value of the shoot work int
-    float unk34; // ground collision offset
-};
-
-// The static data block of the article (read by its wnModuleAccesserBuildData).
-// HYPOTHESIS: layout of the untouched part.
-struct wnSnakeCypherData {
-    s32 m_resGroupNo;
-    s32 m_constraintNode; // +4: node synced with the constraint on activation
-    u8 unk8[0x2C];
-    const wnSnakeCypherParam* m_param; // +0x34
-    u8 unk38[1]; // start of the collision hit data set handed to the hit module
-};
+#include <wn/snake/wn_snake_cypher_data.h>
 
 class wnSnakeCypherModuleAccesserBuildConfig : public wnCommonBuildConfig {
 public:

@@ -12,6 +12,7 @@
 #include <so/so_module_accesser.h>
 #include <so/status/so_status_module_impl.h>
 #include <types.h>
+#include <wn/snake/wn_snake_cypher_data.h>
 
 class ftSnakeStatusUniqProcessCypherHang : public soStatusUniqProcess {
 public:
@@ -21,34 +22,22 @@ public:
     virtual void execStatus(soModuleAccesser* moduleAccesser);
 };
 
-struct ftSnakeCypherHangParams {
-    float unk0;
-    float unk4;
-    float unk8;
-    float unkC;
-    float unk10;
-    float unk14;
-    float unk18;
+// The data lookup's out-parameter pair, as in ft_snake.cpp: the getter receives the second flag.
+struct ftSnakeArticleDataTag {
+    bool m_unused;
+    bool m_resourceGroup;
+    ftSnakeArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
 };
 
-struct ftSnakeCypherHangDataView {
-    u8 unk0[0x34];
-    ftSnakeCypherHangParams* unk34;
-};
+// sora_melee ftCommonDataAccesser::getWeaponData20 (map name; the symbol is still unnamed in sora_melee's
+// symbols.txt): the Cypher's article data, also used by ft_snake.cpp's Cypher holder.
+extern "C" void* fn_27_147F88(ftCommonDataAccesser* accesser, int kind, bool* resourceGroup);
 
-// HYPOTHESIS: fn_27_147F88 is the native accessor call at the target callsite.
-// Its callee ignores the forwarded kind and output-bool registers.
-extern "C" void* fn_27_147F88(
-    ftCommonDataAccesser* accesser, int kind, bool* resourceGroup);
-
-void ftSnakeStatusUniqProcessCypherHang::initStatus(
-    soModuleAccesser* moduleAccesser) {
-    bool resourceGroup = false;
+void ftSnakeStatusUniqProcessCypherHang::initStatus(soModuleAccesser* moduleAccesser) {
+    ftSnakeArticleDataTag tag;
     int ownerKind = moduleAccesser->getStageObject().soGetSubKind();
-    ftSnakeCypherHangDataView* data =
-        static_cast<ftSnakeCypherHangDataView*>(fn_27_147F88(
-            &g_ftCommonDataAccesser, ownerKind, &resourceGroup));
-    const ftSnakeCypherHangParams* param = data->unk34;
+    const wnSnakeCypherParam* param = static_cast<const wnSnakeCypherData*>(
+        fn_27_147F88(&g_ftCommonDataAccesser, ownerKind, &tag.m_resourceGroup))->m_param;
 
     Vec2f speed;
     Vec2f::copy(
@@ -60,14 +49,13 @@ void ftSnakeStatusUniqProcessCypherHang::initStatus(
         dynamic_cast<ftKineticEnergyGravity&>(
             *moduleAccesser->getKineticModule().getEnergy(1));
     gravity.enable();
-    if (speed.m_y < -param->unk0)
-        speed.m_y = -param->unk0;
+    if (speed.m_y < -param->m_hangFallSpeedLimit)
+        speed.m_y = -param->m_hangFallSpeedLimit;
     Vec2f gravitySpeed(0.0f, speed.m_y);
-    Vec3f gravityAccel(0.0f, 0.0f, 0.0f);
-    gravity.resetEnergy(1, &gravitySpeed, &gravityAccel, moduleAccesser);
-    gravity.m_gravity = param->unk4;
-    gravity.m_fallSpeedMax = param->unk8;
-    gravity.unk1C = param->unkC;
+    gravity.resetEnergy(1, &gravitySpeed, &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
+    gravity.m_gravity = param->m_hangGravity;
+    gravity.m_fallSpeedMax = param->m_hangFallSpeedMax;
+    gravity.unk1C = param->m_hangGravityUnk1C;
     gravity.enable();
 
     ftKineticEnergyController& controller =
@@ -75,12 +63,11 @@ void ftSnakeStatusUniqProcessCypherHang::initStatus(
             *moduleAccesser->getKineticModule().getEnergy(2));
     controller.enable();
     Vec2f controllerSpeed(speed.m_x, 0.0f);
-    Vec3f controllerAccel(0.0f, 0.0f, 0.0f);
-    controller.resetEnergy(0, &controllerSpeed, &controllerAccel, moduleAccesser);
-    controller.m_accelMul = param->unk10;
-    Vec2f speedTarget(param->unk14, 0.0f);
+    controller.resetEnergy(0, &controllerSpeed, &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
+    controller.m_accelMul = param->m_hangAirAccelMul;
+    Vec2f speedTarget(param->m_hangAirSpeedTarget, 0.0f);
     controller.m_speedTarget = speedTarget;
-    Vec2f speedLimit(param->unk18, 0.0f);
+    Vec2f speedLimit(param->m_hangAirSpeedLimit, 0.0f);
     controller.m_speedLimit = speedLimit;
 
     moduleAccesser->getKineticModule().getEnergy(0)->disable();
