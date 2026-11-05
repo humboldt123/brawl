@@ -116,39 +116,42 @@ void wnSnakeNikita::notifyEnd(int isEnd) {
     }
 }
 
+// Lets the current missile fly on by itself and remembers its task id (once).
 void wnSnakeNikita::onDeactivate() {
-    soArrayVector<soArticle*, 3> articles;
+    soArrayVector<soArticle*, 3> articles(0);
     getArticleManage(*m_moduleAccesser).getArticleList(&articles, 0, 2);
 
-    if (!articles.isNull()) {
-        wnSnakeNikitaMissile* missile =
-            dynamic_cast<wnSnakeNikitaMissile*>(articles.at(0));
-        if (missile != NULL) {
-            missile->setAutonomy();
+    if (!articles.isEmpty()) {
+        wnSnakeNikitaMissile* missile = dynamic_cast<wnSnakeNikitaMissile*>(articles.at(0));
+        if (missile == NULL) {
+            return;
+        }
+        missile->setAutonomy();
 
-            const unsigned long taskId = *reinterpret_cast<u32*>(
-                reinterpret_cast<u8*>(missile) + 0x28);
-            bool alreadyTracked = false;
-            for (s32 index = 0; index < m_unkMissileTaskIds.size(); ++index) {
-                if (m_unkMissileTaskIds.at(index) == taskId) {
-                    alreadyTracked = true;
-                }
+        bool isNew = true;
+        for (s32 i = 0; i < m_unkMissileTaskIds.size(); i++) {
+            if (m_unkMissileTaskIds.at(i) == missile->m_taskId) {
+                isNew = false;
             }
-            if (!alreadyTracked) {
-                m_unkMissileTaskIds.push(taskId);
-            }
+        }
+        if (isNew) {
+            m_unkMissileTaskIds.push(missile->m_taskId);
         }
     }
 }
 
+// Drops the current missile (status 1) while it is still in flight (status 0).
+// HYPOTHESIS: work flag 0x12000003 marks a missile that may not be dropped.
 void wnSnakeNikita::forceFallMissile() {
-    soArrayVector<soArticle*, 3> articles;
+    soArrayVector<soArticle*, 3> articles(0);
     getArticleManage(*m_moduleAccesser).getArticleList(&articles, 0, 2);
 
-    if (!articles.isNull()) {
-        wnSnakeNikitaMissile* missile =
-            dynamic_cast<wnSnakeNikitaMissile*>(articles.at(0));
-        if (missile != NULL && soExternalValueAccesser::getStatusKind(missile) == 0 &&
+    if (!articles.isEmpty()) {
+        wnSnakeNikitaMissile* missile = dynamic_cast<wnSnakeNikitaMissile*>(articles.at(0));
+        if (missile == NULL) {
+            return;
+        }
+        if (soExternalValueAccesser::getStatusKind(missile) == 0 &&
             !soExternalValueAccesser::getWorkFlag(missile, 0x12000003)) {
             missile->changeStatus(1);
         }
