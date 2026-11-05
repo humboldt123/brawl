@@ -78,12 +78,11 @@ inline wnSnakeNikitaMissileStatusUniqProcessFly* wnSnakeNikitaMissileStatusUniqP
 }
 
 // MATCH-ONLY: the native .rodata starts with Weapon::setHitStop's three literals from a copy compiled before the
-// constructor (stripped from the REL), and notifyEventOnDamage pools its own second copy of them later. A non-static
-// definition here is compiled first and reproduces that pool; nothing calls it.
-void setHitStop(soModuleAccesser* moduleAccesser, float power, float minFrame, int allowSdi) {
-    const int hitStopFrame = soStopModuleImpl::calcHitStopFrame(power, 0.3846154f, 5.0f, minFrame, 30.0f);
-    moduleAccesser->getStopModule().setHitStopFrame(hitStopFrame, allowSdi);
-}
+// constructor (stripped from the REL), and notifyEventOnDamage pools its own second copy of them later (never read:
+// they only pad the pool). An unreferenced array of the same three values reproduces those bytes without letting the
+// later literals merge into it.
+extern const float g_wnSnakeNikitaMissileHitStopLiterals[3];
+const float g_wnSnakeNikitaMissileHitStopLiterals[3] = { 0.3846154f, 5.0f, 30.0f };
 
 #pragma dont_inline on // BYTES: the native missile constructor calls every helper (accessors included) out of line
 wnSnakeNikitaMissile::wnSnakeNikitaMissile(s32 articleId, const wnArticleBuildInfo& info,
