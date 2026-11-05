@@ -34,13 +34,11 @@ void ftSnakeStatusUniqProcessFinalSet::execFixPos(soModuleAccesser* acc) {
     if (!g_cmAIController) return;
     {
         Rect2D& viewport = g_cmAIController->unk16C;
-        float width = 0.5f * (viewport.m_right - viewport.m_left);
-        cursor.m_x /= width;
-        float height = 0.5f * (viewport.m_down - viewport.m_up);
-        cursor.m_y /= height;
+        cursor.m_x /= (viewport.m_right - viewport.m_left) / 2.0f;
+        cursor.m_y /= (viewport.m_down - viewport.m_up) / 2.0f;
     }
     if (acc->getMotionModule().getKind() == 500) {
-        float frameRate = 0.5f * (cursor.m_y + 1.0f);
+        float frameRate = (cursor.m_y + 1.0f) / 2.0f;
         if (frameRate > 1.0f) frameRate = 1.0f;
         else if (frameRate < 0.0f) frameRate = 0.0f;
         frameRate *= acc->getMotionModule().getEndFrame();
