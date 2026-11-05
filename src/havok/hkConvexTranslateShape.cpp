@@ -21,15 +21,7 @@
 #include <havok/hkShapeType.h>
 #include <havok/hkCdBody.h>
 
-// Ray cast input (0x28 bytes), declared here because no header for it exists yet. Layout from the copy code:
-// ray start and end at 0x00 and 0x10, then two words copied unchanged (HYPOTHESIS: filter and user data).
-// MATCH-ONLY-SCOPE: move to include/havok/hkShapeRayCastInput.h when its owner adds one.
-struct hkShapeRayCastInput {
-    hkVector4 m_from;  // 0x00
-    hkVector4 m_to;    // 0x10
-    u32 unk20;         // 0x20 HYPOTHESIS
-    u32 unk24;         // 0x24 HYPOTHESIS
-};
+#include <havok/hkShapeRayCastInput.h>
 
 void hkConvexTranslateShape::finishLoadedObjecthkConvexTranslateShape(void* p) {
     hkFinishLoadedObjectFlag flag;

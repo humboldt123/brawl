@@ -2,17 +2,10 @@
 
 #include <havok/hkShape.h>
 #include <havok/hkShapeContainer.h>
+#include <havok/hkShapeCollection.h>
+
 #include <havok/hkArray.h>
 #include <havok/hkWorldCinfo.h>
-
-// MATCH-ONLY-SCOPE: shape collection base (hkShapeCollectionClass.cpp layout). Declared here because no
-// header for it exists yet; move it to include/havok/hkShapeCollection.h when its owner adds one.
-// Shape collection (0x14 bytes): the embedded container at 0x0C (its vtable is written there by the mesh
-// constructors) and disableWelding at 0x10.
-struct hkShapeCollection : hkShape {
-    hkShapeContainer m_container; // 0x0C HYPOTHESIS: the container interface of the collection
-    hkBool m_disableWelding;      // 0x10
-};
 
 // One subpart of a mesh (0x30 bytes). Layout from hkMeshShapeClass.cpp.
 struct hkMeshShapeSubpart {

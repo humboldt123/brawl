@@ -20,13 +20,14 @@
 //   0x802AEE00    92  __dt   [map: hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_____dt]
 
 #include <havok/hkCapsuleTriangleAgent.h>
+#include <havok/hkCollisionInput.h>
+#include <havok/hkSymmetricAgentFlipCollectors.h>
 #include <havok/hkShapeType.h>
 #include <havok/hkCollisionDispatcher.h>
 
 // Stand-ins for the sub-object constructor and the symmetric linear cast of other units (not written yet).
 extern "C" void fn_80325334(void* src, void* dst);
-extern "C" void fn_802AE4F8();
-extern "C" void fn_802B7FD0();
+extern "C" void fn_802B7FD0(void* a, void* b, void* c, void* target, void* d);
 
 hkCapsuleTriangleAgent::hkCapsuleTriangleAgent(hkContactMgr* contactMgr, void* src) : hkCollisionAgent((int)contactMgr) {
     unkC[0] = 0xFFFF;
@@ -50,7 +51,7 @@ void hkCapsuleTriangleAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
     triangle.create = (hkAgentFunc)createTriangleCapsuleAgent;
     triangle.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_::staticGetPenetrations;
     triangle.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_::staticGetClosestPoints;
-    triangle.staticLinearCast = (hkAgentFunc)fn_802AE4F8;
+    triangle.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_::staticLinearCast;
     triangle.symmetricA = 1;
     triangle.symmetricB = 0;
     dispatcher->registerCollisionAgent(&triangle, HK_SHAPE_TRIANGLE, HK_SHAPE_CAPSULE);
@@ -101,3 +102,18 @@ void hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_::staticGetClosestPoint
 }
 
 hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_::~hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_() {}
+
+// The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
+// the points back.
+void hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_::staticLinearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        fn_802B7FD0(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        fn_802B7FD0(b, a, &flippedInput, &flipped, 0);
+    }
+}

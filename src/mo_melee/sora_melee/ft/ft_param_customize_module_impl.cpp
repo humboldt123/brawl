@@ -121,3 +121,244 @@ void ftParamCustomizeModuleImpl::applyMetal() {
     }
     m_walkSpeedMul = scale[0] * getWalkSpeedMul();
 }
+
+void ftParamCustomizeModuleImpl::applyThunder(float factor) {
+    float* scale = g_ftCommonData.dataCommon->sizeCustomizeScale[1];
+    for (int variation = 0; variation < 2; variation++) {
+        {
+            float& parameter = m_paramFloat[variation][4];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[4]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][7];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[5]);
+        }
+        {
+            s32& parameter = m_paramInt[variation][1];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[6]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][12];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[7]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][15];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[8]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][22];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[9]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][23];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[10]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][26];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[11]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][27];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[12]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][28];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[13]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][30];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[14]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][40];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[15]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][46];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[16]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][56];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[17]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][57];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[18]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][64];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[19]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][65];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[20]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][94];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[21]);
+        }
+        {
+            s32& parameter = m_paramInt[variation][11];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[22]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][72];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[23]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][73];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[24]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][74];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[25]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][75];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[26]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][76];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[27]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][77];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[28]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][78];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[29]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][110];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[30]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][111];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[31]);
+        }
+    }
+    setAttackPowerMulScale(ftUtil::calcScalingParam(1.0f, factor, scale[1]));
+}
+
+void ftParamCustomizeModuleImpl::applyKinoko(float factor) {
+    float* scale = g_ftCommonData.dataCommon->sizeCustomizeScale[0];
+    for (int variation = 0; variation < 2; variation++) {
+        {
+            float& parameter = m_paramFloat[variation][4];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[4]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][7];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[5]);
+        }
+        {
+            s32& parameter = m_paramInt[variation][1];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[6]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][12];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[7]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][15];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[8]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][22];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[9]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][23];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[10]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][26];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[11]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][27];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[12]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][28];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[13]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][30];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[14]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][40];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[15]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][46];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[16]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][56];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[17]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][57];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[18]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][64];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[19]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][65];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[20]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][94];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[21]);
+        }
+        {
+            s32& parameter = m_paramInt[variation][11];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[22]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][72];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[23]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][73];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[24]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][74];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[25]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][75];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[26]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][76];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[27]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][77];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[28]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][78];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[29]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][110];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[30]);
+        }
+        {
+            float& parameter = m_paramFloat[variation][111];
+            parameter = ftUtil::calcScalingParam(parameter, factor, scale[31]);
+        }
+    }
+    setAttackPowerMulScale(ftUtil::calcScalingParam(1.0f, factor, scale[1]));
+    float walkSpeedScale = ftUtil::calcScalingParam(1.0f, factor, scale[3]);
+    float walkSpeed = getWalkSpeedMul();
+    m_walkSpeedMul = walkSpeed * walkSpeedScale;
+}

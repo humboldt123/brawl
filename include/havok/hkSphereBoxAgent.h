@@ -26,7 +26,7 @@ struct hkSphereBoxAgent : hkCollisionAgent {
     static hkSphereBoxAgent* createSphereBoxAgent(void* unk0, void* unk1, void* unk2, hkContactMgr* contactMgr);
 
     virtual void cleanup();
-    virtual void processCollision(void* unk0, void* unk1, void* unk2);
+    virtual void processCollision(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3) __attribute__((never_inline));
 
@@ -45,9 +45,11 @@ struct hkSymmetricAgentLinearCast_16hkSphereBoxAgent_ : hkSphereBoxAgent {
     virtual void getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
     // Destructor defined in hkSphereCapsuleAgent.cpp (map places it there).
+    static void staticLinearCast(void* a, void* b, void* c, void* target, void* d);
     virtual ~hkSymmetricAgentLinearCast_16hkSphereBoxAgent_();
     virtual void updateShapeCollectionFilter() {}
 
     static void staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
     static void staticGetClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
+    virtual void processCollision(void* a, void* b, void* c, void* d);
 };

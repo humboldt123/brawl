@@ -2,6 +2,9 @@
 
 #include <havok/hkCollisionAgent.h>
 #include <havok/hkShapeType.h>
+#include <havok/hkCdBody.h>
+#include <havok/hkShape.h>
+#include <havok/hkCollisionInput.h>
 
 // Agent registration record: the creation function, the two static query functions, the linear cast function and
 // two symmetry flags. registerCollisionAgent copies it into the dispatcher's table (0x14 bytes per entry).
@@ -46,6 +49,31 @@ struct hkCollisionDispatcher : hkReferencedObject {
 
     hkCollisionDispatcher(int unk8Value);
     virtual ~hkCollisionDispatcher();
+
+    // Creation function of a table entry (hkAgentFuncs::create).
+    typedef hkCollisionAgent* (*CreateFunc)(const hkCdBody& a, const hkCdBody& b, const hkCollisionInput& input,
+                                            hkContactMgr* mgr);
+
+    // Creates the agent registered for the shape types of the pair; the predictive table when the input asks for it.
+    hkCollisionAgent* getNewCollisionAgent(const hkCdBody& a, const hkCdBody& b, const hkCollisionInput& input,
+                                           hkContactMgr* mgr) {
+        int typeA = a.m_shape->getType();
+        int typeB = b.m_shape->getType();
+        u8* table = input.m_createPredictiveAgents ? m_lookup590 : m_lookup190;
+        int index = ((u8(*)[32])table)[typeA][typeB];
+        return ((CreateFunc)m_agentFuncs[index].create)(a, b, input, mgr);
+    }
+
+    // Static query functions registered for a shape type pair.
+    hkAgentFunc getGetPenetrationsFunc(int typeA, int typeB) const {
+        return m_agentFuncs[((const u8(*)[32])m_lookup190)[typeA][typeB]].staticGetPenetrations;
+    }
+    hkAgentFunc getGetClosestPointsFunc(int typeA, int typeB) const {
+        return m_agentFuncs[((const u8(*)[32])m_lookup190)[typeA][typeB]].staticGetClosestPoints;
+    }
+    hkAgentFunc getLinearCastFunc(int typeA, int typeB) const {
+        return m_agentFuncs[((const u8(*)[32])m_lookup190)[typeA][typeB]].staticLinearCast;
+    }
 
     void setEnableChecks(const hkBool& enable);
     void disableDebugging();

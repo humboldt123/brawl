@@ -7,6 +7,87 @@
 #include <so/stageobject.h>
 #include <types.h>
 
+void soGenerateArticleManageModuleImpl::getArticleList(soArray<soArticle*>* articles, int articleId, int selector) {
+    switch (selector) {
+    case 0:
+        for (int i = 0; i < m_articles->size(); i++) {
+            if (m_articles->at(i) != NULL && articleId == m_articles->at(i)->getArticleId()) {
+                articles->push(m_articles->at(i));
+            }
+        }
+        break;
+    case 1:
+        for (int i = 0; i < m_articles->size(); i++) {
+            if (m_articles->at(i) != NULL && articleId == m_articles->at(i)->getArticleId()) {
+                articles->push(m_articles->at(i));
+                break;
+            }
+        }
+        break;
+    case 2:
+        for (int i = m_articles->size() - 1; i >= 0; i--) {
+            if (m_articles->at(i) != NULL && articleId == m_articles->at(i)->getArticleId()) {
+                articles->push(m_articles->at(i));
+                break;
+            }
+        }
+        break;
+    }
+}
+
+void soGenerateArticleManageModuleImpl::shoot(int articleId, int selector, bool unlink) {
+    soArticle* article;
+    switch (selector) {
+    case 1:
+        for (int i = m_articles->size() - 1; i >= 0; i--) {
+            if (m_articles->at(i) != NULL && articleId == m_articles->at(i)->getArticleId()) {
+                int count = m_mediator->getMediateNum();
+                article = m_articles->at(i);
+                bool shot;
+                if (article->getArticleId() < count) {
+                    shot = static_cast<soArticleOperator&>(*m_mediator).shoot(m_moduleAccesser, article);
+                } else {
+                    if (m_dynamicMediator == NULL) {
+                        shot = false;
+                    } else {
+                        shot = m_dynamicMediator->shoot(m_moduleAccesser, article);
+                    }
+                }
+                if (unlink == true || !shot) {
+                    eject(article->getTaskId());
+                }
+                break;
+            }
+        }
+        break;
+    case 0:
+    case 2:
+        for (int i = m_articles->size() - 1; i >= 0; i--) {
+            if (m_articles->at(i) != NULL && articleId == m_articles->at(i)->getArticleId()) {
+                int count = m_mediator->getMediateNum();
+                article = m_articles->at(i);
+                bool shot;
+                if (article->getArticleId() < count) {
+                    shot = static_cast<soArticleOperator&>(*m_mediator).shoot(m_moduleAccesser, article);
+                } else {
+                    if (m_dynamicMediator == NULL) {
+                        shot = false;
+                    } else {
+                        shot = m_dynamicMediator->shoot(m_moduleAccesser, article);
+                    }
+                }
+                if (unlink == true || !shot) {
+                    eject(article->getTaskId());
+                }
+                if (selector == 2) {
+                    break;
+                }
+            }
+        }
+        break;
+    }
+}
+
 void soGenerateArticleManageModuleImpl::activate() { }
 
 void soGenerateArticleManageModuleImpl::removeExist(int articleId, int selector) {
@@ -316,6 +397,80 @@ void soGenerateArticleManageModuleImpl::changeStatus(int articleId, int statusKi
             removed->remove();
         } else {
             articles.at(i)->changeStatus(statusKind);
+        }
+    }
+}
+
+void soGenerateArticleManageModuleImpl::remove(int articleId, int selector) {
+    if (isExist(articleId)) {
+        switch (selector) {
+        case 1: {
+            int j;
+            soArticle* article;
+            s32 removeId;
+            for (int i = 0; i < m_articles->size(); i++) {
+                if (m_articles->at(i) != NULL && articleId == m_articles->at(i)->getArticleId()) {
+                    soArticle* removed = m_articles->at(i);
+                    article = m_articles->at(i);
+                    int count = m_observers->size();
+                    for (j = 0; j < count; j++) {
+                        s16 manageId = article->getArticleEventManageId();
+                        soArticleEventObserver& observer = m_observers->at(j);
+                        if (manageId != -1) {
+                            removeId = observer.m_manageID;
+                            if (manageId == removeId) {
+                                if (soEventSystem::getInstance()->getInstanceManager().isContain(removeId) == true) {
+                                    soEventSystem::getInstance()->getManager(observer.m_manageID)->eraseObserver(observer.m_unitID, observer.m_sendID);
+                                }
+                                observer.m_sendID = -1;
+                                observer.m_manageID = -1;
+                            }
+                        }
+                    }
+                    m_articles->erase(i);
+                    article->unlinkOwner(1);
+                    removed->remove();
+                    break;
+                }
+            }
+            break;
+        }
+        case 0:
+        case 2: {
+            int i;
+            soArticle* removed;
+            s32 removeId;
+            int j;
+            soArticle* article;
+            for (i = m_articles->size() - 1; i >= 0; i--) {
+                if (m_articles->at(i) != NULL && articleId == m_articles->at(i)->getArticleId()) {
+                    removed = m_articles->at(i);
+                    article = m_articles->at(i);
+                    int count = m_observers->size();
+                    for (j = 0; j < count; j++) {
+                        s16 manageId = article->getArticleEventManageId();
+                        soArticleEventObserver& observer = m_observers->at(j);
+                        if (manageId != -1) {
+                            removeId = observer.m_manageID;
+                            if (manageId == removeId) {
+                                if (soEventSystem::getInstance()->getInstanceManager().isContain(removeId) == true) {
+                                    soEventSystem::getInstance()->getManager(observer.m_manageID)->eraseObserver(observer.m_unitID, observer.m_sendID);
+                                }
+                                observer.m_sendID = -1;
+                                observer.m_manageID = -1;
+                            }
+                        }
+                    }
+                    m_articles->erase(i);
+                    article->unlinkOwner(1);
+                    removed->remove();
+                    if (selector == 2) {
+                        break;
+                    }
+                }
+            }
+            break;
+        }
         }
     }
 }

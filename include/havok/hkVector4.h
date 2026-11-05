@@ -145,6 +145,14 @@ struct hkVector4 {
         z = a.z + s * b.z;
         w = a.w + s * b.w;
     }
+    // this = (1 - t) * a + t * b (hkMultiRayConvexAgent's hit point).
+    void setInterpolate4(const hkVector4& a, const hkVector4& b, hkReal t) {
+        hkReal s = 1.0f - t;
+        x = s * a.x + t * b.x;
+        y = s * a.y + t * b.y;
+        z = s * a.z + t * b.z;
+        w = s * a.w + t * b.w;
+    }
     // Component access by index (x, y, z, w).
     hkReal& operator[](int i) { return (&x)[i]; }
     hkReal getSimdAt(int i) const { return (&x)[i]; }

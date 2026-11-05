@@ -40,6 +40,7 @@ struct hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_ : hkCapsuleTriangleA
 
     virtual void getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
+    static void staticLinearCast(void* a, void* b, void* c, void* target, void* d);
     virtual ~hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_();
 
     static void staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);

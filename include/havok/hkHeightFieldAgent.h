@@ -29,4 +29,10 @@ struct hkSymmetricAgentLinearCast_18hkHeightFieldAgent : hkHeightFieldAgent {
     virtual void getClosestPoints(void* a, void* b, void* c, void* target);
     static void staticGetClosestPoints(void* a, void* b, void* c, void* target);
     virtual void updateShapeCollectionFilter(void* a, void* b, void* c);
+    static void staticLinearCast(void* a, void* b, void* c, void* target, void* d);
+};
+
+// HYPOTHESIS: hkSymmetricAgent<hkHeightFieldAgent> (map name); only its linear cast is written.
+struct hkSymmetricAgent_18hkHeightFieldAgent_ : hkHeightFieldAgent {
+    virtual void linearCast(void* a, void* b, void* c, void* target, void* d);
 };

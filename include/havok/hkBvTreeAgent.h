@@ -41,7 +41,7 @@ struct hkBvTreeAgent : hkCollisionAgent {
     virtual void getPenetrations(void* a, void* b, void* c, void* target);
     virtual void getClosestPoints(void* a, void* b, void* c, void* target);
     virtual void linearCast(void* a, void* b, void* c, void* target, void* d);
-    virtual void processCollision(void* a, void* b, void* c);
+    virtual void processCollision(void* a, void* b, void* c, void* d);
     virtual void cleanup();
     virtual void updateShapeCollectionFilter(void* a, void* b, void* c);
     virtual void invalidateTim(void* arg);
@@ -55,26 +55,6 @@ struct hkBvTreeAgent : hkCollisionAgent {
 // HYPOTHESIS: the symmetric variant is the object created by createBvTreeShapeAgent (its vtable is set after the base
 // constructor). Declared here; the members are defined in hkBvTreeAgent.cpp.
 
-// Penetration target wrapper built by the symmetric getPenetrations forwarders. Same layout as hkSymmetricTarget
-// (flag at 0x04, target at 0x08); the members are assigned in the body, which orders the stores as the original does.
-struct hkSymmetricFlagTarget : hkPenetrationTarget {
-    hkSymmetricFlagTarget(hkPenetrationTarget* target) : m_flag(0), m_target(target) {}
-    virtual void unkSlot08();
-    virtual void forwardPenetrations(void* a, void* b, void* c);
-
-    u8 m_flag;                     // 0x04
-    hkPenetrationTarget* m_target; // 0x08
-};
-
-// Penetration target wrapper built by the symmetric getClosestPoints forwarders (no flag word).
-struct hkSymmetricClosestTarget : hkPenetrationTarget {
-    hkSymmetricClosestTarget(hkPenetrationTarget* target) : unk4(0.0f), m_target(target) {}
-    virtual void unkSlot08();
-    virtual void forwardPenetrations(void* a, void* b, void* c);
-    float unk4;                    // 0x04 zeroed by the constructor
-    hkPenetrationTarget* m_target; // 0x08
-};
-
 // HYPOTHESIS: symmetric variant of hkBvTreeAgent; the class name is the map name (hkSymmetricAgentLinearCast<hkBvTreeAgent>): each wrapper swaps the
 // first two pair arguments and forwards to the hkBvTreeAgent function.
 struct hkSymmetricAgentLinearCast_13hkBvTreeAgent : hkBvTreeAgent {
@@ -84,6 +64,12 @@ struct hkSymmetricAgentLinearCast_13hkBvTreeAgent : hkBvTreeAgent {
     static void staticGetClosestPoints(void* a, void* b, void* c, void* target);
     virtual void updateShapeCollectionFilter(void* a, void* b, void* c);
     static void staticLinearCast(void* a, void* b, void* c, void* target, void* d);
+    virtual void processCollision(void* a, void* b, void* c, void* d);
 
     hkSymmetricAgentLinearCast_13hkBvTreeAgent(hkContactMgr* contactMgr) : hkBvTreeAgent(contactMgr) {}
+};
+
+// HYPOTHESIS: hkSymmetricAgent<hkBvTreeAgent> (map name); only its linear cast is written.
+struct hkSymmetricAgent_13hkBvTreeAgent_ : hkBvTreeAgent {
+    virtual void linearCast(void* a, void* b, void* c, void* target, void* d);
 };

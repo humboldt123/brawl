@@ -20,7 +20,7 @@ struct hkListAgent : hkCollisionAgent {
     virtual void getPenetrations(void* a, void* b, void* c, void* target);                  // 0x10 HYPOTHESIS
     virtual void getClosestPoints(void* a, void* b, void* c, void* target);                 // 0x14 HYPOTHESIS
     virtual void linearCast(void* a, void* b, void* c, void* target, void* d);              // 0x18 HYPOTHESIS
-    virtual void processCollision(void* a, void* b, void* c);                               // 0x1C HYPOTHESIS
+    virtual void processCollision(void* a, void* b, void* c, void* d);                               // 0x1C HYPOTHESIS
     virtual void cleanup();                                                                 // 0x20 HYPOTHESIS
     virtual void updateShapeCollectionFilter(void* a, void* b, void* c);                    // 0x24 HYPOTHESIS
     virtual void invalidateTim(void* arg);                                                  // 0x28 HYPOTHESIS
@@ -42,4 +42,9 @@ struct hkListAgent : hkCollisionAgent {
 // constructor is the base constructor followed by the vptr store.
 struct hkListAgentVariant : hkListAgent {
     hkListAgentVariant(void* a, void* b, void* c, int unk8Value) : hkListAgent(a, b, c, unk8Value) {}
+};
+
+// HYPOTHESIS: hkSymmetricAgent<hkListAgent> (map name); only its linear cast is written (in hkConvexListAgent.o).
+struct hkSymmetricAgent_11hkListAgent_ : hkListAgent {
+    virtual void linearCast(void* a, void* b, void* c, void* target, void* d);
 };

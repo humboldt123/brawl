@@ -287,3 +287,50 @@ int muAdvSelchrCTask::findNextCharCursorPos(int player, int pos) {
     } while (next != pos);
     return -1;
 }
+
+int muAdvSelchrCTask::findLocateCursorPosX(int player, int team, int row, int column) {
+    int count = m_teams[team].m_count;
+    int lines = count / 7;
+    int remainder = count % 7;
+    bool full = remainder == 0;
+    if (full) remainder = 7;
+    if (!full) lines++;
+    int width = row < lines - 1 ? 7 : remainder;
+    int left;
+    int right = column + 1;
+    left = column - 1;
+    while (right < width || left >= 0) {
+        if (right < width && row * 7 + right < m_teams[team].m_count && canLocateCursor(player, row * 7 + right)) {
+            return right;
+        }
+        if (left >= 0 && row * 7 + left < m_teams[team].m_count && canLocateCursor(player, row * 7 + left)) {
+            return left;
+        }
+        right++;
+        left--;
+    }
+    return -1;
+}
+
+muAdvSelchrCTask::muAdvSelchrCTask()
+    : gfTask("muAdvSelchrC", Category_Menu, 15, 8, true),
+      m_unk700(), m_unk964(0), m_step(Step_Appear), m_stepPrev(Step_Count),
+      m_timer(0), m_teamCurPos(0), m_unkC20(true), m_state(0),
+      unkC28(false), unkC29(false), unkC2A(false), unkC2B(false),
+      unkC2C(false), unkC2D(false), unkC2E(false),
+      m_pokeTrainerKind(CharKind_PokeTrainer), m_zeldaKind(CharKind_Zelda),
+      m_samusKind(CharKind_Samus), m_unkC3C(0), m_loaded(false),
+      m_instanceHeap(static_cast<Heaps::HeapType>(42)), m_resourceHeap(static_cast<Heaps::HeapType>(43)) {
+    unk2C_b1 = false;
+    memset(m_teams, 0, sizeof(m_teams) + sizeof(m_numTeams) + sizeof(m_unk6FC));
+    for (int index = 0; index < 4; index++) m_unk700[index] = 0;
+    for (int index = 0; index < 137; index++) m_objects[index] = 0;
+    for (int index = 0; index < 12; index++) m_expands[index] = 0;
+    for (int player = 0; player < 2; player++) {
+        for (int index = 0; index < 40; index++) m_players[player].m_members[index] = 0;
+        m_players[player].m_count = 0;
+        m_players[player].m_cursor = 0;
+    }
+    m_unkC10[0] = 0;
+    m_unkC10[1] = 0;
+}

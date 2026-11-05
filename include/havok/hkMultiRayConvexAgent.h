@@ -2,20 +2,30 @@
 
 #include <havok/hkCollisionAgent.h>
 #include <havok/hkSymmetricAgentFlipCollectors.h>
+#include <havok/hkArray.h>
+#include <havok/hkShape.h>
+#include <havok/hkVector4.h>
+
+// Shape made of rays (HK_SHAPE_MULTI_RAY). HYPOTHESIS: only the ray array is known, from the agents (no reflection
+// class for it in this build). Each ray is two points; the first point's w holds the ray length (Halo donor).
+struct hkMultiRayShape : hkShape {
+    struct Ray {
+        hkVector4 m_start; // 0x00
+        hkVector4 m_end;   // 0x10
+    };
+    hkArray<Ray> m_rays;              // 0x0C
+    hkReal m_rayPenetrationDistance; // 0x18 HYPOTHESIS: added to every hit distance by the agent
+};
 
 struct hkCollisionDispatcher;
 
 // Agent for a convex shape against a multi-ray shape (shape type HK_SHAPE_MULTI_RAY). Object size 0x20.
-// 0x08 (hkCollisionAgent::unk8) is the contact manager, 0x0C points at an array of 16-bit slots and
-// 0x10 is the number of slots. cleanup() releases the contact manager once for every slot in use.
+// 0x08 (hkCollisionAgent::unk8) is the contact manager; 0x0C holds one contact point id per ray (0xFFFF = none),
+// with inline room for four. cleanup() removes every contact point still held.
 struct hkMultiRayConvexAgent : hkCollisionAgent {
     HK_DECLARE_REF_ALLOCATOR(0x1d)
 
-    u16* m_slots; // 0x0C
-    int m_count;  // 0x10 number of slots
-    int unk14;    // 0x14 HYPOTHESIS: capacity/ownership word read by the destructor
-    int unk18;    // 0x18
-    int unk1C;    // 0x1C
+    hkInplaceArray<u16, 4> m_contactPointIds; // 0x0C
 
     // HYPOTHESIS: the constructor takes the two bodies of the pair, a third value and the contact manager.
     hkMultiRayConvexAgent(void* a0, void* a1, void* a2, hkContactMgr* contactMgr);
@@ -29,17 +39,18 @@ struct hkMultiRayConvexAgent : hkCollisionAgent {
     static hkMultiRayConvexAgent* createMultiRayConvexAgent(void* a0, void* a1, void* a2, hkContactMgr* contactMgr);
 
     virtual void cleanup();
-    virtual void processCollision(void* unk0, void* unk1, void* unk2); // not written yet
-    virtual void getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3); // not written yet
-    static void staticGetClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3); // not written yet
+    virtual void processCollision(void* unk0, void* unk1, void* unk2, void* unk3); // not written yet
+    virtual void getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
+    static void staticGetClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
-    static void staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3); // not written yet
+    static void staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
 };
 
 // HYPOTHESIS: the symmetric (shape-swapped) variant, map name hkSymmetricAgent<hkMultiRayConvexAgent>.
 // Its linearCast is not recovered yet.
 struct hkSymmetricAgent_21hkMultiRayConvexAgent_ : hkMultiRayConvexAgent {
     virtual ~hkSymmetricAgent_21hkMultiRayConvexAgent_();
+    virtual void linearCast(void* unk0, void* unk1, void* unk2, void* unk3, void* unk4);
 };
 
 // HYPOTHESIS: hkSymmetricAgentLinearCast<hkMultiRayConvexAgent>. The wrappers swap the two shapes and
@@ -55,5 +66,5 @@ struct hkSymmetricAgentLinearCast_21hkMultiRayConvexAgent_ : hkMultiRayConvexAge
 
     static void staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
     static void staticGetClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
-    static void staticLinearCast(void* unk0, void* unk1, void* unk2, void* unk3); // not written yet
+    static void staticLinearCast(void* unk0, void* unk1, void* unk2, void* unk3, void* unk4);
 };

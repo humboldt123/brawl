@@ -38,10 +38,7 @@ const void* hkSphereShape::getVtablehkSphereShape() {
     return *(const void**)p;
 }
 
-hkSphereShape::hkSphereShape(hkReal radius) {
-    m_radius = radius;
-    m_userData = 0;
-}
+hkSphereShape::hkSphereShape(hkReal radius) : hkConvexShape(radius) {}
 
 int hkSphereShape::getType() const {
     return HK_SHAPE_SPHERE;

@@ -4,8 +4,9 @@
 
 // Collector that only records that a body pair was reported.
 struct hkFlagCdBodyPairCollector {
+    hkFlagCdBodyPairCollector() : m_hit(0) {}
     virtual ~hkFlagCdBodyPairCollector() {}
     virtual void addCdBodyPair(hkCdBody* bodyA, hkCdBody* bodyB); // HYPOTHESIS: parameters unused
 
-    u8 m_hit; // 0x04
+    hkBool m_hit; // 0x04
 };

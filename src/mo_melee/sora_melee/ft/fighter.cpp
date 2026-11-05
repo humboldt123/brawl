@@ -9,6 +9,168 @@
 #include <types.h>
 #include <it/item.h>
 #include <it/it_manager.h>
+#include <so/article/so_generate_article_manage_module.h>
+#include <so/item/so_item_manage_module_impl.h>
+#include <so/so_module_hyp.h>
+
+// Fighter::setFlower (the map name); src/mo_melee/sora_melee/ft/ft_damage_transactor_impl.cpp calls it by this stand-in name.
+extern "C" void fn_27_1392D4(Fighter* fighter, bool setStatus, float rate, float size, int unk4, bool unk5);
+
+void Fighter::deactivate() {
+    endFinal(true, false, false);
+    setMetal(false, -1.0f, -1);
+    fn_27_1392D4(this, false, 0.0f, 0.0f, 0, false);
+    setCurry(false, -1);
+    setHammer(false, 0);
+    setSuperStar(false, -1, false);
+    if (unk138_7 == true) {
+        unk138_7 = false;
+        m_moduleAccesser->getCameraModule().zoomOut();
+    }
+    setSlow(false, 1, 0, false);
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    if (moduleAccesser->getWorkManageModule().isFlag(0x12000028) == true) {
+        moduleAccesser->getEffectModule().removeScreen(8);
+        moduleAccesser->getEffectModule().reqScreen(9);
+        moduleAccesser->getWorkManageModule().offFlag(0x12000028);
+        moduleAccesser->getSlowModule().clearWhole();
+    }
+    if (m_moduleAccesser->getStatusModule().getStatusKind() != -1) {
+        soModuleAccesser* accesser = m_moduleAccesser;
+        endFinal(true, false, false);
+        setMetal(false, -1.0f, -1);
+        fn_27_1392D4(this, false, 0.0f, 0.0f, 0, false);
+        setCurry(false, -1);
+        setHammer(false, 0);
+        setSuperStar(false, -1, false);
+        if (unk138_7 == true) {
+            unk138_7 = false;
+            m_moduleAccesser->getCameraModule().zoomOut();
+        }
+        setSlow(false, 1, 0, false);
+        soModuleAccesser* slowAccesser = m_moduleAccesser;
+        if (slowAccesser->getWorkManageModule().isFlag(0x12000028) == true) {
+            slowAccesser->getEffectModule().removeScreen(8);
+            slowAccesser->getEffectModule().reqScreen(9);
+            slowAccesser->getWorkManageModule().offFlag(0x12000028);
+            slowAccesser->getSlowModule().clearWhole();
+        }
+        accesser->getStatusModule().changeStatusForce(0x10b, accesser);
+        accesser->getItemManageModule().removeAll();
+        accesser->getGenerateArticleManageModule().deactivate(true);
+    }
+    onDeactivate();
+    m_moduleAccesser->activate();
+    getPhysicsModule(m_moduleAccesser).unk1C();
+    m_moduleAccesser->getModelModule().destructInstance();
+    StageObject::deactivate(true);
+    if (m_outsideEventPresenter.m_manageID != -1) {
+        m_outsideEventPresenter.m_manageID = -1;
+        if (m_outsideEventPresenter.m_manageID > -1) {
+            m_outsideEventPresenter.m_obsrvrList = 0;
+        }
+    }
+}
+
+void Fighter::setSlow(bool setStatus, int slowStrength, int duration, bool useTimerEffect) {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    if (setStatus == true) {
+        int statusKind = moduleAccesser->getStatusModule().getStatusKind();
+        union {
+            ftStatusFlagData status;
+            u32 words[2];
+        } flags;
+        flags.status = *g_ftCommonDataAccesser.getFtStatusData(getFtKind(), statusKind);
+        if ((flags.words[1] >> 27) & 1) {
+            return;
+        }
+        if (useTimerEffect == true) {
+            float rate = soValueAccesser::getConstantFloat(moduleAccesser, 0xdb2, 0);
+            float frames = soValueAccesser::getConstantInt(moduleAccesser, 0x5a81, 0);
+            frames *= rate;
+            duration -= (int)frames;
+            if (moduleAccesser->getWorkManageModule().isFlag(0x12000026) == true) {
+                moduleAccesser->getEffectModule().removeScreen(8);
+            }
+            moduleAccesser->getEffectModule().reqScreen(8);
+            moduleAccesser->getWorkManageModule().onFlag(0x12000027);
+        }
+        moduleAccesser->getSlowModule().set(slowStrength, duration);
+        moduleAccesser->getWorkManageModule().onFlag(0x12000026);
+    } else if (moduleAccesser->getWorkManageModule().isFlag(0x12000026) == true) {
+        moduleAccesser->getSlowModule().clear();
+        if (moduleAccesser->getWorkManageModule().isFlag(0x12000027) == true) {
+            moduleAccesser->getEffectModule().removeScreen(8);
+            moduleAccesser->getEffectModule().reqScreen(9);
+            moduleAccesser->getWorkManageModule().offFlag(0x12000027);
+        }
+        moduleAccesser->getWorkManageModule().offFlag(0x12000026);
+    }
+}
+
+void Fighter::setHammer(bool setStatus, int kind) {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    if (setStatus == true) {
+        moduleAccesser->getWorkManageModule().offFlag(0x1200000c);
+        moduleAccesser->getWorkManageModule().offFlag(0x1200000d);
+        moduleAccesser->getWorkManageModule().onFlag(0x1200000b);
+        int duration;
+        if (kind == 0) {
+            duration = soValueAccesser::getConstantInt(moduleAccesser, 0x5a6e, 0);
+        } else {
+            duration = soValueAccesser::getConstantInt(moduleAccesser, 0x5a71, 0);
+            float rate = soValueAccesser::getConstantFloat(moduleAccesser, 0xdb2, 0);
+            float frames = soValueAccesser::getConstantInt(moduleAccesser, 0x5a72, 0);
+            frames *= rate;
+            duration -= (int)frames;
+            moduleAccesser->getWorkManageModule().setInt(duration, 0x1000001b);
+            moduleAccesser->getSoundModule().playSENo3d((SndID)0x1c, true);
+        }
+        moduleAccesser->getWorkManageModule().setInt(duration, 0x1000001b);
+    } else if (moduleAccesser->getWorkManageModule().isFlag(0x1200000b) == true) {
+        int handle = moduleAccesser->getWorkManageModule().getInt(0x1000001d);
+        if (handle != -1) {
+            moduleAccesser->getSoundModule().stopSEHandle(handle, 0);
+            moduleAccesser->getWorkManageModule().setInt(-1, 0x1000001d);
+        }
+        moduleAccesser->getEffectModule().removeCommon(0x14);
+        moduleAccesser->getEffectModule().removeCommon(0x15);
+        moduleAccesser->getEffectModule().removeCommon(0x16);
+        moduleAccesser->getWorkManageModule().offFlag(0x1200000b);
+    }
+}
+
+void Fighter::restoreScaling() {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    if (moduleAccesser->getSituationModule().getKind() != 5 &&
+        moduleAccesser->getWorkManageModule().getInt(0x10000023) >= 2 &&
+        !moduleAccesser->getWorkManageModule().isFlag(0x12000032) &&
+        !moduleAccesser->getWorkManageModule().isFlag(0x12000018)) {
+        if (moduleAccesser->getWorkManageModule().getInt(0x10000023) == 3) {
+            moduleAccesser->getWorkManageModule().setInt(2, 0x10000023);
+            moduleAccesser->getStatusModule().changeStatusRequest(0xf2, moduleAccesser);
+        } else {
+            moduleAccesser->getWorkManageModule().setInt(1, 0x10000023);
+            moduleAccesser->getStatusModule().changeStatusRequest(0xf3, moduleAccesser);
+        }
+    } else {
+        soModuleAccesser* accesser = m_moduleAccesser;
+        float scale = accesser->getWorkManageModule().getFloat(0x1100000b);
+        accesser->getPostureModule().setScale(scale);
+        if (accesser->getWorkManageModule().isFlag(0x12000014) == true) {
+            accesser->getWorkManageModule().offFlag(0x12000014);
+            accesser->getParamCustomizeModule().removeCustomize(0);
+            accesser->getSoundModule().setSEPitch(accesser->getWorkManageModule().getFloat(0x11000011));
+        }
+        if (accesser->getWorkManageModule().isFlag(0x12000015) == true) {
+            accesser->getWorkManageModule().offFlag(0x12000015);
+            accesser->getParamCustomizeModule().removeCustomize(1);
+            accesser->getSoundModule().setSEPitch(accesser->getWorkManageModule().getFloat(0x11000011));
+        }
+        accesser->getWorkManageModule().setInt(0, 0x10000023);
+    }
+}
+
 
 void Fighter::postCreate() { }
 

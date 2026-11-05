@@ -19,6 +19,13 @@ struct hkMonitorStream {
         u32 m_time;         // 0x04
         u32 unk8;           // 0x08
     };
+    // Begin command of a timer list (0x10 bytes): a timer command plus the name of the list's first split.
+    struct TimerBeginListCommand {
+        const char* m_name;          // 0x00
+        u32 m_time;                  // 0x04
+        u32 unk8;                    // 0x08
+        const char* m_firstSplitName; // 0x0C
+    };
 
     // True while there is room for another command (end of data below the 0x0C limit word).
     hkBool memoryAvailable() const { return unk4 < unkC; }
@@ -60,3 +67,21 @@ inline u32 hkMonitorStream_getTicks() {
     }
 #define HK_TIMER_BEGIN(NAME) HK_MONITOR_TIMER_COMMAND("Tt" NAME)
 #define HK_TIMER_END() HK_MONITOR_TIMER_COMMAND("Et")
+
+// Timer lists: the begin command (0x10 bytes) carries the name of the first split at 0x0C, the splits and the end
+// are ordinary 0x0C-byte commands ("St" + split name, "lt"). Store order from hkBvAgent::processCollision.
+#define HK_TIMER_BEGIN_LIST(NAME, FIRST)                                                     \
+    {                                                                                        \
+        hkMonitorStream& mStream = hkMonitorStream::getInstance();                           \
+        char* limit = mStream.unkC;                                                          \
+        if (hkBool(mStream.unk4 < limit)) {                                                  \
+            hkMonitorStream::TimerBeginListCommand* h =                                      \
+                (hkMonitorStream::TimerBeginListCommand*)mStream.unk4;                       \
+            h->m_name = "Lt" NAME;                                                           \
+            h->m_firstSplitName = "St" FIRST;                                                \
+            h->m_time = hkMonitorStream_getTicks();                                          \
+            mStream.unk4 = (char*)(h + 1);                                                   \
+        }                                                                                    \
+    }
+#define HK_TIMER_SPLIT_LIST(NAME) HK_MONITOR_TIMER_COMMAND("St" NAME)
+#define HK_TIMER_END_LIST() HK_MONITOR_TIMER_COMMAND("lt")

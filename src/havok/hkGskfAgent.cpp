@@ -40,7 +40,7 @@ void hkGskfAgent::cleanup() {
 void hkGskfAgent::removePoint(u16 key) {
     int count = pointCount();
     u8* p = (u8*)this;
-    for (int i = 0; i < count; i++, p += 8) {
+    for (int i = 0; i < count; p += 8, i++) {
         if (key == *(u16*)(p + 0x36)) {
             fn_8031590C(&unk30, i);
             return;
@@ -51,7 +51,7 @@ void hkGskfAgent::removePoint(u16 key) {
 void hkGskfAgent::commitPotential(u16 key) {
     int count = pointCount();
     u8* p = (u8*)this;
-    for (int i = 0; i < count; i++, p += 8) {
+    for (int i = 0; i < count; p += 8, i++) {
         if (*(u16*)(p + 0x36) == 0xFFFF) {
             *(u16*)((u8*)this + i * 8 + 0x36) = key;
             return;

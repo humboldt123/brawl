@@ -40,6 +40,7 @@
 #include <havok/hkClosestCdPointCollector.h>
 #include <havok/hkSimpleClosestContactCollector.h>
 #include <havok/hkSymmetricAgentFlipCollectors.h>
+#include <havok/hkSymmetricAgentProcessCollision.h>
 
 
 namespace {
@@ -153,27 +154,61 @@ void hkFlagCdBodyPairCollector::addCdBodyPair(hkCdBody* bodyA, hkCdBody* bodyB) 
 }
 
 void hkClosestCdPointCollector::addCdPoint(hkCdPoint* point) {
-    if (m_lastChainA != 0 && !(point->data.f7 < m_point.f7)) {
+    if (m_rootA != 0 && !(point->m_contact.m_normal.w < m_point.m_normal.w)) {
         return;
     }
-    m_point = point->data;
-    hkCdPointChain* last;
-    for (last = point->m_chainA; last->m_next != 0; last = last->m_next) {
+    m_point = point->m_contact;
+    const hkCdBody* root;
+    for (root = point->m_cdBodyA; root->m_parent != 0; root = root->m_parent) {
     }
-    m_lastChainA = last;
-    m_idA = point->m_chainA->m_id;
-    for (last = point->m_chainB; last->m_next != 0; last = last->m_next) {
+    m_rootA = root;
+    m_shapeKeyA = point->m_cdBodyA->m_shapeKey;
+    for (root = point->m_cdBodyB; root->m_parent != 0; root = root->m_parent) {
     }
-    m_lastChainB = last;
-    m_idB = point->m_chainB->m_id;
-    m_dist = point->data.f7;
+    m_rootB = root;
+    m_shapeKeyB = point->m_cdBodyB->m_shapeKey;
+    m_dist = point->m_contact.m_normal.w;
 }
 
 void hkSimpleClosestContactCollector::addCdPoint(hkCdPoint* point) {
-    if (m_hit && !(point->data.f7 < m_point.f7)) {
+    if (m_hit && !(point->m_contact.m_normal.w < m_point.m_normal.w)) {
         return;
     }
-    m_point = point->data;
+    m_point = point->m_contact;
     m_hit = hkBool(true);
-    m_dist = point->data.f7;
+    m_dist = point->m_contact.m_normal.w;
+}
+
+// The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
+// the points back.
+void hkSymmetricAgent_16hkTransformAgent_::linearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        hkTransformAgent::linearCast(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        hkTransformAgent::linearCast(b, a, &flippedInput, &flipped, 0);
+    }
+}
+
+// The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
+// the points back.
+void hkSymmetricAgentLinearCast_16hkTransformAgent_::staticLinearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        hkTransformAgent::staticLinearCast(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        hkTransformAgent::staticLinearCast(b, a, &flippedInput, &flipped, 0);
+    }
+}
+
+void hkSymmetricAgentLinearCast_16hkTransformAgent_::processCollision(void* a, void* b, void* c, void* d) {
+    hkSymmetricAgent_processCollision<hkTransformAgent>(this, a, b, c, d);
 }

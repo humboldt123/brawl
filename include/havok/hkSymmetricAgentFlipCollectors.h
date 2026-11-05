@@ -1,6 +1,8 @@
 #pragma once
 
 #include <havok/hkBase.h>
+#include <havok/hkVector4.h>
+#include <havok/hkCdPoint.h>
 
 // Collector wrappers used by the symmetric (shape-swapping) agent wrappers. A wrapper builds one of these on
 // its stack and passes its address as the collector argument, so the results reach the original collector
@@ -36,9 +38,12 @@ struct hkSymmetricAgentFlipCollector : hkSymmetricAgentFlipPointCollectorBase {
     virtual void addCdPoint(void* point);
 };
 
-// Linear casts. Vtable lbl_80487188.
-struct hkSymmetricAgentFlipCastCollector : hkSymmetricAgentFlipPointCollectorBase {
-    void* unk8; // 0x08 wrapped collector
-    hkSymmetricAgentFlipCastCollector(void* collector) : unk8(collector) {}
-    virtual void addCdPoint(void* point);
+// Linear casts (0x30 bytes). Layout from the symmetric linearCast wrappers: the early-out distance starts at
+// HK_REAL_MAX, then the cast path of the unswapped query and the wrapped collector.
+struct hkSymmetricAgentFlipCastCollector : hkCdPointCollector {
+    hkSymmetricAgentFlipCastCollector(const hkVector4& path, void* collector) : m_path(path), m_collector(collector) {}
+    virtual void addCdPoint(hkCdPoint* point);
+
+    hkVector4 m_path;  // 0x10
+    void* m_collector; // 0x20
 };

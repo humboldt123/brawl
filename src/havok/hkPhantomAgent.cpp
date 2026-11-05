@@ -97,7 +97,7 @@ void hkPhantomAgent::cleanup() {
 
 hkPhantomAgent::~hkPhantomAgent() {}
 
-void hkPhantomAgent::processCollision(void* a, void* b, void* c) {}
+void hkPhantomAgent::processCollision(void* a, void* b, void* c, void* d) {}
 
 void hkPhantomAgent::getPenetrations(void* a, void* b, void* c, void* target) {
     static_cast<hkPenetrationTarget*>(target)->forwardPenetrations(a, b, c);

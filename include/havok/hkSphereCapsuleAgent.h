@@ -37,6 +37,7 @@ struct hkSphereCapsuleAgent : hkCollisionAgent {
 // The destructor is defined in this translation unit.
 struct hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_ : hkSphereCapsuleAgent {
     hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_(hkContactMgr* contactMgr) : hkSphereCapsuleAgent(contactMgr) {}
+    static void staticLinearCast(void* a, void* b, void* c, void* target, void* d);
     virtual ~hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_();
 
     virtual void getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);

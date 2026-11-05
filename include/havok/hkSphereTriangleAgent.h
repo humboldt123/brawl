@@ -43,6 +43,7 @@ struct hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_ : hkSphereTriangleAge
     virtual void getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void updateShapeCollectionFilter() {}
+    static void staticLinearCast(void* a, void* b, void* c, void* target, void* d);
     virtual ~hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_();
 
     static void staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);

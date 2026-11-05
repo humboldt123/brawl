@@ -19,6 +19,9 @@
 //   0x802C3E84     4  updateShapeCollectionFilter   [map: hkSymmetricAgentLinearCast_16hkSphereBoxAgent___updateShapeCollectionFilter]
 
 #include <havok/hkSphereBoxAgent.h>
+#include <havok/hkCollisionInput.h>
+#include <havok/hkSymmetricAgentFlipCollectors.h>
+#include <havok/hkSymmetricAgentProcessCollision.h>
 #include <havok/hkShapeType.h>
 #include <havok/hkCollisionDispatcher.h>
 #include <havok/hkCdBodyPairCollector.h>
@@ -28,16 +31,15 @@
 #include <havok/hkTransform.h>
 
 // Stand-in for the symmetric linear cast (staticLinearCast, not written yet).
-extern "C" void fn_802C3B88();
 // Stand-in for hkIterativeLinearCastAgent::staticLinearCast (other unit).
-extern "C" void fn_802B7FD0();
+extern "C" void fn_802B7FD0(void* a, void* b, void* c, void* target, void* d);
 
 void hkSphereBoxAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
     hkAgentFuncs box;
     box.create = (hkAgentFunc)createSphereBoxAgent;
     box.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::staticGetPenetrations;
     box.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::staticGetClosestPoints;
-    box.staticLinearCast = (hkAgentFunc)fn_802C3B88;
+    box.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::staticLinearCast;
     box.symmetricA = 1;
     box.symmetricB = 0;
     dispatcher->registerCollisionAgent(&box, HK_SHAPE_BOX, HK_SHAPE_SPHERE);
@@ -119,4 +121,23 @@ void hkSphereBoxAgent::staticGetPenetrations(void* unk0, void* unk1, void* unk2,
         ((hkCdBodyPairCollector*)unk3)->addCdBodyPair(*(const hkCdBody*)unk0, *(const hkCdBody*)unk1);
     }
     HK_TIMER_END();
+}
+
+// The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
+// the points back.
+void hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::staticLinearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        fn_802B7FD0(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        fn_802B7FD0(b, a, &flippedInput, &flipped, 0);
+    }
+}
+
+void hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::processCollision(void* a, void* b, void* c, void* d) {
+    hkSymmetricAgent_processCollision<hkSphereBoxAgent>(this, a, b, c, d);
 }

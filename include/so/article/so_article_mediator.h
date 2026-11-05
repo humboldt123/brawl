@@ -35,5 +35,6 @@ public:
     virtual s32 getGenerateMaxNum(s32 articleId) = 0;
     virtual s32 getMediateNum() = 0;
     virtual void setAutoRecycle(bool enabled) = 0;
+    virtual bool shoot(soModuleAccesser* acc, soArticle* article) = 0;
 };
 

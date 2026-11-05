@@ -22,7 +22,7 @@ struct hkGskBaseAgent : hkCollisionAgent {
     virtual ~hkGskBaseAgent();
 
     virtual void cleanup();
-    virtual void processCollision(void* unk0, void* unk1, void* unk2);
+    virtual void processCollision(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void invalidateTim(void* arg);
     virtual void warpTime(float oldTime, float newTime, void* arg);
 };

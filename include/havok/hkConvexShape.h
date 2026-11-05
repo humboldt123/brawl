@@ -8,6 +8,15 @@
 struct hkConvexShape : hkSphereRepShape {
     hkReal m_radius; // 0x0C
 
+    hkConvexShape() {}
+    // HYPOTHESIS: the base constructors set the user data and the radius, so the derived constructor's
+    // vtable store comes after them (hkSphereShape(hkReal)).
+    hkConvexShape(hkReal radius) {
+        m_userData = 0;
+        m_radius = radius;
+    }
+
+
     virtual int getType() const;                                             // 0x10
     virtual hkReal getMaximumProjection(const hkVector4& direction) const;   // 0x18
     virtual void castRayWithCollector(const hkShapeRayCastInput& input, const hkCdBody& body,

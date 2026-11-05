@@ -56,7 +56,7 @@ hkShapeContainer* hkBvShape::getContainer() const {
     return const_cast<hkSingleShapeContainer*>(&m_childContainer);
 }
 
-hkShape* hkSingleShapeContainer::getChildShape() const {
+const hkShape* hkSingleShapeContainer::getChildShape(u32 key, ShapeBuffer& buffer) const {
     return m_childShape;
 }
 

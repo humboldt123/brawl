@@ -1378,7 +1378,15 @@ public:
     };
 
     int m_entryId;
-    char _272[44];
+    union {
+        char _272[44];
+        struct {
+            u8 unk110[0x28];
+            u8 : 7;
+            u8 unk138_7 : 1;
+            u8 unk139[3];
+        };
+    };
     ftOutsideEventPresenter m_outsideEventPresenter;
     char _332[72];
 
@@ -1510,6 +1518,7 @@ public:
     void activateControllerLog(bool active); // sora_melee fn_27_12AE90
     void activateController(bool active);
     void processDamageFlySe();
+    void deactivate();
     bool isAcceptFinal();
     bool isEnableWarp(); // sora_melee fn_27_13C984
     void attachItemHoldAnim(int holdKind, u32 index); // sora_melee fn_27_13C530
@@ -1611,6 +1620,7 @@ public:
     void setSlow(bool setStatus, int slowStrength, int duration, bool useTimerEffect);
     void setHeartSwap(int givingPlayerEntryID, int givingPlayerEntryId, bool setStatus);
     void startScaling(Scaling::Kind, Scaling::Type);
+    void restoreScaling();
     void warp(Vec3f* pos, float lr, u32 showEffect);
     void setupEquipment();
 };

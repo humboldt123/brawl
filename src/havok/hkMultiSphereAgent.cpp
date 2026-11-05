@@ -42,32 +42,30 @@
 //   0x802C0534    92  __dt   [map: hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_____dt]
 
 #include <havok/hkMultiSphereAgent.h>
+#include <havok/hkCollisionInput.h>
+#include <havok/hkSymmetricAgentFlipCollectors.h>
+#include <havok/hkSymmetricAgentProcessCollision.h>
 #include <havok/hkCollisionDispatcher.h>
 #include <havok/hkShapeType.h>
 
 // Stand-ins for the query functions of the symmetric multi-sphere agents (not written yet).
-extern "C" void fn_802BD2C0();
-extern "C" void fn_802BD350();
-extern "C" void fn_802BD398();
-extern "C" void fn_802BCCE0();
-extern "C" void fn_802BBC8C();
-extern "C" void fn_802BC4A8();
+extern "C" void fn_802B7FD0(void* a, void* b, void* c, void* target, void* d);
 
 void hkMultiSphereAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
     hkAgentFuncs listB;
     listB.create = (hkAgentFunc)createListBAgent;
-    listB.staticGetPenetrations = (hkAgentFunc)fn_802BD2C0;
-    listB.staticGetClosestPoints = (hkAgentFunc)fn_802BD350;
-    listB.staticLinearCast = (hkAgentFunc)fn_802BD398;
+    listB.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_18hkMultiSphereAgent_::staticGetPenetrations;
+    listB.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_18hkMultiSphereAgent_::staticGetClosestPoints;
+    listB.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast_18hkMultiSphereAgent_::staticLinearCast;
     listB.symmetricA = 1;
     listB.symmetricB = 1;
     dispatcher->registerCollisionAgent(&listB, -1, HK_SHAPE_MULTI_SPHERE);
 
     hkAgentFuncs listA;
     listA.create = (hkAgentFunc)createListAAgent;
-    listA.staticGetPenetrations = (hkAgentFunc)fn_802BCCE0;
-    listA.staticGetClosestPoints = (hkAgentFunc)fn_802BBC8C;
-    listA.staticLinearCast = (hkAgentFunc)fn_802BC4A8;
+    listA.staticGetPenetrations = (hkAgentFunc)hkMultiSphereAgent::staticGetPenetrations;
+    listA.staticGetClosestPoints = (hkAgentFunc)hkMultiSphereAgent::staticGetClosestPoints;
+    listA.staticLinearCast = (hkAgentFunc)hkMultiSphereAgent::staticLinearCast;
     listA.symmetricA = 0;
     listA.symmetricB = 1;
     dispatcher->registerCollisionAgent(&listA, HK_SHAPE_MULTI_SPHERE, -1);
@@ -90,4 +88,94 @@ void hkMultiSphereAgent::cleanup() {
         m_entries.begin()[i].agent->cleanup();
     }
     delete this;
+}
+
+// The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
+// the points back.
+void hkSymmetricAgent_18hkMultiSphereAgent_::linearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        hkMultiSphereAgent::linearCast(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        hkMultiSphereAgent::linearCast(b, a, &flippedInput, &flipped, 0);
+    }
+}
+
+// The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
+// the points back.
+void hkSymmetricAgentLinearCast_18hkMultiSphereAgent_::staticLinearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        hkMultiSphereAgent::staticLinearCast(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        hkMultiSphereAgent::staticLinearCast(b, a, &flippedInput, &flipped, 0);
+    }
+}
+
+void hkSymmetricAgentLinearCast_18hkMultiSphereAgent_::processCollision(void* a, void* b, void* c, void* d) {
+    hkSymmetricAgent_processCollision<hkMultiSphereAgent>(this, a, b, c, d);
+}
+
+// The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
+// the points back.
+void hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_::staticLinearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        fn_802B7FD0(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        fn_802B7FD0(b, a, &flippedInput, &flipped, 0);
+    }
+}
+
+// Queries with the bodies swapped: the collector is wrapped in one that turns the results back.
+void hkSymmetricAgentLinearCast_18hkMultiSphereAgent_::getPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricAgentFlipBodyCollector wrapped(target);
+    hkMultiSphereAgent::getPenetrations(b, a, c, &wrapped);
+}
+
+void hkSymmetricAgentLinearCast_18hkMultiSphereAgent_::staticGetPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricAgentFlipBodyCollector wrapped(target);
+    hkMultiSphereAgent::staticGetPenetrations(b, a, c, &wrapped);
+}
+
+void hkSymmetricAgentLinearCast_18hkMultiSphereAgent_::getClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricAgentFlipCollector wrapped(target);
+    hkMultiSphereAgent::getClosestPoints(b, a, c, &wrapped);
+}
+
+void hkSymmetricAgentLinearCast_18hkMultiSphereAgent_::staticGetClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricAgentFlipCollector wrapped(target);
+    hkMultiSphereAgent::staticGetClosestPoints(b, a, c, &wrapped);
+}
+
+void hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_::getPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricAgentFlipBodyCollector wrapped(target);
+    hkMultiSphereTriangleAgent::getPenetrations(b, a, c, &wrapped);
+}
+
+void hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_::staticGetPenetrations(void* a, void* b, void* c, void* target) {
+    hkSymmetricAgentFlipBodyCollector wrapped(target);
+    hkMultiSphereTriangleAgent::staticGetPenetrations(b, a, c, &wrapped);
+}
+
+void hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_::getClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricAgentFlipCollector wrapped(target);
+    hkMultiSphereTriangleAgent::getClosestPoints(b, a, c, &wrapped);
+}
+
+void hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_::staticGetClosestPoints(void* a, void* b, void* c, void* target) {
+    hkSymmetricAgentFlipCollector wrapped(target);
+    hkMultiSphereTriangleAgent::staticGetClosestPoints(b, a, c, &wrapped);
 }

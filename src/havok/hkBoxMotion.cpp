@@ -77,9 +77,10 @@ void hkBoxMotion::getInertiaInvLocal(hkMatrix3& out) const {
 }
 
 void hkBoxMotion::setInertiaInvLocal(const hkMatrix3& in) {
-    m_inertiaAndMassInv.z = matrixElements(in)[10];
+    hkReal z = matrixElements(in)[10];
     m_inertiaAndMassInv.y = matrixElements(in)[5];
     m_inertiaAndMassInv.x = matrixElements(in)[0];
+    m_inertiaAndMassInv.z = z;
 }
 
 // Inertia in world space: local diagonal inertia rotated by the body basis.

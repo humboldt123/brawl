@@ -46,9 +46,9 @@ struct hkTransformAgent : hkCollisionAgent {
     virtual void createZombie(u16 key);
 
     // Not written yet (see hkTransformAgent.cpp): linear cast, closest points, penetrations, processCollision.
-    virtual void processCollision(void* unk0, void* unk1, void* unk2);
+    virtual void processCollision(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void linearCast(void* unk0, void* unk1, void* unk2, void* unk3, void* unk4);
-    static void staticLinearCast(void* unk0, void* unk1, void* unk2, void* unk3);
+    static void staticLinearCast(void* unk0, void* unk1, void* unk2, void* unk3, void* unk4);
     virtual void getClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
     static void staticGetClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
     virtual void getPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
@@ -60,6 +60,7 @@ struct hkTransformAgent : hkCollisionAgent {
 // hkSymmetricAgent_16hkTransformAgent_). Only its destructor is written; its linearCast is not recovered.
 struct hkSymmetricAgent_16hkTransformAgent_ : hkTransformAgent {
     virtual ~hkSymmetricAgent_16hkTransformAgent_();
+    virtual void linearCast(void* a, void* b, void* c, void* target, void* d);
 };
 
 // HYPOTHESIS: hkSymmetricAgentLinearCast<hkTransformAgent>. The wrappers swap the two shapes and
@@ -73,5 +74,6 @@ struct hkSymmetricAgentLinearCast_16hkTransformAgent_ : hkSymmetricAgent_16hkTra
 
     static void staticGetPenetrations(void* unk0, void* unk1, void* unk2, void* unk3);
     static void staticGetClosestPoints(void* unk0, void* unk1, void* unk2, void* unk3);
-    static void staticLinearCast(void* unk0, void* unk1, void* unk2, void* unk3); // not written yet
+    static void staticLinearCast(void* unk0, void* unk1, void* unk2, void* unk3, void* unk4);
+    virtual void processCollision(void* a, void* b, void* c, void* d);
 };

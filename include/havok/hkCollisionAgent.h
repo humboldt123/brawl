@@ -32,7 +32,7 @@ struct hkCollisionAgent : hkReferencedObject {
     virtual void getPenetrations(void* a, void* b, void* c, void* target);   // 0x10
     virtual void getClosestPoints(void* a, void* b, void* c, void* target);  // 0x14
     virtual void linearCast(void* a, void* b, void* c, void* target, void* d); // 0x18
-    virtual void processCollision(void* a, void* b, void* c);                                // 0x1C
+    virtual void processCollision(void* a, void* b, void* c, void* d);                                // 0x1C
     virtual void cleanup();                                                                  // 0x20
     virtual void updateShapeCollectionFilter(void* a, void* b, void* c);                     // 0x24
     virtual void invalidateTim(void* arg);                                                   // 0x28

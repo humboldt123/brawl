@@ -10,6 +10,7 @@ struct hkContactMgr;
 struct hkMoppAgent : hkBvTreeAgent {
     hkMoppAgent(hkContactMgr* contactMgr) __attribute__((never_inline));
     virtual ~hkMoppAgent() {}
+    static void staticLinearCast(void* a, void* b, void* c, void* target, void* d); // not written yet
 };
 
 // HYPOTHESIS: symmetric variant of hkMoppAgent. The class name is the map name (hkSymmetricAgentLinearCast<hkMoppAgent>).
@@ -22,4 +23,11 @@ struct hkSymmetricAgentLinearCast_11hkMoppAgent : hkMoppAgent {
     virtual void getClosestPoints(void* a, void* b, void* c, void* target);
     static void staticGetClosestPoints(void* a, void* b, void* c, void* target);
     virtual void updateShapeCollectionFilter(void* a, void* b, void* c);
+    static void staticLinearCast(void* a, void* b, void* c, void* target, void* d);
+    virtual void processCollision(void* a, void* b, void* c, void* d);
+};
+
+// HYPOTHESIS: hkSymmetricAgent<hkMoppAgent> (map name); only its linear cast is written.
+struct hkSymmetricAgent_11hkMoppAgent_ : hkMoppAgent {
+    virtual void linearCast(void* a, void* b, void* c, void* target, void* d);
 };

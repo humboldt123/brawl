@@ -85,7 +85,18 @@ public:
     int m_teamCurPos;               // 0xC1C
     bool m_unkC20;                  // 0xC20
     int m_state;                    // 0xC24 2: done
-    bool m_unkC28[7];               // 0xC28
+    union {
+        bool m_unkC28[7];               // 0xC28
+        struct {
+            bool unkC28;
+            bool unkC29;
+            bool unkC2A;
+            bool unkC2B;
+            bool unkC2C;
+            bool unkC2D;
+            bool unkC2E;
+        };
+    };
     int m_pokeTrainerKind;          // 0xC30 the form that is shown for each character that changes form
     int m_zeldaKind;                // 0xC34
     int m_samusKind;                // 0xC38
@@ -118,6 +129,8 @@ public:
     void storeResult();
     gfPadStatus getPadStatus(int player);
     int findNextCharCursorPos(int player, int pos);
+    int findLocateCursorPosX(int player, int team, int row, int column);
+    muAdvSelchrCTask();
 
     static void mainStepSelectedInit(muAdvSelchrCTask* task);
     static int mainStepAppearMain(muAdvSelchrCTask* task);

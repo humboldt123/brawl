@@ -24,12 +24,12 @@ void hkGskManifold::resetGskManifold(hkGskManifold* manifold, hkGskManifold* dst
 }
 
 void hkGskCache::operator=(const hkGskCache& other) {
-    unk0 = other.unk0;
-    unk2 = other.unk2;
-    unk4 = other.unk4;
-    unk6 = other.unk6;
-    unk8 = other.unk8;
-    unk9 = other.unk9;
+    m_vertices[0] = other.m_vertices[0];
+    m_vertices[1] = other.m_vertices[1];
+    m_vertices[2] = other.m_vertices[2];
+    m_vertices[3] = other.m_vertices[3];
+    m_dimA = other.m_dimA;
+    m_dimB = other.m_dimB;
     unkA = other.unkA;
     unkB = other.unkB;
 }

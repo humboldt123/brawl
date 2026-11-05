@@ -35,8 +35,9 @@ struct hkArray : hkArrayBase {
     static void* operator new(unsigned long nbytes) {
         return hkMemory::getInstance().allocateChunk(nbytes, 0x15);
     }
-    static void operator delete(void* p) {
-        hkMemory::getInstance().deallocateChunk(p, sizeof(hkArray<T>), 0x15);
+    // Sized: the deleting destructor of an hkInplaceArray passes its own size (hkShapeCollectionAgent.o).
+    static void operator delete(void* p, unsigned long nbytes) {
+        hkMemory::getInstance().deallocateChunk(p, nbytes, 0x15);
     }
 
     hkArray() {
@@ -93,13 +94,10 @@ struct hkArray : hkArrayBase {
         }
     }
     void reserveSmart(int n) {
-        if (getCapacity() < n) {
-            int c = getCapacity() * 2;
-            int m = n;
-            if (n < c) {
-                m = c;
-            }
-            hkArrayUtil::_reserve(this, m, sizeof(T));
+        int capacity = getCapacity();
+        if (capacity < n) {
+            int c = capacity * 2;
+            hkArrayUtil::_reserve(this, n < c ? c : n, sizeof(T));
         }
     }
     // Grows the size by n and returns the first new element (contents are not initialised).
@@ -115,6 +113,17 @@ struct hkArray : hkArrayBase {
             hkArrayUtil::_reserve(this, m, sizeof(T));
         }
         m_size = newSize;
+        return (T*)m_data + oldSize;
+    }
+    // Sets the element count, growing the storage first when needed (new elements are not initialised).
+    void setSize(int n) {
+        reserveSmart(n);
+        m_size = n;
+    }
+    // Same without the capacity check (the caller reserved the room).
+    T* expandByUnchecked(int n) {
+        int oldSize = m_size;
+        m_size = oldSize + n;
         return (T*)m_data + oldSize;
     }
     void swap(hkArray<T>& other);
@@ -207,9 +216,5 @@ template <typename T, int N>
 struct hkInplaceArray : hkArray<T> {
     T m_storage[N];
 
-    hkInplaceArray() {
-        this->m_data = m_storage;
-        this->m_size = 0;
-        this->m_capacityAndFlags = N | DONT_DEALLOCATE_FLAG;
-    }
+    hkInplaceArray() : hkArray<T>(m_storage, 0, N) {}
 };

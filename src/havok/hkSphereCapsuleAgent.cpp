@@ -22,19 +22,20 @@
 
 #include <havok/hkSphereBoxAgent.h>
 #include <havok/hkSphereCapsuleAgent.h>
+#include <havok/hkCollisionInput.h>
+#include <havok/hkSymmetricAgentFlipCollectors.h>
 #include <havok/hkShapeType.h>
 #include <havok/hkCollisionDispatcher.h>
 
 // Stand-ins for the symmetric linear cast (staticLinearCast, not written yet) and the linear cast of other units.
-extern "C" void fn_802C5A9C();
-extern "C" void fn_802B7FD0();
+extern "C" void fn_802B7FD0(void* a, void* b, void* c, void* target, void* d);
 
 void hkSphereCapsuleAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
     hkAgentFuncs capsule;
     capsule.create = (hkAgentFunc)createCapsuleSphereAgent;
     capsule.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_::staticGetPenetrations;
     capsule.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_::staticGetClosestPoints;
-    capsule.staticLinearCast = (hkAgentFunc)fn_802C5A9C;
+    capsule.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_::staticLinearCast;
     capsule.symmetricA = 1;
     capsule.symmetricB = 0;
     dispatcher->registerCollisionAgent(&capsule, HK_SHAPE_CAPSULE, HK_SHAPE_SPHERE);
@@ -94,3 +95,18 @@ hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_::~hkSymmetricAgentLinearCast_
 
 // Destructor of the symmetric box agent (map places it in this unit).
 hkSymmetricAgentLinearCast_16hkSphereBoxAgent_::~hkSymmetricAgentLinearCast_16hkSphereBoxAgent_() {}
+
+// The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
+// the points back.
+void hkSymmetricAgentLinearCast_20hkSphereCapsuleAgent_::staticLinearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        fn_802B7FD0(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        fn_802B7FD0(b, a, &flippedInput, &flipped, 0);
+    }
+}

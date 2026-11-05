@@ -34,6 +34,156 @@
 #include <havok/hkCollisionDispatcher.h>
 #include <havok/hkBvShape.h>
 #include <havok/hkMonitorStream.h>
+#include <havok/hkCollisionInput.h>
+#include <havok/hkFlagCdBodyPairCollector.h>
+#include <havok/hkSimpleClosestContactCollector.h>
+#include <havok/hkSymmetricAgentFlipCollectors.h>
+#include <havok/hkSymmetricAgentProcessCollision.h>
+
+// The agent for the bounding volume (A) is made with the agent; the agent for the shape inside (B) only once the
+// bounding volume is found overlapping. The bounding volume body replaces the shape of body A by the bounding
+// volume shape.
+// BYTES: the create functions call the constructor; without the pragma it is inlined into them.
+#pragma push
+#pragma auto_inline off
+hkBvAgent::hkBvAgent(void* a1, void* a2, void* a3, hkContactMgr* contactMgr) : hkCollisionAgent((int)contactMgr) {
+    const hkCdBody* bodyA = (const hkCdBody*)a1;
+    const hkCollisionInput* input = (const hkCollisionInput*)a3;
+    const hkBvShape* bvShape = (const hkBvShape*)bodyA->m_shape;
+    hkCdBody bv(bodyA);
+    bv.m_shapeKey = bodyA->m_shapeKey;
+    bv.m_shape = bvShape->m_boundingVolumeShape;
+    m_childA = input->m_dispatcher->getNewCollisionAgent(bv, *(const hkCdBody*)a2, *input, contactMgr);
+    m_childB = 0;
+}
+#pragma pop
+
+// The shape inside is only processed while its bounding volume overlaps body B; its agent is made on the first
+// overlap and dropped when the overlap ends.
+void hkBvAgent::processCollision(void* a, void* b, void* c, void* d) {
+    HK_TIMER_BEGIN_LIST("hkBvAgent", "checkBvShape");
+    const hkCdBody* bodyA = (const hkCdBody*)a;
+    const hkCollisionInput* input = (const hkCollisionInput*)c;
+    const hkBvShape* bvShape = (const hkBvShape*)bodyA->m_shape;
+    hkCdBody bv(bodyA);
+    bv.m_shapeKey = bodyA->m_shapeKey;
+    bv.m_shape = bvShape->m_boundingVolumeShape;
+    hkFlagCdBodyPairCollector checker;
+    m_childA->getPenetrations(&bv, b, c, &checker);
+    if (checker.m_hit) {
+        HK_TIMER_SPLIT_LIST("child");
+        bv.m_shapeKey = bv.m_parent->m_shapeKey;
+        bv.m_shape = bvShape->m_childContainer.m_childShape;
+        if (m_childB == 0) {
+            m_childB = input->m_dispatcher->getNewCollisionAgent(bv, *(const hkCdBody*)b, *input, (hkContactMgr*)unk8);
+        }
+        m_childB->processCollision(&bv, b, c, d);
+    } else if (m_childB != 0) {
+        m_childB->cleanup();
+        m_childB = 0;
+    }
+    HK_TIMER_END_LIST();
+}
+
+void hkBvAgent::linearCast(void* a, void* b, void* c, void* target, void* d) {
+    HK_TIMER_BEGIN_LIST("hkBvAgent", "checkBvShape");
+    const hkCdBody* bodyA = (const hkCdBody*)a;
+    const hkCollisionInput* input = (const hkCollisionInput*)c;
+    const hkBvShape* bvShape = (const hkBvShape*)bodyA->m_shape;
+    hkCdBody bv(bodyA);
+    bv.m_shapeKey = bodyA->m_shapeKey;
+    bv.m_shape = bvShape->m_boundingVolumeShape;
+    hkSimpleClosestContactCollector checker;
+    m_childA->linearCast(&bv, b, c, &checker, &checker);
+    if (checker.m_hit) {
+        HK_TIMER_SPLIT_LIST("child");
+        bv.m_shapeKey = bv.m_parent->m_shapeKey;
+        bv.m_shape = bvShape->m_childContainer.m_childShape;
+        if (m_childB == 0) {
+            m_childB = input->m_dispatcher->getNewCollisionAgent(bv, *(const hkCdBody*)b, *input, (hkContactMgr*)unk8);
+        }
+        m_childB->linearCast(&bv, b, c, target, d);
+    } else if (m_childB != 0) {
+        m_childB->cleanup();
+        m_childB = 0;
+    }
+    HK_TIMER_END_LIST();
+}
+
+void hkBvAgent::staticLinearCast(void* a, void* b, void* c, void* target, void* d) {
+    HK_TIMER_BEGIN_LIST("hkBvAgent", "checkBvShape");
+    const hkCdBody* bodyA = (const hkCdBody*)a;
+    const hkCdBody* bodyB = (const hkCdBody*)b;
+    const hkCollisionInput* input = (const hkCollisionInput*)c;
+    const hkBvShape* bvShape = (const hkBvShape*)bodyA->m_shape;
+    hkCdBody bv(bodyA);
+    bv.m_shapeKey = bodyA->m_shapeKey;
+    bv.m_shape = bvShape->m_boundingVolumeShape;
+    int typeA = bv.m_shape->getType();
+    int typeB = bodyB->m_shape->getType();
+    typedef void (*LinearCastFunc)(void*, void*, void*, void*, void*);
+    LinearCastFunc bvCast = (LinearCastFunc)input->m_dispatcher->getLinearCastFunc(typeA, typeB);
+    hkSimpleClosestContactCollector checker;
+    bvCast(&bv, b, c, &checker, &checker);
+    if (checker.m_hit) {
+        HK_TIMER_SPLIT_LIST("child");
+        bv.m_shapeKey = bv.m_parent->m_shapeKey;
+        bv.m_shape = bvShape->m_childContainer.m_childShape;
+        int childType = bv.m_shape->getType();
+        ((LinearCastFunc)input->m_dispatcher->getLinearCastFunc(childType, typeB))(&bv, b, c, target, d);
+    }
+    HK_TIMER_END_LIST();
+}
+
+void hkBvAgent::getClosestPoints(void* a, void* b, void* c, void* target) {
+    HK_TIMER_BEGIN_LIST("hkBvAgent", "checkBvShape");
+    const hkCdBody* bodyA = (const hkCdBody*)a;
+    const hkCollisionInput* input = (const hkCollisionInput*)c;
+    const hkBvShape* bvShape = (const hkBvShape*)bodyA->m_shape;
+    hkCdBody bv(bodyA);
+    bv.m_shapeKey = bodyA->m_shapeKey;
+    bv.m_shape = bvShape->m_boundingVolumeShape;
+    hkFlagCdBodyPairCollector checker;
+    m_childA->getPenetrations(&bv, b, c, &checker);
+    if (checker.m_hit) {
+        HK_TIMER_SPLIT_LIST("child");
+        bv.m_shapeKey = bv.m_parent->m_shapeKey;
+        bv.m_shape = bvShape->m_childContainer.m_childShape;
+        if (m_childB == 0) {
+            m_childB = input->m_dispatcher->getNewCollisionAgent(bv, *(const hkCdBody*)b, *input, (hkContactMgr*)unk8);
+        }
+        m_childB->getClosestPoints(&bv, b, c, target);
+    } else if (m_childB != 0) {
+        m_childB->cleanup();
+        m_childB = 0;
+    }
+    HK_TIMER_END_LIST();
+}
+
+void hkBvAgent::staticGetClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target) {
+    HK_TIMER_BEGIN_LIST("hkBvAgent", "checkBvShape");
+    const hkCdBody* bodyA = (const hkCdBody*)a;
+    const hkCdBody* bodyB = (const hkCdBody*)b;
+    const hkCollisionInput* input = (const hkCollisionInput*)c;
+    const hkBvShape* bvShape = (const hkBvShape*)bodyA->m_shape;
+    hkCdBody bv(bodyA);
+    bv.m_shapeKey = bodyA->m_shapeKey;
+    bv.m_shape = bvShape->m_boundingVolumeShape;
+    int typeA = bv.m_shape->getType();
+    int typeB = bodyB->m_shape->getType();
+    typedef void (*QueryFunc)(void*, void*, void*, void*);
+    QueryFunc bvQuery = (QueryFunc)input->m_dispatcher->getGetPenetrationsFunc(typeA, typeB);
+    hkFlagCdBodyPairCollector checker;
+    bvQuery(&bv, b, c, &checker);
+    if (checker.m_hit) {
+        HK_TIMER_SPLIT_LIST("child");
+        bv.m_shapeKey = bv.m_parent->m_shapeKey;
+        bv.m_shape = bvShape->m_childContainer.m_childShape;
+        int childType = bv.m_shape->getType();
+        ((QueryFunc)input->m_dispatcher->getGetClosestPointsFunc(childType, typeB))(&bv, b, c, target);
+    }
+    HK_TIMER_END_LIST();
+}
 
 void hkBvAgent::cleanup() {
     m_childA->cleanup();
@@ -146,29 +296,29 @@ hkBvAgent* hkBvAgent::createShapeBvAgent(void* a1, void* a2, void* a3, hkContact
 }
 
 // Sub-agents and the penetration target are passed around as in the original. The wrappers
-// reorder the pair (a, b) and forward the target inside a hkSymmetricTarget.
+// reorder the pair (a, b) and forward the target inside a flip collector (hkSymmetricAgentFlipCollectors.h).
 template <class T>
 void hkSymmetricAgentLinearCast<T>::getPenetrations(void* a, void* b, void* c, void* target) {
-    hkSymmetricTarget wrapped((hkPenetrationTarget*)target);
+    hkSymmetricAgentFlipBodyCollector wrapped(target);
     T::getPenetrations(b, a, c, &wrapped);
 }
 
 template <class T>
 void hkSymmetricAgentLinearCast<T>::staticGetPenetrations(void* a, void* b, void* c, hkPenetrationTarget* target) {
-    hkSymmetricTarget wrapped(target);
-    T::staticGetPenetrations(b, a, c, &wrapped);
+    hkSymmetricAgentFlipBodyCollector wrapped(target);
+    T::staticGetPenetrations(b, a, c, (hkPenetrationTarget*)&wrapped);
 }
 
 template <class T>
 void hkSymmetricAgentLinearCast<T>::getClosestPoints(void* a, void* b, void* c, void* target) {
-    hkSymmetricTarget wrapped((hkPenetrationTarget*)target);
+    hkSymmetricAgentFlipCollector wrapped(target);
     T::getClosestPoints(b, a, c, &wrapped);
 }
 
 template <class T>
 void hkSymmetricAgentLinearCast<T>::staticGetClosestPoints(void* a, void* b, void* c, hkPenetrationTarget* target) {
-    hkSymmetricTarget wrapped(target);
-    T::staticGetClosestPoints(b, a, c, &wrapped);
+    hkSymmetricAgentFlipCollector wrapped(target);
+    T::staticGetClosestPoints(b, a, c, (hkPenetrationTarget*)&wrapped);
 }
 
 template <class T>
@@ -176,7 +326,36 @@ void hkSymmetricAgentLinearCast<T>::updateShapeCollectionFilter(void* a, void* b
     T::updateShapeCollectionFilter(b, a, c);
 }
 
+// The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
+// the points back.
+template <class T>
+void hkSymmetricAgentLinearCast<T>::staticLinearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        T::staticLinearCast(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        T::staticLinearCast(b, a, &flippedInput, &flipped, 0);
+    }
+}
+
 template struct hkSymmetricAgentLinearCast<hkBvAgent>;
+
+void hkSymmetricBvAgent::linearCast(void* a, void* b, void* c, void* target, void* d) {
+    const hkLinearCastCollisionInput& input = *(const hkLinearCastCollisionInput*)c;
+    hkLinearCastCollisionInput flippedInput = input;
+    flippedInput.m_path.setNeg4(input.m_path);
+    hkSymmetricAgentFlipCastCollector flipped(input.m_path, target);
+    if (d != 0) {
+        hkSymmetricAgentFlipCastCollector flippedStart(input.m_path, d);
+        hkBvAgent::linearCast(b, a, &flippedInput, &flipped, &flippedStart);
+    } else {
+        hkBvAgent::linearCast(b, a, &flippedInput, &flipped, 0);
+    }
+}
 
 namespace {
 
@@ -185,8 +364,6 @@ namespace {
 
 // Stand-in for the dispatcher registration function (not recovered yet; takes the dispatcher as first argument).
 // Stand-ins for the linear cast statics of the symmetric and plain BV agents (not written yet).
-extern "C" void fn_802A35D0();
-extern "C" void fn_802A29A4();
 
 // Registers the BV agent for the pair of shape types in both orders: the symmetric variant for
 // (any, 0x16) and the plain variant for (0x16, any).
@@ -195,7 +372,7 @@ void hkBvAgent::registerAgent(void* dispatcher) {
     symmetric.create = (hkAgentFunc)createShapeBvAgent;
     symmetric.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast<hkBvAgent>::staticGetPenetrations;
     symmetric.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast<hkBvAgent>::staticGetClosestPoints;
-    symmetric.staticLinearCast = (hkAgentFunc)fn_802A35D0;
+    symmetric.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast<hkBvAgent>::staticLinearCast;
     symmetric.symmetricA = true;
     symmetric.symmetricB = true;
     ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&symmetric, -1, 0x16);
@@ -204,7 +381,7 @@ void hkBvAgent::registerAgent(void* dispatcher) {
     plain.create = (hkAgentFunc)createBvShapeAgent;
     plain.staticGetPenetrations = (hkAgentFunc)staticGetPenetrations;
     plain.staticGetClosestPoints = (hkAgentFunc)staticGetClosestPoints;
-    plain.staticLinearCast = (hkAgentFunc)fn_802A29A4;
+    plain.staticLinearCast = (hkAgentFunc)staticLinearCast;
     plain.symmetricA = false;
     plain.symmetricB = true;
     ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&plain, 0x16, -1);

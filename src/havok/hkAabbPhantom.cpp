@@ -36,8 +36,7 @@ hkAabbPhantom::hkAabbPhantom(hkFinishLoadedObjectFlag flag) : hkPhantom(flag) {
 
 // Calls the deleting destructor through the vtable with flag -1 (object is not freed).
 void hkAabbPhantom::cleanupLoadedObjecthkAabbPhantom(void* p) {
-    void (*dtor)(void*, int) = (*(void (***)(void*, int))p)[2];
-    dtor(p, -1);
+    ((hkAabbPhantom*)p)->~hkAabbPhantom();
 }
 
 hkAabbPhantom::~hkAabbPhantom() {
