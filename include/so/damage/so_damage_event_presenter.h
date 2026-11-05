@@ -42,7 +42,13 @@ public:
 #else
     virtual void addObserver(short param1, s8 param2);
 #endif
+#ifdef SO_DAMAGE_EVENT_OBSERVER_WEAK_NOTIFY
+    // BYTES: the owning unit's weak empty copies (Snake's Cypher unit holds them in ft_snake).
+    virtual void notifyEventOnDamage(soDamage* damage, bool, soModuleAccesser* moduleAccesser) { }
+    virtual void notifyEventAddDamage(soDamage* damage, soModuleAccesser* moduleAccesser) { }
+#else
     virtual void notifyEventOnDamage(soDamage* damage, bool, soModuleAccesser* moduleAccesser);
     virtual void notifyEventAddDamage(soDamage* damage, soModuleAccesser* moduleAccesser);
+#endif
 };
 static_assert(sizeof(soDamageEventObserver) == 12, "Class is wrong size!");
