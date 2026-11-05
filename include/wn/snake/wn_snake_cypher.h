@@ -5,7 +5,7 @@
 #include <so/damage/so_damage_event_presenter.h>
 #include <wn/wn_weapon_builder.h>
 
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(4);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(4);
 // The hit part vector is built by the sora_melee constructor (wn_snake_shared_arrays.h).
 #include <wn/snake/wn_snake_shared_arrays.h>
 
