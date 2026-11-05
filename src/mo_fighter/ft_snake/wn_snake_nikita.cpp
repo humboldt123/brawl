@@ -86,6 +86,10 @@ struct wnSnakeNikitaMissileDataArgs {
 static inline wnSnakeNikitaOwnerView* ownerView(soModuleAccesser* acc) {
     return reinterpret_cast<wnSnakeNikitaOwnerView*>(&dynamic_cast<Weapon&>(acc->getStageObject()));
 }
+// The owner's fighter kind (read right after the cast, as for F.L.U.D.D.'s waterOwnerKind).
+static inline ftKind ownerKind(soModuleAccesser* acc) {
+    return static_cast<ftKind>(ownerView(acc)->kindInfo.subKind);
+}
 struct wnSnakeNikitaMissileArgs {
     wnArticleBuildInfo info;
     wnSnakeNikitaMissileArgs(const wnArticleKindInfo& kind, soHeapModule* heap) {
@@ -100,7 +104,7 @@ template <>
 wnArticleHolder<wnSnakeNikitaMissile>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
     m_instance(0, wnSnakeNikitaMissileArgs(ownerView(acc)->kindInfo, &acc->getHeapModule()).info,
                static_cast<const wnSnakeNikitaMissileData*>(g_ftCommonDataAccesser.getWeaponData24(
-                   static_cast<ftKind>(ownerView(acc)->kindInfo.subKind), &wnSnakeNikitaMissileDataArgs().resourceGroup))) { }
+                   ownerKind(acc), &wnSnakeNikitaMissileDataArgs().resourceGroup))) { }
 
 // MATCH-ONLY: stands in for the native weak Vec3f::operator-() (map: Vec3f::__mi, a paired-single negation) until the
 // shared mt_vector.h declares that member.
