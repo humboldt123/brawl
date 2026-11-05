@@ -2335,6 +2335,7 @@ config.libs = [
             Object(NonMatching, "mo_fighter/ft_snake/ft_snake_status_uniq_process_final_set.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_snake/ft_snake_status_uniq_process_final_end.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_snake/wn_snake_nikita.cpp", cflags=cflags_fighter),
+            Object(NonMatching, "mo_fighter/ft_snake/wn_snake_nikita_missile.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_snake/wn_snake_nikita_missile_status_uniq_process_fly.cpp", cflags=cflags_fighter),
         ],
     },
