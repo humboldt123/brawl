@@ -22,6 +22,8 @@
 #include <wn/snake/so_kinetic_energy_local_normal.h>
 
 #include <gf/gf_task_scheduler.h>
+#include <wn/wn_activate_desc.h>
+#include <so/motion/so_motion_change_param.h>
 #include <so/article/so_article.h>
 #include <so/article/so_generate_article_manage_module.h>
 #include <so/link/so_link_module_impl.h>
@@ -89,6 +91,71 @@ wnArticleHolder<wnSnakeNikitaMissile>::wnArticleHolder(soModuleAccesser* acc) : 
                static_cast<const wnSnakeNikitaMissileData*>(g_ftCommonDataAccesser.getWeaponData24(
                    static_cast<ftKind>(ownerView(acc)->kindInfo.subKind), &wnSnakeNikitaMissileDataArgs().resourceGroup))) { }
 
+// MATCH-ONLY: stands in for the native weak Vec3f::operator-() (map: Vec3f::__mi, a paired-single negation) until the
+// shared mt_vector.h declares that member.
+asm Vec3f operator-(const Vec3f&) {
+    nofralloc
+    psq_l f1, 0x0(r4), 0, 0
+    psq_l f0, 0x8(r4), 1, 0
+    ps_neg f1, f1
+    ps_neg f0, f0
+    psq_st f1, 0x0(r3), 0, 0
+    psq_st f0, 0x8(r3), 1, 0
+    blr
+}
+
+// Shows the launcher in Snake's hands: link attribute 4 on node 3, motion 0. When both missile slots are taken the
+// oldest missile (first recorded task id) is made to fall (status 2) and dropped from the list.
+void wnSnakeNikita::activate(int founderTaskId, int resourceId, int team, float lr) {
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, Vec3f(0.0f, 0.0f, 0.0f), lr,
+                        team, 0, 2, 0x80, 0, 0x35F, 0);
+    desc.flagsHighPair = 3;
+    desc.flagsMidPair = 0;
+    desc.flagsBit3 = 1;
+    desc.flagsLow = 0;
+    desc.unk4DHigh = 0;
+    Weapon::activate(&desc);
+
+    m_moduleAccesser->getLinkModule().setAttribute(3, static_cast<soLinkConnection::Attribute>(4), true);
+    soMotionChangeParam motion;
+    motion.m_kind = 0;
+    motion.m_frame = 0.0f;
+    motion.m_rate = 1.0f;
+    motion._12 = 0;
+    motion._13 = 0;
+    motion._14 = 0;
+    motion._15 = 0;
+    m_moduleAccesser->getMotionModule().changeMotion(&motion);
+
+    if (m_unkMissileTaskIds.isFull()) {
+        unsigned long& oldestId = m_unkMissileTaskIds.at(0);
+        wnSnakeNikitaMissile* missile = dynamic_cast<wnSnakeNikitaMissile*>(gfTaskScheduler::getInstance()->getTask(oldestId));
+        if (missile != NULL) {
+            missile->changeStatus(2);
+        }
+        m_unkMissileTaskIds.shift();
+    }
+}
+
+// Launches a pooled missile from the launcher's node 3 (at the ground's depth). Its rotation is a 90 degree yaw,
+// mirrored when the owning fighter (work int 0x10000000, else the launcher itself) faces left.
+bool wnSnakeNikita::activeArticle(wnSnakeNikitaMissile* missile, soModuleAccesser* acc) {
+    Vec3f pos = acc->getModelModule().getNodeGlobalPosition(3, false);
+    pos.m_z = acc->getGroundModule().getZ();
+    Vec3f rot(0.0f, 90.0f, 0.0f);
+    StageObject* owner = dynamic_cast<StageObject*>(gfTaskScheduler::getInstance()->getTaskById(
+        gfTask::Category_Fighter, acc->getWorkManageModule().getInt(0x10000000)));
+    if (owner != NULL) {
+        if (soExternalValueAccesser::getLr(owner) < 0.0f) {
+            rot = -rot;
+        }
+    } else if (acc->getPostureModule().getLr() < 0.0f) {
+        rot = -rot;
+    }
+    missile->activate(acc->getStageObject().getTaskId(), acc->getResourceModule().getResourceIdAccesser()->getAnmResId(),
+                      acc->getTeamModule().getTeam()->getNo(), pos, rot);
+    return true;
+}
 
 void wnSnakeNikita::notifyArticleEventRemove(int unk1, int* unk2) {
     StageObject::notifyArticleEventRemove(unk1, unk2);

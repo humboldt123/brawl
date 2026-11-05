@@ -126,6 +126,8 @@ public:
 
     wnSnakeNikitaMissile(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeNikitaMissileData* data);
     void setAutonomy();
+    // HYPOTHESIS: parameter names (the launcher passes its node position and a 90 degree yaw).
+    void activate(int founderTaskId, int resourceId, int team, Vec3f pos, Vec3f rot);
     virtual void processCollision();
     virtual void notifyEventCollisionSearch(soCollisionLog* collisionLog,
                                             soModuleAccesser* moduleAccesser);
@@ -234,6 +236,8 @@ public:
 class wnSnakeNikita : public wnWeaponBuilder<wnSnakeNikitaModuleAccesserBuildConfig> {
 public:
     wnSnakeNikita(s32 articleId, const wnArticleBuildInfo& info, const wnSnakeNikitaData* data);
+    void activate(int founderTaskId, int resourceId, int team, float lr);
+    static bool activeArticle(wnSnakeNikitaMissile* missile, soModuleAccesser* acc);
     virtual void notifyArticleEventRemove(int unk1, int* unk2);
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser,
                                  StageObject* linkedObject, int unk4);
