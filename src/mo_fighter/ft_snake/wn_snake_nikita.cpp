@@ -107,7 +107,9 @@ asm Vec3f operator-(const Vec3f&) {
 // Shows the launcher in Snake's hands: link attribute 4 on node 3, motion 0. When both missile slots are taken the
 // oldest missile (first recorded task id) is made to fall (status 2) and dropped from the list.
 void wnSnakeNikita::activate(int founderTaskId, int resourceId, int team, float lr) {
-    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, Vec3f(0.0f, 0.0f, 0.0f), lr,
+    Vec3f pos(0.0f, 0.0f, 0.0f);
+    soMotionChangeParam motion;
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, pos, lr,
                         team, 0, 2, 0x80, 0, 0x35F, 0);
     desc.flagsHighPair = 3;
     desc.flagsMidPair = 0;
@@ -117,7 +119,6 @@ void wnSnakeNikita::activate(int founderTaskId, int resourceId, int team, float 
     Weapon::activate(&desc);
 
     m_moduleAccesser->getLinkModule().setAttribute(3, static_cast<soLinkConnection::Attribute>(4), true);
-    soMotionChangeParam motion;
     motion.m_kind = 0;
     motion.m_frame = 0.0f;
     motion.m_rate = 1.0f;
@@ -127,7 +128,7 @@ void wnSnakeNikita::activate(int founderTaskId, int resourceId, int team, float 
     motion._15 = 0;
     m_moduleAccesser->getMotionModule().changeMotion(&motion);
 
-    if (m_unkMissileTaskIds.isFull()) {
+    if (m_unkMissileTaskIds.isFull() == true) {
         unsigned long& oldestId = m_unkMissileTaskIds.at(0);
         wnSnakeNikitaMissile* missile = dynamic_cast<wnSnakeNikitaMissile*>(gfTaskScheduler::getInstance()->getTask(oldestId));
         if (missile != NULL) {
