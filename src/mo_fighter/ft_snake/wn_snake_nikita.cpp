@@ -14,6 +14,7 @@
 #define MT_VEC2F_CTOR_NOINLINE
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
+#define MT_VEC3F_UNARY_MINUS // the launcher negates its rotation with the weak paired-single Vec3f::operator-()
 #include <wn/wn_module_accesser_builder.h>
 #include <wn/snake/wn_snake_nikita.h>
 #include <wn/snake/wn_snake_nikita_missile_status_uniq_process_fly.h>
@@ -105,19 +106,6 @@ wnArticleHolder<wnSnakeNikitaMissile>::wnArticleHolder(soModuleAccesser* acc) : 
     m_instance(0, wnSnakeNikitaMissileArgs(ownerView(acc)->kindInfo, &acc->getHeapModule()).info,
                static_cast<const wnSnakeNikitaMissileData*>(g_ftCommonDataAccesser.getWeaponData24(
                    ownerKind(acc), &wnSnakeNikitaMissileDataArgs().resourceGroup))) { }
-
-// MATCH-ONLY: stands in for the native weak Vec3f::operator-() (map: Vec3f::__mi, a paired-single negation) until the
-// shared mt_vector.h declares that member.
-asm Vec3f operator-(const Vec3f&) {
-    nofralloc
-    psq_l f1, 0x0(r4), 0, 0
-    psq_l f0, 0x8(r4), 1, 0
-    ps_neg f1, f1
-    ps_neg f0, f0
-    psq_st f1, 0x0(r3), 0, 0
-    psq_st f0, 0x8(r3), 1, 0
-    blr
-}
 
 // Shows the launcher in Snake's hands: link attribute 4 on node 3, motion 0. When both missile slots are taken the
 // oldest missile (first recorded task id) is made to fall (status 2) and dropped from the list.

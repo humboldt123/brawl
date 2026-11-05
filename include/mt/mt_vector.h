@@ -280,6 +280,10 @@ public:
         __attribute__((never_inline)) // BYTES: the Enemy unit calls its weak out-of-line copy.
 #endif
         ;
+#ifdef MT_VEC3F_UNARY_MINUS
+    // Opt-in: the negated vector. Snake's Nikita launcher calls this weak paired-single copy (__mi__5Vec3fCFv).
+    Vec3f operator-() const;
+#endif
 
 #ifdef MATCHING
     // BYTES: use paired-single operations for the verified inline vector add.
@@ -519,6 +523,20 @@ public:
     void slerp(const Vec3f* v, Vec3f* out, float t) const;
 };
 static_assert(sizeof(Vec3f) == 12, "Class is wrong size!");
+
+#ifdef MT_VEC3F_UNARY_MINUS
+// BYTES: written in paired-single asm (both halves negated with ps_neg), as the native weak copy is.
+inline asm Vec3f Vec3f::operator-() const {
+    nofralloc
+    psq_l f1, 0x0(r4), 0, 0
+    psq_l f0, 0x8(r4), 1, 0
+    ps_neg f1, f1
+    ps_neg f0, f0
+    psq_st f1, 0x0(r3), 0, 0
+    psq_st f0, 0x8(r3), 1, 0
+    blr
+}
+#endif
 
 // Native Wario Utility callers identify these member operators and hidden returns.
 // HYPOTHESIS: source const qualifiers retain the established declarations.
