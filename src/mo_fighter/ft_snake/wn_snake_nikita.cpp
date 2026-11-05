@@ -59,6 +59,17 @@ wnSnakeNikita::wnSnakeNikita(s32 articleId, const wnArticleBuildInfo& info, cons
 }
 #pragma pop
 
+// The article manage builder and the missile pool chain tear down out of line (native order).
+#pragma dont_inline on
+template <class W, int N> wnArticleSubPool<W, N>::~wnArticleSubPool() { }
+template <class M> wnSelectedArticleMediator<M>::~wnSelectedArticleMediator() { }
+template <class M, int N> wnArticleManageModuleBuilder<M, N>::~wnArticleManageModuleBuilder() { }
+template wnArticleManageModuleBuilder<wnSnakeNikitaMediator, 2>::~wnArticleManageModuleBuilder();
+template wnSelectedArticleMediator<wnSnakeNikitaMediator>::~wnSelectedArticleMediator();
+template wnArticleSubPool<wnSnakeNikitaMissile, 2>::~wnArticleSubPool();
+template wnArticleSubPool<wnSnakeNikitaMissile, 1>::~wnArticleSubPool();
+#pragma dont_inline off
+
 // The owner kind words Weapon construction copies from wnArticleBuildInfo (+0xC4 kind info, +0xC8 fighter kind).
 // HYPOTHESIS: view name.
 struct wnSnakeNikitaOwnerView {
