@@ -858,9 +858,9 @@ stickWall__39wnSnakeC4StatusUniqProcessEstablishWallFP16soModuleAccesserP5Vec3f 
 __dt__39wnSnakeC4StatusUniqProcessEstablishWallFv = .text:0x0001AE6C; // type:function size:0x40
 __sinit_\wn_snake_c4_status_uniq_process_establish_wall_cpp = .text:0x0001AEAC; // type:function size:0x48
 __ct__39wnSnakeC4StatusUniqProcessEstablishWallFv = .text:0x0001AEF4; // type:function size:0x10
-fn_122_1AF04 = .text:0x0001AF04; // type:function size:0xFC
-fn_122_1B000 = .text:0x0001B000; // type:function size:0x130
-fn_122_1B130 = .text:0x0001B130; // type:function size:0x70
+detachConstraint__16wnSnakeC4UtilityFP16soModuleAccesser = .text:0x0001AF04; // type:function size:0xFC
+stickStageRot__16wnSnakeC4UtilityFP16soModuleAccesser = .text:0x0001B000; // type:function size:0x130
+dropFall__16wnSnakeC4UtilityFP16soModuleAccesser = .text:0x0001B130; // type:function size:0x70
 __ct__13wnSnakeCypherFlRC18wnArticleBuildInfoPC17wnSnakeCypherData = .text:0x0001B1A0; // type:function size:0x18C4
 __dt__57wnWeaponBuilder<38wnSnakeCypherModuleAccesserBuildConfig>Fv = .text:0x0001CA64; // type:function size:0x88
 __dt__65wnModuleAccesserBuilder<38wnSnakeCypherModuleAccesserBuildConfig>Fv = .text:0x0001CAEC; // type:function size:0x70

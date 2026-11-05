@@ -34,18 +34,13 @@
 #include <so/model/so_model_module_impl.h>
 #include <so/situation/so_situation_module_impl.h>
 #include <so/so_kinetic_energy_rot_normal.h>
+#include <wn/snake/wn_snake_c4_utility.h>
 
 // The status unique processes of the charge (wn_snake_c4_status_uniq_process_establish_*.cpp): sticking to the ground and
 // to a wall.
 extern soStatusUniqProcess g_wnSnakeC4StatusUniqProcessEstablishGround;
 extern soStatusUniqProcess g_wnSnakeC4StatusUniqProcessEstablishWall;
 
-extern "C" {
-// wnSnakeC4Utility::detachConstraint (module map); outside any configured unit.
-void fn_122_1AF04(soModuleAccesser*);
-// wnSnakeC4Utility::stickStageRot (module map); outside any configured unit.
-void fn_122_1B000(soModuleAccesser*);
-} // extern "C"
 
 using namespace wnSnakeC4Def;
 
@@ -128,7 +123,7 @@ void wnSnakeC4::shoot() {
         break;
     default:
         if (m_moduleAccesser->getLinkModule().isModelConstraint() == 1) {
-            fn_122_1AF04(m_moduleAccesser);
+            wnSnakeC4Utility::detachConstraint(m_moduleAccesser);
         }
         m_moduleAccesser->getStatusModule().changeStatusForce(Status_Fly, m_moduleAccesser);
         break;
@@ -181,13 +176,13 @@ void wnSnakeC4::notifyEventChangeStatus(int statusKind, int prevStatusKind, soSt
         switch (prevStatusKind) {
         case Status_Fly:
             if (m_moduleAccesser->getLinkModule().isModelConstraint() == true) {
-                fn_122_1AF04(m_moduleAccesser);
+                wnSnakeC4Utility::detachConstraint(m_moduleAccesser);
             }
             if (m_moduleAccesser->getGroundModule().isTouch(8, 0) == true) {
                 // HYPOTHESIS: the stage position of the charge is computed and left unused.
                 Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
                 pos.m_z = m_moduleAccesser->getGroundModule().getZ();
-                fn_122_1B000(m_moduleAccesser);
+                wnSnakeC4Utility::stickStageRot(m_moduleAccesser);
                 m_moduleAccesser->getSituationModule().setKind(Situation_Ground, false);
                 m_moduleAccesser->getGroundModule().setCorrect(soGroundShapeImpl::Correct_Ground, 0);
             }
@@ -199,7 +194,7 @@ void wnSnakeC4::notifyEventChangeStatus(int statusKind, int prevStatusKind, soSt
         switch (prevStatusKind) {
         case Status_EstablishFighter:
             if (m_moduleAccesser->getLinkModule().isModelConstraint() == true) {
-                fn_122_1AF04(m_moduleAccesser);
+                wnSnakeC4Utility::detachConstraint(m_moduleAccesser);
             }
             if (m_moduleAccesser->getLinkModule().isLink(LinkNo_Parent) == true) {
                 m_moduleAccesser->getLinkModule().unlink(LinkNo_Parent);

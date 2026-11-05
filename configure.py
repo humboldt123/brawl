@@ -2325,6 +2325,7 @@ config.libs = [
             Object(NonMatching, "mo_fighter/ft_snake/wn_snake_c4_switch.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_snake/wn_snake_c4_status_uniq_process_establish_ground.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_snake/wn_snake_c4_status_uniq_process_establish_wall.cpp", cflags=cflags_fighter),
+            Object(NonMatching, "mo_fighter/ft_snake/wn_snake_c4_utility.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_snake/wn_snake_cypher.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_snake/wn_snake_mine.cpp", cflags=cflags_fighter),
             Object(NonMatching, "mo_fighter/ft_snake/ft_snake_status_uniq_process_cypher_hang.cpp", cflags=cflags_fighter),

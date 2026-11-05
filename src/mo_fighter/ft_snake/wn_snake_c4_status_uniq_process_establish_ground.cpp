@@ -10,13 +10,7 @@
 #include <so/work/so_work_manage_module_impl.h>
 #include <types.h>
 #include <wn/snake/wn_snake_c4_def.h>
-
-extern "C" {
-// wnSnakeC4Utility::detachConstraint, stickStageRot and dropFall (module map); outside any configured unit.
-void fn_122_1AF04(soModuleAccesser*);
-void fn_122_1B000(soModuleAccesser*);
-void fn_122_1B130(soModuleAccesser*);
-} // extern "C"
+#include <wn/snake/wn_snake_c4_utility.h>
 
 class wnSnakeC4StatusUniqProcessEstablishGround : public soStatusUniqProcess {
 public:
@@ -64,20 +58,20 @@ void wnSnakeC4StatusUniqProcessEstablishGround::execFixCamera(soModuleAccesser* 
         }
     }
     if (moduleAccesser->getWorkManageModule().isFlag(wnSnakeC4Def::WorkFlag_Drop) == true) {
-        fn_122_1B130(moduleAccesser);
+        wnSnakeC4Utility::dropFall(moduleAccesser);
     }
     moduleAccesser->getPostureModule().setPos(&nodePos);
 }
 
 bool wnSnakeC4StatusUniqProcessEstablishGround::stickGround(soModuleAccesser* moduleAccesser, Vec3f* pos) {
     if (moduleAccesser->getLinkModule().isModelConstraint() == true) {
-        fn_122_1AF04(moduleAccesser);
+        wnSnakeC4Utility::detachConstraint(moduleAccesser);
     }
     moduleAccesser->getPostureModule().setPos(pos);
     if (moduleAccesser->getGroundModule().attachGround(0) == false) {
         return false;
     }
     moduleAccesser->getWorkManageModule().onFlag(wnSnakeC4Def::WorkFlag_Established);
-    fn_122_1B000(moduleAccesser);
+    wnSnakeC4Utility::stickStageRot(moduleAccesser);
     return true;
 }
