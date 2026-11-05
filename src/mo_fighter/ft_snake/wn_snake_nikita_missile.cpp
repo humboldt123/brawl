@@ -307,6 +307,8 @@ void wnSnakeNikitaMissile::notifyEventCollisionSearch(soCollisionLog* collisionL
 
 bool wnSnakeNikitaMissile::notifyEventCollisionSearchCheck() {
     // A reflector hit flags the missile (status 0: 0x22000002, status 1: 0x22000001); consume the flag.
+    bool statusHit;
+    bool hit;
     bool reflected = false;
     if (m_moduleAccesser->getStatusModule().getStatusKind() == 0 &&
         m_moduleAccesser->getWorkManageModule().isFlag(0x22000002)) {
@@ -347,19 +349,19 @@ bool wnSnakeNikitaMissile::notifyEventCollisionSearchCheck() {
     }
 
     // HYPOTHESIS: a hit flag of the current status (status 0: 0x22000001, status 1: 0x22000000) explodes the missile.
-    bool flyHit = false;
+    statusHit = false;
     if (m_moduleAccesser->getStatusModule().getStatusKind() == 0 &&
         m_moduleAccesser->getWorkManageModule().isFlag(0x22000001)) {
-        flyHit = true;
+        statusHit = true;
     }
-    bool hit = true;
-    if (!flyHit) {
-        bool fallHit = false;
+    hit = true;
+    if (!statusHit) {
+        statusHit = false;
         if (m_moduleAccesser->getStatusModule().getStatusKind() == 1 &&
             m_moduleAccesser->getWorkManageModule().isFlag(0x22000000)) {
-            fallHit = true;
+            statusHit = true;
         }
-        if (!fallHit) {
+        if (!statusHit) {
             hit = false;
         }
     }
