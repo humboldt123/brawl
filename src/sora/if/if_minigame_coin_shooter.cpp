@@ -1,4 +1,3 @@
-// BYTES: the scale of a vector is the inline paired-single form (MT_VEC3F_MUL_INLINE, mt_vector.h), as in the original.
 #define MT_VEC3F_MUL_INLINE
 #include <types.h>
 #include <stdarg.h>
@@ -14,12 +13,41 @@
 #include <std/auto_ptr.h>
 #include <ty/ty_seal_listmng.h>
 #include <mt/mt_matrix.h>
+#include <nw4r/g3d/g3d_scnroot.h>
+#include <gf/gf_heap_manager.h>
+#include <gf/gf_model.h>
+#include <gf/gf_pad_system.h>
+#include <nw4r/g3d/g3d_scnmdlexpand.h>
+#include <snd/snd_system.h>
+#include <ty/ty_fig_listmng.h>
+
+// The weak copy of utList::init that the static initializer of the unit calls (as in em_weapon_manager.cpp).
+inline void utList::init() {
+    m_tail = NULL;
+    m_head = NULL;
+    m_length = 0;
+}
+
+// HYPOTHESIS: the list of the label objects that exist (the static of AutoList<IfCoinShooterLabelImpl>, built by the static
+// initializer of the unit; the unit's .bss word at 0x8049E560 is owned by part A).
+struct IfCoinShooterLabelList : utList {
+    IfCoinShooterLabelList() { init(); }
+};
+template <class T>
+struct IfCoinShooterListStorage {
+    static IfCoinShooterLabelList s_list;
+};
+template <class T>
+IfCoinShooterLabelList IfCoinShooterListStorage<T>::s_list;
+
+template <>
+inline utList& utility::AutoList<IfCoinShooterLabelImpl>::getList() {
+    return IfCoinShooterListStorage<IfCoinShooterLabelImpl>::s_list;
+}
+
+// BYTES: the scale of a vector is the inline paired-single form (MT_VEC3F_MUL_INLINE, mt_vector.h), as in the original.
 
 // HYPOTHESIS: untyped placeholders for the zero-initialized .bss of this unit, sizes and order from the original layout.
-// HYPOTHESIS: lbl_8049E560 is the list of every label that exists (AutoList<IfCoinShooterLabelImpl>); it is a typed
-// list here so that the label constructors and destructors call utList. The original builds it with a static
-// initializer (fn_801048AC, guard lbl_805A0314) that the part of the unit with the .ctors entry carries.
-utList lbl_8049E560 __attribute__((aligned(8)));
 unsigned char lbl_8049E570[0xc] __attribute__((aligned(8))) = { 0 };
 // HYPOTHESIS: untyped placeholders for the zero-initialized .sbss of this unit, sizes and order from the original layout.
 IfCoinShooter* lbl_805A0310 = NULL;
@@ -28,11 +56,6 @@ unsigned char lbl_805A0314[0x1] __attribute__((aligned(4))) = { 0 };
 // The label classes of this unit (RTTI "@unnamed@if_minigame_coin_shooter_cpp@::..."). Layouts from the constructors
 // (fn_800FF558, fn_800FFE6C, fn_80100900), the destructors and the vtables lbl_8045CC40 (Simple), lbl_8045CBC0 (Light),
 // lbl_8045CB40 (Counter); the base IfCoinShooterLabelImpl is 0x18 bytes (see the header).
-template <>
-inline utList& utility::AutoList<IfCoinShooterLabelImpl>::getList() {
-    return lbl_8049E560;
-}
-
 inline IfCoinShooterLabelImpl::IfCoinShooterLabelImpl(IfCoinShooterLabel* owner) : unkC(owner) {
     unk10 = 0;
     unk10_3 = false;
@@ -49,8 +72,8 @@ public:
 
     IfCoinShooterLabelSimple(IfCoinShooterLabel* owner, IfCoinShooterLabel::Type type);
     virtual ~IfCoinShooterLabelSimple();
-    virtual MuObject* model() const;    // fn_801048A4: m_obj
-    virtual void detach();              // fn_80104898: the parent of m_obj's scene model is told to remove it (virtual +0xC, 0x10001)
+    virtual MuObject* model() const { return m_obj.get(); } // fn_801048A4
+    virtual void detach() { m_obj->m_sceneModel->DetachFromParent(); } // fn_80104898
 };
 static_assert(sizeof(IfCoinShooterLabelSimple) == 0x20, "Class is the wrong size!");
 
@@ -67,9 +90,9 @@ public:
 
     IfCoinShooterLabelLight(IfCoinShooterLabel::Type type, int value, u32 sealId, const Vec3f& from, const Vec3f& to);
     virtual ~IfCoinShooterLabelLight();
-    virtual MuObject* model() const;    // fn_80104890: m_obj
+    virtual MuObject* model() const { return m_obj.get(); } // fn_80104890
     virtual void update();              // fn_80100774: curved path m_from -> m_to by the animation progress
-    virtual void detach();              // fn_80104884
+    virtual void detach() { m_obj->m_sceneModel->DetachFromParent(); } // fn_80104884
 };
 static_assert(sizeof(IfCoinShooterLabelLight) == 0x40, "Class is the wrong size!");
 
@@ -84,36 +107,30 @@ public:
 
     IfCoinShooterLabelCounter(IfCoinShooterLabel* owner, IfCoinShooterLabel::Type type, int value, u32 sealId);
     virtual ~IfCoinShooterLabelCounter();
-    virtual MuObject* model() const;    // fn_80101370: m_number.m_baseObj
-    virtual void detach();              // fn_8010487C: on m_number.m_expand (not on the model)
+    virtual MuObject* model() const { return m_number.m_baseObj.get(); } // fn_80101370
+    virtual void detach() { m_number.m_expand->DetachFromParent(); } // fn_8010487C: on the expand group (not on the model)
 };
 static_assert(sizeof(IfCoinShooterLabelCounter) == 0x50, "Class is the wrong size!");
 
 }
 
-// TEMPORARY (part A only, to be removed at the merge): the label classes have internal linkage, so their members are
-// only emitted when something uses them. IfCoinShooterLabel::create (part B) makes them in the real unit.
-void fn_tmp_part_a_users(IfCoinShooterLabel* label, const Vec3f& from, const Vec3f& to) {
-    new (Heaps::MenuInstance) IfCoinShooterLabelSimple(label, IfCoinShooterLabel::Type_0);
-    new (Heaps::MenuInstance) IfCoinShooterLabelLight(IfCoinShooterLabel::Type_7, 1, 0, from, to);
-}
-
 // HYPOTHESIS: stand-ins: IfRewardListTask::isLoadFinish, and srReportLessMastar (a report printf, fn_80101810).
 extern "C" bool fn_800FA740(IfRewardListTask* task);
 extern "C" void fn_80101810(...);
+extern "C" void fn_800FA7B8(IfRewardListTask* task, u32 id, int count, char* buf1, int size, char* buf2, const char* title);
 
 namespace {
 
 // The name of a model or of an animation: it is built by copying and adding to it (the copies are what the compiler
 // makes of a 0x41 byte structure passed around; same shape as muCollectionName in mu_collection_viewer.h).
-struct IfCoinShooterName {
+struct IfCoinShooterNameA {
     char m_str[0x41];
 
     void addNumber(int number) { sprintf(m_str + strlen(m_str), "%d", number); }
     void addSeparator() { strcat(m_str, "__"); }
 
-    IfCoinShooterName() { }
-    IfCoinShooterName(const char* str) {
+    IfCoinShooterNameA() { }
+    IfCoinShooterNameA(const char* str) {
         m_str[0] = '\0';
         strcat(m_str, str);
     }
@@ -135,10 +152,10 @@ enum IfCoinShooterAnimKind {
 // Starts the animation of a model that is named after the model and the number of the animation: <model>__<no>.
 template <int Kind>
 static inline void changeCoinAnim(MuObject* object, int no) {
-    IfCoinShooterName name3;
-    IfCoinShooterName name2;
-    IfCoinShooterName name1;
-    IfCoinShooterName name0(getCoinMdlName(object));
+    IfCoinShooterNameA name3;
+    IfCoinShooterNameA name2;
+    IfCoinShooterNameA name1;
+    IfCoinShooterNameA name0(getCoinMdlName(object));
     name1 = name0;
     name1.addSeparator();
     name2 = name1;
@@ -344,55 +361,204 @@ void IfCoinShooterLabelLight::update() {
     obj->setTrans(&position);
 }
 
-// Function bodies below are taken from https://github.com/jj-link/brawl.
-
-extern "C" void fn_80101810(...) {}
 
 
 // HYPOTHESIS: draft of the constructor to pin the layout. The member initializers are in declaration order, as the
 // stores of fn at 0x80101C0C are.
-IfCoinShooter::IfCoinShooter()
-    : utility::StandardMenu("IfCoinShooter", 0xF0, Heaps::MenuResource), m_decisionPad(gmGetMenuDecisionPad()),
-      m_started(false), m_clearMsgTimer(0), m_objPriority(0), m_bonusTarget(0), m_unk1C4(false), m_figureTimer(-1),
-      m_figEntry(NULL) {
-    g_gfApplication->m_114.add(this);
-    unk2C_b1 = false;
-    g_gfSceneRoot->setClearDepthBufferState(gfSceneRoot::Layer_Info, true);
-    m_cameraPath[0] = '\0';
-    strcat(m_cameraPath, "/menu/defaultcamera/FigureList");
-    // TODO: the original ends with the fog reset of the menu scene:
-    //   for (int i = 0;; i++) { nw4r::g3d::Fog fog = g_gfSceneRoot->unk44->GetFog(i); if (!fog.IsValid()) break; fog.Init(); }
-    // include/nw4r/g3d/g3d_scnroot.h (local shadow) has no ScnRoot::GetFog (GetFog__Q34nw4r3g3d7ScnRootFi, 0x801AC5F4).
-}
+// ---- 0x80100900-0x80102808 ----
 
-// HYPOTHESIS: draft of the destructor to pin the member order. The members are destroyed by the compiler in reverse
-// order (the null tests of their addresses in the original are the inlined member destructors).
-IfCoinShooter::~IfCoinShooter() {
-    g_gfApplication->m_114.remove(this);
-    m_msg->detachMuObject(m_root.get());
-    m_rewardTask->detachDialogMsg();
-    // TODO: the original deletes every label that is still on the list lbl_8049E560 here:
-    //   while (list.m_length != 0) { if (list.m_head != NULL) delete head; }   (the list is the unit's .bss, see sinit)
-    g_gfSceneRoot->setClearDepthBufferState(gfSceneRoot::Layer_Info, false);
-}
+// BYTES: the scale of the seal thumbnail is the inline paired-single Vec3f::operator* (opt-in macro of mt_vector.h).
 
-void IfCoinShooter::destroy() {
-    if (lbl_805A0310) {
-        lbl_805A0310->exit();
+// PART B of the temporarily split unit (0x80100900 .. 0x80102808). The data of the unit is defined by part A (the .bss
+// list and the .sbss instance, the strings and the two ints of .sdata); the label classes are declared exactly as there.
+extern IfCoinShooter* lbl_805A0310;
+// HYPOTHESIS: the two .sdata ints (3 and 4) that name the node of a digit / the gauge ("pos0" + number): they are
+// read from memory, so they are variables of the unit and not constants.
+extern int lbl_8059E558;
+
+// The label classes of this unit (RTTI "@unnamed@if_minigame_coin_shooter_cpp@::..."); see part A for the notes.
+namespace {
+
+
+// The name of an animation of a label model: the model's name, the separator and the number of the animation (the
+// copies are the by-value passes of the name). Same shape as getAnimName in mu_vc_trial.cpp.
+template <int N>
+struct IfCoinShooterName {
+    char m_str[N];
+
+    IfCoinShooterName(const char* str) {
+        m_str[0] = '\0';
+        strcat(m_str, str);
     }
-    lbl_805A0310 = NULL;
+    IfCoinShooterName separated() const {
+        IfCoinShooterName name = *this;
+        strcat(name.m_str, "__");
+        return name;
+    }
+    friend IfCoinShooterName operator+(IfCoinShooterName name, int no) {
+        sprintf(name.m_str + strlen(name.m_str), "%d", no);
+        return name;
+    }
+};
+
+static inline const char* getMdlName(MuObject* object) {
+    const nw4r::g3d::ResMdlData& data = object->m_resMdl.ref();
+    return data.m_toName != 0 ? reinterpret_cast<const char*>(&data) + data.m_toName : NULL;
 }
 
-void IfCoinShooter::create() {
-    lbl_805A0310 = new (Heaps::MenuInstance) IfCoinShooter;
+static inline IfCoinShooterName<65> getAnimName(MuObject* object, int no) {
+    IfCoinShooterName<65> name(getMdlName(object));
+    return name.separated() + no;
 }
 
-void IfCoinShooterLabel::setPos(const Vec3f* position) {
-    if (unk0) {
-        Vec3f converted = Vec3f::IfCommon_exchangeStageObjPosToInfoPos(position, 0);
-        unk0->model()->setTrans(&converted);
+}
+
+// HYPOTHESIS: stand-ins of main.dol functions of the reward list task (IfRewardListTask, the pause menu with the
+// trophies / stickers; the same functions that muAdvResultTask calls): isLoadFinish() and add(id, count, ...).
+extern "C" bool fn_800FA740(IfRewardListTask* task);
+// srReportLessMastar(fmt, ...): the error report of the minigame (a no-op in the retail build).
+extern "C" void fn_80101810(...);
+
+// A Counter shows a number on the model of its Type (digits InfShooter0007 on the nodes of an expand group). The group goes
+// to the end of the HUD's group (drawn last). Type_4 / Type_5 play the node and texture-SRT animations of the model.
+IfCoinShooterLabelCounter::IfCoinShooterLabelCounter(IfCoinShooterLabel* owner, IfCoinShooterLabel::Type type, int value, u32 sealId)
+    : IfCoinShooterLabelImpl(owner), m_type(type), m_value(value), m_sealId(sealId) {
+    IfCoinShooter* shooter = lbl_805A0310;
+    const char* modelName = sLabelModels[type];
+    int priority = shooter->m_objPriority + 1;
+    MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
+    m_number.m_digits = 2;
+    m_number.m_ascending = true;
+    m_number.m_baseObj.reset(MuObject::create(&shooter->m_infoRes, modelName, priority, NULL, Heaps::MenuInstance));
+    m_number.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(allocator, NULL, 2, m_number.m_baseObj->m_sceneModel));
+    for (int i = 0; i < 2; i++) {
+        m_number.m_digitObjs[i].reset(MuObject::create(&shooter->m_infoRes, "InfShooter0007_TopN", priority + 0xA, NULL, Heaps::MenuInstance));
+        MuObject* digit = m_number.m_digitObjs[i].get();
+        digit->changeTexPatAnimNIf(getAnimName(digit, 0).m_str);
+        m_number.m_digitObjs[i]->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
+    }
+    shooter->m_scnGroup->Insert(shooter->m_scnGroup->sceneItemsCount, m_number.m_expand.get());
+    m_number.set(value);
+    for (int i = 0; i < m_number.m_digits; i++) {
+        MuObject* digit = m_number.m_digitObjs[i].get();
+        digit->changeVisAnimNIf(getAnimName(digit, 0).m_str);
+        m_number.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
+        m_number.m_digitObjs[i]->setFrameVisible(type == IfCoinShooterLabel::Type_5);
+    }
+    switch (type) {
+    case IfCoinShooterLabel::Type_4:
+    case IfCoinShooterLabel::Type_5: {
+        MuObject* base = m_number.m_baseObj.get();
+        base->changeNodeAnimNIf(getAnimName(base, 0).m_str);
+        base = m_number.m_baseObj.get();
+        base->changeTexSrtAnimNIf(getAnimName(base, 0).m_str);
+        break;
+    }
+    default:
+        break;
+    }
+    unk10_2 = m_number.m_baseObj->isNodeAnimLoop();
+}
+
+// When a Counter ends it hands its value over to a Light that flies from the Counter's node "pos02" to the HUD's total:
+// the coin total (m_root "pos00") for Type_4, the seal total (m_root "pos01") for Type_5. HYPOTHESIS: the node roles.
+IfCoinShooterLabelCounter::~IfCoinShooterLabelCounter() {
+    IfCoinShooter* shooter = lbl_805A0310;
+    if (shooter != NULL) {
+        Vec3f from = model()->getGlobalPosition("pos02");
+        if (m_type == IfCoinShooterLabel::Type_4) {
+            // A number of coins: the Light adds them to the coin total.
+            int value = m_value;
+            Vec3f to = shooter->m_root->getGlobalPosition("pos00");
+            new (Heaps::MenuInstance) IfCoinShooterLabelLight(IfCoinShooterLabel::Type_7, value, 0, from, to);
+        } else {
+            // A seal: the Light adds it to the seal total, which is brought to the front and shown again.
+            int value;
+            u32 sealId = m_sealId;
+            value = m_value;
+            Vec3f to = shooter->m_root->getGlobalPosition("pos01");
+            new (Heaps::MenuInstance) IfCoinShooterLabelLight(IfCoinShooterLabel::Type_8, value, sealId, from, to);
+            shooter->m_scnGroup->Remove(shooter->m_sealNumber.m_expand.get());
+            shooter->m_scnGroup->Insert(shooter->m_scnGroup->sceneItemsCount, shooter->m_sealNumber.m_expand.get());
+            MuObject* base = shooter->m_sealNumber.m_baseObj.get();
+            base->changeNodeAnimNIf(getAnimName(base, 0).m_str);
+            shooter->m_sealNumber.m_expand->Remove(shooter->m_unk31C->m_sceneModel);
+            for (int i = 0; i < shooter->m_sealNumber.m_digits; i++) {
+                shooter->m_sealNumber.m_expand->Remove(shooter->m_sealNumber.m_digitObjs[i]->m_sceneModel);
+            }
+        }
     }
 }
+
+IfCoinShooterLabel::IfCoinShooterLabel() {
+    unk0 = NULL;
+}
+
+IfCoinShooterLabel::~IfCoinShooterLabel() {
+    reset();
+}
+
+// HYPOTHESIS: the view of the header of a TEX0 resource that holds the size of the picture.
+// The check of IfCoinShooterLabel::create: without a loaded HUD the request is reported (and ignored).
+static inline bool checkHudLoaded(IfCoinShooterLabel::Type type, int value, u32 sealId) {
+    if (isHudLoaded(lbl_805A0310)) {
+        return true;
+    }
+    // "[IfCoinShooter] Error: the request was ignored IfCoinShooterLabel::create(%d,%d,%d)\n"
+    fn_80101810("[IfCoinShooter] Error: "
+                "\x83\x8A\x83\x4E\x83\x47\x83\x58\x83\x67\x82\xCD\x96\xB3\x8E\x8B\x82\xB3\x82\xEA\x82\xDC\x82\xB5\x82\xBD"
+                " IfCoinShooterLabel::create(%d,%d,%d)\n",
+                type, value, sealId);
+    return false;
+}
+
+// Makes the label of a given kind (see Type) at the HUD. Without a loaded HUD the request is reported and ignored.
+void IfCoinShooterLabel::create(Type type, int value, u32 sealId) {
+    if (!checkHudLoaded(type, value, sealId)) {
+        return;
+    }
+    reset();
+    switch (type) {
+    case Type_0:
+    case Type_1:
+    case Type_2:
+    case Type_3:
+    case Type_6:
+        unk0 = new (Heaps::MenuInstance) IfCoinShooterLabelSimple(this, type);
+        break;
+    case Type_5: {
+        char texName[0x40];
+        // A number and a seal: the reward list gets the seal (its "stickers" list), the Counter shows the seal's picture.
+        IfRewardListTask* task = lbl_805A0310->m_rewardTask.get();
+        fn_800FA7B8(task, sealId, value, reinterpret_cast<char*>(task) + 0x13A6, 0x400, reinterpret_cast<char*>(task) + 0x23A6,
+                    "\x83\x56\x81\x5B\x83\x8B");
+        IfCoinShooterLabelCounter* counter = new (Heaps::MenuInstance) IfCoinShooterLabelCounter(this, type, value, sealId);
+        IfCoinShooter* shooter = lbl_805A0310;
+        MuObject* seal = MuObject::create(&shooter->m_infoRes, "InfShooter0023_TopN", shooter->m_objPriority + 2, NULL, Heaps::MenuInstance);
+        void* sealData = shooter->m_sealMgr->getSealDataId(sealId);
+        if (sealData != NULL) {
+            strcpy(texName, *reinterpret_cast<const char**>(reinterpret_cast<char*>(sealData) + 8));
+            texName[strlen(texName) - 6] = '\0';
+            const IfCoinShooterTexSize* tex = reinterpret_cast<const IfCoinShooterTexSize*>(shooter->m_sealRes.GetResTex(texName).ptr());
+            Vec3f scale = Vec3f(tex->m_width, tex->m_height, 10.0f) * 0.1f;
+            seal->setObjScale(&scale);
+            seal->changeMaterialTex(seal->m_resMdl.GetResMat("Seal_Sammy_Mat")->m_id, texName, &shooter->m_sealRes);
+        }
+        counter->m_sealObj.reset(seal);
+        IfCoinShooterName<33> pos("pos0");
+        counter->m_number.m_expand->PushBack(counter->m_sealObj->m_sceneModel, (pos + lbl_8059E558).m_str);
+        unk0 = counter;
+        break;
+    }
+    case Type_4:
+        unk0 = new (Heaps::MenuInstance) IfCoinShooterLabelCounter(this, type, value, sealId);
+        break;
+    default:
+        break;
+    }
+}
+
+extern "C" void fn_80101810(...) {}
 
 void IfCoinShooterLabel::reset() {
     IfCoinShooterLabelImpl* impl = unk0;
@@ -406,20 +572,453 @@ void IfCoinShooterLabel::reset() {
     }
 }
 
-IfCoinShooterLabel::~IfCoinShooterLabel() {
-    reset();
+void IfCoinShooterLabel::setPos(const Vec3f* position) {
+    if (unk0) {
+        Vec3f converted = Vec3f::IfCommon_exchangeStageObjPosToInfoPos(position, 0);
+        unk0->model()->setTrans(&converted);
+    }
 }
 
+// Shows the number: clips it to 0 .. 10^m_digits - 1, puts the digit models that are needed on the group and takes the
+// others off it; the digit goes to the texture frame of its model.
+void IfCoinShooter::Number::set(int value) {
+    IfCoinShooterName<33> pos("pos0");
+    m_value = value;
+    int limit = 1;
+    u32 e = m_digits;
+    int base = 10;
+    for (; e != 0; e >>= 1) {
+        if (e & 1) {
+            limit *= base;
+        }
+        base *= base;
+    }
+    int top = limit - 1;
+    int shown = value > 0 ? value : 0;
+    if (shown < top) {
+        top = shown;
+    }
+    value = top;
+    std::auto_ptr<MuObject>* digit = m_digitObjs;
+    int i = 0;
+    int node;
+    for (; i < m_digits; digit++, i++) {
+        if ((*digit)->m_sceneModel->m_parent == NULL) {
+            node = m_ascending ? i : m_digits - 1 - i;
+            m_expand->PushBack((*digit)->m_sceneModel, (pos + node).m_str);
+        }
+        (*digit)->setFrameTex(value % 10);
+        value /= 10;
+        if (value <= 0) {
+            i++;
+            break;
+        }
+    }
+    for (; i < m_digits; i++) {
+        m_expand->Remove(m_digitObjs[i]->m_sceneModel);
+    }
+}
 
+void IfCoinShooter::create() {
+    lbl_805A0310 = new (Heaps::MenuInstance) IfCoinShooter;
+}
 
-void IfCoinShooter::start() {
-    m_started = true;
+void IfCoinShooter::destroy() {
+    if (lbl_805A0310) {
+        lbl_805A0310->exit();
+    }
+    lbl_805A0310 = NULL;
+}
+
+// HYPOTHESIS: draft of the constructor to pin the layout. The member initializers are in declaration order, as the
+// stores of fn at 0x80101C0C are.
+IfCoinShooter::IfCoinShooter()
+    : utility::StandardMenu("IfCoinShooter", 0xF0, Heaps::MenuResource), m_decisionPad(gmGetMenuDecisionPad()),
+      m_started(false), m_clearMsgTimer(0), m_objPriority(0), m_bonusTarget(0), m_unk1C4(false), m_figureTimer(-1),
+      m_figEntry(NULL) {
+    g_gfApplication->m_114.add(this);
+    unk2C_b1 = false;
+    g_gfSceneRoot->setClearDepthBufferState(gfSceneRoot::Layer_Info, true);
+    m_cameraPath[0] = '\0';
+    strcat(m_cameraPath, "/menu/defaultcamera/FigureList");
+    // HYPOTHESIS: unk44 is the root of the menu (Info layer) scene; its fogs are reset so that no stage fog stays.
+    nw4r::g3d::ScnRoot* scnRoot = g_gfSceneRoot->unk44;
+    for (int i = 0;; i++) {
+        nw4r::g3d::Fog fog = scnRoot->GetFog(i);
+        if (!fog.IsValid()) {
+            break;
+        }
+        fog.Init();
+    }
+}
+
+// HYPOTHESIS: draft of the destructor to pin the member order.
+IfCoinShooter::~IfCoinShooter() {
+    g_gfApplication->m_114.remove(this);
+    m_msg->detachMuObject(m_root.get());
+    m_rewardTask->detachDialogMsg();
+    // Every label that is still on the list is deleted (each one takes itself off the list).
+    utList& labels = utility::AutoList<IfCoinShooterLabelImpl>::getList();
+    while (labels.getLength() != 0) {
+        // BYTES: the list node is the base of IfCoinShooterLabelImpl at offset 0 (the downcast would add a null test).
+        IfCoinShooterLabelImpl* label = reinterpret_cast<IfCoinShooterLabelImpl*>(labels.getHead());
+        delete label;
+    }
+    g_gfSceneRoot->setClearDepthBufferState(gfSceneRoot::Layer_Info, false);
+}
+
+void IfCoinShooter::loadResource() {
+    m_infoRes.request("/info/info_coin_shooter.brres", Heaps::MenuResource, 0);
+    m_standRes.request("/toy/fig/Stand.brres", Heaps::MenuResource, 0);
+    m_sealRes.request("/toy/seal/ToySealThumb.brres", Heaps::MenuResource, 0);
+    m_msgFile.request("/menu/msg/mini_coin_shooter.msbin", Heaps::MenuResource, 0);
+    m_sealMgr.reset(new (Heaps::MenuInstance) tySealListDataManager(true));
+}
+
+// ---- 0x80102808-0x801048EC ----
+
+// Part C of if_minigame_coin_shooter (0x80102808 .. 0x801048EC): createModel, update and the per-frame work of the HUD,
+// the coin counter, the bonus gauge, the trophy, and the tail of the unit (stubs, static initializer, thunks).
+
+// HYPOTHESIS: data and helpers that part A owns (.bss / .sbss of the unit) and stand-ins for the callees of other units.
+extern IfCoinShooter* lbl_805A0310;                        // the HUD instance
+extern "C" bool fn_800FA740(IfRewardListTask* task);       // IfRewardListTask::isLoadFinish
+extern "C" void fn_800FA6CC(IfRewardListTask* task);       // IfRewardListTask::show
+// IfRewardListTask::create: the parameters of the notice (see IfCoinShooterRewardParam) and the heaps of the task and its files
+struct IfCoinShooterRewardParam {
+    nw4r::g3d::ResFile m_infoRes;       // 0x00 the HUD resource (info_coin_shooter)
+    nw4r::g3d::ResFile m_sealRes;       // 0x04 the seal thumbnails
+    const char* m_name;                 // 0x08 the name of the notice model
+    int m_priority;                     // 0x0C the draw priority of the notice
+    tyFigListDataManager* m_figMgr;     // 0x10 the trophy list (the one of the figure loader)
+    tySealListDataManager* m_sealMgr;   // 0x14
+    void* m_msgBinary;                  // 0x18 the message file
+    int m_unk1C;                        // 0x1C
+    u8 m_decisionPad;                   // 0x20 the pad that pauses
+    u8 m_unk21[0xF];
+};
+static_assert(sizeof(IfCoinShooterRewardParam) == 0x30, "Class is the wrong size!");
+extern "C" IfRewardListTask* fn_800F7CCC(IfCoinShooterRewardParam* param, Heaps::HeapType heap, Heaps::HeapType resHeap);
+// ScnGroup::Construct: a group of scene objects for at most `capacity` children
+extern "C" nw4r::g3d::ScnGroup* fn_801AB6CC(MEMAllocator* allocator, u32* size, int capacity);
+// IfRewardListTask::add: an entry for the notice (the id, how many, two work buffers inside the task and their size, the title)
+
+// Plays an animation of an object by its number: the name is the name of the model, the separator and the number.
+static inline void changeNodeAnim(MuObject* object, int no) {
+    object->changeNodeAnimNIf((IfCoinShooterName<65>(getMdlName(object)).separated() + no).m_str);
+}
+static inline void changeVisAnim(MuObject* object, int no) {
+    object->changeVisAnimNIf((IfCoinShooterName<65>(getMdlName(object)).separated() + no).m_str);
+}
+static inline void changeClrAnim(MuObject* object, int no) {
+    object->changeClrAnimNIf((IfCoinShooterName<65>(getMdlName(object)).separated() + no).m_str);
+}
+
+// A group of scene objects on the nodes of a model (HYPOTHESIS: the slots are the capacity of the group).
+static inline nw4r::g3d::ScnMdlExpand* createExpand(MuObject* object, int slots) {
+    return nw4r::g3d::ScnMdlExpand::Construct(gfHeapManager::getMEMAllocator(Heaps::MenuInstance), NULL, slots,
+                                              object->getSceneModel());
+}
+
+// HYPOTHESIS: the node of the bonus gauge on the coin counter (an .sdata word of the unit that is read, not folded).
+static int sBonusGaugeNode = 4;
+
+// One of the counters of the HUD (the seal / figure / coin totals): the model that carries the digits, a group on it, one
+// digit model for every place, and for the totals that are shown at first the scaler of the base and the first frame of the
+// digits. HYPOTHESIS: the names and the parameters; the order of the work follows the original.
+static inline void createNumber(IfCoinShooter* hud, IfCoinShooter::Number& number, bool ascending, int digits, const char* baseName,
+                                const char* digitName, bool scaled, float visFrame) {
+    int priority = hud->m_objPriority++;
+    MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
+    number.m_digits = digits;
+    number.m_ascending = ascending;
+    number.m_baseObj.reset(MuObject::create(&hud->m_infoRes, baseName, priority, NULL, Heaps::MenuInstance));
+    number.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(allocator, NULL, digits + 1, number.m_baseObj->m_sceneModel));
+    for (int i = 0; i < digits; i++) {
+        number.m_digitObjs[i].reset(MuObject::create(&hud->m_infoRes, digitName, priority + 10, NULL, Heaps::MenuInstance));
+        MuObject* digit = number.m_digitObjs[i].get();
+        digit->changeTexPatAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
+        number.m_digitObjs[i]->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
+    }
+    if (scaled) {
+        number.m_scaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*number.m_baseObj.get(), 0.01f, 0.99f));
+    }
+    hud->m_scnGroup->Insert(hud->m_scnGroup->sceneItemsCount, number.m_expand.get());
+    if (scaled) {
+        for (int i = 0; i < number.m_digits; i++) {
+            changeVisAnim(number.m_digitObjs[i].get(), 0);
+            number.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
+            number.m_digitObjs[i]->setFrameVisible(visFrame);
+        }
+    }
+}
+
+// HYPOTHESIS: a position in the label list; the end of the list is the null position.
+struct IfCoinShooterLabelIter {
+    IfCoinShooterLabelImpl* m_node;
+
+    IfCoinShooterLabelIter(IfCoinShooterLabelImpl* node) : m_node(node) { }
+    static IfCoinShooterLabelIter begin() {
+        return IfCoinShooterLabelIter(static_cast<IfCoinShooterLabelImpl*>(utility::AutoList<IfCoinShooterLabelImpl>::getList().getHead()));
+    }
+    static IfCoinShooterLabelIter end() { return IfCoinShooterLabelIter(NULL); }
+    bool operator!=(const IfCoinShooterLabelIter& other) const { return m_node != other.m_node; }
+    bool operator==(const IfCoinShooterLabelIter& other) const { return m_node == other.m_node; }
+    IfCoinShooterLabelImpl* operator->() const { return m_node; }
+    IfCoinShooterLabelIter next() const { return IfCoinShooterLabelIter(static_cast<IfCoinShooterLabelImpl*>(m_node->m_next)); }
+};
+
+void IfCoinShooter::update() {
+    if (m_started) {
+        if (g_gfApplication->m_pauseState) {
+            IfRewardListTask* task = m_rewardTask.get();
+            if (!task->unk100) {
+                if (!task->unk100_6) {
+                    g_gfApplication->setPause(0, 0);
+                    g_sndSystem->setBGMVol(true, 1.0f);
+                } else if (isQuit()) {
+                    g_gfApplication->setPause(0, 0);
+                }
+            }
+        }
+        onUpdate();
+    }
+}
+
+void IfCoinShooter::onUpdate() {
+    if (m_clearMsgTimer <= 0 && !m_rewardTask->unk100 && !m_rewardTask->unk100_6) {
+        gfPadStatus pad;
+        g_gfPadSystem->getSysPadStatus(m_decisionPad, &pad);
+        u32 pressed = pad.m_buttonsPressedThisFrame.bits;
+        if ((pressed & GF_PAD_BUTTON_BIT_B) || (pressed & GF_PAD_BUTTON_BIT_START)) {
+            fn_800FA6CC(m_rewardTask.get());
+            g_gfApplication->setPause(1, 0);
+            g_sndSystem->playSE(static_cast<SndID>(5), -1, 0, 0, -1);
+            g_sndSystem->setBGMVol(true, 0.75f);
+        }
+    }
+
+    // HYPOTHESIS: a label that asks for its removal (unk10_3) is deleted; the loop then goes on with the node after the
+    // next one, as the original does.
+    IfCoinShooterLabelIter end = IfCoinShooterLabelIter::end();
+    for (IfCoinShooterLabelIter it = IfCoinShooterLabelIter::begin(); it != end; it = it.next()) {
+        it->update();
+        if (it->unk10_3) {
+            IfCoinShooterLabelIter next = it.next();
+            delete it.m_node;
+            it = next;
+            if (it == IfCoinShooterLabelIter::end()) {
+                break;
+            }
+        }
+    }
+
+    updateBonusPoint(m_unk1C4 ? 100 : m_bonusTarget);
+
+    if (m_clearMsgTimer > 0 && --m_clearMsgTimer <= 0) {
+        m_msg->printf(2, "");
+    }
+    if (!isQuit() && m_figureTimer == 0) {
+        showFigureCore();
+    }
 }
 
 void IfCoinShooterLabelImpl::update() {
 }
 
-IfCoinShooterLabel::IfCoinShooterLabel() {
-    unk0 = NULL;
+bool IfCoinShooter::isLoadFinish() {
+    bool loaded = false;
+    if (m_unk42_6 && fn_800FA740(m_rewardTask.get()) && IfFigureLoader::getInstance()->isLoadFinish()) {
+        loaded = true;
+    }
+    return loaded;
 }
+
+void IfCoinShooter::start() {
+    m_started = true;
+}
+
+bool IfCoinShooter::isQuit() {
+    if (!m_rewardTask.get() || m_rewardTask->unk100 || !m_rewardTask->unk100_6) {
+        return false;
+    }
+    return IfFigureLoader::getInstance()->waitForIdle();
+}
+
+// HYPOTHESIS: adds delta to the coin total (never below 0). While the HUD is not loaded the total is only stored (and the request
+// is reported); otherwise the counter is redrawn, and with animate the base model plays its animation number 1 first.
+void IfCoinShooter::setCoinCount(int delta, bool animate) {
+    int total = m_coinNumber.m_value + delta;
+    int coins = total > 0 ? total : 0;
+    bool ready;
+    if (lbl_805A0310->isLoadFinish()) {
+        ready = true;
+    } else {
+        fn_80101810("[IfCoinShooter] Error: setCoinCount(%d)\n", delta);
+        ready = false;
+    }
+    if (!ready) {
+        m_coinNumber.m_value = coins;
+        return;
+    }
+    if (animate) {
+        changeNodeAnim(m_coinNumber.m_baseObj.get(), 1);
+        changeClrAnim(m_coinNumber.m_baseObj.get(), 1);
+    }
+    m_coinNumber.set(coins);
+}
+
+void IfCoinShooter::updateBonusPoint(int value) {
+    if (lbl_805A0310->isLoadFinish()) {
+        int gauge = 100;
+        int clipped = value > 0 ? value : 0;
+        if (clipped < 100) {
+            gauge = clipped;
+        }
+        if (gauge != m_bonusGauge.m_value) {
+            m_bonusGauge.m_obj->setFrameVisible(gauge / 10.0f);
+            m_bonusGauge.m_obj->m_modelAnim->unbindMatColAnim(m_bonusGauge.m_obj->m_sceneModel);
+            if (gauge > m_bonusGauge.m_value) {
+                if (gauge >= 100) {
+                    changeClrAnim(m_bonusGauge.m_obj.get(), 1);
+                } else if (gauge / 10 > m_bonusGauge.m_value / 10) {
+                    changeClrAnim(m_bonusGauge.m_obj.get(), 0);
+                }
+            }
+            m_bonusGauge.m_value = gauge;
+        }
+    }
+}
+
+void IfCoinShooter::showFigure(IfFigureLoader::EntryRef* entry) {
+    bool ready;
+    if (lbl_805A0310->isLoadFinish()) {
+        ready = true;
+    } else {
+        fn_80101810("[IfCoinShooter] Error: showFigure(%s)\n", entry->m_entry->m_data->name);
+        ready = false;
+    }
+    if (ready) {
+        IfRewardListTask* task = m_rewardTask.get();
+        fn_800FA7B8(task, entry->m_entry->m_figId, 1, reinterpret_cast<char*>(task) + 0x3A4, 0x400,
+                    reinterpret_cast<char*>(task) + 0x13A4, "\x83\x74\x83\x42\x83\x4C\x83\x85\x83\x41");
+        IfFigureLoader::Entry* taken = entry->m_entry;
+        entry->m_entry = NULL;
+        if (m_figEntry.m_entry) {
+            m_figEntry.m_entry->destroy();
+        }
+        m_figEntry.m_entry = taken;
+        if (m_figureNumber.m_expand.get()) {
+            m_figureNumber.m_expand->DetachFromParent();
+        }
+        if (m_figureView.m_expand.get()) {
+            m_figureView.m_expand->DetachFromParent();
+        }
+        m_figureTimer = 2;
+    }
+}
+
+void IfCoinShooter::createModel() {
+    IfCoinShooterName<33> pos("pos0");
+    m_objPriority = 0x10;
+
+    m_scnGroup.reset(fn_801AB6CC(gfHeapManager::getMEMAllocator(Heaps::MenuInstance), NULL, 0x20));
+    // BYTES: gfSceneRoot::add takes a ScnMdl (the symbol says so); the original passes the group to it.
+    g_gfSceneRoot->add(gfSceneRoot::Layer_Info, reinterpret_cast<nw4r::g3d::ScnMdl*>(m_scnGroup.get()));
+
+    m_root.reset(MuObject::create(&m_infoRes, "InfShooter0010_TopN", m_objPriority, NULL, Heaps::MenuInstance));
+    m_rootExpand.reset(createExpand(m_root.get(), 3));
+    m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_rootExpand.get());
+
+    // The seal total.
+    createNumber(this, m_sealNumber, true, 2, "InfShooter0013_TopN", "InfShooter0007_TopN", true, 1.0f);
+    m_unk31C.reset(MuObject::create(&m_infoRes, "InfShooter0023_TopN", m_objPriority++, NULL, Heaps::MenuInstance));
+    // The figure total.
+    createNumber(this, m_figureNumber, true, 2, "InfShooter0014_TopN", "InfShooter0007_TopN", true, 0.0f);
+    // The coin total.
+    createNumber(this, m_coinNumber, false, 4, "InfShooter0011_TopN", "InfShooter0012_TopN", false, 0.0f);
+    changeNodeAnim(m_coinNumber.m_baseObj.get(), 0);
+    changeClrAnim(m_coinNumber.m_baseObj.get(), 0);
+    m_coinNumber.set(m_coinNumber.m_value);
+
+    // The bonus gauge sits on the coin total.
+    m_bonusGauge.m_obj.reset(MuObject::create(&m_infoRes, "InfShooter0015_TopN", m_objPriority++, NULL, Heaps::MenuInstance));
+    m_coinNumber.m_expand->PushBack(m_bonusGauge.m_obj->m_sceneModel, (pos + sBonusGaugeNode).m_str);
+    changeVisAnim(m_bonusGauge.m_obj.get(), 0);
+    m_bonusGauge.m_obj->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
+
+    // The stand of the trophy.
+    m_figureView.m_stand.reset(MuObject::create(&m_standRes, m_objPriority + 1, NULL, 0, Heaps::MenuInstance));
+    m_figureView.m_stand->changeClrAnimN("DolStand");
+    m_figureView.m_stand->m_modelAnim->setUpdateRate(0.0f);
+    m_figureView.m_stand->setFrameMatCol(38.0f);
+    m_figureView.m_standScaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*m_figureView.m_stand.get(), 0.5f, 0.5f));
+
+    // The message of the root model.
+    m_clearMsgTimer = 90;
+    m_msg.reset(MuMsg::create(1, Heaps::MenuInstance, Heaps::MenuResource));
+    m_msg->allocMsgBuf(0x100, 3);
+    m_msg->setMsgData(m_msgFile.m_handle.getBuffer());
+    m_msg->attachScnMdlSimple(2, reinterpret_cast<nw4r::g3d::ScnMdlSimple*>(m_root->m_sceneModel), 0, 1.0f / 14.0f);
+    m_msg->setAlignMode(2, MuMsg::Align_Center);
+    m_msg->setEdgeEnable(2, true);
+    m_msg->setEdge(2, 8, 0xFF, 0, 1.0f);
+    m_msg->printIndex(2, 2, NULL);
+
+    // The notice of the rewards (the pause menu).
+    IfCoinShooterRewardParam param = { nw4r::g3d::ResFile(), nw4r::g3d::ResFile(), "InfShooter", 0, NULL, NULL, NULL, 1, 0 };
+    param.m_infoRes = m_infoRes;
+    param.m_sealRes = m_sealRes;
+    param.m_priority = m_objPriority + 0x14;
+    param.m_figMgr = IfFigureLoader::getInstance()->m_listMgr;
+    param.m_sealMgr = m_sealMgr.get();
+    param.m_msgBinary = m_msg->getBinary();
+    param.m_decisionPad = m_decisionPad;
+    m_rewardTask.reset(fn_800F7CCC(&param, Heaps::MenuResource, Heaps::MenuResource));
+}
+
+// HYPOTHESIS: shows the trophy that the player got: the figure counter goes up, the trophy model (made from the resource
+// of the loader entry) stands on the Stand model under the group of the figure counter, and the frame plays its animation.
+// MATCH-ONLY: auto_inline off; the original calls showFigureCore from onUpdate (the compiler would otherwise inline the single call).
+#pragma auto_inline off
+void IfCoinShooter::showFigureCore() {
+    m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_figureNumber.m_expand.get());
+    changeNodeAnim(m_figureNumber.m_baseObj.get(), 0);
+    m_figureNumber.set(m_figureNumber.m_value + 1);
+
+    m_figureView.m_expand.reset(NULL);
+    m_figureView.m_model.reset(NULL);
+
+    nw4r::g3d::ResFile figureRes = m_figEntry.m_entry->m_resFile;
+    m_figureView.m_model.reset(MuObject::create(&figureRes, m_objPriority + 1, NULL, 0, Heaps::MenuInstance));
+    m_figureView.m_modelScaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*m_figureView.m_model.get(), 0.5f, 0.5f));
+    m_figureView.m_expand.reset(createExpand(m_figureView.m_model.get(), 1));
+    m_rootExpand->PushBack(m_figureView.m_expand.get(), "pos02");
+    m_figureView.m_stand->m_sceneModel->DetachFromParent();
+    m_figureView.m_expand->PushBack(m_figureView.m_stand->m_sceneModel, "pos00");
+    IfFigureLoader::getInstance()->adjustModel(m_figEntry.m_entry->m_figId, m_figureView.m_model.get(), m_figureView.m_stand.get());
+    changeNodeAnim(m_root.get(), 0);
+}
+
+#pragma auto_inline reset
+
+void IfCoinShooter::userProc() {
+    if (m_figureTimer >= 0 && m_figEntry.m_entry) {
+        int timer = m_figureTimer - 1;
+        m_figureTimer = timer > -1 ? timer : -1;
+    }
+    IfCoinShooterLabelIter end = IfCoinShooterLabelIter::end();
+    for (IfCoinShooterLabelIter it = IfCoinShooterLabelIter::begin(); it != end; it = it.next()) {
+        if (it->unk10 > 0) {
+            it->unk10--;
+            if (it->unk10 <= 0) {
+                it->unk10_3 = true;
+            }
+        } else if (it->model()->isNodeAnimFinished()) {
+            it->detach();
+            it->unk10 = 2;
+        }
+    }
+}
+
 

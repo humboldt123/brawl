@@ -814,16 +814,10 @@ sora/mu/mu_clear_get_data.cpp:
 	.data       start:0x80456688 end:0x804566A0
 
 sora/mu/mu_clear_get.cpp:
-	.text       start:0x800BA7C0 end:0x800BC748
+	.text       start:0x800BA7C0 end:0x800BEEB8
 	.data       start:0x804566A0 end:0x80456D30
 	.sdata      start:0x8059E0A0 end:0x8059E0D8
 	.sdata2     start:0x805A2248 end:0x805A22A8
-
-sora/mu/mu_clear_get_b.cpp:
-	.text       start:0x800BC748 end:0x800BDA38
-
-sora/mu/mu_clear_get_c.cpp:
-	.text       start:0x800BDA38 end:0x800BEEB8
 
 sora/mu/mu_notice_wnd.cpp:
 	.text       start:0x800BEEB8 end:0x800C001C
@@ -986,20 +980,14 @@ sora/if/if_minigame_homerun.cpp:
 	.sdata2     start:0x805A2748 end:0x805A2770
 
 sora/if/if_minigame_coin_shooter.cpp:
-	.text       start:0x800FF558 end:0x80100900
+	.text       start:0x800FF558 end:0x801048EC
+	.ctors      start:0x80406548 end:0x8040654C
 	.rodata     start:0x804091D8 end:0x80409208
 	.data       start:0x8045C838 end:0x8045CFD8
 	.bss        start:0x8049E560 end:0x8049E57C
 	.sdata      start:0x8059E540 end:0x8059E5C0
 	.sbss       start:0x805A0310 end:0x805A0318
 	.sdata2     start:0x805A2770 end:0x805A27B8
-
-sora/if/if_minigame_coin_shooter_b.cpp:
-	.text       start:0x80100900 end:0x80102808
-
-sora/if/if_minigame_coin_shooter_c.cpp:
-	.text       start:0x80102808 end:0x801048EC
-	.ctors      start:0x80406548 end:0x8040654C
 
 sora/if/if_minigame_training.cpp:
 	.text       start:0x801048EC end:0x80106020
