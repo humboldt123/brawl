@@ -100,6 +100,8 @@ public:
         std::auto_ptr<utility::DepthScaler> m_scaler; // 0x20 DepthScaler(0.01, 0.99) on m_baseObj (the 0.5, 0.5 scaler for the figure)
         muG3dObjHolder<nw4r::g3d::ScnMdlExpand> m_expand; // 0x24 the group on m_baseObj that the digit models are pushed into
 
+        // The constructor stores m_value, m_digits and the pointers (in this order) and leaves m_ascending alone.
+        Number() : m_value(0), m_digits(0) { }
         // Shows the number: clips it to 0 .. 10^m_digits - 1, pushes the digit models that are needed into m_expand
         // and takes the others out; the digit value goes to the texture frame. fn_80101948.
         void set(int value);
@@ -113,6 +115,8 @@ public:
     struct BonusGauge {
         s32 m_value;                        // 0x00
         std::auto_ptr<MuObject> m_obj;      // 0x04
+
+        BonusGauge() : m_value(0) { }
     };
     static_assert(sizeof(BonusGauge) == 0x8, "Class is the wrong size!");
 
@@ -170,6 +174,8 @@ public:
     // HYPOTHESIS: takes the loader entry over (the reference is emptied) and starts the 2 frame countdown to showFigureCore.
     void showFigure(IfFigureLoader::EntryRef* entry); // 0x801042B4
     void showFigureCore();                      // 0x801043D0
+    // HYPOTHESIS: the body of update: B or Start (pressed this frame on m_decisionPad's pad) shows the reward task and pauses
+    // the game while no message is up; then it runs the labels, the bonus gauge, the message countdown and showFigureCore.
     void onUpdate();                            // 0x80103A7C
 
     virtual void loadResource();                // 0x801026F4

@@ -1,7 +1,11 @@
 #include <types.h>
 #include <stdarg.h>
+#include <string.h>
 #include <if/if_minigame_coin_shooter.h>
 #include <if/if_figure_loader.h>
+#include <gf/gf_application.h>
+#include <gf/gf_3d_scene.h>
+#include <gm/gm_common.h>
 #include <if/if_reward_list_task.h>
 #include <mu/mu_msg.h>
 #include <std/auto_ptr.h>
@@ -73,6 +77,33 @@ static_assert(sizeof(IfCoinShooterLabelCounter) == 0x50, "Class is the wrong siz
 
 extern "C" void fn_80101810(...) {}
 
+
+// HYPOTHESIS: draft of the constructor to pin the layout. The member initializers are in declaration order, as the
+// stores of fn at 0x80101C0C are.
+IfCoinShooter::IfCoinShooter()
+    : utility::StandardMenu("IfCoinShooter", 0xF0, Heaps::MenuResource), m_decisionPad(gmGetMenuDecisionPad()),
+      m_started(false), m_clearMsgTimer(0), m_objPriority(0), m_bonusTarget(0), m_unk1C4(false), m_figureTimer(-1),
+      m_figEntry(NULL) {
+    g_gfApplication->m_114.add(this);
+    unk2C_b1 = false;
+    g_gfSceneRoot->setClearDepthBufferState(gfSceneRoot::Layer_Info, true);
+    m_cameraPath[0] = '\0';
+    strcat(m_cameraPath, "/menu/defaultcamera/FigureList");
+    // TODO: the original ends with the fog reset of the menu scene:
+    //   for (int i = 0;; i++) { nw4r::g3d::Fog fog = g_gfSceneRoot->unk44->GetFog(i); if (!fog.IsValid()) break; fog.Init(); }
+    // include/nw4r/g3d/g3d_scnroot.h (local shadow) has no ScnRoot::GetFog (GetFog__Q34nw4r3g3d7ScnRootFi, 0x801AC5F4).
+}
+
+// HYPOTHESIS: draft of the destructor to pin the member order. The members are destroyed by the compiler in reverse
+// order (the null tests of their addresses in the original are the inlined member destructors).
+IfCoinShooter::~IfCoinShooter() {
+    g_gfApplication->m_114.remove(this);
+    m_msg->detachMuObject(m_root.get());
+    m_rewardTask->detachDialogMsg();
+    // TODO: the original deletes every label that is still on the list lbl_8049E560 here:
+    //   while (list.m_length != 0) { if (list.m_head != NULL) delete head; }   (the list is the unit's .bss, see sinit)
+    g_gfSceneRoot->setClearDepthBufferState(gfSceneRoot::Layer_Info, false);
+}
 
 void IfCoinShooter::destroy() {
     if (lbl_805A0310) {
