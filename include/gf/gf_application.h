@@ -31,7 +31,7 @@ public:
         };
         struct {
             u8 _padE8[0x4];
-            u32 : 5;
+            u32 m_pauseState : 5; // HYPOTHESIS: the pause bits above this field's neighbor; IfCoinShooter::update tests it for non-zero
             // HYPOTHESIS: one requested-pause bit per index.
             u32 m_pauseFlags : 5;
             u32 : 22;

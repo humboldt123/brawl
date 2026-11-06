@@ -37,7 +37,7 @@ struct muClearGetData {
     u32 m_hintMsg;          // 0x14 message index of the text that is shown instead while the hint condition is not met
     u8 m_hasHammer;         // 0x18 HYPOTHESIS: the box also gives one hammer (more tries): hammer count + 1 when it is opened
     u8 unk19[3];
-    int m_hintKind;         // 0x1C HYPOTHESIS: what the hint condition checks: 1 boss battle / all-star menu, 2 fighter, 3 stage, 4-5 event
+    int m_hintKind;         // 0x1C HYPOTHESIS: what the hint condition checks: 1 boss battle / all-star menu, 2 fighter (hint arg * 3 + 1 is the bit of the fighter flags), 3 stage (bit of the stage flags), 4 event (arg - 1)
     int m_hintArg;          // 0x20 HYPOTHESIS: which fighter / stage / event the hint condition checks
     u8 m_openable;          // 0x24 HYPOTHESIS: 0 plays the "cannot" sound when the prize is chosen (state 3)
     u8 unk25[3];
@@ -183,7 +183,7 @@ public:
     void setPrizeModel(u32, int);
     bool calcHammerClose();
     bool calcHammerCancel();            // 0x800BDA38 HYPOTHESIS: returns false when the animation is over
-    void printPrizeData(int state);     // 0x800BCA9C state of the box (3: take it from m_dataMgr for the box under the cursor)
+    void printPrizeData(int state);     // 0x800BCA9C state of the box: 0 hidden ("?" on both lines), 1 closed ("?" + the text or hint), 2 opened (preview, title and text); 3: take it from m_dataMgr for the box under the cursor
     void initMdlData();                 // 0x800BDFC4 make the models and the scene groups, set the animations, print the texts
 };
 static_assert(sizeof(muClearGetTask) == 0x1308, "Wrong size for class!");

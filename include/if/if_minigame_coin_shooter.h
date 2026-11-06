@@ -70,12 +70,13 @@ public:
     //   at 0 the label is flagged unk10_3 and onUpdate deletes it.
     // unk10_3 (0x08): delete me. unk10_2 (0x04): the node animation loops (MuObject::isNodeAnimLoop at the end of the ctor).
     IfCoinShooterLabel* unkC;
-    u32 unk10 : 4;
+    s32 unk10 : 4; // signed: userProc tests > 0 (part C)
     u8 unk10_3 : 1;
     u8 unk10_2 : 1;
     u8 unk10_0 : 2;
     u8 unk11[3];
 
+    IfCoinShooterLabelImpl(IfCoinShooterLabel* owner); // puts itself on the list; the state starts as unk10_2 set
     virtual ~IfCoinShooterLabelImpl();
     virtual MuObject* model() const = 0;
     virtual void update();

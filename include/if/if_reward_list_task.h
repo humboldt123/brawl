@@ -35,7 +35,8 @@ public:
     muMenuController unk48;
     u8 unkF0[0x10];
     u8 unk100 : 1;
-    u8 unk100_6 : 7;
+    u8 unk100_6 : 1; // tested by IfCoinShooter::update / onUpdate / isQuit (bit 0x40)
+    u8 unk100_0 : 6;
     bool unk101;
     u8 unk102[0x46];
     nw4r::g3d::ResFile unk148;

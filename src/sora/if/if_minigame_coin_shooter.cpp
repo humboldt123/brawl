@@ -1,5 +1,6 @@
 #include <types.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <if/if_minigame_coin_shooter.h>
 #include <if/if_figure_loader.h>
@@ -12,7 +13,10 @@
 #include <ty/ty_seal_listmng.h>
 
 // HYPOTHESIS: untyped placeholders for the zero-initialized .bss of this unit, sizes and order from the original layout.
-unsigned char lbl_8049E560[0x10] __attribute__((aligned(8))) = { 0 };
+// HYPOTHESIS: lbl_8049E560 is the list of every label that exists (AutoList<IfCoinShooterLabelImpl>); it is a typed
+// list here so that the label constructors and destructors call utList. The original builds it with a static
+// initializer (fn_801048AC, guard lbl_805A0314) that the part of the unit with the .ctors entry carries.
+utList lbl_8049E560 __attribute__((aligned(8)));
 unsigned char lbl_8049E570[0xc] __attribute__((aligned(8))) = { 0 };
 // HYPOTHESIS: untyped placeholders for the zero-initialized .sbss of this unit, sizes and order from the original layout.
 IfCoinShooter* lbl_805A0310 = NULL;
@@ -21,6 +25,17 @@ unsigned char lbl_805A0314[0x1] __attribute__((aligned(4))) = { 0 };
 // The label classes of this unit (RTTI "@unnamed@if_minigame_coin_shooter_cpp@::..."). Layouts from the constructors
 // (fn_800FF558, fn_800FFE6C, fn_80100900), the destructors and the vtables lbl_8045CC40 (Simple), lbl_8045CBC0 (Light),
 // lbl_8045CB40 (Counter); the base IfCoinShooterLabelImpl is 0x18 bytes (see the header).
+template <>
+inline utList& utility::AutoList<IfCoinShooterLabelImpl>::getList() {
+    return lbl_8049E560;
+}
+
+inline IfCoinShooterLabelImpl::IfCoinShooterLabelImpl(IfCoinShooterLabel* owner) : unkC(owner) {
+    unk10 = 0;
+    unk10_3 = false;
+    unk10_2 = true;
+}
+
 namespace {
 
 // A flat model that plays its animation once (Type_0 .. Type_3 and Type_6). fn_800FF558 / fn_800FFD50.
@@ -71,6 +86,124 @@ public:
 };
 static_assert(sizeof(IfCoinShooterLabelCounter) == 0x50, "Class is the wrong size!");
 
+}
+
+// TEMPORARY (part A only, to be removed at the merge): the label classes have internal linkage, so their members are
+// only emitted when something uses them. IfCoinShooterLabel::create (part B) makes them in the real unit.
+void fn_tmp_part_a_users(IfCoinShooterLabel* label, const Vec3f& from, const Vec3f& to) {
+    new (Heaps::MenuInstance) IfCoinShooterLabelSimple(label, IfCoinShooterLabel::Type_0);
+    new (Heaps::MenuInstance) IfCoinShooterLabelLight(IfCoinShooterLabel::Type_7, 1, 0, from, to);
+}
+
+namespace {
+
+// The name of a model or of an animation: it is built by copying and adding to it (the copies are what the compiler
+// makes of a 0x41 byte structure passed around; same shape as muCollectionName in mu_collection_viewer.h).
+struct IfCoinShooterName {
+    char m_str[0x41];
+
+    void addNumber(int number) { sprintf(m_str + strlen(m_str), "%d", number); }
+    void addSeparator() { strcat(m_str, "__"); }
+
+    IfCoinShooterName() { }
+    IfCoinShooterName(const char* str) {
+        m_str[0] = '\0';
+        strcat(m_str, str);
+    }
+};
+
+static inline const char* getCoinMdlName(MuObject* object) {
+    const nw4r::g3d::ResMdlData& data = object->m_resMdl.ref();
+    return data.m_toName != 0 ? reinterpret_cast<const char*>(&data) + data.m_toName : NULL;
+}
+
+// The kinds of animation of a model (the animations of a label are all named <model>__<no>).
+enum IfCoinShooterAnimKind {
+    AnimKind_Node,
+    AnimKind_Clr,
+    AnimKind_TexSrt,
+    AnimKind_Vis,
+};
+
+// Starts the animation of a model that is named after the model and the number of the animation: <model>__<no>.
+template <int Kind>
+static inline void changeCoinAnim(MuObject* object, int no) {
+    IfCoinShooterName name3;
+    IfCoinShooterName name2;
+    IfCoinShooterName name1;
+    IfCoinShooterName name0(getCoinMdlName(object));
+    name1 = name0;
+    name1.addSeparator();
+    name2 = name1;
+    name2.addNumber(no);
+    name3 = name2;
+    if (Kind == AnimKind_Node) {
+        object->changeNodeAnimNIf(name3.m_str);
+    } else if (Kind == AnimKind_Clr) {
+        object->changeClrAnimNIf(name3.m_str);
+    } else if (Kind == AnimKind_TexSrt) {
+        object->changeTexSrtAnimNIf(name3.m_str);
+    } else {
+        object->changeVisAnimNIf(name3.m_str);
+    }
+}
+
+// HYPOTHESIS: the model of each label Type (lbl_8045C8C4): InfShooter0000 .. 0006.
+const char* const sLabelModels[9] = {
+    "InfShooter0000_TopN", "InfShooter0000_TopN", "InfShooter0001_TopN", "InfShooter0002_TopN", "InfShooter0003_TopN",
+    "InfShooter0004_TopN", "InfShooter0005_TopN", "InfShooter0006_TopN", "InfShooter0006_TopN",
+};
+
+// Makes the model of a label on the HUD (the next draw priority is the shooter's) and hangs it on the HUD's group.
+static inline MuObject* createLabelModel(IfCoinShooter* shooter, int type) {
+    MuObject* obj = MuObject::create(&shooter->m_infoRes, sLabelModels[type], shooter->m_objPriority, NULL, Heaps::MenuInstance);
+    if (obj != NULL) {
+        shooter->m_scnGroup->Insert(shooter->m_scnGroup->sceneItemsCount, obj->m_sceneModel);
+    }
+    return obj;
+}
+
+}
+
+IfCoinShooterLabelSimple::IfCoinShooterLabelSimple(IfCoinShooterLabel* owner, IfCoinShooterLabel::Type type)
+    : IfCoinShooterLabelImpl(owner), m_type(type) {
+    m_obj.reset(createLabelModel(lbl_805A0310, type));
+    switch (type) {
+    case IfCoinShooterLabel::Type_0:
+    case IfCoinShooterLabel::Type_1:
+        changeCoinAnim<AnimKind_Node>(m_obj.get(), 0);
+        changeCoinAnim<AnimKind_Clr>(m_obj.get(), 0);
+        changeCoinAnim<AnimKind_TexSrt>(m_obj.get(), 0);
+        changeCoinAnim<AnimKind_Vis>(m_obj.get(), 0);
+        m_obj->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
+        int visibleFrame = type != IfCoinShooterLabel::Type_0;
+        m_obj->setFrameVisible(visibleFrame);
+        break;
+    case IfCoinShooterLabel::Type_6:
+        lbl_805A0310->m_unk1C4 = true;
+        // fall through
+    case IfCoinShooterLabel::Type_2:
+    case IfCoinShooterLabel::Type_3:
+        changeCoinAnim<AnimKind_Node>(m_obj.get(), 0);
+        changeCoinAnim<AnimKind_Clr>(m_obj.get(), 0);
+        break;
+    default:
+        break;
+    }
+    unk10_2 = m_obj->isNodeAnimLoop();
+}
+
+IfCoinShooterLabelImpl::~IfCoinShooterLabelImpl() {
+    if (this && unkC) {
+        unkC->unk0 = NULL;
+        unkC = NULL;
+    }
+}
+
+IfCoinShooterLabelSimple::~IfCoinShooterLabelSimple() {
+    if (lbl_805A0310 != NULL && m_type == IfCoinShooterLabel::Type_6) {
+        lbl_805A0310->m_unk1C4 = false;
+    }
 }
 
 // Function bodies below are taken from https://github.com/jj-link/brawl.
@@ -153,3 +286,4 @@ void IfCoinShooterLabelImpl::update() {
 IfCoinShooterLabel::IfCoinShooterLabel() {
     unk0 = NULL;
 }
+
