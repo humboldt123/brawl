@@ -1,3 +1,5 @@
+// BYTES: the scale of a vector is the inline paired-single form (MT_VEC3F_MUL_INLINE, mt_vector.h), as in the original.
+#define MT_VEC3F_MUL_INLINE
 #include <types.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -11,6 +13,7 @@
 #include <mu/mu_msg.h>
 #include <std/auto_ptr.h>
 #include <ty/ty_seal_listmng.h>
+#include <mt/mt_matrix.h>
 
 // HYPOTHESIS: untyped placeholders for the zero-initialized .bss of this unit, sizes and order from the original layout.
 // HYPOTHESIS: lbl_8049E560 is the list of every label that exists (AutoList<IfCoinShooterLabelImpl>); it is a typed
@@ -94,6 +97,10 @@ void fn_tmp_part_a_users(IfCoinShooterLabel* label, const Vec3f& from, const Vec
     new (Heaps::MenuInstance) IfCoinShooterLabelSimple(label, IfCoinShooterLabel::Type_0);
     new (Heaps::MenuInstance) IfCoinShooterLabelLight(IfCoinShooterLabel::Type_7, 1, 0, from, to);
 }
+
+// HYPOTHESIS: stand-ins: IfRewardListTask::isLoadFinish, and srReportLessMastar (a report printf, fn_80101810).
+extern "C" bool fn_800FA740(IfRewardListTask* task);
+extern "C" void fn_80101810(...);
 
 namespace {
 
@@ -235,6 +242,108 @@ IfCoinShooterLabelLight::IfCoinShooterLabelLight(IfCoinShooterLabel::Type type, 
     unk10_2 = m_obj->isNodeAnimLoop();
 }
 
+// HYPOTHESIS: the record that tySealListDataManager::getSealDataId returns; only the name of the seal's thumbnail
+// (+8) is read here.
+struct IfCoinShooterSealData {
+    u32 unk0;
+    u32 unk4;
+    const char* m_texName;
+};
+
+// HYPOTHESIS: the size in pixels that follows the fixed fields of a TEX0 resource (ResTexData does not declare them).
+struct IfCoinShooterTexSize {
+    u8 unk0[0x1C];
+    u16 m_width;
+    u16 m_height;
+};
+
+// The HUD takes requests only when its models, the reward task and the figure loader are loaded.
+static inline bool isHudLoaded(IfCoinShooter* shooter) {
+    bool loaded = false;
+    if (shooter->m_unk42_6 && fn_800FA740(shooter->m_rewardTask.get()) && IfFigureLoader::getInstance()->isLoadFinish()) {
+        loaded = true;
+    }
+    return loaded;
+}
+
+// The request to change the totals is only taken when the HUD is loaded; otherwise it is reported (the total is then
+// only stored, nothing is shown).
+static inline bool takesRequest(IfCoinShooter* shooter, int delta) {
+    if (isHudLoaded(shooter)) {
+        return true;
+    }
+    fn_80101810("[IfCoinShooter] Error: リクエストは無視されました setCoinCount(%d)\n", delta);
+    return false;
+}
+
+// Adds a coin count to the coin total of the HUD (not below 0) and starts the animation of its base model.
+static inline void addCoinsToTotal(IfCoinShooter* shooter, int delta) {
+    int total = shooter->m_coinNumber.m_value + delta;
+    int coins = total > 0 ? total : 0;
+    if (!takesRequest(shooter, delta)) {
+        shooter->m_coinNumber.m_value = coins;
+        return;
+    }
+    changeCoinAnim<AnimKind_Node>(shooter->m_coinNumber.m_baseObj.get(), 1);
+    changeCoinAnim<AnimKind_Clr>(shooter->m_coinNumber.m_baseObj.get(), 1);
+    shooter->m_coinNumber.set(coins);
+}
+
+// Puts the thumbnail model of a seal into the seal total of the HUD, textured with the thumbnail of the seal, and adds
+// the count of seals to the total.
+static inline void addSealToTotal(IfCoinShooter* shooter, u32 sealId, int count) {
+    shooter->m_sealNumber.m_expand->PushBack(shooter->m_unk31C->m_sceneModel, "pos02");
+    MuObject* seal = shooter->m_unk31C.get();
+    IfCoinShooterSealData* data = reinterpret_cast<IfCoinShooterSealData*>(shooter->m_sealMgr->getSealDataId(sealId));
+    if (data != NULL) {
+        char texName[0x3C];
+        strcpy(texName, data->m_texName);
+        texName[strlen(texName) - 6] = '\0';
+        nw4r::g3d::ResTex tex = shooter->m_sealRes.GetResTex(texName);
+        const IfCoinShooterTexSize* texSize = reinterpret_cast<const IfCoinShooterTexSize*>(&tex.ref());
+        Vec3f scale = Vec3f(texSize->m_width, texSize->m_height, 10.0f) * 0.1f;
+        seal->setObjScale(&scale);
+        seal->changeMaterialTex(seal->m_resMdl.GetResMat("Seal_Sammy_Mat")->m_id, texName, &shooter->m_sealRes);
+    }
+    shooter->m_sealNumber.set(shooter->m_sealNumber.m_value + count);
+}
+
+IfCoinShooterLabelLight::~IfCoinShooterLabelLight() {
+    IfCoinShooter* shooter = lbl_805A0310;
+    if (shooter != NULL) {
+        if (m_type == IfCoinShooterLabel::Type_7) {
+            addCoinsToTotal(shooter, m_value);
+        } else {
+            addSealToTotal(shooter, m_sealId, m_value);
+        }
+    }
+}
+
+// HYPOTHESIS: the coin / seal flies from m_from to m_to along the node animation of its model: the first part swings the
+// start point around m_to (a curve of up to 7/4 pi, mirrored when the target is to the right), the second part slides
+// from the swung point to m_to; both are driven by the progress of the animation (frame / length).
+void IfCoinShooterLabelLight::update() {
+    MuObject* obj = m_obj.get();
+    float frame = obj->m_modelAnim->m_anmObjChrRes->GetFrame();
+    float progress = frame / (float)obj->getNodeAnimLength();
+    float half = progress * 0.5f;
+    float swing = half / (half + (1.0f - progress));
+    if (m_from.m_x < m_to.m_x) {
+        swing = -swing;
+    }
+    Matrix rot(true);
+    rot.setRotateZ(5.4977875f * swing);
+    Vec3f offset = m_from - m_to;
+    Vec3f swung;
+    rot.mulVec(&offset, &swung);
+    Vec3f start = swung + m_to;
+    float fast = progress * 12.0f;
+    float slide = fast / (fast + (1.0f - progress));
+    Vec3f position;
+    position = m_to * slide + start * (1.0f - slide);
+    obj->setTrans(&position);
+}
+
 // Function bodies below are taken from https://github.com/jj-link/brawl.
 
 extern "C" void fn_80101810(...) {}
@@ -302,8 +411,6 @@ IfCoinShooterLabel::~IfCoinShooterLabel() {
 }
 
 
-// HYPOTHESIS: the loader checks are defined by the stand-in of a list task function.
-extern "C" bool fn_800FA740(IfRewardListTask* task);
 
 void IfCoinShooter::start() {
     m_started = true;

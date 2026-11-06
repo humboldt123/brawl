@@ -57,7 +57,7 @@ public:
     IfCoinShooterLabelSimple(IfCoinShooterLabel* owner, IfCoinShooterLabel::Type type);
     virtual ~IfCoinShooterLabelSimple();
     virtual MuObject* model() const { return m_obj.get(); }
-    virtual void detach();
+    virtual void detach() { m_obj->m_sceneModel->DetachFromParent(); }
 };
 static_assert(sizeof(IfCoinShooterLabelSimple) == 0x20, "Class is the wrong size!");
 
@@ -74,7 +74,7 @@ public:
     virtual ~IfCoinShooterLabelLight();
     virtual MuObject* model() const { return m_obj.get(); }
     virtual void update();
-    virtual void detach();
+    virtual void detach() { m_obj->m_sceneModel->DetachFromParent(); }
 };
 static_assert(sizeof(IfCoinShooterLabelLight) == 0x40, "Class is the wrong size!");
 
@@ -89,7 +89,7 @@ public:
     IfCoinShooterLabelCounter(IfCoinShooterLabel* owner, IfCoinShooterLabel::Type type, int value, u32 sealId);
     virtual ~IfCoinShooterLabelCounter();
     virtual MuObject* model() const { return m_number.m_baseObj.get(); }
-    virtual void detach();
+    virtual void detach() { m_number.m_expand->DetachFromParent(); }
 };
 static_assert(sizeof(IfCoinShooterLabelCounter) == 0x50, "Class is the wrong size!");
 
@@ -144,10 +144,47 @@ static inline nw4r::g3d::ScnMdlExpand* createExpand(MuObject* object, int slots)
 // HYPOTHESIS: the node of the bonus gauge on the coin counter (an .sdata word of the unit that is read, not folded).
 static int sBonusGaugeNode = 4;
 
+// One of the counters of the HUD (the seal / figure / coin totals): the model that carries the digits, a group on it, one
+// digit model for every place, and for the totals that are shown at first the scaler of the base and the first frame of the
+// digits. HYPOTHESIS: the names and the parameters; the order of the work follows the original.
+static inline void createNumber(IfCoinShooter* hud, IfCoinShooter::Number& number, bool ascending, int digits, const char* baseName,
+                                const char* digitName, bool scaled, float visFrame) {
+    int priority = hud->m_objPriority++;
+    MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
+    number.m_digits = digits;
+    number.m_ascending = ascending;
+    number.m_baseObj.reset(MuObject::create(&hud->m_infoRes, baseName, priority, NULL, Heaps::MenuInstance));
+    number.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(allocator, NULL, digits + 1, number.m_baseObj->m_sceneModel));
+    for (int i = 0; i < digits; i++) {
+        number.m_digitObjs[i].reset(MuObject::create(&hud->m_infoRes, digitName, priority + 10, NULL, Heaps::MenuInstance));
+        MuObject* digit = number.m_digitObjs[i].get();
+        digit->changeTexPatAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
+        number.m_digitObjs[i]->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
+    }
+    if (scaled) {
+        number.m_scaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*number.m_baseObj.get(), 0.01f, 0.99f));
+    }
+    hud->m_scnGroup->Insert(hud->m_scnGroup->sceneItemsCount, number.m_expand.get());
+    if (scaled) {
+        for (int i = 0; i < number.m_digits; i++) {
+            changeVisAnim(number.m_digitObjs[i].get(), 0);
+            number.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
+            number.m_digitObjs[i]->setFrameVisible(visFrame);
+        }
+    }
+}
+
+// The weak copy of utList::init that the static initializer of the unit calls (as in em_weapon_manager.cpp).
+inline void utList::init() {
+    m_tail = NULL;
+    m_head = NULL;
+    m_length = 0;
+}
+
 // HYPOTHESIS: the list of the label objects that exist (the static of AutoList<IfCoinShooterLabelImpl>, built by the static
 // initializer of the unit; the unit's .bss word at 0x8049E560 is owned by part A).
 struct IfCoinShooterLabelList : utList {
-    IfCoinShooterLabelList() { clear(); }
+    IfCoinShooterLabelList() { init(); }
 };
 template <class T>
 struct IfCoinShooterListStorage {
@@ -247,14 +284,14 @@ void IfCoinShooter::start() {
 }
 
 bool IfCoinShooter::isQuit() {
-    IfRewardListTask* task = m_rewardTask.get();
-    if (!task || task->unk100 || !task->unk100_6) {
+    if (!m_rewardTask.get() || m_rewardTask->unk100 || !m_rewardTask->unk100_6) {
         return false;
     }
     return IfFigureLoader::getInstance()->waitForIdle();
 }
 
-// HYPOTHESIS: format of the message that the request functions report while the HUD is not loaded.
+// HYPOTHESIS: adds delta to the coin total (never below 0). While the HUD is not loaded the total is only stored (and the request
+// is reported); otherwise the counter is redrawn, and with animate the base model plays its animation number 1 first.
 void IfCoinShooter::setCoinCount(int delta, bool animate) {
     int total = m_coinNumber.m_value + delta;
     int coins = total > 0 ? total : 0;
@@ -277,27 +314,25 @@ void IfCoinShooter::setCoinCount(int delta, bool animate) {
 }
 
 void IfCoinShooter::updateBonusPoint(int value) {
-    if (!lbl_805A0310->isLoadFinish()) {
-        return;
-    }
-    int gauge = 100;
-    int clipped = value > 0 ? value : 0;
-    if (clipped < 100) {
-        gauge = clipped;
-    }
-    if (gauge == m_bonusGauge.m_value) {
-        return;
-    }
-    m_bonusGauge.m_obj->setFrameVisible(gauge / 10.0f);
-    m_bonusGauge.m_obj->m_modelAnim->unbindMatColAnim(m_bonusGauge.m_obj->m_sceneModel);
-    if (gauge > m_bonusGauge.m_value) {
-        if (gauge >= 100) {
-            changeClrAnim(m_bonusGauge.m_obj.get(), 1);
-        } else if (gauge / 10 > m_bonusGauge.m_value / 10) {
-            changeClrAnim(m_bonusGauge.m_obj.get(), 0);
+    if (lbl_805A0310->isLoadFinish()) {
+        int gauge = 100;
+        int clipped = value > 0 ? value : 0;
+        if (clipped < 100) {
+            gauge = clipped;
+        }
+        if (gauge != m_bonusGauge.m_value) {
+            m_bonusGauge.m_obj->setFrameVisible(gauge / 10.0f);
+            m_bonusGauge.m_obj->m_modelAnim->unbindMatColAnim(m_bonusGauge.m_obj->m_sceneModel);
+            if (gauge > m_bonusGauge.m_value) {
+                if (gauge >= 100) {
+                    changeClrAnim(m_bonusGauge.m_obj.get(), 1);
+                } else if (gauge / 10 > m_bonusGauge.m_value / 10) {
+                    changeClrAnim(m_bonusGauge.m_obj.get(), 0);
+                }
+            }
+            m_bonusGauge.m_value = gauge;
         }
     }
-    m_bonusGauge.m_value = gauge;
 }
 
 void IfCoinShooter::showFigure(IfFigureLoader::EntryRef* entry) {
@@ -341,73 +376,12 @@ void IfCoinShooter::createModel() {
     m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_rootExpand.get());
 
     // The seal total.
-    {
-        int priority = m_objPriority++;
-        MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
-        m_sealNumber.m_digits = 2;
-        m_sealNumber.m_ascending = true;
-        m_sealNumber.m_baseObj.reset(MuObject::create(&m_infoRes, "InfShooter0013_TopN", priority, NULL, Heaps::MenuInstance));
-        m_sealNumber.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(allocator, NULL, 3, m_sealNumber.m_baseObj->m_sceneModel));
-        for (int i = 0; i < 2; i++) {
-            m_sealNumber.m_digitObjs[i].reset(MuObject::create(&m_infoRes, "InfShooter0007_TopN", priority + 10, NULL, Heaps::MenuInstance));
-            MuObject* digit = m_sealNumber.m_digitObjs[i].get();
-            digit->changeTexPatAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
-            m_sealNumber.m_digitObjs[i]->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
-        }
-        m_sealNumber.m_scaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*m_sealNumber.m_baseObj.get(), 0.01f, 0.99f));
-        m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_sealNumber.m_expand.get());
-        for (int i = 0; i < m_sealNumber.m_digits; i++) {
-            MuObject* digit = m_sealNumber.m_digitObjs[i].get();
-            IfCoinShooterName<65> animName = IfCoinShooterName<65>(getMdlName(digit)).separated() + 0;
-            digit->changeVisAnimNIf(animName.m_str);
-            m_sealNumber.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
-            m_sealNumber.m_digitObjs[i]->setFrameVisible(1.0f);
-        }
-    }
-
+    createNumber(this, m_sealNumber, true, 2, "InfShooter0013_TopN", "InfShooter0007_TopN", true, 1.0f);
     m_unk31C.reset(MuObject::create(&m_infoRes, "InfShooter0023_TopN", m_objPriority++, NULL, Heaps::MenuInstance));
-
     // The figure total.
-    {
-        int priority = m_objPriority++;
-        MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
-        m_figureNumber.m_digits = 2;
-        m_figureNumber.m_ascending = true;
-        m_figureNumber.m_baseObj.reset(MuObject::create(&m_infoRes, "InfShooter0014_TopN", priority, NULL, Heaps::MenuInstance));
-        m_figureNumber.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(allocator, NULL, 3, m_figureNumber.m_baseObj->m_sceneModel));
-        for (int i = 0; i < 2; i++) {
-            m_figureNumber.m_digitObjs[i].reset(MuObject::create(&m_infoRes, "InfShooter0007_TopN", priority + 10, NULL, Heaps::MenuInstance));
-            MuObject* digit = m_figureNumber.m_digitObjs[i].get();
-            digit->changeTexPatAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
-            m_figureNumber.m_digitObjs[i]->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
-        }
-        m_figureNumber.m_scaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*m_figureNumber.m_baseObj.get(), 0.01f, 0.99f));
-        m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_figureNumber.m_expand.get());
-        for (int i = 0; i < m_figureNumber.m_digits; i++) {
-            MuObject* digit = m_figureNumber.m_digitObjs[i].get();
-            IfCoinShooterName<65> animName = IfCoinShooterName<65>(getMdlName(digit)).separated() + 0;
-            digit->changeVisAnimNIf(animName.m_str);
-            m_figureNumber.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
-            m_figureNumber.m_digitObjs[i]->setFrameVisible(0.0f);
-        }
-    }
-
+    createNumber(this, m_figureNumber, true, 2, "InfShooter0014_TopN", "InfShooter0007_TopN", true, 0.0f);
     // The coin total.
-    {
-        int priority = m_objPriority++;
-        MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
-        m_coinNumber.m_digits = 4;
-        m_coinNumber.m_ascending = false;
-        m_coinNumber.m_baseObj.reset(MuObject::create(&m_infoRes, "InfShooter0011_TopN", priority, NULL, Heaps::MenuInstance));
-        m_coinNumber.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(allocator, NULL, 5, m_coinNumber.m_baseObj->m_sceneModel));
-        for (int i = 0; i < 4; i++) {
-            m_coinNumber.m_digitObjs[i].reset(MuObject::create(&m_infoRes, "InfShooter0012_TopN", priority + 10, NULL, Heaps::MenuInstance));
-            MuObject* digit = m_coinNumber.m_digitObjs[i].get();
-            digit->changeTexPatAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
-            m_coinNumber.m_digitObjs[i]->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
-        }
-        m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_coinNumber.m_expand.get());
-    }
+    createNumber(this, m_coinNumber, false, 4, "InfShooter0011_TopN", "InfShooter0012_TopN", false, 0.0f);
     changeNodeAnim(m_coinNumber.m_baseObj.get(), 0);
     changeClrAnim(m_coinNumber.m_baseObj.get(), 0);
     m_coinNumber.set(m_coinNumber.m_value);
@@ -450,6 +424,8 @@ void IfCoinShooter::createModel() {
 
 // HYPOTHESIS: shows the trophy that the player got: the figure counter goes up, the trophy model (made from the resource
 // of the loader entry) stands on the Stand model under the group of the figure counter, and the frame plays its animation.
+// MATCH-ONLY: auto_inline off; the original calls showFigureCore from onUpdate (the compiler would otherwise inline the single call).
+#pragma auto_inline off
 void IfCoinShooter::showFigureCore() {
     m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_figureNumber.m_expand.get());
     changeNodeAnim(m_figureNumber.m_baseObj.get(), 0);
@@ -469,6 +445,8 @@ void IfCoinShooter::showFigureCore() {
     changeNodeAnim(m_root.get(), 0);
 }
 
+#pragma auto_inline reset
+
 void IfCoinShooter::userProc() {
     if (m_figureTimer >= 0 && m_figEntry.m_entry) {
         int timer = m_figureTimer - 1;
@@ -487,3 +465,15 @@ void IfCoinShooter::userProc() {
         }
     }
 }
+
+// REMOVE AT MERGE (part C only): minimal definitions of the label constructors / destructors and of IfCoinShooter's destructor
+// (the real ones are in parts A and B). They make this object emit the vtables, and with them the inline virtual functions
+// (detach / model of the labels) and the thunks of the gfCallBack base, which the full unit emits after its last function.
+IfCoinShooterLabelSimple::IfCoinShooterLabelSimple(IfCoinShooterLabel* owner, IfCoinShooterLabel::Type type) : IfCoinShooterLabelImpl(owner) { }
+IfCoinShooterLabelSimple::~IfCoinShooterLabelSimple() { }
+IfCoinShooterLabelLight::IfCoinShooterLabelLight(IfCoinShooterLabel::Type type, int value, u32 sealId, const Vec3f& from, const Vec3f& to) : IfCoinShooterLabelImpl(NULL) { }
+IfCoinShooterLabelLight::~IfCoinShooterLabelLight() { }
+void IfCoinShooterLabelLight::update() { }
+IfCoinShooterLabelCounter::IfCoinShooterLabelCounter(IfCoinShooterLabel* owner, IfCoinShooterLabel::Type type, int value, u32 sealId) : IfCoinShooterLabelImpl(owner) { }
+IfCoinShooterLabelCounter::~IfCoinShooterLabelCounter() { }
+IfCoinShooter::~IfCoinShooter() { }

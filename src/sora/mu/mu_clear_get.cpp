@@ -136,6 +136,7 @@ static inline Vec3f& getObjRotation(MuObject* object) {
 static inline void showPadIcon(muClearGetTask* task) {
     gfPadStatus status;
     g_gfPadSystem->getSysPadStatus(task->m_activePad, &status);
+    MuObject* panel = task->m_panelTop;
     float frame;
     if (status.m_error != 0) {
         frame = 0.0f;
@@ -159,12 +160,52 @@ static inline void showPadIcon(muClearGetTask* task) {
         }
     }
     if (frame >= 0.0f) {
-        task->m_panelTop->setFrameFlg(frame, 2);
+        panel->setFrameFlg(frame, 2);
+    }
+}
+
+// Puts the model of the box into the grid that its open state asks for (the three models of a box are boxA / boxB / boxC of
+// the file; the state picks which one is on top: 0 closed, 1 hittable, 2 opened) and the preview of its prize.
+// state 3 stands for the open state of the box that is in the data.
+// MATCH-ONLY: the original processAnim was compiled with copy propagation off (see TIPS.md, "extsb ... neg ... or" entry);
+// the pragma also keeps the literal argument 3 of showBox from being folded.
+#pragma push
+#pragma opt_propagation off
+static inline void showBox(muClearGetTask* task, u32 box, int state) {
+    MuObject* sets[3][3] = {
+        {task->m_boxA[box], task->m_boxB[box], task->m_boxC[box]},
+        {task->m_boxB[box], task->m_boxA[box], task->m_boxC[box]},
+        {task->m_boxC[box], task->m_boxB[box], task->m_boxA[box]},
+    };
+    char name[8];
+    sprintf(name, "pos%02d", box);
+    if (state == 3) {
+        state = task->m_dataMgr.m_openState[box];
+    }
+    task->m_gridGroup->Remove(sets[task->m_dataMgr.m_openState[box]][1]->m_scnMdl);
+    task->m_gridGroup->Remove(sets[task->m_dataMgr.m_openState[box]][2]->m_scnMdl);
+    task->m_gridGroup->PushBack(sets[task->m_dataMgr.m_openState[box]][0]->m_scnMdl, name);
+    task->setPrizeModel(box, state);
+}
+
+// HYPOTHESIS: muClearGetTask::setBreakBoxId (0x800BCxxx, another unit of the split for now) is expanded inline here; call the
+// member again when the units are merged.
+static inline void appendBreakBox(muClearGetTask* task, u32 id) {
+    if (task->m_dataMgr.m_openState[id] != 2) {
+        task->m_breakQueue[task->m_breakCount] = id;
+        if (task->m_breakCount == 0 && task->m_state >= 2) {
+            task->m_state = 6;
+            task->setPosRot(id);
+            task->m_column = id % 4;
+            task->m_row = id / 4;
+        }
+        ++task->m_breakCount;
     }
 }
 
 void muClearGetTask::processAnim() {
     gfPadStatus pad;
+    char name[8];
     bool moved = false;
     if (m_state >= 2) {
         g_gfPadSystem->getSysPadStatus(m_decisionPad, &pad);
@@ -338,7 +379,6 @@ void muClearGetTask::processAnim() {
                     m_stateFrame = 0;
                     m_cursorOnGrid = true;
                     setCursor();
-                    char name[8];
                     sprintf(name, "pos%02d", m_hammerSel + 95);
                     Vec3f pos;
                     pos = m_panelHammer->getGlobalPosition(name);
@@ -395,7 +435,6 @@ void muClearGetTask::processAnim() {
             m_state = State_Select;
             m_hammerHeld = true;
             m_menuRoot->scene->Remove(m_hammers[m_hammerSel]->m_scnMdl);
-            char name[8];
             sprintf(name, "pos%02d", m_column + m_row * 4);
             m_gridGroup->PushBack(m_hammers[m_hammerSel]->m_scnMdl, name);
             m_hammers[m_hammerSel]->setTrans(&m_hammerPos);
@@ -404,7 +443,6 @@ void muClearGetTask::processAnim() {
         } else {
             // The hammer flies from its place in the row to the box that was chosen.
             Vec3f axis(0.0f, 1.0f, 0.0f);
-            char name[8];
             sprintf(name, "pos%02d", m_column + m_row * 4);
             Vec3f boxPos;
             boxPos = m_panelGrid->getGlobalPosition(name);
@@ -437,8 +475,10 @@ void muClearGetTask::processAnim() {
         if (pad.m_buttonsPressedThisFrame.bits & 0x200) {
             no = true;
         } else if (pad.m_buttonsPressedThisFrame.bits & 0x100) {
-            yes = m_yesNo == 0;
-            if (m_yesNo == 1) {
+            if (m_yesNo == 0) {
+                yes = true;
+            }
+            if (static_cast<u32>(m_yesNo) == 1) {
                 no = true;
             }
         } else if (pad.m_buttonsPressedThisFrame2.bits & 1) {
@@ -457,17 +497,17 @@ void muClearGetTask::processAnim() {
             m_state = State_Hit;
             m_hammers[m_hammerSel]->setAnimName(lbl_804569E0 + 1, true);
             u32 last = m_hammerNum - 1;
-            if (m_hammerSel == last) {
-                m_hammerNum = last;
-            } else {
+            if (m_hammerSel != last) {
                 m_hammerClosing = true;
+            } else {
+                m_hammerNum = last;
             }
         } else if (move != 0) {
-            int before = m_yesNo;
+            u32 before = m_yesNo;
             if (before == 0 && move == 1) {
                 m_yesNo = 1;
             }
-            if (m_yesNo == 1 && move == -1) {
+            if (static_cast<u32>(m_yesNo) == 1 && move == -1) {
                 m_yesNo = 0;
             }
             if (before != m_yesNo) {
@@ -480,7 +520,7 @@ void muClearGetTask::processAnim() {
     case State_Hit:
         if (m_hammers[m_hammerSel]->m_modelAnim->m_anmObjChrRes->GetFrame() == 17.0f) {
             u32 box = m_column + m_row * 4;
-            setBreakBoxId(box);
+            appendBreakBox(this, box);
             box = m_breakQueue[0];
             int state = m_dataMgr.m_openState[box];
             m_state = State_Break;
@@ -496,7 +536,7 @@ void muClearGetTask::processAnim() {
                 m_boxB[box]->setAnimName(lbl_80456718 + 2, true);
             }
             setPrizeModel(box, 2);
-            if (box > 3 && m_dataMgr.m_openState[box - 4] == 0) {
+            if (box >= 4 && m_dataMgr.m_openState[box - 4] == 0) {
                 m_boxA[box - 4]->setAnimName(lbl_80456718, true);
                 setPrizeModel(box - 4, 1);
             }
@@ -515,61 +555,27 @@ void muClearGetTask::processAnim() {
             m_hammers[m_hammerSel]->setFrameFlg(0.0f, 0x11);
             u32 last = m_hammerNum - 1;
             m_hammerHeld = false;
-            if (last < m_hammerSel) {
+            if (m_hammerSel > last) {
                 m_hammerSel = last;
             }
         }
-        MuObject* boxObj = m_boxB[box];
+        u32 boxIndex = 0x99 + box;
         if (m_dataMgr.m_openState[box] == 0) {
-            boxObj = m_boxA[box];
+            boxIndex = 0x19 + box;
         }
-        if (boxObj->isNodeAnimFinished()) {
+        if (m_objs[boxIndex]->isNodeAnimFinished()) {
             gmActionOpenClearGet(box, m_dataMgr.m_list[box].m_kind, m_dataMgr.m_list[box].m_reward);
             m_dataMgr.setOpenState(box);
             MuObject* opened = m_boxA[m_breakQueue[0]];
             int priority = opened->m_scnMdl->m_priorityDrawOpa - 1;
             opened->m_scnMdl->SetPriorityDrawOpa(priority);
             opened->m_scnMdl->SetPriorityDrawXlu(priority);
-            // The three models of a box, in the order that the open state (0 closed, 1 hittable, 2 opened) pushes them on top.
-            MuObject* sets[3][3] = {
-                {m_boxA[box], m_boxB[box], m_boxC[box]},
-                {m_boxB[box], m_boxA[box], m_boxC[box]},
-                {m_boxC[box], m_boxB[box], m_boxA[box]},
-            };
-            char name[8];
-            sprintf(name, "pos%02d", box);
-            int state = m_dataMgr.m_openState[box];
-            m_gridGroup->Remove(sets[m_dataMgr.m_openState[box]][1]->m_scnMdl);
-            m_gridGroup->Remove(sets[m_dataMgr.m_openState[box]][2]->m_scnMdl);
-            m_gridGroup->PushBack(sets[m_dataMgr.m_openState[box]][0]->m_scnMdl, name);
-            setPrizeModel(box, state);
-            if (box > 3) {
-                MuObject* upper[3][3] = {
-                    {m_boxA[box - 4], m_boxB[box - 4], m_boxC[box - 4]},
-                    {m_boxB[box - 4], m_boxA[box - 4], m_boxC[box - 4]},
-                    {m_boxC[box - 4], m_boxB[box - 4], m_boxA[box - 4]},
-                };
-                char upperName[8];
-                sprintf(upperName, "pos%02d", box - 4);
-                int upperState = m_dataMgr.m_openState[box - 4];
-                m_gridGroup->Remove(upper[m_dataMgr.m_openState[box - 4]][1]->m_scnMdl);
-                m_gridGroup->Remove(upper[m_dataMgr.m_openState[box - 4]][2]->m_scnMdl);
-                m_gridGroup->PushBack(upper[m_dataMgr.m_openState[box - 4]][0]->m_scnMdl, upperName);
-                setPrizeModel(box - 4, upperState);
+            showBox(this, box, 3);
+            if (box >= 4) {
+                showBox(this, box - 4, 3);
             }
             if (box + 4 < BoxNum) {
-                MuObject* lower[3][3] = {
-                    {m_boxA[box + 4], m_boxB[box + 4], m_boxC[box + 4]},
-                    {m_boxB[box + 4], m_boxA[box + 4], m_boxC[box + 4]},
-                    {m_boxC[box + 4], m_boxB[box + 4], m_boxA[box + 4]},
-                };
-                char lowerName[8];
-                sprintf(lowerName, "pos%02d", box + 4);
-                int lowerState = m_dataMgr.m_openState[box + 4];
-                m_gridGroup->Remove(lower[m_dataMgr.m_openState[box + 4]][1]->m_scnMdl);
-                m_gridGroup->Remove(lower[m_dataMgr.m_openState[box + 4]][2]->m_scnMdl);
-                m_gridGroup->PushBack(lower[m_dataMgr.m_openState[box + 4]][0]->m_scnMdl, lowerName);
-                setPrizeModel(box + 4, lowerState);
+                showBox(this, box + 4, 3);
             }
             printPrizeData(3);
             g_sndSystem->playSE(static_cast<SndID>(0x1ED7), -1, 0, 0, -1);
@@ -602,7 +608,7 @@ void muClearGetTask::processAnim() {
             }
             setPrizeModel(m_breakQueue[0], 2);
             u32 box = m_breakQueue[0];
-            if (box > 3 && m_dataMgr.m_openState[box - 4] == 0) {
+            if (box >= 4 && m_dataMgr.m_openState[box - 4] == 0) {
                 m_boxA[box - 4]->setAnimName(lbl_80456718, true);
                 setPrizeModel(m_breakQueue[0] - 4, 1);
             }
@@ -631,9 +637,10 @@ void muClearGetTask::processAnim() {
                     gmCheckHideCondition();
                     for (int i = 0; i < BoxNum; i++) {
                         if (!isClearGetterOpen(i)) {
-                            u8* flags = g_GameGlobal->getClearGetAppFlag();
-                            if ((flags[i >> 5] & (1 << (i & 0x1F))) != 0 && m_dataMgr.m_openState[i] != 2) {
-                                setBreakBoxId(i);
+                            u32* flags = reinterpret_cast<u32*>(g_GameGlobal->getClearGetAppFlag());
+                            u32 isSet = (flags[i / 32] & (1 << (i % 32))) != 0;
+                            if (isSet == 1) {
+                                appendBreakBox(this, i);
                             }
                         }
                     }
@@ -656,3 +663,4 @@ void muClearGetTask::processAnim() {
     }
     m_stateFrame = m_stateFrame + 1;
 }
+#pragma pop
