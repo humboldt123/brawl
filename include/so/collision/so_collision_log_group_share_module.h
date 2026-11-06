@@ -9,10 +9,10 @@ public:
     soArray<int>* m_logGroups; // 0x0
     u8 unk4;
     u8 unk5;
-    // HYPOTHESIS: the constructor's flag argument.
-    bool unk6;
+    // HYPOTHESIS: the constructor's byte argument (PokeFushigisou passes the 2 log groups of its vector).
+    s8 unk6;
 
-    soCollisionLogGroupShareModule(soArray<int>* logGroups, bool flag);
+    soCollisionLogGroupShareModule(soArray<int>* logGroups, s8 flag);
     virtual ~soCollisionLogGroupShareModule();
     void reset();
 };

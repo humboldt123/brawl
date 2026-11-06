@@ -12,7 +12,7 @@ global_destructor_chain.c:
 	.bss        start:0x00000000 end:0x00000004
 
 mo_fighter/ft_zelda/ft_zelda.cpp:
-	.text       start:0x00000070 end:0x0000DCB8
+	.text       start:0x00000070 end:0x0000DFB4
 	.ctors      start:0x00000000 end:0x00000004
 
 mo_fighter/ft_zelda/ft_zelda_status_uniq_process_special_s.cpp:

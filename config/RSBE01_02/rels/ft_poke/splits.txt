@@ -46,9 +46,16 @@ mo_fighter/ft_poke/ft_poke_zenigame.cpp:
 mo_fighter/ft_poke/ft_pokezenigame_status_uniq_process_special_s.cpp:
 	.text       start:0x0001AFE0 end:0x0001B63C
 	.ctors      start:0x00000010 end:0x00000014
-	.rodata     start:0x00000078 end:0x000000D4
-	.data       start:0x000098F0 end:0x0000C638
-	.bss        start:0x000004C0 end:0x0000068C
+	.rodata     start:0x00000078 end:0x00000090
+	.data       start:0x000098F0 end:0x000099B8
+	.bss        start:0x000004C0 end:0x000004D0
+
+mo_fighter/ft_poke/ft_poke_fushigisou.cpp:
+	.text       start:0x0001B63C end:0x000216E8
+	.ctors      start:0x00000014 end:0x00000018
+	.rodata     start:0x00000090 end:0x000000A0
+	.data       start:0x000099B8 end:0x0000BA48
+	.bss        start:0x000004D0 end:0x000005B0
 
 mo_fighter/ft_poke/wn_poke_fushigisou_leaf_cutter.cpp:
 	.text       start:0x000216E8 end:0x00023BA4

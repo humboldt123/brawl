@@ -1213,7 +1213,7 @@ deactivateDescendantForce__58wnWeaponBuilder<39wnKirbyCookHatModuleAccesserBuild
 @144@__dt__58wnWeaponBuilder<39wnKirbyCookHatModuleAccesserBuildConfig>Fv = .text:0x0002F868; // type:function size:0x8
 @136@__dt__58wnWeaponBuilder<39wnKirbyCookHatModuleAccesserBuildConfig>Fv = .text:0x0002F870; // type:function size:0x8
 @64@__dt__14wnKirbyCookHatFv = .text:0x0002F878; // type:function size:0x8
-fn_96_2F880 = .text:0x0002F880; // type:function size:0x8
+@84@notifyEventLink__14wnKirbyCookHatFP15soLinkEventArgsP16soModuleAccesserP11StageObjecti = .text:0x0002F880; // type:function size:0x8
 @144@__dt__14wnKirbyCookHatFv = .text:0x0002F888; // type:function size:0x8
 @136@deactivateDescendantForce__58wnWeaponBuilder<39wnKirbyCookHatModuleAccesserBuildConfig>Fv = .text:0x0002F890; // type:function size:0x8
 fn_96_2F898 = .text:0x0002F898; // type:function size:0x8

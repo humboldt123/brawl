@@ -79,7 +79,7 @@ ftPokeZenigame::ftPokeZenigame(s32 entryId,
 extern "C" {
 void fn_27_37263C(ftPokeZenigameTransactor* transactor, soModuleAccesser* moduleAccesser); // HYPOTHESIS: initTransact
 void fn_27_372664(ftPokeZenigameTransactor* transactor, soModuleAccesser* moduleAccesser); // HYPOTHESIS: processUpdateTransact
-bool fn_27_372724(ftPokeZenigameTransactor* transactor, wnPokeZenigameWater* weapon, soModuleAccesser* moduleAccesser); // HYPOTHESIS: activeArticle
+bool fn_27_372724(ftPokeZenigameTransactor* transactor, wnPokeZenigameWater* weapon, soModuleAccesser* moduleAccesser, u32 etcResId); // HYPOTHESIS: activeArticle
 }
 
 void ftPokeZenigame::onActivate() {
@@ -334,7 +334,9 @@ bool ftPokeZenigameArticleMediator::isGeneratable(soModuleAccesser*, s32 article
 
 template <class W> struct ftPokeZenigameArticleActivator;
 template <> struct ftPokeZenigameArticleActivator<wnPokeZenigameWater> {
-    static bool activate(wnPokeZenigameWater* weapon, soModuleAccesser* acc) { return fn_27_372724(ftPokeZenigameTransactor::getInstance(), weapon, acc); }
+    static bool activate(wnPokeZenigameWater* weapon, soModuleAccesser* acc) {
+        return fn_27_372724(ftPokeZenigameTransactor::getInstance(), weapon, acc, acc->getResourceModule().getResourceIdAccesser()->getEtcResId());
+    }
 };
 
 soArticle* ftPokeZenigameArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {

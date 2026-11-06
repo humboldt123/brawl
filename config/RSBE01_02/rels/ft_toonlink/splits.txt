@@ -12,7 +12,7 @@ global_destructor_chain.c:
 	.bss        start:0x00000000 end:0x00000004
 
 mo_fighter/ft_toonlink/ft_toonlink.cpp:
-	.text       start:0x00000070 end:0x0000E9B8
+	.text       start:0x00000070 end:0x0000ECC4
 	.ctors      start:0x00000000 end:0x00000004
 	.rodata     start:0x00000000 end:0x00000040
 	.data       start:0x00000000 end:0x000081B8

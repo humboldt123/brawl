@@ -12,7 +12,7 @@ global_destructor_chain.c:
 	.bss        start:0x00000000 end:0x00000004
 
 mo_fighter/ft_link/ft_link.cpp:
-	.text       start:0x00000070 end:0x0000E9BC
+	.text       start:0x00000070 end:0x0000ECC8
 	.ctors      start:0x00000000 end:0x00000004
 	.rodata     start:0x00000000 end:0x00000040
 	.data       start:0x00000000 end:0x000080B8

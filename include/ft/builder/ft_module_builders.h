@@ -254,6 +254,25 @@ public:
     typename BC::ModuleType* getModule() { return &m_catchModule; }
 };
 
+// Catch module builder with another number of catch parts (same code; PokeFushigisou's vine grab has five).
+template <s32 NumParts, typename T>
+class soCollisionCatchModuleBuildConfigParts {
+public:
+    enum { Flag = 1 };
+    typedef T ModuleType;
+};
+
+template <s32 NumParts, typename T>
+class soCollisionCatchModuleBuilder<soCollisionCatchModuleBuildConfigParts<NumParts, T> > {
+    soArrayVector<soCollisionCatchPart, NumParts> m_parts;
+    T m_catchModule;
+public:
+    soCollisionCatchModuleBuilder(soModuleAccesser* acc, int taskId, gfTask::Category category, soEventObserverRegistrationDesc* regDesc) :
+        m_parts(NumParts, soCollisionCatchPart(soCollision::Category_Fighter), 0),
+        m_catchModule(acc, taskId, category, &m_parts, regDesc, true, true) { }
+    T* getModule() { return &m_catchModule; }
+};
+
 ////////////////////////////////////////
 // soCollisionSearchModuleBuilder (Link, Toon Link, Zelda)
 ////////////////////////////////////////

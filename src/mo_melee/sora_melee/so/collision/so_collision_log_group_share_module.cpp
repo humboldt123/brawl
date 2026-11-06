@@ -2,7 +2,7 @@
 #include <so/collision/so_collision_manager.h>
 #include <types.h>
 
-soCollisionLogGroupShareModule::soCollisionLogGroupShareModule(soArray<int>* logGroups, bool flag) : m_logGroups(logGroups) {
+soCollisionLogGroupShareModule::soCollisionLogGroupShareModule(soArray<int>* logGroups, s8 flag) : m_logGroups(logGroups) {
     unk4 = 0;
     unk5 = 0;
     unk6 = flag;

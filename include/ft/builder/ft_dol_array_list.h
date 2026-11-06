@@ -52,6 +52,7 @@ FT_DOL_ARRAY_VECTOR(soControllerImpl, 10);
 FT_DOL_ARRAY_VECTOR(soControllerClatter, 2);
 FT_DOL_ARRAY_VECTOR(soDamage, 1);
 FT_DOL_ARRAY_VECTOR(soCollisionCatchPart, 4);
+FT_DOL_ARRAY_VECTOR(soCollisionCatchPart, 5);
 FT_DOL_ARRAY_VECTOR(soCollisionCatchPart, 1);
 FT_DOL_ARRAY_VECTOR(soCollisionSearchPart, 1);
 FT_DOL_ARRAY_VECTOR(soCollisionShieldPart, 2);

@@ -2270,6 +2270,7 @@ config.libs = [
             Object(NonMatching, "mo_fighter/ft_poke/wn_poke_fushigisou_vine.cpp"),
             Object(NonMatching, "mo_fighter/ft_poke/ft_pokelizardon_status_uniq_process_crush_rock.cpp"),
             Object(NonMatching, "mo_fighter/ft_poke/ft_poke_zenigame.cpp"),
+            Object(NonMatching, "mo_fighter/ft_poke/ft_poke_fushigisou.cpp"),
             Object(NonMatching, "mo_fighter/ft_poke/ft_pokezenigame_status_uniq_process_special_s.cpp"),
             Object(NonMatching, "mo_fighter/ft_poke/ft_poke_lizardon.cpp"),
         ],
