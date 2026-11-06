@@ -136,15 +136,11 @@ IfCoinShooterLabelImpl::~IfCoinShooterLabelImpl() {
 // trophies / stickers; the same functions that muAdvResultTask calls): isLoadFinish() and add(id, count, ...).
 extern "C" bool fn_800FA740(IfRewardListTask* task);
 extern "C" void fn_800FA7B8(IfRewardListTask* task, u32 id, int count, void* bufA, int sizeA, void* bufB, const char* label);
-// The deleting destructor of tySealListDataManager.
-extern "C" void fn_800AD87C(tySealListDataManager* manager, int flag);
 // srReportLessMastar(fmt, ...): the error report of the minigame (a no-op in the retail build).
 extern "C" void fn_80101810(...);
 
-// The Light is made by the destructor of a Counter.
-// HYPOTHESIS: names of the nodes of m_root that the Lights fly to (the coin total, the seal total) and the node of the
-// Counter that they start from.
-
+// A Counter shows a number on the model of its Type (digits InfShooter0007 on the nodes of an expand group). The group goes
+// to the end of the HUD's group (drawn last). Type_4 / Type_5 play the node and texture-SRT animations of the model.
 IfCoinShooterLabelCounter::IfCoinShooterLabelCounter(IfCoinShooterLabel* owner, IfCoinShooterLabel::Type type, int value, u32 sealId)
     : IfCoinShooterLabelImpl(owner), m_type(type), m_value(value), m_sealId(sealId) {
     IfCoinShooter* shooter = lbl_805A0310;
@@ -169,15 +165,23 @@ IfCoinShooterLabelCounter::IfCoinShooterLabelCounter(IfCoinShooterLabel* owner, 
         m_number.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
         m_number.m_digitObjs[i]->setFrameVisible(type == IfCoinShooterLabel::Type_5);
     }
-    if (type >= IfCoinShooterLabel::Type_4 && type < IfCoinShooterLabel::Type_6) {
+    switch (type) {
+    case IfCoinShooterLabel::Type_4:
+    case IfCoinShooterLabel::Type_5: {
         MuObject* base = m_number.m_baseObj.get();
         base->changeNodeAnimNIf(getAnimName(base, 0).m_str);
         base = m_number.m_baseObj.get();
         base->changeTexSrtAnimNIf(getAnimName(base, 0).m_str);
+        break;
+    }
+    default:
+        break;
     }
     unk10_2 = m_number.m_baseObj->isNodeAnimLoop();
 }
 
+// When a Counter ends it hands its value over to a Light that flies from the Counter's node "pos02" to the HUD's total:
+// the coin total (m_root "pos00") for Type_4, the seal total (m_root "pos01") for Type_5. HYPOTHESIS: the node roles.
 IfCoinShooterLabelCounter::~IfCoinShooterLabelCounter() {
     IfCoinShooter* shooter = lbl_805A0310;
     if (shooter != NULL) {

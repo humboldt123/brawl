@@ -406,7 +406,8 @@ void muClearGetTask::processAnim() {
             Vec3f axis(0.0f, 1.0f, 0.0f);
             char name[8];
             sprintf(name, "pos%02d", m_column + m_row * 4);
-            Vec3f boxPos = m_panelGrid->getGlobalPosition(name);
+            Vec3f boxPos;
+            boxPos = m_panelGrid->getGlobalPosition(name);
             sprintf(name, "box%d", m_row);
             Vec3f rotation;
             m_panelGrid->getRotate(&rotation, name);
@@ -417,8 +418,10 @@ void muClearGetTask::processAnim() {
             m_hammerPos.rot(&axis, rotation.m_y, &offset);
             boxPos = offset + boxPos - m_hammerPos;
             sprintf(name, "pos%02d", m_hammerSel + 95);
-            Vec3f rowPos = m_panelHammer->getGlobalPosition(name);
-            Vec3f pos = boxPos - rowPos;
+            Vec3f rowPos;
+            rowPos = m_panelHammer->getGlobalPosition(name);
+            Vec3f pos;
+            pos = boxPos - rowPos;
             Vec3fScale(&pos, &pos, static_cast<float>(static_cast<u32>(m_stateFrame)) * 0.25f);
             Vec3fAdd(&pos, &pos, &rowPos);
             Vec3fAdd(&pos, &pos, &m_hammerPos);

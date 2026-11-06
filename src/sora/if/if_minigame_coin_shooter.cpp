@@ -149,7 +149,7 @@ static inline void changeCoinAnim(MuObject* object, int no) {
 }
 
 // HYPOTHESIS: the model of each label Type (lbl_8045C8C4): InfShooter0000 .. 0006.
-const char* const sLabelModels[9] = {
+const char* sLabelModels[9] = {
     "InfShooter0000_TopN", "InfShooter0000_TopN", "InfShooter0001_TopN", "InfShooter0002_TopN", "InfShooter0003_TopN",
     "InfShooter0004_TopN", "InfShooter0005_TopN", "InfShooter0006_TopN", "InfShooter0006_TopN",
 };
@@ -215,6 +215,24 @@ static inline void clearType6Flag(IfCoinShooterLabelSimple* label) {
 
 IfCoinShooterLabelSimple::~IfCoinShooterLabelSimple() {
     clearType6Flag(this);
+}
+
+IfCoinShooterLabelLight::IfCoinShooterLabelLight(IfCoinShooterLabel::Type type, int value, u32 sealId, const Vec3f& from,
+                                                 const Vec3f& to)
+    : IfCoinShooterLabelImpl(NULL), m_type(type), m_value(value), m_sealId(sealId), m_from(from), m_to(to) {
+    m_obj.reset(createLabelModel(lbl_805A0310, type));
+    switch (type) {
+    case IfCoinShooterLabel::Type_7:
+    case IfCoinShooterLabel::Type_8:
+        changeCoinAnim<AnimKind_Node>(m_obj.get(), 0);
+        changeCoinAnim<AnimKind_Clr>(m_obj.get(), 0);
+        changeCoinAnim<AnimKind_Vis>(m_obj.get(), 0);
+        m_obj->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
+        int visibleFrame = 0;
+        m_obj->setFrameVisible(visibleFrame);
+        break;
+    }
+    unk10_2 = m_obj->isNodeAnimLoop();
 }
 
 // Function bodies below are taken from https://github.com/jj-link/brawl.

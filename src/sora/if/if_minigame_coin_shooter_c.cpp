@@ -128,6 +128,9 @@ static inline const char* getMdlName(MuObject* object) {
 static inline void changeNodeAnim(MuObject* object, int no) {
     object->changeNodeAnimNIf((IfCoinShooterName<65>(getMdlName(object)).separated() + no).m_str);
 }
+static inline void changeVisAnim(MuObject* object, int no) {
+    object->changeVisAnimNIf((IfCoinShooterName<65>(getMdlName(object)).separated() + no).m_str);
+}
 static inline void changeClrAnim(MuObject* object, int no) {
     object->changeClrAnimNIf((IfCoinShooterName<65>(getMdlName(object)).separated() + no).m_str);
 }
@@ -355,7 +358,8 @@ void IfCoinShooter::createModel() {
         m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_sealNumber.m_expand.get());
         for (int i = 0; i < m_sealNumber.m_digits; i++) {
             MuObject* digit = m_sealNumber.m_digitObjs[i].get();
-            digit->changeVisAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
+            IfCoinShooterName<65> animName = IfCoinShooterName<65>(getMdlName(digit)).separated() + 0;
+            digit->changeVisAnimNIf(animName.m_str);
             m_sealNumber.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
             m_sealNumber.m_digitObjs[i]->setFrameVisible(1.0f);
         }
@@ -381,7 +385,8 @@ void IfCoinShooter::createModel() {
         m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_figureNumber.m_expand.get());
         for (int i = 0; i < m_figureNumber.m_digits; i++) {
             MuObject* digit = m_figureNumber.m_digitObjs[i].get();
-            digit->changeVisAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
+            IfCoinShooterName<65> animName = IfCoinShooterName<65>(getMdlName(digit)).separated() + 0;
+            digit->changeVisAnimNIf(animName.m_str);
             m_figureNumber.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
             m_figureNumber.m_digitObjs[i]->setFrameVisible(0.0f);
         }
@@ -410,8 +415,7 @@ void IfCoinShooter::createModel() {
     // The bonus gauge sits on the coin total.
     m_bonusGauge.m_obj.reset(MuObject::create(&m_infoRes, "InfShooter0015_TopN", m_objPriority++, NULL, Heaps::MenuInstance));
     m_coinNumber.m_expand->PushBack(m_bonusGauge.m_obj->m_sceneModel, (pos + sBonusGaugeNode).m_str);
-    MuObject* gauge = m_bonusGauge.m_obj.get();
-    gauge->changeVisAnimNIf((IfCoinShooterName<65>(getMdlName(gauge)).separated() + 0).m_str);
+    changeVisAnim(m_bonusGauge.m_obj.get(), 0);
     m_bonusGauge.m_obj->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
 
     // The stand of the trophy.
