@@ -128,19 +128,18 @@ bool muClearGetTask::calcHammerCancel() {
 // Makes the objects and the scene groups of the screen, puts the boxes with their prizes on the grid, sets the first
 // animations and prints the fixed texts. Called by processAnim once the data and the file are there.
 void muClearGetTask::initMdlData() {
-    char name[8];
     u32 size;
     switch (m_mode) {
+    case 0:
+        m_state = State_Intro;
+        break;
     case 1:
         // the boxes of the queue are broken at the start: go to the first of them
         m_state = State_Move;
         setPosRot(m_breakQueue[0]);
-        m_stateFrame = 0;
         m_column = m_breakQueue[0] & 3;
         m_row = m_breakQueue[0] >> 2;
-        break;
-    case 0:
-        m_state = State_Intro;
+        m_stateFrame = 0;
         break;
     }
     m_bg = MuObject::create(&m_resFile, "MenClearBg_TopN", 0x10, NULL, Heaps::MenuInstance);
@@ -192,7 +191,7 @@ void muClearGetTask::initMdlData() {
         }
     }
     // the scene groups: the preview and the kind on the text window, the grid, the hammers, the trophy
-    nw4r::g3d::MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
+    MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
     m_previewGroup = nw4r::g3d::ScnMdlExpand::Construct(allocator, &size, 4, m_panelTop->m_scnMdl);
     m_previewGroup->PushBack(m_kindObj->m_scnMdl, "pos02");
     m_gridGroup = nw4r::g3d::ScnMdlExpand::Construct(allocator, &size, 0x182, m_panelGrid->m_scnMdl);
@@ -203,13 +202,14 @@ void muClearGetTask::initMdlData() {
     m_figureGroup->PushBack(m_previews[1]->m_scnMdl, "pos00");
     for (u32 i = 0; i < BoxNum; i++) {
         int kind = m_dataMgr.m_list[i].m_kind;
-        if (kind >= 0 && kind < 2) {
+        if (kind < 2 && kind >= 0) {
             m_prizeGroups[i] = nw4r::g3d::ScnMdlExpand::Construct(allocator, &size, 1, m_prizeFrame[i]->m_scnMdl);
             m_prizeGroups[i]->PushBack(m_prizeItem[i]->m_scnMdl, "pos00");
         }
     }
     // the hammers that are left sit in the row of hammers
     for (u32 i = 0; i < m_hammerNum; i++) {
+        char name[8];
         sprintf(name, "pos%02d", i + 95);
         m_hammerGroup->PushBack(m_hammers[i]->m_scnMdl, name);
         m_hammers[i]->setTrans(&m_hammerPos);
@@ -244,13 +244,12 @@ void muClearGetTask::initMdlData() {
     m_notice->setFrameMatCol(static_cast<float>(static_cast<u32>(m_yesNo)));
     u32 hammers = 0;
     for (u32 i = 0; i < BoxNum; i++) {
-        muClearGetData* data = &m_dataMgr.m_list[i];
-        switch (data->m_kind) {
+        switch (m_dataMgr.m_list[i].m_kind) {
         case 0: {
             m_prizeFrame[i]->setAnimName(lbl_80456860 + 2, true);
             m_prizeItem[i]->setAnimName(lbl_80456860 + 3, true);
             m_prizeItem[i]->setUpdateRateFlg(0.0f, 4);
-            m_prizeItem[i]->setFrameFlg(static_cast<float>(data->m_reward), 4);
+            m_prizeItem[i]->setFrameFlg(static_cast<float>(m_dataMgr.m_list[i].m_reward), 4);
             nw4r::g3d::AnmObjTexPatRes* texPat = m_prizeItem[i]->m_modelAnim->m_anmObjTexPatRes;
             ClearGetTexPatResult result;
             ClearGetTexPatResult* shown = reinterpret_cast<ClearGetTexPatResult*>(texPat->GetResult(reinterpret_cast<int*>(&result), 0));
@@ -267,7 +266,7 @@ void muClearGetTask::initMdlData() {
             m_prizeFrame[i]->setAnimName(lbl_80456860, true);
             m_prizeItem[i]->setAnimName(lbl_80456860 + 1, true);
             m_prizeItem[i]->setUpdateRateFlg(0.0f, 0x10);
-            u16 figId = data->m_reward;
+            u16 figId = m_dataMgr.m_list[i].m_reward;
             s32 texFile = m_figMng->getBilTexFileIdxFigId(figId);
             char texName[32];
             m_figMng->getBilTexNameFigId(figId, texName);
@@ -304,10 +303,11 @@ void muClearGetTask::initMdlData() {
             m_prizeItem[i]->setAnimName(lbl_80456860 + 7, true);
             break;
         }
-        if (data->m_hasHammer) {
+        if (m_dataMgr.m_list[i].m_hasHammer) {
             m_hammerBox[hammers++] = i;
         }
         // the box that matches the state of the prize (closed, locked or opened) goes on the grid
+        char name[8];
         MuObject* boxes[9] = { m_boxA[i], m_boxB[i], m_boxC[i], m_boxB[i], m_boxA[i], m_boxC[i], m_boxC[i], m_boxB[i], m_boxA[i] };
         sprintf(name, "pos%02d", i);
         int state = m_dataMgr.m_openState[i];

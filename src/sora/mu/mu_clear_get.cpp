@@ -21,36 +21,6 @@
 // HYPOTHESIS: the scene maker of the menus; its body is `new MenuRoot(name, scnSize, archive, index, Heaps::MenuResource)`.
 extern "C" MenuRoot* fn_800AFBFC(const char* name, int scnSize, gfArchive* archive, int index);
 
-muClearGetDataManager::~muClearGetDataManager() {
-    saveFlags();
-}
-
-
-void muClearGetDataManager::setData(u8* buffer, u32 size) {
-    utRelocate relocate(buffer, size);
-    m_list = static_cast<muClearGetData*>(relocate.getPublicAddress("muClearGetDataList"));
-    for (m_count = 0; m_list[m_count].m_index >= 0; m_count++) {
-    }
-    if (m_count > 128) {
-        m_count = 128;
-    }
-    u8* flags = g_GameGlobal->m_record->unk1528;
-    for (int i = 0; i < 128; i++) {
-        m_openState[i] = flags[i];
-    }
-}
-
-void muClearGetDataManager::setOpenState(u32 index) {
-    m_openState[index] = 2;
-    if (index >= 4 && m_openState[index - 4] == 0) {
-        m_openState[index - 4] = 1;
-    }
-    if (index + 4 < 128 && m_openState[index + 4] == 0) {
-        m_openState[index + 4] = 1;
-    }
-    saveFlags();
-}
-
 // The animations of the models (muClearGetTask::initMdlData and processAnim pick them by address). Each strings comes
 // right before its table.
 // panel (MenClearPanel0000_TopN): 0 -> 9 plays once when the screen comes in
@@ -163,9 +133,9 @@ static inline Vec3f& getObjRotation(MuObject* object) {
 }
 
 // The icon of the controller type that is shown on the panel (frame of its visibility animation).
-static inline void showPadIcon(MuObject* panel, int pad) {
+static inline void showPadIcon(muClearGetTask* task) {
     gfPadStatus status;
-    g_gfPadSystem->getSysPadStatus(pad, &status);
+    g_gfPadSystem->getSysPadStatus(task->m_activePad, &status);
     float frame;
     if (status.m_error != 0) {
         frame = 0.0f;
@@ -189,7 +159,7 @@ static inline void showPadIcon(MuObject* panel, int pad) {
         }
     }
     if (frame >= 0.0f) {
-        panel->setFrameFlg(frame, 2);
+        task->m_panelTop->setFrameFlg(frame, 2);
     }
 }
 
@@ -203,7 +173,9 @@ void muClearGetTask::processAnim() {
         pad.m_buttonsPressedThisFrame2.bits |= m_controller.m_trigger;
         if (m_scrolling) {
             // The grid turns towards m_scrollAngle (degrees) in steps of a sixth of the rest.
-            Vec3f rotation = getObjRotation(m_panelGrid);
+            Vec3f& turn = getObjRotation(m_panelGrid);
+            Vec3f rotation;
+            rotation = turn;
             float current = rotation.m_y * 57.29578f;
             float step = (m_scrollAngle - current) / 6.0f;
             bool scrolling = true;
@@ -227,7 +199,10 @@ void muClearGetTask::processAnim() {
     }
     switch (m_state) {
     case State_Load: {
-        if (!m_figMng->isLoadFinish() || !m_fileHandle.isReady()) {
+        if (!m_figMng->isLoadFinish()) {
+            return;
+        }
+        if (!m_fileHandle.isReady()) {
             return;
         }
         void* compressed = m_fileHandle.getBuffer();
@@ -272,7 +247,7 @@ void muClearGetTask::processAnim() {
         break;
     case State_Select:
         if (m_panelTop->m_modelAnim->m_anmObjVisRes->GetFrame() > 0.0f) {
-            showPadIcon(m_panelTop, m_activePad);
+            showPadIcon(this);
         }
         if (!m_hammerCancelling) {
             if (pad.m_buttonsPressedThisFrame.bits & 0x200) {
@@ -365,12 +340,26 @@ void muClearGetTask::processAnim() {
                     setCursor();
                     char name[8];
                     sprintf(name, "pos%02d", m_hammerSel + 95);
-                    Vec3f pos = m_panelHammer->getGlobalPosition(name);
-                    pos += m_hammerPos;
+                    Vec3f pos;
+                    pos = m_panelHammer->getGlobalPosition(name);
+                    Vec3fAdd(&pos, &pos, &m_hammerPos);
                     m_hammers[m_hammerSel]->setTrans(&pos);
                     m_hammerGroup->Remove(m_hammers[m_hammerSel]->m_scnMdl);
                     m_menuRoot->scene->Insert(m_menuRoot->scene->sceneItemsCount, m_hammers[m_hammerSel]->m_scnMdl);
-                } else if (!m_hammerHeld) {
+                } else if (m_hammerHeld) {
+                    if (state == 2) {
+                        g_sndSystem->playSE(static_cast<SndID>(3), -1, 0, 0, -1);
+                    } else if (m_dataMgr.m_list[box].m_openable == 0) {
+                        g_sndSystem->playSE(static_cast<SndID>(0x1ED6), -1, 0, 0, -1);
+                    } else {
+                        g_sndSystem->playSE(static_cast<SndID>(0x1ED4), -1, 0, 0, -1);
+                        m_state = State_Confirm;
+                        m_notice->setAnimName(lbl_80456944 + 1, true);
+                        m_yesNo = 1;
+                        m_notice->setFrameMatCol(static_cast<float>(static_cast<u32>(m_yesNo)));
+                        m_hammers[m_hammerSel]->setAnimName(lbl_804569E0 + 3, true);
+                    }
+                } else {
                     // no hammer in hand: a CD plays or stops
                     if (m_dataMgr.m_list[box].m_kind == 2 && state == 2) {
                         int bgm = m_dataMgr.m_list[box].m_reward;
@@ -385,17 +374,6 @@ void muClearGetTask::processAnim() {
                             m_panelTop->setFrameTex(1.0f);
                         }
                     }
-                } else if (state == 2) {
-                    g_sndSystem->playSE(static_cast<SndID>(3), -1, 0, 0, -1);
-                } else if (m_dataMgr.m_list[box].m_openable == 0) {
-                    g_sndSystem->playSE(static_cast<SndID>(0x1ED6), -1, 0, 0, -1);
-                } else {
-                    g_sndSystem->playSE(static_cast<SndID>(0x1ED4), -1, 0, 0, -1);
-                    m_state = State_Confirm;
-                    m_notice->setAnimName(lbl_80456944 + 1, true);
-                    m_yesNo = 1;
-                    m_notice->setFrameMatCol(static_cast<float>(static_cast<u32>(m_yesNo)));
-                    m_hammers[m_hammerSel]->setAnimName(lbl_804569E0 + 3, true);
                 }
             } else if (pad.m_buttonsPressedThisFrame.bits & 0x1000) {
                 // START: stop the CD
@@ -409,6 +387,119 @@ void muClearGetTask::processAnim() {
                 setCursor();
                 printPrizeData(3);
                 g_sndSystem->playSE(static_cast<SndID>(0), -1, 0, 0, -1);
+            }
+        }
+        break;
+    case State_Grab:
+        if (static_cast<float>(static_cast<u32>(m_stateFrame)) >= 4.0f) {
+            m_state = State_Select;
+            m_hammerHeld = true;
+            m_menuRoot->scene->Remove(m_hammers[m_hammerSel]->m_scnMdl);
+            char name[8];
+            sprintf(name, "pos%02d", m_column + m_row * 4);
+            m_gridGroup->PushBack(m_hammers[m_hammerSel]->m_scnMdl, name);
+            m_hammers[m_hammerSel]->setTrans(&m_hammerPos);
+            Vec3f rotation(0.0f, 0.0f, 0.0f);
+            m_hammers[m_hammerSel]->setObjRotate(&rotation);
+        } else {
+            // The hammer flies from its place in the row to the box that was chosen.
+            Vec3f axis(0.0f, 1.0f, 0.0f);
+            char name[8];
+            sprintf(name, "pos%02d", m_column + m_row * 4);
+            Vec3f boxPos = m_panelGrid->getGlobalPosition(name);
+            sprintf(name, "box%d", m_row);
+            Vec3f rotation;
+            m_panelGrid->getRotate(&rotation, name);
+            rotation.m_z = 0.017453292f * rotation.m_z;
+            rotation.m_y = 0.017453292f * (rotation.m_y + m_scrollAngle);
+            rotation.m_x = 0.017453292f * rotation.m_x;
+            Vec3f offset;
+            m_hammerPos.rot(&axis, rotation.m_y, &offset);
+            boxPos = offset + boxPos - m_hammerPos;
+            sprintf(name, "pos%02d", m_hammerSel + 95);
+            Vec3f rowPos = m_panelHammer->getGlobalPosition(name);
+            Vec3f pos = boxPos - rowPos;
+            Vec3fScale(&pos, &pos, static_cast<float>(static_cast<u32>(m_stateFrame)) * 0.25f);
+            Vec3fAdd(&pos, &pos, &rowPos);
+            Vec3fAdd(&pos, &pos, &m_hammerPos);
+            m_hammers[m_hammerSel]->setTrans(&pos);
+            Vec3fScale(&rotation, &rotation, static_cast<float>(static_cast<u32>(m_stateFrame)) * 0.25f);
+            m_hammers[m_hammerSel]->setObjRotate(&rotation);
+        }
+        break;
+    case State_Confirm: {
+        bool no = false;
+        bool yes = false;
+        int move = 0;
+        if (pad.m_buttonsPressedThisFrame.bits & 0x200) {
+            no = true;
+        } else if (pad.m_buttonsPressedThisFrame.bits & 0x100) {
+            yes = m_yesNo == 0;
+            if (m_yesNo == 1) {
+                no = true;
+            }
+        } else if (pad.m_buttonsPressedThisFrame2.bits & 1) {
+            move = -1;
+        } else if (pad.m_buttonsPressedThisFrame2.bits & 2) {
+            move = 1;
+        }
+        if (no) {
+            m_state = State_Select;
+            m_notice->setAnimName(lbl_80456944 + 2, true);
+            m_hammers[m_hammerSel]->setAnimName(lbl_804569E0, true);
+            g_sndSystem->playSE(static_cast<SndID>(2), -1, 0, 0, -1);
+        } else if (yes) {
+            m_notice->setAnimName(lbl_80456944 + 2, true);
+            m_activePad = muMenuController::getAButtonPushedControllerID();
+            m_state = State_Hit;
+            m_hammers[m_hammerSel]->setAnimName(lbl_804569E0 + 1, true);
+            u32 last = m_hammerNum - 1;
+            if (m_hammerSel == last) {
+                m_hammerNum = last;
+            } else {
+                m_hammerClosing = true;
+            }
+        } else if (move != 0) {
+            int before = m_yesNo;
+            if (before == 0 && move == 1) {
+                m_yesNo = 1;
+            }
+            if (m_yesNo == 1 && move == -1) {
+                m_yesNo = 0;
+            }
+            if (before != m_yesNo) {
+                m_notice->setFrameMatCol(static_cast<float>(static_cast<u32>(m_yesNo)));
+                g_sndSystem->playSE(static_cast<SndID>(0), -1, 0, 0, -1);
+            }
+        }
+        break;
+    }
+    case State_Hit:
+        if (m_hammers[m_hammerSel]->m_modelAnim->m_anmObjChrRes->GetFrame() == 17.0f) {
+            u32 box = m_column + m_row * 4;
+            setBreakBoxId(box);
+            box = m_breakQueue[0];
+            int state = m_dataMgr.m_openState[box];
+            m_state = State_Break;
+            g_sndSystem->playSE(static_cast<SndID>(0x1ED5), -1, 0, 0, -1);
+            muMenu::startRumbleController(m_decisionPad, 0x1E, -1);
+            MuObject* boxObj = m_boxA[box];
+            int priority = boxObj->m_scnMdl->m_priorityDrawOpa + 1;
+            boxObj->m_scnMdl->SetPriorityDrawOpa(priority);
+            boxObj->m_scnMdl->SetPriorityDrawXlu(priority);
+            if (state == 0) {
+                m_boxA[box]->setAnimName(lbl_80456718 + 1, true);
+            } else {
+                m_boxB[box]->setAnimName(lbl_80456718 + 2, true);
+            }
+            setPrizeModel(box, 2);
+            if (box > 3 && m_dataMgr.m_openState[box - 4] == 0) {
+                m_boxA[box - 4]->setAnimName(lbl_80456718, true);
+                setPrizeModel(box - 4, 1);
+            }
+            if (box + 4 < BoxNum && m_dataMgr.m_openState[box + 4] == 0) {
+                m_boxA[box + 4]->setAnimName(lbl_80456718, true);
+                setPrizeModel(box + 4, 1);
             }
         }
         break;
@@ -491,35 +582,6 @@ void muClearGetTask::processAnim() {
         }
         break;
     }
-    case State_Hit:
-        if (m_hammers[m_hammerSel]->m_modelAnim->m_anmObjChrRes->GetFrame() == 17.0f) {
-            u32 box = m_column + m_row * 4;
-            setBreakBoxId(box);
-            box = m_breakQueue[0];
-            int state = m_dataMgr.m_openState[box];
-            m_state = State_Break;
-            g_sndSystem->playSE(static_cast<SndID>(0x1ED5), -1, 0, 0, -1);
-            muMenu::startRumbleController(m_decisionPad, 0x1E, -1);
-            MuObject* boxObj = m_boxA[box];
-            int priority = boxObj->m_scnMdl->m_priorityDrawOpa + 1;
-            boxObj->m_scnMdl->SetPriorityDrawOpa(priority);
-            boxObj->m_scnMdl->SetPriorityDrawXlu(priority);
-            if (state == 0) {
-                m_boxA[box]->setAnimName(lbl_80456718 + 1, true);
-            } else {
-                m_boxB[box]->setAnimName(lbl_80456718 + 2, true);
-            }
-            setPrizeModel(box, 2);
-            if (box > 3 && m_dataMgr.m_openState[box - 4] == 0) {
-                m_boxA[box - 4]->setAnimName(lbl_80456718, true);
-                setPrizeModel(box - 4, 1);
-            }
-            if (box + 4 < BoxNum && m_dataMgr.m_openState[box + 4] == 0) {
-                m_boxA[box + 4]->setAnimName(lbl_80456718, true);
-                setPrizeModel(box + 4, 1);
-            }
-        }
-        break;
     case State_Move:
         if (!m_scrolling) {
             m_state = State_Break;
@@ -548,94 +610,10 @@ void muClearGetTask::processAnim() {
             }
         }
         break;
-    case State_Grab:
-        if (static_cast<float>(static_cast<u32>(m_stateFrame)) < 4.0f) {
-            // The hammer flies from its place in the row to the box that was chosen.
-            Vec3f axis(0.0f, 1.0f, 0.0f);
-            char name[8];
-            sprintf(name, "pos%02d", m_column + m_row * 4);
-            Vec3f boxPos = m_panelGrid->getGlobalPosition(name);
-            sprintf(name, "box%d", m_row);
-            Vec3f rotation;
-            m_panelGrid->getRotate(&rotation, name);
-            rotation.m_z = 0.017453292f * rotation.m_z;
-            rotation.m_y = 0.017453292f * (rotation.m_y + m_scrollAngle);
-            rotation.m_x = 0.017453292f * rotation.m_x;
-            Vec3f offset;
-            m_hammerPos.rot(&axis, rotation.m_y, &offset);
-            boxPos = offset + boxPos - m_hammerPos;
-            sprintf(name, "pos%02d", m_hammerSel + 95);
-            Vec3f rowPos = m_panelHammer->getGlobalPosition(name);
-            Vec3f pos = boxPos - rowPos;
-            Vec3fScale(&pos, &pos, static_cast<float>(static_cast<u32>(m_stateFrame)) * 0.25f);
-            Vec3fAdd(&pos, &pos, &rowPos);
-            Vec3fAdd(&pos, &pos, &m_hammerPos);
-            m_hammers[m_hammerSel]->setTrans(&pos);
-            Vec3fScale(&rotation, &rotation, static_cast<float>(static_cast<u32>(m_stateFrame)) * 0.25f);
-            m_hammers[m_hammerSel]->setObjRotate(&rotation);
-        } else {
-            m_state = State_Select;
-            m_hammerHeld = true;
-            m_menuRoot->scene->Remove(m_hammers[m_hammerSel]->m_scnMdl);
-            char name[8];
-            sprintf(name, "pos%02d", m_column + m_row * 4);
-            m_gridGroup->PushBack(m_hammers[m_hammerSel]->m_scnMdl, name);
-            m_hammers[m_hammerSel]->setTrans(&m_hammerPos);
-            Vec3f rotation(0.0f, 0.0f, 0.0f);
-            m_hammers[m_hammerSel]->setObjRotate(&rotation);
-        }
-        break;
-    case State_Confirm: {
-        bool no = false;
-        bool yes = false;
-        int move = 0;
-        if (pad.m_buttonsPressedThisFrame.bits & 0x200) {
-            no = true;
-        } else if (pad.m_buttonsPressedThisFrame.bits & 0x100) {
-            yes = m_yesNo == 0;
-            if (m_yesNo == 1) {
-                no = true;
-            }
-        } else if (pad.m_buttonsPressedThisFrame2.bits & 1) {
-            move = -1;
-        } else if (pad.m_buttonsPressedThisFrame2.bits & 2) {
-            move = 1;
-        }
-        if (no) {
-            m_state = State_Select;
-            m_notice->setAnimName(lbl_80456944 + 2, true);
-            m_hammers[m_hammerSel]->setAnimName(lbl_804569E0, true);
-            g_sndSystem->playSE(static_cast<SndID>(2), -1, 0, 0, -1);
-        } else if (yes) {
-            m_notice->setAnimName(lbl_80456944 + 2, true);
-            m_activePad = muMenuController::getAButtonPushedControllerID();
-            m_state = State_Hit;
-            m_hammers[m_hammerSel]->setAnimName(lbl_804569E0 + 1, true);
-            u32 last = m_hammerNum - 1;
-            if (m_hammerSel == last) {
-                m_hammerNum = last;
-            } else {
-                m_hammerClosing = true;
-            }
-        } else if (move != 0) {
-            int before = m_yesNo;
-            if (before == 0 && move == 1) {
-                m_yesNo = 1;
-            }
-            if (m_yesNo == 1 && move == -1) {
-                m_yesNo = 0;
-            }
-            if (before != m_yesNo) {
-                m_notice->setFrameMatCol(static_cast<float>(static_cast<u32>(m_yesNo)));
-                g_sndSystem->playSE(static_cast<SndID>(0), -1, 0, 0, -1);
-            }
-        }
-        break;
-    }
     case State_Get:
         if (m_getObj->isNodeAnimFinished()) {
             if (m_panelTop->m_modelAnim->m_anmObjVisRes->GetFrame() > 0.0f) {
-                showPadIcon(m_panelTop, m_activePad);
+                showPadIcon(this);
             }
             pad.m_buttonsPressedThisFrame.bits &= 0xFF7FFFFF;
             pad.m_buttonsPressedThisFrame2.bits &= 0xFF7FFFFF;

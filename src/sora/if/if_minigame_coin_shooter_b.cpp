@@ -1,3 +1,5 @@
+// BYTES: the scale of the seal thumbnail is the inline paired-single Vec3f::operator* (opt-in macro of mt_vector.h).
+#define MT_VEC3F_MUL_INLINE
 #include <types.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -9,6 +11,7 @@
 #include <gm/gm_common.h>
 #include <if/if_reward_list_task.h>
 #include <mu/mu_msg.h>
+#include <nw4r/g3d/g3d_scnroot.h>
 #include <std/auto_ptr.h>
 #include <ty/ty_seal_listmng.h>
 
@@ -123,7 +126,7 @@ const char* sLabelModels[9] = {
 
 // The Impl destructor of part A (fn_800FFC90): the derived destructors of the unit have it inline.
 IfCoinShooterLabelImpl::~IfCoinShooterLabelImpl() {
-    if (unkC != NULL) {
+    if (this && unkC != NULL) {
         unkC->unk0 = NULL;
         unkC = NULL;
     }
@@ -186,8 +189,9 @@ IfCoinShooterLabelCounter::~IfCoinShooterLabelCounter() {
             new (Heaps::MenuInstance) IfCoinShooterLabelLight(IfCoinShooterLabel::Type_7, value, 0, from, to);
         } else {
             // A seal: the Light adds it to the seal total, which is brought to the front and shown again.
+            int value;
             u32 sealId = m_sealId;
-            int value = m_value;
+            value = m_value;
             Vec3f to = shooter->m_root->getGlobalPosition("pos01");
             new (Heaps::MenuInstance) IfCoinShooterLabelLight(IfCoinShooterLabel::Type_8, value, sealId, from, to);
             shooter->m_scnGroup->Remove(shooter->m_sealNumber.m_expand.get());
@@ -226,29 +230,44 @@ struct IfCoinShooterTexSize {
     u16 m_height;
 };
 
+// The check of IfCoinShooterLabel::create: without a loaded HUD the request is reported (and ignored).
+static inline bool checkHudLoaded(IfCoinShooterLabel::Type type, int value, u32 sealId) {
+    if (isHudLoaded(lbl_805A0310)) {
+        return true;
+    }
+    // "[IfCoinShooter] Error: the request was ignored IfCoinShooterLabel::create(%d,%d,%d)\n"
+    fn_80101810("[IfCoinShooter] Error: "
+                "\x83\x8A\x83\x4E\x83\x47\x83\x58\x83\x67\x82\xCD\x96\xB3\x8E\x8B\x82\xB3\x82\xEA\x82\xDC\x82\xB5\x82\xBD"
+                " IfCoinShooterLabel::create(%d,%d,%d)\n",
+                type, value, sealId);
+    return false;
+}
+
 // Makes the label of a given kind (see Type) at the HUD. Without a loaded HUD the request is reported and ignored.
 void IfCoinShooterLabel::create(Type type, int value, u32 sealId) {
-    IfCoinShooter* shooter = lbl_805A0310;
-    if (!isHudLoaded(shooter)) {
-        // "[IfCoinShooter] Error: the request was ignored IfCoinShooterLabel::create(%d,%d,%d)\n"
-        fn_80101810("[IfCoinShooter] Error: "
-                    "\x83\x8A\x83\x4E\x83\x47\x83\x58\x83\x67\x82\xCD\x96\xB3\x8E\x8B\x82\xB3\x82\xEA\x82\xDC\x82\xB5\x82\xBD"
-                    " IfCoinShooterLabel::create(%d,%d,%d)\n",
-                    type, value, sealId);
+    if (!checkHudLoaded(type, value, sealId)) {
         return;
     }
     reset();
     switch (type) {
+    case Type_0:
+    case Type_1:
+    case Type_2:
+    case Type_3:
+    case Type_6:
+        unk0 = new (Heaps::MenuInstance) IfCoinShooterLabelSimple(this, type);
+        break;
     case Type_5: {
+        char texName[0x40];
         // A number and a seal: the reward list gets the seal (its "stickers" list), the Counter shows the seal's picture.
         IfRewardListTask* task = lbl_805A0310->m_rewardTask.get();
         fn_800FA7B8(task, sealId, value, reinterpret_cast<char*>(task) + 0x13A6, 0x400, reinterpret_cast<char*>(task) + 0x23A6,
                     "\x83\x56\x81\x5B\x83\x8B");
         IfCoinShooterLabelCounter* counter = new (Heaps::MenuInstance) IfCoinShooterLabelCounter(this, type, value, sealId);
+        IfCoinShooter* shooter = lbl_805A0310;
         MuObject* seal = MuObject::create(&shooter->m_infoRes, "InfShooter0023_TopN", shooter->m_objPriority + 2, NULL, Heaps::MenuInstance);
         void* sealData = shooter->m_sealMgr->getSealDataId(sealId);
         if (sealData != NULL) {
-            char texName[0x20];
             strcpy(texName, *reinterpret_cast<const char**>(reinterpret_cast<char*>(sealData) + 8));
             texName[strlen(texName) - 6] = '\0';
             const IfCoinShooterTexSize* tex = reinterpret_cast<const IfCoinShooterTexSize*>(shooter->m_sealRes.GetResTex(texName).ptr());
@@ -264,13 +283,6 @@ void IfCoinShooterLabel::create(Type type, int value, u32 sealId) {
     }
     case Type_4:
         unk0 = new (Heaps::MenuInstance) IfCoinShooterLabelCounter(this, type, value, sealId);
-        break;
-    case Type_0:
-    case Type_1:
-    case Type_2:
-    case Type_3:
-    case Type_6:
-        unk0 = new (Heaps::MenuInstance) IfCoinShooterLabelSimple(this, type);
         break;
     default:
         break;
@@ -360,8 +372,15 @@ IfCoinShooter::IfCoinShooter()
     g_gfSceneRoot->setClearDepthBufferState(gfSceneRoot::Layer_Info, true);
     m_cameraPath[0] = '\0';
     strcat(m_cameraPath, "/menu/defaultcamera/FigureList");
-    // TODO: the original ends with the fog reset of the menu scene:
-    //   for (int i = 0;; i++) { nw4r::g3d::Fog fog = g_gfSceneRoot->unk44->GetFog(i); if (!fog.IsValid()) break; fog.Init(); }
+    // HYPOTHESIS: unk44 is the root of the menu (Info layer) scene; its fogs are reset so that no stage fog stays.
+    nw4r::g3d::ScnRoot* scnRoot = g_gfSceneRoot->unk44;
+    for (int i = 0;; i++) {
+        nw4r::g3d::Fog fog = scnRoot->GetFog(i);
+        if (!fog.IsValid()) {
+            break;
+        }
+        fog.Init();
+    }
 }
 
 // HYPOTHESIS: draft of the destructor to pin the member order.
@@ -369,6 +388,13 @@ IfCoinShooter::~IfCoinShooter() {
     g_gfApplication->m_114.remove(this);
     m_msg->detachMuObject(m_root.get());
     m_rewardTask->detachDialogMsg();
+    // Every label that is still on the list is deleted (each one takes itself off the list).
+    utList& labels = utility::AutoList<IfCoinShooterLabelImpl>::getList();
+    while (labels.getLength() != 0) {
+        // BYTES: the list node is the base of IfCoinShooterLabelImpl at offset 0 (the downcast would add a null test).
+        IfCoinShooterLabelImpl* label = reinterpret_cast<IfCoinShooterLabelImpl*>(labels.getHead());
+        delete label;
+    }
     g_gfSceneRoot->setClearDepthBufferState(gfSceneRoot::Layer_Info, false);
 }
 

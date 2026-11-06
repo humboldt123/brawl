@@ -193,17 +193,28 @@ IfCoinShooterLabelSimple::IfCoinShooterLabelSimple(IfCoinShooterLabel* owner, If
     unk10_2 = m_obj->isNodeAnimLoop();
 }
 
+// Cuts the link between a label and the shape that shows it (each one points to the other).
+// BYTES: the destructor calls this with the label from the member read first; as an inline function taking the
+// pointers, MWCC keeps the vtable pointer store of the destructor and reads the owner before testing the object.
+static inline void breakLabelLink(IfCoinShooterLabelImpl* impl, IfCoinShooterLabel* owner) {
+    if (impl && owner) {
+        impl->unkC = NULL;
+        owner->unk0 = NULL;
+    }
+}
+
 IfCoinShooterLabelImpl::~IfCoinShooterLabelImpl() {
-    if (this && unkC) {
-        unkC->unk0 = NULL;
-        unkC = NULL;
+    breakLabelLink(this, unkC);
+}
+
+static inline void clearType6Flag(IfCoinShooterLabelSimple* label) {
+    if (lbl_805A0310 != NULL && label->m_type == IfCoinShooterLabel::Type_6) {
+        lbl_805A0310->m_unk1C4 = false;
     }
 }
 
 IfCoinShooterLabelSimple::~IfCoinShooterLabelSimple() {
-    if (lbl_805A0310 != NULL && m_type == IfCoinShooterLabel::Type_6) {
-        lbl_805A0310->m_unk1C4 = false;
-    }
+    clearType6Flag(this);
 }
 
 // Function bodies below are taken from https://github.com/jj-link/brawl.

@@ -26,6 +26,23 @@ extern IfCoinShooter* lbl_805A0310;                        // the HUD instance
 extern "C" void fn_80101810(const char* format, ...);      // srReportLessMastar
 extern "C" bool fn_800FA740(IfRewardListTask* task);       // IfRewardListTask::isLoadFinish
 extern "C" void fn_800FA6CC(IfRewardListTask* task);       // IfRewardListTask::show
+// IfRewardListTask::create: the parameters of the notice (see IfCoinShooterRewardParam) and the heaps of the task and its files
+struct IfCoinShooterRewardParam {
+    nw4r::g3d::ResFile m_infoRes;       // 0x00 the HUD resource (info_coin_shooter)
+    nw4r::g3d::ResFile m_sealRes;       // 0x04 the seal thumbnails
+    const char* m_name;                 // 0x08 the name of the notice model
+    int m_priority;                     // 0x0C the draw priority of the notice
+    tyFigListDataManager* m_figMgr;     // 0x10 the trophy list (the one of the figure loader)
+    tySealListDataManager* m_sealMgr;   // 0x14
+    void* m_msgBinary;                  // 0x18 the message file
+    int m_unk1C;                        // 0x1C
+    u8 m_decisionPad;                   // 0x20 the pad that pauses
+    u8 m_unk21[0xF];
+};
+static_assert(sizeof(IfCoinShooterRewardParam) == 0x30, "Class is the wrong size!");
+extern "C" IfRewardListTask* fn_800F7CCC(IfCoinShooterRewardParam* param, Heaps::HeapType heap, Heaps::HeapType resHeap);
+// ScnGroup::Construct: a group of scene objects for at most `capacity` children
+extern "C" nw4r::g3d::ScnGroup* fn_801AB6CC(MEMAllocator* allocator, u32* size, int capacity);
 // IfRewardListTask::add: an entry for the notice (the id, how many, two work buffers inside the task and their size, the title)
 extern "C" void fn_800FA7B8(IfRewardListTask* task, u32 id, int count, char* buf1, int size, char* buf2, const char* title);
 
@@ -114,6 +131,15 @@ static inline void changeNodeAnim(MuObject* object, int no) {
 static inline void changeClrAnim(MuObject* object, int no) {
     object->changeClrAnimNIf((IfCoinShooterName<65>(getMdlName(object)).separated() + no).m_str);
 }
+
+// A group of scene objects on the nodes of a model (HYPOTHESIS: the slots are the capacity of the group).
+static inline nw4r::g3d::ScnMdlExpand* createExpand(MuObject* object, int slots) {
+    return nw4r::g3d::ScnMdlExpand::Construct(gfHeapManager::getMEMAllocator(Heaps::MenuInstance), NULL, slots,
+                                              object->getSceneModel());
+}
+
+// HYPOTHESIS: the node of the bonus gauge on the coin counter (an .sdata word of the unit that is read, not folded).
+static int sBonusGaugeNode = 4;
 
 // HYPOTHESIS: the list of the label objects that exist (the static of AutoList<IfCoinShooterLabelImpl>, built by the static
 // initializer of the unit; the unit's .bss word at 0x8049E560 is owned by part A).
@@ -299,6 +325,125 @@ void IfCoinShooter::showFigure(IfFigureLoader::EntryRef* entry) {
     }
 }
 
+void IfCoinShooter::createModel() {
+    IfCoinShooterName<33> pos("pos0");
+    m_objPriority = 0x10;
+
+    m_scnGroup.reset(fn_801AB6CC(gfHeapManager::getMEMAllocator(Heaps::MenuInstance), NULL, 0x20));
+    // BYTES: gfSceneRoot::add takes a ScnMdl (the symbol says so); the original passes the group to it.
+    g_gfSceneRoot->add(gfSceneRoot::Layer_Info, reinterpret_cast<nw4r::g3d::ScnMdl*>(m_scnGroup.get()));
+
+    m_root.reset(MuObject::create(&m_infoRes, "InfShooter0010_TopN", m_objPriority, NULL, Heaps::MenuInstance));
+    m_rootExpand.reset(createExpand(m_root.get(), 3));
+    m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_rootExpand.get());
+
+    // The seal total.
+    {
+        int priority = m_objPriority++;
+        MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
+        m_sealNumber.m_digits = 2;
+        m_sealNumber.m_ascending = true;
+        m_sealNumber.m_baseObj.reset(MuObject::create(&m_infoRes, "InfShooter0013_TopN", priority, NULL, Heaps::MenuInstance));
+        m_sealNumber.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(allocator, NULL, 3, m_sealNumber.m_baseObj->m_sceneModel));
+        for (int i = 0; i < 2; i++) {
+            m_sealNumber.m_digitObjs[i].reset(MuObject::create(&m_infoRes, "InfShooter0007_TopN", priority + 10, NULL, Heaps::MenuInstance));
+            MuObject* digit = m_sealNumber.m_digitObjs[i].get();
+            digit->changeTexPatAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
+            m_sealNumber.m_digitObjs[i]->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
+        }
+        m_sealNumber.m_scaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*m_sealNumber.m_baseObj.get(), 0.01f, 0.99f));
+        m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_sealNumber.m_expand.get());
+        for (int i = 0; i < m_sealNumber.m_digits; i++) {
+            MuObject* digit = m_sealNumber.m_digitObjs[i].get();
+            digit->changeVisAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
+            m_sealNumber.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
+            m_sealNumber.m_digitObjs[i]->setFrameVisible(1.0f);
+        }
+    }
+
+    m_unk31C.reset(MuObject::create(&m_infoRes, "InfShooter0023_TopN", m_objPriority++, NULL, Heaps::MenuInstance));
+
+    // The figure total.
+    {
+        int priority = m_objPriority++;
+        MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
+        m_figureNumber.m_digits = 2;
+        m_figureNumber.m_ascending = true;
+        m_figureNumber.m_baseObj.reset(MuObject::create(&m_infoRes, "InfShooter0014_TopN", priority, NULL, Heaps::MenuInstance));
+        m_figureNumber.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(allocator, NULL, 3, m_figureNumber.m_baseObj->m_sceneModel));
+        for (int i = 0; i < 2; i++) {
+            m_figureNumber.m_digitObjs[i].reset(MuObject::create(&m_infoRes, "InfShooter0007_TopN", priority + 10, NULL, Heaps::MenuInstance));
+            MuObject* digit = m_figureNumber.m_digitObjs[i].get();
+            digit->changeTexPatAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
+            m_figureNumber.m_digitObjs[i]->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
+        }
+        m_figureNumber.m_scaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*m_figureNumber.m_baseObj.get(), 0.01f, 0.99f));
+        m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_figureNumber.m_expand.get());
+        for (int i = 0; i < m_figureNumber.m_digits; i++) {
+            MuObject* digit = m_figureNumber.m_digitObjs[i].get();
+            digit->changeVisAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
+            m_figureNumber.m_digitObjs[i]->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
+            m_figureNumber.m_digitObjs[i]->setFrameVisible(0.0f);
+        }
+    }
+
+    // The coin total.
+    {
+        int priority = m_objPriority++;
+        MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
+        m_coinNumber.m_digits = 4;
+        m_coinNumber.m_ascending = false;
+        m_coinNumber.m_baseObj.reset(MuObject::create(&m_infoRes, "InfShooter0011_TopN", priority, NULL, Heaps::MenuInstance));
+        m_coinNumber.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(allocator, NULL, 5, m_coinNumber.m_baseObj->m_sceneModel));
+        for (int i = 0; i < 4; i++) {
+            m_coinNumber.m_digitObjs[i].reset(MuObject::create(&m_infoRes, "InfShooter0012_TopN", priority + 10, NULL, Heaps::MenuInstance));
+            MuObject* digit = m_coinNumber.m_digitObjs[i].get();
+            digit->changeTexPatAnimNIf((IfCoinShooterName<65>(getMdlName(digit)).separated() + 0).m_str);
+            m_coinNumber.m_digitObjs[i]->m_modelAnim->m_anmObjTexPatRes->SetUpdateRate(0.0f);
+        }
+        m_scnGroup->Insert(m_scnGroup->sceneItemsCount, m_coinNumber.m_expand.get());
+    }
+    changeNodeAnim(m_coinNumber.m_baseObj.get(), 0);
+    changeClrAnim(m_coinNumber.m_baseObj.get(), 0);
+    m_coinNumber.set(m_coinNumber.m_value);
+
+    // The bonus gauge sits on the coin total.
+    m_bonusGauge.m_obj.reset(MuObject::create(&m_infoRes, "InfShooter0015_TopN", m_objPriority++, NULL, Heaps::MenuInstance));
+    m_coinNumber.m_expand->PushBack(m_bonusGauge.m_obj->m_sceneModel, (pos + sBonusGaugeNode).m_str);
+    MuObject* gauge = m_bonusGauge.m_obj.get();
+    gauge->changeVisAnimNIf((IfCoinShooterName<65>(getMdlName(gauge)).separated() + 0).m_str);
+    m_bonusGauge.m_obj->m_modelAnim->m_anmObjVisRes->SetUpdateRate(0.0f);
+
+    // The stand of the trophy.
+    m_figureView.m_stand.reset(MuObject::create(&m_standRes, m_objPriority + 1, NULL, 0, Heaps::MenuInstance));
+    m_figureView.m_stand->changeClrAnimN("DolStand");
+    m_figureView.m_stand->m_modelAnim->setUpdateRate(0.0f);
+    m_figureView.m_stand->setFrameMatCol(38.0f);
+    m_figureView.m_standScaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*m_figureView.m_stand.get(), 0.5f, 0.5f));
+
+    // The message of the root model.
+    m_clearMsgTimer = 90;
+    m_msg.reset(MuMsg::create(1, Heaps::MenuInstance, Heaps::MenuResource));
+    m_msg->allocMsgBuf(0x100, 3);
+    m_msg->setMsgData(m_msgFile.m_handle.getBuffer());
+    m_msg->attachScnMdlSimple(2, reinterpret_cast<nw4r::g3d::ScnMdlSimple*>(m_root->m_sceneModel), 0, 1.0f / 14.0f);
+    m_msg->setAlignMode(2, MuMsg::Align_Center);
+    m_msg->setEdgeEnable(2, true);
+    m_msg->setEdge(2, 8, 0xFF, 0, 1.0f);
+    m_msg->printIndex(2, 2, NULL);
+
+    // The notice of the rewards (the pause menu).
+    IfCoinShooterRewardParam param = { nw4r::g3d::ResFile(), nw4r::g3d::ResFile(), "InfShooter", 0, NULL, NULL, NULL, 1, 0 };
+    param.m_infoRes = m_infoRes;
+    param.m_sealRes = m_sealRes;
+    param.m_priority = m_objPriority + 0x14;
+    param.m_figMgr = IfFigureLoader::getInstance()->m_listMgr;
+    param.m_sealMgr = m_sealMgr.get();
+    param.m_msgBinary = m_msg->getBinary();
+    param.m_decisionPad = m_decisionPad;
+    m_rewardTask.reset(fn_800F7CCC(&param, Heaps::MenuResource, Heaps::MenuResource));
+}
+
 // HYPOTHESIS: shows the trophy that the player got: the figure counter goes up, the trophy model (made from the resource
 // of the loader entry) stands on the Stand model under the group of the figure counter, and the frame plays its animation.
 void IfCoinShooter::showFigureCore() {
@@ -312,8 +457,7 @@ void IfCoinShooter::showFigureCore() {
     nw4r::g3d::ResFile figureRes = m_figEntry.m_entry->m_resFile;
     m_figureView.m_model.reset(MuObject::create(&figureRes, m_objPriority + 1, NULL, 0, Heaps::MenuInstance));
     m_figureView.m_modelScaler.reset(new (Heaps::MenuInstance) utility::DepthScaler(*m_figureView.m_model.get(), 0.5f, 0.5f));
-    m_figureView.m_expand.reset(nw4r::g3d::ScnMdlExpand::Construct(gfHeapManager::getMEMAllocator(Heaps::MenuInstance), NULL, 1,
-                                                                   m_figureView.m_model->m_sceneModel));
+    m_figureView.m_expand.reset(createExpand(m_figureView.m_model.get(), 1));
     m_rootExpand->PushBack(m_figureView.m_expand.get(), "pos02");
     m_figureView.m_stand->m_sceneModel->DetachFromParent();
     m_figureView.m_expand->PushBack(m_figureView.m_stand->m_sceneModel, "pos00");

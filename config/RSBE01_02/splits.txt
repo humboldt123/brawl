@@ -809,9 +809,13 @@ sora/mu/mu_menu_ctrl.cpp:
 	.sdata      start:0x8059DF60 end:0x8059E0A0
 	.sdata2     start:0x805A2230 end:0x805A2248
 
+sora/mu/mu_clear_get_data.cpp:
+	.text       start:0x800BA484 end:0x800BA7C0
+	.data       start:0x80456688 end:0x804566A0
+
 sora/mu/mu_clear_get.cpp:
-	.text       start:0x800BA484 end:0x800BC748
-	.data       start:0x80456688 end:0x80456D30
+	.text       start:0x800BA7C0 end:0x800BC748
+	.data       start:0x804566A0 end:0x80456D30
 	.sdata      start:0x8059E0A0 end:0x8059E0D8
 	.sdata2     start:0x805A2248 end:0x805A22A8
 
