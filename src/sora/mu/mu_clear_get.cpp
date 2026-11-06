@@ -21,8 +21,8 @@
 // HYPOTHESIS: the scene maker of the menus; its body is `new MenuRoot(name, scnSize, archive, index, Heaps::MenuResource)`.
 extern "C" MenuRoot* fn_800AFBFC(const char* name, int scnSize, gfArchive* archive, int index);
 
-// The animations of the models (muClearGetTask::initMdlData and processAnim pick them by address). Each strings comes
-// right before its table.
+// The animations of the models (muClearGetTask::initMdlData and processAnim pick them by address). The strings of a table
+// come right before it. Parts 2 and 3 of the unit declare the tables they use as extern.
 // panel (MenClearPanel0000_TopN): 0 -> 9 plays once when the screen comes in
 MuAnimNameData lbl_804566BC[1] = {
     {0.0f, 9.0f, 0, "MenClearPanel0000_TopN__0", 3},
@@ -71,6 +71,8 @@ MuAnimNameData lbl_80456A58[2] = {
     {0.0f, 9.0f, 0, "MenClearGet_TopN__1", 1},
 };
 
+// Starts loading sc_clear_getter.pac and the sound group; the screen is built by processAnim once both are there.
+// mode 1: the boxes of the queue (m_breakQueue) are broken at once, mode 0: the panel comes in first.
 muClearGetTask::muClearGetTask(int mode, tyFigListDataManager* figMng, int decisionPad)
     : gfTask("muClearGetTask", Category_Info, 0xE, 6, true), m_state(0), m_stateFrame(0), m_activePad(g_GameGlobal->m_setRule->m_ctrlNamePlayerNo),
       m_decisionPad(decisionPad) {
@@ -125,7 +127,6 @@ muClearGetTask::muClearGetTask(int mode, tyFigListDataManager* figMng, int decis
     m_msg->allocMsgBuf(0x400, 5);
     CameraController::getInstance()->changeInput(CameraController::MenuFixed);
 }
-
 
 // HYPOTHESIS: MuObject +0x48 is the rotation that setObjRotate stores (mu_object.cpp calls it m_rot); the shared header only has padding there.
 static inline Vec3f& getObjRotation(MuObject* object) {
@@ -203,6 +204,7 @@ static inline void appendBreakBox(muClearGetTask* task, u32 id) {
     }
 }
 
+// The state machine of the screen (see muClearGetTask::State). Cases are in the order of the original code, not of the numbers.
 void muClearGetTask::processAnim() {
     gfPadStatus pad;
     char name[8];
@@ -430,7 +432,8 @@ void muClearGetTask::processAnim() {
             }
         }
         break;
-    case State_Grab:
+    case State_Grab: {
+        Vec3f pos;
         if (static_cast<float>(static_cast<u32>(m_stateFrame)) >= 4.0f) {
             m_state = State_Select;
             m_hammerHeld = true;
@@ -438,8 +441,10 @@ void muClearGetTask::processAnim() {
             sprintf(name, "pos%02d", m_column + m_row * 4);
             m_gridGroup->PushBack(m_hammers[m_hammerSel]->m_scnMdl, name);
             m_hammers[m_hammerSel]->setTrans(&m_hammerPos);
-            Vec3f rotation(0.0f, 0.0f, 0.0f);
-            m_hammers[m_hammerSel]->setObjRotate(&rotation);
+            pos.m_z = 0.0f;
+            pos.m_y = 0.0f;
+            pos.m_x = 0.0f;
+            m_hammers[m_hammerSel]->setObjRotate(&pos);
         } else {
             // The hammer flies from its place in the row to the box that was chosen.
             Vec3f axis(0.0f, 1.0f, 0.0f);
@@ -458,7 +463,6 @@ void muClearGetTask::processAnim() {
             sprintf(name, "pos%02d", m_hammerSel + 95);
             Vec3f rowPos;
             rowPos = m_panelHammer->getGlobalPosition(name);
-            Vec3f pos;
             pos = boxPos - rowPos;
             Vec3fScale(&pos, &pos, static_cast<float>(static_cast<u32>(m_stateFrame)) * 0.25f);
             Vec3fAdd(&pos, &pos, &rowPos);
@@ -468,6 +472,7 @@ void muClearGetTask::processAnim() {
             m_hammers[m_hammerSel]->setObjRotate(&rotation);
         }
         break;
+    }
     case State_Confirm: {
         bool no = false;
         bool yes = false;

@@ -340,7 +340,7 @@ void IfCoinShooterLabelLight::update() {
     float fast = progress * 12.0f;
     float slide = fast / (fast + (1.0f - progress));
     Vec3f position;
-    position = m_to * slide + start * (1.0f - slide);
+    position = start * (1.0f - slide) + m_to * slide;
     obj->setTrans(&position);
 }
 
