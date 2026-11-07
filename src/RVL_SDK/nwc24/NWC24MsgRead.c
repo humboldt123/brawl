@@ -16,7 +16,7 @@ BOOL fn_8039B4C8(NWC24iMBCEntry *entry);
 typedef struct MsgListState MsgListState;
 NWC24Err fn_8039FD68(const NWC24MsgObj *pMsg, char *buf, u32 size);
 NWC24Err fn_8039FEB0(const NWC24MsgObj *pMsg, u32 idx, u8 *buf, u32 size);
-NWC24Err fn_803A001C(NWC24File *file, const NWC24Data *src, u8 *out, u32 outSize, u32 *written);
+NWC24Err fn_803A001C(NWC24File *file, const NWC24Data *src, void *buffer, u32 outSize, u32 *written);
 NWC24Err fn_803A0158(void);
 NWC24Err fn_803A01D0(NWC24MsgBoxId box);
 NWC24Err fn_803A0240(u32 appId);
@@ -38,7 +38,8 @@ typedef struct MsgListState {
 
 static MsgListState MsgList;
 
-static NWC24iMBCEntry ListEntry;
+// BYTES: the static file-read buffer starts on a 32-byte boundary.
+static NWC24iMBCEntry ListEntry ATTRIBUTE_ALIGN(32);
 
 // which box a committed message lives in
 static inline NWC24Err MsgBoxOf_i(const NWC24iMsgObj *msg, NWC24MsgBoxId *id) {
@@ -379,20 +380,21 @@ NWC24Err fn_8039FEB0(const NWC24MsgObj *pMsg, u32 idx, u8 *buf, u32 size) {
 }
 
 // decodes a base64 block out of the message file (up to the line that ends in "=" padding)
-NWC24Err fn_803A001C(NWC24File *file, const NWC24Data *src, u8 *out, u32 outSize, u32 *written) {
-    u8 *readBuf = (u8 *)NWC24WorkP->WORK_0x400;
-    u32 off = src->offset;
+NWC24Err fn_803A001C(NWC24File *file, const NWC24Data *src, void *buffer, u32 outSize, u32 *written) {
+    int chunk;
     int remaining = src->size;
+    u32 off = src->offset;
+    u8 *readBuf = (u8 *)NWC24WorkP->WORK_0x400;
+    u8 *out = (u8 *)buffer;
     u32 total = 0;
+    int cut;
     NWC24Err result = NWC24_OK;
     BOOL done = FALSE;
     u32 n;
+    u8 *p;
+    int i;
 
     while (remaining > 0 && !done) {
-        int chunk;
-        int cut;
-        int i;
-        u8 *p;
 
         chunk = 0x400;
         if (remaining <= 0x400) {
@@ -407,8 +409,8 @@ NWC24Err fn_803A001C(NWC24File *file, const NWC24Data *src, u8 *out, u32 outSize
 
         cut = 0;
         p = readBuf;
-        for (i = 0; i < chunk; i++, p++) {
-            if (*p == '\r') {
+        for (i = 0; i < chunk; p++, i++) {
+            if ((char)*p == '\r') {
                 cut = i;
             }
 
