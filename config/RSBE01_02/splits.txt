@@ -4688,11 +4688,29 @@ RVL_SDK/nwc24/NWC24StdAPI.c:
 	.text       start:0x80397610 end:0x8039832C
 	.data       start:0x80491A78 end:0x80491B00
 
-RVL_SDK/nwc24/nwc24.c:
-	.text       start:0x8039832C end:0x8039B1C0
-	.data       start:0x80491B00 end:0x80491CA8
-	.sdata      start:0x8059FCC0 end:0x8059FCE8
-	.sbss       start:0x805A1158 end:0x805A1188
+RVL_SDK/nwc24/NWC24FileAPI.c:
+	.text       start:0x8039832C end:0x803995F8
+	.data       start:0x80491B00 end:0x80491B30
+	.sdata      start:0x8059FCC0 end:0x8059FCD0
+	.sbss       start:0x805A1158 end:0x805A1168
+
+RVL_SDK/nwc24/NWC24Config.c:
+	.text       start:0x803995F8 end:0x80399CB8
+	.data       start:0x80491B30 end:0x80491B98
+	.sdata      start:0x8059FCD0 end:0x8059FCE0
+	.sbss       start:0x805A1168 end:0x805A1170
+
+RVL_SDK/nwc24/NWC24Utils.c:
+	.text       start:0x80399CB8 end:0x80399FD0
+
+RVL_SDK/nwc24/NWC24Manage.c:
+	.text       start:0x80399FD0 end:0x8039AA1C
+	.data       start:0x80491B98 end:0x80491CA8
+	.sdata      start:0x8059FCE0 end:0x8059FCE8
+	.sbss       start:0x805A1170 end:0x805A1188
+
+RVL_SDK/nwc24/NWC24MsgObj.c:
+	.text       start:0x8039AA1C end:0x8039B1C0
 
 RVL_SDK/nwc24/NWC24MBoxCtrl.c:
 	.text       start:0x8039B1C0 end:0x8039D30C
