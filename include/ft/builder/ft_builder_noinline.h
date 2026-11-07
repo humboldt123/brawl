@@ -28,7 +28,7 @@ template void ftKeepObserverVtables<0>(s16);
 #pragma dont_inline off
 #else
 // FT_WEAK_KEPT_OBSERVERS: this translation unit's original object does not define the keeper (Kirby).
-#ifdef FT_WEAK_KEPT_OBSERVERS
+#if defined(FT_WEAK_KEPT_OBSERVERS) || defined(FT_OBSERVER_VTABLE_ANCHOR_WEAK)
 __declspec(weak)
 #endif
 void ftKeepObserverVtables(s16 id) {

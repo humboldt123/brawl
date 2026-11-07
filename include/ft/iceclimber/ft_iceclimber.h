@@ -1,5 +1,12 @@
 #pragma once
 
+// The fighter unit owns the ice shot and ice berg kinetic mediators. Set before ft_fighter_builder.h pulls in
+// ft_builder_kinetic.h. Off unless this translation unit opted into the real article pools.
+#ifdef FT_POPO_ARTICLE_POOLS
+#define WN_KINETIC_GENERIC_IN_FIGHTER_TU
+#define WN_KINETIC_GENERIC_BUILDER
+#endif
+
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
