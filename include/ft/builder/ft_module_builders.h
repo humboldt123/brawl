@@ -585,11 +585,16 @@ public:
             m_instances[i].initialize();
         }
     }
+#if defined(FT_SOUND_GENERATOR_DTOR_INLINE)
+    // sora_melee inlines this empty teardown into the sound-module builder.
+    virtual ~ftSound3dGeneratorAccesserImpl() { }
+#else
     virtual ~ftSound3dGeneratorAccesserImpl()
 #ifdef FT_SOUND_GENERATOR_DTOR_NOINLINE
         __attribute__((never_inline))
 #endif
         ; // BYTES: out of line (ft_builder_noinline.h)
+#endif
     virtual void activate(Vec3f* pos) {
         for (s32 i = 0; i < 2; i++) {
             allocateInstance(&m_instances[i], pos);

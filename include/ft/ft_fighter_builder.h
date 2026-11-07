@@ -47,9 +47,16 @@
 template<typename BC>
 class ftFighterBuilder : public Fighter {
     ftModuleAccesserBuilder<BC> m_moduleBuilder; // +0x194
+#ifdef FT_NULL_TAIL_MODULES
+    // Opt-in: this sora_melee fighter stores the null cancel, matrix and gimmick pools (0x8 each).
+    ftCancelModuleNull m_cancelModule;
+    ftVirtualNodeMatrixPoolNull m_virtualNodeMtxPool;
+    ftStatusGimmickUniqProcessPoolNull m_gimmickProcPool;
+#else
     ftCancelModuleImpl m_cancelModule;
     ftVirtualNodeMatrixPoolImpl m_virtualNodeMtxPool;
     ftStatusGimmickUniqProcessPoolImpl m_gimmickProcPool;
+#endif
     soSet<soCameraRange> m_cameraRangeSet;
     soSet<soCameraClipSphere> m_cameraClipSphereSet;
 public:
@@ -70,9 +77,15 @@ public:
                                &m_cameraRangeSet,
                                &m_cameraClipSphereSet),
                            this),
+#ifdef FT_NULL_TAIL_MODULES
+        m_cancelModule(),
+        m_virtualNodeMtxPool(),
+        m_gimmickProcPool(),
+#else
         m_cancelModule(m_moduleAccesser),
         m_virtualNodeMtxPool(),
         m_gimmickProcPool(((void)0, m_moduleAccesser)), // MATCH-ONLY: keeps the module accesser in the original saved register
+#endif
         m_cameraRangeSet(static_cast<soCameraRange*>(soValueAccesser::getConstantIndefinite(m_moduleAccesser, 0xA7F9, 0)), 1),
         m_cameraClipSphereSet(static_cast<soCameraClipSphere*>(soValueAccesser::getConstantIndefinite(m_moduleAccesser, 0xA7FC, 0)), 1) {
         // Modules now own their backing storage, camera sets and gimmick processes.
@@ -98,9 +111,15 @@ public:
                                &m_cameraRangeSet,
                                &m_cameraClipSphereSet),
                            this),
+#ifdef FT_NULL_TAIL_MODULES
+        m_cancelModule(),
+        m_virtualNodeMtxPool(),
+        m_gimmickProcPool(),
+#else
         m_cancelModule(m_moduleAccesser),
         m_virtualNodeMtxPool(),
         m_gimmickProcPool(((void)0, m_moduleAccesser)), // MATCH-ONLY: keeps the module accesser in the original saved register
+#endif
         m_cameraRangeSet(static_cast<soCameraRange*>(soValueAccesser::getConstantIndefinite(m_moduleAccesser, 0xA7F9, 0)), 1),
         m_cameraClipSphereSet(static_cast<soCameraClipSphere*>(soValueAccesser::getConstantIndefinite(m_moduleAccesser, 0xA7FC, 0)), 1) {
         Fighter::postInitialize();

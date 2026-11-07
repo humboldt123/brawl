@@ -50,7 +50,8 @@ public:
         __attribute__((never_inline))
         : soGeneralWorkAbstract(false), m_intWorks(ints), m_intWorkSize(numInts), m_floatWorks(floats),
           m_floatWorkSize(numFloats), m_flagWorks(flags), m_flagWorkSize(numFlags) { }
-#elif defined(WN_SIMPLE_UNIT) || defined(WN_MARIO_FIREBALL_UNIT)
+#elif defined(SO_GENERAL_WORK_SIMPLE_CTOR_INLINE) || defined(WN_SIMPLE_UNIT) || defined(WN_MARIO_FIREBALL_UNIT)
+    // sora_melee writes this vtable and the work pointers in the builder constructor. The REL calls it out of line.
     soGeneralWorkSimple(s32* ints, u32 numInts, float* floats, u32 numFloats, u32* flags, u32 numFlags)
         : soGeneralWorkAbstract(false), m_intWorks(ints), m_intWorkSize(numInts), m_floatWorks(floats),
           m_floatWorkSize(numFloats), m_flagWorks(flags), m_flagWorkSize(numFlags) { }

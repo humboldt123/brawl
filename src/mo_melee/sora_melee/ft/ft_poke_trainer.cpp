@@ -1,10 +1,24 @@
 // The trainer's long animation-command override puts an extra Fighter virtual before getOwner.
 #define FT_FIGHTER_ANIMCMD_LONG
 #define SO_EVENT_PRESENTER_STORE_NULL_LIST
+#define FT_NULL_TAIL_MODULES
+#define FT_SOUND_GENERATOR_DTOR_INLINE
+#define FT_GIMMICK_POOL_INLINE_DTOR
+#define FT_VIRTUAL_NODE_POOL_INLINE_DTOR
+#define FT_GENERAL_WORK_ABSTRACT_DTOR_INLINE
+#define FT_TEAM_INLINE_DTOR
+#define FT_MODULE_BUILDER
+#define SO_NULLABLE_INLINE_CTOR
+#define SO_GENERAL_WORK_BOUNDED_CLEAR
+#define FT_EXTEND_PARAM_EX_SETUP_OUT_OF_LINE
+#define SO_GENERAL_WORK_SIMPLE_CTOR_INLINE
+#define FT_EXTEND_PARAM_EX_DTOR_OUT_OF_LINE
+#include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_event_unit_instance.h>
+#include <ft/poke/ft_poke_trainer.h>
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_manager.h>
 #include <ft/ft_owner.h>
-#include <ft/poke/ft_poke_trainer.h>
 #include <so/so_slow.h>
 #include <so/motion/so_motion_change_param.h>
 #include <mt/mt_prng.h>
@@ -17,6 +31,26 @@
 #include <st/stage.h>
 #include <types.h>
 #include <so/templates/so_array_value_wnPokeTrainerMBall_BallInfo.h>
+
+#define FT_NOINLINE_SKIP_SHARED_DEFS
+#define FT_BC ftPokeTrainerBuildConfig
+#include <ft/builder/ft_builder_noinline.h>
+
+template <u32 T1, u32 NumFloats, u32 T3, u32 NumInts>
+void ftExtendParamAccesserEx<T1, NumFloats, T3, NumInts>::setup(const u8*) { }
+
+template <u32 T1, u32 NumFloats, u32 T3, u32 NumInts>
+ftExtendParamAccesserEx<T1, NumFloats, T3, NumInts>::~ftExtendParamAccesserEx() { }
+
+#pragma force_active on
+template void ftExtendParamAccesserEx<3999, 9, 23999, 4>::setup(const u8*);
+template ftExtendParamAccesserEx<3999, 9, 23999, 4>::~ftExtendParamAccesserEx();
+#pragma force_active off
+
+// The original names this constructor only as fn_27_377C48. A differing strong copy is a non-weak extra.
+__declspec(weak) ftPokeTrainer::ftPokeTrainer(s32 entryId, Heaps::HeapType instHeap, Heaps::HeapType nwModelInstHeap, Heaps::HeapType nwMotionInstHeap) :
+    ftFighterBuilder<ftPokeTrainerBuildConfig>(entryId, Fighter_PokeTrainer, instHeap, nwModelInstHeap, nwMotionInstHeap) {
+}
 
 // HYPOTHESIS: only the module slots called here are known.
 class soDebugModuleTrainerView {

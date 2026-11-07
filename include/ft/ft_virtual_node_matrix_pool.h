@@ -7,7 +7,12 @@
 class ftVirtualNodeMatrixPool : public soNullable {
 public:
     ftVirtualNodeMatrixPool(bool isNull) : soNullable(isNull) { }
+#ifdef FT_VIRTUAL_NODE_POOL_INLINE_DTOR
+    // sora_melee inlines this empty base into the null pool.
+    virtual ~ftVirtualNodeMatrixPool() { }
+#else
     virtual ~ftVirtualNodeMatrixPool() = 0;
+#endif
     virtual void* getHitMatrix() = 0;
     virtual void* getCommonMatrix() = 0;
     virtual void* getExtendMatrix() = 0;

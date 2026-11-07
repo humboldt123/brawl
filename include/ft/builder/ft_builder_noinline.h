@@ -38,7 +38,9 @@ void ftKeepObserverVtables(s16 id) {
 #endif
 
 #pragma dont_inline on
+#ifndef FT_GIMMICK_POOL_INLINE_DTOR
 ftStatusGimmickUniqProcessPool::~ftStatusGimmickUniqProcessPool() { }
+#endif
 #ifdef FT_MARTH_RUNTIME_HELPERS
 #pragma dont_inline off
 #endif
@@ -48,6 +50,7 @@ soKineticModuleImpl::~soKineticModuleImpl() { }
 #ifdef FT_MARTH_RUNTIME_HELPERS
 #pragma dont_inline on
 #endif
+#if !defined(FT_TEAM_INLINE_DTOR)
 #ifdef FT_TEAM_TYPED_INTERFACE
 #pragma dont_inline off
 ftTeamIndirect::~ftTeamIndirect() { }
@@ -58,6 +61,8 @@ ftTeam::~ftTeam() { }
 #pragma dont_inline on
 ftTeamIndirect::~ftTeamIndirect() { }
 #endif
+#endif
+#if !defined(FT_SOUND_GENERATOR_DTOR_INLINE)
 #ifdef FT_SOUND_GENERATOR_DTOR_NOINLINE
 // Retain this destructor's call while inlining its empty sound-accesser base.
 #pragma dont_inline off
@@ -66,19 +71,24 @@ ftSound3dGeneratorAccesserImpl::~ftSound3dGeneratorAccesserImpl() { } // BYTES: 
 #ifdef FT_SOUND_GENERATOR_DTOR_NOINLINE
 #pragma dont_inline on
 #endif
+#endif
 soTransitionInfo::~soTransitionInfo() { } // BYTES: out of line in the REL
 soNullable::soNullable(bool isNull) { m_isNull = isNull; } // BYTES: out of line in the REL
 soKineticEnergy::~soKineticEnergy() { } // BYTES: out of line in the REL
+#ifndef FT_GENERAL_WORK_ABSTRACT_DTOR_INLINE
 #ifdef FT_WEAK_KEPT_OBSERVERS
 __declspec(weak)
 #endif
 soGeneralWorkAbstract::~soGeneralWorkAbstract() { } // BYTES: out of line in the REL
+#endif
 #pragma dont_inline off
 
 // BYTES: the REL calls soGeneralWorkSimple's work area constructor out of line (defined here, not in the class).
+#ifndef SO_GENERAL_WORK_SIMPLE_CTOR_INLINE
 soGeneralWorkSimple::soGeneralWorkSimple(s32* ints, u32 numInts, float* floats, u32 numFloats, u32* flags, u32 numFlags) :
     soGeneralWorkAbstract(false), m_intWorks(ints), m_intWorkSize(numInts), m_floatWorks(floats), m_floatWorkSize(numFloats),
     m_flagWorks(flags), m_flagWorkSize(numFlags) { }
+#endif
 #endif
 
 #pragma dont_inline on
