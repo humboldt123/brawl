@@ -97,9 +97,7 @@ static_assert(sizeof(wnSimple) == 0x16C8, "Link wnSimple article is the wrong si
 template <class PoolList, class Founder>
 class soArticleMediatorImpl : public soArticleMediator {
     ftLinkArticlePools m_pools;
-    // HYPOTHESIS: the auto-recycle flag is at mediator+0x11BEC, 0x1C past the end of this pool chain.
-    u8 m_beforeRecycle[0x1C];
-    u8 m_autoRecycle;
+    bool m_autoRecycle;
 public:
     soArticleMediatorImpl(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~soArticleMediatorImpl();
