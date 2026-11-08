@@ -5,7 +5,7 @@
 #define MT_VEC3F_SUB_FRESH_REGS
 #define MT_VEC3F_SUB_NOINLINE
 #define MT_VEC3F_MUL_INLINE
-#define MT_VEC3F_SCALE_FRESH_REGS
+#define MT_VEC3F_SCALE_XY_IN_PLACE
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/link/ft_link.h>
 #include <ft/link/ft_link_status_final.h>

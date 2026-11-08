@@ -408,6 +408,8 @@ public:
     // Two register forms reproduce the callers: by default the products overwrite the loaded halves; a unit
     // that defines MT_VEC3F_SCALE_FRESH_REGS gives each load and each product its own register variable and
     // lets the allocator place them (the stages, the item/weapon/model posture code, the camera).
+    // MT_VEC3F_SCALE_XY_IN_PLACE scales x/y in place and gives only the z product a fresh register
+    // (Link's kinetic transactor).
     friend void Vec3fScale(register Vec3f* pOut, register const Vec3f* v, register float c) {
 #ifdef MT_VEC3F_SCALE_FRESH_REGS
         register f32 frXY, frZ, frA, frB;
@@ -419,6 +421,19 @@ public:
             ps_muls0 frA, frXY, c
             ps_muls0 frB, frZ, c
             psq_st   frA, Vec3f.m_x(pOut), 0, 0
+            psq_st   frB, Vec3f.m_z(pOut), 1, 0
+        }
+        // clang-format on
+#elif defined(MT_VEC3F_SCALE_XY_IN_PLACE)
+        register f32 frZ, frB, frXY;
+
+        // clang-format off
+        asm {
+            psq_l    frXY, Vec3f.m_x(v), 0, 0
+            psq_l    frZ, Vec3f.m_z(v), 1, 0
+            ps_muls0 frXY, frXY, c
+            ps_muls0 frB, frZ, c
+            psq_st   frXY, Vec3f.m_x(pOut), 0, 0
             psq_st   frB, Vec3f.m_z(pOut), 1, 0
         }
         // clang-format on
