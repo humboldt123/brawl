@@ -631,7 +631,6 @@ void* fn_93_21A0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator del
 void* fn_93_3D80(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_93_5EE8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_93_5F28(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_93_696C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 
 // Virtual calls through a subobject vtable and tail calls.
 void fn_93_CC30(void* p) { return ((ftLinkVirtualSlots*)p)->slot20(); }
