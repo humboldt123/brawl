@@ -123,6 +123,12 @@ bool wnLinkBoomerang::notifyEventCollisionAttackCheck(u32 flags) {
 // The animation command 6 of the flight bounces the boomerang off the ground it touches: the speed is mirrored on the contact
 // normal (or the boomerang turns around when the surface is steeper than the turn angle) and the deceleration follows the new
 // direction. HYPOTHESIS: the touch masks 0x52 / 0xA4 are the walls on the facing side.
+// HYPOTHESIS: reflects v off a surface with unit normal n.
+static inline void reflect(Vec2f& v, const Vec2f& n) {
+    float dot = n.m_x * v.m_x + n.m_y * v.m_y;
+    v -= (n * 2.0f) * dot;
+}
+
 bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, int unk3) {
     if (Weapon::notifyEventAnimCmd(cmd, acc, unk3)) {
         return true;
@@ -161,8 +167,7 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
             }
         }
         Vec2f contact = acc->getGroundModule().getTouchNormal(0xff, 0);
-        float dot = contact.m_x * speed.m_x + contact.m_y * speed.m_y;
-        speed = speed - (contact * 2.0f) * dot;
+        ::reflect(speed, contact);
         Vec2f newSpeed(speed.m_x, speed.m_y);
         normal.m_speed = newSpeed;
         float lengthSq = speed.m_x * speed.m_x + speed.m_y * speed.m_y;
