@@ -9,7 +9,7 @@
 #define MT_VEC3F_CTOR_NOINLINE
 #define WN_KINETIC_GENERIC_BUILDER
 #include <wn/wn_module_accesser_builder.h>
-WN_STATUS_PROC_VECTOR_ARG_CTOR(9);
+WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(9);
 #include <wn/link/wn_link_hookshot.h>
 #include <ft/purin/ft_purin_article.h>
 #include <wn/wn_activate_desc.h>
@@ -23,9 +23,16 @@ extern soStatusUniqProcess g_wnLassoStatusUniqProcessHang;
 extern soStatusUniqProcess g_wnLassoStatusUniqProcessHangRewind;
 extern soStatusUniqProcess g_wnLassoStatusUniqProcessReach;
 
-wnInstanceHolderHookshot::wnInstanceHolderHookshot(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(0, wnSimpleConstructionInfo(wnSimpleKindInfo(Fighter_Purin), acc->m_enumerationStart->m_heapModule),
-               g_ftCommonDataAccesser.getSimpleData(static_cast<ftKind>(wnSimpleKindInfo(Fighter_Purin).subKind),
+// The claw tip is built with the kind pair of the hookshot itself (the owner weapon's build kind).
+// BYTES: Weapon keeps that pair private (unkC4/unkC8 in the shared wn/weapon.h, a wnSimpleKindInfo at +0xC4); a typed
+// member there would remove this offset.
+static inline const wnSimpleKindInfo& ownerKindInfo(soModuleAccesser* acc) {
+    return *reinterpret_cast<const wnSimpleKindInfo*>(reinterpret_cast<u8*>(dynamic_cast<Weapon*>(acc->m_stageObject)) + 0xC4);
+}
+
+inline wnInstanceHolderHookshot::wnInstanceHolderHookshot(soModuleAccesser* acc) : soInstancePoolRoot(acc),
+    m_instance(0, wnSimpleConstructionInfo(ownerKindInfo(acc), acc->m_enumerationStart->m_heapModule),
+               g_ftCommonDataAccesser.getSimpleData(static_cast<ftKind>(ownerKindInfo(acc).subKind),
                                                     &ftArticleDataFlags().get().resourceGroup), false) { }
 
 wnLinkHookshot::wnLinkHookshot(s32 articleId, const wnArticleBuildInfo& info, const wnLinkHookshotData* data) :
