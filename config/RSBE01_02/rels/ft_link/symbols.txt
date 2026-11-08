@@ -771,7 +771,7 @@ deactivateDescendantForce__59wnWeaponBuilder<40wnLinkBoomerangModuleAccesserBuil
 @136@setRate__6WeaponFf = .text:0x00014AF4; // type:function size:0x8
 @136@setFrame__6WeaponFf = .text:0x00014AFC; // type:function size:0x8
 @136@changeMotion__6WeaponFib = .text:0x00014B04; // type:function size:0x8
-@136@getNWModelInstanceHeap__18ftFighterBuildDataCFv = .text:0x00014B0C; // type:function size:0x8
+@136@getTaskId__6WeaponFv = .text:0x00014B0C; // type:function size:0x8
 @136@getArticleEventManageId__6WeaponFv = .text:0x00014B14; // type:function size:0x8
 @136@getArticleId__6WeaponFv = .text:0x00014B1C; // type:function size:0x8
 @136@remove__6WeaponFv = .text:0x00014B24; // type:function size:0x8
