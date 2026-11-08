@@ -1,3 +1,9 @@
+// stAdventureInfoContact: the bridge between the Subspace Emissary enemy info classes (boss, zako, corps) and the HUD.
+// Every send* forwards one event to the adventure HUD (g_IfAdvMngr) and, for bosses, also to the player HUD (g_IfMngr),
+// both of which may be absent. With isStamina set, the boss health goes to player HUD slots 1 and 2 instead,
+// created on the first send (m_isBossAppear) with sand-bag style appear info.
+// All 12 functions are exact, but the unit does not link: the original's .rodata keeps a 0.5f constant that nothing
+// in the unit references, and mwld strips an unreferenced constant from our object (see TIPS).
 #include <if/if_adv_mngr.h>
 #include <if/if_mngr.h>
 #include <sora_adv_stage/st_adventure_info_contact.h>

@@ -1,3 +1,10 @@
+// stAdventureInfoEmBoss: the Subspace Emissary boss health display. A boss enemy that spawns registers here (init), and
+// every frame update reads its icon and health through the base's getIconParamForEnemy and forwards them, with damage and
+// death events, through stAdventureInfoContact to the adventure HUD (IfAdvMngr) and the player HUD (IfMngr); the
+// contact's isStamina parameter is fed from the same adventure data flag as m_isPair (see the HYPOTHESIS on update). It tracks two slots: Petey Piranha fills both with his two cages (the task ids set by
+// setBossPacknWnLeft/Right), and the Master Hand and Crazy Hand pair uses slot 0 and slot 1 (m_isPair, from the
+// adventure data flags); every other boss uses slot 0 only.
+#include <em/em_create.h>
 #include <em/enemy.h>
 #include <gm/gm_global.h>
 #include <sora_adv_stage/st_adventure_info_emboss.h>
@@ -7,7 +14,11 @@
 struct stAdventureInfoBossKinds {
     int m_kinds[10];
 };
-static stAdventureInfoBossKinds s_bossKinds = {{0x2E, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x3A, 0x3B, 0x3C}};
+static stAdventureInfoBossKinds s_bossKinds = {{
+    Enemy_Boss_BossPackun, Enemy_Boss_Galleom,    Enemy_Boss_Ridley,     Enemy_Boss_Rayquaza,
+    Enemy_Boss_Duon,       Enemy_Boss_Porky,      Enemy_Boss_MetaRidley, Enemy_Boss_Tabuu,
+    Enemy_Boss_MasterHand, Enemy_Boss_CrazyHand,
+}};
 
 void stAdventureInfoEmBoss::init(int createId) {
     if (isBoss(createId)) {
@@ -15,7 +26,7 @@ void stAdventureInfoEmBoss::init(int createId) {
         if (m_isPair) {
             Enemy* enemy = getEnemy(createId);
             bool isSub;
-            if (enemy != NULL && enemy->getEnemyKind() == 0x3C) {
+            if (enemy != NULL && enemy->getEnemyKind() == Enemy_Boss_CrazyHand) {
                 isSub = true;
             } else {
                 isSub = false;
@@ -58,18 +69,18 @@ void stAdventureInfoEmBoss::update() {
 
 void stAdventureInfoEmBoss::setInfoParam(int createId) {
     Enemy* enemy = getEnemy(createId);
-    if (enemy != NULL && enemy->getEnemyKind() == 0x2E) {
+    if (enemy != NULL && enemy->getEnemyKind() == Enemy_Boss_BossPackun) {
         stAdventureInfoIconParam param0 = getIconParamForEnemy(createId, m_packnWnLeft, 0, &m_params[0]);
         m_params[0] = param0;
         stAdventureInfoIconParam param1 = getIconParamForEnemy(createId, m_packnWnRight, 1, &m_params[1]);
         m_params[1] = param1;
     } else if (m_isPair) {
-        if (enemy != NULL && enemy->getEnemyKind() == 0x3B) {
+        if (enemy != NULL && enemy->getEnemyKind() == Enemy_Boss_MasterHand) {
             stAdventureInfoIconParam param0 = getIconParamForEnemy(createId, enemy->getTaskId(), 0, &m_params[0]);
             m_params[0] = param0;
         }
         Enemy* subEnemy = getEnemy(m_subCreateId);
-        if (subEnemy != NULL && subEnemy->getEnemyKind() == 0x3C) {
+        if (subEnemy != NULL && subEnemy->getEnemyKind() == Enemy_Boss_CrazyHand) {
             stAdventureInfoIconParam param1 = getIconParamForEnemy(m_subCreateId, subEnemy->getTaskId(), 1, &m_params[1]);
             m_params[1] = param1;
         }
@@ -101,12 +112,12 @@ void stAdventureInfoEmBoss::setBossPacknWnRight(u32 createId) {
 
 void stAdventureInfoEmBoss::notifyDead(u32 createId) {
     Enemy* enemy = getEnemy(createId);
-    if (enemy != NULL && enemy->getEnemyKind() == 0x2E) {
+    if (enemy != NULL && enemy->getEnemyKind() == Enemy_Boss_BossPackun) {
         m_isDead[0] = true;
         m_isDead[1] = true;
-    } else if (m_isPair && enemy != NULL && enemy->getEnemyKind() == 0x3B) {
+    } else if (m_isPair && enemy != NULL && enemy->getEnemyKind() == Enemy_Boss_MasterHand) {
         m_isDead[0] = true;
-    } else if (m_isPair && enemy != NULL && enemy->getEnemyKind() == 0x3C) {
+    } else if (m_isPair && enemy != NULL && enemy->getEnemyKind() == Enemy_Boss_CrazyHand) {
         m_isDead[1] = true;
     } else if (isBoss(createId)) {
         m_isDead[0] = true;
@@ -122,12 +133,12 @@ void stAdventureInfoEmBoss::notifyDamage(int createId, u32 taskId) {
     }
     if (isBoss(createId)) {
         Enemy* enemy = getEnemy(createId);
-        if (enemy != NULL && enemy->getEnemyKind() == 0x2E) {
+        if (enemy != NULL && enemy->getEnemyKind() == Enemy_Boss_BossPackun) {
             m_isDamage[0] = true;
             m_isDamage[1] = true;
-        } else if (m_isPair && enemy != NULL && enemy->getEnemyKind() == 0x3B) {
+        } else if (m_isPair && enemy != NULL && enemy->getEnemyKind() == Enemy_Boss_MasterHand) {
             m_isDamage[0] = true;
-        } else if (m_isPair && enemy != NULL && enemy->getEnemyKind() == 0x3C) {
+        } else if (m_isPair && enemy != NULL && enemy->getEnemyKind() == Enemy_Boss_CrazyHand) {
             m_isDamage[1] = true;
         } else {
             m_isDamage[0] = true;

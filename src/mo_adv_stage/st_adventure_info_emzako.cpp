@@ -1,3 +1,8 @@
+// stAdventureInfoEmZako: the Subspace Emissary health display for ordinary (non-boss) enemies. It has two slots, which
+// init fills (by index) for any enemy that isBoss would not claim. update refreshes each slot's icon parameters, forwards
+// them with damage and death events to the adventure HUD through stAdventureInfoContact, and drops the slot 300 frames
+// after it was shown or when its enemy dies.
+#include <em/em_create.h>
 #include <em/enemy.h>
 #include <sora_adv_stage/st_adventure_info_emzako.h>
 
@@ -52,7 +57,12 @@ void stAdventureInfoEmZako::update() {
 }
 
 bool stAdventureInfoEmZako::isZako(int createId) {
-    int kinds[10] = {0x2E, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x3A, 0x3B, 0x3C};
+    // The boss kinds (the same list as stAdventureInfoEmBoss::isBoss); here a local .rodata template.
+    int kinds[10] = {
+        Enemy_Boss_BossPackun, Enemy_Boss_Galleom,    Enemy_Boss_Ridley,     Enemy_Boss_Rayquaza,
+        Enemy_Boss_Duon,       Enemy_Boss_Porky,      Enemy_Boss_MetaRidley, Enemy_Boss_Tabuu,
+        Enemy_Boss_MasterHand, Enemy_Boss_CrazyHand,
+    };
     Enemy* enemy = getEnemy(createId);
     for (int i = 0; i < 10; i++) {
         if (enemy != NULL && kinds[i] == enemy->getEnemyKind()) {
