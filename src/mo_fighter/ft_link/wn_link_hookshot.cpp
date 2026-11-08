@@ -29,11 +29,13 @@ extern soStatusUniqProcess g_wnLassoStatusUniqProcessReach;
 static inline const wnSimpleKindInfo& ownerKindInfo(soModuleAccesser* acc) {
     return *reinterpret_cast<const wnSimpleKindInfo*>(reinterpret_cast<u8*>(dynamic_cast<Weapon*>(acc->m_stageObject)) + 0xC4);
 }
+static inline ftKind ownerSubKind(soModuleAccesser* acc) {
+    return static_cast<ftKind>(ownerKindInfo(acc).subKind);
+}
 
 inline wnInstanceHolderHookshot::wnInstanceHolderHookshot(soModuleAccesser* acc) : soInstancePoolRoot(acc),
     m_instance(0, wnSimpleConstructionInfo(ownerKindInfo(acc), acc->m_enumerationStart->m_heapModule),
-               g_ftCommonDataAccesser.getSimpleData(static_cast<ftKind>(ownerKindInfo(acc).subKind),
-                                                    &ftArticleDataFlags().get().resourceGroup), false) { }
+               g_ftCommonDataAccesser.getSimpleData(ownerSubKind(acc), &ftArticleDataFlags().get().resourceGroup), false) { }
 
 wnLinkHookshot::wnLinkHookshot(s32 articleId, const wnArticleBuildInfo& info, const wnLinkHookshotData* data) :
     wnWeaponBuilder<wnLinkHookshotModuleAccesserBuildConfig>(
