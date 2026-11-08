@@ -104,9 +104,10 @@ public:
 // HYPOTHESIS: soArticleMediatorImpl<PoolList, Founder>
 template <class PoolList, class Founder>
 class soArticleMediatorImpl : public soArticleMediator {
+public:
+    // Public: the slot helpers in ft_link.cpp read the pool chain from the mediator itself.
     ftLinkArticlePools m_pools;
     bool m_autoRecycle;
-public:
     soArticleMediatorImpl(soModuleAccesser* acc) : soArticleMediator(acc), m_pools(acc), m_autoRecycle(false) { }
     virtual ~soArticleMediatorImpl();
     virtual soArticle* generate(s32 articleId, soModuleAccesser* acc);

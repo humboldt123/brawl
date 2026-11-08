@@ -793,12 +793,12 @@ soArticle* soArticleMediatorImpl<PoolList, Founder>::generate(s32 articleId, soM
 }
 
 // Generatable while any article of the slot is inactive.
-template <int N, class Sub, int S, int L>
-inline bool ftLinkSlotIsGeneratable(Sub& pool, const soIntToType<S>&, const soIntToType<L>&) {
+template <int N, class Pool, class Mediator, int S, int L>
+inline bool ftLinkSlotIsGeneratable(Mediator* mediator, const soIntToType<S>&, const soIntToType<L>&) {
     bool allActive;
     s32 i;
     for (i = 0; i < N; ++i) {
-        if (static_cast<soArticle&>(*pool.getInstanceAt(i)).isActiveArticle() == false) {
+        if (static_cast<soArticle&>(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i)).isActiveArticle() == false) {
             allActive = false;
             goto done;
         }
@@ -811,12 +811,12 @@ done:
 template <class PoolList, class Founder>
 bool soArticleMediatorImpl<PoolList, Founder>::isGeneratable(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: return ftLinkSlotIsGeneratable<1>(FT_LINK_POOL(ftLinkBowPool), WN_ARTICLE_SLOT_TAGS);
-    case 1: return ftLinkSlotIsGeneratable<4>(FT_LINK_POOL(ftLinkBowArrowPool), WN_ARTICLE_SLOT_TAGS);
-    case 2: return ftLinkSlotIsGeneratable<1>(FT_LINK_POOL(ftLinkBoomerangPool), WN_ARTICLE_SLOT_TAGS);
-    case 3: return ftLinkSlotIsGeneratable<1>(FT_LINK_POOL(ftLinkHookshotPool), WN_ARTICLE_SLOT_TAGS);
-    case 4: return ftLinkSlotIsGeneratable<1>(FT_LINK_POOL(ftLinkSimple4Pool), WN_ARTICLE_SLOT_TAGS);
-    case 5: return ftLinkSlotIsGeneratable<1>(FT_LINK_POOL(ftLinkSimple5Pool), WN_ARTICLE_SLOT_TAGS);
+    case 0: return ftLinkSlotIsGeneratable<1, ftLinkBowPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftLinkSlotIsGeneratable<4, ftLinkBowArrowPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftLinkSlotIsGeneratable<1, ftLinkBoomerangPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftLinkSlotIsGeneratable<1, ftLinkHookshotPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftLinkSlotIsGeneratable<1, ftLinkSimple4Pool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftLinkSlotIsGeneratable<1, ftLinkSimple5Pool>(this, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOT(6, false)
     FT_LINK_UNUSED_SLOTS(false)
     default: return false;
@@ -824,15 +824,15 @@ bool soArticleMediatorImpl<PoolList, Founder>::isGeneratable(soModuleAccesser*, 
 }
 
 // Counts the active articles of a slot with the counter functor (wnArticleActiveCounter's layout).
-template <int N, class Sub, int S, int L>
-inline s32 ftLinkSlotActiveNum(Sub& pool, const soIntToType<S>&, const soIntToType<L>&) {
+template <int N, class Pool, class Mediator, int S, int L>
+inline s32 ftLinkSlotActiveNum(Mediator* mediator, const soIntToType<S>&, const soIntToType<L>&) {
     wnArticleSlotCounter counter;
     counter.m_isActive = wnArticleIsActive;
     counter.m_activeNum = 0;
     counter.m_inactiveNum = 0;
     for (s32 i = 0; i < N; ++i) {
         wnArticleSlotCounter* c = &counter;
-        if (c->m_isActive(&static_cast<soArticle&>(*pool.getInstanceAt(i))) == true) {
+        if (c->m_isActive(&static_cast<soArticle&>(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i))) == true) {
             ++c->m_activeNum;
         } else {
             ++c->m_inactiveNum;
@@ -844,12 +844,12 @@ inline s32 ftLinkSlotActiveNum(Sub& pool, const soIntToType<S>&, const soIntToTy
 template <class PoolList, class Founder>
 s32 soArticleMediatorImpl<PoolList, Founder>::getActiveNum(soModuleAccesser*, s32 articleId) {
     switch (articleId) {
-    case 0: return ftLinkSlotActiveNum<1>(FT_LINK_POOL(ftLinkBowPool), WN_ARTICLE_SLOT_TAGS);
-    case 1: return ftLinkSlotActiveNum<4>(FT_LINK_POOL(ftLinkBowArrowPool), WN_ARTICLE_SLOT_TAGS);
-    case 2: return ftLinkSlotActiveNum<1>(FT_LINK_POOL(ftLinkBoomerangPool), WN_ARTICLE_SLOT_TAGS);
-    case 3: return ftLinkSlotActiveNum<1>(FT_LINK_POOL(ftLinkHookshotPool), WN_ARTICLE_SLOT_TAGS);
-    case 4: return ftLinkSlotActiveNum<1>(FT_LINK_POOL(ftLinkSimple4Pool), WN_ARTICLE_SLOT_TAGS);
-    case 5: return ftLinkSlotActiveNum<1>(FT_LINK_POOL(ftLinkSimple5Pool), WN_ARTICLE_SLOT_TAGS);
+    case 0: return ftLinkSlotActiveNum<1, ftLinkBowPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftLinkSlotActiveNum<4, ftLinkBowArrowPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftLinkSlotActiveNum<1, ftLinkBoomerangPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftLinkSlotActiveNum<1, ftLinkHookshotPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftLinkSlotActiveNum<1, ftLinkSimple4Pool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftLinkSlotActiveNum<1, ftLinkSimple5Pool>(this, WN_ARTICLE_SLOT_TAGS);
     WN_ARTICLE_UNUSED_SLOT(6, 0)
     FT_LINK_UNUSED_SLOTS(0)
     default: return 0;
@@ -900,7 +900,7 @@ bool soArticleMediatorImpl<PoolList, Founder>::shoot(soModuleAccesser* acc, soAr
 template <class Sub, int N>
 inline bool ftLinkSlotDeactivate(Sub& pool) {
     for (s32 i = 0; i < N; ++i) {
-        if (!static_cast<soArticle&>(*pool.getInstanceAt(i)).setDeactivateDescendant()) {
+        if (!static_cast<soArticle&>(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i)).setDeactivateDescendant()) {
             return false;
         }
     }
