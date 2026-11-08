@@ -713,7 +713,7 @@ typedef soInstancePool<ftLinkBowArrowInfo, ftLinkArticlePool1Parent, ftLinkArtic
 typedef soInstancePool<ftLinkBoomerangInfo, ftLinkArticlePool2Parent, ftLinkArticleKindInfo, 2> ftLinkBoomerangPool;
 typedef soInstancePool<ftLinkHookshotInfo, ftLinkArticlePool3Parent, ftLinkArticleKindInfo, 3> ftLinkHookshotPool;
 typedef soInstancePool<ftLinkSimple4Info, ftLinkArticlePool4Parent, ftLinkArticleKindInfo, 4> ftLinkSimple4Pool;
-#define FT_LINK_POOL(Pool) static_cast<Pool&>(getPools()).getSub()
+#define FT_LINK_POOL(Pool) static_cast<Pool&>(m_pools).getSub()
 #define FT_LINK_UNUSED_SLOTS(value) \
     WN_ARTICLE_UNUSED_SLOT(7, value) WN_ARTICLE_UNUSED_SLOT(8, value) WN_ARTICLE_UNUSED_SLOT(9, value) \
     WN_ARTICLE_UNUSED_SLOT(10, value) WN_ARTICLE_UNUSED_SLOT(11, value) WN_ARTICLE_UNUSED_SLOT(12, value) \
