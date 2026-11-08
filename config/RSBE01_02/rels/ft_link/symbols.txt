@@ -470,7 +470,7 @@ getInstanceAt__143soInstancePoolSub<100soInstancePoolInfo<21soKineticEnergyJostl
 forEachHolderModuleAccesser<60soKineticUpdateEnergyHolderHelper<23ftLinkKineticTransactor>>__143soInstancePoolSub<100soInstancePoolInfo<21soKineticEnergyJostle,1,21soKineticEnergyHolder,28soKineticEnergyInitInfo<7,4>>,18soTypeListNullType>F60soKineticUpdateEnergyHolderHelper<23ftLinkKineticTransactor>P16soModuleAccesser_i = .text:0x0000E8B4; // type:function size:0x90
 forEachHolderModuleAccesser<60soKineticUpdateEnergyHolderHelper<23ftLinkKineticTransactor>>__46soInstancePoolSubNull<21soKineticEnergyJostle>F60soKineticUpdateEnergyHolderHelper<23ftLinkKineticTransactor>P16soModuleAccesser_i = .text:0x0000E944; // type:function size:0x8
 __ct__56soKineticUpdateEnergyHolderHelper<19ftKineticTransactor>FRC56soKineticUpdateEnergyHolderHelper<19ftKineticTransactor> = .text:0x0000E94C; // type:function size:0xC
-fn_93_E958 = .text:0x0000E958; // type:function size:0x64
+__sinit_\ft_link_cpp = .text:0x0000E958; // type:function size:0x64
 __ct__25ftLinkExtendParamAccesserFv = .text:0x0000E9BC; // type:function size:0x48
 __ct__26ftClassInfoImpl<2,6ftLink>Fv = .text:0x0000EA04; // type:function size:0x58
 __dt__26ftClassInfoImpl<2,6ftLink>Fv = .text:0x0000EA5C; // type:function size:0x84

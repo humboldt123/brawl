@@ -506,7 +506,6 @@ void testBuilder() {
     soInsideEventManageModuleBuilder<ftLinkInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
     soResourceIdAccesserImpl idAccImpl(0, 1, 2);
 }
-soInsideEventManageModuleBuilder<ftLinkInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
 
 // Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
 extern "C" {
