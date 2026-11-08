@@ -16,7 +16,9 @@ public:
     typedef soInsideEventManageModuleBuildConfig<16, 32, 4, 2, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 1, 1, 0, 0, 0, wnInsideEventManageModuleTypes>
         InsideEventManageModuleBuildConfig;
     typedef soModelModuleBuildConfig<5, 0, soModelModuleImpl> ModelModuleBuildConfig;
-    typedef soMotionModuleBuildConfig<1, soMotionModuleImpl, 0, 0, soTransitionModuleBuildConfig<wnMotionTransitionTypeList>,
+    // Six motion data entries: the constructor sizes the motion table with 6 (the hookshot has 1, so the two articles do not
+    // share one motion builder and each destructor expands its own teardown).
+    typedef soMotionModuleBuildConfig<6, soMotionModuleImpl, 0, 0, soTransitionModuleBuildConfig<wnMotionTransitionTypeList>,
                                       soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > MotionModuleBuildConfig;
     typedef soPostureModuleBuildConfig<1, soPostureModuleSimple> PostureModuleBuildConfig;
     typedef soGroundModuleBuildConfigNull GroundModuleBuildConfig;
