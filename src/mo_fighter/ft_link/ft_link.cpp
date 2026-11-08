@@ -499,7 +499,6 @@ soInsideEventManageModuleBuilder<ftLinkInsideEventManageModuleBuildConfig, ftIns
 extern "C" {
 
 // Empty virtual overrides and default observers.
-void fn_93_91E8() {}
 void fn_93_9974() {}
 void fn_93_9978() {}
 void fn_93_AD30() {}
@@ -543,23 +542,13 @@ void fn_93_B01C() {}
 void fn_93_DAB0() {}
 
 // Constant returns.
-int fn_93_AC1C() { return 0; }
-int fn_93_AF7C() { return 0; }
-int fn_93_AFE8() { return 0; }
 int fn_93_AFF8() { return 0; }
 int fn_93_B000() { return 0; }
 int fn_93_B3C4() { return 0; }
 
 
 // Field accessors.
-u8 fn_93_22F8(u8* p) { return *(u8*)(p + 0x4); }
-int fn_93_AA2C(u8* p) { return *(int*)(p + 0x28); }
 int fn_93_AC04(u8* p) { return *(int*)(p + 0xC0); }
-void fn_93_AC0C(u8* p, float x, float y, float z) {
-    *(float*)(p + 0x0) = x;
-    *(float*)(p + 0x4) = y;
-    *(float*)(p + 0x8) = z;
-}
 u8 fn_93_AE38(u8* p) { return *(u8*)(p + 0x44); }
 int fn_93_AFD0(u8* p) { return *(int*)(p + 0x110); }
 u8* fn_93_B020(u8* p, u32 idx) { return p + 4 + (idx << 3); }
@@ -588,38 +577,12 @@ void fn_93_DB98(u8* p) { *(u8*)(p + 0x31) = 0; }
 void fn_93_DBA4(u8* p) { *(u8*)(p + 0x31) = 1; }
 
 // Bit flags in the u32 array at +0x1C.
-bool fn_93_B20C(u8* p, u32 mask, u32 idx) { u32* a = *(u32**)(p + 0x1C); return (a[idx] & mask) != 0; }
-void fn_93_B228(u8* p, u32 mask, u32 idx) { u32* a = *(u32**)(p + 0x1C); a[idx] &= ~mask; }
-void fn_93_B240(u8* p, u32 idx) { u32* a = *(u32**)(p + 0x1C); a[idx] = 0; }
-void fn_93_B254(u8* p, u32 mask, u32 idx) { u32* a = *(u32**)(p + 0x1C); a[idx] |= mask; }
 
 // Float array at +0x14.
-void fn_93_B274(u8* p, u32 idx, float d) {
-    if (d == 0.0f) {
-        return;
-    }
-    float* a = *(float**)(p + 0x14);
-    a[idx] /= d;
-}
-void fn_93_B29C(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] *= v; }
-void fn_93_B2B4(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] -= v; }
-void fn_93_B2CC(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] += v; }
 void fn_93_B2E4(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] = v; }
 float fn_93_B2F4(u8* p, u32 idx) { float* a = *(float**)(p + 0x14); return a[idx]; }
 
 // Int array at +0x0C.
-void fn_93_B30C(u8* p, u32 idx) { int* a = *(int**)(p + 0xC); a[idx]--; }
-void fn_93_B324(u8* p, u32 idx) { int* a = *(int**)(p + 0xC); a[idx]++; }
-void fn_93_B33C(u8* p, int d, u32 idx) {
-    if (d == 0) {
-        return;
-    }
-    int* a = *(int**)(p + 0xC);
-    a[idx] /= d;
-}
-void fn_93_B35C(u8* p, int d, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] *= d; }
-void fn_93_B374(u8* p, int d, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] -= d; }
-void fn_93_B38C(u8* p, int d, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] += d; }
 void fn_93_B3A4(u8* p, int v, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] = v; }
 }
 // Second placeholder batch: empty and constant virtuals, guarded virtual calls and pointer-returning destructors.
@@ -658,130 +621,26 @@ struct ftLinkVirtualSlots {
 };
 
 void fn_93_E1BC() {}
-void fn_93_E240() {}
-void fn_93_E328() {}
-void fn_93_E410() {}
-void fn_93_E4F8() {}
-void fn_93_E5E0() {}
-void fn_93_E6C8() {}
-void fn_93_E7B0() {}
-void fn_93_E898() {}
-int fn_93_E2EC() { return 0; }
-int fn_93_E3D4() { return 0; }
-int fn_93_E4BC() { return 0; }
-int fn_93_E5A4() { return 0; }
-int fn_93_E68C() { return 0; }
-int fn_93_E774() { return 0; }
-int fn_93_E85C() { return 0; }
-int fn_93_E944() { return 0; }
 int fn_93_E1F8() { return 8; }
 void fn_93_E200(s16* dst, s16* src) { *dst = *src; }
 
 // Calls the slot-3 virtual of the object when byte 5 bit 7 is set and byte 6 is clear.
-void fn_93_E20C(void* p) {
-    u8* b = (u8*)p;
-    ftLinkFlagByte* flags = (ftLinkFlagByte*)(b + 5);
-    bool active = flags->flag;
-    if (active == true) {
-        if (b[6] == 0) {
-            return ((ftLinkVirtualSlots*)p)->slot1();
-        }
-    }
-}
-void fn_93_E2F4(void* p) {
-    u8* b = (u8*)p;
-    ftLinkFlagByte* flags = (ftLinkFlagByte*)(b + 5);
-    bool active = flags->flag;
-    if (active == true) {
-        if (b[6] == 0) {
-            return ((ftLinkVirtualSlots*)p)->slot1();
-        }
-    }
-}
-void fn_93_E3DC(void* p) {
-    u8* b = (u8*)p;
-    ftLinkFlagByte* flags = (ftLinkFlagByte*)(b + 5);
-    bool active = flags->flag;
-    if (active == true) {
-        if (b[6] == 0) {
-            return ((ftLinkVirtualSlots*)p)->slot1();
-        }
-    }
-}
-void fn_93_E4C4(void* p) {
-    u8* b = (u8*)p;
-    ftLinkFlagByte* flags = (ftLinkFlagByte*)(b + 5);
-    bool active = flags->flag;
-    if (active == true) {
-        if (b[6] == 0) {
-            return ((ftLinkVirtualSlots*)p)->slot1();
-        }
-    }
-}
-void fn_93_E5AC(void* p) {
-    u8* b = (u8*)p;
-    ftLinkFlagByte* flags = (ftLinkFlagByte*)(b + 5);
-    bool active = flags->flag;
-    if (active == true) {
-        if (b[6] == 0) {
-            return ((ftLinkVirtualSlots*)p)->slot1();
-        }
-    }
-}
-void fn_93_E694(void* p) {
-    u8* b = (u8*)p;
-    ftLinkFlagByte* flags = (ftLinkFlagByte*)(b + 5);
-    bool active = flags->flag;
-    if (active == true) {
-        if (b[6] == 0) {
-            return ((ftLinkVirtualSlots*)p)->slot1();
-        }
-    }
-}
-void fn_93_E77C(void* p) {
-    u8* b = (u8*)p;
-    ftLinkFlagByte* flags = (ftLinkFlagByte*)(b + 5);
-    bool active = flags->flag;
-    if (active == true) {
-        if (b[6] == 0) {
-            return ((ftLinkVirtualSlots*)p)->slot1();
-        }
-    }
-}
-void fn_93_E864(void* p) {
-    u8* b = (u8*)p;
-    ftLinkFlagByte* flags = (ftLinkFlagByte*)(b + 5);
-    bool active = flags->flag;
-    if (active == true) {
-        if (b[6] == 0) {
-            return ((ftLinkVirtualSlots*)p)->slot1();
-        }
-    }
-}
 
 // Virtual destructors: delete the object when the flag is positive, then return it.
 void* fn_93_21A0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_93_285C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_93_3D80(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_93_4294(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_93_482C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_93_59F4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_93_5EE8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_93_5F28(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_93_5F68(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_93_696C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 
 // Virtual calls through a subobject vtable and tail calls.
 void fn_93_CC30(void* p) { return ((ftLinkVirtualSlots*)p)->slot20(); }
-void fn_93_DBB0(u8* p) { fn_93_AC0C(p, 0.0f, 0.0f, 0.0f); }
-void fn_93_CBD0(u8* p) { return ((ftLinkVirtualSlots*)(p + 0x19DAC))->slot2(); }
 
 
 }
 
 // Leaf functions shared with other fighter modules (same module-map names and bodies).
 extern "C" {
-void* fn_93_1AD8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 } // extern "C"
 
 // The kind record of the owner (kind 0, sub kind Link) and the heap the articles are built from.
