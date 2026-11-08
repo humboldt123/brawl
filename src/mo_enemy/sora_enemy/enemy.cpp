@@ -1,7 +1,22 @@
-// TODO(link): all 295 functions are exact, but the unit does not link yet: the test link misses three weak destructor
-// copies (soArrayVector<soCollisionAttackAbsolute,1>, soTargetSearchModuleImpl, soArrayVector<soOtherAnim,3>) and the
-// bss label lbl_41_bss_1C8, and the soCollisionSearchEventObserver / soCaptureEventObserver vtables come out at other
-// .data offsets than the original's (the vtable/RTTI order records the original's include order, see TIPS).
+// TODO(link): all 295 functions are exact and the test link gives equal .text/.rodata/.bss sizes, but the unit does not
+// link yet. Remaining blockers (test link against the original asm object, 2026-11-07):
+// 1. .data order: MWCC writes a unit's vtables and RTTI in reverse class-definition order, and the weak-copy tail of
+//    .text (the inline virtuals those vtables reference) follows the same order. Our order is the reverse of our
+//    include graph (so/so_module_accesser.h and the stageobject.h chain define every module class early); the original's
+//    is readable backwards from the asm object's .data (wnemSwHolder, Enemy, the anim cmd control unit manager, the
+//    transition entity, soCaptureEventObserver, em area / kinetic / link / status module impls, ..., soNullable, gfTask).
+//    Pre-including headers in that order in this file does not help while so_module_accesser.h includes them all:
+//    it needs forward declarations there (as em_damage_module_impl.cpp needed), then an ordered include list here.
+// 2. __RTTI__12wnemSwHolder (with __RTTI__9soArticle and its presenter base) opens the original's .data although nothing
+//    in the unit references it; an unused inline dynamic_cast<wnemSwHolder*> and a same-type cast do not emit it.
+// 3. Four shared-header forms, tested as an opt-in patch (all exact, .text diff moved from 0x2188 to 0x2bbc, soNull RTTI
+//    gone, soTransitionModule vtable present): explicit empty destructors on the five collision/capture observer bases
+//    and on soGeneralWorkSimple (an implicit one is deferred behind the addObserver copies; soStatusEventObserver's is
+//    prompt because derived module classes define it first), soNull as a private base of soGroundModule (its RTTI base
+//    list has only soNullable), and soTransitionModule's virtuals pure (its vtable has only the destructor slot filled).
+// 4. Small first-need placements in .text: soInstanceManagerFixed's destructor copy before soInstanceManagerFullProperty's
+//    (ours after), isNull__10soNullableCFv after activate (ours after shoot: the original inlines an isNull() there),
+//    the Vec3f(f, f, f) copy after reqEffectAreaOut (ours at its first call, getEmLrRot, because of MT_VEC3F_CTOR_NOINLINE).
 #define MT_VEC3F_SUB_FRESH_REGS
 // The Enemy unit builds the StageObject virtuals that the SDK defines inline (getInput, isActive, ...) as weak copies,
 // like the yakumono stage units: the vtables reference them.
@@ -23,6 +38,8 @@
 #define FT_MODULE_BUILDER
 #define FT_REL_LINK_EXTERN
 #define EM_ENEMY_BUILDER
+// Only this unit: soGetKind / soGetSubKind / isTreadPassive are inline in the class (weak copies of the vtable tail).
+#define EM_ENEMY_UNIT
 #define SO_ARRAY_LIST_CTOR_FLAG
 // BYTES: the unit's destructor chain is not inlined: soTeamImpl calls soTeam's destructor, the anim cmd control unit
 // manager calls soInstanceManagerFullProperty's, which calls soInstanceManagerFixed's (each a weak copy of this unit), and
@@ -2664,14 +2681,3 @@ void Enemy::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* acc, S
     StageObject::notifyEventLink(eventInfo, acc, sender, unk4);
 }
 
-bool Enemy::isTreadPassive() {
-    return true;
-}
-
-int Enemy::soGetSubKind() {
-    return m_enemyKind;
-}
-
-soKind Enemy::soGetKind() {
-    return StageObject_Enemy;
-}
