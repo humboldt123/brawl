@@ -829,6 +829,7 @@ struct ftLinkEachCounter {
     Fn* m_fn;
     s32 m_trueNum;
     s32 m_falseNum;
+    ftLinkEachCounter(Fn* fn) : m_fn(fn), m_trueNum(0), m_falseNum(0) { }
     template <class T>
     bool operator()(T& instance) {
         if (m_fn(&static_cast<soArticle&>(instance)) == true) {
@@ -842,10 +843,7 @@ struct ftLinkEachCounter {
 
 template <int N, class Pool, class Mediator, int S, int L>
 inline s32 ftLinkSlotActiveNum(Mediator* mediator, const soIntToType<S>&, const soIntToType<L>&) {
-    ftLinkEachCounter<bool(soArticle*)> counter;
-    counter.m_fn = wnArticleIsActive;
-    counter.m_trueNum = 0;
-    counter.m_falseNum = 0;
+    ftLinkEachCounter<bool(soArticle*)> counter(wnArticleIsActive);
     for (s32 i = 0; i < N; ++i) {
         ftLinkEachCounter<bool(soArticle*)>* c = &counter;
         if (!(*c)(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i))) {
@@ -853,6 +851,12 @@ inline s32 ftLinkSlotActiveNum(Mediator* mediator, const soIntToType<S>&, const 
         }
     }
     return counter.m_trueNum;
+}
+
+// Slot 6 is the bomb item (up to two), counted by the article manage module.
+template <int S, int L>
+inline s32 ftLinkSlotItemActiveNum(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    return 2 - acc->getGenerateArticleManageModule().getNum(6);
 }
 
 template <class PoolList, class Founder>
@@ -864,7 +868,7 @@ s32 soArticleMediatorImpl<PoolList, Founder>::getActiveNum(soModuleAccesser* acc
     case 3: return ftLinkSlotActiveNum<1, ftLinkHookshotPool>(this, WN_ARTICLE_SLOT_TAGS);
     case 4: return ftLinkSlotActiveNum<1, ftLinkSimple4Pool>(this, WN_ARTICLE_SLOT_TAGS);
     case 5: return ftLinkSlotActiveNum<1, ftLinkSimple5Pool>(this, WN_ARTICLE_SLOT_TAGS);
-    case 6: return 2 - acc->getGenerateArticleManageModule().getNum(6);
+    case 6: return ftLinkSlotItemActiveNum(acc, WN_ARTICLE_SLOT_TAGS);
     FT_LINK_UNUSED_SLOTS(0)
     default: return 0;
     }
