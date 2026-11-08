@@ -676,11 +676,17 @@ template <>
 inline wnInstanceHolder<wnLinkHookshot, soKindInfoGeneric<0, 2>, soIntToType<3> >::wnInstanceHolder(soModuleAccesser* acc) :
     m_instance(3, ftLinkArticleBuildInfo(ftLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
                static_cast<const wnLinkHookshotData*>(g_ftCommonDataAccesser.getWeaponData15(Fighter_Link, &ftArticleDataFlags().get().resourceGroup))) { }
+// The simple articles (bombs) are built from the simple data of the fighter kind.
+struct ftLinkSimpleKind : wnSimpleKindInfo {
+    ftLinkSimpleKind() : wnSimpleKindInfo(Fighter_Link) { }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling, as in ft_snake
+};
 #define FT_LINK_SIMPLE_HOLDER(ID)                                                                                       \
     template <>                                                                                                         \
     inline wnInstanceHolder<wnSimple, soKindInfoGeneric<0, 2>, soIntToType<ID> >::wnInstanceHolder(soModuleAccesser* acc) : \
         m_instance(ID, wnSimpleConstructionInfo(wnSimpleKindInfo(Fighter_Link), acc->m_enumerationStart->m_heapModule), \
-                   g_ftCommonDataAccesser.getSimpleData(Fighter_Link, &ftArticleDataFlags().get().resourceGroup), false) { }
+                   g_ftCommonDataAccesser.getSimpleData(static_cast<ftKind>(ftLinkSimpleKind().getSubKind()), \
+                                                        &ftArticleDataFlags().get().resourceGroup), false) { }
 FT_LINK_SIMPLE_HOLDER(4)
 FT_LINK_SIMPLE_HOLDER(5)
 
