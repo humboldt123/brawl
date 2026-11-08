@@ -20,7 +20,7 @@ void stOperatorAdvBgm::phaseNowWork() { }
 
 void stOperatorAdvBgm::phasePrepareRequest() {
     sndSystem* system = g_sndSystem;
-    Stage* stage = g_Stage;
+    Stage* const stage = g_Stage; // BYTES: const pointer flips the r30/r31 assignment of stage and system
     if (stage != NULL) {
         m_stepBgmId = stage->getNowStepBgmID();
         m_bgmVolume = stage->getBgmVolume();

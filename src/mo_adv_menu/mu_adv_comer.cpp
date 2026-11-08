@@ -27,7 +27,7 @@ static inline bool isLoading(muAdvComerTask* task) {
 
 // Whether the animations of the model are over.
 static inline bool isAnimEnd(muAdvComerTask* task) {
-    return !task->m_object->isNodeAnimFinished() ? false : task->m_object->isClrAnimFinished();
+    return !task->m_object->isNodeAnimFinished() ? false : task->m_object->isClrAnimFinished() != 0;
 }
 
 muAdvComerTask::muAdvComerTask() : gfTask("AdvComer", Category_Menu, 0xF, 8, true) {
@@ -93,13 +93,15 @@ muAdvComerTask::muAdvComerTask() : gfTask("AdvComer", Category_Menu, 0xF, 8, tru
 muAdvComerTask::~muAdvComerTask() { }
 
 void muAdvComerTask::processDefault() {
+    gmAdvData::PadInfo none;
     gmAdvData::PadInfo info;
     gmAdvData* advData = g_GameGlobal->m_advData;
     if (advData != NULL) {
         info = advData->m_padInfo[0];
     } else {
-        info.m_flag.m_word = 0;
-        info.m_padNo = -1;
+        none.m_flag.m_isSet = false;
+        none.m_padNo = -1;
+        info = none;
     }
     gmAdvData::PadInfo pad = info;
     gfPadStatus status;

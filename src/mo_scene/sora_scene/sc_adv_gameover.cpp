@@ -8,7 +8,8 @@
 #include <sr/sr_common.h>
 #include <types.h>
 
-// NONMATCHING: instruction ordering in the ctor
+// scAdvGameover: the Subspace Emissary game-over scene. All 5 functions are exact and the unit is linked; create's
+// inlined constructor needs the MATCH-ONLY constructor body in the shadow header include/sc/sc_adv_gameover.h.
 scAdvGameover* scAdvGameover::create() {
     return new (Heaps::GlobalMode) scAdvGameover("scAdvGameover");
 }
