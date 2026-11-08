@@ -808,8 +808,14 @@ done:
     return allActive == false;
 }
 
+// Slot 6 is the bomb item: generatable while fewer than two exist.
+template <int S, int L>
+inline bool ftLinkSlotItemIsGeneratable(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    return acc->getGenerateArticleManageModule().getNum(6) < 2;
+}
+
 template <class PoolList, class Founder>
-bool soArticleMediatorImpl<PoolList, Founder>::isGeneratable(soModuleAccesser*, s32 articleId) {
+bool soArticleMediatorImpl<PoolList, Founder>::isGeneratable(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
     case 0: return ftLinkSlotIsGeneratable<1, ftLinkBowPool>(this, WN_ARTICLE_SLOT_TAGS);
     case 1: return ftLinkSlotIsGeneratable<4, ftLinkBowArrowPool>(this, WN_ARTICLE_SLOT_TAGS);
@@ -817,7 +823,7 @@ bool soArticleMediatorImpl<PoolList, Founder>::isGeneratable(soModuleAccesser*, 
     case 3: return ftLinkSlotIsGeneratable<1, ftLinkHookshotPool>(this, WN_ARTICLE_SLOT_TAGS);
     case 4: return ftLinkSlotIsGeneratable<1, ftLinkSimple4Pool>(this, WN_ARTICLE_SLOT_TAGS);
     case 5: return ftLinkSlotIsGeneratable<1, ftLinkSimple5Pool>(this, WN_ARTICLE_SLOT_TAGS);
-    WN_ARTICLE_UNUSED_SLOT(6, false)
+    case 6: return ftLinkSlotItemIsGeneratable(acc, WN_ARTICLE_SLOT_TAGS);
     FT_LINK_UNUSED_SLOTS(false)
     default: return false;
     }
