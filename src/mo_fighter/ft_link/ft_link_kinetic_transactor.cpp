@@ -100,15 +100,13 @@ void ftLinkKineticTransactor::changeKineticSub(void*, Vec2f*, soModuleAccesser* 
     controller.mulXSpeedMax(soValueAccesser::getConstantFloat(moduleAccesser, 0xFA9, 0));
 }
 
-// MATCH-ONLY: Vec3f::length is out of line in the header; this unit has it inlined (the sum starts with the z square).
-static inline float length3(Vec3f& v) {
-    float zSq = v.m_z * v.m_z;
-    float xSq = v.m_x * v.m_x;
-    float ySq = v.m_y * v.m_y;
-    float lengthSquared = zSq + (xSq + ySq);
-    double absolute = __fabs(lengthSquared);
-    float magnitude = absolute;
-    if (magnitude <= 1.17549435e-38f) return 0.0f;
+// BYTES: mt_vector.h declares Vec3f::length out of line (other units such as ft_ike carry the weak copy);
+// this unit expands the same body inline at its call.
+inline float Vec3f::length() {
+    float lengthSquared = m_z * m_z + (m_x * m_x + m_y * m_y);
+    if (static_cast<float>(__fabs(lengthSquared)) <= 1.17549435e-38f) {
+        return 0.0f;
+    }
     return lengthSquared * rsqrtf(lengthSquared);
 }
 
@@ -123,7 +121,7 @@ void ftLinkKineticTransactor::changeKineticSub1(void*, Vec2f*, soModuleAccesser*
     objective = ftLinkStatusUniqProcessFinalDash::getObjectivePos(moduleAccesser);
     Vec3f diff;
     diff = objective - posture.getPos();
-    if (length3(diff) > 1.0f) {
+    if (diff.length() > 1.0f) {
         diff.normalize();
         Vec3fScale(&diff, &diff, soValueAccesser::getConstantFloat(moduleAccesser, 0xFAE, 0));
     }
