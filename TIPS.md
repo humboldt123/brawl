@@ -1033,3 +1033,21 @@ Method used for `soModelModuleImpl` (sora_melee 0x77DC-0xE268, `include/so/model
 - **Align an actual I/O record instead of adding a gap to a view struct:** the reader's static mailbox-entry buffer needs the SDK's 32-byte alignment. Its alignment naturally separates the 40-byte list state from the 128-byte entry and raises the unit's BSS alignment. Verify the symbol offsets and whole live section; a code-only comparison can miss the wrong buffer address while the containing unit remains unlinked. **HIGH**
 - **Count the `beq` lines after the first this-test to find a Havok agent's class depth:** each inlined base destructor adds one `beq` on the same cr0. The symmetric multi-sphere destructor has three (hkSymmetricAgent<T> derives from hkSymmetricAgentLinearCast<T>, which derives from T), and a symbol that has only one is the agent's own destructor; check the vtable slot before trusting a dtor name. Seen: `include/havok/hkMultiSphereAgent.h`. **HIGH**
 - **Look for unnamed `fn_` targets that our objects already emit under a real name:** compare every function in our object that has no same-named target symbol against the target's `fn_` symbols with label and `lbl_/fn_` names normalized; several weak agent destructors matched this way just by naming the symbol in `symbols.txt`. Equal 23-instruction deleting destructors are common, so pick the address with the map comment at the top of the unit's .cpp. **HIGH**
+
+## Adventure HUD (if_adv_hud, if_adv_boss, if_adv_enemy) findings
+
+- **An exact unit still needs real callees to link.** The boss and enemy HUD units were 100% but called
+  `MuObject::enableSkipMatrix` / `enableSkipMaterial` through `extern "C" fn_800B20B0` stand-ins. `missing_syms.py` lists
+  such names; when `symbols.txt` already names the address, call the member and flip the unit.
+- **Two callee-saved registers swapped on a value read from a member near the top:** read it through a trivial inline
+  accessor (`getObject(no)`). MWCC colors an inline's return value differently from a plain local (closed drawScore).
+- **The same "look up by name, then call" block at several call sites, with locals copied first:** it is an inline helper
+  with by-value arguments, which are evaluated before the lookup. Passing the lookup name as a parameter also fixed the
+  r3/r4 setup order (updateStockSlot, drawStockFaceMove).
+- **Asm block with a store emitted one slot early:** an in-place `ps_abs fr1, fr1` makes the store of fr1 before it a
+  dependency. Writing the result to a new register variable frees the scheduler, and the allocator still picks the same register.
+- **String pool order follows the order of first parse:** a local holding the first-used literal moves it ahead in `.data`.
+- **MWCC folds `(float)60u` and a `const` local, but not a `u32` variable holding 60**, so a run-time int-to-float
+  conversion of a constant in the original needs the variable (tag it `MATCH-ONLY`).
+- **A struct returned by hidden pointer and then assigned** (`Vec3f p; p = obj->get();`) gives the extra lfs/stfs copy
+  that constructing it in place does not.

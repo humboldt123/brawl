@@ -3,26 +3,40 @@
 #include <types.h>
 
 class MuObject;
-namespace nw4r { namespace g3d { class ResFile; class ScnMdlExpand; } }
+class IfPlayer;
+namespace nw4r { namespace g3d { class ResFile; class ScnGroup; class ScnMdlExpand; } }
 
 class IfAdvGauge {
 public:
     // HYPOTHESIS: array extents follow indexed stores and the following member offset.
-    MuObject* unk0[0x55];
-    nw4r::g3d::ScnMdlExpand* unk154[7];
+    // Object slots: 0 locator, 1 score anchor, 2..11 score digits, 12 crowd anchor, 13..62 crowd icons, 64 press start,
+    // 65 stock slot animation, 67..73 stock icons, 74 flying stock face, 75 time, 76..82 time digits, 84 locator 2.
+    MuObject* m_objects[0x55];
+    nw4r::g3d::ScnMdlExpand* m_models[7];
     // HYPOTHESIS: layout between the known fields is not yet recovered.
     u8 unk170[0x238 - 0x170];
-    nw4r::g3d::ResFile* unk238;
-    int unk23C;
-    u8 unk240[0x308 - 0x240];
-    int unk308;
-    // HYPOTHESIS: the tail of the object, from the stores of setCrowdDelAnimeNum, removeScore and removeCountTime; size from the allocation in create.
-    int unk30C;
-    u8 unk310[0x50];
-    u8 unk360;
-    u8 unk361;
-    u8 unk362;
+    nw4r::g3d::ResFile* m_stockResFile;
+    int m_pressStartFrame;
+    int m_crowdDelFrame[50];
+    int m_crowdCount;
+    // HYPOTHESIS: the crowd icon being deleted, initialised to 13 (the constructor); the update loop does not read it.
+    int m_crowdDelIndex;
+    u8 m_crowdDelActive[50];
+    u8 unk342[6];
+    // The stock face that flies from the stock slot to the player (drawStockFaceMove).
+    float m_faceOffsetX;
+    float m_faceOffsetY;
+    float unk350;
+    float m_faceAngle;
+    float unk358;
+    float m_faceSway;
+    bool m_isStockFaceMoving;
+    u8 m_isScoreVisible;
+    u8 m_isTimeVisible;
     u8 unk363;
+
+    // HYPOTHESIS: an inline accessor for the object slots (name invented); drawScore reads its anchor through it.
+    MuObject* getObject(int no) const { return m_objects[no]; }
 
     IfAdvGauge();
     ~IfAdvGauge();
@@ -48,4 +62,8 @@ public:
     void drawStockBase(int show);
     static void createLocator(nw4r::g3d::ResFile* resFile);
     static void createLocator2(nw4r::g3d::ResFile* resFile);
+    void crowdDelAnimeUpdate();
+    // HYPOTHESIS: the map names of the address-named functions fn_8010BDCC (main), fn_8010C004 (startScene),
+    // fn_8010C0FC (drawScore), fn_8010C6C8 (drawCountTime), fn_8010CA94 (updateStockSlot) and fn_8010CCE0
+    // (drawStockFaceMove) are defined in if_adv_hud.cpp as extern "C" functions until IfAdvMngr calls them by name.
 };
