@@ -722,7 +722,7 @@ template <>
 __declspec(weak)
 wnInstanceHolder<wnLinkBowArrow, soKindInfoGeneric<0, 2>, soIntToType<1> >::wnInstanceHolder(soModuleAccesser* acc) :
     m_instance(1, ftLinkArticleBuildInfo(ftLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
-               g_ftCommonDataAccesser.getWeaponData<wnLinkBowArrowData>(Fighter_Link, &ftArticleDataFlags().get().resourceGroup)) { }
+               g_ftCommonDataAccesser.getWeaponData<wnLinkBowArrowData>(static_cast<ftKind>(ftLinkArticleKind().getSubKind()), &ftArticleDataFlags().get().resourceGroup)) { }
 
 // The builder inlines the holders of its pools (all but the bow arrow's).
 template <class Mediator, int N>
