@@ -35,6 +35,14 @@ template soArrayVector<s32, 8>::~soArrayVector();
 #endif
 #pragma dont_inline off
 soStatusModuleImpl::~soStatusModuleImpl() { }
+// Weak copy every fighter REL emits (same form as ft_snake.cpp / ft_pit.cpp).
+ftKineticEnergyController::~ftKineticEnergyController() { }
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
 
 // HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
 extern "C" {
