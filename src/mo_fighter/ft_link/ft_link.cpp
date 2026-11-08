@@ -823,26 +823,40 @@ bool soArticleMediatorImpl<PoolList, Founder>::isGeneratable(soModuleAccesser*, 
     }
 }
 
-// Counts the active articles of a slot with the counter functor (wnArticleActiveCounter's layout).
+// Counts the active articles of a slot with the counter functor (map: soEachCounter<...>::operator()(wnSimple&)).
+template <class Fn>
+struct ftLinkEachCounter {
+    Fn* m_fn;
+    s32 m_trueNum;
+    s32 m_falseNum;
+    template <class T>
+    bool operator()(T& instance) {
+        if (m_fn(&static_cast<soArticle&>(instance)) == true) {
+            ++m_trueNum;
+        } else {
+            ++m_falseNum;
+        }
+        return true;
+    }
+};
+
 template <int N, class Pool, class Mediator, int S, int L>
 inline s32 ftLinkSlotActiveNum(Mediator* mediator, const soIntToType<S>&, const soIntToType<L>&) {
-    wnArticleSlotCounter counter;
-    counter.m_isActive = wnArticleIsActive;
-    counter.m_activeNum = 0;
-    counter.m_inactiveNum = 0;
+    ftLinkEachCounter<bool(soArticle*)> counter;
+    counter.m_fn = wnArticleIsActive;
+    counter.m_trueNum = 0;
+    counter.m_falseNum = 0;
     for (s32 i = 0; i < N; ++i) {
-        wnArticleSlotCounter* c = &counter;
-        if (c->m_isActive(&static_cast<soArticle&>(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i))) == true) {
-            ++c->m_activeNum;
-        } else {
-            ++c->m_inactiveNum;
+        ftLinkEachCounter<bool(soArticle*)>* c = &counter;
+        if (!(*c)(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i))) {
+            break;
         }
     }
-    return counter.m_activeNum;
+    return counter.m_trueNum;
 }
 
 template <class PoolList, class Founder>
-s32 soArticleMediatorImpl<PoolList, Founder>::getActiveNum(soModuleAccesser*, s32 articleId) {
+s32 soArticleMediatorImpl<PoolList, Founder>::getActiveNum(soModuleAccesser* acc, s32 articleId) {
     switch (articleId) {
     case 0: return ftLinkSlotActiveNum<1, ftLinkBowPool>(this, WN_ARTICLE_SLOT_TAGS);
     case 1: return ftLinkSlotActiveNum<4, ftLinkBowArrowPool>(this, WN_ARTICLE_SLOT_TAGS);
@@ -850,7 +864,7 @@ s32 soArticleMediatorImpl<PoolList, Founder>::getActiveNum(soModuleAccesser*, s3
     case 3: return ftLinkSlotActiveNum<1, ftLinkHookshotPool>(this, WN_ARTICLE_SLOT_TAGS);
     case 4: return ftLinkSlotActiveNum<1, ftLinkSimple4Pool>(this, WN_ARTICLE_SLOT_TAGS);
     case 5: return ftLinkSlotActiveNum<1, ftLinkSimple5Pool>(this, WN_ARTICLE_SLOT_TAGS);
-    WN_ARTICLE_UNUSED_SLOT(6, 0)
+    case 6: return 2 - acc->getGenerateArticleManageModule().getNum(6);
     FT_LINK_UNUSED_SLOTS(0)
     default: return 0;
     }
