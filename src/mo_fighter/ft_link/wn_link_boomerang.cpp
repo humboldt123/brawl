@@ -1,4 +1,5 @@
 #define IP_INPUT_BUTTON_RAW
+#define IP_NULL_STICK_ZERO_FIELDS // BYTES: native IpNull::getStick* store the two zero fields inline (Vec2f ctor is out of line here)
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
 #define WN_SHARED_ARRAYS_1
@@ -83,8 +84,10 @@ void wnLinkBoomerang::shoot(float lr, float angle, u32 kind) {
     m_moduleAccesser->getStatusModule().changeStatusRequest(2, m_moduleAccesser);
     wnKineticEnergyNormal& normal = dynamic_cast<wnKineticEnergyNormal&>(*m_moduleAccesser->getKineticModule().getEnergy(0));
     float deceleration = m_param->unk1C;
-    normal.m_speed = Vec2f(speed * cosf(angle), speed * sinf(angle));
-    normal.m_accel = Vec2f(-deceleration * cosf(angle), -deceleration * sinf(angle));
+    Vec2f velocity(speed * cosf(angle), speed * sinf(angle));
+    normal.m_speed = velocity;
+    Vec2f decel(-deceleration * cosf(angle), -deceleration * sinf(angle));
+    normal.m_accel = decel;
     m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
     m_moduleAccesser->getWorkManageModule().offFlag(0x12000004);
 }
@@ -120,11 +123,18 @@ bool wnLinkBoomerang::notifyEventCollisionAttackCheck(u32 flags) {
 // The animation command 6 of the flight bounces the boomerang off the ground it touches: the speed is mirrored on the contact
 // normal (or the boomerang turns around when the surface is steeper than the turn angle) and the deceleration follows the new
 // direction. HYPOTHESIS: the touch masks 0x52 / 0xA4 are the walls on the facing side.
+// HYPOTHESIS: reflects v off a surface with unit normal n.
+static inline void reflect(Vec2f& v, const Vec2f& n) {
+    float dot = n.m_x * v.m_x + n.m_y * v.m_y;
+    v -= (n * 2.0f) * dot;
+}
+
 bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, int unk3) {
     if (Weapon::notifyEventAnimCmd(cmd, acc, unk3)) {
         return true;
     }
-    if (!isObserv(cmd->getGroup())) {
+    s8 group = cmd->getGroup();
+    if (!isObserv(group)) {
         return false;
     }
     if (cmd->getType() <= -1 || cmd->getType() >= 11) {
@@ -142,7 +152,7 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
                 if (acc->getGroundModule().isTouch((grCollStatus::TouchMask)0xa4, 0) == 1) {
                     Vec2f wall = acc->getGroundModule().getTouchNormal(0xa4, 0);
                     if (wall.angle(&speed) >= 1.57079637f + param->unk28) {
-                        acc->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
+                        m_moduleAccesser->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
                         return true;
                     }
                 }
@@ -150,15 +160,14 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
                 if (acc->getGroundModule().isTouch((grCollStatus::TouchMask)0x52, 0) == 1) {
                     Vec2f wall = acc->getGroundModule().getTouchNormal(0x52, 0);
                     if (wall.angle(&speed) >= 1.57079637f + param->unk28) {
-                        acc->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
+                        m_moduleAccesser->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
                         return true;
                     }
                 }
             }
         }
         Vec2f contact = acc->getGroundModule().getTouchNormal(0xff, 0);
-        float dot = contact.m_x * speed.m_x + contact.m_y * speed.m_y;
-        speed -= (contact * 2.0f) * dot;
+        ::reflect(speed, contact);
         Vec2f newSpeed(speed.m_x, speed.m_y);
         normal.m_speed = newSpeed;
         float lengthSq = speed.m_x * speed.m_x + speed.m_y * speed.m_y;
@@ -183,3 +192,8 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
     }
     return false;
 }
+
+// BYTES: the native unit carries a weak out-of-line copy of the base accesser destructor.
+#pragma dont_inline on
+soParamAccesser::~soParamAccesser() { }
+#pragma dont_inline off

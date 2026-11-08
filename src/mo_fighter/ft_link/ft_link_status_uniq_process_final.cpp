@@ -186,7 +186,7 @@ void ftLinkStatusUniqProcessFinal::catch_success(soModuleAccesser* moduleAccesse
             soCaptureModuleHyp* capture = static_cast<soCaptureModuleHyp*>(modules->m_captureModule);
             soStatusModule* status = modules->m_statusModule;
             status->changeStatusRequest(0xED, targetAccesser);
-            capture->setCapture(moduleAccesser->m_stageObject->m_taskId, 0xED, 0);
+            capture->setCapture(moduleAccesser->m_stageObject->getTaskId(), 0xED, 0);
         }
     }
 }
@@ -232,15 +232,13 @@ void ftLinkStatusUniqProcessFinalDash::execFixPos(soModuleAccesser* moduleAccess
     }
 }
 
-// MATCH-ONLY: Vec3f::length is out of line in the header; this unit has it inlined (the sum starts with the z square).
-static inline float length3(Vec3f& v) {
-    float zSq = v.m_z * v.m_z;
-    float xSq = v.m_x * v.m_x;
-    float ySq = v.m_y * v.m_y;
-    float lengthSquared = zSq + (xSq + ySq);
-    double absolute = __fabs(lengthSquared);
-    float magnitude = absolute;
-    if (magnitude <= 1.17549435e-38f) return 0.0f;
+// BYTES: mt_vector.h declares Vec3f::length out of line (other units such as ft_ike carry the weak copy);
+// this unit expands the same body inline at its call.
+inline float Vec3f::length() {
+    float lengthSquared = m_z * m_z + (m_x * m_x + m_y * m_y);
+    if (static_cast<float>(__fabs(lengthSquared)) <= 1.17549435e-38f) {
+        return 0.0f;
+    }
     return lengthSquared * rsqrtf(lengthSquared);
 }
 
@@ -258,7 +256,7 @@ static bool check_dash_end(soModuleAccesser* moduleAccesser) {
     Vec2f speed;
     speed.m_x = work->getFloat(Work_Float_StoredX);
     speed.m_y = work->getFloat(Work_Float_StoredY);
-    return length3(diff) <= speed.length();
+    return diff.length() <= speed.length();
 }
 
 void ftLinkStatusUniqProcessFinalDash::exitStatus(soModuleAccesser* moduleAccesser, int nextStatus) {
