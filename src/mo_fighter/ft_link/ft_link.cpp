@@ -747,10 +747,16 @@ template <> struct ftLinkArticleActivator<wnSimple> {
 };
 
 // Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-template <class W, class Pool, class Mediator, int S, int L>
-inline soArticle* ftLinkSlotGenerate(Mediator* mediator, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+// The pool's find() of the original takes the level tag of the pool hierarchy.
+template <class W, class Pool, class Predicate, int N>
+inline W* ftLinkPoolFind(ftLinkArticlePools& pools, Predicate& predicate, const soIntToType<N>&) {
+    return static_cast<Pool&>(pools).getSub().find(predicate);
+}
+
+template <class W, class Pool, int S, int L>
+inline soArticle* ftLinkSlotGenerate(ftLinkArticlePools& pools, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
     soArticleDeactivateChecker checker;
-    W* weapon = static_cast<Pool&>(mediator->m_pools).getSub().find(checker);
+    W* weapon = ftLinkPoolFind<W, Pool>(pools, checker, soIntToType<0>());
     if (weapon == NULL) {
         weapon = static_cast<W*>(checker.getCandidate());
         if (weapon == NULL) {
@@ -780,12 +786,12 @@ inline soArticle* ftLinkGenerateSlot6(soModuleAccesser* acc, const soIntToType<S
 template <class PoolList, class Founder>
 soArticle* soArticleMediatorImpl<PoolList, Founder>::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: return ftLinkSlotGenerate<wnLinkBow, ftLinkBowPool>(this, acc, WN_ARTICLE_SLOT_TAGS);
-    case 1: return ftLinkSlotGenerate<wnLinkBowArrow, ftLinkBowArrowPool>(this, acc, WN_ARTICLE_SLOT_TAGS);
-    case 2: return ftLinkSlotGenerate<wnLinkBoomerang, ftLinkBoomerangPool>(this, acc, WN_ARTICLE_SLOT_TAGS);
-    case 3: return ftLinkSlotGenerate<wnLinkHookshot, ftLinkHookshotPool>(this, acc, WN_ARTICLE_SLOT_TAGS);
-    case 4: return ftLinkSlotGenerate<wnSimple, ftLinkSimple4Pool>(this, acc, WN_ARTICLE_SLOT_TAGS);
-    case 5: return ftLinkSlotGenerate<wnSimple, ftLinkSimple5Pool>(this, acc, WN_ARTICLE_SLOT_TAGS);
+    case 0: return ftLinkSlotGenerate<wnLinkBow, ftLinkBowPool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftLinkSlotGenerate<wnLinkBowArrow, ftLinkBowArrowPool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftLinkSlotGenerate<wnLinkBoomerang, ftLinkBoomerangPool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftLinkSlotGenerate<wnLinkHookshot, ftLinkHookshotPool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftLinkSlotGenerate<wnSimple, ftLinkSimple4Pool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftLinkSlotGenerate<wnSimple, ftLinkSimple5Pool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
     case 6: return ftLinkGenerateSlot6(acc, WN_ARTICLE_SLOT_TAGS);
     FT_LINK_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
