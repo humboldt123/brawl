@@ -7,6 +7,7 @@
 #include <so/stageobject.h>
 #include <so/status/so_status_event_presenter.h>
 #include <mt/mt_vector.h>
+#include <wn/wn_simple_info.h>
 #include <types.h>
 
 struct wnActivateDesc; // HYPOTHESIS: original descriptor type spelling.
@@ -38,9 +39,8 @@ protected:
     const void* m_data; // +0xBC: the article data block of the build data
 private:
     s32 m_articleId;    // +0xC0
-    // The constructor copies the two words reached through its kind descriptor.
-    s32 unkC4;
-    s32 unkC8;
+    // The constructor copies the kind pair reached through its kind descriptor.
+    wnSimpleKindInfo m_kindInfo; // +0xC4
 
 public:
     // HYPOTHESIS: parameter names; the stores establish their destinations.
@@ -54,6 +54,8 @@ public:
     void attachInstance(int resourceId, int unk8, int unkC, int unk10, int unk14, int unk18, int unk1C, int kind, int unk38, int unk44, bool flagBit5, bool flagBit4, bool flagBit2, bool flagBit1, int unk48, bool flagBit0, int unk3C);
     void setGroundShapeSafePosWithAncestor();
     s32 getSubKind() const { return m_subKind; } // HYPOTHESIS: fighter units read the field directly
+    // HYPOTHESIS: getter name; Link's hookshot builds its claw tip with this pair.
+    const wnSimpleKindInfo& getKindInfo() const { return m_kindInfo; }
 
     struct Instance {
         struct Work {

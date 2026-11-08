@@ -97,8 +97,8 @@ Weapon::Weapon(const char* name, s32 subKind, const void* data, s32 articleId, c
     m_subKind = subKind;
     m_data = data;
     m_articleId = articleId;
-    unkC4 = (*info)[0];
-    unkC8 = (*info)[1];
+    m_kindInfo.kind = (*info)[0];
+    m_kindInfo.subKind = (*info)[1];
     m_moduleAccesser = moduleAccesser;
 }
 

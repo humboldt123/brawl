@@ -11,6 +11,7 @@
 #include <wn/wn_module_accesser_builder.h>
 WN_STATUS_PROC_VECTOR_ARG_CTOR(9);
 #include <wn/link/wn_link_hookshot.h>
+#include <ft/link/ft_link_data.h>
 #include <ft/purin/ft_purin_article.h>
 #include <wn/wn_activate_desc.h>
 #include <wn/wn_lasso_status_view.h>
@@ -25,10 +26,8 @@ extern soStatusUniqProcess g_wnLassoStatusUniqProcessHangRewind;
 extern soStatusUniqProcess g_wnLassoStatusUniqProcessReach;
 
 // The claw tip is built with the kind pair of the hookshot itself (the owner weapon's build kind).
-// BYTES: Weapon keeps that pair private (unkC4/unkC8 in the shared wn/weapon.h, a wnSimpleKindInfo at +0xC4); a typed
-// member there would remove this offset.
 static inline const wnSimpleKindInfo& ownerKindInfo(soModuleAccesser* acc) {
-    return *reinterpret_cast<const wnSimpleKindInfo*>(reinterpret_cast<u8*>(dynamic_cast<Weapon*>(acc->m_stageObject)) + 0xC4);
+    return dynamic_cast<Weapon*>(acc->m_stageObject)->getKindInfo();
 }
 static inline ftKind ownerSubKind(soModuleAccesser* acc) {
     return static_cast<ftKind>(ownerKindInfo(acc).subKind);
@@ -64,9 +63,8 @@ struct wnLinkHookshotActivator {
 bool wnLinkHookshot::activeArticle(wnSimple* article, soModuleAccesser* acc) {
     soResourceModule& resources = acc->getResourceModule();
     s32 founderTaskId = acc->getStageObject().m_taskId;
-    // HYPOTHESIS: source member name; offset 0xC4 of the fighter data holds the simple-article data of the claw tip.
     article->activate(founderTaskId, resources.getResourceIdAccesser()->getBinResId(),
-                      *reinterpret_cast<wnSimpleData**>(reinterpret_cast<u8*>(g_ftCommonDataAccesser.getData(Fighter_Link)) + 0xC4),
+                      static_cast<ftLinkData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_hookshotTipData,
                       true, false, Vec3f(0.0f, 0.0f, 0.0f), 0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 2, 0, false);
     return true;
 }
