@@ -52,6 +52,19 @@ void wnLinkBoomerang::activate(int founderTaskId, int resourceId, int team) {
     m_moduleAccesser->getStatusModule().changeStatusForce(1, m_moduleAccesser);
 }
 
+// HYPOTHESIS: two small helpers of the original source set the flight energy from a length and an angle; their named
+// vector locals are what give shoot its native stack slots (the vectors sit below the safe-position return temporary).
+static inline void setSpeedAtAngle(wnKineticEnergyNormal& normal, float speed, float angle) {
+    Vec2f velocity(speed * cosf(angle), speed * sinf(angle));
+    normal.m_speed = velocity;
+}
+
+// The deceleration points against the flight direction.
+static inline void setAccelAtAngle(wnKineticEnergyNormal& normal, float deceleration, float angle) {
+    Vec2f decel(-deceleration * cosf(angle), -deceleration * sinf(angle));
+    normal.m_accel = decel;
+}
+
 // The boomerang is released from the thrower's hand node 3 and flies towards the angle, slowing down by the deceleration
 // parameter. HYPOTHESIS: the work int 0x10000005 is the time until it turns around and the work float 0x11000001 the angle.
 void wnLinkBoomerang::shoot(float lr, float angle, u32 kind) {
@@ -84,10 +97,8 @@ void wnLinkBoomerang::shoot(float lr, float angle, u32 kind) {
     m_moduleAccesser->getStatusModule().changeStatusRequest(2, m_moduleAccesser);
     wnKineticEnergyNormal& normal = dynamic_cast<wnKineticEnergyNormal&>(*m_moduleAccesser->getKineticModule().getEnergy(0));
     float deceleration = m_param->unk1C;
-    Vec2f velocity(speed * cosf(angle), speed * sinf(angle));
-    normal.m_speed = velocity;
-    Vec2f decel(-deceleration * cosf(angle), -deceleration * sinf(angle));
-    normal.m_accel = decel;
+    setSpeedAtAngle(normal, speed, angle);
+    setAccelAtAngle(normal, deceleration, angle);
     m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
     m_moduleAccesser->getWorkManageModule().offFlag(0x12000004);
 }
