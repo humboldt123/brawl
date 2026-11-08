@@ -651,6 +651,7 @@ struct ftLinkArticleKind : wnArticleKindInfo {
         kind = 0;
         subKind = Fighter_Link;
     }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling, as in ft_snake
 };
 struct ftLinkArticleBuildInfo : wnArticleBuildInfo {
     ftLinkArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
@@ -667,15 +668,15 @@ wnInstanceHolder<wnLinkBowArrow, soKindInfoGeneric<0, 2>, soIntToType<1> >::wnIn
 template <>
 inline wnInstanceHolder<wnLinkBow, soKindInfoGeneric<0, 2>, soIntToType<0> >::wnInstanceHolder(soModuleAccesser* acc) :
     m_instance(0, ftLinkArticleBuildInfo(ftLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
-               g_ftCommonDataAccesser.getWeaponData<wnLinkBowData>(Fighter_Link, &ftArticleDataFlags().get().resourceGroup)) { }
+               g_ftCommonDataAccesser.getWeaponData<wnLinkBowData>(static_cast<ftKind>(ftLinkArticleKind().getSubKind()), &ftArticleDataFlags().get().resourceGroup)) { }
 template <>
 inline wnInstanceHolder<wnLinkBoomerang, soKindInfoGeneric<0, 2>, soIntToType<2> >::wnInstanceHolder(soModuleAccesser* acc) :
     m_instance(2, ftLinkArticleBuildInfo(ftLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
-               static_cast<const wnLinkBoomerangData*>(g_ftCommonDataAccesser.getWeaponData14(Fighter_Link, &ftArticleDataFlags().get().resourceGroup))) { }
+               static_cast<const wnLinkBoomerangData*>(g_ftCommonDataAccesser.getWeaponData14(static_cast<ftKind>(ftLinkArticleKind().getSubKind()), &ftArticleDataFlags().get().resourceGroup))) { }
 template <>
 inline wnInstanceHolder<wnLinkHookshot, soKindInfoGeneric<0, 2>, soIntToType<3> >::wnInstanceHolder(soModuleAccesser* acc) :
     m_instance(3, ftLinkArticleBuildInfo(ftLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
-               static_cast<const wnLinkHookshotData*>(g_ftCommonDataAccesser.getWeaponData15(Fighter_Link, &ftArticleDataFlags().get().resourceGroup))) { }
+               static_cast<const wnLinkHookshotData*>(g_ftCommonDataAccesser.getWeaponData15(static_cast<ftKind>(ftLinkArticleKind().getSubKind()), &ftArticleDataFlags().get().resourceGroup))) { }
 // The simple articles (bombs) are built from the simple data of the fighter kind.
 struct ftLinkSimpleKind : wnSimpleKindInfo {
     ftLinkSimpleKind() : wnSimpleKindInfo(Fighter_Link) { }
