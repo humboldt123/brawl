@@ -31,6 +31,7 @@ WN_STATUS_PROC_VECTOR_ARG_CTOR(9);
 #include <wn/link/wn_link_bow_arrow.h>
 #define FT_LINK_BOOMERANG_DTOR_EXTERNAL
 #include <wn/link/wn_link_boomerang.h>
+#define WN_LINK_BOW_FULL_BUILDER
 #include <wn/link/wn_link_bow.h>
 #include <wn/wn_simple.h>
 #pragma dont_inline off // it/it_gen_archive.h (reached through weapon.h) leaves dont_inline on for everything parsed after it
