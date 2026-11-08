@@ -162,7 +162,7 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
         }
         Vec2f contact = acc->getGroundModule().getTouchNormal(0xff, 0);
         float dot = contact.m_x * speed.m_x + contact.m_y * speed.m_y;
-        speed -= (contact * 2.0f) * dot;
+        speed = speed - (contact * 2.0f) * dot;
         Vec2f newSpeed(speed.m_x, speed.m_y);
         normal.m_speed = newSpeed;
         float lengthSq = speed.m_x * speed.m_x + speed.m_y * speed.m_y;
