@@ -186,7 +186,7 @@ void ftLinkStatusUniqProcessFinal::catch_success(soModuleAccesser* moduleAccesse
             soCaptureModuleHyp* capture = static_cast<soCaptureModuleHyp*>(modules->m_captureModule);
             soStatusModule* status = modules->m_statusModule;
             status->changeStatusRequest(0xED, targetAccesser);
-            capture->setCapture(moduleAccesser->m_stageObject->m_taskId, 0xED, 0);
+            capture->setCapture(moduleAccesser->m_stageObject->getTaskId(), 0xED, 0);
         }
     }
 }
