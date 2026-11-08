@@ -75,6 +75,13 @@ typedef ftLinkArticleManageModuleBuilder ftLinkGenerateArticleManageModuleBuilde
 typedef ftOpaqueGenerateArticleManageModuleBuilder<0x11CA8, Fighter_Link> ftLinkGenerateArticleManageModuleBuilder;
 #endif
 
+// Link's common data record: the shared ftData header followed by his own entries.
+// HYPOTHESIS: +0x98 is the shield shape group of the Hylian Shield (ftLink::onCreate adds it to the shield module).
+struct ftLinkData : ftData {
+    u8 unk94[4];
+    soCollisionShieldGroupData shieldGroup; // 0x98
+};
+
 class ftLinkBuildConfig : public ftCommonBuildConfig {
 public:
     typedef ftLinkInsideEventManageModuleBuildConfig InsideEventManageModuleBuildConfig;

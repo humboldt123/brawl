@@ -92,8 +92,7 @@ ftLink::ftLink(s32 entryId,
     m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 10);
     m_moduleAccesser->getStatusModule().setUniqProc(0, &lbl_93_bss_1BC);
     m_moduleAccesser->getStatusModule().setUniqProc(0x12, &lbl_93_bss_1BC);
-    // HYPOTHESIS: the common data record holds the fighter's shield shape group at +0x98 (the Hylian Shield).
-    m_moduleAccesser->getCollisionShieldModule().add(reinterpret_cast<soCollisionShieldGroupData*>(reinterpret_cast<u8*>(m_data) + 0x98), 1);
+    m_moduleAccesser->getCollisionShieldModule().add(&static_cast<ftLinkData*>(m_data)->shieldGroup, 1);
     m_moduleAccesser->getCollisionShieldModule().setTargetProperty(1, 1);
 }
 
