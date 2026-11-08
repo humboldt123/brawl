@@ -83,8 +83,10 @@ void wnLinkBoomerang::shoot(float lr, float angle, u32 kind) {
     m_moduleAccesser->getStatusModule().changeStatusRequest(2, m_moduleAccesser);
     wnKineticEnergyNormal& normal = dynamic_cast<wnKineticEnergyNormal&>(*m_moduleAccesser->getKineticModule().getEnergy(0));
     float deceleration = m_param->unk1C;
-    normal.m_speed = Vec2f(speed * cosf(angle), speed * sinf(angle));
-    normal.m_accel = Vec2f(-deceleration * cosf(angle), -deceleration * sinf(angle));
+    Vec2f velocity(speed * cosf(angle), speed * sinf(angle));
+    normal.m_speed = velocity;
+    Vec2f decel(-deceleration * cosf(angle), -deceleration * sinf(angle));
+    normal.m_accel = decel;
     m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
     m_moduleAccesser->getWorkManageModule().offFlag(0x12000004);
 }
