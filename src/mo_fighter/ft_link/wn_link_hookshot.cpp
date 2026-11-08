@@ -139,10 +139,11 @@ void wnLinkHookshot::activate(int founderTaskId, int resourceId, int team, float
     desc.unk4DHigh = 0;
     Weapon::activate(&desc);
     static s32 negOne = -1;
+    soResourceModule& resource = m_moduleAccesser->getResourceModule();
     wnLassoAltStatusView* alt = wnLassoGetAltStatus(m_moduleAccesser);
     u32 nodeId = negOne;
     int noValue = 0;
-    alt->unk18Attach(m_moduleAccesser->getResourceModule().getResourceIdAccesser()->getBinResId(), noValue, nodeId, nodeId, true, false, noValue, -1);
+    alt->unk18Attach(resource.getResourceIdAccesser()->getBinResId(), noValue, nodeId, nodeId, true, 0, noValue, -1);
     m_moduleAccesser->getWorkManageModule().setFlag(unk, 0x22000000);
     m_moduleAccesser->getWorkManageModule().setInt(0x18, 0x10000005);
     soArticle* tip = static_cast<soGenerateArticleManageModule*>(m_moduleAccesser->m_enumerationStart->m_generateArticleManageModule)->generate(0, 0, false);
