@@ -71,11 +71,16 @@ struct ftLinkArticlePoolUnit;
         typedef soInstancePool<INFO, PARENT, ftLinkArticleKindInfo, INDEX> Base;                              \
     public:                                                                                                    \
         soLineHierarchy(soModuleAccesser* acc) : Base(acc) { }                                                 \
-        ~soLineHierarchy() __attribute__((never_inline)) { }                                                   \
+        ~soLineHierarchy() FT_LINK_POOL_DTOR_ATTR { }                                                          \
     };
 
 typedef soInstancePoolRoot ftLinkArticlePool5Parent;
+// BYTES: level 4's pool teardown calls the last level's hierarchy teardown, while every upper pool teardown
+// expands the hierarchy teardown of the level below it.
+#define FT_LINK_POOL_DTOR_ATTR __attribute__((never_inline))
 FT_LINK_POOL_LEVEL(ftLinkArticleList5, ftLinkSimple5Info, ftLinkArticlePool5Parent, 5)
+#undef FT_LINK_POOL_DTOR_ATTR
+#define FT_LINK_POOL_DTOR_ATTR
 typedef soLineHierarchy<ftLinkArticleList5, ftLinkArticlePoolUnit, soInstancePoolRoot> ftLinkArticlePool4Parent;
 FT_LINK_POOL_LEVEL(ftLinkArticleList4, ftLinkSimple4Info, ftLinkArticlePool4Parent, 4)
 typedef soLineHierarchy<ftLinkArticleList4, ftLinkArticlePoolUnit, soInstancePoolRoot> ftLinkArticlePool3Parent;
