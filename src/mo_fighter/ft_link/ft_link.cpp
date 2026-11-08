@@ -25,6 +25,9 @@
 #define FT_BC ftLinkBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
 
+// The articles' sound builder teardown inlines this empty destructor (same form as ft_pit.cpp and ft_snake.cpp).
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
+
 // Status teardown destroys its owned change-request queue before observers.
 #pragma dont_inline on
 #ifndef FT_REL_LINK_EXTERN // with FT_REL_LINK_EXTERN the queue destructor is the sora_melee function (ft_dol_instances.h)
