@@ -151,7 +151,7 @@ public:
     typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;
     typedef soColorBlendModuleBuildConfig<-1, 0, soColorBlendModuleImpl> ColorBlendModuleBuildConfig;
     typedef soPhysicsModuleBuildConfigCap<0, soPhysicsModuleImpl> PhysicsModuleBuildConfig;
-    typedef soGeneralWorkBuildConfig<3, 3, 1> GeneralWorkBuildConfig;
+    typedef soGeneralWorkBuildConfig<7, 6, 1> GeneralWorkBuildConfig;
     typedef wnStatusModuleBuildConfig<9, soGeneralWorkBuildConfig<3, 3, 1>, 9, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> >
         StatusModuleBuildConfig;
     typedef wnLinkHookshotArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
