@@ -13,6 +13,7 @@ WN_STATUS_PROC_VECTOR_ARG_CTOR(9);
 #include <wn/link/wn_link_hookshot.h>
 #include <ft/purin/ft_purin_article.h>
 #include <wn/wn_activate_desc.h>
+#include <wn/wn_lasso_status_view.h>
 #include <so/so_module_accesser.h>
 
 // The status unique processes of the hookshot (named Lasso in the object).
@@ -138,12 +139,10 @@ void wnLinkHookshot::activate(int founderTaskId, int resourceId, int team, float
     desc.unk4DHigh = 0;
     Weapon::activate(&desc);
     static s32 negOne = -1;
-    const soModuleEnumeration* modules = m_moduleAccesser->m_enumerationStart;
-    soResourceModule* resources = modules->m_resourceModule;
-    wnLinkHookshotSlotModule* slot = reinterpret_cast<wnLinkHookshotSlotModule*>(modules->m_physicsModule);
-    s32 effectArg = negOne;
-    int resId = resources->getResourceIdAccesser()->getBinResId();
-    slot->v18(resId, 0, effectArg, effectArg, true, false, 0, -1);
+    wnLassoAltStatusView* alt = wnLassoGetAltStatus(m_moduleAccesser);
+    u32 nodeId = negOne;
+    int noValue = 0;
+    alt->unk18Attach(m_moduleAccesser->getResourceModule().getResourceIdAccesser()->getBinResId(), noValue, nodeId, nodeId, true, false, noValue, -1);
     m_moduleAccesser->getWorkManageModule().setFlag(unk, 0x22000000);
     m_moduleAccesser->getWorkManageModule().setInt(0x18, 0x10000005);
     soArticle* tip = static_cast<soGenerateArticleManageModule*>(m_moduleAccesser->m_enumerationStart->m_generateArticleManageModule)->generate(0, 0, false);
@@ -151,12 +150,8 @@ void wnLinkHookshot::activate(int founderTaskId, int resourceId, int team, float
         static_cast<soGenerateArticleManageModule*>(m_moduleAccesser->m_enumerationStart->m_generateArticleManageModule)->entry(tip);
     }
     m_moduleAccesser->getStatusModule().changeStatusForce(0, m_moduleAccesser);
-    const soModuleEnumeration* tail = m_moduleAccesser->m_enumerationStart;
-    soPostureModule* posture = tail->m_postureModule;
-    wnLinkHookshotSlotModule* tailSlot = reinterpret_cast<wnLinkHookshotSlotModule*>(tail->m_physicsModule);
-    posture->getScale();
-    tailSlot->vDC();
-    reinterpret_cast<wnLinkHookshotSlotModule*>(m_moduleAccesser->m_enumerationStart->m_physicsModule)->vA4(6);
+    wnLassoGetAltStatus(m_moduleAccesser)->unkDCFloat(m_moduleAccesser->getPostureModule().getScale());
+    wnLassoGetAltStatus(m_moduleAccesser)->unkA4Int(6);
 }
 
 wnSimple* soInstancePoolSubHookshot::getInstanceAt(s32 index) {
