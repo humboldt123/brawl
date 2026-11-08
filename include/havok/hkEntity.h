@@ -1,6 +1,7 @@
 #pragma once
 
 #include <havok/hkWorldObject.h>
+#include <havok/hkMemory.h>
 #include <havok/hkMotion.h>
 #include <havok/hkArray.h>
 #include <havok/hkMaterial.h>
@@ -42,6 +43,9 @@ struct hkEntity : hkWorldObject {
     u8 m_padE8[0x8];                        // 0x1E8
 
     hkEntity(hkFinishLoadedObjectFlag flag);
+    // Entities (and hkRigidBody) are freed as class 0x2B (the deleting destructors of both).
+    HK_DECLARE_REF_ALLOCATOR(0x2B)
+    static void* operator new(unsigned long, void* p) { return p; } // the loaded-object constructors
     // Out of line in hkEntity.o (hkRigidBody's destructor calls it).
     virtual ~hkEntity();
 

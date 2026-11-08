@@ -30,6 +30,8 @@ struct hkPointerMap {
     hkPointerMapBase<hkUlong> m_impl;
     void insert(K key, V value) { m_impl.insert((hkUlong)key, (hkUlong)value); }
     hkResult remove(K key) { return m_impl.remove((hkUlong)key); }
+    V getWithDefault(K key, V def) const { return (V)m_impl.getWithDefault((hkUlong)key, (hkUlong)def); }
+    void clear() { m_impl.clear(); }
 };
 
 // A key is present when its slot index is within the table (inline in the original).

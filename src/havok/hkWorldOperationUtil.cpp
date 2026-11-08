@@ -175,7 +175,7 @@ void hkWorldOperationUtil::removeIslandFromDirtyList(hkWorld* world, hkSimulatio
 #pragma dont_inline reset
 
 void hkWorldOperationUtil::removeIsland(hkWorld* world, hkSimulationIsland* island) {
-    if ((island->m_flags26 & 3) == 0) {
+    if ((island->flags26() & 3) == 0) {
         removeIslandFromArray(*(hkArray<hkSimulationIsland*>*)&world->m_unk34, island);
     } else {
         removeIslandFromArray(*(hkArray<hkSimulationIsland*>*)&world->m_unk28, island);

@@ -21,6 +21,9 @@ struct hkMultiThreadLock {
     u16 m_lockCount;    // 0x04
     u16 m_lockBitStack; // 0x06
 
+    // HYPOTHESIS: -0x2F as "no thread" (hkWorldObject's and hkSimulationIsland's constructors both write it).
+    hkMultiThreadLock() : m_threadId((u32)-0x2F), m_lockCount(0) {}
+
     static void staticInit();
     static void staticQuit();
     void disableChecks();

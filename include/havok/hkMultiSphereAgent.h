@@ -42,22 +42,26 @@ struct hkMultiSphereAgent : hkCollisionAgent {
     virtual void processCollision(const hkCdBody& a, const hkCdBody& b, hkProcessCollisionInput& c, void* d); // not written yet
 };
 
-// Flipped (symmetric) variant created by createListBAgent; the class name follows the Havok TU map.
-struct hkSymmetricAgent_18hkMultiSphereAgent_ : hkMultiSphereAgent {
-    hkSymmetricAgent_18hkMultiSphereAgent_(const hkCdBody& bodyA, const hkCdBody& bodyB, hkCollisionInput& input,
-                                           hkContactMgr* contactMgr)
+// HYPOTHESIS: hkSymmetricAgentLinearCast<hkMultiSphereAgent> (map name): the flipped queries. The symmetric agent
+// derives from it (its vtable 0x80486DB0 takes these overrides and its destructor tests three levels of `this`).
+struct hkSymmetricAgentLinearCast_18hkMultiSphereAgent_ : hkMultiSphereAgent {
+    hkSymmetricAgentLinearCast_18hkMultiSphereAgent_(const hkCdBody& bodyA, const hkCdBody& bodyB,
+                                                     hkCollisionInput& input, hkContactMgr* contactMgr)
         : hkMultiSphereAgent(bodyA, bodyB, input, contactMgr) {}
-    virtual void linearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d);
-};
-
-// HYPOTHESIS: hkSymmetricAgentLinearCast<hkMultiSphereAgent> (map name); only its static linear cast is written.
-struct hkSymmetricAgentLinearCast_18hkMultiSphereAgent_ : hkSymmetricAgent_18hkMultiSphereAgent_ {
     virtual void getPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     static void staticGetPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     virtual void getClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     static void staticGetClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     static void staticLinearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d);
     virtual void processCollision(const hkCdBody& a, const hkCdBody& b, hkProcessCollisionInput& c, void* d);
+};
+
+// Flipped (symmetric) variant created by createListBAgent; the class name follows the Havok TU map.
+struct hkSymmetricAgent_18hkMultiSphereAgent_ : hkSymmetricAgentLinearCast_18hkMultiSphereAgent_ {
+    hkSymmetricAgent_18hkMultiSphereAgent_(const hkCdBody& bodyA, const hkCdBody& bodyB, hkCollisionInput& input,
+                                           hkContactMgr* contactMgr)
+        : hkSymmetricAgentLinearCast_18hkMultiSphereAgent_(bodyA, bodyB, input, contactMgr) {}
+    virtual void linearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d);
 };
 
 // HYPOTHESIS: hkSymmetricAgentLinearCast<hkMultiSphereTriangleAgent> (map name, in hkMultiSphereAgent.o); the

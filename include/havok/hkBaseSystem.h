@@ -4,12 +4,13 @@
 #include <havok/hkError.h>
 #include <havok/hkMemory.h>
 #include <havok/hkPointerMapBase.h>
+#include <havok/hkMap.h>
 #include <havok/hkSingleton.h>
 #include <havok/hkStream.h>
 #include <havok/hkThreadMemory.h>
 
 struct hkDefaultError : hkError {
-    hkPointerMapBase<unsigned long> m_disabled; // 0x08
+    hkPointerMap<int, int> m_disabled; // 0x08 (the destructor tests the wrapper, then destroys its map)
     hkArray<int> m_sections;                    // 0x14
     void (*m_outputFunc)(const char*, void*);   // 0x20
     void* m_outputContext;                      // 0x24

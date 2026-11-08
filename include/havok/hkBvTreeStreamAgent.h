@@ -20,7 +20,14 @@ struct hkBvTreeStreamAgent : hkCollisionAgent {
 
     int unkC;                      // 0x0C the collision input's dispatcher (copied by the constructor)
     hkReal unk10[8];               // 0x10..0x2F zeroed by the constructor (HYPOTHESIS: two vectors)
-    hkInplaceArray<unsigned int, 1> m_list; // 0x30 HYPOTHESIS: list managed by hkAgent1nMachine (see cleanup)
+    // The agent track of the child agents, managed by hkAgent1nMachine (see cleanup). The destructor tests the
+    // member once more than a bare in-place array, so it is a struct with its own destructor around one, as
+    // hkAgentNnTrack is. HYPOTHESIS: the type name.
+    struct Agent1nTrack {
+        hkInplaceArray<unsigned int, 1> m_sectors;
+        ~Agent1nTrack() {}
+    };
+    Agent1nTrack m_list; // 0x30
 
     hkBvTreeStreamAgent(const hkCdBody& bodyA, const hkCdBody& bodyB, hkCollisionInput& input,
                         hkContactMgr* contactMgr);

@@ -6,6 +6,7 @@
 #include <havok/hkMultiThreadLock.h>
 #include <havok/hkLinkedCollidable.h>
 #include <havok/hkProperty.h>
+#include <havok/hkShape.h>
 
 struct hkShape;
 struct hkWorld;
@@ -25,12 +26,16 @@ struct hkWorldObject : hkReferencedObject {
     const char* m_name;                  // 0x10
     hkMultiThreadLock m_multithreadLock; // 0x14
     hkLinkedCollidable m_collidable;     // 0x1C
-    // Typed hkArray<hkProperty> in the original. Untyped here so the finish constructor does not
-    // default-construct it (the loaded-object path never writes it).
-    hkArrayBase m_properties;            // 0x4C
+    hkArray<hkProperty> m_properties;    // 0x4C (the loaded-object constructor leaves it as loaded)
 
-    hkWorldObject(hkShape* shape);
+    hkWorldObject(hkShape* shape, BroadPhaseType type);
     hkWorldObject(hkFinishLoadedObjectFlag flag);
+    // Inline: ~hkEntity carries it (vtable store, the shape reference the constructor took, then the members).
+    virtual ~hkWorldObject() {
+        if (m_collidable.m_shape != 0) {
+            m_collidable.m_shape->removeReference();
+        }
+    }
 
     void calcStatistics(hkStatisticsCollector* collector) const;
     // Vtable (hkWorldObject's own, in the image): 0x08 dtor, 0x0C calcStatistics, 0x10 setShape. hkRigidBody

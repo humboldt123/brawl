@@ -16,6 +16,9 @@ struct hkShapeContainer {
     // typedef, which turns copy propagation off in the functions holding one (see hkSimdReal in hkVector4.h).
     typedef char ShapeBuffer[0x200] __attribute__((aligned(16)));
 
+    // HYPOTHESIS: an empty class delete (containers are only members of shapes): the deleting destructor
+    // ignores its flag (~hkSingleShapeContainer has no delete call).
+    static void operator delete(void*) {}
     virtual ~hkShapeContainer() {}
     virtual int getNumChildShapes() const;                                    // 0x0C
     virtual int getFirstKey() const;                                          // 0x10
@@ -28,7 +31,8 @@ struct hkSingleShapeContainer : hkShapeContainer {
     hkShape* m_childShape; // 0x04
 
     hkSingleShapeContainer(hkFinishLoadedObjectFlag flag) {} // finish-loading ctor: only the vtable is written
-    virtual ~hkSingleShapeContainer() { if (m_childShape) m_childShape->removeReference(); }
+    // No null test of the child (the only test in the target is the one of removeReference's delete).
+    virtual ~hkSingleShapeContainer() { m_childShape->removeReference(); }
 
     // Single child keys: one key (0), the child, and no next key. Defined in hkBvShape.cpp.
     virtual int getNumChildShapes() const;                                    // 0x0C

@@ -2,12 +2,15 @@
 
 #include <havok/hkConvexShape.h>
 #include <havok/hkShapeContainer.h>
+#include <havok/hkMemory.h>
 
 // Convex shape with a translation applied to a child convex shape (0x30 bytes). Layout from
 // hkConvexTranslateShapeClass.cpp: the child container (a hkSingleShapeContainer, vtable at 0x10,
 // child pointer at 0x14) and the translation vector at 0x20.
 struct hkConvexTranslateShape : hkConvexShape {
     hkSingleShapeContainer m_childShape; // 0x10
+
+    HK_DECLARE_REF_ALLOCATOR(0x25)
     hkVector4 m_translation;             // 0x20
 
     hkConvexTranslateShape(hkFinishLoadedObjectFlag flag) : m_childShape(flag) {} // finish-loading ctor

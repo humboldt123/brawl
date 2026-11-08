@@ -1,6 +1,7 @@
 #pragma once
 
 #include <havok/hkBase.h>
+#include <havok/hkMemory.h>
 #include <havok/hkVector4.h>
 #include <havok/hkTransform.h>
 #include <havok/hkAabb.h>
@@ -17,6 +18,9 @@ struct hkShapeRayCastCollector; // HYPOTHESIS: hit collector; slot 0x08 receives
 // 0x1C castRay, 0x20 castRayWithCollector, 0x24 getContainer.
 struct hkShape : hkReferencedObject {
     void* m_userData; // 0x08
+
+    // Shapes are freed as class 0x25 (no shape deleting destructor in the image calls the global delete).
+    HK_DECLARE_REF_ALLOCATOR(0x25)
 
     virtual int getType() const;                                              // 0x10
     virtual void getAabb(const hkTransform& xf, hkReal expansion, hkAabb& out) const; // 0x14

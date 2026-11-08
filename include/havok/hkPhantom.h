@@ -1,6 +1,7 @@
 #pragma once
 
 #include <havok/hkWorldObject.h>
+#include <havok/hkMemory.h>
 #include <havok/hkArray.h>
 #include <havok/hkAabb.h>
 
@@ -46,6 +47,8 @@ struct hkPhantom : hkWorldObject {
 
     hkPhantom(hkFinishLoadedObjectFlag flag) : hkWorldObject(flag) {}
 
+    // Phantoms are freed as class 0x2F (the deleting destructor).
+    HK_DECLARE_REF_ALLOCATOR(0x2F)
     virtual ~hkPhantom();
     virtual void calcStatistics(hkStatisticsCollector* collector) const;
     virtual hkMotion* getMotionState() const = 0;                              // 0x14
@@ -58,7 +61,8 @@ struct hkPhantom : hkWorldObject {
     virtual void updateShapeCollectionFilter() = 0;                            // 0x30
     virtual void deallocateInternalArrays();                                   // 0x34
 
-    void firePhantomDeleted();
+    // Called, not inlined, by the destructor that follows it in hkPhantom.o.
+    void firePhantomDeleted() __attribute__((never_inline));
     void firePhantomRemoved();
     void firePhantomAdded();
     void addPhantomOverlapListener(hkPhantomOverlapListener* listener);

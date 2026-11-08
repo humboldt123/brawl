@@ -22,6 +22,9 @@ struct hkProcessCollisionOutput;
 struct hkCollisionAgent : hkReferencedObject {
     int unk8; // 0x08 HYPOTHESIS: per-agent state (contact manager for most agents), zeroed by the constructor
 
+    // Agents are freed as class 0x1D (also the weak hkCollisionAgent deleting destructors).
+    HK_DECLARE_REF_ALLOCATOR(0x1d)
+
     hkCollisionAgent() {
         unk8 = 0;
     }

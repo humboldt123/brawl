@@ -8,11 +8,12 @@ struct hkConstraintMotor;
 
 // Ragdoll constraint data. Frames and motors follow the target accessors: constraint frame A is 12 floats at
 // 0x20, frame B at 0x60, three motor pointers at 0xE0 (hkRagdollConstraintData.cpp).
-// HYPOTHESIS: the 0x0C..0x20 and 0x50..0xE0 gaps are not yet identified.
+// HYPOTHESIS: the 0x0C..0x20, 0x50..0x60 and 0x90..0xE0 gaps are not yet identified.
 struct hkRagdollConstraintData : hkConstraintData {
     u8 m_unk0C[0x04];           // 0x0C
     u8 m_unk10[0x10];           // 0x10
     hkMatrix3 m_constraintFrameA; // 0x20
+    u8 m_unk50[0x10];           // 0x50 HYPOTHESIS: frame A is a transform (rotation + translation)
     hkMatrix3 m_constraintFrameB; // 0x60
     u8 m_unk90[0x50];           // 0x90
     hkConstraintMotor* m_motors[3]; // 0xE0

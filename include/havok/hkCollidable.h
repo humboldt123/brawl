@@ -21,4 +21,24 @@ struct hkCollidable : hkCdBody {
     int m_ownerOffset;                          // 0x10 (offset from this collidable to its owner)
     hkTypedBroadPhaseHandle m_broadPhaseHandle; // 0x14
     hkReal m_allowedPenetrationDepth;           // 0x20
+
+    // hkWorldObject's constructors build the collidable through these (before the linked collidable's entry
+    // array). HYPOTHESIS: the parameter types; the cd-body and handle fields are written here in the body.
+    hkCollidable(hkShape* shape, int type) {
+        m_ownerOffset = 0;
+        m_shape = shape;
+        m_motion = 0;
+        m_parent = 0;
+        m_shapeKey = (u32)-1;
+        m_broadPhaseHandle.m_id = 0;
+        m_broadPhaseHandle.m_type = type;
+        m_broadPhaseHandle.m_collisionFilterInfo = 0;
+        m_broadPhaseHandle.m_ownerOffset = (s8)((u8*)this - (u8*)&m_broadPhaseHandle);
+    }
+    hkCollidable(hkFinishLoadedObjectFlag flag) {
+        m_broadPhaseHandle.m_id = 0;
+        if (flag.m_finishing != 0) {
+            m_broadPhaseHandle.m_ownerOffset = (s8)((u8*)this - (u8*)&m_broadPhaseHandle);
+        }
+    }
 };

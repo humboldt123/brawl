@@ -303,27 +303,33 @@ int hkWorld::getMemUsageForIntegration() {
 }
 
 
-// Null contact manager and its factory. Declared locally (no header yet; the real base is hkContactMgr in
-// hkCollisionAgent.h, not included here). Every manager method is a no-op returning a fixed value; the factory
-// hands out the manager embedded at +0x08.
-struct hkNullContactMgr {
-    void cleanup();
-    bool reserveContactPoints();
-    void processToi();
-    void removeToi();
-    bool addToi();
-    void processContact();
-    void removeContactPoint();
-    bool addContactPoint();
+// Null contact manager and its factory. Declared locally (no header yet). The vtables are lbl_80488348
+// (dtor, calcStatistics, then the eight slots in the order below) and lbl_80488330 (dtor, calcStatistics,
+// createContactMgr); their deleting destructors free class ids 0x20 and 0x04. Every manager method is a no-op
+// returning a fixed value; the factory hands out the manager embedded at +0x08.
+// HYPOTHESIS: the real bases are hkContactMgr / hkContactMgrFactory (hkCollisionAgent.h, whose slot parameters
+// are not known well enough to override them here).
+struct hkNullContactMgr : hkReferencedObject {
+    HK_DECLARE_REF_ALLOCATOR(0x20)
+    virtual bool addContactPoint();      // 0x10
+    virtual bool reserveContactPoints(); // 0x14
+    virtual void removeContactPoint();   // 0x18
+    virtual void processContact();       // 0x1C
+    virtual void cleanup();              // 0x20
+    virtual bool addToi();               // 0x24
+    virtual void removeToi();            // 0x28
+    virtual void processToi();           // 0x2C
 };
 
-struct hkNullContactMgrFactory {
-    u8 m_unk00[0x08]; // 0x00 (not recovered)
-    hkNullContactMgr* createContactMgr();
+struct hkNullContactMgrFactory : hkReferencedObject {
+    hkNullContactMgr m_contactMgr; // 0x08
+
+    HK_DECLARE_REF_ALLOCATOR(0x04)
+    virtual hkNullContactMgr* createContactMgr(); // 0x10
 };
 
 hkNullContactMgr* hkNullContactMgrFactory::createContactMgr() {
-    return (hkNullContactMgr*)((u8*)this + 0x08);
+    return &m_contactMgr;
 }
 
 void hkNullContactMgr::cleanup() {}

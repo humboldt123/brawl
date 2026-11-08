@@ -28,14 +28,21 @@ struct hkAgentNnSector;
 
 // The agent entries of one simulation island (0x18 bytes, hkSimulationIsland 0x48). The agent entries are packed
 // into sectors; every sector but the last is m_sectorSize bytes long (hkWorldAgentUtil::warpTime and
-// getIslandFromAgentEntry walk them). HYPOTHESIS: the names, the 0x0C and 0x14 words, and m_sectors being an
-// hkArray in the original (untyped here so the island's implicit constructors stay as they are).
+// getIslandFromAgentEntry walk them). The island constructor/destructor (fn_802E9BFC/fn_802E9CF8) build and
+// free m_sectors as an in-place array of one. HYPOTHESIS: the names.
 struct hkAgentNnTrack {
-    hkArrayBase m_sectors;               // 0x00 hkAgentNnSector* elements
-    u8 unkC[0x10 - 0x0C];                // 0x0C not identified
+    hkInplaceArray<hkAgentNnSector*, 1> m_sectors; // 0x00 (inline storage at 0x0C)
     int m_bytesUsedInLastSector;         // 0x10
-    u16 unk14;                           // 0x14 not identified
+    u16 m_agentSize;                     // 0x14 HYPOTHESIS: name
     u16 m_sectorSize;                    // 0x16
+
+    // hkSimulationIsland's constructor: the last sector counts as full, so the first agent opens a sector.
+    hkAgentNnTrack(int agentSize, int sectorSize) : m_agentSize(agentSize), m_sectorSize(sectorSize) {
+        m_bytesUsedInLastSector = (u16)sectorSize;
+    }
+    // BYTES: a user-declared destructor (the island destructor tests the track's address once more than for
+    // a bare in-place array)
+    ~hkAgentNnTrack() {}
 
     int getNumSectors() const { return m_sectors.m_size; }
     hkAgentNnSector* getSector(int i) const { return ((hkAgentNnSector* const*)m_sectors.m_data)[i]; }

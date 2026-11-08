@@ -10,50 +10,16 @@
 #include <havok/hkWorldObject.h>
 #include <havok/hkShape.h>
 
-// HYPOTHESIS: value stored in the multithreading lock's thread id by both constructors.
-#define HK_WORLD_OBJECT_NO_THREAD_ID ((u32)-0x2F)
-
-hkWorldObject::hkWorldObject(hkFinishLoadedObjectFlag flag) {
-    hkLinkedCollidable* collidable = &m_collidable;
-    m_multithreadLock.m_threadId = HK_WORLD_OBJECT_NO_THREAD_ID;
-    m_multithreadLock.m_lockCount = 0;
-    collidable->m_broadPhaseHandle.m_id = 0;
-    if (flag.m_finishing != 0) {
-        collidable->m_broadPhaseHandle.m_ownerOffset =
-            (s8)((u8*)collidable - (u8*)&collidable->m_broadPhaseHandle);
-    }
-    collidable->m_collisionEntries.m_data = 0;
-    collidable->m_collisionEntries.m_size = 0;
-    collidable->m_collisionEntries.m_capacityAndFlags = hkArrayBase::DONT_DEALLOCATE_FLAG;
+hkWorldObject::hkWorldObject(hkFinishLoadedObjectFlag flag) : m_collidable(flag), m_properties(flag) {
     if (flag.m_finishing != 0) {
         m_collidable.m_ownerOffset = (int)((u8*)this - (u8*)&m_collidable);
     }
 }
 
-hkWorldObject::hkWorldObject(hkShape* shape) {
-    hkLinkedCollidable* collidable = &m_collidable;
-    collidable->m_ownerOffset = 0;
-    m_world = 0;
-    m_userData = 0;
-    m_name = 0;
-    m_multithreadLock.m_threadId = HK_WORLD_OBJECT_NO_THREAD_ID;
-    m_multithreadLock.m_lockCount = 0;
-    collidable->m_shape = shape;
-    collidable->m_motion = 0;
-    collidable->m_parent = 0;
-    collidable->m_shapeKey = -1;
-    collidable->m_broadPhaseHandle.m_id = 0;
-    collidable->m_broadPhaseHandle.m_type = 0;
-    collidable->m_broadPhaseHandle.m_collisionFilterInfo = 0;
-    collidable->m_broadPhaseHandle.m_ownerOffset =
-        (s8)((u8*)collidable - (u8*)&collidable->m_broadPhaseHandle);
-    collidable->m_collisionEntries.m_data = 0;
-    collidable->m_collisionEntries.m_size = 0;
-    collidable->m_collisionEntries.m_capacityAndFlags = hkArrayBase::DONT_DEALLOCATE_FLAG;
-    m_properties.m_data = 0;
-    m_properties.m_size = 0;
-    m_properties.m_capacityAndFlags = hkArrayBase::DONT_DEALLOCATE_FLAG;
-    collidable->m_ownerOffset = (int)((u8*)this - (u8*)collidable);
+// The entity constructor passes BROAD_PHASE_ENTITY.
+hkWorldObject::hkWorldObject(hkShape* shape, BroadPhaseType type)
+    : m_world(0), m_userData(0), m_name(0), m_collidable(shape, type) {
+    m_collidable.m_ownerOffset = (int)((u8*)this - (u8*)&m_collidable);
     if (shape != 0) {
         shape->addReference();
     }

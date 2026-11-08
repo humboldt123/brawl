@@ -54,7 +54,12 @@ struct hkCollisionDispatcher : hkReferencedObject {
     u8 unk1B90[0x1C08 - 0x1B90];
 
     u8 m_flagA; // 0x1C08 set to 1 by internalRegisterCollisionAgent
-    u8 unk1C09[0x1C14 - 0x1C09];
+    u8 unk1C09[0x1C0C - 0x1C09];
+    // The agent track sizes hkSimulationIsland's constructor copies into its track (as u16s).
+    // HYPOTHESIS: the names (0x1C0C becomes the track's sector size and bytes used, 0x1C10 the 0x14 halfword).
+    int m_agentSectorSize; // 0x1C0C
+    int m_agentEntrySize;  // 0x1C10
+
     u8 m_enableChecks; // 0x1C14 set by setEnableChecks
     u8 unk1C15[0x1C18 - 0x1C15];
     void* m_pairs;      // 0x1C18 pair table (8 bytes per entry), released by the destructor

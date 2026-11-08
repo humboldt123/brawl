@@ -31,9 +31,7 @@ void hkBvShape::cleanupLoadedObjecthkBvShape(void* p) {
 }
 
 hkBvShape::~hkBvShape() {
-    if (m_boundingVolumeShape) {
-        m_boundingVolumeShape->removeReference();
-    }
+    m_boundingVolumeShape->removeReference();
 }
 
 const void* hkBvShape::getVtablehkBvShape() {

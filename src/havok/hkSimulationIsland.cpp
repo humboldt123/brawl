@@ -18,6 +18,29 @@
 #include <havok/hkSimulationIsland.h>
 #include <havok/hkEntity.h>
 #include <havok/hkWorldOperationUtil.h>
+#include <havok/hkWorld.h>
+#include <havok/hkCollisionDispatcher.h>
+
+// The agent track takes its sizes from the world's collision dispatcher. HYPOTHESIS: the meaning of the scalar
+// fields (only their initial values are known).
+hkSimulationIsland::hkSimulationIsland(hkWorld* world)
+    : m_world(world), m_dirtyListIndex(0xFFFF), m_unk24(0), m_unk25(0),
+      m_unk30(0.0f), m_unk34(0.0f),
+      m_agentTrack(world->m_collisionDispatcher->m_agentEntrySize, world->m_collisionDispatcher->m_agentSectorSize) {
+    m_unk6C = -10.0f;
+    m_flags.m_stateC = 0;
+    m_constraintInfo.m_maxSizeOfJacobians = 0;
+    m_constraintInfo.m_sizeOfJacobians = 0;
+    m_constraintInfo.m_sizeOfSchemas = 0;
+    m_constraintInfo.m_numSolverResults = 0;
+    m_unk1C = 0;
+}
+
+// HYPOTHESIS: the destructor starts with a check that is empty in this build (a call of an empty inline
+// function keeps the vtable store at the top of the destructor, as in the target; an empty body drops it).
+hkSimulationIsland::~hkSimulationIsland() {
+    hkConstraintOwner::checkAccessRw();
+}
 
 // Adds an entity to the island: the entity keeps the island pointer and its index in the island array.
 void hkSimulationIsland::internalAddEntity(hkEntity* entity) {
@@ -37,7 +60,7 @@ void hkSimulationIsland::internalRemoveEntity(hkEntity* entity) {
     entity->m_storageIndex = 0xFFFF;
     // HYPOTHESIS: bits 0xC0 of 0x26 hold the island's state; "entity removed" sets it to 1.
     u8 state = 1;
-    m_flags26 = (m_flags26 & ~0xC0) | (state << 6);
+    flags26() = (flags26() & ~0xC0) | (state << 6);
 }
 
 void hkSimulationIsland::addAction(hkAction* action) {
@@ -61,7 +84,7 @@ void hkSimulationIsland::removeAction(hkAction* action) {
     m_actions[index] = 0;
     *(hkSimulationIsland**)((char*)action + 0x0C) = 0;
     // HYPOTHESIS: bit fields 0xC0 and 0x30 of 0x26, set as in internalRemoveEntity.
-    hkSimulationIslandFlags* flags = (hkSimulationIslandFlags*)&m_flags26; // MATCH-ONLY: the bit-field view makes MWCC emit rlwimi
+    hkSimulationIslandFlags* flags = &m_flags; // MATCH-ONLY: the bit-field view makes MWCC emit rlwimi
     flags->m_stateA = 1;
     flags->m_stateB = 1;
 }

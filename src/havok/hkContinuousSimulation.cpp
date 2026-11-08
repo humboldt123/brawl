@@ -51,9 +51,7 @@ hkContinuousSimulation::hkContinuousSimulation(hkWorld* world) : hkSimulation(wo
 }
 
 hkContinuousSimulation::~hkContinuousSimulation() {
-    if (m_toiResourceMgr != 0) {
-        delete m_toiResourceMgr;
-    }
+    delete m_toiResourceMgr;
 }
 
 // Handles the pending time-of-impact events in time order, up to minTime: each step takes the earliest event out
