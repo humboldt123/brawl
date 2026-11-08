@@ -730,6 +730,8 @@ template <class Mediator, int N>
 soGenerateArticleManageModuleBuilder<Mediator, N>::~soGenerateArticleManageModuleBuilder() { }
 template soGenerateArticleManageModuleBuilder<ftLinkArticleMediator, 5>::soGenerateArticleManageModuleBuilder(soModuleAccesser*);
 template soGenerateArticleManageModuleBuilder<ftLinkArticleMediator, 5>::~soGenerateArticleManageModuleBuilder();
+wnSimple::~wnSimple() { } // the simple article's teardown is a copy in each fighter that pools one (as in ft_snake.cpp)
+wnLinkHookshot::~wnLinkHookshot() { } // ft_link.o owns the hookshot's teardown (map: wnLinkHookshot____dt)
 
 // ---- the article mediator -------------------------------------------------------------------------------------------
 // Slots: 0 Bow, 1 BowArrow (4), 2 Boomerang, 3 Hookshot, 4 and 5 wnSimple (bombs), 6 the bomb item; 7..16 unused.

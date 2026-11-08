@@ -133,7 +133,7 @@ __ct__627soGenerateArticleManageModuleBuilder<584soArticleMediatorImpl<550soType
 fn_93_5EE8 = .text:0x00005EE8; // type:function size:0x40
 fn_93_5F28 = .text:0x00005F28; // type:function size:0x40
 __dt__26soArrayVectorCalcInterfaceFv = .text:0x00005F68; // type:function size:0x40 scope:weak
-fn_93_5FA8 = .text:0x00005FA8; // type:function size:0x310
+__dt__8wnSimpleFv = .text:0x00005FA8; // type:function size:0x310
 __dt__33soAnimCmdAddressPackArraySeparateFv = .text:0x000062B8; // type:function size:0x40
 __dt__20soAnimCmdInterpreterFv = .text:0x000062F8; // type:function size:0x5C
 __dt__42soEventPresenter<22soAnimCmdEventObserver>Fv = .text:0x00006354; // type:function size:0x40
@@ -159,7 +159,7 @@ __dt__167soLineHierarchy<102soTypeList<67soInstancePoolInfo<8wnSimple,1,16wnInst
 __dt__69wnInstanceHolder<8wnSimple,22soKindInfoGeneric<0,2>,14soIntToType<4>>Fv = .text:0x00006B30; // type:function size:0x60 scope:weak
 __dt__113soInstancePoolSub<67soInstancePoolInfo<8wnSimple,1,16wnInstanceHolder,14soIntToType<4>>,22soKindInfoGeneric<0,2>>Fv = .text:0x00006B90; // type:function size:0x60 scope:weak
 __dt__283soInstancePool<67soInstancePoolInfo<8wnSimple,1,16wnInstanceHolder,14soIntToType<4>>,167soLineHierarchy<102soTypeList<67soInstancePoolInfo<8wnSimple,1,16wnInstanceHolder,14soIntToType<5>>,18soTypeListNullType>,21ftLinkArticlePoolUnit,18soInstancePoolRoot>,22soKindInfoGeneric<0,2>,4>Fv = .text:0x00006BF0; // type:function size:0x70
-fn_93_6C60 = .text:0x00006C60; // type:function size:0x4A0
+__dt__14wnLinkHookshotFv = .text:0x00006C60; // type:function size:0x4A0
 __dt__15soKineticEnergyFv = .text:0x00007100; // type:function size:0x40
 fn_93_7140 = .text:0x00007140; // type:function size:0x5C
 fn_93_719C = .text:0x0000719C; // type:function size:0x8C

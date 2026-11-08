@@ -18,6 +18,10 @@
 #define WN_SHARED_ARRAYS_1
 #include <wn/wn_module_accesser_builder.h>
 #define WN_SIMPLE_AFTER_ARTICLE_BUILDERS
+// The simple article shares the hookshot's color blend and visibility builders (both teardowns call the same
+// out-of-line copies), as in ft_snake_article_pools.h.
+#define WN_SIMPLE_COLOR_BLEND_BUILD_CONFIG soColorBlendModuleBuildConfig<-1, 0, soColorBlendModuleImpl>
+#define WN_SIMPLE_VISIBILITY_BUILDER soVisibilityModuleBuilder<soVisibilityModuleBuildConfig<soVisibilityModuleSimple, 1> >
 #define WN_LINK_HOOKSHOT_FULL
 #define FT_LINK_HOOKSHOT_DTOR_OUT_OF_LINE
 WN_STATUS_PROC_VECTOR_ARG_CTOR(9);
