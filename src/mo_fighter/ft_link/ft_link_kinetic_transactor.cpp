@@ -4,6 +4,8 @@
 #define MT_VEC2F_ASSIGN_NOINLINE
 #define MT_VEC3F_SUB_FRESH_REGS
 #define MT_VEC3F_SUB_NOINLINE
+#define MT_VEC3F_MUL_INLINE
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/link/ft_link.h>
 #include <ft/link/ft_link_status_final.h>
@@ -123,7 +125,7 @@ void ftLinkKineticTransactor::changeKineticSub1(void*, Vec2f*, soModuleAccesser*
     diff = objective - posture.getPos();
     if (length3(diff) > 1.0f) {
         diff.normalize();
-        diff *= (soValueAccesser::getConstantFloat(moduleAccesser, 0xFAE, 0));
+        Vec3fScale(&diff, &diff, soValueAccesser::getConstantFloat(moduleAccesser, 0xFAE, 0));
     }
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*kinetic.getEnergy(3));
     Vec2f speed;
