@@ -7,7 +7,6 @@
 #define FT_REL_LINK_EXTERN
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
-#define MT_VEC2F_CTOR_NOINLINE
 #include <wn/wn_module_accesser_builder.h>
 #include <wn/link/wn_link_boomerang.h>
 #include <wn/wn_activate_desc.h>
@@ -131,15 +130,27 @@ bool wnLinkBoomerang::notifyEventCollisionAttackCheck(u32 flags) {
     return Weapon::notifyEventCollisionAttackCheck(flags);
 }
 
+// HYPOTHESIS: small vector helpers of the original source. The stack slots of notifyEventAnimCmd show their nesting:
+// the bounce temporaries come after the speed and deceleration temporaries, in the order a helper inlined through a
+// second helper gives (one level of inlining lists a helper's temporaries in reverse).
+static inline void setSpeed(wnKineticEnergyNormal& normal, const Vec2f& speed) {
+    normal.m_speed = speed;
+}
+
+// Mirrors v on a surface with unit normal n, given the dot product of the two.
+static inline void reflect(Vec2f& v, const Vec2f& n, float dot) {
+    v = v - (n * 2.0f) * dot;
+}
+
+// Mirrors v on a surface with unit normal n.
+static inline void reflect(Vec2f& v, const Vec2f& n) {
+    float dot = n.m_x * v.m_x + n.m_y * v.m_y;
+    ::reflect(v, n, dot);
+}
+
 // The animation command 6 of the flight bounces the boomerang off the ground it touches: the speed is mirrored on the contact
 // normal (or the boomerang turns around when the surface is steeper than the turn angle) and the deceleration follows the new
 // direction. HYPOTHESIS: the touch masks 0x52 / 0xA4 are the walls on the facing side.
-// HYPOTHESIS: reflects v off a surface with unit normal n.
-static inline void reflect(Vec2f& v, const Vec2f& n) {
-    float dot = n.m_x * v.m_x + n.m_y * v.m_y;
-    v -= (n * 2.0f) * dot;
-}
-
 bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, int unk3) {
     if (Weapon::notifyEventAnimCmd(cmd, acc, unk3)) {
         return true;
@@ -179,8 +190,7 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
         }
         Vec2f contact = acc->getGroundModule().getTouchNormal(0xff, 0);
         ::reflect(speed, contact);
-        Vec2f newSpeed(speed.m_x, speed.m_y);
-        normal.m_speed = newSpeed;
+        ::setSpeed(normal, Vec2f(speed.m_x, speed.m_y));
         float lengthSq = speed.m_x * speed.m_x + speed.m_y * speed.m_y;
         float length;
         if ((float)fabs(lengthSq) <= 1.17549435e-38f) {
@@ -192,7 +202,7 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
             Vec2f accel = speed * -(m_param->unk1C / length);
             normal.m_accel = accel;
         }
-        float angle = atan2(speed.m_y, speed.m_x);
+        float angle = atan2f(speed.m_y, speed.m_x);
         m_moduleAccesser->getWorkManageModule().setFloat(angle, 0x11000001);
         angles.m_x = 0.0f;
         angles.m_y = 0.0f;
