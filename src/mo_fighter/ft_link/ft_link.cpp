@@ -5,6 +5,7 @@
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_NOINLINE_SEARCH_BUILDER
 #define FT_LINK_ARTICLE_POOLS
+#define FT_MODULE_ACCESSER_BUILDER_BASE_BUILD_DATA // the so-level builder takes soModuleAccesserBuildData (ft/builder/ft_module_accesser_builder.h)
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/link/ft_link.h>
