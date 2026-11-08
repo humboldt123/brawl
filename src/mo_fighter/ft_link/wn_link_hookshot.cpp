@@ -9,7 +9,7 @@
 #define MT_VEC3F_CTOR_NOINLINE
 #define WN_KINETIC_GENERIC_BUILDER
 #include <wn/wn_module_accesser_builder.h>
-WN_STATUS_PROC_VECTOR_DEFAULT_CTOR(9);
+WN_STATUS_PROC_VECTOR_ARG_CTOR(9);
 #include <wn/link/wn_link_hookshot.h>
 #include <ft/purin/ft_purin_article.h>
 #include <wn/wn_activate_desc.h>
