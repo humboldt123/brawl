@@ -23,6 +23,7 @@
 #include <ft/builder/ft_builder_article.h>
 #include <so/article/so_generate_article_manage_module.h>
 #include <wn/wn_article_pool.h>
+#include <so/link/so_link_event_throw.h>
 
 #undef WN_ARTICLE_NATIVE_BUILDERS
 #define FT_BC ftLinkBuildConfig
@@ -169,23 +170,16 @@ void ftLink::onHitReflector(soModuleAccesser* moduleAccesser, bool hit) {
     }
 }
 
-// HYPOTHESIS: the link events other objects send to Link, as far as this fighter reads them (event kinds below 0x65 are
-// the engine's, the 0x83x ones are sent by articles with the kinds seen below).
-struct ftLinkLinkEventView {
-    int m_eventKind;
-    bool m_handled;
-    int m_node;  // 0x8
-    int m_param; // 0xC
-    u8 unk10[0xC];
-    u8 unk1C;
+// HYPOTHESIS: the event the hookshot sends when its claw catches a ledge (kind 0x83B): the node the fighter hangs from.
+struct ftLinkHookshotCatchEvent : soLinkEventArgs {
+    int m_node;
 };
 
 // MATCH-ONLY: the nested dispatch keeps the event fields in their own registers.
 #pragma push
 #pragma opt_propagation off
 void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) {
-    ftLinkLinkEventView* event = reinterpret_cast<ftLinkLinkEventView*>(eventInfo);
-    int eventKind = event->m_eventKind;
+    int eventKind = eventInfo->m_eventKind;
     if (eventKind >= 0x65) {
         switch (stageObj->soGetSubKind()) {
         case 3:
@@ -212,7 +206,7 @@ void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modul
                 case 0x17:
                 case 0x18:
                     m_moduleAccesser->getStatusModule().changeStatusRequest(0x119, m_moduleAccesser);
-                    event->m_handled = true;
+                    eventInfo->_0x4 = true;
                     break;
                 }
             }
@@ -232,7 +226,7 @@ void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modul
                     moduleAccesser->getLinkModule().removeModelConstraint(false);
                     soLinkModule* link = &moduleAccesser->getLinkModule();
                     int node = moduleAccesser->getModelModule().getCorrectNodeId(0x12E);
-                    link->setModelConstraintPosOrt(3, node, event->m_node, 5, false);
+                    link->setModelConstraintPosOrt(3, node, static_cast<ftLinkHookshotCatchEvent*>(eventInfo)->m_node, 5, false);
                 }
                 return;
             }
@@ -265,10 +259,11 @@ void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modul
             break;
         case 8: {
             int status = moduleAccesser->getStatusModule().getStatusKind();
-            if (event->m_param == 0xED && status == 0x116) {
+            soLinkEventThrow* throwEvent = static_cast<soLinkEventThrow*>(eventInfo);
+            if (throwEvent->unkC == 0xED && status == 0x116) {
                 moduleAccesser->getStatusModule().changeStatusRequest(0x11A, moduleAccesser);
-                event->m_handled = true;
-                event->unk1C = 0;
+                throwEvent->_0x4 = true;
+                throwEvent->unk1C = false;
                 return;
             }
             break;
