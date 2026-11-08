@@ -2030,6 +2030,7 @@ config.libs = [
             Object(NonMatching, "mo_fighter/ft_link/ft_link_status_uniq_process_final.cpp"),
             Object(Matching, "mo_fighter/ft_link/ft_link_status_uniq_process_wait.cpp"),
             Object(NonMatching, "mo_fighter/ft_link/ft_link.cpp"),
+            Object(NonMatching, "mo_fighter/ft_link/ft_link_kinetic_transactor.cpp"),
         ],
     },
     {
