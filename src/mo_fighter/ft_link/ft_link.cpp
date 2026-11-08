@@ -511,7 +511,6 @@ void testBuilder() {
 extern "C" {
 
 // Empty virtual overrides and default observers.
-void fn_93_9974() {}
 void fn_93_9978() {}
 void fn_93_AD30() {}
 void fn_93_AE34() {}
