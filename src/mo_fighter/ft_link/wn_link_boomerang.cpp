@@ -187,3 +187,8 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
     }
     return false;
 }
+
+// BYTES: the native unit carries a weak out-of-line copy of the base accesser destructor.
+#pragma dont_inline on
+soParamAccesser::~soParamAccesser() { }
+#pragma dont_inline off
