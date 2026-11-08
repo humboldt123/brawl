@@ -70,10 +70,10 @@ typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKinetic
 // Only the fighter unit builds the real pools; the other units of the REL see an opaque block of the same size.
 #ifdef FT_LINK_ARTICLE_POOLS
 #include <ft/link/ft_link_article_pools.h>
-#endif
-// The REL names this member's constructor and destructor with the opaque spelling. The real pools are
-// instantiated beside it (ft_link.cpp) and the destructor body is the real builder's.
+typedef ftLinkArticleManageModuleBuilder ftLinkGenerateArticleManageModuleBuilder;
+#else
 typedef ftOpaqueGenerateArticleManageModuleBuilder<0x11CA8, Fighter_Link> ftLinkGenerateArticleManageModuleBuilder;
+#endif
 
 class ftLinkBuildConfig : public ftCommonBuildConfig {
 public:

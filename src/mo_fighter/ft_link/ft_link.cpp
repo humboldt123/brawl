@@ -663,15 +663,32 @@ struct ftLinkArticleBuildInfo : wnArticleBuildInfo {
 template <>
 wnInstanceHolder<wnLinkBowArrow, soKindInfoGeneric<0, 2>, soIntToType<1> >::wnInstanceHolder(soModuleAccesser* acc);
 
+// The other holders are inlined into the builder.
+template <>
+inline wnInstanceHolder<wnLinkBow, soKindInfoGeneric<0, 2>, soIntToType<0> >::wnInstanceHolder(soModuleAccesser* acc) :
+    m_instance(0, ftLinkArticleBuildInfo(ftLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
+               g_ftCommonDataAccesser.getWeaponData<wnLinkBowData>(Fighter_Link, &ftArticleDataFlags().get().resourceGroup)) { }
+template <>
+inline wnInstanceHolder<wnLinkBoomerang, soKindInfoGeneric<0, 2>, soIntToType<2> >::wnInstanceHolder(soModuleAccesser* acc) :
+    m_instance(2, ftLinkArticleBuildInfo(ftLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
+               static_cast<const wnLinkBoomerangData*>(g_ftCommonDataAccesser.getWeaponData14(Fighter_Link, &ftArticleDataFlags().get().resourceGroup))) { }
+template <>
+inline wnInstanceHolder<wnLinkHookshot, soKindInfoGeneric<0, 2>, soIntToType<3> >::wnInstanceHolder(soModuleAccesser* acc) :
+    m_instance(3, ftLinkArticleBuildInfo(ftLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
+               static_cast<const wnLinkHookshotData*>(g_ftCommonDataAccesser.getWeaponData15(Fighter_Link, &ftArticleDataFlags().get().resourceGroup))) { }
+#define FT_LINK_SIMPLE_HOLDER(ID)                                                                                       \
+    template <>                                                                                                         \
+    inline wnInstanceHolder<wnSimple, soKindInfoGeneric<0, 2>, soIntToType<ID> >::wnInstanceHolder(soModuleAccesser* acc) : \
+        m_instance(ID, wnSimpleConstructionInfo(wnSimpleKindInfo(Fighter_Link), acc->m_enumerationStart->m_heapModule), \
+                   g_ftCommonDataAccesser.getSimpleData(Fighter_Link, &ftArticleDataFlags().get().resourceGroup), false) { }
+FT_LINK_SIMPLE_HOLDER(4)
+FT_LINK_SIMPLE_HOLDER(5)
+
 // The holders and sub pools of the article pools (soKindInfoGeneric<0, 2>); the mediator destroys them out of line.
 #pragma dont_inline on
 template <class Mediator>
 soSelectInstanceHolder<Mediator, soArticleMediatorNull>::~soSelectInstanceHolder() { }
-template <class Mediator, int N>
-soGenerateArticleManageModuleBuilder<Mediator, N>::soGenerateArticleManageModuleBuilder(soModuleAccesser* acc) :
-    m_articles(0), m_observers(N, 0), m_mediator(acc), m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
 template soSelectInstanceHolder<ftLinkArticleMediator, soArticleMediatorNull>::~soSelectInstanceHolder();
-template soGenerateArticleManageModuleBuilder<ftLinkArticleMediator, 5>::soGenerateArticleManageModuleBuilder(soModuleAccesser*);
 template <class PoolList, class Founder>
 soArticleMediatorImpl<PoolList, Founder>::~soArticleMediatorImpl() { }
 template soArticleMediatorImpl<ftLinkArticleList, ftLink>::~soArticleMediatorImpl();
@@ -698,13 +715,14 @@ wnInstanceHolder<wnLinkBowArrow, soKindInfoGeneric<0, 2>, soIntToType<1> >::wnIn
     m_instance(1, ftLinkArticleBuildInfo(ftLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
                g_ftCommonDataAccesser.getWeaponData<wnLinkBowArrowData>(Fighter_Link, &ftArticleDataFlags().get().resourceGroup)) { }
 
-// The REL spells this destructor with the opaque name. Its body is the real builder's member teardown.
+// The builder inlines the holders of its pools (all but the bow arrow's).
 template <class Mediator, int N>
-__attribute__((always_inline))
+soGenerateArticleManageModuleBuilder<Mediator, N>::soGenerateArticleManageModuleBuilder(soModuleAccesser* acc) :
+    m_articles(0), m_observers(N, 0), m_mediator(acc), m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
+template <class Mediator, int N>
 soGenerateArticleManageModuleBuilder<Mediator, N>::~soGenerateArticleManageModuleBuilder() { }
-ftOpaqueGenerateArticleManageModuleBuilder<0x11CA8, Fighter_Link>::~ftOpaqueGenerateArticleManageModuleBuilder() {
-    reinterpret_cast<ftLinkArticleManageModuleBuilder*>(this)->~ftLinkArticleManageModuleBuilder();
-}
+template soGenerateArticleManageModuleBuilder<ftLinkArticleMediator, 5>::soGenerateArticleManageModuleBuilder(soModuleAccesser*);
+template soGenerateArticleManageModuleBuilder<ftLinkArticleMediator, 5>::~soGenerateArticleManageModuleBuilder();
 
 // ---- the article mediator -------------------------------------------------------------------------------------------
 // Slots: 0 Bow, 1 BowArrow (4), 2 Boomerang, 3 Hookshot, 4 and 5 wnSimple (bombs), 6 the bomb item; 7..16 unused.
