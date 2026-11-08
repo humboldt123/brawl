@@ -13,6 +13,16 @@
 #include <ft/builder/ft_builder_transition.h>
 #include <ft/builder/ft_builder_motion.h>
 
+// The model observer list calls its shared sora_melee destructor (as in ft_pit_article_pools.h): the simple article's
+// inside-event builder teardown calls it out of line.
+template <> class soEventUnitWithWorkArea<soModelEventObserver, 5> : public soEventUnitImpl<soModelEventObserver> {
+    soInstanceManagerFullPropertyVector<soModelEventObserver*, 5> m_observerList;
+public:
+    soEventUnitWithWorkArea(s16 managerId, s16 eventId) : soEventUnitImpl<soModelEventObserver>(managerId, eventId) { }
+    virtual ~soEventUnitWithWorkArea();
+    virtual u32 getObserverNum() const { return m_observerList.size(); }
+};
+
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
 #define WN_SHARED_ARRAYS_1
