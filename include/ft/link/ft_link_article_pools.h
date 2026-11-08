@@ -93,6 +93,14 @@ static_assert(sizeof(wnLinkBow) == 0x14E4, "Link bow article is the wrong size")
 static_assert(sizeof(wnLinkBowArrow) == 0x1FD8, "Link bow arrow article is the wrong size");
 static_assert(sizeof(wnSimple) == 0x16C8, "Link wnSimple article is the wrong size");
 
+// HYPOTHESIS: the helper of the generic article mediator that creates an item as an article of a slot (as in ft_snake).
+class BaseItem;
+class soArticleMediatorHelper {
+public:
+    static BaseItem* createItem(int itemKind, int articleId, int ownerTaskId);
+    static soArticle* castArticle(BaseItem* item);
+};
+
 // HYPOTHESIS: soArticleMediatorImpl<PoolList, Founder>
 template <class PoolList, class Founder>
 class soArticleMediatorImpl : public soArticleMediator {
