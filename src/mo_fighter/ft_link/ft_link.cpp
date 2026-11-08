@@ -41,6 +41,9 @@ soStatusModuleImpl::~soStatusModuleImpl() { }
 template <> soArrayVector<ftAnimCmdConvPtr, 284>::~soArrayVector();
 // Weak copy every fighter REL emits (same form as ft_snake.cpp / ft_pit.cpp).
 ftKineticEnergyController::~ftKineticEnergyController() { }
+// Both article mediators' teardowns call this weak copy (same form as ft_mario.cpp; the map calls it
+// soArrayVectorCalcInterface's destructor, but its two callers are the mediator teardowns).
+soArticleMediator::~soArticleMediator() { }
 
 // ftManager::setParamPattern selects the shared parameter-table variation.
 extern int g_soValueVariation;
