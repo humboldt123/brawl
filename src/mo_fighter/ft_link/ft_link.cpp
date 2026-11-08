@@ -648,15 +648,10 @@ template <> struct ftLinkArticleActivator<wnSimple> {
 
 // Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
 // The pool's find() of the original takes the level tag of the pool hierarchy.
-template <class W, class Pool, class Predicate, int N>
-inline W* ftLinkPoolFind(ftLinkArticlePools& pools, Predicate& predicate, const soIntToType<N>&) {
-    return static_cast<Pool&>(pools).getSub().find(predicate);
-}
-
 template <class W, class Pool, int S, int L>
-inline soArticle* ftLinkSlotGenerate(ftLinkArticlePools& pools, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+inline soArticle* ftLinkSlotGenerate(Pool& pool, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
     soArticleDeactivateChecker checker;
-    W* weapon = ftLinkPoolFind<W, Pool>(pools, checker, soIntToType<0>());
+    W* weapon = pool.find(checker, soIntToType<0>());
     if (weapon == NULL) {
         weapon = static_cast<W*>(checker.getCandidate());
         if (weapon == NULL) {

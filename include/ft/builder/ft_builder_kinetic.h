@@ -389,6 +389,9 @@ public:
     ~soInstancePool() { }
 #endif
     soInstancePoolSub<Info, Next>& getSub() { return m_sub; }
+    // HYPOTHESIS: the mediators search one pool level with an empty soIntToType tag (as wnArticlePool::find).
+    template <typename Predicate, int N>
+    typename Info::Type* find(Predicate& predicate, const soIntToType<N>&) { return m_sub.find(predicate); }
     template <typename Helper>
     int forEachHolderModuleAccesser(const Helper& helper, soModuleAccesser* acc) {
         m_sub.forEachHolderModuleAccesser(helper, acc);
