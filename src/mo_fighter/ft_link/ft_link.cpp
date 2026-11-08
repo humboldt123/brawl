@@ -747,10 +747,10 @@ template <> struct ftLinkArticleActivator<wnSimple> {
 };
 
 // Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
-template <class W, class Sub, int S, int L>
-inline soArticle* ftLinkSlotGenerate(Sub& pool, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+template <class W, class Pool, class Mediator, int S, int L>
+inline soArticle* ftLinkSlotGenerate(Mediator* mediator, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
     soArticleDeactivateChecker checker;
-    W* weapon = pool.find(checker);
+    W* weapon = static_cast<Pool&>(mediator->m_pools).getSub().find(checker);
     if (weapon == NULL) {
         weapon = static_cast<W*>(checker.getCandidate());
         if (weapon == NULL) {
@@ -780,12 +780,12 @@ inline soArticle* ftLinkGenerateSlot6(soModuleAccesser* acc, const soIntToType<S
 template <class PoolList, class Founder>
 soArticle* soArticleMediatorImpl<PoolList, Founder>::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
-    case 0: return ftLinkSlotGenerate<wnLinkBow>(FT_LINK_POOL(ftLinkBowPool), acc, WN_ARTICLE_SLOT_TAGS);
-    case 1: return ftLinkSlotGenerate<wnLinkBowArrow>(FT_LINK_POOL(ftLinkBowArrowPool), acc, WN_ARTICLE_SLOT_TAGS);
-    case 2: return ftLinkSlotGenerate<wnLinkBoomerang>(FT_LINK_POOL(ftLinkBoomerangPool), acc, WN_ARTICLE_SLOT_TAGS);
-    case 3: return ftLinkSlotGenerate<wnLinkHookshot>(FT_LINK_POOL(ftLinkHookshotPool), acc, WN_ARTICLE_SLOT_TAGS);
-    case 4: return ftLinkSlotGenerate<wnSimple>(FT_LINK_POOL(ftLinkSimple4Pool), acc, WN_ARTICLE_SLOT_TAGS);
-    case 5: return ftLinkSlotGenerate<wnSimple>(FT_LINK_POOL(ftLinkSimple5Pool), acc, WN_ARTICLE_SLOT_TAGS);
+    case 0: return ftLinkSlotGenerate<wnLinkBow, ftLinkBowPool>(this, acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftLinkSlotGenerate<wnLinkBowArrow, ftLinkBowArrowPool>(this, acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftLinkSlotGenerate<wnLinkBoomerang, ftLinkBoomerangPool>(this, acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftLinkSlotGenerate<wnLinkHookshot, ftLinkHookshotPool>(this, acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftLinkSlotGenerate<wnSimple, ftLinkSimple4Pool>(this, acc, WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftLinkSlotGenerate<wnSimple, ftLinkSimple5Pool>(this, acc, WN_ARTICLE_SLOT_TAGS);
     case 6: return ftLinkGenerateSlot6(acc, WN_ARTICLE_SLOT_TAGS);
     FT_LINK_UNUSED_SLOTS(wnGetNullArticle())
     default: return wnGetNullArticle();
