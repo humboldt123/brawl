@@ -142,8 +142,8 @@ void wnLinkHookshot::activate(int founderTaskId, int resourceId, int team, float
     soResourceModule* resources = modules->m_resourceModule;
     wnLinkHookshotSlotModule* slot = reinterpret_cast<wnLinkHookshotSlotModule*>(modules->m_physicsModule);
     s32 effectArg = negOne;
-    s32 zero = 0;
-    slot->v18(resources->getResourceIdAccesser()->getBinResId(), zero, effectArg, effectArg, true, false, zero, -1);
+    int resId = resources->getResourceIdAccesser()->getBinResId();
+    slot->v18(resId, 0, effectArg, effectArg, true, false, 0, -1);
     m_moduleAccesser->getWorkManageModule().setFlag(unk, 0x22000000);
     m_moduleAccesser->getWorkManageModule().setInt(0x18, 0x10000005);
     soArticle* tip = static_cast<soGenerateArticleManageModule*>(m_moduleAccesser->m_enumerationStart->m_generateArticleManageModule)->generate(0, 0, false);
