@@ -126,7 +126,8 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
     if (Weapon::notifyEventAnimCmd(cmd, acc, unk3)) {
         return true;
     }
-    if (!isObserv(cmd->getGroup())) {
+    s8 group = cmd->getGroup();
+    if (!isObserv(group)) {
         return false;
     }
     if (cmd->getType() <= -1 || cmd->getType() >= 11) {
@@ -144,7 +145,7 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
                 if (acc->getGroundModule().isTouch((grCollStatus::TouchMask)0xa4, 0) == 1) {
                     Vec2f wall = acc->getGroundModule().getTouchNormal(0xa4, 0);
                     if (wall.angle(&speed) >= 1.57079637f + param->unk28) {
-                        acc->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
+                        m_moduleAccesser->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
                         return true;
                     }
                 }
@@ -152,7 +153,7 @@ bool wnLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* acc, 
                 if (acc->getGroundModule().isTouch((grCollStatus::TouchMask)0x52, 0) == 1) {
                     Vec2f wall = acc->getGroundModule().getTouchNormal(0x52, 0);
                     if (wall.angle(&speed) >= 1.57079637f + param->unk28) {
-                        acc->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
+                        m_moduleAccesser->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
                         return true;
                     }
                 }
