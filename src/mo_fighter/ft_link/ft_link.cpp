@@ -1,3 +1,4 @@
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR // BYTES: the hookshot teardown expands the null mediator teardown (as in ft_pit.cpp)
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
