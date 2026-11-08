@@ -521,8 +521,8 @@ extern "C" {
 } // extern "C"
 
 // The kind record of the owner (kind 0, sub kind Link) and the heap the articles are built from.
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument, so the caller's temporary and that
-// argument are both live across the article constructor.
+// The descriptor keeps the address of the caller's kind temporary (taken by reference: a by-value copy would add a
+// stack slot the holder and builder frames do not have).
 struct ftLinkArticleKind : wnArticleKindInfo {
     ftLinkArticleKind() {
         kind = 0;
@@ -531,7 +531,7 @@ struct ftLinkArticleKind : wnArticleKindInfo {
     s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling, as in ft_snake
 };
 struct ftLinkArticleBuildInfo : wnArticleBuildInfo {
-    ftLinkArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
+    ftLinkArticleBuildInfo(const ftLinkArticleKind& kindArg, soHeapModule* heap) {
         kindInfo = &kindArg;
         heapModule = heap;
     }
