@@ -518,11 +518,6 @@ extern "C" {
 
 
 // Field accessors.
-u8* fn_93_CCA0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_93_CCB8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_93_CCD0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_93_CCE8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_93_CD48(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 
 // Bit flags in the u32 array at +0x1C.
 
@@ -565,9 +560,6 @@ struct ftLinkVirtualSlots {
     virtual void slot22();
 };
 
-void fn_93_E1BC() {}
-int fn_93_E1F8() { return 8; }
-void fn_93_E200(s16* dst, s16* src) { *dst = *src; }
 
 // Calls the slot-3 virtual of the object when byte 5 bit 7 is set and byte 6 is clear.
 
