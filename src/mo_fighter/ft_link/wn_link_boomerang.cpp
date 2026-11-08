@@ -1,4 +1,5 @@
 #define IP_INPUT_BUTTON_RAW
+#define IP_NULL_STICK_ZERO_FIELDS // BYTES: native IpNull::getStick* store the two zero fields inline (Vec2f ctor is out of line here)
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
 #define WN_SHARED_ARRAYS_1
