@@ -32,6 +32,7 @@ public:
 
     // HYPOTHESIS: parameter types from the register use.
     void init(int createId, int index);
+    void setInfoParam(int createId, int index);
     bool isZako(int createId);
     void notifyDead(u32 createId);
     void remove();

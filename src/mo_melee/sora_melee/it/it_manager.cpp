@@ -290,7 +290,7 @@ BaseItem* itManager::createItemInstance(itCreate* create) {
         return NULL;
     }
     created->init();
-    created->activate(create->m_lr, 0.0f, create->m_pos, false);
+    created->activate(create->m_pos, create->m_lr, 0.0f, false);
     Vec3f* source = create->m_safePos;
     Vec2f safePos;
     float y = source->m_y;

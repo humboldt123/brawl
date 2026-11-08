@@ -5,6 +5,9 @@
 
 extern emManager* g_emManager;
 
+// TODO(nonmatching): 99.67%, (a) the original loads the previous record's face texture file into r0 and the
+// constant 1 for m_isValid into r4; ours swaps the two registers (two permuter runs, reorderings of the loads and
+// stores, an early compare, void* and ResFile spellings of the texture pointers and a bool local found no better form).
 stAdventureInfoIconParam stAdventureInfoBasis::getIconParamForEnemy(int createId, u32 taskId, int index,
                                                                     stAdventureInfoIconParam* prev) {
     Enemy* enemy = NULL;

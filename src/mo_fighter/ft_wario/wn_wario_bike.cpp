@@ -441,9 +441,8 @@ void wnWarioBike::notifyEventCollisionAttack(float power, soCollisionLog* log,
         static_cast<gfTask::Category>(log->m_taskCategory), log->m_taskId);
     soCollisionAttackData* attackData = accesser->getCollisionAttackModule().getData(
         log->m_damageIndex, log->m_isAbsolute);
-    float one = 1.0f;
     int frames = soDamageUtilActor::calcHitStopFrame(
-        power, one, one, accesser, attackData, 0);
+        accesser, power, 1.0f, 1.0f, attackData, 0);
 
     // Native only substitutes the target reaction frame for the log's
     // reaction-frame case; the task is looked up from the collision log.

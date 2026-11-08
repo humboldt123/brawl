@@ -9,9 +9,8 @@ extern "C" void fn_80107848(IfAdvMngr* mngr, stAdventureInfoDisp disp);
 extern "C" void fn_801077D8(IfAdvMngr* mngr, stAdventureInfoDisp disp);
 extern "C" void fn_800DCEA8(IfMngr* mngr, stAdventureInfoDisp disp);
 extern "C" void fn_800E08A0(IfPlayer* player, stLoaderSandBagAppearInfo* info, u8 unk);
-extern "C" void fn_800E14A4(IfPlayer* player, u32 value, int a);
 
-void stAdventureInfoContact::sendToBossInfo(stAdventureInfoIconParam param, bool isStamina) {
+void stAdventureInfoContact::sendToBossInfo(const stAdventureInfoIconParam& param, bool isStamina) {
     if (g_IfAdvMngr != NULL) {
         fn_80107848(g_IfAdvMngr, param.m_disp);
         g_IfAdvMngr->setBossMoveDispFlag(true);
@@ -43,7 +42,7 @@ void stAdventureInfoContact::sendToBossInfo(stAdventureInfoIconParam param, bool
                 fn_800E08A0(g_IfMngr->m_ifPlayers[1], &info, g_IfMngr->unkA8);
                 m_isBossAppear[0] = true;
             } else if (param.m_disp.m_index == 0 && ifMngr->m_ifPlayers[1] != NULL) {
-                fn_800E14A4(g_IfMngr->m_ifPlayers[g_IfMngr->unk68[1]], info.m_damage, 0);
+                g_IfMngr->m_ifPlayers[g_IfMngr->unk68[1]]->updateDamageHP(info.m_damage, 0);
             }
             if (param.m_disp.m_index == 1 && !m_isBossAppear[1]) {
                 info.m_characterKind = 0x3D;
@@ -52,7 +51,7 @@ void stAdventureInfoContact::sendToBossInfo(stAdventureInfoIconParam param, bool
                 fn_800E08A0(g_IfMngr->m_ifPlayers[2], &info, g_IfMngr->unkA8);
                 m_isBossAppear[1] = true;
             } else if (param.m_disp.m_index == 1 && g_IfMngr->m_ifPlayers[2] != NULL) {
-                fn_800E14A4(g_IfMngr->m_ifPlayers[g_IfMngr->unk68[2]], info.m_damage, 0);
+                g_IfMngr->m_ifPlayers[g_IfMngr->unk68[2]]->updateDamageHP(info.m_damage, 0);
             }
         }
     }
@@ -76,7 +75,44 @@ void stAdventureInfoContact::sendToDestroyBossInfo(int index, bool isStamina) {
     }
 }
 
-void stAdventureInfoContact::sendToZakoInfo(stAdventureInfoIconParam param) {
+void stAdventureInfoContact::sendToDamageBossInfo(int index, bool isStamina) {
+    if (g_IfAdvMngr != NULL) {
+        g_IfAdvMngr->setBossDamageDisp(index);
+    }
+    if (g_IfMngr != NULL) {
+        if (!isStamina) {
+            g_IfMngr->setBossDamageDisp(index);
+        } else {
+            if (index == 0 && g_IfMngr->m_ifPlayers[1] != NULL) {
+                IfPlayer* player = g_IfMngr->m_ifPlayers[g_IfMngr->unk68[1]];
+                if (player->unk1C == player->unk18) {
+                    player->unk264 = 1.0f;
+                    player->setDamageState(1);
+                }
+            }
+            if (index == 1 && g_IfMngr->m_ifPlayers[2] != NULL) {
+                IfPlayer* player = g_IfMngr->m_ifPlayers[g_IfMngr->unk68[2]];
+                if (player->unk1C == player->unk18) {
+                    player->unk264 = 1.0f;
+                    player->setDamageState(1);
+                }
+            }
+        }
+    }
+}
+
+void stAdventureInfoContact::sendToRemoveBossInfo() {
+    if (g_IfAdvMngr != NULL) {
+        g_IfAdvMngr->eraseBoss(0);
+        g_IfAdvMngr->eraseBoss(1);
+    }
+    if (g_IfMngr != NULL) {
+        g_IfMngr->eraseBoss(0);
+        g_IfMngr->eraseBoss(1);
+    }
+}
+
+void stAdventureInfoContact::sendToZakoInfo(const stAdventureInfoIconParam& param) {
     if (g_IfAdvMngr != NULL && param.m_isValid) {
         fn_801077D8(g_IfAdvMngr, param.m_disp);
     }

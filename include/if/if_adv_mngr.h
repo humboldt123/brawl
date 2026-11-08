@@ -45,7 +45,8 @@ public:
     void setNumPlayer(int numPlayer);
     // HYPOTHESIS: int parameter, passed on to IfAdvZako::erasesZako.
     void erasesZako(int index);
-    void eraseBoss();
+    // The boss slot (0 or 1), passed on to IfAdvBoss::eraseBoss.
+    void eraseBoss(int index);
     // HYPOTHESIS: int and bool parameters.
     void setBossDamageDisp(int index);
     void setBossDeathDisp(int index);

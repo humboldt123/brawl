@@ -11,10 +11,21 @@
 
 struct soArticleConstructInfo;
 class wnemDummy_Param;
+class wnemSimple;
 struct wnemSimple_Data;
 
-class wnemSwHolder : public soArticle {
-    u8 m_unreconstructed[0x28 - sizeof(soArticle)];
+// HYPOTHESIS: the third base at 0x14: the constructor stores its vptr last, and the vtable object ends with its table (a
+// destructor thunk that subtracts 0x14, then isActive). The real class and its name are unknown.
+class wnemSwHolderActivity {
+public:
+    virtual ~wnemSwHolderActivity() { }
+};
+
+class wnemSwHolder : public soArticle, public wnemSwHolderActivity {
+    bool m_isActive;        // 0x18, set while the holder owns an activated wnemSimple
+    wnemSimple* m_weapon;   // 0x1c, the activated wnemSimple (its holder pointer at 0x2208 points back)
+    u8 unk20[0x4];
+    s32 m_articleId;        // 0x24, the first constructor argument
 
 public:
     // HYPOTHESIS: parameter types, as for wnemSimple.
@@ -31,11 +42,31 @@ public:
     virtual void unlinkOwner(int);
     virtual bool isSyncOwnerStatus();
     virtual void setSyncOwnerStatus(bool);
+    virtual bool isActive();
+    virtual void setAttackPowerMulPattern(float);
+    virtual float getActiveGlobalFrame();
+    virtual void intrudeLogAttackInfo();
+    virtual void updateLogAttackInfo();
+    virtual soLogAttackInfo getLogAttackInfo();
+    virtual void setLogAttackInfo(soLogAttackInfo*);
+    virtual u32 getFounderTaskId();
+    virtual int getOwnerDeactiveTreatType();
+    virtual void deactivateDescendantForce();
+    virtual void setSituationKind(SituationKind);
+    virtual void action(int);
+    virtual void set2nd(u8);
+    virtual void setVisibility(int, u8);
+    virtual void setVisibilityWhole(u8);
+    virtual void changeStatus(int);
+    virtual void setRate(float);
+    virtual void setFrame(float);
+    virtual bool isConstraint(bool);
     // Launches the article from the given position.
     // HYPOTHESIS: parameter roles, from what the Porky passes (compare fn_41_3091C, wnemSimple's activation). The facing
     // comes before the team, as in wnemSimple's activation: emWeaponUtil::activeSimpleWeaponHolder evaluates the team
     // before the facing (right to left).
     void active(Vec3f* pos, float lr, int team, int, int founderTaskId, int resourceId, wnemSimple_Data* work, float speed,
                 bool flag, u32 life);
+    void deactivate();
 };
 static_assert(sizeof(wnemSwHolder) == 0x28, "Class is wrong size!");

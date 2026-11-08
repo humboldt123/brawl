@@ -29,6 +29,19 @@ struct stAdventureInfoIconParam {
         unk15 = false;
         m_faceTexData = NULL;
     }
+
+    // The records are copied member by member (the float fields through the FPU), not as words.
+    stAdventureInfoIconParam& operator=(const stAdventureInfoIconParam& other) {
+        m_disp.m_index = other.m_disp.m_index;
+        m_disp.m_hp = other.m_disp.m_hp;
+        m_disp.m_maxHp = other.m_disp.m_maxHp;
+        m_disp.m_nameMsgId = other.m_disp.m_nameMsgId;
+        m_disp.m_faceTex = other.m_disp.m_faceTex;
+        m_isValid = other.m_isValid;
+        unk15 = other.unk15;
+        m_faceTexData = other.m_faceTexData;
+        return *this;
+    }
 };
 static_assert(sizeof(stAdventureInfoIconParam) == 0x1C, "Class is wrong size!");
 
@@ -47,13 +60,13 @@ public:
         m_isActive = false;
     }
 
-    // HYPOTHESIS: parameter types from the register use and the callers. The records are taken by value: the
-    // display block is then copied whole to the stack, as in the original.
-    void sendToBossInfo(stAdventureInfoIconParam param, bool isStamina);
+    // HYPOTHESIS: parameter types from the register use and the callers. The icon records are taken by const
+    // reference: the callers pass the address of the record they own, with no copy on their stack.
+    void sendToBossInfo(const stAdventureInfoIconParam& param, bool isStamina);
     void sendToDestroyBossInfo(int index, bool isStamina);
     void sendToDamageBossInfo(int index, bool isStamina);
     void sendToRemoveBossInfo();
-    void sendToZakoInfo(stAdventureInfoIconParam param);
+    void sendToZakoInfo(const stAdventureInfoIconParam& param);
     void sendToDestroyZakoInfo(int index);
     void sendToDamageZakoInfo(int index);
     void sendToEraseZakoInfo(int index);

@@ -151,6 +151,13 @@ mo_enemy/sora_enemy/wnem/wn_em_resource_module_impl.cpp:
 	.text       start:0x0002CF98 end:0x0002D038
 	.data       start:0x00003EA8 end:0x00003F20
 
+mo_enemy/sora_enemy/wnem/wn_em_simple.cpp:
+	.text       start:0x0002D038 end:0x000349D0
+	.ctors      start:0x0000001C end:0x00000020
+	.rodata     start:0x00000E18 end:0x00000E78
+	.data       start:0x00003F20 end:0x00006CD8
+	.bss        start:0x000001D0 end:0x00000260
+
 mo_enemy/sora_enemy/wnem/wn_em_heap_module_impl.cpp:
 	.text       start:0x000349D0 end:0x00034AE8
 	.ctors      start:0x00000020 end:0x00000024

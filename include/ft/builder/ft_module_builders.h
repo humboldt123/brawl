@@ -741,7 +741,7 @@ template <typename BC>
 class soSlopeModuleBuilder {
     typename BC::ModuleType m_module;
 public:
-    soSlopeModuleBuilder(soModuleAccesser* acc, float slopeAngleLimit) : m_module(acc, BC::Arg0, BC::Arg1, false, slopeAngleLimit) { }
+    soSlopeModuleBuilder(soModuleAccesser* acc, float slopeAngleLimit) : m_module(acc, slopeAngleLimit, BC::Arg0, BC::Arg1, false) { }
     typename BC::ModuleType* getModule() { return &m_module; }
 };
 
