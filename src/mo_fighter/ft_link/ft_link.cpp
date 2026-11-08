@@ -35,6 +35,8 @@ template soArrayVector<s32, 8>::~soArrayVector();
 #endif
 #pragma dont_inline off
 soStatusModuleImpl::~soStatusModuleImpl() { }
+// The disguise command vector uses sora_melee's shared teardown (same form as ft_mario.cpp).
+template <> soArrayVector<ftAnimCmdConvPtr, 284>::~soArrayVector();
 // Weak copy every fighter REL emits (same form as ft_snake.cpp / ft_pit.cpp).
 ftKineticEnergyController::~ftKineticEnergyController() { }
 
