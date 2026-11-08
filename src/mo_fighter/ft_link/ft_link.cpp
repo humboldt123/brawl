@@ -2,6 +2,7 @@
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
 #define FT_TEAM_TYPED_INTERFACE
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_NOINLINE_SEARCH_BUILDER
 #define FT_LINK_ARTICLE_POOLS
@@ -512,90 +513,22 @@ void testBuilder() {
 extern "C" {
 
 // Empty virtual overrides and default observers.
-void fn_93_9978() {}
-void fn_93_AD30() {}
-void fn_93_AE34() {}
-void fn_93_AE40() {}
-void fn_93_AE80() {}
-void fn_93_AE84() {}
-void fn_93_AF14() {}
-void fn_93_AF40() {}
-void fn_93_AF44() {}
-void fn_93_AF48() {}
-void fn_93_AF4C() {}
-void fn_93_AF50() {}
-void fn_93_AF54() {}
-void fn_93_AF58() {}
-void fn_93_AF5C() {}
-void fn_93_AF60() {}
-void fn_93_AF64() {}
-void fn_93_AF68() {}
-void fn_93_AF6C() {}
-void fn_93_AF70() {}
-void fn_93_AF74() {}
-void fn_93_AF78() {}
-void fn_93_AF84() {}
-void fn_93_AF88() {}
-void fn_93_AF8C() {}
-void fn_93_AF90() {}
-void fn_93_AFBC() {}
-void fn_93_AFC0() {}
-void fn_93_AFC4() {}
-void fn_93_AFC8() {}
-void fn_93_AFCC() {}
-void fn_93_AFF0() {}
-void fn_93_AFF4() {}
-void fn_93_B008() {}
-void fn_93_B00C() {}
-void fn_93_B010() {}
-void fn_93_B014() {}
-void fn_93_B018() {}
-void fn_93_B01C() {}
-void fn_93_DAB0() {}
 
 // Constant returns.
-int fn_93_AFF8() { return 0; }
-int fn_93_B000() { return 0; }
-int fn_93_B3C4() { return 0; }
 
 
 // Field accessors.
-int fn_93_AC04(u8* p) { return *(int*)(p + 0xC0); }
-u8 fn_93_AE38(u8* p) { return *(u8*)(p + 0x44); }
-int fn_93_AFD0(u8* p) { return *(int*)(p + 0x110); }
-u8* fn_93_B020(u8* p, u32 idx) { return p + 4 + (idx << 3); }
-u8* fn_93_B0E0(u8* p) { return p + 0x458; }
-u8* fn_93_B0E8(u8* p) { return p + 0x3C8; }
-u8* fn_93_B0F0(u8* p) { return p + 0x8; }
-u8* fn_93_B0F8(u8* p) { return p + 0x84; }
-u8* fn_93_B100(u8* p) { return p + 0x70; }
-u8* fn_93_B108(u8* p) { return p + 0x5C; }
-u8* fn_93_B110(u8* p) { return p + 0x48; }
-u8* fn_93_B118(u8* p) { return p + 0x34; }
-u8* fn_93_B120(u8* p) { return p + 0x20; }
-u8* fn_93_B128(u8* p) { return p + 0x8; }
-int fn_93_B190(u8* p) { return *(int*)(p + 0x20); }
-int fn_93_B26C(u8* p) { return *(int*)(p + 0x18); }
-int fn_93_B304(u8* p) { return *(int*)(p + 0x10); }
-u8* fn_93_CBC4(u8* p) { return p + 0x19DAC; }
-u8* fn_93_CBE4(u8* p) { return p + 0x19DE8; }
-u8* fn_93_CBF0(u8* p) { return p + 0x1A2A0; }
 u8* fn_93_CCA0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_93_CCB8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_93_CCD0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_93_CCE8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_93_CD48(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-void fn_93_DB98(u8* p) { *(u8*)(p + 0x31) = 0; }
-void fn_93_DBA4(u8* p) { *(u8*)(p + 0x31) = 1; }
 
 // Bit flags in the u32 array at +0x1C.
 
 // Float array at +0x14.
-void fn_93_B2E4(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] = v; }
-float fn_93_B2F4(u8* p, u32 idx) { float* a = *(float**)(p + 0x14); return a[idx]; }
 
 // Int array at +0x0C.
-void fn_93_B3A4(u8* p, int v, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] = v; }
 }
 // Second placeholder batch: empty and constant virtuals, guarded virtual calls and pointer-returning destructors.
 extern "C" {
@@ -640,9 +573,6 @@ void fn_93_E200(s16* dst, s16* src) { *dst = *src; }
 
 // Virtual destructors: delete the object when the flag is positive, then return it.
 void* fn_93_21A0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_93_3D80(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_93_5EE8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_93_5F28(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 
 // Virtual calls through a subobject vtable and tail calls.
 void fn_93_CC30(void* p) { return ((ftLinkVirtualSlots*)p)->slot20(); }
