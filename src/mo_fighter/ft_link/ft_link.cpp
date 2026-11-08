@@ -99,14 +99,10 @@ ftLink::ftLink(s32 entryId,
 
 // The node whose position is stored when Link enters the stage (the work floats 0x11000013/0x11000014 hold it).
 // HYPOTHESIS: 300 is the abstract id of that node, 0x1E3 the motion value the node is read for.
-// MATCH-ONLY: the module pointers stay loaded from one enumeration pointer register in the order they are declared.
-#pragma push
-#pragma opt_propagation off
 void ftLink::onActivate() {
-    const soModuleEnumeration* modules = m_moduleAccesser->m_enumerationStart;
-    soWorkManageModule* work = modules->m_workManageModule;
-    soModelModule* model = modules->m_modelModule;
-    soMotionModule* motion = modules->m_motionModule;
+    soWorkManageModule* work = &m_moduleAccesser->getWorkManageModule();
+    soModelModule* model = &m_moduleAccesser->getModelModule();
+    soMotionModule* motion = &m_moduleAccesser->getMotionModule();
     int node = model->getCorrectNodeId(300);
     Vec3f stored;
     stored = motion->calcNode(0x1E3, node);
@@ -114,7 +110,6 @@ void ftLink::onActivate() {
     work->setFloat(stored.m_y, 0x11000014);
     m_moduleAccesser->getWorkManageModule().offFlag(0x1200003D);
 }
-#pragma pop
 
 void ftLink::onStart(int startKind) {
     Fighter::onStart(startKind);
