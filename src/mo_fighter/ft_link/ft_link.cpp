@@ -509,68 +509,10 @@ void testBuilder() {
     soResourceIdAccesserImpl idAccImpl(0, 1, 2);
 }
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-// Empty virtual overrides and default observers.
-
-// Constant returns.
-
-
-// Field accessors.
-
-// Bit flags in the u32 array at +0x1C.
-
-// Float array at +0x14.
-
-// Int array at +0x0C.
-}
-// Second placeholder batch: empty and constant virtuals, guarded virtual calls and pointer-returning destructors.
-extern "C" {
-
-typedef void (*ftLinkVFunc)(void*);
-struct ftLinkFlagByte {
-    u8 flag : 1;
-    u8 rest : 7;
-};
-// Polymorphic view used only to emit virtual calls; the slots are never defined in this unit.
-struct ftLinkVirtualSlots {
-    virtual void slot0();
-    virtual void slot1();
-    virtual void slot2();
-    virtual void slot3();
-    virtual void slot4();
-    virtual void slot5();
-    virtual void slot6();
-    virtual void slot7();
-    virtual void slot8();
-    virtual void slot9();
-    virtual void slot10();
-    virtual void slot11();
-    virtual void slot12();
-    virtual void slot13();
-    virtual void slot14();
-    virtual void slot15();
-    virtual void slot16();
-    virtual void slot17();
-    virtual void slot18();
-    virtual void slot19();
-    virtual void slot20();
-    virtual void slot21();
-    virtual void slot22();
-};
-
-
-// Calls the slot-3 virtual of the object when byte 5 bit 7 is set and byte 6 is clear.
-
-// Virtual destructors: delete the object when the flag is positive, then return it.
-void* fn_93_21A0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-
-// Virtual calls through a subobject vtable and tail calls.
-void fn_93_CC30(void* p) { return ((ftLinkVirtualSlots*)p)->slot20(); }
-
-
-}
+// The team interface destructor is a weak copy of this unit (same form as ft_pit.cpp).
+#pragma dont_inline on
+soTeam::~soTeam() { }
+#pragma dont_inline off
 
 // Leaf functions shared with other fighter modules (same module-map names and bodies).
 extern "C" {
