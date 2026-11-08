@@ -2659,7 +2659,7 @@ config.libs = [
             Object(NonMatching, "mo_adv_stage/gr_adventure_tikuwa.cpp"),
             Object(NonMatching, "mo_adv_stage/gr_adventure_warpzone.cpp"),
             Object(Matching, "mo_adv_stage/gr_adventure_final.cpp"),
-            Object(NonMatching, "mo_adv_stage/ad_visual.cpp"),
+            Object(Matching, "mo_adv_stage/ad_visual.cpp"),
             Object(NonMatching, "mo_adv_stage/mu_adv_selchr_c.cpp"),
             Object(NonMatching, "mo_adv_stage/mu_adv_saveload.cpp"),
             Object(NonMatching, "mo_adv_stage/mu_adv_savepoint.cpp"),
