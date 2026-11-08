@@ -125,7 +125,7 @@ __ct__169soKineticModuleBuilder<142soKineticModuleBuildConfigMediator<26soKineti
 __dt__26soKineticModuleGenericImplFv = .text:0x000058B8; // type:function size:0x6C
 __dt__19soKineticModuleImplFv = .text:0x00005924; // type:function size:0x60
 __dt__58soInstanceManagerFullPropertyVector<P15soKineticEnergy,12>Fv = .text:0x00005984; // type:function size:0x70
-__dt__46soArrayFixed<30soInstanceUnit<P11soEventUnit>>Fv = .text:0x000059F4; // type:function size:0x40 scope:weak
+__dt__49soInstanceManagerFullProperty<P15soKineticEnergy>Fv = .text:0x000059F4; // type:function size:0x40 scope:weak
 __dt__169soKineticModuleBuilder<142soKineticModuleBuildConfigMediator<26soKineticModuleGenericImpl,75ftKineticMediatorImplT<23ftLinkKineticTransactor,23ftLinkKineticTransactor>>>Fv = .text:0x00005A34; // type:function size:0x78
 __ct__57soGeneralWorkBuilder<33soGeneralWorkBuildConfig<77,32,3>>Fv = .text:0x00005AAC; // type:function size:0x60
 __dt__57soGeneralWorkBuilder<33soGeneralWorkBuildConfig<77,32,3>>Fv = .text:0x00005B0C; // type:function size:0x60
