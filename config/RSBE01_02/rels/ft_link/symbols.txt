@@ -524,10 +524,10 @@ create__26ftClassInfoImpl<2,6ftLink>CFlQ25Heaps8HeapTypeQ25Heaps8HeapTypeQ25Heap
 @244@notifyEventSetDamage__7FighterFf = .text:0x0000ECB8; // type:function size:0x8
 @256@notifyEventTurn__7FighterFffP16soModuleAccesser = .text:0x0000ECC0; // type:function size:0x8
 changeKinetic__23ftLinkKineticTransactorFiPvP16soModuleAccesser = .text:0x0000ECC8; // type:function size:0x14C
-fn_93_EE14 = .text:0x0000EE14; // type:function size:0x160
-fn_93_EF74 = .text:0x0000EF74; // type:function size:0x200
+changeKineticSub__23ftLinkKineticTransactorFPvP5Vec2fP16soModuleAccesser = .text:0x0000EE14; // type:function size:0x160
+changeKineticSub1__23ftLinkKineticTransactorFPvP5Vec2fP16soModuleAccesser = .text:0x0000EF74; // type:function size:0x200
 __as__5Vec3fFRC5Vec3f = .text:0x0000F174; // type:function size:0x1C
-fn_93_F190 = .text:0x0000F190; // type:function size:0xDC
+changeKineticSub2__23ftLinkKineticTransactorFPvP5Vec2fP16soModuleAccesser = .text:0x0000F190; // type:function size:0xDC
 initStatus__36ftLinkStatusUniqProcessSpecialRSlashFP16soModuleAccesser = .text:0x0000F26C; // type:function size:0x4
 execStatus__36ftLinkStatusUniqProcessSpecialRSlashFP16soModuleAccesser = .text:0x0000F270; // type:function size:0x4
 checkTransitionPrecede__19soStatusUniqProcessFP16soModuleAccesserPvi = .text:0x0000F274; // type:function size:0x8

@@ -39,7 +39,31 @@ typedef soStatusModuleBuildConfig<284, soGeneralWorkBuildConfig<18, 14, 2>, 274,
 typedef soCollisionSearchModuleBuilder<soCollisionSearchModuleBuildConfig<soCollisionSearchModuleImpl> > ftLinkCollisionSearchModuleBuilder;
 
 // HYPOTHESIS: this fighter has its own kinetic transactor (changeKinetic is in a later translation unit)
-FT_KINETIC_TRANSACTOR(ftLinkKineticTransactor);
+// Same shape as FT_KINETIC_TRANSACTOR plus the three mode handlers (0x64..0x66); modes 0x67..0x6d do nothing here.
+class ftLinkKineticTransactor : public ftKineticTransactor {
+public:
+    static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
+    void changeKineticSub(void* pools, Vec2f* speed, soModuleAccesser* acc);
+    void changeKineticSub1(void* pools, Vec2f* speed, soModuleAccesser* acc);
+    void changeKineticSub2(void* pools, Vec2f* speed, soModuleAccesser* acc);
+    void changeKineticSub3(void*, Vec2f*, soModuleAccesser*) { }
+    void changeKineticSub4(void*, Vec2f*, soModuleAccesser*) { }
+    void changeKineticSub5(void*, Vec2f*, soModuleAccesser*) { }
+    void changeKineticSub6(void*, Vec2f*, soModuleAccesser*) { }
+    void changeKineticSub7(void*, Vec2f*, soModuleAccesser*) { }
+    void changeKineticSub8(void*, Vec2f*, soModuleAccesser*) { }
+    void changeKineticSub9(void*, Vec2f*, soModuleAccesser*) { }
+    template <typename E>
+    static void updateEnergy(E* energy, soModuleAccesser* acc) {
+        if (energy->isEnable() != true) {
+            return;
+        }
+        if (energy->isSuspend()) {
+            return;
+        }
+        return energy->updateEnergy(acc);
+    }
+};
 typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKineticMediatorImplT<ftLinkKineticTransactor> > ftLinkKineticModuleBuildConfig;
 
 // soGenerateArticleManageModuleBuilder (bow, arrows, boomerang, hookshot, two simple articles).
