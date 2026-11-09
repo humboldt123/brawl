@@ -315,14 +315,9 @@ void wnPeachKinopioArticleMediator::deactivate() {
     }
 }
 
-// Open items of this unit (see the per-function notes above):
-// TODO(nonmatching): the spore teardown (wnInstanceHolder<wnPeachKinopioSpore> 20%, wnPeachKinopioSpore 19%, the spore's generic
-//   kinetic module builder destructor fn_27_333ACC 0%). The original expands the spore's soModuleAccesserBuilder and
-//   animation command sub builder destructors into the spore destructor (big builders stay calls, as in the Toad's) and
-//   the spore destructor into the holder's. Here wnModuleAccesserBuilder<spore>'s destructor calls both out of line: the
-//   spore's soModuleAccesserBuilder destructor expands every big builder itself (the Toad's does not) and is then too big
-//   to inline. Ruled out: inline pragmas around the spore classes, an out-of-class inline spore destructor, an implicit
-//   builder destructor, a never_inline kinetic builder destructor, a full wnModuleAccesserBuilder<spore> specialization.
+// Open items of this unit (see the per-function notes above). The spore itself (constructor, builders, activate, kinetic
+// mediator) is the unit wn_peach_kinopio_spore.cpp (0x3373F8..0x338B24) and its transactor
+// wn_peach_kinopio_spore_kinetic_transactor.cpp (0x338B24..0x338FE0); this unit ends with the Toad's weak thunks (0x3373F8).
 // TODO(nonmatching): soLineHierarchy 0%: the hierarchy is soLineInvertHierarchy here; the original name is soLineHierarchy
 //   (a 5 parameter template like include/em/em_article_mediator.h's, which cannot coexist with the 3 parameter one of
 //   ft/builder/ft_builder_transition.h in one unit).
@@ -336,8 +331,8 @@ void wnPeachKinopioArticleMediator::deactivate() {
 // TODO(nonmatching): activate (99.86%): one register (the first flag byte loads into r0 in the original); the descriptor
 //   constructor and member-wise forms give the same, a 10 minute permuter run found nothing.
 // TODO(callees): fn_27_2E1E40 / 2E1E44 / 2E1E48 / 2F563C (situation, stop, visibility, colour blend builders), fn_27_2F4FB4
-//   (null ground getModule), fn_27_30921C / 30922C (motion builder getModule / constructor) and fn_27_338624 (the spore's
-//   activate) are weak or spore-unit functions outside this unit, still unnamed in symbols.txt. The map names
+//   (null ground getModule) and fn_27_30921C / 30922C (motion builder getModule / constructor) are weak functions outside
+//   this unit, still unnamed in symbols.txt. The map names
 //   fn_27_1E09C4 (in wn_simple's range) the soAnimCmdModuleBuilder<soAnimCmdModuleBuildConfig<6, soAnimCmdModuleImpl>>
 //   destructor and fn_27_3085C4 (in wn_yoshi_tamago's range) the two-slot soMotionModuleBuilder destructor that the two
 //   builder destructors here call.

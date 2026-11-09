@@ -11,6 +11,12 @@
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define FT_PARAM_ACCESSER_TYPED_DTOR
 #define WN_KINETIC_MEDIATOR_INLINE_DTOR // BYTES: the parasol's kinetic module builder destructor inlines the null mediator's
+// The full Toad class (wn/peach/wn_peach_kinopio.h): this unit emits weak copies of ~wnPeachKinopio() and of the spore
+// holder destructor, built from the generic article builders and the generic kinetic module of the spore.
+#define WN_PEACH_KINOPIO_UNIT
+#define WN_PEACH_KINOPIO_IN_FIGHTER_TU
+#define WN_KINETIC_GENERIC_BUILDER
+#define WN_KINETIC_GENERIC_IN_FIGHTER_TU
 #include <ft/builder/ft_dol_array_list.h>
 // The status transition list of Peach holds eighteen terms, and its status process table 287 entries: the REL takes the
 // constructors and destructors of both from sora_melee.
@@ -294,9 +300,6 @@ soResourceIdAccesser::~soResourceIdAccesser() { }
 // them ~wnPeachKassar() inlines every builder destructor).
 // The map names these callees of ~wnPeachKassar() (and of ~wnPeachKinopio() and the spore holder destructor): the
 // AnimCmdControlUnit<0,1,1,0,0,0,0,8>, Reflect, Slow, Shake and ParamCustomize module builder destructors among them.
-// TODO(nonmatching): ~wnPeachKinopio() (0x4A10) and the spore holder destructor (0x4EA0) are weak copies here, but
-// include/wn/peach/wn_peach_kinopio.h declares ~wnPeachKinopio() out of line (sora_melee defines it), so this unit
-// emits neither.
 template <class T> void ftPeachBuilderDtorUse(T* p) { p->~T(); }
 // The same for classes with a virtual destructor (a qualified call does not dispatch through the vtable).
 template <class T> void ftPeachDtorUse(T* p) { p->T::~T(); }

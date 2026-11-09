@@ -4,6 +4,7 @@
 
 class soModuleAccesser;
 class soCollisionLog;
+class soCollisionAttackModule;
 
 // Primary base of the Yoshi and Wario transactors, verified by their RTTI and the
 // default functions in its vtable. Only the hooks used here are reconstructed;
@@ -17,10 +18,10 @@ public:
     virtual void processUpdate(soModuleAccesser* moduleAccesser);
     virtual void unk4(soModuleAccesser* moduleAccesser);
     virtual void processFixPosition(soModuleAccesser* moduleAccesser);
-    virtual void unk6(soModuleAccesser* moduleAccesser);
+    virtual void notifyEventChangeSituation(int kind, int prevKind, soModuleAccesser* moduleAccesser); // slot 6, named from Peach's override
     virtual void unk7(soModuleAccesser* moduleAccesser);
-    virtual void unk8(soModuleAccesser* moduleAccesser);
-    virtual bool unk9(soModuleAccesser* moduleAccesser);
+    virtual void notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser); // slot 8
+    virtual bool notifyEventCollisionShieldCheck(soModuleAccesser* moduleAccesser); // slot 9
     virtual void notifyEventCollisionSearch(soCollisionLog* log, soModuleAccesser* moduleAccesser);
     virtual bool unk11(soModuleAccesser* moduleAccesser);
     virtual bool activeArticle(class soArticle* article, soModuleAccesser* moduleAccesser);

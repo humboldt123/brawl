@@ -12018,13 +12018,48 @@ mo_melee/sora_melee/wn/wn_koopa_breath.cpp:
 	.text       start:0x0032F0D0 end:0x00330E1C
 	.ctors      start:0x000003F0 end:0x000003F4
 
+mo_melee/sora_melee/ft/ft_peach_transactor.cpp:
+	.text       start:0x003312B0 end:0x003317DC
+	.rodata     start:0x00007698 end:0x000076A8
+	.data       start:0x000891F0 end:0x00089268
+
+mo_melee/sora_melee/ft/ft_peach_kinetic_transactor.cpp:
+	.text       start:0x003317DC end:0x00332B74
+	.rodata     start:0x000076A8 end:0x000076B8
+	.data       start:0x00089268 end:0x000892D8
+
 mo_melee/sora_melee/wn/wn_peach_kinopio.cpp:
-	.text       start:0x00332B74 end:0x003373B0
+	.text       start:0x00332B74 end:0x003373F8
 	.ctors      start:0x000003F4 end:0x000003F8
+	.rodata     start:0x000076B8 end:0x000076C8
+
+mo_melee/sora_melee/wn/wn_peach_kinopio_spore.cpp:
+	.text       start:0x003373F8 end:0x00338B24
+	.rodata     start:0x000076C8 end:0x000076D8
+
+mo_melee/sora_melee/wn/wn_peach_kinopio_spore_kinetic_transactor.cpp:
+	.text       start:0x00338B24 end:0x00338FE0
+	.rodata     start:0x000076D8 end:0x000076F0
+
+mo_melee/sora_melee/ft/ft_zelda_kinetic_transactor.cpp:
+	.text       start:0x00338FE0 end:0x0033946C
+	.rodata     start:0x000076F0 end:0x000076F8
 
 mo_melee/sora_melee/ft/ft_zelda_status_uniq_process_special_n.cpp:
 	.text       start:0x0033946C end:0x00339754
 	.ctors      start:0x000003F8 end:0x000003FC
+
+mo_melee/sora_melee/wn/wn_zelda_lighting_bow.cpp:
+	.text       start:0x00339754 end:0x0033AD50
+	.rodata     start:0x00007700 end:0x00007708
+	.data       start:0x0008AA10 end:0x0008B0E0
+	.bss        start:0x00007DD8 end:0x00007DE8
+
+mo_melee/sora_melee/wn/wn_zelda_lighting_bow_arrow.cpp:
+	.text       start:0x0033AD50 end:0x0033C39C
+	.rodata     start:0x00007708 end:0x00007710
+	.data       start:0x0008B0E0 end:0x0008B7C8
+	.bss        start:0x00007DE8 end:0x00007DF8
 
 mo_melee/sora_melee/wn/wn_zelda_lighting_bow_arrow_status_uniq_process_move.cpp:
 	.text       start:0x0033C39C end:0x0033C514

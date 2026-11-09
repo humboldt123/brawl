@@ -1104,3 +1104,39 @@ Method used for `soModelModuleImpl` (sora_melee 0x77DC-0xE268, `include/so/model
 - **`#pragma opt_propagation off` on a static inline helper does not carry into the caller it is inlined into.** The
   kinetic transactors' shared `li r4,1; mr r5,r4` flag pair comes from the pragma over the whole function, which
   Peach's changeKinetic float block (compiled with propagation on) cannot take.
+
+## Linking sora_melee fighter articles (Zelda Light Bow, Peach transactor, Toad spore)
+
+- **objdiff "exact" does not check function order inside a unit.** Before flipping, compare our object's `.fn` order
+  (`dtk elf disasm` on a direct compile) with the original unit's asm. MWCC emits inline and weak bodies in the order they
+  are defined, counting a template from where it is instantiated; a function does not pull its callees in after itself.
+  Move each inline body (in-class ones included: declare in the class, define `inline` later in the `.cpp`) to where the
+  original order needs it. This linked both Light Bow units. **HIGH**
+- **An exact weapon article whose object carries hundreds of weak template copies grows the REL** when the original copies
+  only have `fn_27_`/`lbl_27_` names: the linker keeps ours. Pair them using the original asm objects' own relocations
+  (each reloc target in the unit's functions is the original copy of a callee), RTTI by class-name string, vtables by the
+  RTTI pointer in their first word, and remaining code by masked bytes plus a unique map name, then rename them in
+  `symbols.txt`. Link sora_melee in scratch with your objects swapped in: the section-size difference breaks down exactly
+  into the leftover weak copies.
+- **A sora_melee article with a function-local static** (`deactivateDescendantForce`'s 12-byte guard) needs its own `.bss`
+  split; otherwise the linker moves the static and every later `.bss` address shifts, failing many fighter RELs.
+- **Exact objects can hide a different call target:** two blr-only functions with the same bytes score as exact, but the
+  link needs the original's address. Add a `type:label` alias in `symbols.txt` for the name our code calls.
+- **Builder destructors that inline everything:** declare `~soModuleAccesserBuilder();` in the explicit specialization and
+  define it `inline` in the `.cpp` inside the `#pragma dont_inline on ... reset` region of the hand-written builder ctor.
+  The original's is "compact" (the big builder dtors stay calls), and the weapon builder and article dtors then match
+  (22% to 100% for the Light Bow, the Toad and the spore).
+- **A non-const `T*` parameter whose loads the original hoists above stack stores:** `T* __restrict` gives the same
+  freedom as a pointer to const and keeps the mangled name; casts, const aliases, const helper parameters and by-value
+  copies do not. This fixed `wnPeachKinopioSpore::activate` (75% to 100%); Wolf's blaster bullet, Fox's Landmaster and
+  Samus's grapple beam activates take a non-const `Vec3f*` the same way and are the unmatched ones of that family.
+- **Mirrored 8-byte temporaries in a switch arm** (an `operator*` result and its copy in swapped slots): move the arm into a
+  static inline tag-dispatched helper (`updateEnergySub(soIntToType<N>(), ...)`); a named local adds a copy instead.
+- **A register swap between a callee-saved module and a task id** came from reading `m_taskId` directly; the accessor
+  (`acc->getStageObject().getTaskId()`) fixes it (ftPeachTransactor::activeArticle).
+- **A base-register float pool declared as one large object in `symbols.txt`** shows as a relocation-name mismatch; split
+  it into one 4-byte `data:float` label per constant.
+- **A sora_melee copy of a fighter-module kinetic transactor needs `cflags=cflags_fighter`** in `configure.py`.
+- **A fighter unit that needs a sora_melee article's full class must not include `wn/mario/wn_mario_fireball.h`:** its
+  inline constructor instantiates the fighter ground builder constructor before `ft_builder_noinline.h` instantiates it
+  explicitly (error 10333).

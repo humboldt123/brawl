@@ -1,3 +1,4 @@
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR // BYTES: the null mediator's destructor is inlined into the kinetic module builder's
 #define SO_BUILDER_HELPERS_WEAK
 #define IP_INPUT_BUTTON_RAW
 #define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: this unit copies Vec3f as an aggregate (word moves), see mt_vector.h
@@ -17,7 +18,7 @@
 
 wnPeachKassar::wnPeachKassar(s32 articleId, const wnArticleBuildInfo& info, const wnPeachKassarData* data) :
     wnWeaponBuilder<wnPeachKassarModuleAccesserBuildConfig>(
-        "wnPeachKassar", articleId, info,
+        "PeachKassar", articleId, info,
         wnModuleAccesserBuildData(0x5C, data, info.getHeapModule()->getInstanceHeap(), info.getHeapModule()->getNWModelInstanceHeap(),
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
                                   0, 0, 0, 0, 0, 0, 0)),
@@ -26,8 +27,26 @@ wnPeachKassar::wnPeachKassar(s32 articleId, const wnArticleBuildInfo& info, cons
 }
 
 // TODO(nonmatching): activate is 99.27%: only the callee-saved register numbers differ (the original gives unkC r31, this
-// r30, the float constant's address r29 and team r28). Statement order, a desc constructor, a local copy of unkC and
+// r30, the float constant's address r29 and team r28; this unit gives this r31, the constant r30, team r29 and unkC r28,
+// i.e. the original colors unkC first). Statement order, a desc constructor, a local copy of unkC, a u32 parameter and
 // two permuter runs did not change the allocation; wnMetaknightMantle::activate has the same body and the same problem.
+// Also ruled out (identical bytes): an inline setter for unkC, desc declared before position, a static_cast<u32>, a
+// comma temporary, a local copy of unkC declared first/after position/after desc, `register int unkC`, and
+// `#pragma opt_propagation off` / `opt_lifetimes off` over the function. Swapping which parameter is stored last showed
+// the colouring follows the parameter slot (r7 -> r29, r6 -> r28), not the live range, so the original must hold unkC in
+// something MWCC colours before the parameters (a temporary or a non-coalesced local).
+// TODO(link): besides activate, the unit cannot be linked yet. Linking the REL with this object instead of the original
+// gives the same .text size but a different .data order: the original lays out the vtables of wnPeachKassar,
+// wnWeaponBuilder<>, the parameter accesser, soParamCustomizeModuleImpl, soArticleMediatorNull, soKineticMediatorNull,
+// soTeamImpl, soResourceIdAccesserImpl, IpNull and Input in that order and has no vtable of wnExtendParamAccesser<> or of
+// the other bases; this unit emits the base destructors of the empty classes (wnExtendParamAccesser<>, wnKineticModuleImpl,
+// soSound3dGeneratorAccesserImpl, the instance manager vectors, ...) out of line with their vtables, which shifts the order.
+// The 9 weak vtable/RTTI objects of ft_peach.o that this unit also emits are named in symbols.txt so the linker merges them.
+// Measured: the .data vtable order always equals the order of the weak virtual-member batches in .text (original:
+// ParamCustomizeModuleImpl, ArticleMediatorNull, KineticMediatorNull, TeamImpl, ResourceIdAccesserImpl, IpNull, Input;
+// ours: KineticMediatorNull, TeamImpl, ArticleMediatorNull, IpNull, ParamCustomizeModuleImpl, ResourceIdAccesserImpl,
+// Input), and it is neither the constructor's vptr-store order nor the header include order (including the seven impl
+// headers first changes nothing). The original also has no __vt__22soParamCustomizeModule (only its RTTI), which ours emits.
 void wnPeachKassar::activate(int founderTaskId, int resourceId, int unkC, int team) {
     Vec3f position(0.0f, 0.0f, 0.0f);
     wnActivateDesc desc;
