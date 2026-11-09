@@ -352,6 +352,12 @@ public:
     soArticleMediator* getMediator() { return &m_mediator; }
 };
 
+// BYTES: the builder destructor expands the observer list destructor (just the element teardown, __destroy_arr), so the
+// destructor is inline in this unit; the out-of-line weak copy at 0x19EB34 belongs to another unit.
+// TODO(link): the element destructor here is the ObserverSlot wrapper's (include/wn/wn_article_pool.h); the original calls
+// soArticleEventObserver's own destructor with a 16 byte stride (the SDK class is 12 bytes), so the relocation names differ.
+template <> inline soArrayVector<soArticleEventObserver, 1>::~soArrayVector() { }
+
 template <class Mediator>
 class soGenerateArticleManageModuleBuilder<soGenerateArticleManageModuleBuildConfig<Mediator> > {
     typedef soGenerateArticleManageModuleBuildConfig<Mediator> BC;

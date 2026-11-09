@@ -1076,3 +1076,31 @@ Method used for `soModelModuleImpl` (sora_melee 0x77DC-0xE268, `include/so/model
 - **When the build lock is held by a long link, compile one unit directly:** take `ninja -t commands <obj>`, point `-o`
   at a scratch path, then diff the function with `dtk elf disasm`. A sora_melee `.plf` link can take 30 minutes under
   load, so parallel workers should not each run a full `ninja`.
+
+## Peach module (ft_peach, wn_peach_kassar, wn_peach_kinopio)
+
+- **Weak names on the wrong twin:** a module's `symbols.txt` can give a weak name to a code-identical function at the
+  wrong address. objdiff then reports a false exact match, and the REL can never link. Compare the module map's name at
+  each address with the names our object emits, and rename only where the result has no duplicates. In ft_peach this
+  fixed about 100 names. **HIGH**
+- **Empty base destructors that the original expands to nothing** (soTeam, the sound generator accesser, the resource id
+  accesser, param customize, `soArrayVector<soArticleEventObserver, N>`) need an inline definition in the article's unit:
+  `inline X::~X() { }` in the `.cpp`, or an explicit inline member specialization for a template. This moved the Toad and
+  weapon-builder destructors from about 19% to 100%.
+- **`#pragma dont_inline on` around a definition keeps it out of line for every later caller.** A destructor defined
+  before the `ft_builder_noinline.h` region still inlines its bases.
+- **An explicit instantiation of a template builder destructor (`template X<...>::~X();`) crashes mwcceppc silently:**
+  no object file and no error message.
+- **Weak copies are emitted right after the function that first references them, callees first.** Out-of-class template
+  members come in a declaration-order batch triggered by the vtable reference, wherever their definitions sit. Compiler
+  version (GC 3.0a3 to Wii 1.5) and the inline/ipa flags do not change this. The original emits a status class's
+  destructor before the `soArrayVector` members it calls, which no source placement reproduced, so the ten fighter
+  status units with a `soArrayVector` local (Peach's down special, Pikmin's side special, ...) stay unlinked. Template
+  members are auto-inlined even under `-inline on,noauto`.
+- **`li rB,0` then `mr rC,rB` for two zero arguments comes from a 0 converted late to a bool or u8 parameter.** When the
+  callee takes ints and is a DOL symbol you cannot redeclare, no argument spelling, default argument, wrapper, flag or
+  compiler version reproduced it (IfPeachFinalTask::initProc). An enum local gives the copy but hoists its `li`. MWCC
+  evaluates call arguments right to left.
+- **`#pragma opt_propagation off` on a static inline helper does not carry into the caller it is inlined into.** The
+  kinetic transactors' shared `li r4,1; mr r5,r4` flag pair comes from the pragma over the whole function, which
+  Peach's changeKinetic float block (compiled with propagation on) cannot take.

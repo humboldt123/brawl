@@ -79,11 +79,19 @@ void IfPeachFinalTask::initProc(nw4r::g3d::ResFile* resource, void* group, s32 h
     m_registered = true;
     nw4r::g3d::ScnObj* model = reinterpret_cast<nw4r::g3d::ScnObj*>(m_model->getSceneModel());
     reinterpret_cast<nw4r::g3d::ScnGroup*>(m_group)->Insert(reinterpret_cast<nw4r::g3d::ScnGroup*>(m_group)->sceneItemsCount, model);
-    // TODO(nonmatching): the original passes the two zero arguments from one register (li r6; mr r7,r6); this form loads each separately.
-    // MWCC shares one zero register only for narrow (bool/u8) parameters or for a value it does not constant-propagate:
-    // an enum-typed local used for both (as em_resource_module_impl.cpp does) gives the mr but defines the zero before the
-    // g_sndSystem load instead of after li r5; int/bool/u8/u16 locals, casts, inline wrappers (int, bool or enum params),
-    // default arguments and enum constants all fold to two li.
+    // TODO(nonmatching, one instruction): the original passes the two zero arguments as `li r6,0; mr r7,r6`; this form
+    // gives two `li`. The copy is what MWCC emits when a literal 0 reaches a bool/u8 parameter: that conversion is folded
+    // late and reuses any argument register already holding 0 (TIPS: "`li r6,0` / `mr r7,r6` are bool parameters"),
+    // and declaring playSE's third and fourth parameters as bool reproduces the call setup exactly. But playSE is a main.dol
+    // symbol mangled `...F5SndIDiiii`, so the parameters are int and the argument spelling must do it, and none found does:
+    // literals of every type (0u/0L/0LL/0.0f/0.0/'\0'/false/NULL/SndID(0)), explicit casts to bool/u8/s8/s16, enum
+    // constants, static const members, file statics, default arguments on a shadowed declaration (also typed false/NULL/0u),
+    // static or inline wrappers with bool/u8/enum/void* parameters (inlining refolds them, also when defined after the
+    // call), inline functions returning bool/u8/enum, conversion-operator classes (change the frame), lazily evaluated
+    // forms (comma, ?:, &&, ||, !!), expressions on the parameters (x-x, x&0, x*0, 0/x, x^x: all folded by the front
+    // end), every installed compiler version and -O/-inline/-ipa/-sdata variant. An enum-typed local used for both
+    // (`PeachZ z = PeachZ0; ... z, z`) gives the `mr` but emits its `li` at the top of the block, before the g_sndSystem
+    // load, and MWCC evaluates arguments right to left, so assigning it inside the argument list cannot place it either.
     m_soundHandle = g_sndSystem->playSE(SndID(0x1B4A), -1, 0, 0, -1);
 }
 

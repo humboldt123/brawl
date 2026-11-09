@@ -1,5 +1,6 @@
 #define FT_POOL_ROOT_NONPOLYMORPHIC // BYTES: without it the hierarchy destructor is never_inline and the mediator calls it instead of expanding it
 #define WN_ANIMCMD_STACK_PTR // MATCH-ONLY: a pointer return stays in a callee-saved register across getManageId (ft_builder_animcmd.h)
+#define WN_PARAM_CUSTOMIZE_INLINE_DTOR // BYTES: the builder destructors expand the empty param customize module destructor
 #define WN_PARAM_ACCESSER_INLINE_DTOR // BYTES: the empty soParamAccesser base destructor is inlined in sora_melee
 #define MT_VEC3F_IMPLICIT_ASSIGN // BYTES: activate copies the Vec3f position as an aggregate (word moves), see mt_vector.h
 #define FT_MODULE_BUILDER
@@ -24,6 +25,11 @@
 
 // The base of the mediators: an empty destructor that sora_melee always expands (it has no out-of-line copy there).
 inline soArticleMediator::~soArticleMediator() { }
+// BYTES: the same for the empty team, sound generator accesser and resource id accesser destructors: the builder
+// destructors (Toad and wnWeaponBuilder<>) expand them to nothing instead of calling the weak copies.
+inline soTeam::~soTeam() { }
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
+inline soResourceIdAccesser::~soResourceIdAccesser() { }
 
 // The Toad (Peach's neutral special counter article, kind 93). It spawns up to six spores (kind 94).
 wnPeachKinopio::wnPeachKinopio(s32 articleId, const wnArticleBuildInfo& info, const wnPeachKinopioData* data) :
@@ -155,17 +161,10 @@ soModuleAccesserBuilder<wnPeachKinopioModuleAccesserBuildConfig>::soModuleAccess
 }
 #pragma dont_inline reset
 
-// TODO(nonmatching): 19%, the original destructor (and wnWeaponBuilder<>'s, 0x332F04) expands the module builders of the
-// article inline: the simple ones down to their impl destructors, the big ones (effect, generate-article, kinetic, status,
-// animation command, attack, motion, inside event) stay calls. Here the whole soModuleAccesserBuilder destructor and the
-// animation command sub builder destructor remain out-of-line calls. The Mario fireball unit has the same open problem.
-// The pragmas below are the Mario unit's attempt (no effect on the result here).
-#pragma push
-#pragma inline_max_size(10000)
-#pragma inline_max_total_size(20000)
-#pragma inline_depth(8)
+// The destructor (and wnWeaponBuilder<>'s, 0x332F04) expands the simple module builders down to their impl destructors;
+// the big ones (effect, generate-article, kinetic, status, animation command, attack, motion, inside event) stay calls.
+// Exact once the empty base destructors above are inline.
 wnPeachKinopio::~wnPeachKinopio() { }
-#pragma pop
 
 // Sets the Toad up for a throw: the article stays where it is, linked to the founder, with the common weapon flags.
 // HYPOTHESIS: the parameter meanings; the descriptor fields follow the Kassar activator, which this one repeats.
@@ -317,17 +316,28 @@ void wnPeachKinopioArticleMediator::deactivate() {
 }
 
 // Open items of this unit (see the per-function notes above):
-// TODO(nonmatching): the pool teardown chain above the six sub pools (soArticleMediatorImpl 40..47%, soLineHierarchy 0%,
-//   soInstancePool 49%, wnInstanceHolder and wnPeachKinopioSpore ~20%, and the spore's generic kinetic module builder, which is
-//   not emitted at all). The six soInstancePoolSub destructors are exact (see the header); the original additionally
-//   expands the chain deeply into its top (generate-article builder, mediator, hierarchy, four levels in soInstancePool),
-//   which cannot be had together with the sub pools staying out of line: without dont_inline the whole chain flattens
-//   bottom-up instead. The hierarchy is soLineInvertHierarchy here; the original name is soLineHierarchy (a 5 parameter
-//   template like include/em/em_article_mediator.h's, which cannot coexist with the 3 parameter one of
+// TODO(nonmatching): the spore teardown (wnInstanceHolder<wnPeachKinopioSpore> 20%, wnPeachKinopioSpore 19%, the spore's generic
+//   kinetic module builder destructor fn_27_333ACC 0%). The original expands the spore's soModuleAccesserBuilder and
+//   animation command sub builder destructors into the spore destructor (big builders stay calls, as in the Toad's) and
+//   the spore destructor into the holder's. Here wnModuleAccesserBuilder<spore>'s destructor calls both out of line: the
+//   spore's soModuleAccesserBuilder destructor expands every big builder itself (the Toad's does not) and is then too big
+//   to inline. Ruled out: inline pragmas around the spore classes, an out-of-class inline spore destructor, an implicit
+//   builder destructor, a never_inline kinetic builder destructor, a full wnModuleAccesserBuilder<spore> specialization.
+// TODO(nonmatching): soLineHierarchy 0%: the hierarchy is soLineInvertHierarchy here; the original name is soLineHierarchy
+//   (a 5 parameter template like include/em/em_article_mediator.h's, which cannot coexist with the 3 parameter one of
 //   ft/builder/ft_builder_transition.h in one unit).
 // TODO(nonmatching): the generate-article module builder constructor (47%): the original inlines the two list constructors
-//   (soArrayVector<soArticle*, 1> and the 16 byte stride soArrayVector<soArticleEventObserver, 1> with __construct_array);
-//   an always_inline definition of the observer list constructor needs a default constructor of soArticleEventObserver.
+//   (the default soArrayVector<soArticle*, 1>() without postInitialize, and soArrayVector<soArticleEventObserver, 1>(1)
+//   with __construct_array over 16 byte soArticleEventObserver elements); an inline definition of the observer list
+//   constructor needs a default constructor of soArticleEventObserver, which the 12 byte SDK class lacks (shared change).
+// TODO(nonmatching): the animation command sub builder constructor (97.9%, same 97% as the Mario fireball's): the inlined
+//   soEventPresenter<soAnimCmdEventObserver> setup keeps the looked-up event unit in a separate local that is cleared on
+//   failure (shared header ft_builder_animcmd.h / so_event_presenter.h).
+// TODO(nonmatching): activate (99.86%): one register (the first flag byte loads into r0 in the original); the descriptor
+//   constructor and member-wise forms give the same, a 10 minute permuter run found nothing.
 // TODO(callees): fn_27_2E1E40 / 2E1E44 / 2E1E48 / 2F563C (situation, stop, visibility, colour blend builders), fn_27_2F4FB4
 //   (null ground getModule), fn_27_30921C / 30922C (motion builder getModule / constructor) and fn_27_338624 (the spore's
-//   activate) are weak or spore-unit functions outside this unit, still unnamed in symbols.txt.
+//   activate) are weak or spore-unit functions outside this unit, still unnamed in symbols.txt. The map names
+//   fn_27_1E09C4 (in wn_simple's range) the soAnimCmdModuleBuilder<soAnimCmdModuleBuildConfig<6, soAnimCmdModuleImpl>>
+//   destructor and fn_27_3085C4 (in wn_yoshi_tamago's range) the two-slot soMotionModuleBuilder destructor that the two
+//   builder destructors here call.

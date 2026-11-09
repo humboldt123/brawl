@@ -29,7 +29,15 @@ static inline ftKineticEnergyStop* getEnergy(void* pools, const soIntToType<3>&)
 
 // TODO(nonmatching): 99.5%, 214/215 instructions. The native code passes the shared preprocessing flag as `li r4, 1; mr r5, r4`
 // (the siblings get that from `#pragma opt_propagation off`); here it is `li r4, 1; li r5, 1`. The pragma also stops the
-// compiler from eliding the copies of the inlined Vec2f multiplication below, so it was not used.
+// compiler from eliding the copies of the inlined Vec2f multiplication below, so it was not used. The native stack layout
+// (product lowest, its return copy above the controller speed temporary) is the one the inlined operator* gives with
+// propagation on, so the float block was compiled with propagation on; under the pragma no spelling of it (operator/,
+// named locals, reference binding, out-parameter helpers) reproduced both the copy count and the slot order. Yoshi, Luigi
+// and Pikmin have the same `li r4, 1; mr r5, r4` natively, so the spelling is shared by the family; with propagation on
+// none of these gave it: int/const bool/u8/s16 locals, `true, true`, `1, 1`, a write to the flag after the call, a later
+// test of the flag, `process ? 1 : 0`, `process == true`, `int(process)`, a bool reference, an aggregate of two ints
+// (which changed the register allocation), and a static inline helper defined under `#pragma opt_propagation off`
+// (the pragma does not follow the helper into its caller).
 void ftPeachKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* acc) {
     // Leaving mode 0x6a (HYPOTHESIS: Peach's float) rescales the carried gravity and controller speeds by the mode's own
     // constants.

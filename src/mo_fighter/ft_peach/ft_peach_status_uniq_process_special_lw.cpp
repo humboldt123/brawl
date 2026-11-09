@@ -2,6 +2,23 @@
 // linked .text/.data differ in the order of the weak soArrayVector<float, 20> members and of the vtables/RTTI (the original
 // emits SpecialLw's vtable and soArrayVectorCalcInterface's RTTI before the vector's, and the vector destructor, push and the
 // abstract destructor first); moving the global object before initStatus or defining initStatus inline did not change it.
+// Native weak order after initStatus: SpecialLw dtor, vector dtor, push, abstract dtor, contractible dtor, then the
+// vtable-only members (getTopIndex, setTopIndex, getLastIndex, setLastIndex, getArrayValueConst, onFull, offFull, isFull,
+// capacity, size, atFastAbstractSub, setSize, at, at const, unshift, shift, pop, insert, erase, set, clear, isNull,
+// substitution, soArrayFixed::isEmpty); Pikmin's side special has the same tail. With the vector templates defined in the
+// class in that declaration order (scratch copy of so/so_array.h only) the tail and every function body match; a
+// sizeof(soArrayVector<float, 20>) use before this class puts the vtables/RTTI in native order. Still wrong: the in-class
+// members initStatus instantiates (contractible dtor, abstract dtor, vector dtor, push) are flushed right after initStatus
+// and before the SpecialLw dtor; out-of-class template members fall into the declaration-order tail instead, and unused
+// probes, pragmas (inline_depth, inline_bottom_up), implicit or never_inline destructors did not give the native head.
+// Measured since (scratch header only): the order is the same with every GC/3.0a3..3.0a5.2 and Wii/1.0..1.5 compiler,
+// with -inline deferred/bottomup/nobottomup/on,noauto, -ipa file and #pragma defer_codegen; an in-class member is emitted
+// at its first reference after its callees (CALC, FIX, CONTR, ARR, ABS, VEC, push, then the SpecialLw dtor), an
+// out-of-class template member always joins the declaration-order batch whether it is defined before or after the use,
+// and the whole group sits right after initStatus (a strong destructor defined after initStatus lands behind it). The
+// native head (SpecialLw dtor, then VEC dtor, push, ABS dtor, CONTR dtor in first-reference order with callees after
+// callers) is shared by ft_pikmin's side special (VEC dtor, push, ABS dtor, CONTR dtor after updateHoldPikmin), so it is
+// a general soArrayVector-local property, not a Peach source detail.
 // BYTES: the native vector teardown keeps the contractible array destructor out of line.
 #define SO_ARRAY_CONTRACTIBLE_DTORS_NOINLINE
 #include <ft/peach/ft_peach.h>
