@@ -14,9 +14,9 @@ public:
 
 ftIkeStatusUniqProcessSpecialNLoop g_ftIkeStatusUniqProcessSpecialNLoop;
 
-// Sound ids per charge step (Kirby's copy / Ike). HYPOTHESIS: table contents are the charge sound effects.
-extern s32 lbl_27_data_9C76C[];
-extern s32 lbl_27_data_9C750[];
+// Sound ids per charge step: Ike's own, then Kirby's copy (sub kind 5). HYPOTHESIS: these are the charge sound effects.
+static s32 s_chargeSoundIds[7] = { 0x1712, 0x1712, 0x1713, 0x1713, 0x1714, 0x1715, 0x1716 };
+static s32 s_kirbyChargeSoundIds[7] = { 0xbe0, 0xbe0, 0xbe1, 0xbe1, 0xbe2, 0xbe3, 0xbe4 };
 
 void ftIkeStatusUniqProcessSpecialNLoop::initStatus(soModuleAccesser* acc) {
     // HYPOTHESIS: 0x293 / 0x1cf are the motion end frames of the charge animation for Kirby's copy (sub kind 5) and Ike.
@@ -52,9 +52,9 @@ void ftIkeStatusUniqProcessSpecialNLoop::execStatus(soModuleAccesser* acc) {
         }
         int newHandle;
         if (kind == 5) {
-            newHandle = acc->getSoundModule().playSE(static_cast<SndID>(lbl_27_data_9C76C[step]), false, false, 0);
+            newHandle = acc->getSoundModule().playSE(static_cast<SndID>(s_kirbyChargeSoundIds[step]), false, false, 0);
         } else {
-            newHandle = acc->getSoundModule().playSE(static_cast<SndID>(lbl_27_data_9C750[step]), false, false, 0);
+            newHandle = acc->getSoundModule().playSE(static_cast<SndID>(s_chargeSoundIds[step]), false, false, 0);
         }
         acc->getWorkManageModule().setInt(newHandle, 0x20000004);
         if (step < acc->getConstantIntKirby(0x5dc0) - 1) {

@@ -1076,3 +1076,21 @@ Method used for `soModelModuleImpl` (sora_melee 0x77DC-0xE268, `include/so/model
 - **When the build lock is held by a long link, compile one unit directly:** take `ninja -t commands <obj>`, point `-o`
   at a scratch path, then diff the function with `dtk elf disasm`. A sora_melee `.plf` link can take 30 minutes under
   load, so parallel workers should not each run a full `ninja`.
+
+## Linking fighter neutral-special status units (Ike Eruption, Sheik needle statuses)
+
+- **When dtk refuses a carve with "ends within symbol",** an 8-byte float label in `symbols.txt` straddles the carve
+  end because its second float belongs to the next unit. Shrink the label to 4 bytes, and add a 4-byte label for the
+  second word if the next unit needs one. Do not widen the carve. Seen at `lbl_27_rodata_7E90` (Ike start) and
+  `7770` / `77E0` / `7878` (Sheik needles). **HIGH**
+- **If a carved unit with exact functions links to a REL whose vtable relocations point at the wrong functions, check
+  the definition order before the carve.** Sheik's drop and jump needle statuses defined `exitStatus` before
+  `execFixPos`; the original's `symbols.txt` order is `initStatus`, `execFixPos`, `exitStatus`, `__dt`. **HIGH**
+- **A small per-step ID table the code reads by label from `.data` (not `.rodata`) is a file-local non-const array:**
+  Ike's charge sound IDs are `static s32 s_chargeSoundIds[7]` and Kirby's copy table follows it, both before the
+  vtable. Take the values from the original REL bytes; objdiff does not compare them. **MED**
+- **`a + (q / 30) * f()` with the call written last** gives `mullw rD, rQuot, rCall`; caching `f()` in a local first, or
+  writing the product the other way round, swaps the operands (Ike Eruption end `execFixPos`). **MED**
+- The weak `soStatusUniqProcess` and kinetic-energy RTTI/vtables/destructors these units emit are dropped at link
+  without naming, because their owners are already linked; only the unit's own derived-chain RTTI
+  (`__RTTI__35ftIkeStatusUniqProcessSpecialNStart`, `__RTTI__33ftIkeStatusUniqProcessSpecialNEnd`) needed a name.

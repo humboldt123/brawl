@@ -49,6 +49,13 @@ void wnSheikNeedleStatusUniqProcessJump::initStatus(soModuleAccesser* moduleAcce
     moduleAccesser->getPostureModule().setPos(&pos);
     moduleAccesser->getStageObject().updateNodeSRT();
 }
+void wnSheikNeedleStatusUniqProcessJump::execFixPos(soModuleAccesser* moduleAccesser) {
+    soGroundModule& ground = moduleAccesser->getGroundModule();
+    soStatusModule& status = moduleAccesser->getStatusModule();
+    if (ground.isTouch(static_cast<grCollStatus::TouchMask>(0xff), 0)) {
+        status.changeStatusRequest(2, moduleAccesser);
+    }
+}
 void wnSheikNeedleStatusUniqProcessJump::exitStatus(soModuleAccesser* moduleAccesser, int status) {
     if (status != 2) {
         soPostureModule& posture = moduleAccesser->getPostureModule();
@@ -59,12 +66,5 @@ void wnSheikNeedleStatusUniqProcessJump::exitStatus(soModuleAccesser* moduleAcce
         Vec3f pos = posture.getPos();
         // HYPOTHESIS: effect scale from lbl_27_rodata_7870; effect id 0x22 from the requesting status.
         effect.req((EfID)0x22, &pos, rot, 1.0f, 0, -1);
-    }
-}
-void wnSheikNeedleStatusUniqProcessJump::execFixPos(soModuleAccesser* moduleAccesser) {
-    soGroundModule& ground = moduleAccesser->getGroundModule();
-    soStatusModule& status = moduleAccesser->getStatusModule();
-    if (ground.isTouch(static_cast<grCollStatus::TouchMask>(0xff), 0)) {
-        status.changeStatusRequest(2, moduleAccesser);
     }
 }
