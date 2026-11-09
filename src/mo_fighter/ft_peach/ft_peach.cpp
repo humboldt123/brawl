@@ -10,6 +10,13 @@
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define FT_PARAM_ACCESSER_TYPED_DTOR
 #include <ft/builder/ft_dol_array_list.h>
+// The status transition list of Peach holds eighteen terms, and its status process table 287 entries: the REL takes the
+// constructors and destructors of both from sora_melee.
+// TODO(link): sora_melee still calls the first constructor fn_27_1A19A8 (it needs the name __ct__...,18>Fl) and names the
+// second one `__ct__...,287>Fv` (a constructor without argument), while the declarations below call the `Fl` spelling.
+FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 18);
+FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 287);
+FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 7);
 #include <ft/ft_class_info_impl.h>
 #include <ft/peach/ft_peach.h>
 #include <ft/peach/ft_peach_extend_param_accesser.h>
@@ -20,6 +27,8 @@
 #include <gf/gf_task_scheduler.h>
 #include <mt/mt_prng.h>
 
+// The fighter owns the shared out-of-line kinetic teardown.
+#undef WN_ARTICLE_NATIVE_BUILDERS
 #define FT_BC ftPeachBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
 
@@ -30,6 +39,10 @@ template soArrayVector<s32, 8>::~soArrayVector();
 #endif
 #pragma dont_inline off
 soStatusModuleImpl::~soStatusModuleImpl() { }
+// Kassar tears down its parameter accesser through this out of line destructor.
+#pragma dont_inline on
+soParamAccesser::~soParamAccesser() { }
+#pragma dont_inline off
 
 // HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
 extern "C" {
@@ -207,10 +220,11 @@ ftPeachTransactor* ftPeachTransactor::getInstance() {
 #pragma pool_data reset
 
 // Kassar starts with the effect and texture resources of the fighter and with his team.
+// Every argument is read through the accesser in place (no locals): named locals for the resource module or the task id
+// swap their callee-saved registers.
 bool ftPeach::activeArticle(wnPeachKassar* weapon, soModuleAccesser* acc) {
-    soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = acc->getStageObject().m_taskId;
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), resources.getResourceIdAccesser()->getTexResId(), acc->getTeamModule().getTeam()->getNo());
+    weapon->activate(acc->getStageObject().getTaskId(), acc->getResourceModule().getResourceIdAccesser()->getEtcResId(),
+                     acc->getResourceModule().getResourceIdAccesser()->getTexResId(), acc->getTeamModule().getTeam()->getNo());
     return true;
 }
 
@@ -256,6 +270,44 @@ template wnSelectedArticleMediator<ftPeachArticleMediator>::~wnSelectedArticleMe
 template wnArticleManageModuleBuilder<ftPeachArticleMediator, 5>::~wnArticleManageModuleBuilder();
 template wnArticleManageModuleBuilder<ftPeachArticleMediator, 5>::wnArticleManageModuleBuilder(soModuleAccesser*);
 ftPeachArticleMediator::~ftPeachArticleMediator() { }
+
+// MATCH-ONLY: the native ~wnPeachKassar() calls these module builder destructors out of line; instantiating each one here
+// under dont_inline emits it as its own function (the helper functions themselves are not in the original).
+// TODO(symbols): ~wnPeachKassar() has the native instruction stream; only five callee names differ. symbols.txt still
+// names the native builder destructors at 0x38B8 (fn_103_38B8), 0x3944, 0x39A0, 0x423C and 0x46C4 after other weak
+// functions; the map names them the AnimCmdControlUnit<0,1,1,0,0,0,0,8>, Reflect, Slow, Shake and ParamCustomize module
+// builder destructors instantiated below. The kinetic (85.38%) and sound (75.88%) builder destructors here still call
+// the mediator null / sound generator destructors that the original inlines; the inside event builder destructor (300
+// bytes in the original) inlines all of its event units here (664 bytes).
+template <class T> void ftPeachBuilderDtorUse(T* p) { p->~T(); }
+// The same for classes with a virtual destructor (a qualified call does not dispatch through the vtable).
+template <class T> void ftPeachDtorUse(T* p) { p->T::~T(); }
+typedef wnPeachKassarModuleAccesserBuildConfig ftPeachKassarBC;
+template void ftPeachBuilderDtorUse<soAnimCmdControlUnitBuilderUniq<soAnimCmdControlUnitBuildConfigUniq<4, 8> > >(soAnimCmdControlUnitBuilderUniq<soAnimCmdControlUnitBuildConfigUniq<4, 8> >*);
+template void ftPeachBuilderDtorUse<soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<0, 1, 1, 0, 0, 0, 0, 8> > >(soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<0, 1, 1, 0, 0, 0, 0, 8> >*);
+template void ftPeachBuilderDtorUse<soColorBlendModuleBuilder<ftPeachKassarBC::ColorBlendModuleBuildConfig> >(soColorBlendModuleBuilder<ftPeachKassarBC::ColorBlendModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soEffectModuleBuilder<ftPeachKassarBC::EffectModuleBuildConfig> >(soEffectModuleBuilder<ftPeachKassarBC::EffectModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soGeneralWorkBuilder<ftPeachKassarBC::GeneralWorkBuildConfig> >(soGeneralWorkBuilder<ftPeachKassarBC::GeneralWorkBuildConfig>*);
+template void ftPeachBuilderDtorUse<soKineticModuleBuilder<ftPeachKassarBC::KineticModuleBuildConfig> >(soKineticModuleBuilder<ftPeachKassarBC::KineticModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soStatusModuleBuilder<ftPeachKassarBC::StatusModuleBuildConfig> >(soStatusModuleBuilder<ftPeachKassarBC::StatusModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soAnimCmdModuleBuilder<ftPeachKassarBC::AnimCmdModuleBuildConfig> >(soAnimCmdModuleBuilder<ftPeachKassarBC::AnimCmdModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soLinkModuleBuilder<ftPeachKassarBC::LinkModuleBuildConfig> >(soLinkModuleBuilder<ftPeachKassarBC::LinkModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soSoundModuleBuilder<ftPeachKassarBC::SoundModuleBuildConfig> >(soSoundModuleBuilder<ftPeachKassarBC::SoundModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soCollisionAttackModuleBuilder<ftPeachKassarBC::CollisionAttackModuleBuildConfig> >(soCollisionAttackModuleBuilder<ftPeachKassarBC::CollisionAttackModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soTeamModuleBuilder<ftPeachKassarBC::TeamModuleBuildConfig> >(soTeamModuleBuilder<ftPeachKassarBC::TeamModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soPostureModuleBuilder<ftPeachKassarBC::PostureModuleBuildConfig> >(soPostureModuleBuilder<ftPeachKassarBC::PostureModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soModelModuleBuilder<ftPeachKassarBC::ModelModuleBuildConfig> >(soModelModuleBuilder<ftPeachKassarBC::ModelModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soResourceModuleBuilder<ftPeachKassarBC::ResourceModuleBuildConfig> >(soResourceModuleBuilder<ftPeachKassarBC::ResourceModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soStopModuleBuilder<ftPeachKassarBC::StopModuleBuildConfig> >(soStopModuleBuilder<ftPeachKassarBC::StopModuleBuildConfig>*);
+// The map names the native callees at +0x1A44/+0x1A2C/+0x1138 the Reflect, Slow and Shake module builder destructors.
+template void ftPeachBuilderDtorUse<soReflectModuleBuilder<ftPeachKassarBC::ReflectModuleBuildConfig> >(soReflectModuleBuilder<ftPeachKassarBC::ReflectModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soSlowModuleBuilder<ftPeachKassarBC::SlowModuleBuildConfig> >(soSlowModuleBuilder<ftPeachKassarBC::SlowModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soShakeModuleBuilder<ftPeachKassarBC::ShakeModuleBuildConfig> >(soShakeModuleBuilder<ftPeachKassarBC::ShakeModuleBuildConfig>*);
+// The map names the native callee at +0x9BC the parameter customize module builder destructor.
+template void ftPeachBuilderDtorUse<soParamCustomizeModuleBuilder<ftPeachKassarBC::ParamCustomizeModuleBuildConfig> >(soParamCustomizeModuleBuilder<ftPeachKassarBC::ParamCustomizeModuleBuildConfig>*);
+template void ftPeachBuilderDtorUse<soTransitionModuleBuilder<soTransitionModuleBuildConfig<wnMotionTransitionTypeList> > >(soTransitionModuleBuilder<soTransitionModuleBuildConfig<wnMotionTransitionTypeList> >*);
+template void ftPeachDtorUse<soKineticEnergyRotNormal>(soKineticEnergyRotNormal*);
+template void ftPeachBuilderDtorUse<soInsideEventManageModuleBuilder<ftPeachKassarBC::InsideEventManageModuleBuildConfig, wnInsideEventManageModuleTypes> >(soInsideEventManageModuleBuilder<ftPeachKassarBC::InsideEventManageModuleBuildConfig, wnInsideEventManageModuleTypes>*);
 #pragma dont_inline off
 
 s32 ftPeachArticleMediator::getMediateNum() { return 3; }
@@ -347,7 +399,7 @@ template <> struct ftPeachArticleActivator<wnPeachKinopio> {
 
 template <int S, int L>
 inline soArticle* ftPeachGenerateSlot2(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
-    BaseItem* item = soArticleMediatorHelper::createItem(0x56, 2, acc->getStageObject().m_taskId);
+    BaseItem* item = soArticleMediatorHelper::createItem(0x56, 2, acc->getStageObject().getTaskId());
     if (item == NULL) {
         return wnGetNullArticle();
     }
@@ -355,6 +407,8 @@ inline soArticle* ftPeachGenerateSlot2(soModuleAccesser* acc, const soIntToType<
     return wnGetNullArticle();
 }
 
+// Slot 2 reads the owner task id through gfTask::getTaskId() (as Snake's item slots do); the direct member read loads it
+// after createItem's constant arguments.
 soArticle* ftPeachArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
     case 0: return wnArticleSlotGenerate<ftPeachArticleActivator<wnPeachKassar> >(static_cast<wnArticlePool<wnPeachKassar, 1, ftPeachKinopioPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);

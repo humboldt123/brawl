@@ -25,6 +25,10 @@ wnPeachKassar::wnPeachKassar(s32 articleId, const wnArticleBuildInfo& info, cons
     Weapon::deactivate(false);
 }
 
+// TODO(nonmatching): activate is 99.27% (callee-saved register numbers of this/unkC/team/the float constant only; a 10 minute
+// permuter run found nothing natural). The other unmatched functions are weak copies: the original also holds four
+// soEventUnitImpl destructors, two soInstanceUnit array destructors, the soAnimCmdConv 287 select holder destructor and
+// the soEventObserver/Fighter no-op virtuals (under names that duplicate the ft_peach.cpp copies), which this unit does not emit.
 void wnPeachKassar::activate(int founderTaskId, int resourceId, int unkC, int team) {
     Vec3f position(0.0f, 0.0f, 0.0f);
     wnActivateDesc desc;

@@ -14,7 +14,7 @@ global_destructor_chain.c:
 mo_fighter/ft_peach/ft_peach.cpp:
 	.text       start:0x00000070 end:0x0000D2C4
 	.ctors      start:0x00000000 end:0x00000004
-	.rodata     start:0x00000000 end:0x0000004C
+	.rodata     start:0x00000000 end:0x00000010
 	.data       start:0x00000000 end:0x000062C0
 	.bss        start:0x00000008 end:0x000001B8
 
@@ -24,17 +24,34 @@ mo_fighter/ft_peach/ft_peach_status_uniq_process_attack_s4_start.cpp:
 	.data       start:0x000062C0 end:0x00006358
 	.bss        start:0x000001B8 end:0x000001C8
 
+mo_fighter/ft_peach/ft_peach_kinetic_transactor.cpp:
+	.text       start:0x0000D41C end:0x0000F340
+	.rodata     start:0x00000010 end:0x00000020
+	.data       start:0x00006358 end:0x00006438
+
+mo_fighter/ft_peach/ft_peach_status_uniq_process_special_lw.cpp:
+	.text       start:0x0000F340 end:0x0000FE40
+	.ctors      start:0x00000008 end:0x0000000C
+	.data       start:0x00006438 end:0x000066A8
+	.bss        start:0x000001C8 end:0x000001D8
+
 mo_fighter/ft_peach/ft_peach_status_uniq_process_final.cpp:
 	.text       start:0x0000FE40 end:0x0001088C
-	.ctors      start:0x00000008 end:0x00000010
-	.data       start:0x00006358 end:0x00007158
-	.bss        start:0x000001C8 end:0x000002A0
+	.ctors      start:0x0000000C end:0x00000010
+	.rodata     start:0x00000020 end:0x00000028
+	.data       start:0x000066E0 end:0x00006758
+	.bss        start:0x000001D8 end:0x000001F8
 
 mo_fighter/ft_peach/if_peach_final_task.cpp:
 	.text       start:0x0001088C end:0x00010FA0
+	.rodata     start:0x00000028 end:0x00000038
+	.data       start:0x00006758 end:0x00006898
 
 mo_fighter/ft_peach/wn_peach_kassar.cpp:
 	.text       start:0x00010FA0 end:0x000136F0
+	.rodata     start:0x00000038 end:0x0000004C
+	.data       start:0x00006898 end:0x00007158
+	.bss        start:0x000001F8 end:0x000002A0
 
 mo_fighter/mo_fighter.cpp:
 	.text       start:0x000136F0 end:0x0001378C
