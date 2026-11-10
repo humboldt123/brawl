@@ -148,10 +148,24 @@ public:
     ~soAnimCmdFirstMember() { }
 };
 
+#ifdef WN_ANIMCMD_RESET_MODE_BOX
+// BYTES: in the Mario fireball's animation command sub builder each reset-mode temporary takes a word-aligned slot below
+// the constructor's own locals (the original frame is 16 bytes larger), which a one-byte struct gives and a plain byte
+// does not. HYPOTHESIS: the original passes a small reset-mode structure.
+struct ftResetModeBox {
+    u8 value;
+};
+inline const u8* ftAddressOf(u8 value) {
+    ftResetModeBox box;
+    box.value = value;
+    return &box.value;
+}
+#else
 // MATCH-ONLY: address of a temporary that lives in the frame of the (inlined) caller.
 inline const u8* ftAddressOf(u8 value) {
     return &value;
 }
+#endif
 
 // The manage id is read through the soEventManager part of the event manage module.
 inline s16 ftGetManageId(const soModuleAccesser* acc) {

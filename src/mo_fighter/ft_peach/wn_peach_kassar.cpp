@@ -47,6 +47,15 @@ wnPeachKassar::wnPeachKassar(s32 articleId, const wnArticleBuildInfo& info, cons
 // ours: KineticMediatorNull, TeamImpl, ArticleMediatorNull, IpNull, ParamCustomizeModuleImpl, ResourceIdAccesserImpl,
 // Input), and it is neither the constructor's vptr-store order nor the header include order (including the seven impl
 // headers first changes nothing). The original also has no __vt__22soParamCustomizeModule (only its RTTI), which ours emits.
+// A scratch link of ft_peach with this object (2026-11-10) has equal section sizes; .text first differs at the weak
+// batches after soGetKind. Besides the batch order, the order inside two batches differs: this unit emits in-class
+// virtuals in reverse declaration order, while the original has soParamCustomizeModuleImpl as
+// getAttackPowerMulArticle, getParamIndefinite, getParamFloat, getParamInt, getWalkSpeedMul, getAttackReactionMul,
+// isCustomize, removeCustomize, addCustomize, setDefault, activate, getAttackPowerMulScale, setAttackPowerMulScale,
+// getAttackPowerMulPattern, setAttackPowerMulPattern, getAttackPowerMul, and soKineticMediatorNull with
+// updateEnergy, updateEnergy1, updateEnergy2 in forward order. Both classes only override, so a unit-gated
+// declaration order in their shared headers can give this without changing a vtable (the method that fixed the
+// vector order of Peach's down special).
 void wnPeachKassar::activate(int founderTaskId, int resourceId, int unkC, int team) {
     Vec3f position(0.0f, 0.0f, 0.0f);
     wnActivateDesc desc;

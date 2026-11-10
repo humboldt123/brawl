@@ -33,18 +33,6 @@ struct wnPeachKinopioSporeData {
     const float* m_param; // +0x34
 };
 
-// HYPOTHESIS: four floats of the spore parameter block (ids 4000..4003).
-class wnPeachKinopioSporeParamAccesser : public wnExtendParamAccesser<3999, 4, 23999, 0, 0, 0> {
-public:
-    wnPeachKinopioSporeParamAccesser(const float* param) : wnExtendParamAccesser<3999, 4, 23999, 0, 0, 0>(94) {
-        m_floats[0] = &param[0];
-        m_floats[1] = &param[1];
-        m_floats[2] = &param[2];
-        m_floats[3] = &param[3];
-    }
-    virtual ~wnPeachKinopioSporeParamAccesser() { }
-};
-
 // One normal energy, owned by the generic kinetic module. The transactor methods live in the spore unit.
 class wnPeachKinopioSporeKineticTransactor;
 typedef soInstancePoolInfo<soKineticEnergyNormal, 1, soKineticEnergyHolder, soKineticEnergyInitInfo<0, 1> >
@@ -132,6 +120,11 @@ public:
                                        soKineticMediatorImpl<wnPeachKinopioSporeKineticEnergyTypeList,
                                                              wnPeachKinopioSporeKineticTransactorInfo> >
         KineticModuleBuildConfig;
+#ifndef WN_PEACH_KINOPIO_IN_FIGHTER_TU
+    // The spore's builder constructor calls the getModule and constructor of the sora_melee null generate-article builder
+    // (the names at those addresses), not the fighter one of the common config.
+    typedef soGenerateArticleManageModuleBuilder<soGenerateArticleManageModuleBuildConfigNull> GenerateArticleManageModuleBuilder;
+#endif
 };
 
 // The member layout of the module builder of both articles of this unit (it follows the Mario fireball's, with the
@@ -201,7 +194,12 @@ public:
     // The constructor lives in the spore unit.
     soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bd);
     ~soModuleAccesserBuilder();
+#ifdef WN_PEACH_KINOPIO_SPORE_UNIT
+    // BYTES: the spore unit defines it after the article constructor (function order inside the unit).
+    soModuleAccesser* getModuleAccesser();
+#else
     soModuleAccesser* getModuleAccesser() { return &m_moduleAccsr; }
+#endif
 };
 
 // BYTES: compiled with inlining off, this destructor calls every member builder destructor. The weapon builder destructor
@@ -213,7 +211,10 @@ inline soModuleAccesserBuilder<wnPeachKinopioSporeModuleAccesserBuildConfig>::~s
 #pragma dont_inline reset
 #endif
 
-// The spore keeps its only energy in its own kinetic mediator: no common energies after the module storage.
+// The spore keeps its only energy in its own kinetic mediator: no common energies after the module storage. The spore
+// unit builds it from the generic template (WN_WEAPON_NO_COMMON_ENERGIES gives it this layout); the other units that
+// include this header have the common energies in the generic template and spell the spore's builder out here.
+#ifndef WN_WEAPON_NO_COMMON_ENERGIES
 template <>
 class wnWeaponBuilder<wnPeachKinopioSporeModuleAccesserBuildConfig> : public Weapon {
 protected:
@@ -234,6 +235,21 @@ public:
 #endif
     virtual ~wnWeaponBuilder() { }
     virtual void deactivateDescendantForce();
+};
+#endif
+
+// BYTES: defined after the module builders: the spore unit then emits its vtable before the kinetic mediator one, as
+// the original does.
+// HYPOTHESIS: four floats of the spore parameter block (ids 4000..4003).
+class wnPeachKinopioSporeParamAccesser : public wnExtendParamAccesser<3999, 4, 23999, 0, 0, 0> {
+public:
+    wnPeachKinopioSporeParamAccesser(const float* param) : wnExtendParamAccesser<3999, 4, 23999, 0, 0, 0>(94) {
+        m_floats[0] = &param[0];
+        m_floats[1] = &param[1];
+        m_floats[2] = &param[2];
+        m_floats[3] = &param[3];
+    }
+    virtual ~wnPeachKinopioSporeParamAccesser() { }
 };
 
 class wnPeachKinopioSpore : public wnWeaponBuilder<wnPeachKinopioSporeModuleAccesserBuildConfig> {
@@ -456,6 +472,8 @@ typedef soGenerateArticleManageModuleBuildConfig<wnPeachKinopioArticleMediator> 
 typedef soGenerateArticleManageModuleBuilder<wnPeachKinopioArticleBuildConfig> wnPeachKinopioArticleManageModuleBuilder;
 
 // ---- the Toad ------------------------------------------------------------------------------------------------------------
+// Left out of the spore unit: its generic weapon builder has no common energies (see the spore's builder above), the Toad's has.
+#ifndef WN_WEAPON_NO_COMMON_ENERGIES
 // HYPOTHESIS: the parameter block: an integer, then two floats (the accesser points at +0 as the int and at +4 / +8 as the floats).
 struct wnPeachKinopioParam {
     s32 unk0;
@@ -524,6 +542,7 @@ public:
     void activate(int founderTaskId, int resourceId, int team, float lr);
 };
 static_assert(sizeof(wnPeachKinopio) == 0xDCF8, "Peach Kinopio article extent");
+#endif // WN_WEAPON_NO_COMMON_ENERGIES
 
 #else
 

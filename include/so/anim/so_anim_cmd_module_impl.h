@@ -53,7 +53,7 @@ public:
 
     soAnimCmdInterpreter(s16 manageId, soArrayVector<acCmdInterpreterStackData, 8>* stack, int kind, int mode, float fixedTimeStep, const u8* resetMode) :
         acCmdInterpreter(stack, mode, nullptr, resetMode, fixedTimeStep),
-#ifdef WN_MARIO_FIREBALL_UNIT
+#if defined(WN_MARIO_FIREBALL_UNIT) && !defined(WN_ANIMCMD_PRESENTER_LOCAL_STORE) // the Mario fireball opts back in
         soEventPresenter<soAnimCmdEventObserver>(manageId, 5),
 #else
         soEventPresenter<soAnimCmdEventObserver>(manageId, 5, soEventPresenterLocalStore),

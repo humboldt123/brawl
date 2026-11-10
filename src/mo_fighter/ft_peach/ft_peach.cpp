@@ -22,6 +22,16 @@
 // constructors and destructors of both from sora_melee.
 // TODO(link): sora_melee still calls the first constructor fn_27_1A19A8 (it needs the name __ct__...,18>Fl) and names the
 // second one `__ct__...,287>Fv` (a constructor without argument), while the declarations below call the `Fl` spelling.
+// Measured 2026-11-10 (scratch link of ft_peach with this object): .text is 0x7E8 larger and differs from 0x72 on.
+// Extra: the whole soArrayVector<const acAnimCmdConv*, 287> instantiation (constructor `Fl`, its virtual members and
+// vtable, about 2 KB; sora_melee has these with a `Fv` constructor) and
+// ~wnSelectedArticleMediator<ftPeachArticleMediator>. Missing: ~ftExtendParamAccesserEx<3999, 35, 23999, 5>, its
+// setup, and ~soArrayPool<soIntToType<8>, ...>. The object also has 155 weak functions the original unit lacks (most
+// are stripped as unreferenced, but they include the 22 ftPeachBuilderDtorUse helpers and ftKeepObserverVtables) and
+// its weak order differs from the first weak copy on.
+// missing_syms.py still lists 10 unnamed externals: soSituationEventObserver's vtable, three .bss labels of later
+// units, the 18/287 vector constructors, StageObject::notifyEventAnimCmd, soKineticModule::addSpeed/addSpeedOutside
+// and soKineticModuleImpl::changeKinetic.
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 18);
 FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 287);
 FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 7);

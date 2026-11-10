@@ -7,6 +7,10 @@
 #define FT_MODULE_BUILDER
 #define WN_MARIO_FIREBALL_UNIT // the sora_melee article unit mode shared with the Mario fireball (builders out of line)
 #define WN_PEACH_KINOPIO_UNIT
+#define WN_PEACH_KINOPIO_SPORE_UNIT
+// BYTES: the spore's weapon builder is the generic template without the common energies (wn_peach_kinopio.h): its
+// deactivateDescendantForce is then a template instance, emitted after the extend param getters as in the original.
+#define WN_WEAPON_NO_COMMON_ENERGIES
 #define SO_COLLISION_GROUP_ALIGNED
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
@@ -47,9 +51,9 @@ wnPeachKinopioSpore::wnPeachKinopioSpore(s32 articleId, const wnArticleBuildInfo
     Weapon::deactivate(false);
 }
 
-// The spore generates no articles: the descendants it deactivates are those of the null article mediator.
-void wnWeaponBuilder<wnPeachKinopioSporeModuleAccesserBuildConfig>::deactivateDescendantForce() {
-    wnDeactivateArticleDescendants(m_modules.m_generateArticleBuilder);
+// BYTES: defined here, not in the class, so that it comes after the article constructor and its destructors.
+inline soModuleAccesser* soModuleAccesserBuilder<wnPeachKinopioSporeModuleAccesserBuildConfig>::getModuleAccesser() {
+    return &m_moduleAccsr;
 }
 
 // BYTES: the module accesser builder constructor in sora_melee calls every module getter and member builder out of line.
@@ -195,19 +199,15 @@ void wnPeachKinopioSpore::activate(int founderTaskId, int team, Vec3f* __restric
     m_moduleAccesser->getMotionModule().changeMotionRequest(&motion);
 }
 
+// The spore generates no articles: its deactivateDescendantForce (the generic template's, wn_module_accesser_builder.h)
+// deactivates the descendants of the null article mediator. Its 12-byte function-local static is the unit's .bss.
+
 // The Toad's unit wn_peach_kinopio.cpp holds the spore teardown copies (see its TODOs).
 
-// TODO(link): every function is exact and the weak template copies this object emits are named in sora_melee
-// symbols.txt, but the unit stays NonMatching (objdiff cannot see the three things left):
-// - .text order: the original is the article ctor, the weapon builder dtor, the param accesser dtor, getModuleAccesser,
-//   the module accesser builder ctor, getModule/ctor of the kinetic builder, activate, the three extend param getters,
-//   deactivateDescendantForce, then the mediator members and thunks. Ours emits getModuleAccesser right after the ctor
-//   (it is defined in-class in the builder specialization in wn_peach_kinopio.h); declaring it there under a unit macro
-//   and defining it `inline` here right after the article ctor fixes that part (tested). deactivateDescendantForce still
-//   comes out before the extend param getters whether it is defined here, inline at the end of the file or in-class.
-// - .data: HYPOTHESIS: the unit owns 0x8A280..0x8A998. Like Toad's data (0x892D8, "PeachKinopio" then its vtable), it
-//   starts with "PeachKinopioSpore" and the article vtable; 0x8A064..0x8A280 (the spore and weapon builder RTTI, Toad's
-//   wnClassInfoImpl<93, ...> vtable) follows Toad's jump tables and so belongs to Toad's unit. The original order is the
-//   article vtable, the weapon builder vtable, the param accesser vtable and RTTI, the wnExtendParamAccesser<3999, ...>
-//   RTTI, then the kinetic mediator vtable and RTTI; ours emits the mediator vtable before the param accesser one.
-// - .bss: `.bss start:0x00007DB8 end:0x00007DC8` (the 12-byte static of deactivateDescendantForce, as in the bow units).
+// TODO(link): every function is exact, the .text and .data order match the original and the unit has its .data/.bss
+// ranges, but the unit stays NonMatching. A scratch link of sora_melee with this object differs only in .rodata: the
+// original pools 1.0f before 0.0f (0x76C8, 0x76CC), this object pools 0.0f first. Both are first created by the weak
+// wnAnimCmdModuleSubBuilder<wnAnimCmdModuleSubBuildConfigDefault<1,...>> constructor copy (ft_builder_animcmd.h, stripped
+// at link), which this unit emits before the module accesser builder constructor; the order in activate does not matter
+// (swapping its two motion stores changes nothing). The same constructor is the Toad's 97.87% function: matching its
+// constant creation order there is probably what links this unit.

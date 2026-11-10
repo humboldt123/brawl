@@ -12036,6 +12036,8 @@ mo_melee/sora_melee/wn/wn_peach_kinopio.cpp:
 mo_melee/sora_melee/wn/wn_peach_kinopio_spore.cpp:
 	.text       start:0x003373F8 end:0x00338B24
 	.rodata     start:0x000076C8 end:0x000076D8
+	.data       start:0x0008A280 end:0x0008A998
+	.bss        start:0x00007DB8 end:0x00007DC8
 
 mo_melee/sora_melee/wn/wn_peach_kinopio_spore_kinetic_transactor.cpp:
 	.text       start:0x00338B24 end:0x00338FE0

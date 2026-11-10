@@ -1,24 +1,23 @@
-// TODO(nonmatching): every function of this unit is exact (the weak vector copies included, compared by name), but the
-// linked .text/.data differ in the order of the weak soArrayVector<float, 20> members and of the vtables/RTTI (the original
-// emits SpecialLw's vtable and soArrayVectorCalcInterface's RTTI before the vector's, and the vector destructor, push and the
-// abstract destructor first); moving the global object before initStatus or defining initStatus inline did not change it.
-// Native weak order after initStatus: SpecialLw dtor, vector dtor, push, abstract dtor, contractible dtor, then the
-// vtable-only members (getTopIndex, setTopIndex, getLastIndex, setLastIndex, getArrayValueConst, onFull, offFull, isFull,
-// capacity, size, atFastAbstractSub, setSize, at, at const, unshift, shift, pop, insert, erase, set, clear, isNull,
-// substitution, soArrayFixed::isEmpty); Pikmin's side special has the same tail. With the vector templates defined in the
-// class in that declaration order (scratch copy of so/so_array.h only) the tail and every function body match; a
-// sizeof(soArrayVector<float, 20>) use before this class puts the vtables/RTTI in native order. Still wrong: the in-class
-// members initStatus instantiates (contractible dtor, abstract dtor, vector dtor, push) are flushed right after initStatus
-// and before the SpecialLw dtor; out-of-class template members fall into the declaration-order tail instead, and unused
-// probes, pragmas (inline_depth, inline_bottom_up), implicit or never_inline destructors did not give the native head.
-// Measured since (scratch header only): the order is the same with every GC/3.0a3..3.0a5.2 and Wii/1.0..1.5 compiler,
-// with -inline deferred/bottomup/nobottomup/on,noauto, -ipa file and #pragma defer_codegen; an in-class member is emitted
-// at its first reference after its callees (CALC, FIX, CONTR, ARR, ABS, VEC, push, then the SpecialLw dtor), an
-// out-of-class template member always joins the declaration-order batch whether it is defined before or after the use,
-// and the whole group sits right after initStatus (a strong destructor defined after initStatus lands behind it). The
-// native head (SpecialLw dtor, then VEC dtor, push, ABS dtor, CONTR dtor in first-reference order with callees after
-// callers) is shared by ft_pikmin's side special (VEC dtor, push, ABS dtor, CONTR dtor after updateHoldPikmin), so it is
-// a general soArrayVector-local property, not a Peach source detail.
+// TODO(link): every function of this unit is exact. The linked .text order is solved but needs a shared-header
+// change: with a unit macro in so/so_array.h that (a) declares the soArrayVector / soArrayVectorAbstract overriders
+// in native order (destructor first, then getTopIndex, setTopIndex, getLastIndex, setLastIndex, getArrayValueConst,
+// onFull, offFull, isFull, capacity, size, atFastAbstractSub, setSize; and at, at const, unshift, shift, push, pop,
+// insert, erase, set, clear, isNull; the vtable layout comes from the bases and does not change) and (b) only
+// declares the never_inline contractible destructor, this unit gets the native .text when it declares explicit
+// specializations of the vector destructor, push, the abstract destructor and the contractible destructor before the
+// class, declares the SpecialLw destructor in the class, and defines all five strong after initStatus in that order
+// (SpecialLw dtor, vector dtor, push, abstract dtor, contractible dtor). A scratch link of ft_peach then has an
+// identical .text (sizes of every section equal). Defined inline, or with the specializations before initStatus, the
+// callee chain comes first instead.
+// Still blocking: .data. The original emits the "soArrayVectorCalcInterface" name and RTTI first (before SpecialLw's
+// vtable); this unit emits them after soArrayFixed<float>'s RTTI, and every other object is in native order.
+// Ft_pikmin's side special and Kirby's inhale status have the same CalcInterface-first RTTI, and none of the 20
+// units that emit that RTTI is linked. Ruled out for the RTTI position: every GC/3.0a3..3.0a5.2 and Wii/1.0..1.5
+// compiler, a sizeof or static assert of the vector before the class or before the includes, the global object
+// before initStatus, the destructor declared first in the class (key function), and the CalcInterface destructor
+// defined out of class (inline or weak) at the top of the unit. Earlier rounds: implicit or never_inline
+// destructors, -inline deferred/bottomup/nobottomup/on,noauto, -ipa file and #pragma
+// defer_codegen/inline_depth/inline_bottom_up do not change the weak order.
 // BYTES: the native vector teardown keeps the contractible array destructor out of line.
 #define SO_ARRAY_CONTRACTIBLE_DTORS_NOINLINE
 #include <ft/peach/ft_peach.h>

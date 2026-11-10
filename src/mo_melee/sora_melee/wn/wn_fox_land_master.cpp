@@ -1,4 +1,6 @@
 #define FT_MODULE_BUILDER
+#define WN_PARAM_CUSTOMIZE_INLINE_DTOR // BYTES: the builder destructors expand the empty param customize module destructor
+#define WN_PARAM_ACCESSER_INLINE_DTOR // BYTES: the article destructor expands the empty soParamAccesser base destructor
 #define WN_FOX_LAND_MASTER_UNIT
 #define WN_ANIMCMD_UNIT5_SELECT
 #define WN_WEAPON_NO_COMMON_ENERGIES
@@ -40,7 +42,38 @@
 #include <so/kinetic/so_kinetic_module_impl.h>
 #include <so/effect/so_effect_module_impl.h>
 #include <ft/ft_entry.h>
+#include <wn/wn_activate_desc.h>
+#include <so/controller/so_controller_module_impl.h>
 #include <types.h>
+
+// BYTES: the article destructor expands the damage observer base (it deregisters from the event manager).
+static inline void removeDamageObserver(soEventObserver<soDamageEventObserver>* observer, s16 manageId) {
+    if (soEventSystem::getInstance()->getInstanceManager().isContain(manageId) == true) {
+        soEventSystem::getInstance()->getManager(observer->m_manageID)->eraseObserver(observer->m_unitID, observer->m_sendID);
+    }
+    observer->m_sendID = -1;
+    observer->m_manageID = -1;
+}
+inline soEventObserver<soDamageEventObserver>::~soEventObserver() {
+    removeDamageObserver(this, m_manageID);
+}
+inline soDamageEventObserver::~soDamageEventObserver() { }
+
+// BYTES: the builder destructors expand these empty base destructors to nothing.
+inline soTeam::~soTeam() { }
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
+inline soResourceIdAccesser::~soResourceIdAccesser() { }
+inline soGeneralWorkAbstract::~soGeneralWorkAbstract() { }
+inline soControllerModuleLinkRef::~soControllerModuleLinkRef() { }
+
+// BYTES: the anim command unit builders' destructors expand these empty member destructors to nothing.
+template <>
+inline soArrayVector<acCmdInterpreterStackData, 8>::~soArrayVector() { }
+template <>
+inline soArrayContractibleTable<const acAnimCmdConv*>::~soArrayContractibleTable() { }
+
+// BYTES: the kinetic energy holders' destructors expand the empty base destructor of the energies.
+inline soKineticEnergy::~soKineticEnergy() { }
 
 // The module builders inline these vector constructors. The DOL specializations only declare them, so the bodies
 // live here and stay inline: an out-of-line copy would duplicate the unit that owns the symbol.
@@ -162,6 +195,12 @@ template soGenerateArticleManageModuleBuilder<wnFoxLandMasterArticleBuildConfig>
 
 wnFoxLandMasterParamAccesser::~wnFoxLandMasterParamAccesser() { }
 
+// BYTES: the original's module accesser builder destructor is compact: the big module builder destructors stay calls.
+#pragma dont_inline on
+template <>
+inline soModuleAccesserBuilder<wnFoxLandMasterModuleAccesserBuildConfig>::~soModuleAccesserBuilder() { }
+#pragma dont_inline reset
+
 inline __attribute__((always_inline))
 wnWeaponBuilder<wnFoxLandMasterModuleAccesserBuildConfig>::wnWeaponBuilder(
     const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd) :
@@ -185,6 +224,10 @@ wnFoxLandMaster::wnFoxLandMaster(s32 articleId, const wnArticleBuildInfo& info, 
     Weapon::deactivate(false);
 }
 
+// TODO(S2): 86.5%. The original calls the (large) hit and attack module builder destructors out of line and expands the
+// ground shape, posture interpolation and link connection vector destructors inline; ours does the opposite. The hit and
+// attack builders are shared partial specializations (include/ft/builder/ft_module_builders.h) with implicit destructors,
+// so the out-of-line form needs a declared destructor there (proposed shared patch, see the report).
 wnFoxLandMaster::~wnFoxLandMaster() { }
 
 // HYPOTHESIS: the status change notice the Landmaster sends to its link parents (event 0x83A with the new status kind).
@@ -199,6 +242,58 @@ class wnFoxLandMasterStageObjectEvent : public soLinkEventArgs {
 public:
     StageObject* m_stageObject;
 };
+
+// TODO(S2): 92.2%. The only difference is the float literal addressing: the original loads one pool base register (r31,
+// the first literal of the unit's pool, 1.0) at the top and reads 0.0 / 1.0 / 60.0 through it; ours keeps 0.0 in its own
+// register and loads the other two separately, so the saved registers shift by one. The literal order of the pool
+// (1.0, 10, 20, 0, -1, 60) also differs from ours (1.0, 10, -1, 0, 20, 60): a builder constructor that comes before activate
+// in the original uses 20.0 before -1.0 and 0.0.
+// HYPOTHESIS: the fourth parameter is the heap type of the ground collision (it is passed straight to
+// constructGrCollision); the header's older name for it was `life`.
+void wnFoxLandMaster::activate(int founderTaskId, int resourceId, int team, Vec3f* __restrict pos, float lr, float scale,
+                               int heapType) {
+    wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, *pos, lr, team, 0, 2, 0x80, 0,
+                        0x35F, 0);
+    desc.flagsHigh = 1;
+    desc.flagsMidHigh = 0;
+    desc.flagsMidLow = 1;
+    desc.flagsLow = 0;
+    desc.unk4DHigh = 0;
+    Weapon::activate(&desc);
+    m_moduleAccesser->getLinkModule().setAttribute(3, soLinkConnection::Attribute_Reference_Parent_Unknown_4, true);
+    m_moduleAccesser->getControllerModule().update(getInput(), false);
+    soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
+    work.onFlag(0x12000000);
+    work.setFloat(m_param->unk58, 0x11000001);
+    work.setFloat(0.0f, 0x11000004);
+    work.setFloat(0.0f, 0x11000005);
+    work.setFloat(0.0f, 0x11000006);
+    work.setFloat(0.0f, 0x11000007);
+    work.offFlag(0x12000003);
+    work.offFlag(0x12000004);
+    work.offFlag(0x12000005);
+    work.offFlag(0x12000006);
+    work.offFlag(0x12000007);
+    work.offFlag(0x12000008);
+    work.offFlag(0x12000009);
+    work.offFlag(0x1200000A);
+    work.offFlag(0x1200000B);
+    work.setInt(team, 0x10000005);
+    work.setFloat(0.0f, 0x21000000);
+    work.setFloat(0.0f, 0x21000001);
+    work.setFloat(0.0f, 0x21000002);
+    work.setFloat(0.0f, 0x21000003);
+    work.setFloat(0.0f, 0x21000004);
+    work.setFloat(0.0f, 0x21000005);
+    work.setFloat(0.0f, 0x21000006);
+    work.setInt(60.0f * m_param->unk38 - (1.0f + scale) * m_param->unk3C, 0x10000006);
+    soGroundModule& ground = m_moduleAccesser->getGroundModule();
+    ground.constructGrCollision(resourceId, 0, static_cast<Heaps::HeapType>(heapType), 1, 0, 0);
+    wnFoxLandMasterGroundModuleImpl& groundImpl = dynamic_cast<wnFoxLandMasterGroundModuleImpl&>(m_moduleAccesser->getGroundModule());
+    groundImpl.updateVtxFromNode(1);
+    groundImpl.setGrCollisionMode(true);
+    groundImpl.setEventToGround(true, 0);
+}
 
 void wnFoxLandMaster::processUpdate() {
     Weapon::processUpdate();

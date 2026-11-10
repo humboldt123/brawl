@@ -1158,3 +1158,35 @@ Method used for `soModelModuleImpl` (sora_melee 0x77DC-0xE268, `include/so/model
 - **A fighter unit that needs a sora_melee article's full class must not include `wn/mario/wn_mario_fireball.h`:** its
   inline constructor instantiates the fighter ground builder constructor before `ft_builder_noinline.h` instantiates it
   explicitly (error 10333).
+
+## Order, pooling and stack-slot control (batch 3: Mario fireball, Toad spore, Fox Landmaster, Samus grapple beam)
+
+- **Hoisted `...bss.0`/`...rodata` anchor in a template member with function-local statics** (one more saved GPR than the
+  original): put `#pragma push` / `#pragma pool_data off` / `#pragma pop` around the explicit instantiation in the `.cpp`.
+  Around the class definition in the header it has no effect (motion builder ctor 90.8% to 100%). **HIGH**
+- **A by-address byte temporary that the original gives a word-aligned slot** (frame 16 bytes larger) comes from a
+  one-byte struct local, not a `u8`. **MEDIUM**
+- **Stack-slot order of binding temporaries follows inline depth:** at function scope MWCC allocates them per statement,
+  root first. One inline helper moves a group below the caller's temporaries but reverses its order; a second inline
+  level restores it (`wnMarioFireball::notifyEventAnimCmd`). **MEDIUM**
+- **Physical FPRs for an inline paired-single helper follow the declaration order of its `register f32` locals.** Sweep
+  the orders with a script (about 1 s per compile) when a Vec3f add/sub sequence is register-swapped. Named locals take
+  stack slots in declaration order; inline helpers' locals go below them. **MEDIUM**
+- **Weak emission order:**
+  - Members of an explicit class specialization are emitted with the class's vtable group, before template getters; to get
+    the generic position, use the generic template.
+  - A strong explicit specialization of a class-template member, defined after the function that uses it, is emitted in
+    definition order. That places weak-chain members where in-class or out-of-class template definitions cannot; it
+    needs the member only declared in the class (an in-class body is flushed early and cannot be specialized, error
+    10333).
+  - The declaration order of pure overriders sets the order of the vtable-only weak batch without changing the vtable.
+    Gate such a change per unit, because linked units depend on the current order. **MEDIUM**
+- **`.data` vtable order follows the order classes are defined in the header.** **MEDIUM**
+- **`.rodata` float pools follow creation order, and weak copies that the linker later strips still fix that order.** A
+  scratch REL diff of a 4-byte swap plus ±4 relocation addends points to this (the spore's 1.0f/0.0f pair comes from the
+  shared animation-command sub builder ctor). **MEDIUM**
+- **dtk split silently drops a second `type:label` at an address that already has one.** **HIGH**
+- **Name unnamed weak copies from the module map before touching source:** it shows which 0% functions are already near
+  exact (Fox Landmaster went from 35% to 70% with no source change). **HIGH**
+- **`-I<scratch>` header overrides do nothing with this compile command (`-nosyspath`).** Experiment with a partial
+  specialization in the unit's own header, or a scratch copy of the whole tree path. **MEDIUM**

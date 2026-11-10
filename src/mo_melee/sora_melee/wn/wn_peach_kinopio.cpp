@@ -172,7 +172,9 @@ void wnPeachKinopio::activate(int founderTaskId, int resourceId, int team, float
     Vec3f position(0.0f, 0.0f, 0.0f);
     wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, position, 0.0f, team, 0, 2, 0x80, 0,
                         0x35F, 0);
-    desc.flagsHighPair = 3;
+    // BYTES: the two top flag bits are set one by one (the pair form loads the flag byte into another register).
+    desc.flagBit7 = 1;
+    desc.flagBit6 = 1;
     desc.flagsMidPair = 0;
     desc.flagsBit3 = 1;
     desc.flagsLow = 0;
@@ -328,8 +330,6 @@ void wnPeachKinopioArticleMediator::deactivate() {
 // TODO(nonmatching): the animation command sub builder constructor (97.9%, same 97% as the Mario fireball's): the inlined
 //   soEventPresenter<soAnimCmdEventObserver> setup keeps the looked-up event unit in a separate local that is cleared on
 //   failure (shared header ft_builder_animcmd.h / so_event_presenter.h).
-// TODO(nonmatching): activate (99.86%): one register (the first flag byte loads into r0 in the original); the descriptor
-//   constructor and member-wise forms give the same, a 10 minute permuter run found nothing.
 // TODO(callees): fn_27_2E1E40 / 2E1E44 / 2E1E48 / 2F563C (situation, stop, visibility, colour blend builders), fn_27_2F4FB4
 //   (null ground getModule) and fn_27_30921C / 30922C (motion builder getModule / constructor) are weak functions outside
 //   this unit, still unnamed in symbols.txt. The map names
