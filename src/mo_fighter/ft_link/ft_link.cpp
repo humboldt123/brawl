@@ -175,11 +175,14 @@ struct ftLinkHookshotCatchEvent : soLinkEventArgs {
     int m_node;
 };
 
-// MATCH-ONLY: the nested dispatch keeps the event fields in their own registers.
-#pragma push
-#pragma opt_propagation off
+// HYPOTHESIS: a free inline accessor of the original source; the event kind read through it gives notifyEventLink its
+// native register order (a direct member read does not).
+static inline int eventKindOf(const soLinkEventArgs& event) {
+    return event.m_eventKind;
+}
+
 void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) {
-    int eventKind = eventInfo->m_eventKind;
+    int eventKind = eventKindOf(*eventInfo);
     if (eventKind >= 0x65) {
         switch (stageObj->soGetSubKind()) {
         case 3:
@@ -272,7 +275,6 @@ void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modul
     }
     Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4);
 }
-#pragma pop
 
 // HYPOTHESIS: visibility groups 1 and 2 are the sword and the shield on Link's back (the two models are shown while an item is held
 // by the other hand); the shield group goes back to the default state when the status changes.
