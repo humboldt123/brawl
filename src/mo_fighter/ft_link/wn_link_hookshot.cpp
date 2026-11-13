@@ -27,15 +27,20 @@ extern soStatusUniqProcess g_wnLassoStatusUniqProcessReach;
 
 // The claw tip is built with the kind pair of the hookshot itself (the owner weapon's build kind).
 static inline const wnSimpleKindInfo& ownerKindInfo(soModuleAccesser* acc) {
-    return dynamic_cast<Weapon*>(acc->m_stageObject)->getKindInfo();
+    return dynamic_cast<Weapon&>(*acc->m_stageObject).getKindInfo();
 }
 static inline ftKind ownerSubKind(soModuleAccesser* acc) {
     return static_cast<ftKind>(ownerKindInfo(acc).subKind);
 }
 
+struct wnHolderTag { };
+struct wnFoundFlag2 {
+    bool value;
+    wnFoundFlag2(const wnHolderTag&) : value(false) { }
+};
 inline wnInstanceHolderHookshot::wnInstanceHolderHookshot(soModuleAccesser* acc) : soInstancePoolRoot(acc),
     m_instance(0, wnSimpleConstructionInfo(ownerKindInfo(acc), acc->m_enumerationStart->m_heapModule),
-               g_ftCommonDataAccesser.getSimpleData(ownerSubKind(acc), &ftArticleDataFlags().get().resourceGroup), false) { }
+               g_ftCommonDataAccesser.getSimpleData(ownerSubKind(acc), &wnFoundFlag2(wnHolderTag()).value), false) { }
 
 wnLinkHookshot::wnLinkHookshot(s32 articleId, const wnArticleBuildInfo& info, const wnLinkHookshotData* data) :
     wnWeaponBuilder<wnLinkHookshotModuleAccesserBuildConfig>(
@@ -44,8 +49,7 @@ wnLinkHookshot::wnLinkHookshot(s32 articleId, const wnArticleBuildInfo& info, co
                                   info.getHeapModule()->getNWMotionInstanceHeap(), static_cast<u8>(data->m_resGroupNo), -1,
                                   &m_paramAccesser, 0, 0, 0, 0, 0, 0, 0)),
     m_param(data->m_param), m_paramAccesser(data->m_param) {
-    soStatusUniqProcess* uniqProcs[9];
-    for (int i = 0; i < 9; ++i) uniqProcs[i] = 0;
+    soStatusUniqProcess* uniqProcs[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     uniqProcs[1] = &g_wnLassoStatusUniqProcessShoot;
     uniqProcs[3] = &g_wnLassoStatusUniqProcessRewind;
     uniqProcs[4] = &g_wnLassoStatusUniqProcessPull;
