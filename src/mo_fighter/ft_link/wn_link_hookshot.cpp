@@ -32,15 +32,23 @@ static inline const wnSimpleKindInfo& ownerKindInfo(soModuleAccesser* acc) {
 static inline ftKind ownerSubKind(soModuleAccesser* acc) {
     return static_cast<ftKind>(ownerKindInfo(acc).subKind);
 }
+// The heap the claw tip is built from (read through a getter: the native constructor keeps it in a later register
+// than a direct member read gives).
+static inline void* ownerHeapModule(soModuleAccesser* acc) {
+    return acc->m_enumerationStart->m_heapModule;
+}
 
-struct wnHolderTag { };
-struct wnFoundFlag2 {
+// HYPOTHESIS: the "found" output of the simple-data lookup is a one-byte record built from the holder's index tag
+// (the holder is wnInstanceHolder<wnSimple, soKindInfoGeneric<2, 110>, soIntToType<0> > in the map). The native frame has
+// two separate zeroed bytes for it (tag, then flag), not the two-bool record the fighter units use.
+struct wnSimpleDataFound {
     bool value;
-    wnFoundFlag2(const wnHolderTag&) : value(false) { }
+    wnSimpleDataFound(const soIntToType<0>&) : value(false) { }
 };
+
 inline wnInstanceHolderHookshot::wnInstanceHolderHookshot(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(0, wnSimpleConstructionInfo(ownerKindInfo(acc), acc->m_enumerationStart->m_heapModule),
-               g_ftCommonDataAccesser.getSimpleData(ownerSubKind(acc), &wnFoundFlag2(wnHolderTag()).value), false) { }
+    m_instance(0, wnSimpleConstructionInfo(ownerKindInfo(acc), ownerHeapModule(acc)),
+               g_ftCommonDataAccesser.getSimpleData(ownerSubKind(acc), &wnSimpleDataFound(soIntToType<0>()).value), false) { }
 
 wnLinkHookshot::wnLinkHookshot(s32 articleId, const wnArticleBuildInfo& info, const wnLinkHookshotData* data) :
     wnWeaponBuilder<wnLinkHookshotModuleAccesserBuildConfig>(
