@@ -12,6 +12,7 @@ struct ftLinkData : ftData {
     u8 unk94[4];
     soCollisionShieldGroupData shieldGroup; // 0x98
     u8 unkA4[0x1C];
-    const wnSimpleData* unkC0;
+    const wnSimpleData* m_simpleArticle4Data; // 0xC0 HYPOTHESIS: name; data of the simple article with id 4
     wnSimpleData* m_hookshotTipData; // 0xC4 HYPOTHESIS: name; the hookshot activates its claw tip with this data
+    const wnSimpleData* m_simpleArticle5Data; // 0xC8 HYPOTHESIS: name; data of the simple article with id 5
 };

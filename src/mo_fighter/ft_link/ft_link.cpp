@@ -470,27 +470,19 @@ bool ftLink::activeArticle2(wnLinkHookshot* weapon, soModuleAccesser* acc) {
     return true;
 }
 
-// HYPOTHESIS: the start of the arrow article pair (the two simple articles of the fighter, told apart by their article id): the
-// arrow data block of the fighter data (offsets 0xC0 and 0xC8) and the model resource of the fighter.
-struct ftLinkSimpleArticleData {
-    u8 unk0[0xC0];
-    const wnSimpleData* m_data0;
-    u8 unkC4[4];
-    const wnSimpleData* m_data1;
-};
-
+// The two simple articles of the fighter (article ids 4 and 5) start with their data from Link's common data.
 bool ftLink::activeArticle3(wnSimple* weapon, soModuleAccesser* acc) {
     if (weapon->getArticleId() == 5) {
         int founderTaskId;
         soResourceModule& resources = acc->getResourceModule();
         founderTaskId = acc->getStageObject().m_taskId;
-        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), reinterpret_cast<ftLinkSimpleArticleData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_data1, true, false, Vec3f(0.0f, 0.0f, 0.0f),
+        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), static_cast<ftLinkData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_simpleArticle5Data, true, false, Vec3f(0.0f, 0.0f, 0.0f),
                          0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 3, 0xFF, false);
     } else {
         int founderTaskId;
         founderTaskId = acc->getStageObject().m_taskId;
         soResourceModule& resources = acc->getResourceModule();
-        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), reinterpret_cast<ftLinkSimpleArticleData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_data0, true, false, Vec3f(0.0f, 0.0f, 0.0f),
+        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), static_cast<ftLinkData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_simpleArticle4Data, true, false, Vec3f(0.0f, 0.0f, 0.0f),
                          0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 2, 0, false);
     }
     return true;
