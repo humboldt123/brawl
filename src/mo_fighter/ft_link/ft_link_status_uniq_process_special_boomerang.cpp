@@ -1,4 +1,5 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
+#include <ft/link/ft_link_data.h>
 #include <ft/ft_common_data_accesser.h>
 #include <ft/fighter.h>
 #include <ft/ft_owner.h>
@@ -48,12 +49,11 @@ void ftLinkStatusUniqProcessSpecialBoomerang::initStatus(soModuleAccesser* modul
 void ftLinkStatusUniqProcessSpecialBoomerang::execStatus(soModuleAccesser*) { }
 
 // The boomerang article is released on leaving the status unless the throw flag is still set.
-// HYPOTHESIS: the article id comes from ftData+0xA4 (Link common data).
 void ftLinkStatusUniqProcessSpecialBoomerang::exitStatus(soModuleAccesser* moduleAccesser, int) {
     if (!moduleAccesser->getWorkManageModule().isFlag(0x1200003D)) {
-        ftData* data = g_ftCommonDataAccesser.getData(Fighter_Link);
+        ftLinkData* data = static_cast<ftLinkData*>(g_ftCommonDataAccesser.getData(Fighter_Link));
         static_cast<soGenerateArticleManageModule*>(moduleAccesser->m_enumerationStart->m_generateArticleManageModule)
-            ->removeExist(*reinterpret_cast<int*>(reinterpret_cast<u8*>(data) + 0xA4), 0);
+            ->removeExist(data->m_boomerangArticleId, 0);
     }
 }
 
