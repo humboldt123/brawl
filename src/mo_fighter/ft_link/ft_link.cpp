@@ -495,12 +495,6 @@ bool ftLink::activeArticle3(wnSimple* weapon, soModuleAccesser* acc) {
     return true;
 }
 
-// FIXME: Test code present only to emit the shared builder functions; delete once ftLink is done
-void testBuilder() {
-    soInsideEventManageModuleBuilder<ftLinkInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
-    soResourceIdAccesserImpl idAccImpl(0, 1, 2);
-}
-
 // The team interface destructor is a weak copy of this unit (same form as ft_pit.cpp).
 #pragma dont_inline on
 soTeam::~soTeam() { }
