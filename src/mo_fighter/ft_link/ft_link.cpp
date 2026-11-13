@@ -219,7 +219,7 @@ void ftLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* modul
             case 0x83A:
                 break;
             case 0x83B: {
-                int* value = reinterpret_cast<int*>(soValueAccesser::getConstantIndefinite(moduleAccesser, 0xA80E, 0));
+                int* value = static_cast<int*>(soValueAccesser::getConstantIndefinite(moduleAccesser, 0xA80E, 0));
                 moduleAccesser->getWorkManageModule().setInt(*value, 0x20000001);
                 m_moduleAccesser->getStatusModule().changeStatusRequest(0x81, m_moduleAccesser);
                 if (moduleAccesser->getGenerateArticleManageModule().isExist(3) == true) {
