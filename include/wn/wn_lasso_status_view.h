@@ -21,7 +21,7 @@ public:
     virtual void slot0C();
     virtual void slot10();
     virtual void slot14();
-    virtual void unk18Attach(u32 archiveId, int, u32, u32, u32, int, int, int);
+    virtual void unk18Attach(u32 archiveId, int, u32, u32, u32, int, bool, int); // parameter 7 is a bool: the native callers copy an existing zero register into it
     virtual void slot1C();
     virtual void slot20();
     virtual void slot24();
