@@ -444,6 +444,12 @@ bool ftLink::activeArticle1(wnLinkBowArrow* weapon, soModuleAccesser* acc) {
     return soSingletonHolder<ftLinkTransactor>::getInstance()->activeArticle2(weapon, acc, etcResId, lr);
 }
 
+// HYPOTHESIS: a free inline accessor of the original source; the task id read through it (not through the member or
+// gfTask::getTaskId) gives the native register order in activeArticle2.
+static inline int taskIdOf(const StageObject& object) {
+    return object.m_taskId;
+}
+
 // The hookshot starts at the hand node of the fighter with its team and facing; a link is made to the fighter so that the
 // hook follows the hand.
 bool ftLink::activeArticle2(wnLinkHookshot* weapon, soModuleAccesser* acc) {
@@ -460,7 +466,7 @@ bool ftLink::activeArticle2(wnLinkHookshot* weapon, soModuleAccesser* acc) {
         break;
     }
     soResourceModule& resources = acc->getResourceModule();
-    founderTaskId = fighter.m_taskId;
+    founderTaskId = taskIdOf(fighter);
     weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), lr, position, unk);
     if (acc->getLinkModule().link(3, weapon->getTaskId()) == true) {
         soLinkModule* link = &acc->getLinkModule();
