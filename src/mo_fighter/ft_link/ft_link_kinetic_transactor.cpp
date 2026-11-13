@@ -85,8 +85,8 @@ void ftLinkKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcces
 }
 #pragma pop
 
-void ftLinkKineticTransactor::changeKineticSub(void*, Vec2f*, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(0);
+void ftLinkKineticTransactor::changeKineticSub(void* pools, Vec2f* prevSpeed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(0, pools, prevSpeed, moduleAccesser);
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(
         *moduleAccesser->getKineticModule().getEnergy(1));
     if (!moduleAccesser->getWorkManageModule().isFlag(0x22000010)) {
@@ -111,10 +111,10 @@ inline float Vec3f::length() {
 }
 
 // Pulls Link toward the hookshot's objective point: the speed is the offset, capped at a constant.
-void ftLinkKineticTransactor::changeKineticSub1(void*, Vec2f*, soModuleAccesser* moduleAccesser) {
+void ftLinkKineticTransactor::changeKineticSub1(void* pools, Vec2f* prevSpeed, soModuleAccesser* moduleAccesser) {
     soKineticModule& kinetic = moduleAccesser->getKineticModule();
     soPostureModule& posture = moduleAccesser->getPostureModule();
-    ftKineticTransactor::changeKineticImpl(10);
+    ftKineticTransactor::changeKineticImpl(10, pools, prevSpeed, moduleAccesser);
     kinetic.clearSpeedAll();
     kinetic.unableEnergyAll();
     Vec3f objective;
@@ -141,8 +141,8 @@ void ftLinkKineticTransactor::changeKineticSub1(void*, Vec2f*, soModuleAccesser*
     stop.enable();
 }
 
-void ftLinkKineticTransactor::changeKineticSub2(void*, Vec2f*, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(0x11);
+void ftLinkKineticTransactor::changeKineticSub2(void* pools, Vec2f* prevSpeed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(0x11, pools, prevSpeed, moduleAccesser);
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(
         *moduleAccesser->getKineticModule().getEnergy(1));
     gravity.resetEnergy(1, &Vec2f(0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
