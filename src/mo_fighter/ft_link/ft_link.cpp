@@ -471,6 +471,17 @@ bool ftLink::activeArticle2(wnLinkHookshot* weapon, soModuleAccesser* acc) {
 }
 
 // The two simple articles of the fighter (article ids 4 and 5) start with their data from Link's common data.
+// HYPOTHESIS: the start of the simple article with id 4 is a small inline helper of the original source; the article-5
+// branch is written out in activeArticle3 itself. The register pairs of the two branches differ in the native code exactly
+// as one inlined and one written-out copy do.
+static inline void activateSimpleArticle4(wnSimple* weapon, soModuleAccesser* acc) {
+    int founderTaskId;
+    soResourceModule& resources = acc->getResourceModule();
+    founderTaskId = acc->getStageObject().m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), static_cast<ftLinkData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_simpleArticle4Data, true, false, Vec3f(0.0f, 0.0f, 0.0f),
+                     0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 2, 0, false);
+}
+
 bool ftLink::activeArticle3(wnSimple* weapon, soModuleAccesser* acc) {
     if (weapon->getArticleId() == 5) {
         int founderTaskId;
@@ -479,11 +490,7 @@ bool ftLink::activeArticle3(wnSimple* weapon, soModuleAccesser* acc) {
         weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), static_cast<ftLinkData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_simpleArticle5Data, true, false, Vec3f(0.0f, 0.0f, 0.0f),
                          0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 3, 0xFF, false);
     } else {
-        int founderTaskId;
-        founderTaskId = acc->getStageObject().m_taskId;
-        soResourceModule& resources = acc->getResourceModule();
-        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), static_cast<ftLinkData*>(g_ftCommonDataAccesser.getData(Fighter_Link))->m_simpleArticle4Data, true, false, Vec3f(0.0f, 0.0f, 0.0f),
-                         0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 2, 0, false);
+        activateSimpleArticle4(weapon, acc);
     }
     return true;
 }
