@@ -117,6 +117,10 @@ public:
 #endif
         :
         m_idAccsr(mdlResId, mdlResId, anmResId), m_resourceModule(M, &m_idAccsr, resGrpNo) { }
+#ifdef WN_ARTICLE_BUILDER_USER_DTORS
+    // BYTES: opt-in; Fox's fighter unit tears this builder down through an out-of-line weak copy.
+    ~soResourceModuleBuilder() __attribute__((never_inline)) { }
+#endif
 };
 
 template <>

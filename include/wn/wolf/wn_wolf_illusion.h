@@ -30,31 +30,45 @@ public:
 
 class wnWolfIllusionModuleAccesserBuildConfig : public wnFoxIllusionModuleAccesserBuildConfig { };
 
-template <> class wnWeaponBuilder<wnWolfIllusionModuleAccesserBuildConfig> : public Weapon {
+// The weapon builder carries Wolf's name but is made of Fox's modules.
+template <>
+struct wnWeaponBuilderModules<wnWolfIllusionModuleAccesserBuildConfig> {
+    typedef wnFoxIllusionModuleAccesserBuildConfig Config;
+};
+
+#if defined(WN_WEAPON_BUILDER) && defined(FT_WOLF_ARTICLE_POOLS)
+// The fighter unit specializes the builder as Fox's does (wn/fox/wn_fox_illusion.h): Fox's modules, a tail word, and a
+// member-template constructor so the module builders are instantiated in the illusion unit and not here.
+template <>
+class wnWeaponBuilder<wnWolfIllusionModuleAccesserBuildConfig> : public Weapon {
 protected:
     wnModuleAccesserBuilder<wnFoxIllusionModuleAccesserBuildConfig> m_modules;
+    u32 m_modulesPad;
 public:
-    wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info,
-                    const wnModuleAccesserBuildData& bd)
-        : Weapon(name, bd.m_kind, bd.m_data, articleId, &info, m_modules.getModuleAccesser(), true),
-          m_modules(this, bd) {
+    template <class BuildData>
+    wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const BuildData& bd,
+                    bool weaponFlag = true) :
+        Weapon(name, bd.m_kind, bd.m_data, articleId, &info, this->m_modules.getModuleAccesser(), weaponFlag),
+        m_modules(this, bd) {
         Weapon::initialize();
     }
     virtual ~wnWeaponBuilder() { }
     virtual void deactivateDescendantForce() {
-        soSingletonHolder<soArticleMediatorNull>::getInstance()->deactivate();
+        wnDeactivateArticleDescendants(this->m_modules.m_generateArticleBuilder);
     }
 };
+#endif
 
 class wnWolfIllusion : public wnWeaponBuilder<wnWolfIllusionModuleAccesserBuildConfig> {
-    u8 unk1DAC[4]; // HYPOTHESIS: as Fox
     const wnWolfIllusionParam* m_param;
     wnWolfIllusionParamAccesser m_paramAccesser;
 public:
     wnWolfIllusion(s32 articleId, const wnArticleBuildInfo& info, const wnWolfIllusionData* data);
     virtual ~wnWolfIllusion() { }
-    void activate(s32 founderTaskId, s32 unk1, s32 team, float lr, s32 unk2, s32 unk3);
+    void activate(s32 founderTaskId, s32 unk1, s32 team, u8 situationKind, float lr, bool followUp);
     virtual void processUpdate();
     virtual bool notifyEventCollisionAttackCheck(u32 unk0);
 };
+#ifndef FT_WOLF_ARTICLE_POOLS // the fighter unit keeps the tail word and common energies (wn/fox/wn_fox_illusion.h)
 static_assert(sizeof(wnWolfIllusion) == 0x1DE4, "Wolf Illusion layout is wrong!");
+#endif

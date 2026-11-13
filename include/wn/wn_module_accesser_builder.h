@@ -813,6 +813,10 @@ public:
         m_attackAbsoluteArray(0, soCollisionAttackAbsolute()),
         m_attackModule(moduleAccesser, taskId, (gfTask::Category)taskCategory, &m_attackPartArrayVector, &m_collisionGroupArrayVector,
                        &m_attackAbsoluteArray, registrationDesc, b2) { }
+#ifdef WN_ARTICLE_BUILDER_USER_DTORS
+    // BYTES: opt-in; Fox's fighter unit tears this builder down through an out-of-line weak copy.
+    ~soCollisionAttackModuleBuilder() __attribute__((never_inline)) { }
+#endif
     soCollisionAttackModule* getModule() { return &m_attackModule; }
 };
 
@@ -931,6 +935,10 @@ class soKineticModuleBuilder<soKineticModuleBuildConfigMediator<wnKineticModuleI
 public:
     soKineticModuleBuilder(soModuleAccesser* acc) :
         m_module(acc, &m_manager, &m_mediator), m_manager(false), m_mediator() { }
+#ifdef WN_ARTICLE_BUILDER_USER_DTORS
+    // BYTES: opt-in; Fox's fighter unit tears this builder down through an out-of-line weak copy.
+    ~soKineticModuleBuilder() __attribute__((never_inline)) { }
+#endif
     soKineticModule* getModule() { return (soKineticModule*)&m_module; }
 };
 
@@ -1328,10 +1336,17 @@ inline void wnDeactivateArticleDescendants(Builder& builder) {
     builder.getMediator()->deactivate();
 }
 
+// The module set a weapon builder is made of: its own configuration, unless an article reuses the modules of another
+// one under its own builder name (Wolf's illusion is built from Fox's wnModuleAccesserBuilder; see wn_wolf_illusion.h).
+template <class BC>
+struct wnWeaponBuilderModules {
+    typedef BC Config;
+};
+
 template <class BC>
 class wnWeaponBuilder : public Weapon {
 protected:
-    wnModuleAccesserBuilder<BC> m_modules;      // +0xCC
+    wnModuleAccesserBuilder<typename wnWeaponBuilderModules<BC>::Config> m_modules; // +0xCC
 #ifdef WN_WEAPON_NO_COMMON_ENERGIES
     // HYPOTHESIS: the article keeps its only energy in its own kinetic mediator; the native module storage ends one word
     // later than the generic builder (padding of its last animation command unit), the word is kept here.

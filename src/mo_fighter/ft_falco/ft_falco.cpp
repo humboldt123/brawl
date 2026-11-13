@@ -1,3 +1,6 @@
+#define SO_STATUS_KINETIC_SLOT // BYTES: the Landmaster shell's kinetic builder sits a word after its status builder
+#define WN_ANIMCMD_UNIT5_SELECT // the Landmaster runs a fifth command thread
+#define WN_KINETIC_GRAVITY_INLINE_DTOR // BYTES: the Landmaster destructor expands its gravity energy teardown
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
@@ -10,11 +13,30 @@
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define FT_PARAM_ACCESSER_TYPED_DTOR
 #define FT_TEAM_TYPED_INTERFACE
+#define WN_ARTICLE_BUILDER_USER_DTORS
+#define FT_ARTICLE_BUILDER_DTOR_OUTLINE
+#define FT_ROT_ENERGY_DTOR_OUTLINE
+#define FT_WEAK_KINETIC_ENERGY_DTOR
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR
 #include <ft/builder/ft_dol_array_list.h>
+// The anim-command conversion list (capacity 285) is torn down by sora_melee's copy of its destructor.
+template <>
+soArrayVector<ftAnimCmdConvPtr, 285>::~soArrayVector();
+// The model builder's node storage uses the shared sora_melee vector.
+FT_DOL_ARRAY_VECTOR(soModelNodeSetUp, 10);
+#include <ft/builder/ft_builder_animcmd.h>
+// BYTES: the article destructors call the teardown of their anim-command units out of line (weak copies of this unit).
+#pragma dont_inline on
+template soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<0, 1, 1, 0, 0, 0, 0, 8> >::~soAnimCmdControlUnitBuilder();
+template soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<1, 2, 3, 0, 0, 1, 0, 8> >::~soAnimCmdControlUnitBuilder();
+template soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<2, 2, 3, 0, 0, 1, 0, 8> >::~soAnimCmdControlUnitBuilder();
+template soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<3, 2, 3, 0, 0, 1, 0, 8> >::~soAnimCmdControlUnitBuilder();
+#pragma dont_inline off
 #include <ft/ft_class_info_impl.h>
 #include <ft/falco/ft_falco.h>
 #include <ft/falco/ft_falco_extend_param_accesser.h>
 #include <ft/falco/ft_falco_transactor.h>
+#include <so/so_module_hyp.h>
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_resource_id_accesser_impl.h>
 #include <ft/ft_reflector_group.h>
@@ -25,8 +47,16 @@
 #include <so/team/so_team.h>
 #include <so/param/so_param_customize_module_impl.h>
 
+// The fighter owns the shared out-of-line kinetic teardown.
+#undef WN_ARTICLE_NATIVE_BUILDERS
 #define FT_BC ftFalcoBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+// The articles' sound builder inlines this empty destructor (same form as ft_snake.cpp).
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
+// The Landmaster's link-ref controller module is torn down inside its weak destructor (as in ft_snake.cpp).
+inline soControllerModuleLinkRef::~soControllerModuleLinkRef() { }
+// So is its damage observer base (as in ft_pit.cpp).
+inline soDamageEventObserver::~soDamageEventObserver() { }
 
 // Status teardown destroys its owned change-request queue before observers.
 #pragma dont_inline on
@@ -227,6 +257,7 @@ struct ftFalcoArticleDataTag {
     bool m_unused;
     bool m_resourceGroup;
     ftFalcoArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
+    ftFalcoArticleDataTag& get() { return *this; }
 };
 
 struct ftFalcoArticleKind : wnArticleKindInfo {
@@ -234,11 +265,12 @@ struct ftFalcoArticleKind : wnArticleKindInfo {
         kind = 0;
         subKind = Fighter_Falco;
     }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling (the lookup reads the kind through a call)
 };
 
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
+// The descriptor keeps the address of the kind temporary of the caller.
 struct ftFalcoArticleBuildInfo : wnArticleBuildInfo {
-    ftFalcoArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
+    ftFalcoArticleBuildInfo(const wnArticleKindInfo& kindArg, soHeapModule* heap) {
         kindInfo = &kindArg;
         heapModule = heap;
     }
@@ -250,33 +282,23 @@ extern "C" void* fn_27_1484BC(const ftCommonDataAccesser* accesser, s32 subKind,
 extern "C" void* fn_27_14858C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_148620(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftFalcoArticleTraits;
-#define FT_FALCO_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftFalcoArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftFalcoArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_Falco, &tag.m_resourceGroup)); \
-        } \
-    };
-#define FT_FALCO_TRAITS_MEMBER(W, DATA, ID, GETTER) \
-    template <> struct ftFalcoArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftFalcoArticleDataTag tag; \
-            return static_cast<const DATA*>(g_ftCommonDataAccesser.GETTER(Fighter_Falco, &tag.m_resourceGroup)); \
-        } \
-    };
+// Every article of the fighter is built from the data of the fighter kind; the data lookup is called in the argument
+// list, after the descriptor. The blaster and the Landmaster holders are spliced into the article manage builder; the
+// bullet and the afterimage holders also exist out of line (weak copies).
+#define FT_FALCO_ARTICLE_HOLDER(SPEC, W, ID, DATA_LOOKUP) \
+    template <> SPEC wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc), \
+        m_instance(ID, ftFalcoArticleBuildInfo(ftFalcoArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), \
+                   DATA_LOOKUP(ftFalcoArticleKind().getSubKind(), &ftFalcoArticleDataTag().get().m_resourceGroup)) { }
 
-FT_FALCO_TRAITS(wnFalcoBlaster, wnFalcoBlasterData, 0, fn_27_14858C)
-FT_FALCO_TRAITS(wnFalcoBlasterBullet, wnFalcoBlasterBulletData, 1, fn_27_148620)
-FT_FALCO_TRAITS_MEMBER(wnFalcoIllusion, wnFalcoIllusionData, 2, getWeaponData<wnFalcoIllusionData>)
-FT_FALCO_TRAITS(wnFoxLandMaster, wnFoxLandMasterData, 3, fn_27_1484BC)
+#define FT_FALCO_BLASTER_DATA(kind, group) static_cast<const wnFalcoBlasterData*>(fn_27_14858C(&g_ftCommonDataAccesser, kind, group))
+#define FT_FALCO_BULLET_DATA(kind, group) static_cast<const wnFalcoBlasterBulletData*>(fn_27_148620(&g_ftCommonDataAccesser, kind, group))
+#define FT_FALCO_ILLUSION_DATA(kind, group) g_ftCommonDataAccesser.getWeaponData<wnFalcoIllusionData>(kind, group)
+#define FT_FALCO_LAND_MASTER_DATA(kind, group) static_cast<const wnFoxLandMasterData*>(fn_27_1484BC(&g_ftCommonDataAccesser, kind, group))
 
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftFalcoArticleTraits<W>::ArticleId, ftFalcoArticleBuildInfo(ftFalcoArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftFalcoArticleTraits<W>::getData()) { }
+FT_FALCO_ARTICLE_HOLDER(inline, wnFalcoBlaster, 0, FT_FALCO_BLASTER_DATA)
+FT_FALCO_ARTICLE_HOLDER(__declspec(weak), wnFalcoBlasterBullet, 1, FT_FALCO_BULLET_DATA)
+FT_FALCO_ARTICLE_HOLDER(__declspec(weak), wnFalcoIllusion, 2, FT_FALCO_ILLUSION_DATA)
+FT_FALCO_ARTICLE_HOLDER(inline, wnFoxLandMaster, 3, FT_FALCO_LAND_MASTER_DATA)
 
 // ---- the articles of Falco and their mediator -----------------------------------------------------------------------
 
@@ -290,8 +312,6 @@ template wnArticleHolder<wnFalcoBlaster>::~wnArticleHolder();
 template wnArticleHolder<wnFalcoBlasterBullet>::~wnArticleHolder();
 template wnArticleHolder<wnFalcoIllusion>::~wnArticleHolder();
 template wnArticleHolder<wnFoxLandMaster>::~wnArticleHolder();
-template wnArticleHolder<wnFalcoBlasterBullet>::wnArticleHolder(soModuleAccesser*);
-template wnArticleHolder<wnFalcoIllusion>::wnArticleHolder(soModuleAccesser*);
 template <class Mediator>
 wnSelectedArticleMediator<Mediator>::~wnSelectedArticleMediator() { }
 template <class Mediator, int N>
@@ -303,7 +323,19 @@ template wnSelectedArticleMediator<ftFalcoArticleMediator>::~wnSelectedArticleMe
 template wnArticleManageModuleBuilder<ftFalcoArticleMediator, 5>::~wnArticleManageModuleBuilder();
 template wnArticleManageModuleBuilder<ftFalcoArticleMediator, 5>::wnArticleManageModuleBuilder(soModuleAccesser*);
 ftFalcoArticleMediator::~ftFalcoArticleMediator() { }
+// The article destructors call these builder teardowns out of line.
+template <class BC>
+soStopModuleBuilder<BC>::~soStopModuleBuilder() { }
+template soStopModuleBuilder<soStopModuleBuildConfig<soStopModuleImpl> >::~soStopModuleBuilder();
+template <s32 Kind, typename T>
+soReflectModuleBuilder<soReflectModuleBuildConfig<Kind, T> >::~soReflectModuleBuilder() { }
+template soReflectModuleBuilder<soReflectModuleBuildConfig<0, soReflectModuleImpl> >::~soReflectModuleBuilder();
+template <class T>
+soEffectModuleBuilder<wnEffectModuleBuildConfig<1, 1, 0, 1, -1, T> >::~soEffectModuleBuilder() { }
+template soEffectModuleBuilder<wnEffectModuleBuildConfig<1, 1, 0, 1, -1, soEffectModuleImpl> >::~soEffectModuleBuilder();
+__declspec(weak) soKineticEnergyRotNormal::~soKineticEnergyRotNormal() { }
 #pragma dont_inline off
+ftKineticEnergyController::~ftKineticEnergyController() { }
 
 s32 ftFalcoArticleMediator::getMediateNum() { return 4; }
 void ftFalcoArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
@@ -458,40 +490,27 @@ bool ftFalco::activeArticle(wnFalcoBlaster* weapon, soModuleAccesser* acc) {
 // afterimage already ran (the work int 0x20000003 counts them).
 bool ftFalco::activeArticle1(wnFalcoIllusion* weapon, soModuleAccesser* acc) {
     int count = acc->getWorkManageModule().getInt(0x20000003);
-    bool followUp = count != 0;
+    bool followUp = count != 0 ? true : false;
     soSituationModule& situation = acc->getSituationModule();
+    soTeamModule& teamModule = acc->getTeamModule();
     soResourceModule& resources = acc->getResourceModule();
     int founderTaskId = acc->getStageObject().m_taskId;
     float lr = acc->getPostureModule().getLr();
-    u8 situationKind = situation.getKind();
-    int team = acc->getTeamModule().getTeam()->getNo();
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), team, lr, situationKind, followUp);
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), teamModule.getTeam()->getNo(), situation.getKind(), lr, followUp);
     acc->getWorkManageModule().setInt(count + 1, 0x20000003);
     return false;
 }
 
 // The Landmaster of the Final Smash: it starts at the fighter and takes it along (link 6).
 bool ftFalco::activeArticle2(wnFoxLandMaster* weapon, soModuleAccesser* acc) {
+    soPostureModule& posture = acc->getPostureModule();
     soTeamModule& teamModule = acc->getTeamModule();
     soResourceModule& resources = acc->getResourceModule();
-    soPostureModule& posture = acc->getPostureModule();
     int founderTaskId = acc->getStageObject().m_taskId;
-    float scale = soValueAccesser::getConstantFloat(acc, 0xdb2, 0);
-    float lr = posture.getLr();
-    Vec3f pos = posture.getPos();
-    int team = teamModule.getTeam()->getNo();
-    int resourceId = dynamic_cast<ftResourceIdAccesserImpl&>(*resources.getResourceIdAccesser()).getFinalResId();
-    weapon->activate(founderTaskId, resourceId, team, &pos, lr, scale, 0x1f);
+    weapon->activate(founderTaskId, dynamic_cast<ftResourceIdAccesserImpl&>(*resources.getResourceIdAccesser()).getFinalResId(), teamModule.getTeam()->getNo(), &posture.getPos(), posture.getLr(), soValueAccesser::getConstantFloat(acc, 0xdb2, 0), 0x1f);
     acc->getLinkModule().link(6, weapon->m_taskId);
     return true;
 }
-
-// FIXME: Test code present only to emit the shared builder functions; delete once ftFalco is done
-void testBuilder() {
-    soInsideEventManageModuleBuilder<ftFalcoInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
-    soResourceIdAccesserImpl idAccImpl(0, 1, 2);
-}
-soInsideEventManageModuleBuilder<ftFalcoInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
 
 // Small functions of this translation unit (empty virtuals, constant returns, field accessors and work-area
 // operations) under their symbol names from the REL map. The bodies are the leaf code the REL contains.
@@ -604,14 +623,4 @@ soTeam::~soTeam() { }
 #pragma dont_inline on
 soResourceIdAccesser::~soResourceIdAccesser() { }
 #pragma dont_inline off
-// Article specialization also declared by the weapon-builder header, which
-// cannot coexist with this Fighter-based builder translation unit.
-template <>
-class soParamCustomizeModuleBuilder<soParamCustomizeModuleBuildConfig<soParamCustomizeModuleImpl> > {
-    soParamCustomizeModuleImpl m_paramCustomizeModule;
-public:
-    soParamCustomizeModuleBuilder(soModuleAccesser*) { }
-    ~soParamCustomizeModuleBuilder();
-};
-soParamCustomizeModuleBuilder<soParamCustomizeModuleBuildConfig<soParamCustomizeModuleImpl> >::~soParamCustomizeModuleBuilder() { }
 soArticleMediator::~soArticleMediator() { }

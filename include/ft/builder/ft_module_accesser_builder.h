@@ -191,6 +191,11 @@ public:
     soWorkManageModuleBuilder<typename BC::WorkManageModuleBuildConfig> m_workManageModuleBuilder;                                                             // +0x47B0
     soAnimCmdModuleBuilder<typename BC::AnimCmdModuleBuildConfig> m_animCmdBuilder;                                                           // +0x47E4
     soStatusModuleBuilder<typename BC::StatusModuleBuildConfig> m_statusBuilder;                                                           // +0x48D8
+#ifdef SO_STATUS_KINETIC_SLOT
+    // Opt-in: the "tail word" of the status builder is an empty slot here; it packs with an empty null kinetic
+    // builder (the articles' WN_STATUS_NO_TAIL layout) and pads to the next word before a real one.
+    struct StatusKineticSlot { } m_statusKineticSlot;
+#endif
     soKineticModuleBuilder<typename BC::KineticModuleBuildConfig> m_kineticBuilder;                                                          // +0x5790
     soGeneralWorkBuilder<typename BC::GeneralWorkBuildConfig> m_generalWorkBuilder;                                                      // +0x5A98
     typename BC::GenerateArticleManageModuleBuilder m_generateArticleBuilder; // after m_generalWorkBuilder (before m_effectModuleBuilder)

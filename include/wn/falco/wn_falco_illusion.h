@@ -89,7 +89,8 @@ class wnFalcoIllusion : public wnWeaponBuilder<wnFalcoIllusionModuleAccesserBuil
 public:
     wnFalcoIllusion(s32 articleId, const wnArticleBuildInfo& info, const wnFalcoIllusionData* data);
     virtual ~wnFalcoIllusion() { }
-    void activate(s32 founderTaskId, s32 unk1, s32 team, float lr, s32 unk2, s32 unk3);
+    // The facing is the fifth parameter here (the native function saves it after the fourth integer); Fox has it fourth.
+    void activate(s32 founderTaskId, s32 unk1, s32 team, u8 situationKind, float lr, bool followUp);
     virtual void processUpdate();
     virtual bool notifyEventCollisionAttackCheck(u32 unk0);
 };

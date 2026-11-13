@@ -42,8 +42,21 @@ struct wnFoxLandMasterParam {
     float unkC4; // landing vibration rate scale
 };
 
+#if defined(WN_FOX_LAND_MASTER_UNIT) || (defined(WN_FOX_LAND_MASTER_FIGHTER_TU) && defined(WN_WEAPON_BUILDER))
+// The unit that owns the constructor instantiates the builders. The fighter units that own the weak copy of the
+// destructor (Fox, Wolf, Falco: their article pool headers set WN_FOX_LAND_MASTER_FIGHTER_TU) see the same class with
+// inline destructors; other users keep the opaque article below.
 #ifdef WN_FOX_LAND_MASTER_UNIT
-// The unit that owns the constructor instantiates the builders. Fighters keep the opaque article below.
+// BYTES: the Landmaster unit calls these builder teardowns out of line; the fighters' weak destructor expands them.
+#define WN_FOX_LAND_MASTER_UNIT_OUTLINE __attribute__((never_inline))
+#else
+#define WN_FOX_LAND_MASTER_UNIT_OUTLINE
+// The Landmaster's kinetic module is the article generic one.
+#ifndef WN_KINETIC_GENERIC_BUILDER
+#define WN_KINETIC_GENERIC_BUILDER
+#define WN_KINETIC_GENERIC_IN_FIGHTER_TU
+#endif
+#endif
 
 #include <wn/wn_kinetic_mediator_impl.h>
 #include <wn/wn_kinetic_transactor.h>
@@ -60,8 +73,16 @@ struct wnFoxLandMasterParam {
 WN_STATUS_PROC_VECTOR_ARG_CTOR(10);
 FT_DOL_ARRAY_VECTOR(soArticle*, 2);
 WN_ARTICLE_EVENT_OBSERVER_VECTOR(2);
+#ifdef WN_FOX_LAND_MASTER_UNIT // the fighter units declare this array themselves
 FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 4);
+#endif
 FT_DOL_ARRAY_VECTOR(soCollisionHitPart, 4);
+#ifndef WN_FOX_LAND_MASTER_UNIT
+// The fighters' weak destructor calls the shared (sora_melee) teardowns of these arrays.
+FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soAnimCmdControlUnit>, 7);
+FT_DOL_ARRAY_VECTOR(soShakeTerm, 1);
+FT_DOL_ARRAY_VECTOR(soModelVirtualNode, 1);
+#endif
 
 // The ground module of this article. Its constructor, destructor and update live in the ground-module unit.
 class wnFoxLandMasterGroundModuleImpl : public soGroundModuleImpl {
@@ -108,7 +129,11 @@ public:
         m_ints[3] = reinterpret_cast<const s32*>(reinterpret_cast<const u8*>(param) + 0x54);
         m_ints[4] = reinterpret_cast<const s32*>(reinterpret_cast<const u8*>(param) + 0x70);
     }
+#ifdef WN_FOX_LAND_MASTER_UNIT
     virtual ~wnFoxLandMasterParamAccesser();
+#else
+    virtual ~wnFoxLandMasterParamAccesser() { }
+#endif
 };
 static_assert(sizeof(wnFoxLandMasterParamAccesser) == 0xF0, "Landmaster parameter accesser extent");
 
@@ -189,6 +214,18 @@ typedef soArticleMediatorImpl<wnFoxLandMasterShellPoolList, soTypeListNullType, 
                               soTypeListNullType>
     wnFoxLandMasterArticleMediator;
 
+#ifndef WN_FOX_LAND_MASTER_UNIT
+// HYPOTHESIS: the builder keeps the mediator in a soSelectInstanceHolder (as the Kinopio and Wario units model it).
+template <>
+class soSelectInstanceHolder<wnFoxLandMasterArticleMediator, soArticleMediatorNull> {
+    wnFoxLandMasterArticleMediator m_mediator;
+public:
+    soSelectInstanceHolder(soModuleAccesser* acc) : m_mediator(acc) { }
+    ~soSelectInstanceHolder() { }
+    soArticleMediator* getMediator() { return &m_mediator; }
+};
+#endif
+
 // HYPOTHESIS: source spelling. The module map names soGenerateArticleManageModuleBuilder over this config, and the
 // config's argument is the article mediator. The module keeps a list of two article slots for the one shell.
 template <class Mediator>
@@ -202,16 +239,32 @@ template <class BC>
 class soGenerateArticleManageModuleBuilder {
     soArrayVector<soArticle*, BC::ArticleCount> m_articles;
     soArrayVector<soArticleEventObserver, BC::ArticleCount> m_observers;
+#ifndef WN_FOX_LAND_MASTER_UNIT
+    // The fighter unit's teardown tests the holder and then the mediator for null (two checks on one address), as
+    // the Kinopio builder does; the map's config argument is longer than the mediator type alone.
+    soSelectInstanceHolder<typename BC::MediatorType, soArticleMediatorNull> m_mediator;
+#else
     typename BC::MediatorType m_mediator;
+#endif
     soGenerateArticleManageModuleImpl m_module;
 public:
+#ifndef WN_FOX_LAND_MASTER_UNIT
+    soGenerateArticleManageModuleBuilder(soModuleAccesser* acc) :
+        m_articles(0), m_observers(BC::ArticleCount, 0), m_mediator(acc),
+        m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
+#else
     soGenerateArticleManageModuleBuilder(soModuleAccesser* acc) :
         m_articles(0), m_observers(BC::ArticleCount, 0), m_mediator(acc),
         m_module(acc, &m_articles, &m_mediator, &m_observers) { }
+#endif
     // BYTES: the weapon builder destructor calls this one out of line.
-    ~soGenerateArticleManageModuleBuilder() __attribute__((never_inline)) { }
+    ~soGenerateArticleManageModuleBuilder() WN_FOX_LAND_MASTER_UNIT_OUTLINE { }
     void* getModule() { return &m_module; }
+#ifndef WN_FOX_LAND_MASTER_UNIT
+    soArticleMediator* getMediator() { return m_mediator.getMediator(); }
+#else
     soArticleMediator* getMediator() { return &m_mediator; }
+#endif
 };
 
 typedef soGenerateArticleManageModuleBuildConfig<wnFoxLandMasterArticleMediator> wnFoxLandMasterArticleBuildConfig;
@@ -235,7 +288,7 @@ public:
                        emitData, regDesc, commonData, 5, screenData, m_screens.get()) { }
     T* getModule() { return &m_effectModule; }
     // BYTES: the weapon builder destructor calls this one out of line.
-    ~soEffectModuleBuilder() __attribute__((never_inline)) { }
+    ~soEffectModuleBuilder() WN_FOX_LAND_MASTER_UNIT_OUTLINE { }
 };
 
 class wnFoxLandMasterAnimCmdModuleSubBuildConfig :
@@ -245,7 +298,13 @@ public:
 };
 
 struct wnFoxLandMasterModuleAccesserBuildConfig : public wnCommonBuildConfig {
+#ifdef WN_FOX_LAND_MASTER_UNIT
     typedef soKineticModuleBuildConfig<soKineticModuleGenericImpl,
+#else
+    // The fighter units keep their own one-argument kinetic config; the builder (expanded in the weak destructor) is
+    // the same with the mediator spelled through the two-argument form.
+    typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl,
+#endif
                                        soKineticMediatorImpl<wnFoxLandMasterKineticEnergyTypeList,
                                                              wnFoxLandMasterKineticTransactorInfo> >
         KineticModuleBuildConfig;
@@ -288,8 +347,15 @@ protected:
     u32 m_modulesPad;
 public:
     wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd);
+#ifdef WN_FOX_LAND_MASTER_UNIT
     virtual ~wnWeaponBuilder();
     virtual void deactivateDescendantForce();
+#else
+    virtual ~wnWeaponBuilder() { }
+    virtual void deactivateDescendantForce() {
+        wnDeactivateArticleDescendants(m_modules.m_generateArticleBuilder);
+    }
+#endif
 };
 
 class wnFoxLandMaster : public wnWeaponBuilder<wnFoxLandMasterModuleAccesserBuildConfig>, public soDamageEventObserver {
@@ -297,7 +363,11 @@ public:
     const wnFoxLandMasterParam* m_param; // +0x4870
     const wnFoxLandMasterParam* getParam() const { return m_param; }
     wnFoxLandMaster(s32 articleId, const wnArticleBuildInfo& info, const wnFoxLandMasterData* data);
+#ifdef WN_FOX_LAND_MASTER_UNIT
     virtual ~wnFoxLandMaster();
+#else
+    virtual ~wnFoxLandMaster() { }
+#endif
     void activate(int founderTaskId, int resourceId, int team, Vec3f* pos, float lr, float scale, int heapType);
     virtual void processUpdate();
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* sender, int unk4);

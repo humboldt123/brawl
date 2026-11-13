@@ -56,7 +56,7 @@ class soStatusModuleBuilder {
 #endif
     soArrayQueueImpl<soArrayVector<s32, 1> > m_changeRequests;                                            // +0xDF4
     soStatusModuleImpl m_module;                                                                          // +0xE08
-#ifndef WN_STATUS_NO_TAIL // an article whose next module is the empty null builder has no tail word
+#if !defined(WN_STATUS_NO_TAIL) && !defined(SO_STATUS_KINETIC_SLOT) // an article whose next module is the empty null builder has no tail word
     u32 unkEB4;
 #endif
 public:

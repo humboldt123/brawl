@@ -1,10 +1,14 @@
+#define SO_STATUS_KINETIC_SLOT // BYTES: the Landmaster shell's kinetic builder sits a word after its status builder
+#define WN_ANIMCMD_UNIT5_SELECT // the Landmaster runs a fifth command thread
+#define WN_KINETIC_GRAVITY_INLINE_DTOR // BYTES: the Landmaster destructor expands its gravity energy teardown
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
 #define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_WOLF_ARTICLE_POOLS
-#define WN_ARTICLE_BUILDER_DTORS
+#define WN_ARTICLE_BUILDER_USER_DTORS
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR
 #define FT_ARTICLE_BUILDER_DTOR_OUTLINE
 #define FT_ANIMCMD_UNIT_DTOR_OUTLINE
 #define FT_OBSERVER_VTABLE_ANCHOR_WEAK
@@ -16,7 +20,12 @@
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define FT_PARAM_ACCESSER_TYPED_DTOR
 #define FT_TEAM_TYPED_INTERFACE
+#define SO_KINETIC_ROTATION_FIELDWISE_ZERO
 #include <ft/builder/ft_dol_array_list.h>
+// Wolf's twelve hurtbox parts: the collision hit builder calls the sora_melee vector constructor.
+FT_DOL_ARRAY_VECTOR(soCollisionHitPart, 12);
+// The model builder's node storage uses the shared sora_melee vector.
+FT_DOL_ARRAY_VECTOR(soModelNodeSetUp, 10);
 #include <ft/ft_class_info_impl.h>
 #include <ft/wolf/ft_wolf_builder.h>
 #include <ft/wolf/ft_wolf_extend_param_accesser.h>
@@ -37,6 +46,12 @@
 #undef WN_ARTICLE_NATIVE_BUILDERS
 #define FT_BC ftWolfBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+// The articles' sound builder inlines this empty destructor (same form as ft_fox.cpp).
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
+// The Landmaster's link-ref controller module is torn down inside its weak destructor (as in ft_snake.cpp).
+inline soControllerModuleLinkRef::~soControllerModuleLinkRef() { }
+// So is its damage observer base (as in ft_pit.cpp).
+inline soDamageEventObserver::~soDamageEventObserver() { }
 
 // Status teardown destroys its owned change-request queue before observers.
 #pragma dont_inline on
@@ -330,11 +345,9 @@ template soReflectModuleBuilder<soReflectModuleBuildConfig<0, soReflectModuleImp
 template <class T>
 soEffectModuleBuilder<wnEffectModuleBuildConfig<1, 1, 0, 1, -1, T> >::~soEffectModuleBuilder() { }
 template soEffectModuleBuilder<wnEffectModuleBuildConfig<1, 1, 0, 1, -1, soEffectModuleImpl> >::~soEffectModuleBuilder();
-soSlowModuleBuilder<soSlowModuleBuildConfig<soSlowModuleSimple> >::~soSlowModuleBuilder() { }
-soGlowModuleBuilder<soGlowModuleBuildConfig<soGlowModuleSimple> >::~soGlowModuleBuilder() { }
 __declspec(weak) soKineticEnergyRotNormal::~soKineticEnergyRotNormal() { }
-ftKineticEnergyController::~ftKineticEnergyController() { }
 #pragma dont_inline off
+ftKineticEnergyController::~ftKineticEnergyController() { }
 
 __declspec(weak) s32 ftWolfArticleMediator::getMediateNum() { return 4; }
 void ftWolfArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
@@ -489,40 +502,28 @@ bool ftWolf::activeArticle(wnWolfBlaster* weapon, soModuleAccesser* acc) {
 // afterimage already ran (the work int 0x20000003 counts them).
 bool ftWolf::activeArticle1(wnWolfIllusion* weapon, soModuleAccesser* acc) {
     int count = acc->getWorkManageModule().getInt(0x20000003);
-    bool followUp = count != 0;
+    bool followUp = count != 0 ? true : false;
     soSituationModule& situation = acc->getSituationModule();
+    soTeamModule& teamModule = acc->getTeamModule();
     soResourceModule& resources = acc->getResourceModule();
     int founderTaskId = acc->getStageObject().m_taskId;
     float lr = acc->getPostureModule().getLr();
-    u8 situationKind = situation.getKind();
-    int team = acc->getTeamModule().getTeam()->getNo();
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), team, lr, situationKind, followUp);
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), teamModule.getTeam()->getNo(), situation.getKind(), lr, followUp);
     acc->getWorkManageModule().setInt(count + 1, 0x20000003);
     return false;
 }
 
 // The Landmaster of the Final Smash: it starts at the fighter and takes it along (link 6).
 bool ftWolf::activeArticle2(wnFoxLandMaster* weapon, soModuleAccesser* acc) {
+    soPostureModule& posture = acc->getPostureModule();
     soTeamModule& teamModule = acc->getTeamModule();
     soResourceModule& resources = acc->getResourceModule();
-    soPostureModule& posture = acc->getPostureModule();
     int founderTaskId = acc->getStageObject().m_taskId;
-    float scale = soValueAccesser::getConstantFloat(acc, 0xdb2, 0);
-    float lr = posture.getLr();
-    Vec3f pos = posture.getPos();
-    int team = teamModule.getTeam()->getNo();
-    int resourceId = dynamic_cast<ftResourceIdAccesserImpl&>(*resources.getResourceIdAccesser()).getFinalResId();
-    weapon->activate(founderTaskId, resourceId, team, &pos, lr, scale, 0x1f);
+    weapon->activate(founderTaskId, dynamic_cast<ftResourceIdAccesserImpl&>(*resources.getResourceIdAccesser()).getFinalResId(), teamModule.getTeam()->getNo(), &posture.getPos(), posture.getLr(), soValueAccesser::getConstantFloat(acc, 0xdb2, 0), 0x1f);
     acc->getLinkModule().link(6, weapon->m_taskId);
     return true;
 }
 
-// Keeps the shared inside-event builder emitted. Weak: the original object has no such function.
-__declspec(weak) void testBuilder() {
-    soInsideEventManageModuleBuilder<ftWolfInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
-    soResourceIdAccesserImpl idAccImpl(0, 1, 2);
-}
-soInsideEventManageModuleBuilder<ftWolfInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
 
 
 // Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
@@ -536,7 +537,6 @@ void* fn_125_1EAC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator de
 void* fn_125_3720(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_45C8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_4608(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_6130(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_6170(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_61B0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 int fn_125_B160() { return 0x1; }
@@ -559,3 +559,5 @@ u8* fn_125_E2BC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_125_E3A4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 u8* fn_125_E48C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 } // extern "C"
+
+soArticleMediator::~soArticleMediator() { }
