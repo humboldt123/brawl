@@ -1,4 +1,5 @@
 #define IP_INPUT_BUTTON_RAW
+#define IP_NULL_STICK_ZERO_FIELDS // BYTES: native IpNull::getStick* store the two zero fields inline (Vec2f ctor is out of line here)
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS
 #define WN_SHARED_ARRAYS_1
@@ -6,7 +7,6 @@
 #define FT_REL_LINK_EXTERN
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
-#define MT_VEC2F_CTOR_NOINLINE
 #include <wn/wn_module_accesser_builder.h>
 #include <wn/toonlink/wn_toon_link_boomerang.h>
 #include <wn/wn_activate_desc.h>
@@ -51,6 +51,19 @@ void wnToonLinkBoomerang::activate(int founderTaskId, int resourceId, int team) 
     m_moduleAccesser->getStatusModule().changeStatusForce(1, m_moduleAccesser);
 }
 
+// HYPOTHESIS: two small helpers of the original source set the flight energy from a length and an angle; their named
+// vector locals are what give shoot its native stack slots (the vectors sit below the safe-position return temporary).
+static inline void setSpeedAtAngle(wnKineticEnergyNormal& normal, float speed, float angle) {
+    Vec2f velocity(speed * cosf(angle), speed * sinf(angle));
+    normal.m_speed = velocity;
+}
+
+// The deceleration points against the flight direction.
+static inline void setAccelAtAngle(wnKineticEnergyNormal& normal, float deceleration, float angle) {
+    Vec2f decel(-deceleration * cosf(angle), -deceleration * sinf(angle));
+    normal.m_accel = decel;
+}
+
 // The boomerang is released from the thrower's hand node 3 and flies towards the angle, slowing down by the deceleration
 // parameter. HYPOTHESIS: the work int 0x10000005 is the time until it turns around and the work float 0x11000001 the angle.
 void wnToonLinkBoomerang::shoot(float lr, float angle, u32 kind) {
@@ -83,8 +96,8 @@ void wnToonLinkBoomerang::shoot(float lr, float angle, u32 kind) {
     m_moduleAccesser->getStatusModule().changeStatusRequest(2, m_moduleAccesser);
     wnKineticEnergyNormal& normal = dynamic_cast<wnKineticEnergyNormal&>(*m_moduleAccesser->getKineticModule().getEnergy(0));
     float deceleration = m_param->unk1C;
-    normal.m_speed = Vec2f(speed * cosf(angle), speed * sinf(angle));
-    normal.m_accel = Vec2f(-deceleration * cosf(angle), -deceleration * sinf(angle));
+    setSpeedAtAngle(normal, speed, angle);
+    setAccelAtAngle(normal, deceleration, angle);
     m_moduleAccesser->getWorkManageModule().onFlag(0x12000003);
     m_moduleAccesser->getWorkManageModule().offFlag(0x12000004);
 }
@@ -117,6 +130,24 @@ bool wnToonLinkBoomerang::notifyEventCollisionAttackCheck(u32 flags) {
     return Weapon::notifyEventCollisionAttackCheck(flags);
 }
 
+// HYPOTHESIS: small vector helpers of the original source. The stack slots of notifyEventAnimCmd show their nesting:
+// the bounce temporaries come after the speed and deceleration temporaries, in the order a helper inlined through a
+// second helper gives (one level of inlining lists a helper's temporaries in reverse).
+static inline void setSpeed(wnKineticEnergyNormal& normal, const Vec2f& speed) {
+    normal.m_speed = speed;
+}
+
+// Mirrors v on a surface with unit normal n, given the dot product of the two.
+static inline void reflect(Vec2f& v, const Vec2f& n, float dot) {
+    v = v - (n * 2.0f) * dot;
+}
+
+// Mirrors v on a surface with unit normal n.
+static inline void reflect(Vec2f& v, const Vec2f& n) {
+    float dot = n.m_x * v.m_x + n.m_y * v.m_y;
+    ::reflect(v, n, dot);
+}
+
 // The animation command 6 of the flight bounces the boomerang off the ground it touches: the speed is mirrored on the contact
 // normal (or the boomerang turns around when the surface is steeper than the turn angle) and the deceleration follows the new
 // direction. HYPOTHESIS: the touch masks 0x52 / 0xA4 are the walls on the facing side.
@@ -124,7 +155,8 @@ bool wnToonLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* a
     if (Weapon::notifyEventAnimCmd(cmd, acc, unk3)) {
         return true;
     }
-    if (!isObserv(cmd->getGroup())) {
+    s8 group = cmd->getGroup();
+    if (!isObserv(group)) {
         return false;
     }
     if (cmd->getType() <= -1 || cmd->getType() >= 11) {
@@ -142,7 +174,7 @@ bool wnToonLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* a
                 if (acc->getGroundModule().isTouch((grCollStatus::TouchMask)0xa4, 0) == 1) {
                     Vec2f wall = acc->getGroundModule().getTouchNormal(0xa4, 0);
                     if (wall.angle(&speed) >= 1.57079637f + param->unk28) {
-                        acc->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
+                        m_moduleAccesser->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
                         return true;
                     }
                 }
@@ -150,17 +182,15 @@ bool wnToonLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* a
                 if (acc->getGroundModule().isTouch((grCollStatus::TouchMask)0x52, 0) == 1) {
                     Vec2f wall = acc->getGroundModule().getTouchNormal(0x52, 0);
                     if (wall.angle(&speed) >= 1.57079637f + param->unk28) {
-                        acc->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
+                        m_moduleAccesser->getStatusModule().changeStatusRequest(3, m_moduleAccesser);
                         return true;
                     }
                 }
             }
         }
         Vec2f contact = acc->getGroundModule().getTouchNormal(0xff, 0);
-        float dot = contact.m_x * speed.m_x + contact.m_y * speed.m_y;
-        speed -= (contact * 2.0f) * dot;
-        Vec2f newSpeed(speed.m_x, speed.m_y);
-        normal.m_speed = newSpeed;
+        ::reflect(speed, contact);
+        ::setSpeed(normal, Vec2f(speed.m_x, speed.m_y));
         float lengthSq = speed.m_x * speed.m_x + speed.m_y * speed.m_y;
         float length;
         if ((float)fabs(lengthSq) <= 1.17549435e-38f) {
@@ -172,7 +202,7 @@ bool wnToonLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* a
             Vec2f accel = speed * -(m_param->unk1C / length);
             normal.m_accel = accel;
         }
-        float angle = atan2(speed.m_y, speed.m_x);
+        float angle = atan2f(speed.m_y, speed.m_x);
         m_moduleAccesser->getWorkManageModule().setFloat(angle, 0x11000001);
         angles.m_x = 0.0f;
         angles.m_y = 0.0f;
@@ -183,3 +213,8 @@ bool wnToonLinkBoomerang::notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* a
     }
     return false;
 }
+
+// BYTES: the native unit carries a weak out-of-line copy of the base accesser destructor.
+#pragma dont_inline on
+soParamAccesser::~soParamAccesser() { }
+#pragma dont_inline off

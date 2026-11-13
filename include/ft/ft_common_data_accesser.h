@@ -143,6 +143,8 @@ struct ftLucarioAuraBallParam;
 struct wnLinkBowData;
 struct wnLinkBowArrowData;
 struct wnToonLinkBowData;
+struct wnToonLinkBoomerangData;
+struct wnToonLinkHookShotData;
 struct wnToonLinkBowArrowData;
 struct wnYoshiTamagoData;
 struct wnSheikNeedleData;
@@ -314,6 +316,10 @@ template <>
 const wnLinkBowArrowData* ftCommonDataAccesser::getWeaponData<wnLinkBowArrowData>(int kind, bool* resourceGroup) const;
 template <>
 const wnToonLinkBowData* ftCommonDataAccesser::getWeaponData<wnToonLinkBowData>(int kind, bool* resourceGroup) const;
+template <>
+const wnToonLinkBoomerangData* ftCommonDataAccesser::getWeaponData<wnToonLinkBoomerangData>(int kind, bool* resourceGroup) const;
+template <>
+const wnToonLinkHookShotData* ftCommonDataAccesser::getWeaponData<wnToonLinkHookShotData>(int kind, bool* resourceGroup) const;
 template <>
 const wnToonLinkBowArrowData* ftCommonDataAccesser::getWeaponData<wnToonLinkBowArrowData>(int kind, bool* resourceGroup) const;
 template <>

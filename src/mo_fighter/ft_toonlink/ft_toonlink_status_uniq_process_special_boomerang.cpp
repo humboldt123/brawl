@@ -1,19 +1,21 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
+#include <ft/toonlink/ft_toonlink_data.h>
 #include <ft/ft_common_data_accesser.h>
 #include <ft/fighter.h>
-#include <so/article/so_generate_article_manage_module.h>
 #include <ft/ft_owner.h>
+#include <ft/ft_entry.h>
+#include <so/article/so_generate_article_manage_module.h>
 #include <so/controller/so_controller_module_impl.h>
-#include <so/so_module_accesser.h>
 #include <so/status/so_status_module_impl.h>
+#include <so/so_module_accesser.h>
 #include <types.h>
 
 class ftToonLinkStatusUniqProcessSpecialBoomerang : public soStatusUniqProcess {
 public:
     virtual ~ftToonLinkStatusUniqProcessSpecialBoomerang() { }
     virtual void initStatus(soModuleAccesser* moduleAccesser);
-    virtual void exitStatus(soModuleAccesser* moduleAccesser, int);
     virtual void execStatus(soModuleAccesser* moduleAccesser);
+    virtual void exitStatus(soModuleAccesser* moduleAccesser, int nextStatus);
 };
 
 // Common parameter offsets are observed in the native reads; the descriptive field names are HYPOTHESIS.
@@ -24,6 +26,7 @@ struct ftToonLinkBoomerangCommonView {
     float m_flickFrameAdd;  // 0x20
 };
 
+// The throw path requires the stick magnitude to reach the common threshold while the flick count remains below its frame window.
 void ftToonLinkStatusUniqProcessSpecialBoomerang::initStatus(soModuleAccesser* moduleAccesser) {
     double absolute = __fabs(moduleAccesser->getControllerModule().getStickX());
     float stickX = absolute;
@@ -45,11 +48,12 @@ void ftToonLinkStatusUniqProcessSpecialBoomerang::initStatus(soModuleAccesser* m
 }
 void ftToonLinkStatusUniqProcessSpecialBoomerang::execStatus(soModuleAccesser*) { }
 
+// The boomerang article is released on leaving the status unless the throw flag is still set.
 void ftToonLinkStatusUniqProcessSpecialBoomerang::exitStatus(soModuleAccesser* moduleAccesser, int) {
-    if (!moduleAccesser->getWorkManageModule().isFlag(0x1200003d)) {
-        ftData* data = g_ftCommonDataAccesser.getData(static_cast<ftKind>(0x29));
-        soGenerateArticleManageModule* articles = static_cast<soGenerateArticleManageModule*>(moduleAccesser->m_enumerationStart->m_generateArticleManageModule);
-        articles->removeExist(*reinterpret_cast<int*>(reinterpret_cast<u8*>(data) + 0xa4), 0);
+    if (!moduleAccesser->getWorkManageModule().isFlag(0x1200003D)) {
+        ftToonLinkData* data = static_cast<ftToonLinkData*>(g_ftCommonDataAccesser.getData(Fighter_ToonLink));
+        static_cast<soGenerateArticleManageModule*>(moduleAccesser->m_enumerationStart->m_generateArticleManageModule)
+            ->removeExist(data->m_boomerangArticleId, 0);
     }
 }
 

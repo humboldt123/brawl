@@ -1181,9 +1181,10 @@ extern "C" void* fn_27_149978(const ftCommonDataAccesser*, s32, bool*)
     return lbl_27_bss_3210[Fighter_Ganon].data->extendParam[4];
 }
 
-extern "C" void* fn_27_149AF4(const ftCommonDataAccesser*, s32, bool*)
+template <>
+const wnToonLinkBoomerangData* ftCommonDataAccesser::getWeaponData<wnToonLinkBoomerangData>(int kind, bool* resourceGroup) const
 {
-    return lbl_27_bss_3210[Fighter_ToonLink].data->extendParam[11];
+    return static_cast<const wnToonLinkBoomerangData*>(lbl_27_bss_3210[Fighter_ToonLink].data->extendParam[11]);
 }
 
 void* ftCommonDataAccesser::getWeaponData128(ftKind kind, bool* resourceGroup) const
@@ -1211,11 +1212,12 @@ extern "C" void* fn_27_1497CC(const ftCommonDataAccesser*, s32 kind, bool*)
     }
 }
 
-extern "C" void* fn_27_149B08(const ftCommonDataAccesser*, s32 kind, bool*)
+template <>
+const wnToonLinkHookShotData* ftCommonDataAccesser::getWeaponData<wnToonLinkHookShotData>(int kind, bool* resourceGroup) const
 {
     switch (kind) {
     case Fighter_ToonLink:
-        return lbl_27_bss_3210[Fighter_ToonLink].data->extendParam[16];
+        return static_cast<const wnToonLinkHookShotData*>(lbl_27_bss_3210[Fighter_ToonLink].data->extendParam[16]);
     default:
         return NULL;
     }

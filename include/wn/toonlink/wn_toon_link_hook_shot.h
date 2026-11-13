@@ -1,26 +1,26 @@
 #pragma once
 
 // Toon Link's hookshot (article kind 4, the Clawshot special). Only the members the fighter calls are declared so far; the
-// full class is compiled only where WN_TOON_LINK_HOOK_SHOT_FULL is defined (src/mo_fighter/ft_toonlink/wn_toon_link_hook_shot.cpp).
+// article itself (src/mo_fighter/ft_toonlink/wn_toon_link_hook_shot.cpp) is not reconstructed yet.
 
 #include <wn/weapon.h>
 
 #ifndef WN_TOON_LINK_HOOK_SHOT_FULL
 class wnToonLinkHookShot : public Weapon {
 public:
-    // HYPOTHESIS: same parameters as Link's hookshot.
+    // HYPOTHESIS: parameter names beyond the founder, resource and team; the position is the node the hook starts at and the
+    // flag is set while Toon Link is in one of the hookshot statuses.
     void activate(int founderTaskId, int resourceId, int team, float lr, const Vec3f& position, bool unk);
 };
 #endif
 
 #ifdef WN_TOON_LINK_HOOK_SHOT_FULL
-// The complete hookshot, only compiled where its builders are wanted (src/mo_fighter/ft_link/wn_link_hookshot.cpp). The
+// The complete hookshot, only compiled where its builders are wanted (src/mo_fighter/ft_toonlink/wn_toon_link_hook_shot.cpp). The
 // fighter unit keeps the incomplete class above.
 #include <wn/wn_article_pool.h>
 #include <wn/wn_extend_param_accesser.h>
 #include <wn/wn_module_accesser_builder.h>
 #include <wn/wn_simple.h>
-#include <ft/purin/ft_purin_article.h>
 
 // The parameter block (kind 148): three floats and two ints, ids 4000.. and 24000..
 // HYPOTHESIS: meanings; the layout follows the pointer table the constructor builds.
@@ -56,16 +56,31 @@ public:
 // these copies of the generic pool of wn/wn_article_pool.h carry a name that contains the original template name.
 class wnInstanceHolderHookShot : public soInstancePoolRoot {
 public:
+#ifdef FT_TOONLINK_HOOK_SHOT_DTOR_OUT_OF_LINE
+    virtual ~wnInstanceHolderHookShot() { }
+#else
     virtual ~wnInstanceHolderHookShot();
+#endif
 private:
     wnSimple m_instance;
 public:
-    wnInstanceHolderHookShot(soModuleAccesser* acc) __attribute__((always_inline));
+    wnInstanceHolderHookShot(soModuleAccesser* acc);
     wnSimple* getInstance() { return &m_instance; }
 };
-class soInstancePoolSubHookShot : public ftPurinArticleSubPool {
+class soInstancePoolSubHookShot : public soInstancePoolRoot {
 public:
-    soInstancePoolSubHookShot(soModuleAccesser* acc) : ftPurinArticleSubPool(acc) { }
+#ifdef FT_TOONLINK_HOOK_SHOT_DTOR_OUT_OF_LINE
+    virtual ~soInstancePoolSubHookShot() { }
+#else
+    virtual ~soInstancePoolSubHookShot();
+#endif
+private:
+    u32 m_terminal;
+    wnInstanceHolderHookShot m_holder;
+public:
+    soInstancePoolSubHookShot(soModuleAccesser* acc) : soInstancePoolRoot(acc), m_holder(acc) { }
+    wnSimple* getInstanceAt(s32 index);
+    wnSimple* getInstance() { return m_holder.getInstance(); }
 };
 class soInstancePoolHookShot : public soInstancePoolRoot {
 public:
@@ -110,7 +125,11 @@ class soSelectInstanceHolderHookShot {
     soArticleMediatorImplHookShot m_mediator;
 public:
     soSelectInstanceHolderHookShot(soModuleAccesser* acc) : m_mediator(acc) { }
+#ifdef FT_TOONLINK_HOOK_SHOT_DTOR_OUT_OF_LINE
+    ~soSelectInstanceHolderHookShot() { } // ft_toonlink.o expands it inside the hookshot's teardown
+#else
     ~soSelectInstanceHolderHookShot();
+#endif
     soArticleMediator* getMediator() { return &m_mediator; }
 };
 FT_DOL_ARRAY_VECTOR(soArticle*, 1);
@@ -122,7 +141,11 @@ class soGenerateArticleManageModuleBuilderHookShot {
 public:
     soGenerateArticleManageModuleBuilderHookShot(soModuleAccesser* acc) :
         m_articles(0), m_observers(1, 0), m_mediator(acc), m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
+#ifdef FT_TOONLINK_HOOK_SHOT_DTOR_OUT_OF_LINE
+    ~soGenerateArticleManageModuleBuilderHookShot() { } // ft_toonlink.o expands it inside the hookshot's teardown
+#else
     ~soGenerateArticleManageModuleBuilderHookShot();
+#endif
     void* getModule() { return &m_module; }
     soArticleMediator* getMediator() { return m_mediator.getMediator(); }
 };
@@ -144,11 +167,12 @@ public:
     typedef soLinkModuleBuildConfigCap<5, soLinkModuleImpl> LinkModuleBuildConfig;
     typedef soColorBlendModuleBuildConfig<-1, 0, soColorBlendModuleImpl> ColorBlendModuleBuildConfig;
     typedef soPhysicsModuleBuildConfigCap<0, soPhysicsModuleImpl> PhysicsModuleBuildConfig;
-    typedef soGeneralWorkBuildConfig<3, 3, 1> GeneralWorkBuildConfig;
+    typedef soGeneralWorkBuildConfig<7, 6, 1> GeneralWorkBuildConfig;
     typedef wnStatusModuleBuildConfig<9, soGeneralWorkBuildConfig<3, 3, 1>, 9, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> >
         StatusModuleBuildConfig;
     typedef wnToonLinkHookShotArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
     typedef wnAnimCmdModuleSubBuildConfigDefault<1, 9, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0> AnimCmdModuleSubBuildConfig;
+    typedef soGlowModuleBuildConfigNull GlowModuleBuildConfig;
 };
 
 class wnToonLinkHookShot : public wnWeaponBuilder<wnToonLinkHookShotModuleAccesserBuildConfig> {
@@ -156,7 +180,12 @@ class wnToonLinkHookShot : public wnWeaponBuilder<wnToonLinkHookShotModuleAccess
     wnToonLinkHookShotParamAccesser m_paramAccesser;
 public:
     wnToonLinkHookShot(s32 articleId, const wnArticleBuildInfo& info, const wnToonLinkHookShotData* data);
+#ifdef FT_TOONLINK_HOOK_SHOT_DTOR_OUT_OF_LINE
+    // ft_toonlink.o owns the plain destructor; the hookshot unit keeps the inline one.
+    virtual ~wnToonLinkHookShot();
+#else
     virtual ~wnToonLinkHookShot() { }
+#endif
     void activate(int founderTaskId, int resourceId, int team, float lr, const Vec3f& position, bool unk);
     static bool activeArticle(wnSimple* weapon, soModuleAccesser* acc);
 };

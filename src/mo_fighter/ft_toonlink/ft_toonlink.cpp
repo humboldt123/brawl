@@ -1,8 +1,13 @@
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR // BYTES: the hookshot teardown expands the null mediator teardown (as in ft_pit.cpp)
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
+#define FT_TEAM_TYPED_INTERFACE
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_NOINLINE_SEARCH_BUILDER
+#define FT_TOONLINK_ARTICLE_POOLS
+#define FT_MODULE_ACCESSER_BUILDER_BASE_BUILD_DATA // the so-level builder takes soModuleAccesserBuildData (ft/builder/ft_module_accesser_builder.h)
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/toonlink/ft_toonlink.h>
@@ -15,10 +20,17 @@
 #include <ft/ft_owner.h>
 #include <ft/ft_util.h>
 #include <ft/ft_resource_id_accesser_impl.h>
+#include <ft/builder/ft_builder_article.h>
 #include <so/article/so_generate_article_manage_module.h>
+#include <wn/wn_article_pool.h>
+#include <so/link/so_link_event_throw.h>
 
+#undef WN_ARTICLE_NATIVE_BUILDERS
 #define FT_BC ftToonLinkBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// The articles' sound builder teardown inlines this empty destructor (same form as ft_pit.cpp and ft_snake.cpp).
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
 
 // Status teardown destroys its owned change-request queue before observers.
 #pragma dont_inline on
@@ -27,18 +39,31 @@ template soArrayVector<s32, 8>::~soArrayVector();
 #endif
 #pragma dont_inline off
 soStatusModuleImpl::~soStatusModuleImpl() { }
+// The disguise command vector uses sora_melee's shared teardown (same form as ft_mario.cpp).
+template <> soArrayVector<ftAnimCmdConvPtr, 284>::~soArrayVector();
+// Weak copy every fighter REL emits (same form as ft_snake.cpp / ft_pit.cpp).
+ftKineticEnergyController::~ftKineticEnergyController() { }
+// Both article mediators' teardowns call this weak copy (same form as ft_mario.cpp; the map calls it
+// soArrayVectorCalcInterface's destructor, but its two callers are the mediator teardowns).
+soArticleMediator::~soArticleMediator() { }
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
 
 // HYPOTHESIS: unnamed status process instances (not yet named in symbols.txt).
 extern "C" {
-extern soStatusUniqProcess lbl_27_bss_8A9C;
-extern soStatusUniqProcess lbl_121_bss_16C;
-extern soStatusUniqProcess lbl_121_bss_14C;
-extern soStatusUniqProcess lbl_121_bss_17C;
-extern soStatusUniqProcess lbl_121_bss_18C;
-extern soStatusUniqProcess lbl_121_bss_15C;
-extern soStatusUniqProcess lbl_121_bss_19C;
-extern soStatusUniqProcess lbl_121_bss_1AC;
-extern soStatusUniqProcess lbl_121_bss_1BC;
+extern soStatusUniqProcess lbl_27_bss_73CC;
+extern soStatusUniqProcess lbl_93_bss_16C;
+extern soStatusUniqProcess lbl_93_bss_14C;
+extern soStatusUniqProcess lbl_93_bss_17C;
+extern soStatusUniqProcess lbl_93_bss_18C;
+extern soStatusUniqProcess lbl_93_bss_15C;
+extern soStatusUniqProcess lbl_93_bss_19C;
+extern soStatusUniqProcess lbl_93_bss_1AC;
+extern soStatusUniqProcess lbl_93_bss_1BC;
 }
 
 ftToonLinkExtendParamAccesser g_ftToonLinkExtendParamAccesser;
@@ -58,32 +83,27 @@ ftToonLink::ftToonLink(s32 entryId,
     m_data(g_ftCommonDataAccesser.getData(Fighter_ToonLink)) {
     // Register the status processes in action order; entries without a process stay empty.
     soStatusUniqProcess* processes[10] = {0};
-    processes[0] = &lbl_27_bss_8A9C;
-    processes[1] = &lbl_121_bss_16C;
-    processes[2] = &lbl_121_bss_14C;
-    processes[3] = &lbl_121_bss_17C;
-    processes[4] = &lbl_121_bss_18C;
-    processes[6] = &lbl_121_bss_15C;
-    processes[8] = &lbl_121_bss_19C;
-    processes[9] = &lbl_121_bss_1AC;
+    processes[0] = &lbl_27_bss_73CC;
+    processes[1] = &lbl_93_bss_16C;
+    processes[2] = &lbl_93_bss_14C;
+    processes[3] = &lbl_93_bss_17C;
+    processes[4] = &lbl_93_bss_18C;
+    processes[6] = &lbl_93_bss_15C;
+    processes[8] = &lbl_93_bss_19C;
+    processes[9] = &lbl_93_bss_1AC;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 10);
-    m_moduleAccesser->getStatusModule().setUniqProc(0, &lbl_121_bss_1BC);
-    m_moduleAccesser->getStatusModule().setUniqProc(0x12, &lbl_121_bss_1BC);
-    // HYPOTHESIS: the common data record holds the fighter's shield shape group at +0x98 (the shield).
-    m_moduleAccesser->getCollisionShieldModule().add(reinterpret_cast<soCollisionShieldGroupData*>(reinterpret_cast<u8*>(m_data) + 0x98), 1);
+    m_moduleAccesser->getStatusModule().setUniqProc(0, &lbl_93_bss_1BC);
+    m_moduleAccesser->getStatusModule().setUniqProc(0x12, &lbl_93_bss_1BC);
+    m_moduleAccesser->getCollisionShieldModule().add(&static_cast<ftToonLinkData*>(m_data)->shieldGroup, 1);
     m_moduleAccesser->getCollisionShieldModule().setTargetProperty(1, 1);
 }
 
 // The node whose position is stored when Toon Link enters the stage (the work floats 0x11000013/0x11000014 hold it).
 // HYPOTHESIS: 300 is the abstract id of that node, 0x1E3 the motion value the node is read for.
-// MATCH-ONLY: the module pointers stay loaded from one enumeration pointer register in the order they are declared.
-#pragma push
-#pragma opt_propagation off
 void ftToonLink::onActivate() {
-    const soModuleEnumeration* modules = m_moduleAccesser->m_enumerationStart;
-    soWorkManageModule* work = modules->m_workManageModule;
-    soModelModule* model = modules->m_modelModule;
-    soMotionModule* motion = modules->m_motionModule;
+    soWorkManageModule* work = &m_moduleAccesser->getWorkManageModule();
+    soModelModule* model = &m_moduleAccesser->getModelModule();
+    soMotionModule* motion = &m_moduleAccesser->getMotionModule();
     int node = model->getCorrectNodeId(300);
     Vec3f stored;
     stored = motion->calcNode(0x1E3, node);
@@ -91,7 +111,6 @@ void ftToonLink::onActivate() {
     work->setFloat(stored.m_y, 0x11000014);
     m_moduleAccesser->getWorkManageModule().offFlag(0x1200003D);
 }
-#pragma pop
 
 void ftToonLink::onStart(int startKind) {
     Fighter::onStart(startKind);
@@ -151,26 +170,22 @@ void ftToonLink::onHitReflector(soModuleAccesser* moduleAccesser, bool hit) {
     }
 }
 
-// HYPOTHESIS: the link events other objects send to Link, as far as this fighter reads them (event kinds below 0x65 are
-// the engine's, the 0x83x ones are sent by articles with the kinds seen below).
-struct ftToonLinkLinkEventView {
-    int m_eventKind;
-    bool m_handled;
-    int m_node;  // 0x8
-    int m_param; // 0xC
-    u8 unk10[0xC];
-    u8 unk1C;
+// HYPOTHESIS: the event the hookshot sends when its claw catches a ledge (kind 0x83B): the node the fighter hangs from.
+struct ftToonLinkHookShotCatchEvent : soLinkEventArgs {
+    int m_node;
 };
 
-// MATCH-ONLY: the nested dispatch keeps the event fields in their own registers.
-#pragma push
-#pragma opt_propagation off
+// HYPOTHESIS: a free inline accessor of the original source; the event kind read through it gives notifyEventLink its
+// native register order (a direct member read does not).
+static inline int eventKindOf(const soLinkEventArgs& event) {
+    return event.m_eventKind;
+}
+
 void ftToonLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) {
-    ftToonLinkLinkEventView* event = reinterpret_cast<ftToonLinkLinkEventView*>(eventInfo);
-    int eventKind = event->m_eventKind;
+    int eventKind = eventKindOf(*eventInfo);
     if (eventKind >= 0x65) {
         switch (stageObj->soGetSubKind()) {
-        case 3:
+        case 0x8D:
             if (eventKind == 0x838) {
                 switch (m_moduleAccesser->getStatusModule().getStatusKind()) {
                 case 0:
@@ -194,12 +209,12 @@ void ftToonLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* m
                 case 0x17:
                 case 0x18:
                     m_moduleAccesser->getStatusModule().changeStatusRequest(0x119, m_moduleAccesser);
-                    event->m_handled = true;
+                    eventInfo->_0x4 = true;
                     break;
                 }
             }
             return;
-        case 0x6E:
+        case 0x94:
             switch (eventKind) {
             case 0x839:
                 m_moduleAccesser->getStatusModule().changeStatusRequest(0x39, m_moduleAccesser);
@@ -207,14 +222,14 @@ void ftToonLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* m
             case 0x83A:
                 break;
             case 0x83B: {
-                int* value = reinterpret_cast<int*>(soValueAccesser::getConstantIndefinite(moduleAccesser, 0xA80E, 0));
+                int* value = static_cast<int*>(soValueAccesser::getConstantIndefinite(moduleAccesser, 0xA80E, 0));
                 moduleAccesser->getWorkManageModule().setInt(*value, 0x20000001);
                 m_moduleAccesser->getStatusModule().changeStatusRequest(0x81, m_moduleAccesser);
-                if (moduleAccesser->getGenerateArticleManageModule().isExist(3) == true) {
+                if (moduleAccesser->getGenerateArticleManageModule().isExist(4) == true) {
                     moduleAccesser->getLinkModule().removeModelConstraint(false);
                     soLinkModule* link = &moduleAccesser->getLinkModule();
                     int node = moduleAccesser->getModelModule().getCorrectNodeId(0x12E);
-                    link->setModelConstraintPosOrt(3, node, event->m_node, 5, false);
+                    link->setModelConstraintPosOrt(3, node, static_cast<ftToonLinkHookShotCatchEvent*>(eventInfo)->m_node, 5, false);
                 }
                 return;
             }
@@ -236,10 +251,10 @@ void ftToonLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* m
         case 0x3C:
             if (stageObj->soGetKind() == 2) {
                 switch (stageObj->soGetSubKind()) {
-                case 3:
+                case 0x8D:
                     m_moduleAccesser->getWorkManageModule().offFlag(0x1200003D);
                     break;
-                case 0x6E:
+                case 0x94:
                     m_moduleAccesser->getModelModule().setVirtualNodeUpdate(2, true);
                     break;
                 }
@@ -247,10 +262,11 @@ void ftToonLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* m
             break;
         case 8: {
             int status = moduleAccesser->getStatusModule().getStatusKind();
-            if (event->m_param == 0xED && status == 0x116) {
+            soLinkEventThrow* throwEvent = static_cast<soLinkEventThrow*>(eventInfo);
+            if (throwEvent->unkC == 0xED && status == 0x116) {
                 moduleAccesser->getStatusModule().changeStatusRequest(0x11A, moduleAccesser);
-                event->m_handled = true;
-                event->unk1C = 0;
+                throwEvent->_0x4 = true;
+                throwEvent->unk1C = false;
                 return;
             }
             break;
@@ -259,7 +275,6 @@ void ftToonLink::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* m
     }
     Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4);
 }
-#pragma pop
 
 // HYPOTHESIS: visibility groups 1 and 2 are the sword and the shield on Toon Link's back (the two models are shown while an item is held
 // by the other hand); the shield group goes back to the default state when the status changes.
@@ -370,14 +385,6 @@ bool ftToonLink::notifyEventCollisionSearchCheck() {
     return result;
 }
 
-// The members of the boomerang article that the fighter calls (the article itself is in wn_link_boomerang.cpp, whose header needs
-// the article builder macros).
-class wnToonLinkBoomerang {
-public:
-    void activate(int founderTaskId, int resourceId, int team);
-    void shoot(float lr, float angle, u32 kind);
-};
-
 // The boomerang starts with the team of the fighter and the model resource.
 bool ftToonLink::activeArticle(wnToonLinkBoomerang* weapon, soModuleAccesser* acc) {
     dynamic_cast<soResourceModuleImpl&>(acc->getResourceModule());
@@ -439,12 +446,18 @@ bool ftToonLink::activeArticle1(wnToonLinkBowArrow* weapon, soModuleAccesser* ac
     return soSingletonHolder<ftToonLinkTransactor>::getInstance()->activeArticle2(weapon, acc, etcResId, lr);
 }
 
+// HYPOTHESIS: a free inline accessor of the original source; the task id read through it (not through the member or
+// gfTask::getTaskId) gives the native register order in activeArticle2.
+static inline int taskIdOf(const StageObject& object) {
+    return object.m_taskId;
+}
+
 // The hookshot starts at the hand node of the fighter with its team and facing; a link is made to the fighter so that the
 // hook follows the hand.
 bool ftToonLink::activeArticle2(wnToonLinkHookShot* weapon, soModuleAccesser* acc) {
     int founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
-    Vec3f position = acc->getModelModule().getNodeGlobalPosition(0x43, false);
+    Vec3f position = acc->getModelModule().getNodeGlobalPosition(0x46, false);
     float lr = acc->getPostureModule().getLr();
     bool unk = false;
     switch (acc->getStatusModule().getStatusKind()) {
@@ -455,756 +468,404 @@ bool ftToonLink::activeArticle2(wnToonLinkHookShot* weapon, soModuleAccesser* ac
         break;
     }
     soResourceModule& resources = acc->getResourceModule();
-    founderTaskId = fighter.m_taskId;
+    founderTaskId = taskIdOf(fighter);
     weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), lr, position, unk);
     if (acc->getLinkModule().link(3, weapon->getTaskId()) == true) {
         soLinkModule* link = &acc->getLinkModule();
         int node = acc->getModelModule().getCorrectNodeId(300);
-        link->setModelConstraintPosOrt(3, node, 0x18, 0x11, false);
+        link->setModelConstraintPosOrt(3, node, 0x17, 0x11, false);
     }
     return true;
 }
 
-// HYPOTHESIS: the start of the arrow article pair (the two simple articles of the fighter, told apart by their article id): the
-// arrow data block of the fighter data (offsets 0xC0 and 0xC8) and the model resource of the fighter.
-struct ftToonLinkSimpleArticleData {
-    u8 unk0[0xC0];
-    const wnSimpleData* m_data0;
-    u8 unkC4[4];
-    const wnSimpleData* m_data1;
-};
+// The two simple articles of the fighter (article ids 3 and 5) start with their data from Toon Link's common data.
+// HYPOTHESIS: the start of the simple article with id 5 is a small inline helper of the original source; the article-3
+// branch is written out in activeArticle3 itself. The register pairs of the two branches differ in the native code exactly
+// as one inlined and one written-out copy do.
+static inline void activateSimpleArticle5(wnSimple* weapon, soModuleAccesser* acc) {
+    int founderTaskId;
+    soResourceModule& resources = acc->getResourceModule();
+    founderTaskId = acc->getStageObject().m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), static_cast<ftToonLinkData*>(g_ftCommonDataAccesser.getData(Fighter_ToonLink))->m_simpleArticle5Data, true, false, Vec3f(0.0f, 0.0f, 0.0f),
+                     0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 2, 0, false);
+}
 
 bool ftToonLink::activeArticle3(wnSimple* weapon, soModuleAccesser* acc) {
-    if (weapon->getArticleId() == 5) {
+    if (weapon->getArticleId() == 3) {
         int founderTaskId;
         soResourceModule& resources = acc->getResourceModule();
         founderTaskId = acc->getStageObject().m_taskId;
-        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), reinterpret_cast<ftToonLinkSimpleArticleData*>(g_ftCommonDataAccesser.getData(Fighter_ToonLink))->m_data1, true, false, Vec3f(0.0f, 0.0f, 0.0f),
-                         0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 3, 0xFF, false);
-    } else {
-        int founderTaskId;
-        founderTaskId = acc->getStageObject().m_taskId;
-        soResourceModule& resources = acc->getResourceModule();
-        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), reinterpret_cast<ftToonLinkSimpleArticleData*>(g_ftCommonDataAccesser.getData(Fighter_ToonLink))->m_data0, true, false, Vec3f(0.0f, 0.0f, 0.0f),
+        weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), static_cast<ftToonLinkData*>(g_ftCommonDataAccesser.getData(Fighter_ToonLink))->m_simpleArticle3Data, true, false, Vec3f(0.0f, 0.0f, 0.0f),
                          0xFFFF, 0xFFFF, 0, true, false, -1, 0, false, 2, 0, false);
+    } else {
+        activateSimpleArticle5(weapon, acc);
     }
     return true;
 }
 
-// FIXME: Test code present only to emit the shared builder functions; delete once ftToonLink is done
-void testBuilder() {
-    soInsideEventManageModuleBuilder<ftToonLinkInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
-    soResourceIdAccesserImpl idAccImpl(0, 1, 2);
-}
-soInsideEventManageModuleBuilder<ftToonLinkInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
-
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-// Empty virtual overrides and default observers.
-void fn_121_91E8() {}
-void fn_121_9974() {}
-void fn_121_9978() {}
-void fn_121_AD2C() {}
-void fn_121_AE30() {}
-void fn_121_AE3C() {}
-void fn_121_AE7C() {}
-void fn_121_AE80() {}
-void fn_121_AF10() {}
-void fn_121_AF3C() {}
-void fn_121_AF40() {}
-void fn_121_AF44() {}
-void fn_121_AF48() {}
-void fn_121_AF4C() {}
-void fn_121_AF50() {}
-void fn_121_AF54() {}
-void fn_121_AF58() {}
-void fn_121_AF5C() {}
-void fn_121_AF60() {}
-void fn_121_AF64() {}
-void fn_121_AF68() {}
-void fn_121_AF6C() {}
-void fn_121_AF70() {}
-void fn_121_AF74() {}
-void fn_121_AF80() {}
-void fn_121_AF84() {}
-void fn_121_AF88() {}
-void fn_121_AF8C() {}
-void fn_121_AFB8() {}
-void fn_121_AFBC() {}
-void fn_121_AFC0() {}
-void fn_121_AFC4() {}
-void fn_121_AFC8() {}
-void fn_121_AFEC() {}
-void fn_121_AFF0() {}
-void fn_121_B004() {}
-void fn_121_B008() {}
-void fn_121_B00C() {}
-void fn_121_B010() {}
-void fn_121_B014() {}
-void fn_121_B018() {}
-void fn_121_DAAC() {}
-void fn_121_E1B8() {}
-void fn_121_E23C() {}
-void fn_121_E324() {}
-void fn_121_E40C() {}
-void fn_121_E4F4() {}
-void fn_121_E5DC() {}
-void fn_121_E6C4() {}
-void fn_121_E7AC() {}
-void fn_121_E894() {}
-
-// Constant returns.
-int fn_121_AC18() { return 0; }
-int fn_121_AF78() { return 0; }
-int fn_121_AFE4() { return 0; }
-int fn_121_AFF4() { return 0; }
-int fn_121_AFFC() { return 0; }
-int fn_121_B3C0() { return 0; }
-int fn_121_E2E8() { return 0; }
-int fn_121_E3D0() { return 0; }
-int fn_121_E4B8() { return 0; }
-int fn_121_E5A0() { return 0; }
-int fn_121_E688() { return 0; }
-int fn_121_E770() { return 0; }
-int fn_121_E858() { return 0; }
-int fn_121_E940() { return 0; }
-int fn_121_CBAC() { return 7; }
-int fn_121_E1F4() { return 8; }
-
-// Field accessors.
-u8 fn_121_22F8(u8* p) { return *(u8*)(p + 0x4); }
-int fn_121_AA2C(u8* p) { return *(int*)(p + 0x28); }
-int fn_121_AC00(u8* p) { return *(int*)(p + 0xC0); }
-void fn_121_AC08(u8* p, float x, float y, float z) {
-    *(float*)(p + 0x0) = x;
-    *(float*)(p + 0x4) = y;
-    *(float*)(p + 0x8) = z;
-}
-u8 fn_121_AE34(u8* p) { return *(u8*)(p + 0x44); }
-int fn_121_AFCC(u8* p) { return *(int*)(p + 0x110); }
-int fn_121_B18C(u8* p) { return *(int*)(p + 0x20); }
-int fn_121_B268(u8* p) { return *(int*)(p + 0x18); }
-int fn_121_B300(u8* p) { return *(int*)(p + 0x10); }
-u8* fn_121_B01C(u8* p, u32 idx) { return p + 4 + (idx << 3); }
-u8* fn_121_B0DC(u8* p) { return p + 0x458; }
-u8* fn_121_B0E4(u8* p) { return p + 0x3C8; }
-u8* fn_121_B0EC(u8* p) { return p + 0x8; }
-u8* fn_121_B0F4(u8* p) { return p + 0x84; }
-u8* fn_121_B0FC(u8* p) { return p + 0x70; }
-u8* fn_121_B104(u8* p) { return p + 0x5C; }
-u8* fn_121_B10C(u8* p) { return p + 0x48; }
-u8* fn_121_B114(u8* p) { return p + 0x34; }
-u8* fn_121_B11C(u8* p) { return p + 0x20; }
-u8* fn_121_B124(u8* p) { return p + 0x8; }
-void fn_121_CBB4(u8* p, u8 v) { *(u8*)(p + 0x11BEC) = v; }
-u8* fn_121_CBC0(u8* p) { return p + 0x19DE8; }
-u8* fn_121_CBE0(u8* p) { return p + 0x19E24; }
-u8* fn_121_CBEC(u8* p) { return p + 0x1A2DC; }
-void fn_121_DB94(u8* p) { *(u8*)(p + 0x31) = 0; }
-void fn_121_DBA0(u8* p) { *(u8*)(p + 0x31) = 1; }
-u8* fn_121_CC9C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_121_CCB4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_121_CCCC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_121_CCE4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_121_CD44(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_121_CCFC(u8* p, int x) {
-    if (x == 3) { return p + 0x5FAC; }
-    if (x == 2) { return p + 0x3FD0; }
-    if (x == 1) { return p + 0x1FF4; }
-    if (x == 0) { return p + 0x18; }
-    return 0;
-}
-void fn_121_E1FC(s16* dst, s16* src) { *dst = *src; }
-
-// Bit flags in the u32 array at +0x1C.
-bool fn_121_B208(u8* p, u32 mask, u32 idx) { u32* a = *(u32**)(p + 0x1C); return (a[idx] & mask) != 0; }
-void fn_121_B224(u8* p, u32 mask, u32 idx) { u32* a = *(u32**)(p + 0x1C); a[idx] &= ~mask; }
-void fn_121_B23C(u8* p, u32 idx) { u32* a = *(u32**)(p + 0x1C); a[idx] = 0; }
-void fn_121_B250(u8* p, u32 mask, u32 idx) { u32* a = *(u32**)(p + 0x1C); a[idx] |= mask; }
-
-// Float array at +0x14.
-void fn_121_B270(u8* p, u32 idx, float d) {
-    if (d == 0.0f) {
-        return;
-    }
-    float* a = *(float**)(p + 0x14);
-    a[idx] /= d;
-}
-void fn_121_B298(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] *= v; }
-void fn_121_B2B0(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] -= v; }
-void fn_121_B2C8(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] += v; }
-void fn_121_B2E0(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] = v; }
-float fn_121_B2F0(u8* p, u32 idx) { float* a = *(float**)(p + 0x14); return a[idx]; }
-
-// Int array at +0x0C.
-void fn_121_B308(u8* p, u32 idx) { int* a = *(int**)(p + 0xC); a[idx]--; }
-void fn_121_B320(u8* p, u32 idx) { int* a = *(int**)(p + 0xC); a[idx]++; }
-void fn_121_B338(u8* p, int d, u32 idx) {
-    if (d == 0) {
-        return;
-    }
-    int* a = *(int**)(p + 0xC);
-    a[idx] /= d;
-}
-void fn_121_B358(u8* p, int d, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] *= d; }
-void fn_121_B370(u8* p, int d, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] -= d; }
-void fn_121_B388(u8* p, int d, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] += d; }
-void fn_121_B3A0(u8* p, int v, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] = v; }
-
-}
-
-// Destructor wrappers: base destructors or sibling wrappers on sub-objects, then delete when flags > 0.
-extern "C" {
-
-void* fn_121_21A0(void* p, s16 flags);
-void* fn_121_285C(void* p, s16 flags);
-void* fn_121_3D80(void* p, s16 flags);
-void* fn_121_4294(void* p, s16 flags);
-void* fn_121_482C(void* p, s16 flags);
-void* fn_121_59F4(void* p, s16 flags);
-void* fn_121_5EE8(void* p, s16 flags);
-void* fn_121_5F28(void* p, s16 flags);
-void* fn_121_5F68(void* p, s16 flags);
-void* fn_121_696C(void* p, s16 flags);
-// Sibling and module-27 wrappers used by the functions below (defined elsewhere).
-void* fn_27_5C674(void* p, s16 flags);
-void* fn_27_5AE44(void* p, s16 flags);
-void* fn_27_6880C(void* p, s16 flags);
-void* fn_27_63EBC(void* p, s16 flags);
-void* fn_27_3A9380(void* p, s16 flags);
-// map: wnSimple____dt
-void* fn_121_5FA8(void* p, s16 flags);
-// map: wnToonLinkHookShot____dt
-void* fn_121_6B30(void* p, s16 flags);
-void* fn_121_13894(void* p, s16 flags);
-void* fn_121_7B94(void* p, s16 flags);
-// map: soInstancePool_73soInstancePoolInfo_13wnToonLinkBow_1_16wnInstanceHolder_14soIntToType_0___562soL_______dt
-void* fn_121_7C54(void* p, s16 flags);
-void* fn_121_6ACC(void* p, s16 flags);
-// map: wnToonLinkBow____dt
-void* fn_121_79F0(void* p, s16 flags);
-void __dt__26ftStatusUniqProcessGimmickFv(void* p, s16 flags);
-void __dt__16soTransitionInfoFv(void* p, s16 flags);
-void __dt__21soStatusEventObserverFv(void* p, s16 flags);
-void __dt__22soAnimCmdEventObserverFv(void* p, s16 flags);
-void __dt__22soColorBlendModuleImplFv(void* p, s16 flags);
-void __dt__19soPhysicsModuleImplFv(void* p, s16 flags);
-void __dt__20soResourceModuleImplFv(void* p, s16 flags);
-void __dt__17soSoundModuleImplFv(void* p, s16 flags);
-void __dt__16soStopModuleImplFv(void* p, s16 flags);
-
-// Forward declarations for the wrappers below.
-void* fn_121_1D2C(void* p, s16 flags);
-void* fn_121_1D88(void* p, s16 flags);
-void* fn_121_2144(void* p, s16 flags);
-void* fn_121_2CE0(void* p, s16 flags);
-void* fn_121_486C(void* p, s16 flags);
-void* fn_121_58B8(void* p, s16 flags);
-void* fn_121_5924(void* p, s16 flags);
-void* fn_121_63F0(void* p, s16 flags);
-void* fn_121_644C(void* p, s16 flags);
-void* fn_121_64A8(void* p, s16 flags);
-void* fn_121_6564(void* p, s16 flags);
-void* fn_121_664C(void* p, s16 flags);
-void* fn_121_6714(void* p, s16 flags);
-void* fn_121_68F4(void* p, s16 flags);
-void* fn_121_69AC(void* p, s16 flags);
-void* fn_121_6A0C(void* p, s16 flags);
-void* fn_121_6A6C(void* p, s16 flags);
-void* fn_121_7010(void* p, s16 flags);
-void* fn_121_7154(void* p, s16 flags);
-void* fn_121_71B4(void* p, s16 flags);
-void* fn_121_733C(void* p, s16 flags);
-void* fn_121_739C(void* p, s16 flags);
-void* fn_121_73FC(void* p, s16 flags);
-void* fn_121_746C(void* p, s16 flags);
-void* fn_121_74CC(void* p, s16 flags);
-void* fn_121_752C(void* p, s16 flags);
-void* fn_121_75A4(void* p, s16 flags);
-void* fn_121_7604(void* p, s16 flags);
-void* fn_121_7664(void* p, s16 flags);
-void* fn_121_76DC(void* p, s16 flags);
-void* fn_121_773C(void* p, s16 flags);
-void* fn_121_77A8(void* p, s16 flags);
-void* fn_121_78A8(void* p, s16 flags);
-void* fn_121_7908(void* p, s16 flags);
-void* fn_121_7BF4(void* p, s16 flags);
-void* fn_121_7CD0(void* p, s16 flags);
-void* fn_121_7D2C(void* p, s16 flags);
-void* fn_121_7D9C(void* p, s16 flags);
-
-// Gimmick destructor wrapper
-void* fn_121_1D2C(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__26ftStatusUniqProcessGimmickFv(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Gimmick destructor wrapper
-void* fn_121_1D88(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__26ftStatusUniqProcessGimmickFv(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper around fn_121_21A0
-void* fn_121_2144(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_21A0(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// soTransitionInfo sub-object
-void* fn_121_2CE0(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__16soTransitionInfoFv((u8*)p + 0xC, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper around fn_121_482C
-void* fn_121_486C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_482C(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Status event observer sub-object
-void* fn_121_58B8(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__21soStatusEventObserverFv((u8*)p + 0x20, 0);
-        fn_121_5924(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// AnimCmd event observer sub-object
-void* fn_121_5924(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__22soAnimCmdEventObserverFv((u8*)p + 0x8, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper around module 27 destructor
-void* fn_121_63F0(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_5C674(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Color blend module
-void* fn_121_644C(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__22soColorBlendModuleImplFv(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Physics module sub-object
-void* fn_121_64A8(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__19soPhysicsModuleImplFv((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_6564(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_486C((u8*)p + 0x38, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper around module 27 destructor
-void* fn_121_664C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_5AE44(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper around module 27 destructor
-void* fn_121_6714(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_6880C((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Resource module sub-object
-void* fn_121_68F4(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__20soResourceModuleImplFv((u8*)p + 0x18, -1);
-        if (p != 0) { fn_121_285C(p, 0); }
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_69AC(void* p, s16 flags) {
-    if (p != 0) {
-// map: wnSimple____dt
-        fn_121_5FA8((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_6A0C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_69AC((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_6A6C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_6A0C((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper around module 27 destructor
-void* fn_121_7010(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_63EBC(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Sound module sub-object
-void* fn_121_7154(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__17soSoundModuleImplFv((u8*)p + 0xC, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Stop module
-void* fn_121_71B4(void* p, s16 flags) {
-    if (p != 0) {
-        __dt__16soStopModuleImplFv(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_733C(void* p, s16 flags) {
-    if (p != 0) {
-// map: wnToonLinkHookShot____dt
-        fn_121_6B30((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_739C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_733C((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_73FC(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_739C((u8*)p + 0x16D8, -1);
-        fn_121_6ACC(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_746C(void* p, s16 flags) {
-    if (p != 0) {
-// map: wnSimple____dt
-        fn_121_5FA8((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_74CC(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_746C((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_752C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_74CC((u8*)p + 0x4F2C, -1);
-        if (p != 0) { fn_121_73FC(p, 0); }
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_75A4(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_13894((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_7604(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_75A4((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_7664(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_7604((u8*)p + 0x6600, -1);
-        if (p != 0) { fn_121_752C(p, 0); }
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_76DC(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_78A8((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_773C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_78A8((u8*)p + 0x1FE8, -1);
-        fn_121_76DC((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_77A8(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_78A8((u8*)p + 0x3FC8, -1);
-        fn_121_773C((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper around module 27 destructor
-void* fn_121_78A8(void* p, s16 flags) {
-    if (p != 0) {
-        fn_27_3A9380((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_7908(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_78A8((u8*)p + 0x5FA8, -1);
-        fn_121_77A8((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_7BF4(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_7B94((u8*)p + 0x8, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper
-void* fn_121_7CD0(void* p, s16 flags) {
-    if (p != 0) {
-// map: soInstancePool_73soInstancePoolInfo_13wnToonLinkBow_1_16wnInstanceHolder_14soIntToType_0___562soL_______dt
-        fn_121_7C54(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper sub-object
-void* fn_121_7D2C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_7CD0((u8*)p + 0x8, -1);
-        fn_121_5F68(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-// Wrapper
-void* fn_121_7D9C(void* p, s16 flags) {
-    if (p != 0) {
-        fn_121_7D2C(p, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-}
-
-extern "C" {
+// The team interface destructor is a weak copy of this unit (same form as ft_pit.cpp).
 #pragma dont_inline on
-// Virtual destructors: delete the object when the flag is positive, then return it.
-void* fn_121_21A0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_121_285C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_121_3D80(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_121_4294(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_121_482C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_121_59F4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_121_5EE8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_121_5F28(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_121_5F68(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_121_696C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-// Virtual destructor of the matrix pool: delete the object when the flag is positive, then return it.
-void* fn_121_1AD8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-#pragma dont_inline reset
-}
+soTeam::~soTeam() { }
+#pragma dont_inline off
 
-// Wrappers and tail calls defined after their callers.
+// Leaf functions shared with other fighter modules (same module-map names and bodies).
 extern "C" {
-struct ftToonLinkVSlotsB {
-    virtual void slot0();
-    virtual void slot1();
-    virtual void slot2();
-    virtual void slot3();
-    virtual void slot4();
-    virtual void slot5();
-    virtual void slot6();
-    virtual void slot7();
-    virtual void slot8();
-    virtual void slot9();
-    virtual void slot10();
-    virtual void slot11();
-    virtual void slot12();
-    virtual void slot13();
-    virtual void slot14();
-    virtual void slot15();
-    virtual void slot16();
-    virtual void slot17();
-    virtual void slot18();
-    virtual void slot19();
-    virtual void slot20();
-    virtual void slot21();
-    virtual void slot22();
-};
-extern void* g_soValueVariation;
+} // extern "C"
 
-// Sub-object destructor wrapper around fn_121_79F0.
-void* fn_121_7B94(void* p, s16 flags) {
-    if (p != 0) {
-// map: wnToonLinkBow____dt
-        fn_121_79F0((u8*)p + 0x4, -1);
-        if (flags > 0) {
-            ::operator delete(p);
+// The kind record of the owner (kind 0, sub kind Toon Link) and the heap the articles are built from.
+// The descriptor keeps the address of the caller's kind temporary (taken by reference: a by-value copy would add a
+// stack slot the holder and builder frames do not have).
+struct ftToonLinkArticleKind : wnArticleKindInfo {
+    ftToonLinkArticleKind() {
+        kind = 0;
+        subKind = Fighter_ToonLink;
+    }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling, as in ft_snake
+};
+struct ftToonLinkArticleBuildInfo : wnArticleBuildInfo {
+    ftToonLinkArticleBuildInfo(const ftToonLinkArticleKind& kindArg, soHeapModule* heap) {
+        kindInfo = &kindArg;
+        heapModule = heap;
+    }
+};
+
+// The bow-arrow holder is the one constructor the builder calls out of line (four arrows).
+template <>
+wnInstanceHolder<wnToonLinkBowArrow, soKindInfoGeneric<0, 41>, soIntToType<1> >::wnInstanceHolder(soModuleAccesser* acc);
+
+// The other holders are inlined into the builder.
+template <>
+inline wnInstanceHolder<wnToonLinkBow, soKindInfoGeneric<0, 41>, soIntToType<0> >::wnInstanceHolder(soModuleAccesser* acc) :
+    m_instance(0, ftToonLinkArticleBuildInfo(ftToonLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
+               g_ftCommonDataAccesser.getWeaponData<wnToonLinkBowData>(static_cast<ftKind>(ftToonLinkArticleKind().getSubKind()), &ftArticleDataFlags().get().resourceGroup)) { }
+template <>
+inline wnInstanceHolder<wnToonLinkBoomerang, soKindInfoGeneric<0, 41>, soIntToType<2> >::wnInstanceHolder(soModuleAccesser* acc) :
+    m_instance(2, ftToonLinkArticleBuildInfo(ftToonLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
+               g_ftCommonDataAccesser.getWeaponData<wnToonLinkBoomerangData>(static_cast<ftKind>(ftToonLinkArticleKind().getSubKind()), &ftArticleDataFlags().get().resourceGroup)) { }
+template <>
+inline wnInstanceHolder<wnToonLinkHookShot, soKindInfoGeneric<0, 41>, soIntToType<4> >::wnInstanceHolder(soModuleAccesser* acc) :
+    m_instance(4, ftToonLinkArticleBuildInfo(ftToonLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
+               g_ftCommonDataAccesser.getWeaponData<wnToonLinkHookShotData>(static_cast<ftKind>(ftToonLinkArticleKind().getSubKind()), &ftArticleDataFlags().get().resourceGroup)) { }
+// The simple articles (bombs) are built from the simple data of the fighter kind.
+struct ftToonLinkSimpleKind : wnSimpleKindInfo {
+    ftToonLinkSimpleKind() : wnSimpleKindInfo(Fighter_ToonLink) { }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling, as in ft_snake
+};
+#define FT_TOONLINK_SIMPLE_HOLDER(ID)                                                                                       \
+    template <>                                                                                                         \
+    inline wnInstanceHolder<wnSimple, soKindInfoGeneric<0, 41>, soIntToType<ID> >::wnInstanceHolder(soModuleAccesser* acc) : \
+        m_instance(ID, wnSimpleConstructionInfo(wnSimpleKindInfo(Fighter_ToonLink), acc->m_enumerationStart->m_heapModule), \
+                   g_ftCommonDataAccesser.getSimpleData(static_cast<ftKind>(ftToonLinkSimpleKind().getSubKind()), \
+                                                        &ftArticleDataFlags().get().resourceGroup), false) { }
+FT_TOONLINK_SIMPLE_HOLDER(3)
+FT_TOONLINK_SIMPLE_HOLDER(5)
+
+// The holders and sub pools of the article pools (soKindInfoGeneric<0, 41>); the mediator destroys them out of line.
+#pragma dont_inline on
+template <class Mediator>
+soSelectInstanceHolder<Mediator, soArticleMediatorNull>::~soSelectInstanceHolder() { }
+template soSelectInstanceHolder<ftToonLinkArticleMediator, soArticleMediatorNull>::~soSelectInstanceHolder();
+template <class PoolList, class Founder>
+soArticleMediatorImpl<PoolList, Founder>::~soArticleMediatorImpl() { }
+template soArticleMediatorImpl<ftToonLinkArticleList, ftToonLink>::~soArticleMediatorImpl();
+template wnInstanceHolder<wnToonLinkBow, soKindInfoGeneric<0, 41>, soIntToType<0> >::~wnInstanceHolder();
+template class soInstancePoolSub<soInstancePoolInfo<wnToonLinkBow, 1, wnInstanceHolder, soIntToType<0> >, soKindInfoGeneric<0, 41> >;
+template wnInstanceHolder<wnToonLinkBowArrow, soKindInfoGeneric<0, 41>, soIntToType<1> >::~wnInstanceHolder();
+template class soInstancePoolSub<soInstancePoolInfo<wnToonLinkBowArrow, 4, wnInstanceHolder, soIntToType<1> >, soKindInfoGeneric<0, 41> >;
+template wnInstanceHolder<wnToonLinkBoomerang, soKindInfoGeneric<0, 41>, soIntToType<2> >::~wnInstanceHolder();
+template class soInstancePoolSub<soInstancePoolInfo<wnToonLinkBoomerang, 1, wnInstanceHolder, soIntToType<2> >, soKindInfoGeneric<0, 41> >;
+template wnInstanceHolder<wnSimple, soKindInfoGeneric<0, 41>, soIntToType<3> >::~wnInstanceHolder();
+template class soInstancePoolSub<soInstancePoolInfo<wnSimple, 1, wnInstanceHolder, soIntToType<3> >, soKindInfoGeneric<0, 41> >;
+template wnInstanceHolder<wnToonLinkHookShot, soKindInfoGeneric<0, 41>, soIntToType<4> >::~wnInstanceHolder();
+template class soInstancePoolSub<soInstancePoolInfo<wnToonLinkHookShot, 1, wnInstanceHolder, soIntToType<4> >, soKindInfoGeneric<0, 41> >;
+template wnInstanceHolder<wnSimple, soKindInfoGeneric<0, 41>, soIntToType<5> >::~wnInstanceHolder();
+template class soInstancePoolSub<soInstancePoolInfo<wnSimple, 1, wnInstanceHolder, soIntToType<5> >, soKindInfoGeneric<0, 41> >;
+template class soInstancePool<soInstancePoolInfo<wnSimple, 1, wnInstanceHolder, soIntToType<5> >, soInstancePoolRoot, soKindInfoGeneric<0, 41>, 5>;
+#pragma dont_inline off
+
+// The bow-arrow holder stays out of line. Its kind, flag and build-info temporaries are inlined.
+// Weak: an explicit specialization is strong; the native copy is the weak function at 0x7814.
+template <>
+__declspec(weak)
+wnInstanceHolder<wnToonLinkBowArrow, soKindInfoGeneric<0, 41>, soIntToType<1> >::wnInstanceHolder(soModuleAccesser* acc) :
+    m_instance(1, ftToonLinkArticleBuildInfo(ftToonLinkArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
+               g_ftCommonDataAccesser.getWeaponData<wnToonLinkBowArrowData>(static_cast<ftKind>(ftToonLinkArticleKind().getSubKind()), &ftArticleDataFlags().get().resourceGroup)) { }
+
+// The builder inlines the holders of its pools (all but the bow arrow's).
+template <class Mediator, int N>
+soGenerateArticleManageModuleBuilder<Mediator, N>::soGenerateArticleManageModuleBuilder(soModuleAccesser* acc) :
+    m_articles(0), m_observers(N, 0), m_mediator(acc), m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
+template <class Mediator, int N>
+soGenerateArticleManageModuleBuilder<Mediator, N>::~soGenerateArticleManageModuleBuilder() { }
+template soGenerateArticleManageModuleBuilder<ftToonLinkArticleMediator, 8>::soGenerateArticleManageModuleBuilder(soModuleAccesser*);
+template soGenerateArticleManageModuleBuilder<ftToonLinkArticleMediator, 8>::~soGenerateArticleManageModuleBuilder();
+wnSimple::~wnSimple() { } // the simple article's teardown is a copy in each fighter that pools one (as in ft_snake.cpp)
+wnToonLinkHookShot::~wnToonLinkHookShot() { } // ft_link.o owns the hookshot's teardown (map: wnToonLinkHookShot____dt)
+
+// ---- the article mediator -------------------------------------------------------------------------------------------
+// Slots: 0 Bow, 1 BowArrow (4), 2 Boomerang, 3 wnSimple, 4 HookShot, 5 wnSimple, 6 the bomb item; 7..16 unused.
+typedef soInstancePool<ftToonLinkBowInfo, ftToonLinkArticlePool0Parent, ftToonLinkArticleKindInfo, 0> ftToonLinkBowPool;
+typedef soInstancePool<ftToonLinkBowArrowInfo, ftToonLinkArticlePool1Parent, ftToonLinkArticleKindInfo, 1> ftToonLinkBowArrowPool;
+typedef soInstancePool<ftToonLinkBoomerangInfo, ftToonLinkArticlePool2Parent, ftToonLinkArticleKindInfo, 2> ftToonLinkBoomerangPool;
+typedef soInstancePool<ftToonLinkSimple3Info, ftToonLinkArticlePool3Parent, ftToonLinkArticleKindInfo, 3> ftToonLinkSimple3Pool;
+typedef soInstancePool<ftToonLinkHookShotInfo, ftToonLinkArticlePool4Parent, ftToonLinkArticleKindInfo, 4> ftToonLinkHookShotPool;
+#define FT_TOONLINK_POOL(Pool) static_cast<Pool&>(m_pools).getSub()
+#define FT_TOONLINK_UNUSED_SLOTS(value) \
+    WN_ARTICLE_UNUSED_SLOT(7, value) WN_ARTICLE_UNUSED_SLOT(8, value) WN_ARTICLE_UNUSED_SLOT(9, value) \
+    WN_ARTICLE_UNUSED_SLOT(10, value) WN_ARTICLE_UNUSED_SLOT(11, value) WN_ARTICLE_UNUSED_SLOT(12, value) \
+    WN_ARTICLE_UNUSED_SLOT(13, value) WN_ARTICLE_UNUSED_SLOT(14, value) WN_ARTICLE_UNUSED_SLOT(15, value) \
+    WN_ARTICLE_UNUSED_SLOT(16, value)
+
+template <class W> struct ftToonLinkArticleActivator;
+template <> struct ftToonLinkArticleActivator<wnToonLinkBow> {
+    static bool activate(wnToonLinkBow* weapon, soModuleAccesser* acc) {
+        u32 etcResId = acc->getResourceModule().getResourceIdAccesser()->getEtcResId();
+        return soSingletonHolder<ftToonLinkTransactor>::getInstance()->activeArticle1(weapon, acc, etcResId);
+    }
+};
+template <> struct ftToonLinkArticleActivator<wnToonLinkBowArrow> {
+    static bool activate(wnToonLinkBowArrow* weapon, soModuleAccesser* acc) { return ftToonLink::activeArticle1(weapon, acc); }
+};
+template <> struct ftToonLinkArticleActivator<wnToonLinkBoomerang> {
+    static bool activate(wnToonLinkBoomerang* weapon, soModuleAccesser* acc) { return ftToonLink::activeArticle(weapon, acc); }
+};
+template <> struct ftToonLinkArticleActivator<wnToonLinkHookShot> {
+    static bool activate(wnToonLinkHookShot* weapon, soModuleAccesser* acc) { return ftToonLink::activeArticle2(weapon, acc); }
+};
+template <> struct ftToonLinkArticleActivator<wnSimple> {
+    static bool activate(wnSimple* weapon, soModuleAccesser* acc) { return ftToonLink::activeArticle3(weapon, acc); }
+};
+
+// Hands out the first inactive article (newest first), else deactivates the oldest active one and reuses it.
+// The pool's find() of the original takes the level tag of the pool hierarchy.
+template <class W, class Pool, int S, int L>
+inline soArticle* ftToonLinkSlotGenerate(Pool& pool, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    soArticleDeactivateChecker checker;
+    W* weapon = pool.find(checker, soIntToType<0>());
+    if (weapon == NULL) {
+        weapon = static_cast<W*>(checker.getCandidate());
+        if (weapon == NULL) {
+            return wnGetNullArticle();
+        }
+        weapon->deactivateArticle();
+    }
+    if (ftToonLinkArticleActivator<W>::activate(weapon, acc) == true) {
+        return &static_cast<soArticle&>(*weapon);
+    }
+    return wnGetNullArticle();
+}
+
+// Slot 6 is the bomb item; at most two exist.
+template <int S, int L>
+inline soArticle* ftToonLinkGenerateSlot6(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    if (acc->getGenerateArticleManageModule().getNum(6) >= 2) {
+        return wnGetNullArticle();
+    }
+    BaseItem* item = soArticleMediatorHelper::createItem(0x5B, 6, acc->getStageObject().getTaskId());
+    if (item == NULL) {
+        return wnGetNullArticle();
+    }
+    return soArticleMediatorHelper::castArticle(item);
+}
+
+template <class PoolList, class Founder>
+soArticle* soArticleMediatorImpl<PoolList, Founder>::generate(s32 articleId, soModuleAccesser* acc) {
+    switch (articleId) {
+    case 0: return ftToonLinkSlotGenerate<wnToonLinkBow, ftToonLinkBowPool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftToonLinkSlotGenerate<wnToonLinkBowArrow, ftToonLinkBowArrowPool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftToonLinkSlotGenerate<wnToonLinkBoomerang, ftToonLinkBoomerangPool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftToonLinkSlotGenerate<wnSimple, ftToonLinkSimple3Pool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftToonLinkSlotGenerate<wnToonLinkHookShot, ftToonLinkHookShotPool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftToonLinkSlotGenerate<wnSimple, ftToonLinkSimple5Pool>(m_pools, acc, WN_ARTICLE_SLOT_TAGS);
+    case 6: return ftToonLinkGenerateSlot6(acc, WN_ARTICLE_SLOT_TAGS);
+    FT_TOONLINK_UNUSED_SLOTS(wnGetNullArticle())
+    default: return wnGetNullArticle();
+    }
+}
+
+// Generatable while any article of the slot is inactive.
+template <int N, class Pool, class Mediator, int S, int L>
+inline bool ftToonLinkSlotIsGeneratable(Mediator* mediator, const soIntToType<S>&, const soIntToType<L>&) {
+    bool allActive;
+    s32 i;
+    for (i = 0; i < N; ++i) {
+        if (static_cast<soArticle&>(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i)).isActiveArticle() == false) {
+            allActive = false;
+            goto done;
         }
     }
-    return p;
+    allActive = true;
+done:
+    return allActive == false;
 }
-// Wrapper sub-object with a redundant pointer check before the call.
-void* fn_121_6ACC(void* p, s16 flags) {
-    if (p != 0) {
-        if (p != 0) {
-            fn_121_6A0C((u8*)p + 0x4, -1);
+
+// Slot 6 is the bomb item: generatable while fewer than two exist.
+template <int S, int L>
+inline bool ftToonLinkSlotItemIsGeneratable(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    return acc->getGenerateArticleManageModule().getNum(6) < 2;
+}
+
+template <class PoolList, class Founder>
+bool soArticleMediatorImpl<PoolList, Founder>::isGeneratable(soModuleAccesser* acc, s32 articleId) {
+    switch (articleId) {
+    case 0: return ftToonLinkSlotIsGeneratable<1, ftToonLinkBowPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftToonLinkSlotIsGeneratable<4, ftToonLinkBowArrowPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftToonLinkSlotIsGeneratable<1, ftToonLinkBoomerangPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftToonLinkSlotIsGeneratable<1, ftToonLinkSimple3Pool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftToonLinkSlotIsGeneratable<1, ftToonLinkHookShotPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftToonLinkSlotIsGeneratable<1, ftToonLinkSimple5Pool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 6: return ftToonLinkSlotItemIsGeneratable(acc, WN_ARTICLE_SLOT_TAGS);
+    FT_TOONLINK_UNUSED_SLOTS(false)
+    default: return false;
+    }
+}
+
+// Counts the active articles of a slot with the counter functor (map: soEachCounter<...>::operator()(wnSimple&)).
+template <class Fn>
+struct ftToonLinkEachCounter {
+    Fn* m_fn;
+    s32 m_trueNum;
+    s32 m_falseNum;
+    ftToonLinkEachCounter(Fn* fn) : m_fn(fn), m_trueNum(0), m_falseNum(0) { }
+    template <class T>
+    bool operator()(T& instance) {
+        if (m_fn(&static_cast<soArticle&>(instance)) == true) {
+            ++m_trueNum;
+        } else {
+            ++m_falseNum;
         }
-        if (flags > 0) {
-            ::operator delete(p);
+        return true;
+    }
+};
+
+template <int N, class Pool, class Mediator, int S, int L>
+inline s32 ftToonLinkSlotActiveNum(Mediator* mediator, const soIntToType<S>&, const soIntToType<L>&) {
+    ftToonLinkEachCounter<bool(soArticle*)> counter(wnArticleIsActive);
+    for (s32 i = 0; i < N; ++i) {
+        ftToonLinkEachCounter<bool(soArticle*)>* c = &counter;
+        if (!(*c)(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i))) {
+            break;
         }
     }
-    return p;
+    return counter.m_trueNum;
 }
-// Tail call of virtual slot 20 (vtable offset 0x58).
-void fn_121_CC2C(void* p) {
-    ((ftToonLinkVSlotsB*)p)->slot20();
+
+// Slot 6 is the bomb item (up to two), counted by the article manage module.
+template <int S, int L>
+inline s32 ftToonLinkSlotItemActiveNum(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    return 2 - acc->getGenerateArticleManageModule().getNum(6);
 }
-// Returns the global value-variation table pointer.
-void* fn_121_B688() {
-    return g_soValueVariation;
+
+template <class PoolList, class Founder>
+s32 soArticleMediatorImpl<PoolList, Founder>::getActiveNum(soModuleAccesser* acc, s32 articleId) {
+    switch (articleId) {
+    case 0: return ftToonLinkSlotActiveNum<1, ftToonLinkBowPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftToonLinkSlotActiveNum<4, ftToonLinkBowArrowPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftToonLinkSlotActiveNum<1, ftToonLinkBoomerangPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftToonLinkSlotActiveNum<1, ftToonLinkSimple3Pool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftToonLinkSlotActiveNum<1, ftToonLinkHookShotPool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftToonLinkSlotActiveNum<1, ftToonLinkSimple5Pool>(this, WN_ARTICLE_SLOT_TAGS);
+    case 6: return ftToonLinkSlotItemActiveNum(acc, WN_ARTICLE_SLOT_TAGS);
+    FT_TOONLINK_UNUSED_SLOTS(0)
+    default: return 0;
+    }
 }
+
+template <class PoolList, class Founder>
+s32 soArticleMediatorImpl<PoolList, Founder>::getGenerateMaxNum(s32 articleId) {
+    switch (articleId) {
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(4, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOT(6, 0)
+    FT_TOONLINK_UNUSED_SLOTS(0)
+    default: return 0;
+    }
 }
+
+template <int S, int L>
+inline bool ftToonLinkShootSlot1(soArticle* article, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    wnToonLinkBowArrow& weapon = dynamic_cast<wnToonLinkBowArrow&>(*article);
+    return soSingletonHolder<ftToonLinkTransactor>::getInstance()->shootArticle1(&weapon, acc);
+}
+
+template <int S, int L>
+inline bool ftToonLinkShootSlot2(soArticle* article, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    return ftToonLink::shootArticle(&dynamic_cast<wnToonLinkBoomerang&>(*article), acc);
+}
+
+template <class PoolList, class Founder>
+bool soArticleMediatorImpl<PoolList, Founder>::shoot(soModuleAccesser* acc, soArticle* article) {
+    switch (article->getArticleId()) {
+    case 0: return wnArticleSlotShoot<wnToonLinkBow>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftToonLinkShootSlot1(article, acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftToonLinkShootSlot2(article, acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnSimple>(article, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotShoot<wnToonLinkHookShot>(article, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotShoot<wnSimple>(article, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOT(6, true)
+    FT_TOONLINK_UNUSED_SLOTS(true)
+    default: return false;
+    }
+}
+
+template <class Sub, int N>
+inline bool ftToonLinkSlotDeactivate(Sub& pool) {
+    for (s32 i = 0; i < N; ++i) {
+        if (!static_cast<soArticle&>(*static_cast<Pool&>(mediator->m_pools).getSub().getInstanceAt(i)).setDeactivateDescendant()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <class PoolList, class Founder>
+void soArticleMediatorImpl<PoolList, Founder>::deactivate() {
+    for (s32 i = 0; i < 1; ++i) {
+        if (!static_cast<soArticle&>(*FT_TOONLINK_POOL(ftToonLinkBowPool).getInstanceAt(i)).setDeactivateDescendant()) {
+            return;
+        }
+    }
+    for (s32 i = 0; i < 4; ++i) {
+        if (!static_cast<soArticle&>(*FT_TOONLINK_POOL(ftToonLinkBowArrowPool).getInstanceAt(i)).setDeactivateDescendant()) {
+            return;
+        }
+    }
+    for (s32 i = 0; i < 1; ++i) {
+        if (!static_cast<soArticle&>(*FT_TOONLINK_POOL(ftToonLinkBoomerangPool).getInstanceAt(i)).setDeactivateDescendant()) {
+            return;
+        }
+    }
+    for (s32 i = 0; i < 1; ++i) {
+        if (!static_cast<soArticle&>(*FT_TOONLINK_POOL(ftToonLinkSimple3Pool).getInstanceAt(i)).setDeactivateDescendant()) {
+            return;
+        }
+    }
+    for (s32 i = 0; i < 1; ++i) {
+        if (!static_cast<soArticle&>(*FT_TOONLINK_POOL(ftToonLinkHookShotPool).getInstanceAt(i)).setDeactivateDescendant()) {
+            return;
+        }
+    }
+    for (s32 i = 0; i < 1; ++i) {
+        if (!static_cast<soArticle&>(*FT_TOONLINK_POOL(ftToonLinkSimple5Pool).getInstanceAt(i)).setDeactivateDescendant()) {
+            return;
+        }
+    }
+}
+template soArticle* soArticleMediatorImpl<ftToonLinkArticleList, ftToonLink>::generate(s32, soModuleAccesser*);
+template bool soArticleMediatorImpl<ftToonLinkArticleList, ftToonLink>::isGeneratable(soModuleAccesser*, s32);
+template s32 soArticleMediatorImpl<ftToonLinkArticleList, ftToonLink>::getActiveNum(soModuleAccesser*, s32);
+template s32 soArticleMediatorImpl<ftToonLinkArticleList, ftToonLink>::getGenerateMaxNum(s32);
+template bool soArticleMediatorImpl<ftToonLinkArticleList, ftToonLink>::shoot(soModuleAccesser*, soArticle*);
+template void soArticleMediatorImpl<ftToonLinkArticleList, ftToonLink>::deactivate();
+
+// HYPOTHESIS: the original returns 7. The type list has six pools.
+template <class PoolList, class Founder>
+s32 soArticleMediatorImpl<PoolList, Founder>::getMediateNum() { return 7; }
+template <class PoolList, class Founder>
+void soArticleMediatorImpl<PoolList, Founder>::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
+template s32 soArticleMediatorImpl<ftToonLinkArticleList, ftToonLink>::getMediateNum();
+template void soArticleMediatorImpl<ftToonLinkArticleList, ftToonLink>::setAutoRecycle(bool);

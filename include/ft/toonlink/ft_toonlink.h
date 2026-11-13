@@ -4,6 +4,27 @@
 #include <ft/ft_fighter_builder.h>
 #include <sr/sr_common.h>
 #include <types.h>
+#include <ft/toonlink/ft_toonlink_data.h>
+
+class wnToonLinkBoomerang;
+class wnToonLinkBowArrow;
+class wnToonLinkBow;
+class wnSimple;
+class wnToonLinkHookShot;
+
+// The activator of the arrow lives in the transactor of sora_melee (a singleton).
+// HYPOTHESIS: the arguments of activeArticle2 (the article, the fighter, the effect resource id of the fighter and the facing).
+class ftToonLinkTransactor {
+    u32 m_unk4;
+public:
+    ftToonLinkTransactor();
+    virtual ~ftToonLinkTransactor();
+    // The bow activator and the arrow shooter (map: ftToonLinkTransactor__activeArticle1, __shootArticle1).
+    // HYPOTHESIS: parameter types, from the callers in ft_toonlink.cpp.
+    bool activeArticle1(wnToonLinkBow* weapon, soModuleAccesser* acc, u32 etcResId);
+    bool activeArticle2(wnToonLinkBowArrow* weapon, soModuleAccesser* acc, u32 etcResId, float lr);
+    bool shootArticle1(wnToonLinkBowArrow* weapon, soModuleAccesser* acc);
+};
 
 ////////////////////////////////////////
 // ToonLink Build Configuration
@@ -24,11 +45,37 @@ typedef soStatusModuleBuildConfig<284, soGeneralWorkBuildConfig<18, 14, 2>, 274,
 typedef soCollisionSearchModuleBuilder<soCollisionSearchModuleBuildConfig<soCollisionSearchModuleImpl> > ftToonLinkCollisionSearchModuleBuilder;
 
 // HYPOTHESIS: this fighter has its own kinetic transactor (changeKinetic is in a later translation unit)
-FT_KINETIC_TRANSACTOR(ftToonLinkKineticTransactor);
+// Same shape as FT_KINETIC_TRANSACTOR plus the three mode handlers (0x64..0x66); modes 0x67 and 0x68 do nothing here.
+class ftToonLinkKineticTransactor : public ftKineticTransactor {
+public:
+    static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
+    void changeKineticSub(void* pools, Vec2f* speed, soModuleAccesser* acc);
+    void changeKineticSub1(void* pools, Vec2f* speed, soModuleAccesser* acc);
+    void changeKineticSub2(void* pools, Vec2f* speed, soModuleAccesser* acc);
+    void changeKineticSub3(void*, Vec2f*, soModuleAccesser*) { }
+    void changeKineticSub4(void*, Vec2f*, soModuleAccesser*) { }
+    template <typename E>
+    static void updateEnergy(E* energy, soModuleAccesser* acc) {
+        if (energy->isEnable() != true) {
+            return;
+        }
+        if (energy->isSuspend()) {
+            return;
+        }
+        return energy->updateEnergy(acc);
+    }
+};
 typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKineticMediatorImplT<ftToonLinkKineticTransactor> > ftToonLinkKineticModuleBuildConfig;
 
-// HYPOTHESIS: soGenerateArticleManageModuleBuilder (weapon pools), not reconstructed yet
+// soGenerateArticleManageModuleBuilder (bow, arrows, boomerang, hookshot, two simple articles).
+// Only the fighter unit builds the real pools; the other units of the REL see an opaque block of the same size.
+#ifdef FT_TOONLINK_ARTICLE_POOLS
+#include <ft/toonlink/ft_toonlink_article_pools.h>
+typedef ftToonLinkArticleManageModuleBuilder ftToonLinkGenerateArticleManageModuleBuilder;
+#else
 typedef ftOpaqueGenerateArticleManageModuleBuilder<0x11CE4, Fighter_ToonLink> ftToonLinkGenerateArticleManageModuleBuilder;
+#endif
+
 
 class ftToonLinkBuildConfig : public ftCommonBuildConfig {
 public:
@@ -46,22 +93,7 @@ public:
     typedef ftToonLinkGenerateArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
 };
 
-class wnToonLinkBoomerang;
-class wnToonLinkBowArrow;
-class wnToonLinkHookShot;
-class wnSimple;
-
-// The activator of the arrow lives in the transactor of sora_melee (a singleton), as for Link.
-// HYPOTHESIS: the arguments of activeArticle2 (the article, the fighter, the effect resource id of the fighter and the facing).
-class ftToonLinkTransactor {
-    u32 m_unk4;
-public:
-    ftToonLinkTransactor();
-    virtual ~ftToonLinkTransactor();
-    bool activeArticle2(wnToonLinkBowArrow* weapon, soModuleAccesser* acc, u32 etcResId, float lr);
-};
-
-// HYPOTHESIS: the sword and shield fighter, like Link. m_shieldRaised tells whether the shield collision (the shield group
+// HYPOTHESIS: the sword and shield fighter. m_shieldRaised tells whether the shield collision (the Hylian Shield group
 // registered in the constructor) is switched on; it follows the work flag 0x12000041.
 class ftToonLink : public ftFighterBuilder<ftToonLinkBuildConfig> {
     u8 m_shieldRaised;
