@@ -95,7 +95,7 @@ void wnToonLinkHookShot::activate(int founderTaskId, int resourceId, int team, f
     u32 nodeId = negOne;
     alt->unk18Attach(resource.getResourceIdAccesser()->getBinResId(), 0, nodeId, nodeId, true, 0, 0, -1);
     m_moduleAccesser->getWorkManageModule().setFlag(unk, 0x22000000);
-    m_moduleAccesser->getWorkManageModule().setInt(0x18, 0x10000005);
+    m_moduleAccesser->getWorkManageModule().setInt(0x17, 0x10000005);
     soArticle* tip = static_cast<soGenerateArticleManageModule*>(m_moduleAccesser->m_enumerationStart->m_generateArticleManageModule)->generate(0, 0, false);
     if (!reinterpret_cast<soNullable*>(tip)->isNull()) {
         static_cast<soGenerateArticleManageModule*>(m_moduleAccesser->m_enumerationStart->m_generateArticleManageModule)->entry(tip);
