@@ -58,8 +58,7 @@ class wnFoxLandMaster;
 // Only the behavior-accessed tail is recovered (the turn record of the reflector).
 // HYPOTHESIS: the record grouping extends ftData, as for Wolf.
 struct ftFoxData : ftData {
-    u8 unk58[0x94 - sizeof(ftData)];
-    soTurnData reflectorTurnData;
+    soTurnData reflectorTurnData; // +0x94
 };
 static_assert(sizeof(ftFoxData) == 0x9c, "Reflector turn data offset is wrong!");
 

@@ -131,10 +131,10 @@ ftFox::ftFox(s32 entryId,
     processes[13] = &g_ftFoxStatusUniqProcessFinal;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 14);
 
-    // The reflector (the shine) is built from the record at +0x90 of the common data.
+    // The reflector (the shine) is built from the sixth extend-parameter record of the common data (+0x90).
     u8 reflectorShape[0x20];
     ftReflectorGroupDraft reflectorGroup;
-    void* reflectorRecord = *reinterpret_cast<void**>(reinterpret_cast<u8*>(m_commonData) + 0x90);
+    void* reflectorRecord = m_commonData->extendParam[5];
     FT_REFLECTOR_GROUP_CLEAR(reflectorGroup);
     ftUtil::convertReflectorData(reflectorRecord, reflectorShape, &reflectorGroup);
     m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&reflectorGroup), 2);
@@ -316,6 +316,9 @@ struct ftFoxArticleBuildInfo : wnArticleBuildInfo {
 
 // The data blocks of the articles come from the common data accessor of sora_melee (the numbers of its getters are their
 // order in the module; only declared here).
+// BYTES: the link map names these ftCommonDataAccesser::getWeaponData51/48/49, but sora_melee's
+// ft_common_data_accesser.cpp still defines them under these fn_27_ names (and wn_class_info_impl.h declares them so);
+// renaming must happen there first.
 extern "C" void* fn_27_1484BC(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_148380(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_148414(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
