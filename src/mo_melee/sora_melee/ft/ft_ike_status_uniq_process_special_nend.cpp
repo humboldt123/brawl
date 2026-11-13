@@ -20,8 +20,7 @@ void ftIkeStatusUniqProcessSpecialNEnd::initStatus(soModuleAccesser* acc) {
 void ftIkeStatusUniqProcessSpecialNEnd::execFixPos(soModuleAccesser* acc) {
     // HYPOTHESIS: constant ids 0x5dc1 (base power) and 0x5dc2 (power per charge step) from the Ike constant table.
     soWorkManageModule& work = acc->getWorkManageModule();
-    int perStep = acc->getConstantIntKirby(0x5dc2);
-    int power = acc->getConstantIntKirby(0x5dc1) + (work.getInt(0x20000000) / 30) * perStep;
+    int power = acc->getConstantIntKirby(0x5dc1) + (work.getInt(0x20000000) / 30) * acc->getConstantIntKirby(0x5dc2);
     // Each complete thirty-frame charge step raises every active hitbox's power.
     for (int i = 0; i < (s32)acc->getCollisionAttackModule().getPartSize(); i++) {
         if (acc->getCollisionAttackModule().isAttack(i, false)) {

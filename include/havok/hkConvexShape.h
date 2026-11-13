@@ -22,7 +22,9 @@ struct hkConvexShape : hkSphereRepShape {
     virtual void castRayWithCollector(const hkShapeRayCastInput& input, const hkCdBody& body,
                                       hkShapeRayCastCollector& collector) const; // 0x20
     virtual void getSupportingVertex(const hkVector4& direction, hkVector4& out) const; // 0x30
-    virtual void convertVertexIdsToVertices(const void* ids, int numIds, hkVector4* out) const; // 0x34 HYPOTHESIS
+    virtual void convertVertexIdsToVertices(const u16* ids, int numIds, hkVector4* out) const; // 0x34 HYPOTHESIS
     virtual void getFirstVertex(hkVector4& out) const;                       // 0x38
-    virtual int getNumVertices() const;                                      // 0x3C
+    // Inline (-1, map name hkConvexShape__getNumVertices): the weak copy sits in hkConvexListAgent.o, whose local
+    // convex shape does not override it.
+    virtual int getNumVertices() const { return -1; }                        // 0x3C
 };

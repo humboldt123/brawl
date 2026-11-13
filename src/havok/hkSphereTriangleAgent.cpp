@@ -171,3 +171,11 @@ void hkSymmetricAgentLinearCast_21hkSphereTriangleAgent_::staticLinearCast(const
         hkIterativeLinearCastAgent::staticLinearCast(b, a, flippedInput, &flipped, 0);
     }
 }
+
+// Shape from https://github.com/jj-link/brawl src/havok/fn_802C8E48.cpp.
+// TODO: cleanup (shape from jj-link/brawl fn_802C8E48)
+void hkSymmetricAgentFlipBodyCollector::addCdBodyPair(void* bodyA, void* bodyB) {
+    hkCdBodyPairCollector* collector = (hkCdBodyPairCollector*)unk8;
+    collector->addCdBodyPair(*(const hkCdBody*)bodyB, *(const hkCdBody*)bodyA);
+    unk4 = ((hkCdBodyPairCollector*)unk8)->m_earlyOut.m_bool;
+}

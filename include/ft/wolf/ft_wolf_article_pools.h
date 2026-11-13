@@ -8,35 +8,16 @@
 #include <wn/wn_article_build_info.h>
 #include <wn/weapon.h>
 #pragma dont_inline off // it/it_gen_archive.h (reached through weapon.h) leaves dont_inline on for everything parsed after it
+
+// Full article types let the fighter own their pools and teardown.
+#define WN_WEAPON_BUILDER
+#define WN_ARTICLE_NATIVE_BUILDERS
+#define WN_SHARED_ARRAYS_1
+#include <wn/wn_module_accesser_builder.h>
+#include <wn/wolf/wn_wolf_illusion.h>
+#include <wn/wolf/wn_wolf_blaster_bullet.h>
 #include <wn/wolf/wn_wolf_blaster.h>
 #include <wn/fox/wn_fox_land_master.h>
-
-class Vec2f;
-class Vec3f;
-struct wnWolfIllusionData;
-
-// The Phantasm afterimage. The full class lives in wn/wolf/wn_wolf_illusion.h, whose builder specializations cannot coexist
-// with this Fighter-based builder unit, so the fighter unit sees an opaque shell of the right size.
-class wnWolfIllusion : public Weapon {
-    u8 m_unreconstructed[0x1DE4 - sizeof(Weapon)];
-public:
-    wnWolfIllusion(s32 articleId, const wnArticleBuildInfo& info, const wnWolfIllusionData* data);
-    virtual ~wnWolfIllusion();
-    virtual void processUpdate();
-    void activate(s32 founderTaskId, s32 unk1, s32 team, float lr, s32 unk2, s32 unk3);
-};
-static_assert(sizeof(wnWolfIllusion) == 0x1DE4, "Wolf Illusion layout is wrong!");
-
-// The blaster bullet. The full class lives in wn/wolf/wn_wolf_blaster_bullet.h (a weapon builder specialization that cannot coexist
-// with this Fighter-based builder unit), so the fighter unit sees an opaque shell of the right size.
-struct wnWolfBlasterBulletData;
-class wnWolfBlasterBullet : public Weapon {
-    u8 m_unreconstructed[0x2178 - sizeof(Weapon)];
-public:
-    wnWolfBlasterBullet(s32 articleId, const wnArticleBuildInfo& info, const wnWolfBlasterBulletData* data);
-    virtual ~wnWolfBlasterBullet();
-};
-static_assert(sizeof(wnWolfBlasterBullet) == 0x2178, "Wolf blaster bullet layout is wrong!");
 
 typedef wnArticleHierarchy<wnFoxLandMaster, 1, soInstancePoolRoot> ftWolfLandMasterPool;
 typedef wnArticleHierarchy<wnWolfIllusion, 2, ftWolfLandMasterPool> ftWolfIllusionPool;

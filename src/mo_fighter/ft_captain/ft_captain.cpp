@@ -91,19 +91,23 @@ public:
 };
 extern ftCaptainStatusUniqProcessFalconKnuckle g_ftCaptainStatusUniqProcessFalconKnuckle;
 
-// HYPOTHESIS: members of the other special status processes, only declared here (unnamed in the module map).
-extern "C" {
-void fn_100_F3D0(soModuleAccesser* moduleAccesser);
-void fn_100_DFF0(soStatusUniqProcess* process, float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
-bool fn_100_E1A0(soStatusUniqProcess* process, u32 flags, soModuleAccesser* moduleAccesser);
-}
+// The Final Smash processes (ft_captain_status_uniq_process_final.cpp); only the members called here are declared.
+class ftCaptainStatusUniqProcessFinalStart : public soStatusUniqProcess {
+public:
+    void notifyEventCollisionAttackFighter(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
+    bool notifyEventCollisionAttackCheck(u32 flags, soModuleAccesser* moduleAccesser);
+};
+class ftCaptainStatusUniqProcessFinalMessageHandler : public soStatusUniqProcess {
+public:
+    static void update(soModuleAccesser* moduleAccesser);
+};
 
 void ftCaptain::processUpdate() {
     soModuleAccesser* acc = m_moduleAccesser;
     switch (acc->getStatusModule().getStatusKind()) {
     case 0x116:
     case 0x11d: case 0x11e: case 0x11f: case 0x120: case 0x121:
-        fn_100_F3D0(acc);
+        ftCaptainStatusUniqProcessFinalMessageHandler::update(acc);
         break;
     }
     Fighter::processUpdate();
@@ -127,7 +131,7 @@ void ftCaptain::notifyEventCollisionAttack(float power, soCollisionLog* collisio
         reinterpret_cast<ftCaptainStatusUniqProcessFalconKick*>(&lbl_100_bss_1A4)->setEventCollisionAttack(moduleAccesser);
         break;
     case 0x116:
-        fn_100_DFF0(&lbl_100_bss_1F4, power, collisionLog, moduleAccesser);
+        reinterpret_cast<ftCaptainStatusUniqProcessFinalStart*>(&lbl_100_bss_1F4)->notifyEventCollisionAttackFighter(power, collisionLog, moduleAccesser);
         break;
     }
 }
@@ -136,7 +140,7 @@ bool ftCaptain::notifyEventCollisionAttackCheck(u32 flags) {
     soModuleAccesser* acc = m_moduleAccesser;
     switch (acc->getStatusModule().getStatusKind()) {
     case 0x116:
-        return fn_100_E1A0(&lbl_100_bss_1F4, flags, acc);
+        return reinterpret_cast<ftCaptainStatusUniqProcessFinalStart*>(&lbl_100_bss_1F4)->notifyEventCollisionAttackCheck(flags, acc);
     default:
         return Fighter::notifyEventCollisionAttackCheck(flags);
     }

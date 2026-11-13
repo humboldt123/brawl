@@ -14,7 +14,6 @@
 // Message::getPrintIndexData(data, index, text, size)
 extern "C" void getPrintIndexData__7MessageFPvUlPPcPUl(void* data, u32 index, char** text, u32* size);
 // the pictures of the collection: the name of the file, the decoded picture and the check that the collection is ready
-extern "C" muCollectionFileName fn_800C3538(const char* names, int index);
 extern "C" void fn_800C7324(muSnapShotJpeg* result, void* summary, Heaps::HeapType heap, int unk);
 extern "C" int fn_800C39D8(void* collection);
 // MuObject::changeMaterialTex(texture name, picture, width, height)
@@ -214,7 +213,7 @@ void muSnapShotTask::controlBrowsingLoading() {
             jpeg->reset(pixels);
             jpeg->m_width = decoded.m_width;
             jpeg->m_height = decoded.m_height;
-            fn_800C2BB4(reinterpret_cast<muSnapShotJpeg*>(&decoded), NULL);
+            reinterpret_cast<muSnapShotJpeg*>(&decoded)->reset(NULL);
             changeMaterialTex__8MuObjectFPCcPvUsUs(object, "photoMat", jpeg->m_pixels, jpeg->m_width, jpeg->m_height);
             removeObjCore(object->m_sceneModel);
             addObjCore(object->m_sceneModel);
@@ -286,7 +285,7 @@ int muSnapShotTask::getNumPic(int media) {
 }
 
 muCollectionFileName muSnapShotTask::getFileHandle(int index) {
-    return fn_800C3538(m_work->m_media[m_work->m_curMedia].m_names, index);
+    return muCollectionFileName(m_work->m_media[m_work->m_curMedia].m_names, index);
 }
 
 u32 muSnapShotTask::getCurFileID() {

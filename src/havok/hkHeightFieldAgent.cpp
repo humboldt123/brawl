@@ -29,6 +29,40 @@
 #include <havok/hkSymmetricAgentFlipCollectors.h>
 #include <havok/hkBvTreeAgent.h>
 
+#include <havok/hkCollisionDispatcher.h>
+
+// Height field x convex pairs in both orders (shape types 18 and 21).
+void hkHeightFieldAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
+    hkAgentFuncs af;
+    af.create = (hkAgentFunc)&hkHeightFieldAgent::createHeightFieldAAgent;
+    af.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_18hkHeightFieldAgent::staticGetPenetrations;
+    af.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_18hkHeightFieldAgent::staticGetClosestPoints;
+    af.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast_18hkHeightFieldAgent::staticLinearCast;
+    af.symmetricA = true;
+    af.symmetricB = true;
+    dispatcher->registerCollisionAgent(&af, 0x12, 0x15);
+    hkAgentFuncs bf;
+    bf.create = (hkAgentFunc)&hkHeightFieldAgent::createHeightFieldBAgent;
+    bf.staticGetPenetrations = (hkAgentFunc)hkHeightFieldAgent::staticGetPenetrations;
+    bf.staticGetClosestPoints = (hkAgentFunc)hkHeightFieldAgent::staticGetClosestPoints;
+    bf.staticLinearCast = (hkAgentFunc)hkHeightFieldAgent::staticLinearCast;
+    bf.symmetricA = false;
+    bf.symmetricB = true;
+    dispatcher->registerCollisionAgent(&bf, 0x15, 0x12);
+}
+
+// TODO: cleanup (shape from jj-link/brawl fn_802B48CC)
+hkCollisionAgent* hkHeightFieldAgent::createHeightFieldBAgent(const hkCdBody& bodyA, const hkCdBody& bodyB,
+                                                              hkCollisionInput& input, hkContactMgr* contactMgr) {
+    return new hkHeightFieldAgent(bodyA, bodyB, input, contactMgr);
+}
+
+// TODO: cleanup (shape from jj-link/brawl fn_802B4948)
+hkCollisionAgent* hkHeightFieldAgent::createHeightFieldAAgent(const hkCdBody& bodyA, const hkCdBody& bodyB,
+                                                              hkCollisionInput& input, hkContactMgr* contactMgr) {
+    return new hkSymmetricAgent_18hkHeightFieldAgent_(bodyB, bodyA, input, contactMgr);
+}
+
 #pragma dont_inline on
 void hkHeightFieldAgent::getPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target) {
     staticGetPenetrations(a, b, c, target);
@@ -94,3 +128,153 @@ void hkSymmetricAgentLinearCast_18hkHeightFieldAgent::staticLinearCast(const hkC
         hkHeightFieldAgent::staticLinearCast(b, a, flippedInput, &flipped, 0);
     }
 }
+
+// fn_802B4A60: body from https://github.com/jj-link/brawl src/havok/fn_802B4A60.cpp (namespaced; labels as in our symbols).
+#include <types.h>
+namespace jj_fn_802B4A60 {
+class Inner {
+public:
+    virtual void v0();
+    virtual void v1();
+    virtual void v2();
+    virtual void v3();
+    virtual void v4(unsigned int);
+    virtual void v5();
+    virtual void v6();
+};
+
+class Outer {
+public:
+    virtual void v0(int);
+    virtual void v1();
+    virtual void v2();
+    char pad[4];
+    Inner* m_inner;
+    unsigned short* m_table;
+    int m_count;
+};
+
+// TODO: cleanup (shape from jj-link/brawl fn_802B4A60)
+extern "C" void fn_802B4A60(Outer* self) {
+    if (self->m_inner != 0) {
+        int off;
+        int i;
+        i = 0;
+        off = 0;
+        while (i < self->m_count) {
+            unsigned int id = *(unsigned short*)((char*)self->m_table + off);
+            if (id != 0xFFFF) {
+                self->m_inner->v4(id);
+            }
+            off += 2;
+            i++;
+        }
+    }
+    if (self != 0) {
+        self->v0(1);
+    }
+}
+} // namespace jj_fn_802B4A60
+
+// fn_802B49CC: body from https://github.com/jj-link/brawl src/havok/fn_802B49CC.cpp (namespaced; memory singletons rebound to our names).
+#include <types.h>
+#include <havok/hkMemory.h>
+#include <havok/hkThreadMemory.h>
+#include <havok/hkArray.h>
+namespace jj_fn_802B49CC {
+typedef unsigned int u32;
+
+
+class SoHeapAllocator {
+public:
+    virtual void vf0();
+    virtual void vf1();
+    virtual void vf2();
+    virtual void vf3();
+    virtual void vf4();
+    virtual void free(void*, unsigned short, int);
+};
+
+
+struct Obj {
+    void* vtable;
+    unsigned short type;
+    char pad[6];
+    void* data;
+    u32 size;
+    u32 raw;
+
+    bool isOwned() const {
+        return (raw & 0x80000000) == 0;
+    }
+
+    void dealloc() {
+        hkThreadMemory::s_instance->deallocateChunk(data, (raw & 0x3FFFFFFF) * 2, 0x15);
+    }
+};
+
+// TODO: cleanup (shape from jj-link/brawl fn_802B49CC)
+extern "C" Obj* fn_802B49CC(Obj* self, int flag) {
+    if (self) {
+        if ((u32)self + 0xC != 0 && self->isOwned()) {
+            self->dealloc();
+        }
+        if (flag > 0) {
+            ((SoHeapAllocator*)hkMemory::s_instance)->free(self, self->type, 0x1d);
+        }
+    }
+    return self;
+}
+} // namespace jj_fn_802B49CC
+
+// fn_802B7898: body from https://github.com/jj-link/brawl src/havok/fn_802B7898.cpp (namespaced; memory singletons rebound to our names).
+#include <types.h>
+#include <havok/hkMemory.h>
+#include <havok/hkThreadMemory.h>
+#include <havok/hkArray.h>
+namespace jj_fn_802B7898 {
+typedef unsigned int u32;
+
+
+class SoHeapAllocator {
+public:
+    virtual void vf0();
+    virtual void vf1();
+    virtual void vf2();
+    virtual void vf3();
+    virtual void vf4();
+    virtual void free(void*, unsigned short, int);
+};
+
+
+struct Object {
+    void* vtable;
+    unsigned short type;
+    unsigned short pad;
+    u32 _pad;
+    void* data;
+    u32 size;
+    u32 raw;
+
+    bool isOwned() const {
+        return (raw & 0x80000000) == 0;
+    }
+
+    void dealloc() {
+        hkThreadMemory::s_instance->deallocateChunk(data, (raw * 2) & 0x7FFFFFFE, 0x15);
+    }
+};
+
+// TODO: cleanup (shape from jj-link/brawl fn_802B7898)
+extern "C" Object* fn_802B7898(Object* self, int flag) {
+    if (self) {
+        if (self && self && (u32)self + 0xC && self->isOwned()) {
+            self->dealloc();
+        }
+        if (flag > 0) {
+            ((SoHeapAllocator*)hkMemory::s_instance)->free(self, self->type, 0x1D);
+        }
+    }
+    return self;
+}
+} // namespace jj_fn_802B7898

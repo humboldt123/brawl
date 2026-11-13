@@ -188,8 +188,7 @@ void wnSZerosuitWhip::notifyEventCollisionAttack(float power, soCollisionLog* lo
     work.setFloat(pending, 0x11000001);
     gfTask* task = gfTaskScheduler::getInstance()->getTaskById((gfTask::Category)log->m_taskCategory, log->m_taskId);
     soCollisionAttackData* attackData = acc->getCollisionAttackModule().getData(log->m_damageIndex, log->m_isAbsolute);
-    float one = 1.0f;
-    int frames = soDamageUtilActor::calcHitStopFrame(power, one, one, acc, attackData, 0);
+    int frames = soDamageUtilActor::calcHitStopFrame(acc, power, 1.0f, 1.0f, attackData, 0);
     // The hit stop of a reaction frame target replaces the computed one.
     if (log->m_kind == 1 && task != nullptr) {
         StageObject& target = dynamic_cast<StageObject&>(*task);

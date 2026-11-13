@@ -11,6 +11,10 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_scene/sora_scene/sc_boot.cpp:
+	.text       start:0x0000040C end:0x0000068C
+	.data       start:0x00000000 end:0x000000A0
+
 mo_scene/sora_scene/sc_demo.cpp:
 	.text       start:0x0000068C end:0x00000768
 	.data       start:0x000000A0 end:0x000000E0
@@ -19,9 +23,25 @@ mo_scene/sora_scene/sc_tutorial.cpp:
 	.text       start:0x00000768 end:0x00000810
 	.data       start:0x000000E0 end:0x00000128
 
+mo_scene/sora_scene/sc_memory_change.cpp:
+	.text       start:0x00000810 end:0x00004EB4
+	.ctors      start:0x00000000 end:0x00000004
+
+mo_scene/sora_scene/sc_intro.cpp:
+	.text       start:0x00004EB4 end:0x000061A4
+
 mo_scene/sora_scene/sc_staffroll.cpp:
 	.text       start:0x000061A4 end:0x0000624C
 	.data       start:0x00001400 end:0x00001448
+
+mo_scene/sora_scene/sc_gameover.cpp:
+	.text       start:0x0000624C end:0x000067D8
+
+mo_scene/sora_scene/sc_ty_fig_disp.cpp:
+	.text       start:0x000067D8 end:0x00006B08
+
+mo_scene/sora_scene/sc_ty_fig_disp2.cpp:
+	.text       start:0x00006B08 end:0x00007070
 
 mo_scene/sora_scene/sc_seal_list.cpp:
 	.text       start:0x00007070 end:0x00007230
@@ -32,9 +52,53 @@ mo_scene/sora_scene/sc_seal_disp.cpp:
 	.rodata     start:0x00000018 end:0x00000020
 	.data       start:0x000018D8 end:0x00001920
 
+mo_scene/sora_scene/sc_clear_getter.cpp:
+	.text       start:0x000074B4 end:0x00007834
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_scene/sora_scene/sc_snap_shot.cpp:
+	.text       start:0x00007834 end:0x00007AA8
+	.data       start:0x00001A10 end:0x00001B30
+
+mo_scene/sora_scene/sc_button.cpp:
+	.text       start:0x00007AA8 end:0x00007FD4
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_scene/sora_scene/sc_edit_select.cpp:
+	.text       start:0x00007FD4 end:0x00008340
+	.rodata     start:0x00000028 end:0x00000030
+	.data       start:0x00001C48 end:0x00001D70
+
+mo_scene/sora_scene/sc_edit_menu.cpp:
+	.text       start:0x00008340 end:0x00008514
+	.data       start:0x00001D70 end:0x00001DD0
+	.bss        start:0x00000048 end:0x00000050
+
+mo_scene/sora_scene/sc_edit.cpp:
+	.text       start:0x00008514 end:0x00008BC8
+	.ctors      start:0x0000000C end:0x00000010
+
 mo_scene/sora_scene/sc_net_time_result.cpp:
 	.text       start:0x0000C824 end:0x0000C9C4
 	.data       start:0x000040D0 end:0x00004140
+
+mo_scene/sora_scene/sc_melee.cpp:
+	.text       start:0x00013884 end:0x0001AFE4
+	.ctors      start:0x00000014 end:0x00000018
+
+mo_scene/sora_scene/sc_simple_result.cpp:
+	.text       start:0x0001B004 end:0x0001B144
+
+mo_scene/sora_scene/sc_vs_result.cpp:
+	.text       start:0x0001B144 end:0x0001B750
+	.ctors      start:0x00000018 end:0x0000001C
+
+mo_scene/sora_scene/sc_character_roll.cpp:
+	.text       start:0x0001B750 end:0x0001BCB4
+	.ctors      start:0x0000001C end:0x00000020
+
+mo_scene/sora_scene/sc_adv_seal.cpp:
+	.text       start:0x0001BCB4 end:0x0001BFDC
 
 mo_scene/sora_scene/sc_adv_selchar.cpp:
 	.text       start:0x0001BFDC end:0x0001C084
@@ -49,13 +113,28 @@ mo_scene/sora_scene/sc_adv_diff.cpp:
 	.rodata     start:0x000008C0 end:0x000008D0
 	.data       start:0x00005E48 end:0x00005F50
 
+mo_scene/sora_scene/sc_adv_name.cpp:
+	.text       start:0x0001C668 end:0x0001CC48
+
+mo_scene/sora_scene/sc_adv_map.cpp:
+	.text       start:0x0001CC48 end:0x0001E588
+
+mo_scene/sora_scene/sc_adv_visual.cpp:
+	.text       start:0x0001E588 end:0x0001FDEC
+
 mo_scene/sora_scene/sc_adv_result.cpp:
 	.text       start:0x0001FDEC end:0x0002006C
 	.data       start:0x00006488 end:0x000064E8
 
+mo_scene/sora_scene/sc_adv_ending.cpp:
+	.text       start:0x0002006C end:0x000207B4
+
 mo_scene/sora_scene/sc_adv_gameover.cpp:
 	.text       start:0x000207B4 end:0x00020B2C
 	.data       start:0x00006600 end:0x000067E8
+
+mo_scene/sora_scene/sq_sequence_init.cpp:
+	.text       start:0x00020B2C end:0x00020D90
 
 mo_scene/sora_scene/sq_menu_main.cpp:
 	.text       start:0x00020D90 end:0x000214A0
@@ -180,6 +259,9 @@ mo_scene/sora_scene/sq_prize_check.cpp:
 	.data       start:0x000091F0 end:0x000095A0
 	.bss        start:0x00001B70 end:0x00001B88
 
+mo_scene/sora_scene/sq_challenger.cpp:
+	.text       start:0x0003B0E0 end:0x0003B6D0
+
 mo_scene/sora_scene/sq_net_any_team_melee.cpp:
 	.text       start:0x0003B6D0 end:0x0003C1A4
 	.rodata     start:0x00002480 end:0x00002488
@@ -194,6 +276,9 @@ mo_scene/sora_scene/sq_net_any_watch.cpp:
 mo_scene/sora_scene/sq_button.cpp:
 	.text       start:0x0003CD50 end:0x0003CF6C
 	.data       start:0x00009A80 end:0x00009B70
+
+mo_scene/sora_scene/sq_ty_fig_disp.cpp:
+	.text       start:0x0003CF6C end:0x0003D12C
 
 mo_scene/sora_scene/sq_lib.cpp:
 	.text       start:0x0003D12C end:0x0003D4B8

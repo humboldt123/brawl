@@ -398,6 +398,8 @@ public:
         return *m_enumerationStart->m_cameraModule;
     }
 
+    void* getPhysicsModule() const;
+
     soWorkManageModule& getWorkManageModule() const {
         return *m_enumerationStart->m_workManageModule;
     }

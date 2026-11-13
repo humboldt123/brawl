@@ -31,12 +31,46 @@ wnWarioBikeParamAccesser::wnWarioBikeParamAccesser(const wnWarioBikeParam* param
     wnExtendParamAccesser<3999, 34, 23999, 5, 0, 0>(0x60) {
     const u8* p = reinterpret_cast<const u8*>(param);
     // HYPOTHESIS: the float table follows the parameter block's offsets (0x00-0x28 by 4, 0x30-0x6C by 4, then 0x78, 0x84-0x98).
-    static const u16 floatOffsets[34] = { 0x00, 0x04, 0x08, 0x0C, 0x10, 0x14, 0x18, 0x1C, 0x20, 0x24, 0x28,
-                                          0x30, 0x34, 0x38, 0x3C, 0x40, 0x44, 0x48, 0x4C, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C,
-                                          0x78, 0x84, 0x88, 0x8C, 0x90, 0x94, 0x98 };
-    static const u16 intOffsets[5] = { 0x2C, 0x70, 0x74, 0x7C, 0x80 };
-    for (int i = 0; i < 34; i++) m_floats[i] = reinterpret_cast<const float*>(p + floatOffsets[i]);
-    for (int i = 0; i < 5; i++) m_ints[i] = reinterpret_cast<const s32*>(p + intOffsets[i]);
+    // BYTES: the original stores each table entry directly (no loop).
+    m_floats[0] = reinterpret_cast<const float*>(p + 0x0);
+    m_floats[1] = reinterpret_cast<const float*>(p + 0x4);
+    m_floats[2] = reinterpret_cast<const float*>(p + 0x8);
+    m_floats[3] = reinterpret_cast<const float*>(p + 0xC);
+    m_floats[4] = reinterpret_cast<const float*>(p + 0x10);
+    m_floats[5] = reinterpret_cast<const float*>(p + 0x14);
+    m_floats[6] = reinterpret_cast<const float*>(p + 0x18);
+    m_floats[7] = reinterpret_cast<const float*>(p + 0x1C);
+    m_floats[8] = reinterpret_cast<const float*>(p + 0x20);
+    m_floats[9] = reinterpret_cast<const float*>(p + 0x24);
+    m_floats[10] = reinterpret_cast<const float*>(p + 0x28);
+    m_floats[11] = reinterpret_cast<const float*>(p + 0x30);
+    m_floats[12] = reinterpret_cast<const float*>(p + 0x34);
+    m_floats[13] = reinterpret_cast<const float*>(p + 0x38);
+    m_floats[14] = reinterpret_cast<const float*>(p + 0x3C);
+    m_floats[15] = reinterpret_cast<const float*>(p + 0x40);
+    m_floats[16] = reinterpret_cast<const float*>(p + 0x44);
+    m_floats[17] = reinterpret_cast<const float*>(p + 0x48);
+    m_floats[18] = reinterpret_cast<const float*>(p + 0x4C);
+    m_floats[19] = reinterpret_cast<const float*>(p + 0x50);
+    m_floats[20] = reinterpret_cast<const float*>(p + 0x54);
+    m_floats[21] = reinterpret_cast<const float*>(p + 0x58);
+    m_floats[22] = reinterpret_cast<const float*>(p + 0x5C);
+    m_floats[23] = reinterpret_cast<const float*>(p + 0x60);
+    m_floats[24] = reinterpret_cast<const float*>(p + 0x64);
+    m_floats[25] = reinterpret_cast<const float*>(p + 0x68);
+    m_floats[26] = reinterpret_cast<const float*>(p + 0x6C);
+    m_floats[27] = reinterpret_cast<const float*>(p + 0x78);
+    m_floats[28] = reinterpret_cast<const float*>(p + 0x84);
+    m_floats[29] = reinterpret_cast<const float*>(p + 0x88);
+    m_floats[30] = reinterpret_cast<const float*>(p + 0x8C);
+    m_floats[31] = reinterpret_cast<const float*>(p + 0x90);
+    m_floats[32] = reinterpret_cast<const float*>(p + 0x94);
+    m_floats[33] = reinterpret_cast<const float*>(p + 0x98);
+    m_ints[0] = reinterpret_cast<const s32*>(p + 0x2C);
+    m_ints[1] = reinterpret_cast<const s32*>(p + 0x70);
+    m_ints[2] = reinterpret_cast<const s32*>(p + 0x74);
+    m_ints[3] = reinterpret_cast<const s32*>(p + 0x7C);
+    m_ints[4] = reinterpret_cast<const s32*>(p + 0x80);
 }
 
 #pragma dont_inline on // BYTES: the native constructor calls its helpers out of line
@@ -48,20 +82,20 @@ wnWarioBike::wnWarioBike(s32 articleId, const wnArticleBuildInfo& info, const wn
                                   data->m_resGroupNo, -1, &m_paramAccesser, 0, 0, 0, 0, 0, 0, 0)),
     m_param(const_cast<wnWarioBikeParam*>(data->m_param)), m_paramAccesser(data->m_param) {
     soStatusUniqProcess* uniqProcs[19] = {};
+    uniqProcs[0] = wnWarioBikeStatusUniqProcessStart::getInstance();
     uniqProcs[1] = wnWarioBikeStatusUniqProcessStart::getInstance();
-    uniqProcs[2] = wnWarioBikeStatusUniqProcessStart::getInstance();
-    uniqProcs[3] = wnWarioBikeStatusUniqProcessDrive::getInstance();
-    uniqProcs[4] = wnWarioBikeStatusUniqProcessWheelie::getInstance();
-    uniqProcs[5] = wnWarioBikeStatusUniqProcessBump::getInstance();
-    uniqProcs[6] = wnWarioBikeStatusUniqProcessTurnStart::getInstance();
-    uniqProcs[7] = wnWarioBikeStatusUniqProcessTurnLoop::getInstance();
-    uniqProcs[8] = wnWarioBikeStatusUniqProcessTurnEnd::getInstance();
-    uniqProcs[9] = wnWarioBikeStatusUniqProcessTurnDown::getInstance();
-    uniqProcs[10] = wnWarioBikeStatusUniqProcessUtility::getInstance();
-    uniqProcs[11] = wnWarioBikeStatusUniqProcessEscape::getInstance();
-    uniqProcs[12] = wnWarioBikeStatusUniqProcessDown::getInstance();
-    uniqProcs[14] = wnWarioBikeStatusUniqProcessItem::getInstance();
-    uniqProcs[15] = wnWarioBikeStatusUniqProcessAppeal::getInstance();
+    uniqProcs[2] = wnWarioBikeStatusUniqProcessDrive::getInstance();
+    uniqProcs[3] = wnWarioBikeStatusUniqProcessWheelie::getInstance();
+    uniqProcs[4] = wnWarioBikeStatusUniqProcessBump::getInstance();
+    uniqProcs[5] = wnWarioBikeStatusUniqProcessTurnStart::getInstance();
+    uniqProcs[6] = wnWarioBikeStatusUniqProcessTurnLoop::getInstance();
+    uniqProcs[7] = wnWarioBikeStatusUniqProcessTurnEnd::getInstance();
+    uniqProcs[8] = wnWarioBikeStatusUniqProcessTurnDown::getInstance();
+    uniqProcs[9] = wnWarioBikeStatusUniqProcessUtility::getInstance();
+    uniqProcs[10] = wnWarioBikeStatusUniqProcessEscape::getInstance();
+    uniqProcs[11] = wnWarioBikeStatusUniqProcessDown::getInstance();
+    uniqProcs[13] = wnWarioBikeStatusUniqProcessItem::getInstance();
+    uniqProcs[14] = wnWarioBikeStatusUniqProcessAppeal::getInstance();
     getModuleAccesser()->getStatusModule().addRangeUniqProc(uniqProcs, 19);
     getModuleAccesser()->getCollisionHitModule().add((soSet<soCollisionHitData::Simple>*)data->m_hitData, 0);
     if (!itManager::getInstance()->isCompItemKindArchive(static_cast<itKind>(0x5C), 0, true))
@@ -284,6 +318,10 @@ void wnWarioBikeKineticTransactor::changeKineticSub8(
     gravity->enable();
 }
 
+float wnWarioBikeKineticTransactor::ABS(float value) {
+    return __fabsf(value);
+}
+
 void wnWarioBikeKineticTransactor::updateEnergy1(
     wnKineticEnergyGravity* energy, soModuleAccesser* accesser) {
     if (energy->isEnable() == true && energy->isSuspend() == false)
@@ -441,9 +479,8 @@ void wnWarioBike::notifyEventCollisionAttack(float power, soCollisionLog* log,
         static_cast<gfTask::Category>(log->m_taskCategory), log->m_taskId);
     soCollisionAttackData* attackData = accesser->getCollisionAttackModule().getData(
         log->m_damageIndex, log->m_isAbsolute);
-    float one = 1.0f;
     int frames = soDamageUtilActor::calcHitStopFrame(
-        power, one, one, accesser, attackData, 0);
+        accesser, power, 1.0f, 1.0f, attackData, 0);
 
     // Native only substitutes the target reaction frame for the log's
     // reaction-frame case; the task is looked up from the collision log.
@@ -473,7 +510,6 @@ int fn_110_12A84(u8* p) { return *(int*)(p + 0xb8); }
 // is reclaimed, this can be its previous rider rather than its new founder.
 void wnWarioBike::activate(int founderTaskId, int riderTaskId, int resourceId,
                            int team, Vec3f* position, float lr) {
-    soLinkModule* link;
     wnActivateDesc desc;
     desc.founderTaskId = founderTaskId;
     desc.resourceId = resourceId;
@@ -500,20 +536,20 @@ void wnWarioBike::activate(int founderTaskId, int riderTaskId, int resourceId,
     desc.unk44 = 0x50;
     Weapon::activate(&desc);
 
-    link = &m_moduleAccesser->getLinkModule();
-    link->setAttribute(3, static_cast<soLinkConnection::Attribute>(3), false);
-    link->setAttribute(3, soLinkConnection::Attribute_Reference_Parent_Unknown_4, true);
-    link->setAttribute(3, soLinkConnection::Attribute_Reference_Parent_Stop, true);
-    link->setAttribute(3, soLinkConnection::Attribute_Reference_Parent_Shake, true);
-    link->setAttribute(3, static_cast<soLinkConnection::Attribute>(15), true);
+    soLinkModule& link = m_moduleAccesser->getLinkModule();
+    link.setAttribute(3, static_cast<soLinkConnection::Attribute>(3), false);
+    link.setAttribute(3, soLinkConnection::Attribute_Reference_Parent_Unknown_4, true);
+    link.setAttribute(3, soLinkConnection::Attribute_Reference_Parent_Stop, true);
+    link.setAttribute(3, soLinkConnection::Attribute_Reference_Parent_Shake, true);
+    link.setAttribute(3, static_cast<soLinkConnection::Attribute>(15), true);
     m_moduleAccesser->getWorkManageModule().onFlag(0x12000000);
     m_moduleAccesser->getWorkManageModule().setInt(resourceId, 0x10000006);
     m_moduleAccesser->getWorkManageModule().setInt(*static_cast<const int*>(m_data) + 1, 0x10000005);
     m_moduleAccesser->getKineticModule().unableEnergyAll();
 
     ftWarioBikeTaskEvent event(0x45C, m_taskId);
-    link->link(5, riderTaskId);
-    link->sendEventParents(5, event);
+    link.link(5, riderTaskId);
+    link.sendEventParents(5, event);
     m_moduleAccesser->getDamageModule().setNoReactionModePerfect(true);
     m_moduleAccesser->getGroundModule().setEventToGround(true, 0);
 }

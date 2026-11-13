@@ -29,6 +29,14 @@ struct hkArrayUtil {
     static void _reduce(hkArrayBase* array, int elemSize, void* buffer, int bufferCapacity);
 };
 
+// Element-wise copy (hkArrayUtil::copy in Havok); arguments are evaluated right to left.
+template <typename T>
+static inline void hkArray_copy(T* dst, const T* src, int n) {
+    for (int i = 0; i < n; i++) {
+        dst[i] = src[i];
+    }
+}
+
 // Typed dynamic array on top of hkArrayBase (storage comes from the thread memory).
 template <typename T>
 struct hkArray : hkArrayBase {
@@ -85,14 +93,8 @@ struct hkArray : hkArrayBase {
             m_data = hkThreadMemory::s_instance->allocateChunk(other.m_size * sizeof(T), 0x15);
             m_capacityAndFlags = other.m_size | (m_capacityAndFlags & FORCE_SIGN_FLAG);
         }
-        int n = other.m_size;
-        m_size = n;
-        const T* src = (const T*)other.m_data;
-        int i = 0;
-        T* dst = (T*)m_data;
-        for (; i < n; i++) {
-            dst[i] = src[i];
-        }
+        m_size = other.m_size;
+        hkArray_copy<T>((T*)m_data, (const T*)other.m_data, m_size);
         return *this;
     }
     void reserve(int n) {
@@ -162,8 +164,12 @@ struct hkArray : hkArrayBase {
         return ((T*)m_data)[m_size++];
     }
 
+    // Appends without checking the capacity (the caller has reserved it).
+    void pushBackUnchecked(const T& t) {
+        ((T*)m_data)[m_size++] = t;
+    }
     void pushBack(const T& t) {
-        if (m_size == (m_capacityAndFlags & CAPACITY_MASK)) {
+        if (m_size == getCapacity()) {
             hkArrayUtil::_reserveMore(this, sizeof(T));
         }
         ((T*)m_data)[m_size++] = t;
@@ -237,5 +243,5 @@ template <typename T, int N>
 struct hkInplaceArray : hkArray<T> {
     T m_storage[N];
 
-    hkInplaceArray() : hkArray<T>(m_storage, 0, N) {}
+    hkInplaceArray(int size = 0) : hkArray<T>(m_storage, size, N) {}
 };

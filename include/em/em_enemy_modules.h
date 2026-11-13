@@ -140,14 +140,7 @@ public:
 };
 static_assert(sizeof(soTargetSearchModuleImpl) == 0x34, "Class is wrong size!");
 
-// HYPOTHESIS: class name. The glow module (soModuleAccesser slot glowModule) of the enemy; Enemy::resetGlowParam drives it.
-class soGlowModuleImpl {
-    u8 unk4[0x24 - 4];
-public:
-    soGlowModuleImpl(soModuleAccesser* acc);
-    virtual ~soGlowModuleImpl();
-};
-static_assert(sizeof(soGlowModuleImpl) == 0x24, "Class is wrong size!");
+#include <so/glow/so_glow_module_impl.h>
 
 // ---- enemy modules (code in later sora_enemy units) ---------------------------------------------------------------------
 

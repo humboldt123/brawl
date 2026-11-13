@@ -329,7 +329,7 @@ void hkClosestCdPointCollector::addCdPoint(hkCdPoint* point) {
     }
     m_rootB = root;
     m_shapeKeyB = point->m_cdBodyB->m_shapeKey;
-    m_dist = point->m_contact.m_normal.w;
+    m_earlyOutDistance = point->m_contact.m_normal.w;
 }
 
 void hkSimpleClosestContactCollector::addCdPoint(hkCdPoint* point) {

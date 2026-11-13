@@ -29,6 +29,7 @@
 
 #include <new>
 #include <havok/hkEntity.h>
+#include <havok/hkRegistry.h>
 #include <havok/hkWorldOperationUtil.h>
 #include <havok/hkSphereMotion.h>
 #include <havok/hkStabilizedSphereMotion.h>
@@ -50,6 +51,8 @@ void hkEntity::cleanupLoadedObjecthkEntity(void* p) {
     ((hkEntity*)p)->~hkEntity();
 }
 
+#pragma push
+#pragma auto_inline off
 const void* hkEntity::getVtablehkEntity() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
@@ -57,6 +60,7 @@ const void* hkEntity::getVtablehkEntity() {
     new (buf) hkEntity(flag);
     return *(const void**)buf;
 }
+#pragma pop
 
 // The motion is loaded as raw bytes: rebuild the object of its type in place so it gets its vtable back.
 // Dynamic (type 1) motions are not rebuilt.
@@ -167,3 +171,74 @@ hkConstraintInstance* hkEntity::getConstraint(int index) const {
 hkMotionState* hkEntity::getMotionState() {
     return 0;
 }
+
+static hkStaticTypeInfo hkEntityTypeInfo("hkEntity", hkEntity::finishLoadedObjecthkEntity, hkEntity::cleanupLoadedObjecthkEntity,
+                                      hkEntity::getVtablehkEntity());
+
+// fn_802E13DC: body from https://github.com/jj-link/brawl src/havok/fn_802E13DC.cpp (namespaced; callee rebound to our C++ name).
+#include <types.h>
+#include <havok/hkWorldObject.h>
+namespace jj_fn_802E13DC {
+extern "C" char lbl_804129D0[];
+
+struct Entity {
+    char pad0[0x68];
+    void* f68;
+    char pad6C[0x1A0 - 0x6C];
+    void* f1A0;
+    char pad1A4[0x1B4 - 0x1A4];
+    void* f1B4;
+    u32 f1B8;
+    u32 f1BC;
+    void* f1C0;
+    u32 f1C4;
+    u32 f1C8;
+    void* f1CC;
+    u32 f1D0;
+    u32 f1D4;
+};
+
+class Visitor {
+public:
+    virtual void slot0();
+    virtual void slot1(const char* name, int id, void* data);
+    virtual void slot2(const char* name, int size, void* value, u32 length, u32 count);
+    virtual void slot3(const char* name, int size, void* value);
+    virtual void slot4();
+    virtual void slot5();
+    virtual void slot6();
+};
+
+extern "C" {
+
+
+// TODO: cleanup (shape from jj-link/brawl fn_802E13DC)
+void fn_802E13DC(Entity* arg0, Visitor* arg1) {
+    arg1->slot1(lbl_804129D0, 2, arg0);
+    ((const hkWorldObject*)(arg0))->hkWorldObject::calcStatistics((hkStatisticsCollector*)(arg1));
+    arg1->slot3(lbl_804129D0 + 7, 4, arg0->f1A0);
+    arg1->slot3(lbl_804129D0 + 0x13, 4, arg0->f68);
+
+    u32 flags1 = arg0->f1BC;
+    const char* name1 = lbl_804129D0 + 0x1F;
+    if (!(flags1 & 0x80000000)) {
+        arg1->slot2(name1, 4, arg0->f1B4, arg0->f1B8 * 4, flags1 * 4);
+    }
+
+    u32 flags2 = arg0->f1C8;
+    const char* name2 = lbl_804129D0 + 0x2F;
+    if (!(flags2 & 0x80000000)) {
+        arg1->slot2(name2, 4, arg0->f1C0, arg0->f1C4 * 4, flags2 * 4);
+    }
+
+    u32 flags3 = arg0->f1D4;
+    const char* name3 = lbl_804129D0 + 0x3C;
+    if (!(flags3 & 0x80000000)) {
+        arg1->slot2(name3, 4, arg0->f1CC, arg0->f1D0 * 4, flags3 * 4);
+    }
+
+    arg1->slot6();
+}
+
+}
+} // namespace jj_fn_802E13DC

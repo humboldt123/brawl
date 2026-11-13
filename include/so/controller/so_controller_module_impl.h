@@ -16,8 +16,8 @@ public:
     float m_time;       // 0x00
     float m_unk04;      // 0x04
     float m_unk08;      // 0x08
-    u8 _0C;
-    u8 m_unk0D;
+    s8 m_unk0C;
+    s8 m_unk0D;
     u8 m_unk0E;
     u8 m_unk0F;
     u8 m_unk10;

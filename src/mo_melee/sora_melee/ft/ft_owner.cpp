@@ -1,6 +1,9 @@
+#define FT_OWNER_EVENT_SLOTS
 #include <types.h>
 #include <ft/ft_owner.h>
 #include <ft/ft_owner_impl.h>
+#include <ft/ft_input.h>
+#include <ft/ft_entry.h>
 #include <it/it_manager.h>
 #include <mt/mt_prng.h>
 #include <ft/ft_external_value_accesser.h>
@@ -33,6 +36,117 @@ struct ftOwnerRemainState {
 u32 ftOwner::getCheerDefeatFrame() {
     return m_data->m_cheerDefeatFrame;
 }
+
+// Secondary-base adjustors for ftAudienceImpl. The melee link places them in this object; each one
+// steps this back by the ftAudience subobject and continues in the real method.
+extern "C" void fn_27_110F18();
+extern "C" void fn_27_110D90();
+extern "C" void fn_27_110BDC();
+extern "C" void fn_27_110B9C();
+extern "C" void fn_27_110698();
+extern "C" void fn_27_110674();
+extern "C" void fn_27_11064C();
+extern "C" void fn_27_110540();
+extern "C" void fn_27_10FE34();
+extern "C" void fn_27_10FDA4();
+extern "C" void fn_27_10FD18();
+
+extern "C" asm void fn_27_110FD4() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_110F18
+}
+extern "C" asm void fn_27_110FDC() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_110D90
+}
+extern "C" asm void fn_27_110FE4() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_110BDC
+}
+extern "C" asm void fn_27_110FEC() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_110B9C
+}
+extern "C" asm void fn_27_110FF4() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_110698
+}
+extern "C" asm void fn_27_110FFC() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_110674
+}
+extern "C" asm void fn_27_111004() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_11064C
+}
+extern "C" asm void fn_27_11100C() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_110540
+}
+extern "C" asm void fn_27_111014() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_10FE34
+}
+extern "C" asm void fn_27_11101C() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_10FDA4
+}
+extern "C" asm void fn_27_111024() {
+    nofralloc
+    addi r3, r3, -0x40
+    b fn_27_10FD18
+}
+
+static_assert(offsetof(ftOwnerData, m_adventureUnitKind) == 0x6C, "adv kind");
+static_assert(offsetof(ftOwnerData, m_scale) == 0x4A0, "scale");
+static_assert(offsetof(ftOwnerData, m_sealCount) == 0x7F8, "seal count");
+static_assert(offsetof(ftOwnerData, unk7FC) == 0x7FC, "unk7FC");
+static_assert(offsetof(ftOwnerData, unk800) == 0x800, "unk800");
+static_assert(offsetof(ftOwnerData, unk804) == 0x804, "unk804");
+static_assert(offsetof(ftOwnerData, m_shieldMaxAdd) == 0x808, "shield max");
+static_assert(offsetof(ftOwnerData, m_shieldRecoveryAdd) == 0x80C, "shield recovery");
+static_assert(offsetof(ftOwnerData, m_shieldBreakFrameAdd) == 0x810, "shield break");
+static_assert(offsetof(ftOwnerData, unk814) == 0x814, "unk814");
+static_assert(offsetof(ftOwnerData, m_tabemonoHealAdd) == 0x818, "tabemono");
+static_assert(offsetof(ftOwnerData, m_maximTomatoHealAdd) == 0x81C, "maxim");
+static_assert(offsetof(ftOwnerData, m_heartHealAdd) == 0x820, "heart");
+static_assert(offsetof(ftOwnerData, unk824) == 0x824, "unk824");
+static_assert(offsetof(ftOwnerData, unk828) == 0x828, "unk828");
+static_assert(offsetof(ftOwnerData, unk82C) == 0x82C, "unk82C");
+static_assert(offsetof(ftOwnerData, m_swimDrownFrameAdd) == 0x830, "swim");
+static_assert(offsetof(ftOwnerData, m_staminaMaxAdd) == 0x834, "stamina");
+
+// HYPOTHESIS: the damage clamp is two fsel results, lower bound then upper bound.
+static inline float ftOwnerSelect(register float cond, register float ge, register float lt) {
+    register float result;
+    asm { fsel result, cond, ge, lt }
+    return result;
+}
+
+// The multiply keeps the left factor in the first source register.
+static inline float ftOwnerMul(register float left, register float right) {
+    register float product;
+    asm { fmuls product, left, right }
+    return product;
+}
+
+// Entry-event presenter built on the stack by setDamage and setAdventureUnitKind.
+class ftEntryEventPresenter : public soEventPresenter<ftEntryEventObserver> {
+public:
+    ftEntryEventPresenter(short manageId, short unitId)
+        : soEventPresenter<ftEntryEventObserver>(manageId, unitId) {}
+    virtual ~ftEntryEventPresenter() {}
+};
 
 ftOwnerImpl::ftOwnerImpl(void* input, void* subInput, short id) :
     ftOwner(&m_ownerData, input, id), m_subOwner(&m_ownerData, subInput, id) {
@@ -144,8 +258,49 @@ int ftOwner::getPointTeam() {
     return m_data->m_pointTeam;
 }
 
+// HYPOTHESIS: the object names this ftInput::setType. The body sets the operation-cpu bit of an ftOwner.
+void ftInput::setType(s8 type) {
+    ftOwnerData* data = *reinterpret_cast<ftOwnerData**>(this);
+    data->m_operationCpu = type;
+}
+
 bool ftOwner::isOperationCpu() {
     return m_data->m_operationCpu;
+}
+
+__declspec(weak) void ftOwner::setDamage(float damage, bool apply) {
+    if (unkA != 1) {
+        return;
+    }
+    damage = ftOwnerSelect(damage - 0.0f, damage, 0.0f);
+    float previous = m_data->m_damage;
+    damage = ftOwnerSelect(damage - 999.0f, 999.0f, damage);
+    if (damage == previous) {
+        return;
+    }
+    float delta = damage - previous;
+    m_data->m_damage = damage;
+    if (apply == true) {
+        if (delta > 0.0f) {
+            getLog().m_logDataAccesser.setInt(0, 0x23, 0);
+        } else {
+            int dropped = static_cast<int>(delta);
+            if (dropped < 0) {
+                dropped = -dropped;
+            }
+            getLog().m_logDataAccesser.addInt(dropped, 0, 0);
+        }
+    } else {
+        ftEntryEventPresenter presenter(_8, 2);
+        soInstanceManagerFullProperty<ftEntryEventObserver*>* list = presenter.getObserverList();
+        for (int i = 0; i < static_cast<int>(list->size()); i++) {
+            list->atIndex(i)->notifyEventSetDamage(damage);
+        }
+    }
+    float recorded = getLog().m_logDataAccesser.getFloat(1, 0);
+    if (recorded < damage) {
+        getLog().m_logDataAccesser.setFloat(damage, 1, 0);
+    }
 }
 
 float ftOwner::getDamage() const {
@@ -211,12 +366,23 @@ void ftOwner::setFighterColor(u8 color) {
     m_data->m_fighterColor = color;
 }
 
+u8 ftOwner::getFighterColor() {
+    return m_data->m_fighterColor & 0xF;
+}
+
 u8 ftOwner::getFighterSubColor() {
     return m_data->m_fighterSubColor;
 }
 
 void ftOwner::setFighterSubColor(u8 color) {
     m_data->m_fighterSubColor = color;
+}
+
+void ftOwner::setDeadCount(int deadCount) {
+    if (unkA == 1) {
+        m_data->m_deadCount = deadCount;
+    }
+    m_data->m_lastDeadSuicide = false;
 }
 
 int ftOwner::getDeadCount() {
@@ -233,6 +399,22 @@ void ftOwner::setBeatCount(s32 playerIndex, s32 beatCount) {
 int ftOwner::getBeatCount(int playerIndex) {
     return m_data->m_beatCount[playerIndex];
 }
+
+// The original adds the seven counts left to right and does not hoist the later loads.
+#pragma push
+#pragma scheduling off
+int ftOwner::getBeatCountTotal() {
+    s32* counts = m_data->m_beatCount;
+    s32 total = counts[0];
+    total = total + counts[1];
+    total = total + counts[2];
+    total = total + counts[3];
+    total = total + counts[4];
+    total = total + counts[5];
+    total = total + counts[6];
+    return total;
+}
+#pragma pop
 
 void ftOwner::setSuicideCount(u16 suicideCount) {
     if (unkA == 1 && m_data->m_suicideCount < 0xFFFF) {
@@ -530,6 +712,23 @@ bool ftOwner::isSlipInterval() {
     return m_data->m_slipInterval;
 }
 
+#pragma scheduling 603
+void ftOwner::setController(int kind, u64* buttons0, u64* buttons1) {
+    ftOwnerButtonsFloats* stick0 = reinterpret_cast<ftOwnerButtonsFloats*>(buttons0);
+    ftOwnerButtonsFloats* stick1 = reinterpret_cast<ftOwnerButtonsFloats*>(buttons1);
+    ftOwnerData* data = m_data;
+    float stick0X = stick0->unk0;
+    data->m_controllerKind = kind;
+    float stick1X = stick1->unk0;
+    float stick0Y = stick0->unk4;
+    m_data->m_controllerStick[0] = stick0X;
+    float stick1Y = stick1->unk4;
+    m_data->m_controllerStick[1] = stick0Y;
+    m_data->m_controllerStick[2] = stick1X;
+    m_data->m_controllerStick[3] = stick1Y;
+}
+#pragma scheduling reset
+
 bool ftOwner::sameCheckController(int kind, u64* buttons0, u64* buttons1) {
     bool result = false;
     ftOwnerButtonsFloats* stick0 = reinterpret_cast<ftOwnerButtonsFloats*>(buttons0);
@@ -586,6 +785,202 @@ int ftOwner::getAdventureUnitKind() {
     return m_data->m_adventureUnitKind;
 }
 
+__declspec(weak) void ftOwner::setAdventureUnitKind(int kind) {
+    if (m_data->m_adventureUnitKind == kind) {
+        return;
+    }
+    ftEntryEventPresenter presenter(_8, 2);
+    soInstanceManagerFullProperty<ftEntryEventObserver*>* list = presenter.getObserverList();
+    for (int i = 0; i < static_cast<int>(list->size()); i++) {
+        list->atIndex(i)->notifyEventChangeAdvUnit();
+    }
+    m_data->m_adventureUnitKind = kind;
+}
+
+void ftEntryEventObserver::notifyEventSetDamage(float) {
+}
+
+void ftEntryEventObserver::notifyEventChangeAdvUnit() {
+}
+
+// HYPOTHESIS: map names below are shifted one slot from the fields. Each body is the code at that map entry.
+void ftOwner::getAttackRatio(float value) {
+    m_data->m_attackRatio = value;
+}
+
+float ftOwner::setDamageRatio() {
+    return m_data->m_attackRatio;
+}
+
+void ftOwner::getDamageRatio(float value) {
+    m_data->m_damageRatio = value;
+}
+
+float ftOwner::setAttackReactionMul() {
+    return m_data->m_damageRatio;
+}
+
+void ftOwner::getAttackReactionMul(float value) {
+    m_data->m_attackReactionMul = value;
+}
+
+float ftOwner::getAttackReactionMulSeal() {
+    return m_data->m_attackReactionMul;
+}
+
+float ftOwner::setDamageReactionMul() {
+    return m_data->unk7FC;
+}
+
+void ftOwner::getDamageReactionMul(float value) {
+    m_data->m_damageReactionMul = value;
+}
+
+float ftOwner::getDamageReactionMulSeal() {
+    return m_data->m_damageReactionMul;
+}
+
+float ftOwner::getSpecialGlowAttack() {
+    return m_data->unk800;
+}
+
+int ftOwner::getSpecialWeaponGlowAttack() {
+    return m_data->unk804;
+}
+
+void ftOwner::addSeal(unsigned int kind, float value, float second) {
+    // HYPOTHESIS: the incoming power is copied once and reused by the lot-rate cases.
+    float saved = value;
+    s32 index = m_data->m_sealCount;
+    m_data->m_seals[index].m_kind = kind;
+    m_data->m_seals[index].m_value = value;
+    *reinterpret_cast<float*>(&m_data->m_seals[index].unk8) = second;
+    switch (kind) {
+        case 0x2:
+            m_data->unk7FC = 1.0f + ftOwnerMul(value, 0.5f) / 100.0f;
+            break;
+        case 0x3:
+            m_data->unk800 = 1.0f - ftOwnerMul(value, 0.5f) / 100.0f;
+            break;
+        case 0x1C:
+            m_data->unk804 = static_cast<int>(ftOwnerMul(value, 0.5f));
+            break;
+        case 0x4:
+        case 0x5:
+            m_data->m_scale = m_data->m_scale * value;
+            break;
+        case 0x1E:
+            m_data->m_shieldMaxAdd = value;
+            break;
+        case 0x1F:
+            m_data->unk814 = static_cast<int>(value);
+            break;
+        case 0x20:
+            m_data->m_shieldBreakFrameAdd = -static_cast<int>(value);
+            break;
+        case 0x21:
+            m_data->m_shieldRecoveryAdd = 0.1f * value;
+            break;
+        case 0x22:
+            m_data->m_tabemonoHealAdd = value;
+            break;
+        case 0x24:
+            m_data->unk824 = value;
+            m_data->unk828 = static_cast<int>(second);
+            break;
+        case 0x25:
+            m_data->m_maximTomatoHealAdd = value;
+            break;
+        case 0x26:
+            m_data->m_heartHealAdd = value;
+            break;
+        case 0x27:
+            m_data->unk82C = 0.0f;
+            break;
+        case 0x2D:
+            m_data->m_swimDrownFrameAdd = static_cast<int>(value) * 0x3C;
+            break;
+        case 0x2E:
+            m_data->m_staminaMaxAdd = value;
+            break;
+        case 0x46:
+            m_data->m_seals[index].m_value = 58.0f;
+            break;
+        case 0x47:
+            m_data->m_seals[index].m_value = 46.0f;
+            break;
+        case 0x48:
+            m_data->m_seals[index].m_value = 13.0f;
+            break;
+        case 0x49:
+            m_data->m_seals[index].m_value = 61.0f;
+            break;
+        case 0x4A:
+            m_data->m_seals[index].m_value = 44.0f;
+            break;
+        case 0x4B:
+            m_data->m_seals[index].m_value = 24.0f;
+            break;
+        case 0x4C:
+            m_data->m_seals[index].m_value = 4.0f;
+            break;
+        case 0x4D:
+            m_data->m_seals[index].m_value = 33.0f;
+            break;
+        case 0x4E:
+            m_data->m_seals[index].m_value = 31.0f;
+            break;
+        case 0x4F:
+            m_data->m_seals[index].m_value = 2.0f;
+            break;
+        case 0x50:
+            m_data->m_seals[index].m_value = 12.0f;
+            break;
+        case 0x51:
+            m_data->m_seals[index].m_value = 54.0f;
+            break;
+        case 0x52:
+            m_data->m_seals[index].m_value = 18.0f;
+            break;
+        case 0x53:
+            m_data->m_seals[index].m_value = 40.0f;
+            break;
+        case 0x54:
+            m_data->m_seals[index].m_value = 8.0f;
+            break;
+        case 0x55:
+            m_data->m_seals[index].m_value = 72.0f;
+            break;
+        case 0x56:
+            m_data->m_seals[index].m_value = 26.0f;
+            break;
+        case 0x57:
+            m_data->m_seals[index].m_value = 52.0f;
+            break;
+        case 0x58:
+            m_data->m_seals[index].m_value = 6.0f;
+            break;
+        case 0x59:
+            m_data->m_seals[index].m_value = 19.0f;
+            break;
+        case 0x28:
+            saved = saved + itManager::getInstance()->getLotRate(0x33);
+            itManager::getInstance()->setLotRate(0x33, saved);
+            break;
+        case 0x2B:
+            saved = saved + itManager::getInstance()->getLotRate(0x17);
+            itManager::getInstance()->setLotRate(0x17, saved);
+            break;
+        case 0x2C:
+            saved = saved + itManager::getInstance()->getLotRate(0x48);
+            itManager::getInstance()->setLotRate(0x48, saved);
+            break;
+        default:
+            break;
+    }
+    m_data->m_sealCount += 1;
+}
+
 void ftOwner::clearSeal() {
     m_data->m_sealCount = 0;
     m_data->unk7FC = 1.0f;
@@ -609,21 +1004,40 @@ int ftOwner::getSealCount() {
     return m_data->m_sealCount;
 }
 
-void ftOwner::getSeal(int index, ftOwnerSeal* seal) {
-    *seal = m_data->m_seals[index];
+// Multiply the index before touching m_data. The two word loads come out reversed, so the later word is named first.
+#pragma push
+#pragma scheduling off
+__declspec(weak) void ftOwner::getSeal(int index, ftOwnerSeal* seal) {
+    char* base = reinterpret_cast<char*>((index * 12) + reinterpret_cast<int>(m_data));
+    u32* src = reinterpret_cast<u32*>(base + 0x4F8);
+    u32* dst = reinterpret_cast<u32*>(seal);
+    dst[0] = src[0];
+    u32 unk = src[2];
+    u32 value = src[1];
+    dst[1] = value;
+    dst[2] = unk;
 }
+#pragma pop
 
-int ftOwner::lotSealItem() {
+__declspec(weak) int ftOwner::lotSealItem() {
     int items[64];
+    int* slot = items;
+    int limit = m_data->m_sealCount;
+    int byteOff = 0;
     int count = 0;
-    for (int i = 0; i < m_data->m_sealCount; i++) {
-        ftOwnerSeal* seal = &m_data->m_seals[i];
-        if (seal->m_kind >= 0x46 && seal->m_kind <= 0x59) {
-            items[count++] = seal->m_value;
+    for (int i = limit; i > 0; --i) {
+        char* base = reinterpret_cast<char*>(m_data) + byteOff;
+        int kind = *reinterpret_cast<int*>(base + 0x4F8);
+        if (kind >= 0x46 && kind <= 0x59) {
+            float value = *reinterpret_cast<float*>(base + 0x4FC);
+            count += 1;
+            *slot = static_cast<int>(value);
+            slot += 1;
             if (count >= 64) {
                 break;
             }
         }
+        byteOff += 0xC;
     }
     if (count > 0) {
         return items[randi(count)];
@@ -657,6 +1071,10 @@ float ftOwner::getHeartHealAdd() {
 
 int ftOwner::getSwimDrownFrameAdd() {
     return m_data->m_swimDrownFrameAdd;
+}
+
+float ftOwner::getStaminaMaxAdd() {
+    return m_data->m_staminaMaxAdd;
 }
 
 float ftOwner::getResultWinRotY() {
@@ -865,3 +1283,13 @@ void ftOwner::process() {
 bool ftOwner::isSubOwner() const {
     return false;
 }
+
+// HYPOTHESIS: two file-scope records. The static initializer writes 255,0 and 255,1 and does not register a destructor.
+struct ftOwnerStartupRecord {
+    int first;
+    int second;
+    ftOwnerStartupRecord(int a, int b) : first(a), second(b) {}
+};
+
+static ftOwnerStartupRecord ftOwnerStartupA(0xFF, 0);
+static ftOwnerStartupRecord ftOwnerStartupB(0xFF, 1);

@@ -37,7 +37,7 @@ void cleanupLoadedObjecthkBallSocketChainData(hkBallSocketChainData* self) {
     ((hkBaseObject*)self)->~hkBaseObject();
 }
 
-u32 hkBallSocketChainData::getType() const {
+int hkBallSocketChainData::getType() const {
     return 101; // CONSTRAINT_TYPE_BALL_SOCKET_CHAIN
 }
 

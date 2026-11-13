@@ -80,8 +80,8 @@ void ftLuigiKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
 
 #pragma pop
 
-void ftLuigiKineticTransactor::changeKineticSub(bool*, void*, Vec2f*, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(6);
+void ftLuigiKineticTransactor::changeKineticSub(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(6, pools, speed, moduleAccesser);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(
         *moduleAccesser->getKineticModule().getEnergy(3));
     if (!moduleAccesser->getWorkManageModule().isFlag(0x22000010)) {
@@ -92,8 +92,8 @@ void ftLuigiKineticTransactor::changeKineticSub(bool*, void*, Vec2f*, soModuleAc
     stop.m_brake = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xFAE, 0), 0.0f);
 }
 
-void ftLuigiKineticTransactor::changeKineticSub1(bool*, void*, Vec2f*, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(13);
+void ftLuigiKineticTransactor::changeKineticSub1(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(13, pools, speed, moduleAccesser);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(
         *moduleAccesser->getKineticModule().getEnergy(3));
     if (!moduleAccesser->getWorkManageModule().isFlag(0x22000010)) {
@@ -104,8 +104,8 @@ void ftLuigiKineticTransactor::changeKineticSub1(bool*, void*, Vec2f*, soModuleA
     stop.m_brake = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xFAE, 0), 0.0f);
 }
 
-void ftLuigiKineticTransactor::changeKineticSub2(bool*, void*, Vec2f* speed, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(10);
+void ftLuigiKineticTransactor::changeKineticSub2(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(10, pools, speed, moduleAccesser);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(
         *moduleAccesser->getKineticModule().getEnergy(3));
 
@@ -132,8 +132,8 @@ void ftLuigiKineticTransactor::changeKineticSub2(bool*, void*, Vec2f* speed, soM
     gravity.m_fallSpeedMax = soValueAccesser::getConstantFloat(moduleAccesser, 0xFB5, 0);
 }
 
-void ftLuigiKineticTransactor::changeKineticSub3(bool*, void*, Vec2f*, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(6);
+void ftLuigiKineticTransactor::changeKineticSub3(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(6, pools, speed, moduleAccesser);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(
         *moduleAccesser->getKineticModule().getEnergy(3));
     if (!moduleAccesser->getWorkManageModule().isFlag(0x22000014) &&
@@ -143,8 +143,8 @@ void ftLuigiKineticTransactor::changeKineticSub3(bool*, void*, Vec2f*, soModuleA
     stop.m_brake = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xFB7, 0), 0.0f);
 }
 
-void ftLuigiKineticTransactor::changeKineticSub4(bool*, void*, Vec2f*, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(10);
+void ftLuigiKineticTransactor::changeKineticSub4(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(10, pools, speed, moduleAccesser);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(
         *moduleAccesser->getKineticModule().getEnergy(3));
     stop.m_brake = Vec2f(soValueAccesser::getConstantFloat(moduleAccesser, 0xFB7, 0), 0.0f);
@@ -188,8 +188,8 @@ void ftLuigiKineticTransactor::changeKineticSub6(bool*, void*, Vec2f* speed, soM
     soKineticUtility::resetEnableEnergy(1, moduleAccesser, 0, &Vec2f(0.0f, initialSpeed.m_y), &Vec3f(0.0f, 0.0f, 0.0f));
 }
 
-void ftLuigiKineticTransactor::changeKineticSub7(bool*, void*, Vec2f*, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(10);
+void ftLuigiKineticTransactor::changeKineticSub7(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(10, pools, speed, moduleAccesser);
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(
         *moduleAccesser->getKineticModule().getEnergy(1));
     gravity.m_speedY = 0.0f;

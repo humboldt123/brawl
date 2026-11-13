@@ -11,11 +11,16 @@ class soGeneralWork : public soGeneralWorkAbstract {
     soArray<float>* m_floats;
     soArray<soGeneralFlag<s32> >* m_flags;
 public:
+#ifdef IT_GENERAL_WORK_CTOR_OOL
+    // BYTES: item.cpp emits this constructor out of line (not-null work).
+    soGeneralWork(soArray<s32>* p1, soArray<float>* p2, soArray<soGeneralFlag<s32> >* p3);
+#else
     soGeneralWork(
         soArray<s32>* p1,
         soArray<float>* p2,
         soArray<soGeneralFlag<s32> >* p3
     ) : m_ints(p1), m_floats(p2), m_flags(p3) { }
+#endif
     ~soGeneralWork() { }
     virtual s32 getIntWork(u32 index) const;
     virtual void setIntWork(s32 value, u32 index);

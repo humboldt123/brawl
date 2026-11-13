@@ -153,7 +153,7 @@ void ftDiddyStatusUniqProcessFinal::execFixPos(soModuleAccesser* moduleAccesser)
     Vec3f nodePos = moduleAccesser->getModelModule().getNodeGlobalPosition(6, false);
     float waterY;
     // HYPOTHESIS: testWater takes the node position as a Vec2f and writes the water surface height.
-    if (moduleAccesser->getAreaModule().getEnviromentElementChecker()->testWater((Vec2f*)&nodePos, (int*)&waterY) == 1) {
+    if (moduleAccesser->getAreaModule().getEnviromentElementChecker()->testWater((Vec2f*)&nodePos, &waterY) == 1) {
         if (!moduleAccesser->getWorkManageModule().isFlag(0x22000017) && moduleAccesser->getWorkManageModule().getInt(0x10000027) == 0) {
             ftUtil::setWaterDiveEffect(moduleAccesser, &Vec3f(nodePos.m_x, waterY, nodePos.m_y));
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));

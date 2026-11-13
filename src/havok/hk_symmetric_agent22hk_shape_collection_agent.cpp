@@ -52,3 +52,54 @@ void hkShapeCollectionAgentVariant::linearCast(const hkCdBody& a, const hkCdBody
         hkShapeCollectionAgent::linearCast(b, a, flippedInput, &flipped, 0);
     }
 }
+
+// fn_802C2318: body from https://github.com/jj-link/brawl src/havok/fn_802C2318.cpp (namespaced; memory singletons rebound to our names).
+#include <types.h>
+#include <havok/hkMemory.h>
+#include <havok/hkThreadMemory.h>
+#include <havok/hkArray.h>
+namespace jj_fn_802C2318 {
+typedef unsigned int u32;
+
+
+class SoHeapAllocator {
+public:
+    virtual void vf0();
+    virtual void vf1();
+    virtual void vf2();
+    virtual void vf3();
+    virtual void vf4();
+    virtual void free(void*, unsigned short, int);
+};
+
+
+struct Obj {
+    void* vtable;
+    unsigned short type;
+    char pad[6];
+    void* data;
+    char pad2[4];
+    unsigned int raw;
+
+    bool isOwned() const {
+        return (raw & 0x80000000) == 0;
+    }
+
+    void dealloc() {
+        hkThreadMemory::s_instance->deallocateChunk(data, raw << 3, 0x15);
+    }
+};
+
+// TODO: cleanup (shape from jj-link/brawl fn_802C2318)
+extern "C" void* fn_802C2318(Obj* self, int flag) {
+    if (self) {
+        if ((u32)self && (u32)self && (u32)self + 0xc && (u32)self + 0xc && self->isOwned()) {
+            self->dealloc();
+        }
+        if (flag > 0) {
+            ((SoHeapAllocator*)hkMemory::s_instance)->free(self, self->type, 0x1d);
+        }
+    }
+    return self;
+}
+} // namespace jj_fn_802C2318

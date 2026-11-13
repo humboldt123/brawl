@@ -37,7 +37,8 @@ struct soCollisionAttackAbsoluteData {
             u32 m_lrCheck : 3;
             u32 m_noHitStop : 1;
             u32 m_noEffect : 1;
-            u32 : 6;
+            u32 m_region : 5; // HYPOTHESIS: Captain Falcon's Final Smash copies the attack data's region here
+            u32 : 1;
             u32 : 9;
         };
     };
@@ -288,6 +289,12 @@ struct soCollisionAttackData {
 
     // MATCH-ONLY: same default initialization, with the 1.0f value supplied
     // from the caller's original constant pool.
+#ifdef SO_COLLISION_ATTACK_DATA_DTOR
+    // BYTES: Captain Falcon's Final Smash units register and emit a destructor of the attack data (opt-in, so the
+    // other units keep a trivially destructible type).
+    ~soCollisionAttackData() { }
+#endif
+
     explicit inline soCollisionAttackData(float defaultMultiplier) {
         m_slipChance = defaultMultiplier;
         m_hitStopFrame = defaultMultiplier;

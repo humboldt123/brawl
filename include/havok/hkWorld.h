@@ -8,7 +8,13 @@
 #include <havok/hkWorldMaintenanceMgr.h>
 
 struct hkWorldOperationQueue;
-struct hkWorldDeletionListener;
+struct hkWorld;
+// Listener told when its world is deleted (virtual destructor first, then the callback: hkBroadPhaseBorder's
+// secondary vtable).
+struct hkWorldDeletionListener {
+    virtual ~hkWorldDeletionListener() {}
+    virtual void worldDeletedCallback(hkWorld* world) = 0;
+};
 struct hkWorldMemoryWatchDog;
 struct hkPhantom;
 struct hkAction;
@@ -84,7 +90,10 @@ struct hkWorld : hkReferencedObject {
     // the current step and the solver settings (hkSimulation::integrate copies the step in; actions get it in
     // applyActions)
     hkWorldDynamicsStepInfo m_dynamicsStepInfo;     // 0x170 HYPOTHESIS: name
-    u8 m_unk2C0[0x2E4 - 0x2C0];                     // 0x2C0 .. 0x2E3 not recovered
+    // 0x2C0 the broadphase extents (min, max) as two vector4s (hkBroadPhaseBorder places its phantoms on them).
+    // HYPOTHESIS: Havok's hkVector4 m_broadPhaseExtents[2]; kept as floats so the class layout stays as it is.
+    hkReal m_broadPhaseExtents[2][4];               // 0x2C0
+    u8 m_unk2E0[0x2E4 - 0x2E0];                     // 0x2E0 not recovered
     int m_unk2E4;                                   // 0x2E4 capacity of hkWorldOperationUtil's local pair arrays
     int m_unk2E8;                                   // 0x2E8 capacity of collideEntitiesBroadPhaseDiscrete's pair arrays
 

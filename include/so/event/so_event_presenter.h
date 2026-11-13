@@ -250,6 +250,14 @@ class soEventPresenter {
 
         if (mgr->getObserverCapacity(uid) == 0)
             return false;
+#ifdef FT_OWNER_EVENT_SLOTS
+        // HYPOTHESIS: a failed cast leaves the list untouched (it was stored as null) and falls through.
+        soEventUnitWrapper<T>* evtUnitWrapper =
+            dynamic_cast<soEventUnitWrapper<T>*>(mgr->getEventUnit(uid));
+        if (evtUnitWrapper)
+            m_obsrvrList = evtUnitWrapper->getObserverListSub();
+        return m_obsrvrList;
+#else
         soEventUnitWrapper<T>* evtUnitWrapper =
             dynamic_cast<soEventUnitWrapper<T>* >(mgr->getEventUnit(uid));
 #ifdef SO_EVENT_PRESENTER_STORE_NULL_LIST
@@ -268,6 +276,7 @@ class soEventPresenter {
         m_obsrvrList = evtUnitWrapper->getObserverListSub();
         return m_obsrvrList;
 #endif
+#endif
     }
 
     // HYPOTHESIS: the lookup that getObserverList inlines; a failed lookup also clears the cached list.
@@ -277,14 +286,25 @@ class soEventPresenter {
 
         if (mgr->getObserverCapacity(uid) == 0)
             return nullptr;
+#ifdef FT_OWNER_EVENT_SLOTS
+        soEventUnitWrapper<T>* evtUnitWrapper =
+            dynamic_cast<soEventUnitWrapper<T>*>(mgr->getEventUnit(uid));
+        return (!evtUnitWrapper) ? NULL : evtUnitWrapper->getObserverListSub();
+#else
         soEventUnitWrapper<T>* evtUnitWrapper =
             dynamic_cast<soEventUnitWrapper<T>* >(mgr->getEventUnit(uid));
         return (!evtUnitWrapper) ? NULL : evtUnitWrapper->getObserverListSub();
+#endif
     }
 
     bool updateObserverList() {
         const s16 manageId = m_manageID;
+#ifdef FT_PRESENTER_RELOAD_MANAGE_ID
+        // The contain test reloads the member. The earlier compare still uses manageId.
+        if (manageId <= -1 || !soEventSystem::getInstance()->getInstanceManager().isContain(m_manageID))
+#else
         if (manageId <= -1 || !soEventSystem::getInstance()->getInstanceManager().isContain(manageId))
+#endif
             return false;
         if (soEventSystem::getInstance()->getManager(m_manageID)->getObserverCapacity(m_unitID) == 0) {
             m_obsrvrList = nullptr;
@@ -393,6 +413,9 @@ public:
     s16 m_unitID;
     soInstanceManagerFullProperty<T*>* m_obsrvrList;
 
+#ifdef IT_SET_MANAGE_ID_OOL
+    void setManageId(s16 id);
+#else
     void setManageId(s16 id) {
         if (m_manageID != id) {
             m_manageID = id;
@@ -400,6 +423,7 @@ public:
                 m_obsrvrList = nullptr;
         }
     }
+#endif
 
     soInstanceManagerFullProperty<T*>* getObserverList() {
         if (m_manageID <= -1)

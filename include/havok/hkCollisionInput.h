@@ -16,6 +16,7 @@ struct hkCollisionInput;
 struct hkShapeCollectionFilter {
     virtual hkBool isCollisionEnabled(const hkCollisionInput& input, const hkCdBody& a, const hkCdBody& b,
                                       const hkShapeCollection& collection, u32 key) const = 0;
+    virtual ~hkShapeCollectionFilter() {}
 };
 
 // Collision input handed to every agent call (the third argument of the agent slots).
@@ -27,6 +28,9 @@ struct hkCollisionInput {
     hkReal unk8;                         // 0x08 (copied as a float)
     // 0x0C HYPOTHESIS: picks the dispatcher's second lookup table when the agents create their children.
     hkBool m_createPredictiveAgents;
+
+    // Map name hkCollisionInput__getTolerance (out-of-line copy in hkPredGskAgent3.o): the 0x08 float.
+    hkReal getTolerance() const { return unk8; }
 };
 
 // Settings of the iterative linear cast (hkIterativeLinearCastAgent), reached through hkLinearCastCollisionInput::unk28.

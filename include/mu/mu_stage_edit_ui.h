@@ -19,7 +19,8 @@ public:
     union {
         u8 unk44[0x7D160 - 0x44];
         struct {
-            u8 unk0044[0x68 - 0x44];
+            int m_exitRequest; // 0x44 HYPOTHESIS: nonzero when the editor wants to leave (scEditMenu::process)
+            u8 unk0048[0x68 - 0x48];
             int unk68;
             u8 unk6C[8];
             u32 unk74;
@@ -152,7 +153,8 @@ class muStageEditSelectTask : public muCollectionViewer {
 public:
     class NewData {
     public:
-        u8 unk0[8];
+        int unk0; // HYPOTHESIS: scEditSelect::exit stores it as a byte of the new stage
+        int unk4; // HYPOTHESIS: an index (0..2) that scEditSelect::exit maps through a table
         int unk8;
         u32 unkC;
 
@@ -169,7 +171,8 @@ public:
         int m_unk1D44;
         int m_unk1D48;
         int m_unk1D4C;                  // 0x1D4C HYPOTHESIS: cleared when a stage file is chosen
-        u8 m_unk1D50[0x1D68 - 0x1D50];
+        u8 m_unk1D50[0x1D58 - 0x1D50];
+        NewData m_newData;              // 0x1D58
         int m_pad;                      // 0x1D68 HYPOTHESIS: the controller the pad icon reads
     };
 
@@ -199,7 +202,7 @@ public:
     // HYPOTHESIS: nonzero when the no-free-block notice was shown.
     virtual int showNoFreeBlock();
 
-    void playBGM();
+    static void playBGM();
     // HYPOTHESIS: the message index is the label for a new stage, and the buffer is the one getMineLabel fills.
     void getNewLabel(muCollectionMsgBuf* buf);
     // HYPOTHESIS: stored as the pad the icon reads when the browser has no stage files.

@@ -7,10 +7,12 @@ public:
     virtual ~itStatusUniqProcessStandby();
     virtual void initStatus(soModuleAccesser* moduleAccesser);
     virtual void exitStatus(soModuleAccesser* moduleAccesser, int statusKind);
+    static itStatusUniqProcessStandby* getInstance();
 };
 
 class itStatusUniqProcessHave : public soStatusUniqProcess {
 public:
     virtual ~itStatusUniqProcessHave();
     virtual void exitStatus(soModuleAccesser* moduleAccesser, int statusKind);
+    static itStatusUniqProcessHave* getInstance();
 };

@@ -16,7 +16,6 @@
 // Message::getPrintIndexData(data, index, text, size)
 extern "C" void getPrintIndexData__7MessageFPvUlPPcPUl(void* data, u32 index, char** text, u32* size);
 // the collection: the name of the file, and the check that the collection is ready
-extern "C" muCollectionFileName fn_800C3538(const char* names, int index);
 extern "C" int fn_800C39D8(void* collection);
 // sndSystem::resumeClear(system)
 // the section of the save data that holds a replay: constructor, setSection(section), extractData(heap), destructor
@@ -286,7 +285,7 @@ int muReplayTask::getNumPic(int media) {
 }
 
 muCollectionFileName muReplayTask::getFileHandle(int index) {
-    return fn_800C3538(m_work->m_media[m_work->m_curMedia].m_names, index);
+    return muCollectionFileName(m_work->m_media[m_work->m_curMedia].m_names, index);
 }
 
 void muReplayTask::controlLoadStart() {

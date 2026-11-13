@@ -11,6 +11,12 @@
 #define MT_VEC3F_LENGTH_SQ_NOINLINE
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define FT_PARAM_ACCESSER_TYPED_DTOR
+// soKineticEnergy(bool) is only declared if this policy is set the first time the header is parsed.
+// Leave the policy off for the headers before ft_iceclimber.h: with it on, the shared posture constructor
+// is instantiated before the fighter specialization in ft_module_builders.h.
+#define WN_KINETIC_GENERIC_BUILDER
+#include <so/kinetic/so_kinetic_energy.h>
+#undef WN_KINETIC_GENERIC_BUILDER
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_manager.h>
 #include <ft/ft_class_info_impl.h>
@@ -22,6 +28,9 @@
 
 #include <so/glow/so_glow_module_simple.h>
 
+// The fighter owns the shared out-of-line kinetic teardown.
+#undef WN_ARTICLE_NATIVE_BUILDERS
+#define FT_OBSERVER_VTABLE_ANCHOR_WEAK
 #define FT_BC ftPopoBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
 #include <ft/ft_owner.h>
@@ -317,7 +326,7 @@ bool ftPopoArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
 
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftPopo is done
-void testBuilder() {
+__declspec(weak) void testBuilder() {
     soInsideEventManageModuleBuilder<ftPopoInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
     soResourceIdAccesserImpl idAccImpl(0, 1, 2);
 }
@@ -326,16 +335,16 @@ soInsideEventManageModuleBuilder<ftPopoInsideEventManageModuleBuildConfig, ftIns
 // Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
 extern "C" {
 
-u8 fn_105_8130(u8* p) { return *(u8*)(p + 0x4); }
-void fn_105_A0DC() {}
-void fn_105_AAFC() {}
-void fn_105_AB14() {}
-void fn_105_AB2C() {}
-void fn_105_AB44() {}
+__declspec(weak) u8 fn_105_8130(u8* p) { return *(u8*)(p + 0x4); }
+__declspec(weak) void fn_105_A0DC() {}
+__declspec(weak) void fn_105_AAFC() {}
+__declspec(weak) void fn_105_AB14() {}
+__declspec(weak) void fn_105_AB2C() {}
+__declspec(weak) void fn_105_AB44() {}
 void fn_105_AF48() {}
 u8 fn_105_AF4C(u8* p) { return *(u8*)(p + 0x44); }
 void fn_105_BF14() {}
-int fn_105_D540() { return 0x0; }
+__declspec(weak) int fn_105_D540() { return 0x0; }
 void fn_105_D76C() {}
 void fn_105_D8E4() {}
 void fn_105_D924() {}
@@ -355,7 +364,7 @@ void fn_105_DA0C() {}
 void fn_105_DA10() {}
 void fn_105_DA14() {}
 void fn_105_DA18() {}
-int fn_105_DA1C() { return 0x0; }
+__declspec(weak) int fn_105_DA1C() { return 0x0; }
 void fn_105_DA24() {}
 void fn_105_DA28() {}
 void fn_105_DA2C() {}
@@ -366,7 +375,7 @@ void fn_105_DA64() {}
 void fn_105_DA68() {}
 void fn_105_DA6C() {}
 int fn_105_DA70(u8* p) { return *(int*)(p + 0x110); }
-int fn_105_DA88() { return 0x0; }
+__declspec(weak) int fn_105_DA88() { return 0x0; }
 void fn_105_DA90() {}
 void fn_105_DA94() {}
 void fn_105_DA98() {}
@@ -391,18 +400,18 @@ int fn_105_DC18(u8* p) { return *(int*)(p + 0x20); }
 int fn_105_DCF4(u8* p) { return *(int*)(p + 0x18); }
 int fn_105_DD8C(u8* p) { return *(int*)(p + 0x10); }
 int fn_105_DE4C() { return 0x0; }
-int fn_105_F458() { return 0x5; }
+__declspec(weak) int fn_105_F458() { return 0x5; }
 void fn_105_1038C() {}
 void fn_105_10D70() {}
 int fn_105_10DAC() { return 0x8; }
-int fn_105_11194() { return 0x0; }
-int fn_105_11564() { return 0x0; }
-int fn_105_11930() { return 0x0; }
-int fn_105_11CF4() { return 0x0; }
-int fn_105_120D0() { return 0x0; }
-int fn_105_124AC() { return 0x0; }
-int fn_105_12888() { return 0x0; }
-int fn_105_12C64() { return 0x0; }
+__declspec(weak) int fn_105_11194() { return 0x0; }
+__declspec(weak) int fn_105_11564() { return 0x0; }
+__declspec(weak) int fn_105_11930() { return 0x0; }
+__declspec(weak) int fn_105_11CF4() { return 0x0; }
+__declspec(weak) int fn_105_120D0() { return 0x0; }
+__declspec(weak) int fn_105_124AC() { return 0x0; }
+__declspec(weak) int fn_105_12888() { return 0x0; }
+__declspec(weak) int fn_105_12C64() { return 0x0; }
 
 }
 
@@ -411,11 +420,11 @@ extern "C" {
 #pragma dont_inline on
 void* fn_105_1E2C(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // ftVirtualNodeMatrixPool____dt
 void* fn_105_3674(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soParamAccesser____dt
-void* fn_105_3D5C(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soInstanceManagerFullProperty_P15soKineticEnergy_____dt
+__declspec(weak) void* fn_105_3D5C(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soInstanceManagerFullProperty_P15soKineticEnergy_____dt
 void* fn_105_41E8(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soInstanceManagerFullProperty_20soAnimCmdControlUnit_____dt
-void* fn_105_45E4(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soTeam____dt
-void* fn_105_48D8(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soResourceIdAccesser____dt
-void* fn_105_4918(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soParamCustomizeModuleBuilder dt
+__declspec(weak) void* fn_105_45E4(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soTeam____dt
+__declspec(weak) void* fn_105_48D8(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soResourceIdAccesser____dt
+__declspec(weak) void* fn_105_4918(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soParamCustomizeModuleBuilder dt
 void* fn_105_628C(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soArticleMediator____dt
 void* fn_105_62CC(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soArticleOperator____dt
 void* fn_105_630C(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operator delete(p); } return p; } // soArticleGenerator____dt
@@ -424,17 +433,17 @@ void* fn_105_630C(void* p, s32 flags) { if (p != 0 && (s16)flags > 0) { ::operat
 
 // Flag-free register-offset helpers (leaf getters returning sub-object addresses by index).
 extern "C" {
-void fn_105_F460(u8* p, u8 v) { *(u8*)(p + 0x17A10) = v; } // soArticleMediatorImpl setAutoRecycle
-void* fn_105_F4E8(u8* p, s32 index) { if (index == 0) { return p + 0xc; } return 0; } // soInstancePoolSub getInstanceAt
-void* fn_105_F500(u8* p, s32 index) { if (index == 0) { return p + 0xc; } return 0; } // soInstancePoolSub getInstanceAt
-void* fn_105_F518(u8* p, s32 index) { if (index == 0) { return p + 0xc; } return 0; } // soInstancePoolSub getInstanceAt
-void* fn_105_F58C(u8* p, s32 index) {
+__declspec(weak) void fn_105_F460(u8* p, u8 v) { *(u8*)(p + 0x17A10) = v; } // soArticleMediatorImpl setAutoRecycle
+__declspec(weak) void* fn_105_F4E8(u8* p, s32 index) { if (index == 0) { return p + 0xc; } return 0; } // soInstancePoolSub getInstanceAt
+__declspec(weak) void* fn_105_F500(u8* p, s32 index) { if (index == 0) { return p + 0xc; } return 0; } // soInstancePoolSub getInstanceAt
+__declspec(weak) void* fn_105_F518(u8* p, s32 index) { if (index == 0) { return p + 0xc; } return 0; } // soInstancePoolSub getInstanceAt
+__declspec(weak) void* fn_105_F58C(u8* p, s32 index) {
     if (index == 2) { return p + 0x3eb4; }
     if (index == 1) { return p + 0x1f64; }
     if (index == 0) { return p + 0x14; }
     return 0;
 } // soInstancePoolSub_74...wnPopoBlizzard getInstanceAt
-void* fn_105_F530(u8* p, s32 index) {
+__declspec(weak) void* fn_105_F530(u8* p, s32 index) {
     if (index == 4) { return p + 0x8f6c; }
     if (index == 3) { return p + 0x6b98; }
     if (index == 2) { return p + 0x47c4; }
@@ -447,47 +456,47 @@ void* fn_105_F530(u8* p, s32 index) {
 // Fighter-base this-adjusting thunks: subtract the sub-object offset, then tail call the Fighter method.
 extern "C" {
 void* fn_105_12E68(void* p, s32 flags) { return fn_105_628C((u8*)p - 0x4, flags); } // Fighter-base dtor thunk for soArticleMediator
-void fn_105_12E88(u8* p, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4) { ((Fighter*)(p - 0x54))->Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObject, unk4); } // Fighter::notifyEventLink
-void fn_105_12E90(u8* p, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x64))->Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser); } // Fighter::notifyEventChangeStatus
+__declspec(weak) void fn_105_12E88(u8* p, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4) { ((Fighter*)(p - 0x54))->Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObject, unk4); } // Fighter::notifyEventLink
+__declspec(weak) void fn_105_12E90(u8* p, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x64))->Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser); } // Fighter::notifyEventChangeStatus
 void fn_105_12E98(u8* p, SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x70))->Fighter::notifyEventChangeSituation(kind, prevKind, moduleAccesser); } // Fighter::notifyEventChangeSituation
 void fn_105_12EA0(u8* p, BaseItem* item, u32 nodeIndex, int* unk) { ((Fighter*)(p - 0xd0))->Fighter::notifyUseItem(item, nodeIndex, unk); } // Fighter::notifyUseItem
 #pragma dont_inline on
-bool fn_105_12EB8(u8* p, int unk1) { return ((Fighter*)(p - 0x48))->Fighter::isObserv(unk1); } // Fighter::isObserv (header inline body must not be folded in)
+__declspec(weak) bool fn_105_12EB8(u8* p, int unk1) { return ((Fighter*)(p - 0x48))->Fighter::isObserv(unk1); } // Fighter::isObserv (header inline body must not be folded in)
 #pragma dont_inline reset
-void fn_105_12ED8(u8* p, u32 flags) { ((Fighter*)(p - 0x7c))->Fighter::notifyEventCollisionAttackCheck(flags); } // Fighter::notifyEventCollisionAttackCheck
-void fn_105_12EE0(u8* p, float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x7c))->Fighter::notifyEventCollisionAttack(power, collisionLog, moduleAccesser); } // Fighter::notifyEventCollisionAttack
-void fn_105_12EE8(u8* p, int index, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x88))->Fighter::notifyEventChangeCollisionHit(index, moduleAccesser); } // Fighter::notifyEventChangeCollisionHit
-void fn_105_12EF0(u8* p) { ((Fighter*)(p - 0x94))->Fighter::notifyEventCollisionShieldCheck(); } // Fighter::notifyEventCollisionShieldCheck
-void fn_105_12EF8(u8* p, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x94))->Fighter::notifyEventCollisionShieldSearch(searchModule, collisionLog, groupIndex, moduleAccesser); } // Fighter::notifyEventCollisionShieldSearch
-void fn_105_12F00(u8* p, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x94))->Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); } // Fighter::notifyEventCollisionShield
-void fn_105_12F08(u8* p) { ((Fighter*)(p - 0xa0))->Fighter::notifyEventCollisionReflectorCheck(); } // Fighter::notifyEventCollisionReflectorCheck
-void fn_105_12F10(u8* p, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xa0))->Fighter::notifyEventCollisionReflectorSearch(searchModule, collisionLog, groupIndex, moduleAccesser); } // Fighter::notifyEventCollisionReflectorSearch
-void fn_105_12F18(u8* p, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xa0))->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); } // Fighter::notifyEventCollisionReflector
-void fn_105_12F20(u8* p) { ((Fighter*)(p - 0xac))->Fighter::notifyEventCollisionAbsorberCheck(); } // Fighter::notifyEventCollisionAbsorberCheck
-void fn_105_12F28(u8* p, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xac))->Fighter::notifyEventCollisionAbsorber(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); } // Fighter::notifyEventCollisionAbsorber
-void fn_105_12F30(u8* p) { ((Fighter*)(p - 0xb8))->Fighter::notifyEventCollisionSearchCheck(); } // Fighter::notifyEventCollisionSearchCheck
-void fn_105_12F38(u8* p, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xb8))->Fighter::notifyEventCollisionSearch(collisionLog, moduleAccesser); } // Fighter::notifyEventCollisionSearch
-void fn_105_12F40(u8* p, soModuleAccesser* moduleAccesser, int taskId, int unk2, int unk3) { ((Fighter*)(p - 0xc4))->Fighter::notifyEventCaptureStatus(moduleAccesser, taskId, unk2, unk3); } // Fighter::notifyEventCaptureStatus
-void fn_105_12F48(u8* p, BaseItem* item, int index, bool unk2, u8 unk3) { ((Fighter*)(p - 0xd0))->Fighter::notifyVisibilityItem(item, index, unk2, unk3); } // Fighter::notifyVisibilityItem
-void fn_105_12F50(u8* p, BaseItem* item, u32 index, bool unk2) { ((Fighter*)(p - 0xd0))->Fighter::notifyEjectAttachItem(item, index, unk2); } // Fighter::notifyEjectAttachItem
-void fn_105_12F58(u8* p, BaseItem* item, u32 index, bool unk2) { ((Fighter*)(p - 0xd0))->Fighter::notifyEjectItem(item, index, unk2); } // Fighter::notifyEjectItem
-void fn_105_12F60(u8* p, BaseItem* item) { ((Fighter*)(p - 0xd0))->Fighter::notifyShootBulletItem(item); } // Fighter::notifyShootBulletItem
-void fn_105_12F68(u8* p, BaseItem* item) { ((Fighter*)(p - 0xd0))->Fighter::notifyDropItem(item); } // Fighter::notifyDropItem
-void fn_105_12F70(u8* p, BaseItem* item, u32 nodeIndex, int* unk) { ((Fighter*)(p - 0xd0))->Fighter::notifyThrowItem(item, nodeIndex, unk); } // Fighter::notifyThrowItem
-void fn_105_12F80(u8* p, BaseItem* item, u32 nodeIndex, u32 attachNodeIndex, bool unk1, bool unk2) { ((Fighter*)(p - 0xd0))->Fighter::notifyAttachItem(item, nodeIndex, attachNodeIndex, unk1, unk2); } // Fighter::notifyAttachItem
-void fn_105_12F88(u8* p, itParam::SizeKind sizeKind, BaseItem* item, u32 nodeIndex, u32 index, bool unk) { ((Fighter*)(p - 0xd0))->Fighter::notifyHaveItem(sizeKind, item, nodeIndex, index, unk); } // Fighter::notifyHaveItem
-void fn_105_12F90(u8* p, BaseItem* item, bool* unk) { ((Fighter*)(p - 0xd0))->Fighter::notifyHaveItemPreCheck(item, unk); } // Fighter::notifyHaveItemPreCheck
-void fn_105_12FA0(u8* p, soDamage* damage, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xe8))->Fighter::notifyEventAddDamage(damage, moduleAccesser); } // Fighter::notifyEventAddDamage
-void fn_105_12FA8(u8* p, soDamage* damage, bool unk, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xe8))->Fighter::notifyEventOnDamage(damage, unk, moduleAccesser); } // Fighter::notifyEventOnDamage
-void fn_105_12FB0(u8* p, float power, int unk) { ((Fighter*)(p - 0xf4))->Fighter::notifyEventPikminFinalAttack(power, unk); } // Fighter::notifyEventPikminFinalAttack
-void fn_105_12FB8(u8* p) { ((Fighter*)(p - 0xf4))->Fighter::notifyEventChangeAdvUnit(); } // Fighter::notifyEventChangeAdvUnit
-void fn_105_12FC0(u8* p) { ((Fighter*)(p - 0xf4))->Fighter::notifyEventBeat(); } // Fighter::notifyEventBeat
-void fn_105_12FC8(u8* p, float damage) { ((Fighter*)(p - 0xf4))->Fighter::notifyEventSetDamage(damage); } // Fighter::notifyEventSetDamage
-void fn_105_12FD0(u8* p, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x100))->Fighter::notifyEventTurn(posX, posY, moduleAccesser); } // Fighter::notifyEventTurn
+__declspec(weak) void fn_105_12ED8(u8* p, u32 flags) { ((Fighter*)(p - 0x7c))->Fighter::notifyEventCollisionAttackCheck(flags); } // Fighter::notifyEventCollisionAttackCheck
+__declspec(weak) void fn_105_12EE0(u8* p, float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x7c))->Fighter::notifyEventCollisionAttack(power, collisionLog, moduleAccesser); } // Fighter::notifyEventCollisionAttack
+__declspec(weak) void fn_105_12EE8(u8* p, int index, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x88))->Fighter::notifyEventChangeCollisionHit(index, moduleAccesser); } // Fighter::notifyEventChangeCollisionHit
+__declspec(weak) void fn_105_12EF0(u8* p) { ((Fighter*)(p - 0x94))->Fighter::notifyEventCollisionShieldCheck(); } // Fighter::notifyEventCollisionShieldCheck
+__declspec(weak) void fn_105_12EF8(u8* p, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x94))->Fighter::notifyEventCollisionShieldSearch(searchModule, collisionLog, groupIndex, moduleAccesser); } // Fighter::notifyEventCollisionShieldSearch
+__declspec(weak) void fn_105_12F00(u8* p, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x94))->Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); } // Fighter::notifyEventCollisionShield
+__declspec(weak) void fn_105_12F08(u8* p) { ((Fighter*)(p - 0xa0))->Fighter::notifyEventCollisionReflectorCheck(); } // Fighter::notifyEventCollisionReflectorCheck
+__declspec(weak) void fn_105_12F10(u8* p, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xa0))->Fighter::notifyEventCollisionReflectorSearch(searchModule, collisionLog, groupIndex, moduleAccesser); } // Fighter::notifyEventCollisionReflectorSearch
+__declspec(weak) void fn_105_12F18(u8* p, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xa0))->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); } // Fighter::notifyEventCollisionReflector
+__declspec(weak) void fn_105_12F20(u8* p) { ((Fighter*)(p - 0xac))->Fighter::notifyEventCollisionAbsorberCheck(); } // Fighter::notifyEventCollisionAbsorberCheck
+__declspec(weak) void fn_105_12F28(u8* p, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xac))->Fighter::notifyEventCollisionAbsorber(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); } // Fighter::notifyEventCollisionAbsorber
+__declspec(weak) void fn_105_12F30(u8* p) { ((Fighter*)(p - 0xb8))->Fighter::notifyEventCollisionSearchCheck(); } // Fighter::notifyEventCollisionSearchCheck
+__declspec(weak) void fn_105_12F38(u8* p, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xb8))->Fighter::notifyEventCollisionSearch(collisionLog, moduleAccesser); } // Fighter::notifyEventCollisionSearch
+__declspec(weak) void fn_105_12F40(u8* p, soModuleAccesser* moduleAccesser, int taskId, int unk2, int unk3) { ((Fighter*)(p - 0xc4))->Fighter::notifyEventCaptureStatus(moduleAccesser, taskId, unk2, unk3); } // Fighter::notifyEventCaptureStatus
+__declspec(weak) void fn_105_12F48(u8* p, BaseItem* item, int index, bool unk2, u8 unk3) { ((Fighter*)(p - 0xd0))->Fighter::notifyVisibilityItem(item, index, unk2, unk3); } // Fighter::notifyVisibilityItem
+__declspec(weak) void fn_105_12F50(u8* p, BaseItem* item, u32 index, bool unk2) { ((Fighter*)(p - 0xd0))->Fighter::notifyEjectAttachItem(item, index, unk2); } // Fighter::notifyEjectAttachItem
+__declspec(weak) void fn_105_12F58(u8* p, BaseItem* item, u32 index, bool unk2) { ((Fighter*)(p - 0xd0))->Fighter::notifyEjectItem(item, index, unk2); } // Fighter::notifyEjectItem
+__declspec(weak) void fn_105_12F60(u8* p, BaseItem* item) { ((Fighter*)(p - 0xd0))->Fighter::notifyShootBulletItem(item); } // Fighter::notifyShootBulletItem
+__declspec(weak) void fn_105_12F68(u8* p, BaseItem* item) { ((Fighter*)(p - 0xd0))->Fighter::notifyDropItem(item); } // Fighter::notifyDropItem
+__declspec(weak) void fn_105_12F70(u8* p, BaseItem* item, u32 nodeIndex, int* unk) { ((Fighter*)(p - 0xd0))->Fighter::notifyThrowItem(item, nodeIndex, unk); } // Fighter::notifyThrowItem
+__declspec(weak) void fn_105_12F80(u8* p, BaseItem* item, u32 nodeIndex, u32 attachNodeIndex, bool unk1, bool unk2) { ((Fighter*)(p - 0xd0))->Fighter::notifyAttachItem(item, nodeIndex, attachNodeIndex, unk1, unk2); } // Fighter::notifyAttachItem
+__declspec(weak) void fn_105_12F88(u8* p, itParam::SizeKind sizeKind, BaseItem* item, u32 nodeIndex, u32 index, bool unk) { ((Fighter*)(p - 0xd0))->Fighter::notifyHaveItem(sizeKind, item, nodeIndex, index, unk); } // Fighter::notifyHaveItem
+__declspec(weak) void fn_105_12F90(u8* p, BaseItem* item, bool* unk) { ((Fighter*)(p - 0xd0))->Fighter::notifyHaveItemPreCheck(item, unk); } // Fighter::notifyHaveItemPreCheck
+__declspec(weak) void fn_105_12FA0(u8* p, soDamage* damage, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xe8))->Fighter::notifyEventAddDamage(damage, moduleAccesser); } // Fighter::notifyEventAddDamage
+__declspec(weak) void fn_105_12FA8(u8* p, soDamage* damage, bool unk, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0xe8))->Fighter::notifyEventOnDamage(damage, unk, moduleAccesser); } // Fighter::notifyEventOnDamage
+__declspec(weak) void fn_105_12FB0(u8* p, float power, int unk) { ((Fighter*)(p - 0xf4))->Fighter::notifyEventPikminFinalAttack(power, unk); } // Fighter::notifyEventPikminFinalAttack
+__declspec(weak) void fn_105_12FB8(u8* p) { ((Fighter*)(p - 0xf4))->Fighter::notifyEventChangeAdvUnit(); } // Fighter::notifyEventChangeAdvUnit
+__declspec(weak) void fn_105_12FC0(u8* p) { ((Fighter*)(p - 0xf4))->Fighter::notifyEventBeat(); } // Fighter::notifyEventBeat
+__declspec(weak) void fn_105_12FC8(u8* p, float damage) { ((Fighter*)(p - 0xf4))->Fighter::notifyEventSetDamage(damage); } // Fighter::notifyEventSetDamage
+__declspec(weak) void fn_105_12FD0(u8* p, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(p - 0x100))->Fighter::notifyEventTurn(posX, posY, moduleAccesser); } // Fighter::notifyEventTurn
 }
 
 extern "C" {
-bool fn_105_12EB0(u8* p, acAnimCmd* acmd, soModuleAccesser* moduleAccesser, long unk3) { return ((Fighter*)(p - 0x48))->Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3); } // Fighter::notifyEventAnimCmd
+__declspec(weak) bool fn_105_12EB0(u8* p, acAnimCmd* acmd, soModuleAccesser* moduleAccesser, long unk3) { return ((Fighter*)(p - 0x48))->Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3); } // Fighter::notifyEventAnimCmd
 }
 
 // Sub-object destructor wrappers: destroy one base sub-object (flag -1 or 0), then delete when flags > 0.
@@ -507,9 +516,9 @@ void* fn_105_3490(void* p, s16 flags);
 void* fn_105_4CF4(void* p, s16 flags);
 
 #pragma dont_inline on
-void* fn_105_3220(void* p, s32 flags) { if (p != 0) { fn_105_327C(p, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soSelectInstanceHolder dt
-void* fn_105_32EC(void* p, s32 flags) { if (p != 0) { fn_105_3348(p, 0); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soLineHierarchy dt
-void* fn_105_3430(void* p, s16 flags) { if (p != 0) { fn_105_3490((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
+__declspec(weak) void* fn_105_3220(void* p, s32 flags) { if (p != 0) { fn_105_327C(p, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soSelectInstanceHolder dt
+__declspec(weak) void* fn_105_32EC(void* p, s32 flags) { if (p != 0) { fn_105_3348(p, 0); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soLineHierarchy dt
+__declspec(weak) void* fn_105_3430(void* p, s16 flags) { if (p != 0) { fn_105_3490((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
 void* fn_105_36B4(void* p, s32 flags) { if (p != 0) { __dt__15soKineticEnergyFv(p, 0); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soKineticEnergyRotNormal dt
 void* fn_105_3A24(void* p, s32 flags) { if (p != 0) { static_cast<soGlowModuleSimple*>(p)->soGlowModuleSimple::~soGlowModuleSimple(); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soGlowModuleBuilder dt
 void* fn_105_3A80(void* p, s32 flags) { if (p != 0) { fn_27_63EBC(p, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soReflectModuleBuilder dt
@@ -520,9 +529,9 @@ void* fn_105_42F0(void* p, s32 flags) { if (p != 0) { fn_27_5AE44(p, -1); if ((s
 void* fn_105_4418(void* p, s32 flags) { if (p != 0) { fn_27_6880C((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soShakeModuleBuilder dt
 void* fn_105_43B8(void* p, s32 flags) { if (p != 0) { __dt__17soSoundModuleImplFv((u8*)p + 0xc, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soSoundModuleBuilder dt
 void* fn_105_4478(void* p, s32 flags) { if (p != 0) { __dt__16soStopModuleImplFv(p, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soStopModuleBuilder dt
-void* fn_105_4C94(void* p, s16 flags) { if (p != 0) { fn_105_4CF4((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
+__declspec(weak) void* fn_105_4C94(void* p, s16 flags) { if (p != 0) { fn_105_4CF4((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
 void* fn_105_51C4(void* p, s32 flags) { if (p != 0) { fn_27_D3B50(p, 0); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soDamageEventObserver dt
-void* fn_105_78F8(void* p, s32 flags) { if (p != 0) { fn_105_45E4(p, 0); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // ftTeam dt
+__declspec(weak) void* fn_105_78F8(void* p, s32 flags) { if (p != 0) { fn_105_45E4(p, 0); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // ftTeam dt
 #pragma dont_inline reset
 }
 
@@ -817,8 +826,8 @@ int fn_105_E114() { return g_soValueVariation; } // soValueAccesser getValueVari
 // Forwarders to ftPopo methods that are not written yet (the target's `this` is the adjusted pointer).
 extern "C" {
 void* fn_105_F0C8(void* p, s32 flags);
-void* fn_105_12E70(void* p, s32 flags) { return fn_105_F0C8((u8*)p - 0x4, flags); } // soArticleMediatorImpl shoot thunk
-void* fn_105_12E78(void* p, s32 flags) { return fn_105_327C((u8*)p - 0x4, flags); } // soArticleMediatorImpl thunk
+__declspec(weak) void* fn_105_12E70(void* p, s32 flags) { return fn_105_F0C8((u8*)p - 0x4, flags); } // soArticleMediatorImpl shoot thunk
+__declspec(weak) void* fn_105_12E78(void* p, s32 flags) { return fn_105_327C((u8*)p - 0x4, flags); } // soArticleMediatorImpl thunk
 void fn_105_B138(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4);
 void fn_105_12EC0(u8* p, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObject, int unk4) { fn_105_B138(p - 0x54, eventInfo, moduleAccesser, stageObject, unk4); } // ftPopo notifyEventLink thunk
 }
@@ -828,21 +837,21 @@ extern "C" {
 void* fn_105_5C34(void* p, s16 flags);
 void* fn_105_56B8(void* p, s16 flags);
 void* fn_105_6090(void* p, s16 flags);
-void* fn_105_5BD4(void* p, s16 flags);
-void* fn_105_5FD0(void* p, s16 flags);
-void* fn_105_5658(void* p, s16 flags);
-void* fn_105_6030(void* p, s16 flags);
+__declspec(weak) void* fn_105_5BD4(void* p, s16 flags);
+__declspec(weak) void* fn_105_5FD0(void* p, s16 flags);
+__declspec(weak) void* fn_105_5658(void* p, s16 flags);
+__declspec(weak) void* fn_105_6030(void* p, s16 flags);
 
 #pragma dont_inline on
-void* fn_105_4B4C(void* p, s32 flags) { if (p != 0) { fn_105_3430((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
-void* fn_105_5520(void* p, s32 flags) { if (p != 0) { fn_105_4C94((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
-void* fn_105_55F8(void* p, s32 flags) { if (p != 0) { fn_105_5658((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
-void* fn_105_5658(void* p, s16 flags) { if (p != 0) { fn_105_56B8((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
-void* fn_105_5B74(void* p, s32 flags) { if (p != 0) { fn_105_5BD4((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
-void* fn_105_5BD4(void* p, s16 flags) { if (p != 0) { fn_105_5C34((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
-void* fn_105_5F70(void* p, s32 flags) { if (p != 0) { fn_105_5FD0((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
-void* fn_105_5FD0(void* p, s16 flags) { if (p != 0) { fn_105_6030((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
-void* fn_105_6030(void* p, s16 flags) { if (p != 0) { fn_105_6090((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
+__declspec(weak) void* fn_105_4B4C(void* p, s32 flags) { if (p != 0) { fn_105_3430((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
+__declspec(weak) void* fn_105_5520(void* p, s32 flags) { if (p != 0) { fn_105_4C94((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
+__declspec(weak) void* fn_105_55F8(void* p, s32 flags) { if (p != 0) { fn_105_5658((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
+__declspec(weak) void* fn_105_5658(void* p, s16 flags) { if (p != 0) { fn_105_56B8((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
+__declspec(weak) void* fn_105_5B74(void* p, s32 flags) { if (p != 0) { fn_105_5BD4((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
+__declspec(weak) void* fn_105_5BD4(void* p, s16 flags) { if (p != 0) { fn_105_5C34((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
+__declspec(weak) void* fn_105_5F70(void* p, s32 flags) { if (p != 0) { fn_105_5FD0((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
+__declspec(weak) void* fn_105_5FD0(void* p, s16 flags) { if (p != 0) { fn_105_6030((u8*)p + 0x8, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // soInstancePoolSub dt
+__declspec(weak) void* fn_105_6030(void* p, s16 flags) { if (p != 0) { fn_105_6090((u8*)p + 0x4, -1); if ((s16)flags > 0) { ::operator delete(p); } } return p; } // wnInstanceHolder dt
 #pragma dont_inline reset
 }
 
@@ -871,7 +880,7 @@ struct ftPopoVSlotsArticle {
     virtual void slot19();
     virtual int slot20();
 };
-int fn_105_F4D8(ftPopoVSlotsArticle* p) { return p->slot20(); } // soArticle checkActivate (virtual tail call)
+__declspec(weak) int fn_105_F4D8(ftPopoVSlotsArticle* p) { return p->slot20(); } // soArticle checkActivate (virtual tail call)
 
 }
 

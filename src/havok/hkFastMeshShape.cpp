@@ -9,6 +9,7 @@
 //   0x802D4A44    80  __sinit_\hkFastMeshShape_cpp   [map: hkFastMeshShapecpp____sinit_]
 
 #include <havok/hkFastMeshShape.h>
+#include <havok/hkRegistry.h>
 #include <havok/hkShapeType.h>
 
 void hkFastMeshShape::finishLoadedObjecthkFastMeshShape(void* p) {
@@ -28,6 +29,8 @@ hkMeshShape::~hkMeshShape() {
 hkFastMeshShape::~hkFastMeshShape() {
 }
 
+#pragma push
+#pragma auto_inline off
 const void* hkFastMeshShape::getVtablehkFastMeshShape() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
@@ -35,6 +38,10 @@ const void* hkFastMeshShape::getVtablehkFastMeshShape() {
     hkFastMeshShape* p = ::new (buf) hkFastMeshShape(flag);
     return *(const void**)p;
 }
+#pragma pop
 
 // Not yet decompiled in this unit:
 //   0x802D48EC   344  getChildShape   [map: hkFastMeshShape__getChildShape]
+
+static hkStaticTypeInfo hkFastMeshShapeTypeInfo("hkFastMeshShape", hkFastMeshShape::finishLoadedObjecthkFastMeshShape, hkFastMeshShape::cleanupLoadedObjecthkFastMeshShape,
+                                      hkFastMeshShape::getVtablehkFastMeshShape());

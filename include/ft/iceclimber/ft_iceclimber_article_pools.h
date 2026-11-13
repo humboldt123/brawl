@@ -9,63 +9,16 @@
 #include <wn/weapon.h>
 #pragma dont_inline off // it/it_gen_archive.h (reached through weapon.h) leaves dont_inline on for everything parsed after it
 
-class Vec3f;
-class wnPopoIceBergWind;
-struct wnPopoBlizzardData;
-struct wnPopoIceShotData;
-struct wnPopoIceBergData;
-struct wnPopoRubberData;
-struct wnPopoIceBergWindData;
-
-// The blizzard of the final smash (wn_popo_blizzard). Opaque shell: the class is a weapon builder that cannot coexist with this unit.
-class wnPopoBlizzard : public Weapon {
-    u8 m_unreconstructed[0x1F4C - sizeof(Weapon)];
-public:
-    wnPopoBlizzard(s32 articleId, const wnArticleBuildInfo& info, const wnPopoBlizzardData* data);
-    virtual ~wnPopoBlizzard();
-    void activate(int founderTaskId, int team, const Vec3f* position, float lr);
-};
-static_assert(sizeof(wnPopoBlizzard) == 0x1F4C, "wnPopoBlizzard layout is wrong!");
-
-// The ice shot of the side special (the class is in sora_melee). Opaque shell for the same reason.
-class wnPopoIceShot : public Weapon {
-    u8 m_unreconstructed[0x23D0 - sizeof(Weapon)];
-public:
-    wnPopoIceShot(s32 articleId, const wnArticleBuildInfo& info, const wnPopoIceShotData* data);
-    virtual ~wnPopoIceShot();
-    void shoot();
-};
-static_assert(sizeof(wnPopoIceShot) == 0x23D0, "wnPopoIceShot layout is wrong!");
-
-// The ice berg of the down special (wn_popo_ice_berg). Opaque shell for the same reason.
-class wnPopoIceBerg : public Weapon {
-    u8 m_unreconstructed[0x277C - sizeof(Weapon)];
-public:
-    wnPopoIceBerg(s32 articleId, const wnArticleBuildInfo& info, const wnPopoIceBergData* data);
-    virtual ~wnPopoIceBerg();
-    void activate(int founderTaskId, int resourceId, int team, const Vec3f* position, float lr, int heap);
-    static bool activeArticle(wnPopoIceBergWind* wind, soModuleAccesser* acc);
-};
-static_assert(sizeof(wnPopoIceBerg) == 0x277C, "wnPopoIceBerg layout is wrong!");
-
-// The rubber band of the up special (wn_popo_rubber). Opaque shell for the same reason.
-class wnPopoRubber : public Weapon {
-    u8 m_unreconstructed[0x210C - sizeof(Weapon)];
-public:
-    wnPopoRubber(s32 articleId, const wnArticleBuildInfo& info, const wnPopoRubberData* data);
-    virtual ~wnPopoRubber();
-    void activate(int founderTaskId, u32 resourceId, int team, int parentTaskId); // HYPOTHESIS: parameter meaning
-};
-static_assert(sizeof(wnPopoRubber) == 0x210C, "wnPopoRubber layout is wrong!");
-
-// The wind the ice berg blows (wn/popo/wn_popo_ice_berg_wind.h). Opaque shell for the same reason.
-class wnPopoIceBergWind : public Weapon {
-    u8 m_unreconstructed[0x201C - sizeof(Weapon)];
-public:
-    wnPopoIceBergWind(s32 articleId, const wnArticleBuildInfo& info, const wnPopoIceBergWindData* data);
-    virtual ~wnPopoIceBergWind();
-};
-static_assert(sizeof(wnPopoIceBergWind) == 0x201C, "wnPopoIceBergWind layout is wrong!");
+// Full article types let the fighter own their pools and teardown.
+#define WN_WEAPON_BUILDER
+#define WN_ARTICLE_NATIVE_BUILDERS
+#define WN_SHARED_ARRAYS_1
+#include <wn/wn_module_accesser_builder.h>
+#include <wn/popo/wn_popo_blizzard.h>
+#include <wn/popo/wn_popo_ice_shot.h>
+#include <wn/popo/wn_popo_ice_berg.h>
+#include <wn/popo/wn_popo_rubber.h>
+#include <wn/popo/wn_popo_ice_berg_wind.h>
 
 typedef wnArticleHierarchy<wnPopoIceBergWind, 1, soInstancePoolRoot> ftPopoIceBergWindPool;
 typedef wnArticleHierarchy<wnPopoRubber, 1, ftPopoIceBergWindPool> ftPopoRubberPool;

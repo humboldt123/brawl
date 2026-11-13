@@ -17,6 +17,7 @@
 //   0x802D720C    84  __sinit_\hkTriangleShape_cpp   [map: hkTriangleShapecpp____sinit_]
 
 #include <havok/hkTriangleShape.h>
+#include <havok/hkRegistry.h>
 #include <havok/hkShapeType.h>
 
 void hkTriangleShape::finishLoadedObjecthkTriangleShape(void* p) {
@@ -32,6 +33,8 @@ void hkTriangleShape::cleanupLoadedObjecthkTriangleShape(void* p) {
 hkTriangleShape::~hkTriangleShape() {
 }
 
+#pragma push
+#pragma auto_inline off
 const void* hkTriangleShape::getVtablehkTriangleShape() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
@@ -39,6 +42,7 @@ const void* hkTriangleShape::getVtablehkTriangleShape() {
     hkTriangleShape* p = ::new (buf) hkTriangleShape(flag);
     return *(const void**)p;
 }
+#pragma pop
 
 int hkTriangleShape::getType() const {
     return HK_SHAPE_TRIANGLE;
@@ -68,4 +72,51 @@ void hkTriangleShape::getCollisionSpheresInfo(hkCollisionSpheresInfo* out) const
 //   0x802D6804   708  getAabb   [map: hkTriangleShape__getAabb]
 //   0x802D6ADC   128  getCollisionSpheres   [map: hkTriangleShape__getCollisionSpheres]
 //   0x802D6B5C  1612  castRay   [map: hkTriangleShape__castRay]
-//   0x802D71A8   100  calcStatistics   [map: hkTriangleShape__calcStatistics]
+
+static hkStaticTypeInfo hkTriangleShapeTypeInfo("hkTriangleShape", hkTriangleShape::finishLoadedObjecthkTriangleShape, hkTriangleShape::cleanupLoadedObjecthkTriangleShape,
+                                      hkTriangleShape::getVtablehkTriangleShape());
+
+// Statistics collector slots used by calcStatistics (vtable offsets 0x0C and 0x20); see hkCylinderShape.cpp.
+// Shape from https://github.com/jj-link/brawl src/havok/fn_802D71A8.cpp.
+struct hkStatisticsCollectorIface {
+    virtual void unk00();
+    virtual void addObject(const char* name, int count, const void* object); // 0x0C
+    virtual void unk10();
+    virtual void unk14();
+    virtual void unk18();
+    virtual void unk1C();
+    virtual void unk20();                                                    // 0x20
+};
+
+// TODO: cleanup (shape from jj-link/brawl fn_802D71A8)
+void hkTriangleShape::calcStatistics(hkStatisticsCollector* collector) const {
+    ((hkStatisticsCollectorIface*)collector)->addObject("TriangleShp", 1, this);
+    ((hkStatisticsCollectorIface*)collector)->unk20();
+}
+
+// fn_802D6ADC: body from https://github.com/jj-link/brawl src/havok/fn_802D6ADC.cpp (namespaced; labels as in our symbols).
+#include <types.h>
+namespace jj_fn_802D6ADC {
+// TODO: cleanup (shape from jj-link/brawl fn_802D6ADC)
+extern "C" void* fn_802D6ADC(void* src, void* dst)
+{
+    float* in = (float*)src;
+    float* out = (float*)dst;
+    out[0] = in[4];
+    out[1] = in[5];
+    out[2] = in[6];
+    out[3] = in[7];
+    out[3] = in[3];
+    out[4] = in[8];
+    out[5] = in[9];
+    out[6] = in[10];
+    out[7] = in[11];
+    out[7] = in[3];
+    out[8] = in[12];
+    out[9] = in[13];
+    out[10] = in[14];
+    out[11] = in[15];
+    out[11] = in[3];
+    return dst;
+}
+} // namespace jj_fn_802D6ADC

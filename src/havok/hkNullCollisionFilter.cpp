@@ -37,35 +37,25 @@ const void* hkNullCollisionFilter::getVtablehkNullCollisionFilter() {
 }
 #pragma auto_inline reset
 
-hkBool hkNullCollisionFilter::isCollisionEnabled(const void* a, const void* b) const {
+// Defined in reverse vtable order (the thunk targets give the order).
+hkBool hkNullCollisionFilter::isCollisionEnabled(const hkWorldRayCastInput& a, const hkCollidable& collidableB) const {
     return true;
 }
 
-hkBool hkNullCollisionFilter::isCollisionEnabled1(const void* a, const void* b) const {
+hkBool hkNullCollisionFilter::isCollisionEnabled(const hkShapeRayCastInput& aInput, const hkShapeCollection& bContainer,
+                                                 u32 bKey) const {
     return true;
 }
 
-hkBool hkNullCollisionFilter::isCollisionEnabled2(const void* a, const void* b) const {
+hkBool hkNullCollisionFilter::isCollisionEnabled(const hkCollisionInput& input, const hkCdBody& a, const hkCdBody& b,
+                                                 const hkShapeCollection& bContainer, u32 bKey) const {
     return true;
 }
 
-hkBool hkNullCollisionFilter::isCollisionEnabled3(const void* a, const void* b) const {
+hkBool hkNullCollisionFilter::isCollisionEnabled(const hkCollidable& a, const hkCollidable& b) const {
     return true;
 }
 
-static hkTypeInfo hkNullCollisionFilterTypeInfo = {
-    "hkNullCollisionFilter",
-    hkNullCollisionFilter::finishLoadedObjecthkNullCollisionFilter,
-    hkNullCollisionFilter::cleanupLoadedObjecthkNullCollisionFilter,
-    hkNullCollisionFilter::getVtablehkNullCollisionFilter(),
-};
-
-// Function bodies below are taken from https://github.com/jj-link/brawl, where each
-// one was matched in a translation unit of its own. HYPOTHESIS: this unit spans
-// several original source files, so its functions are not auto-inlined into one
-// another; helpers the original inlined are marked inline.
-#pragma auto_inline off
-
-extern "C" int fn_802CD780(void) {
-    return 0x01000000;
-}
+static hkStaticTypeInfo hkNullCollisionFilterTypeInfo("hkNullCollisionFilter", hkNullCollisionFilter::finishLoadedObjecthkNullCollisionFilter,
+                                                    hkNullCollisionFilter::cleanupLoadedObjecthkNullCollisionFilter,
+                                                    hkNullCollisionFilter::getVtablehkNullCollisionFilter());

@@ -18,17 +18,20 @@ struct hkMonitorStream {
         const char* m_name; // 0x00
         u32 m_time;         // 0x04
         u32 unk8;           // 0x08
+
+        // Stamps the command with the low time-base word (map name hkMonitorStream::TimerCommand::setTime).
+        void setTime();
     };
     // Begin command of a timer list (0x10 bytes): a timer command plus the name of the list's first split.
-    struct TimerBeginListCommand {
-        const char* m_name;          // 0x00
-        u32 m_time;                  // 0x04
-        u32 unk8;                    // 0x08
+    struct TimerBeginListCommand : TimerCommand {
         const char* m_firstSplitName; // 0x0C
     };
 
     // True while there is room for another command (end of data below the 0x0C limit word).
     hkBool memoryAvailable() const { return unk4 < unkC; }
+    // The current end of the stream, where the next command goes, and its update after a command is written.
+    char* getEnd() const { return unk4; }
+    void setEnd(char* end) { unk4 = end; }
 
     static hkMonitorStream& getInstance() { return s_instance; }
 
@@ -43,6 +46,10 @@ inline u32 hkMonitorStream_getTicks() {
     register u32 ticks;
     asm { mftb ticks, 268 }
     return ticks;
+}
+
+inline void hkMonitorStream::TimerCommand::setTime() {
+    m_time = hkMonitorStream_getTicks();
 }
 
 // The timer bracket of the collision and world functions: a name command stamped with the time base, written
@@ -67,6 +74,35 @@ inline u32 hkMonitorStream_getTicks() {
     }
 #define HK_TIMER_BEGIN(NAME) HK_MONITOR_TIMER_COMMAND("Tt" NAME)
 #define HK_TIMER_END() HK_MONITOR_TIMER_COMMAND("Et")
+
+// The same brackets written with the stream accessors (the Havok macro form). Functions compiled without inlining
+// (hkBvTreeStreamAgent::processCollision) call each accessor out of line, which shows this form in the image.
+#define HK_TIMER_COMMAND_ACCESSORS(NAME)                                                     \
+    {                                                                                        \
+        hkMonitorStream& mStream = hkMonitorStream::getInstance();                           \
+        if (mStream.memoryAvailable()) {                                                     \
+            hkMonitorStream::TimerCommand* h = (hkMonitorStream::TimerCommand*)mStream.getEnd(); \
+            h->m_name = NAME;                                                                \
+            h->setTime();                                                                    \
+            mStream.setEnd((char*)(h + 1));                                                  \
+        }                                                                                    \
+    }
+#define HK_TIMER_BEGIN_LIST_ACCESSORS(NAME, FIRST)                                           \
+    {                                                                                        \
+        hkMonitorStream& mStream = hkMonitorStream::getInstance();                           \
+        if (mStream.memoryAvailable()) {                                                     \
+            hkMonitorStream::TimerBeginListCommand* h =                                      \
+                (hkMonitorStream::TimerBeginListCommand*)mStream.getEnd();                   \
+            h->m_name = "Lt" NAME;                                                           \
+            h->m_firstSplitName = "St" FIRST;                                                \
+            h->setTime();                                                                    \
+            mStream.setEnd((char*)(h + 1));                                                  \
+        }                                                                                    \
+    }
+#define HK_TIMER_SPLIT_LIST_ACCESSORS(NAME) HK_TIMER_COMMAND_ACCESSORS("St" NAME)
+#define HK_TIMER_END_LIST_ACCESSORS() HK_TIMER_COMMAND_ACCESSORS("lt")
+#define HK_TIMER_BEGIN_ACCESSORS(NAME) HK_TIMER_COMMAND_ACCESSORS("Tt" NAME)
+#define HK_TIMER_END_ACCESSORS() HK_TIMER_COMMAND_ACCESSORS("Et")
 
 // Timer lists: the begin command (0x10 bytes) carries the name of the first split at 0x0C, the splits and the end
 // are ordinary 0x0C-byte commands ("St" + split name, "lt"). Store order from hkBvAgent::processCollision.

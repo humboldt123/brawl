@@ -9,7 +9,7 @@
 class StageObject;
 class soModuleAccesser;
 
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 // BYTES: the constructor, destructor and initialize of this base are out-of-line functions in sora_melee (the
 // fighter and article RELs call them), so the class is specialized with them declared only.
 class soDamageEventObserver;
@@ -33,11 +33,16 @@ public:
     ~soDamageEventObserver();
     soDamageEventObserver() : soEventObserver<soDamageEventObserver>(0x6) {};
     soDamageEventObserver(short unitID) : soEventObserver<soDamageEventObserver>(unitID) {};
+#ifdef WN_EM_SIMPLE_UNIT
+    // BYTES: wnemSimple constructs this out of line (manage id, -1) and the copy calls the sora_melee base.
+    soDamageEventObserver(short param1, s8 param2) __attribute__((never_inline));
+#else
     soDamageEventObserver(short param1, s8 param2) : soEventObserver<soDamageEventObserver>(0x6) {
         initialize(param1, param2);
     }
+#endif
 
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) && !defined(WN_EM_SIMPLE_UNIT)
     virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // BYTES: the owning unit's weak copy; the #else units call the sora_melee instance
 #else
     virtual void addObserver(short param1, s8 param2);

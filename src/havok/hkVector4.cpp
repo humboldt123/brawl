@@ -9,6 +9,7 @@
 
 // HYPOTHESIS: two static vectors; the second is copied from the first during static initialisation.
 static hkVector4 s_zeroVector;
+static hkVector4 s_zeroVectorCopy = s_zeroVector;
 
 void hkVector4::setTransformedPos(const hkTransform& t, const hkVector4& v) {
     const hkRotation& r = t.m_rotation;

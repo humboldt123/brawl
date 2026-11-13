@@ -50,12 +50,20 @@
 #include <havok/hkCollisionDispatcher.h>
 #include <havok/hkShapeType.h>
 #include <havok/hkBvAgent.h>
+#include <havok/hkBvTreeShape.h>
+#include <havok/hkMonitorStream.h>
+#include <havok/hkMotionState.h>
+#include <havok/hkSweptTransformUtil.h>
+#include <havok/hkAlgorithm.h>
+#include <havok/hkMoppAgent.h>
 
 // HYPOTHESIS: hkAgent1nMachine helpers (map names hkAgent1nMachine_Create / _Destroy) that work on m_list.
 extern "C" void fn_802FCB14(void* list);
 extern "C" void fn_802FC6AC(void* list, int a, int b);
 extern "C" void fn_802FC824(void* list);
 extern "C" void fn_802FC988(void* list);
+// HYPOTHESIS: the invalid shape key (0xFFFFFFFF), appended as the end marker of the sorted hit list.
+extern "C" const u32 lbl_8059EF58;
 // Dispatcher registration (map name hkCollisionDispatcher registration, not recovered yet).
 
 // HYPOTHESIS: registration record passed to the collision dispatcher (same layout as hkPhantomAgent.cpp).
@@ -66,6 +74,52 @@ void hkBvTreeStreamAgent::cleanup() {
     fn_802FC6AC(&m_list, unkC, unk8);
     delete this;
 }
+
+// BYTES: the whole function is compiled without inlining; every accessor (stream, body, array, memory) is a call to
+// its out-of-line copy, which follow the function in the image.
+#pragma push
+#pragma dont_inline on
+// Queries B's tree with A's aabb swept over the step and hands the sorted hit keys (ended by the invalid key) to the
+// agent track, which keeps one child agent per hit. When the cached aabb still covers A the track only reruns its
+// agents. Gives up for this step when the track might need more sectors (0x200 bytes each, one per four keys) than
+// the memory has left, flagging the memory as out of memory.
+void hkBvTreeStreamAgent::processCollision(const hkCdBody& bodyA, const hkCdBody& bodyB, hkProcessCollisionInput& input,
+                                           void* output) {
+    HK_TIMER_BEGIN_LIST_ACCESSORS("BvTree3", "QueryTree");
+    hkAgent3ProcessInput in3;
+    {
+        in3.m_bodyA = &bodyA;
+        in3.m_bodyB = &bodyB;
+        in3.m_contactMgr = (hkContactMgr*)unk8;
+        in3.m_input = &input;
+        const hkMotionState* msA = bodyA.getMotionState();
+        const hkMotionState* msB = bodyB.getMotionState();
+        hkSweptTransformUtil::calcTimInfo(*msA, *msB, input.m_stepInfo.m_deltaTime, in3.m_linearTimInfo);
+        in3.m_aTb.setMulInverseMul(msA->getTransform(), msB->getTransform());
+    }
+    hkInplaceArray<u32, 128> hitList;
+    hitList.pushBackUnchecked(lbl_8059EF58);
+    hkTransform bTa;
+    bTa.setInverse(in3.m_aTb);
+    int cached = hkBvTreeAgent::calcAabbAndQueryTree(bodyA, bodyB, bTa, in3.m_linearTimInfo, input, (hkAabb*)unk10,
+                                                     hitList);
+    HK_TIMER_SPLIT_LIST_ACCESSORS("Narrow");
+    if (cached == 0) {
+        int memNeeded = (hitList.getSize() / 4 + 1 - m_list.m_sectors.getSize()) * 0x200;
+        if (memNeeded > hkMemory::getInstance().getAvailableMemory()) {
+            hkMemory::getInstance().unk4 = 1;
+            return;
+        }
+        hkAlgorithm::quickSort(hitList.begin(), hitList.getSize());
+        const hkShapeCollection* collection = ((const hkBvTreeShape*)bodyB.getShape())->getShapeCollection();
+        fn_802FCCF0(&m_list, &in3, collection, hitList.begin(), hitList.getSize(), output);
+    } else {
+        const hkShapeCollection* collection = ((const hkBvTreeShape*)bodyB.getShape())->getShapeCollection();
+        fn_802FCCF0(&m_list, &in3, collection, 0, 0, output);
+    }
+    HK_TIMER_END_LIST_ACCESSORS();
+}
+#pragma pop
 
 extern "C" void fn_802FEA54(void* subObject, void* args);
 
@@ -106,6 +160,32 @@ void hkBvTreeStreamAgent::warpTime(float t0, float t1, void* arg) {
     fn_802FC988(&m_list);
 }
 
+// Statistics collector slots used here (local view, as in hkBvTreeAgent.cpp). HYPOTHESIS: names.
+struct hkStatisticsCollectorIface {
+    virtual void unk08();
+    virtual void addObject(const char* name, int type, const void* object);                      // 0x0C
+    virtual void addArray(const char* name, int type, const void* data, int size, int capacity); // 0x10
+
+    // An array's storage, counted only when the array owns it (the name is computed before the ownership test).
+    template <typename T>
+    void addArray(const char* name, int type, const hkArray<T>& array) {
+        if ((array.m_capacityAndFlags & hkArrayBase::DONT_DEALLOCATE_FLAG) == 0) {
+            addArray(name, type, array.m_data, array.m_size * sizeof(T),
+                     (array.m_capacityAndFlags & hkArrayBase::CAPACITY_MASK) * sizeof(T));
+        }
+    }
+};
+
+// HYPOTHESIS: hkAgentMachineUtil::calc1nStatistics (map name): the statistics of the track's sectors and agents.
+extern "C" void fn_802FEA60(const hkAgent1nTrack* track, hkStatisticsCollector* collector);
+
+// The agent, its sector directory (when it owns its storage) and the track's agents.
+void hkBvTreeStreamAgent::calcStatistics(hkStatisticsCollector* collector) const {
+    ((hkStatisticsCollectorIface*)collector)->addObject("BvTreeAgt3", 8, this);
+    ((hkStatisticsCollectorIface*)collector)->addArray("SectorPtrs", 8, m_list.m_sectors);
+    fn_802FEA60(&m_list, collector);
+}
+
 // BYTES: the symmetric wrappers call these forwarders; without the pragma they are inlined there.
 #pragma push
 #pragma auto_inline off
@@ -120,7 +200,7 @@ void hkBvTreeStreamAgent::getClosestPoints(const hkCdBody& a, const hkCdBody& b,
 
 // The linear cast with the bodies swapped: the path is negated and each collector is wrapped in one that turns
 // the points back.
-void hkBvTreeStreamAgentVariant::linearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d) {
+void hkSymmetricAgent_19hkBvTreeStreamAgent_::linearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d) {
     const hkLinearCastCollisionInput& input = c;
     hkLinearCastCollisionInput flippedInput = input;
     flippedInput.m_path.setNeg4(input.m_path);
@@ -165,7 +245,7 @@ hkBvTreeStreamAgent::hkBvTreeStreamAgent(const hkCdBody& bodyA, const hkCdBody& 
 
 hkBvTreeStreamAgent* hkBvTreeStreamAgent::createBvTreeShapeAgent(const hkCdBody& bodyA, const hkCdBody& bodyB,
                                                                  hkCollisionInput& input, hkContactMgr* contactMgr) {
-    return new hkBvTreeStreamAgentVariant(bodyB, bodyA, input, contactMgr);
+    return new hkSymmetricAgent_19hkBvTreeStreamAgent_(bodyB, bodyA, input, contactMgr);
 }
 
 hkBvTreeStreamAgent* hkBvTreeStreamAgent::createShapeBvAgent(const hkCdBody& bodyA, const hkCdBody& bodyB,
@@ -184,19 +264,19 @@ void hkBvTreeStreamAgent::registerAgent(void* dispatcher) {
     reg.symmetricA = true;
     reg.symmetricB = true;
     ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&reg, HK_SHAPE_BV_TREE, HK_SHAPE_CONVEX);
-    reg.create = (hkAgentFunc)&hkBvTreeStreamAgent::createShapeBvAgent;
-    reg.staticGetPenetrations = (hkAgentFunc)hkBvTreeAgent::staticGetPenetrations;
-    reg.staticGetClosestPoints = (hkAgentFunc)hkBvTreeAgent::staticGetClosestPoints;
-    reg.staticLinearCast = (hkAgentFunc)hkBvTreeAgent::staticLinearCast;
-    reg.symmetricA = false;
-    reg.symmetricB = true;
-    ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&reg, HK_SHAPE_CONVEX, HK_SHAPE_BV_TREE);
+    hkAgentFuncs rev;
+    rev.create = (hkAgentFunc)&hkBvTreeStreamAgent::createShapeBvAgent;
+    rev.staticGetPenetrations = (hkAgentFunc)hkBvTreeAgent::staticGetPenetrations;
+    rev.staticGetClosestPoints = (hkAgentFunc)hkBvTreeAgent::staticGetClosestPoints;
+    rev.staticLinearCast = (hkAgentFunc)hkBvTreeAgent::staticLinearCast;
+    rev.symmetricA = false;
+    rev.symmetricB = true;
+    ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&rev, HK_SHAPE_CONVEX, HK_SHAPE_BV_TREE);
 }
 
 // Registers the agent for BV tree x convex list pairs in both orders.
 void hkBvTreeStreamAgent::registerConvexListAgent(void* dispatcher) {
     hkAgentFuncs reg;
-    hkAgentFuncs reverseReg;
     reg.create = (hkAgentFunc)&hkBvTreeStreamAgent::createBvTreeShapeAgent;
     reg.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_13hkBvTreeAgent::staticGetPenetrations;
     reg.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_13hkBvTreeAgent::staticGetClosestPoints;
@@ -204,6 +284,7 @@ void hkBvTreeStreamAgent::registerConvexListAgent(void* dispatcher) {
     reg.symmetricA = true;
     reg.symmetricB = true;
     ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&reg, HK_SHAPE_BV_TREE, HK_SHAPE_CONVEX_LIST);
+    hkAgentFuncs reverseReg;
     reverseReg.create = (hkAgentFunc)&hkBvTreeStreamAgent::createShapeBvAgent;
     reverseReg.staticGetPenetrations = (hkAgentFunc)hkBvTreeAgent::staticGetPenetrations;
     reverseReg.staticGetClosestPoints = (hkAgentFunc)hkBvTreeAgent::staticGetClosestPoints;
@@ -258,3 +339,31 @@ void hkSymmetricAgentLinearCast<T>::getClosestPoints(const hkCdBody& a, const hk
 template void hkSymmetricAgentLinearCast<hkBvTreeStreamAgent>::getPenetrations(const hkCdBody&, const hkCdBody&, hkCollisionInput&, void*);
 template void hkSymmetricAgentLinearCast<hkBvTreeStreamAgent>::getClosestPoints(const hkCdBody&, const hkCdBody&, hkCollisionInput&, void*);
 
+// Registers the stream agent for MOPP x convex pairs in both orders (the MOPP agent's queries) and the MOPP agent for
+// MOPP x MOPP pairs.
+void hkMoppBvTreeStreamAgent::registerAgent(void* dispatcher) {
+    hkAgentFuncs moppConvex;
+    moppConvex.create = (hkAgentFunc)&hkBvTreeStreamAgent::createBvTreeShapeAgent;
+    moppConvex.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast_11hkMoppAgent::staticGetPenetrations;
+    moppConvex.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast_11hkMoppAgent::staticGetClosestPoints;
+    moppConvex.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast_11hkMoppAgent::staticLinearCast;
+    moppConvex.symmetricA = true;
+    moppConvex.symmetricB = true;
+    ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&moppConvex, HK_SHAPE_MOPP, HK_SHAPE_CONVEX);
+    hkAgentFuncs convexMopp;
+    convexMopp.create = (hkAgentFunc)&hkBvTreeStreamAgent::createShapeBvAgent;
+    convexMopp.staticGetPenetrations = (hkAgentFunc)hkBvTreeAgent::staticGetPenetrations;
+    convexMopp.staticGetClosestPoints = (hkAgentFunc)hkBvTreeAgent::staticGetClosestPoints;
+    convexMopp.staticLinearCast = (hkAgentFunc)hkMoppAgent::staticLinearCast;
+    convexMopp.symmetricA = false;
+    convexMopp.symmetricB = true;
+    ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&convexMopp, HK_SHAPE_CONVEX, HK_SHAPE_MOPP);
+    hkAgentFuncs moppMopp;
+    moppMopp.create = (hkAgentFunc)&hkMoppAgent::createBvBvAgent;
+    moppMopp.staticGetPenetrations = (hkAgentFunc)hkBvTreeAgent::staticGetPenetrations;
+    moppMopp.staticGetClosestPoints = (hkAgentFunc)hkBvTreeAgent::staticGetClosestPoints;
+    moppMopp.staticLinearCast = (hkAgentFunc)hkMoppAgent::staticLinearCast;
+    moppMopp.symmetricA = false;
+    moppMopp.symmetricB = true;
+    ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&moppMopp, HK_SHAPE_MOPP, HK_SHAPE_MOPP);
+}

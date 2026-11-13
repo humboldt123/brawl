@@ -49,6 +49,7 @@ public:
 
     soModuleAccesser* m_moduleAccesser;
     soModuleAccesser* getModuleAccesser() const { return m_moduleAccesser; }
+    void setModuleAccesser(soModuleAccesser* moduleAccesser);
     StageObject(const char* name, int unk1, int unk2, int unk3, bool unk4, soModuleAccesser* moduleAccesser);
     virtual void processAnim();
     virtual void processUpdate();
@@ -121,7 +122,8 @@ public:
     virtual void notifyArticleEventEject(int unk1, int unk2, int* unk3);
     virtual void updateRoughPos();
 
-    void activate(float lr, float, Vec3f* pos, bool);
+    // Order as in BrawlHeaders: Enemy::activate evaluates pos (r4) before the two floats.
+    void activate(Vec3f* pos, float lr, float, bool);
     void deactivate(bool);
 };
 static_assert(sizeof(StageObject) == 0x64, "Class is wrong size!");

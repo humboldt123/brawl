@@ -23,6 +23,23 @@ typedef soCollisionShieldModuleBuildConfigGroups<2, 1, 1, soCollisionShieldEvent
 typedef soLinkModuleBuildConfigCap<6, soLinkModuleImpl> ftPikachuLinkModuleBuildConfig;
 typedef soStatusModuleBuildConfig<288, soGeneralWorkBuildConfig<18, 14, 2>, 274, 71, soTransitionModuleBuildConfig<ftStatusTransitionTypeList> > ftPikachuStatusModuleBuildConfig;
 
+class ftKineticEnergyController;
+
+// Modes 0x64..0x6B. Each case keeps its own dead false flag (a volatile so the store survives).
+// Only Quick Attack aim (0x64) on the controller energy calls updateEnergySub; the specialization is in the fighter TU.
+template <int Mode, typename Energy>
+struct ftPikachuEnergyModeUpdate {
+    static void update(Energy* energy, soModuleAccesser* acc) {
+        volatile bool dead = false;
+        energy->updateEnergy(acc);
+    }
+};
+
+template <>
+struct ftPikachuEnergyModeUpdate<0x64, ftKineticEnergyController> {
+    static void update(ftKineticEnergyController* energy, soModuleAccesser* acc);
+};
+
 // HYPOTHESIS: this fighter has its own kinetic transactor (updateEnergy and changeKinetic)
 class ftPikachuKineticTransactor : public ftKineticTransactor {
 public:
@@ -33,13 +50,28 @@ public:
     static void updateEnergySub(soKineticEnergyNormal* energy, void* unused, soModuleAccesser* acc);
     template <typename E>
     static void updateEnergy(E* energy, soModuleAccesser* acc) {
-        if (energy->isEnable() != true) {
+        // Ordinary kinetic types update the energy when it is enabled and not suspended.
+        if (acc->getKineticModule().getKineticType() <= 0x63) {
+            if (energy->isEnable() != true) {
+                return;
+            }
+            if (energy->isSuspend()) {
+                return;
+            }
+            energy->updateEnergy(acc);
             return;
         }
-        if (energy->isSuspend()) {
-            return;
+        // 0x64..0x6B are Pikachu's own modes (Quick Attack and the ones changeKinetic switches on).
+        switch (acc->getKineticModule().getKineticType()) {
+        case 0x64: ftPikachuEnergyModeUpdate<0x64, E>::update(energy, acc); break;
+        case 0x65: ftPikachuEnergyModeUpdate<0x65, E>::update(energy, acc); break;
+        case 0x66: ftPikachuEnergyModeUpdate<0x66, E>::update(energy, acc); break;
+        case 0x67: ftPikachuEnergyModeUpdate<0x67, E>::update(energy, acc); break;
+        case 0x68: ftPikachuEnergyModeUpdate<0x68, E>::update(energy, acc); break;
+        case 0x69: ftPikachuEnergyModeUpdate<0x69, E>::update(energy, acc); break;
+        case 0x6a: ftPikachuEnergyModeUpdate<0x6a, E>::update(energy, acc); break;
+        case 0x6b: ftPikachuEnergyModeUpdate<0x6b, E>::update(energy, acc); break;
         }
-        return energy->updateEnergy(acc);
     }
 };
 typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKineticMediatorImplT<ftPikachuKineticTransactor> > ftPikachuKineticModuleBuildConfig;
@@ -47,6 +79,35 @@ typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKinetic
 // HYPOTHESIS: soGenerateArticleManageModuleBuilder (the article pools). Only the fighter unit builds the real pools; the other
 // units of the REL see an opaque block of the same size.
 #ifdef FT_PIKACHU_ARTICLE_POOLS
+// These observer capacities live in sora_melee. Declared before the article types so the event builder calls them.
+template <> class soEventUnitWithWorkArea<soStatusEventObserver, 16> : public soEventUnitImpl<soStatusEventObserver> {
+    soInstanceManagerFullPropertyVector<soStatusEventObserver*, 16> m_observerList;
+public:
+    soEventUnitWithWorkArea(s16, s16);
+    virtual ~soEventUnitWithWorkArea();
+    virtual u32 getObserverNum() const;
+};
+template <> class soEventUnitWithWorkArea<soAnimCmdEventObserver, 32> : public soEventUnitImpl<soAnimCmdEventObserver> {
+    soInstanceManagerFullPropertyVector<soAnimCmdEventObserver*, 32> m_observerList;
+public:
+    soEventUnitWithWorkArea(s16, s16);
+    virtual ~soEventUnitWithWorkArea();
+    virtual u32 getObserverNum() const;
+};
+template <> class soEventUnitWithWorkArea<soLinkEventObserver, 2> : public soEventUnitImpl<soLinkEventObserver> {
+    soInstanceManagerFullPropertyVector<soLinkEventObserver*, 2> m_observerList;
+public:
+    soEventUnitWithWorkArea(s16, s16);
+    virtual ~soEventUnitWithWorkArea();
+    virtual u32 getObserverNum() const;
+};
+template <> class soEventUnitWithWorkArea<soArticleEventObserver, 2> : public soEventUnitImpl<soArticleEventObserver> {
+    soInstanceManagerFullPropertyVector<soArticleEventObserver*, 2> m_observerList;
+public:
+    soEventUnitWithWorkArea(s16, s16);
+    virtual ~soEventUnitWithWorkArea();
+    virtual u32 getObserverNum() const;
+};
 #include <ft/pikachu/ft_pikachu_article_pools.h>
 typedef ftPikachuArticleManageModuleBuilder ftPikachuGenerateArticleManageModuleBuilder;
 #else
@@ -76,7 +137,7 @@ class wnPikachuVortex;
 class wnPikachuThunder;
 
 class ftPikachu : public ftFighterBuilder<ftPikachuBuildConfig> {
-    u8 unkTail[0x2AE34 - sizeof(ftFighterBuilder<ftPikachuBuildConfig>)];
+    // The builder already ends at the status table. A zero-length tail is a flexible array, and MWCC then skips this member's destructor.
     soArrayContractibleTable<const soStatusData> m_statusDataTable;
     ftData* m_data;
 public:
@@ -84,6 +145,7 @@ public:
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftPikachu();
     virtual void onActivate();
     virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
     virtual void notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);

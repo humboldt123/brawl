@@ -12,6 +12,9 @@ public:
     soGeneralWorkAbstract(bool isNull) : soNullable(isNull) { }
 #if defined(SO_BUILDER_HELPERS_WEAK)
     ~soGeneralWorkAbstract() __attribute__((never_inline)) { } // BYTES: a weak copy of the Enemy unit
+#elif defined(FT_GENERAL_WORK_ABSTRACT_DTOR_INLINE)
+    // sora_melee inlines this empty base into the work builder.
+    ~soGeneralWorkAbstract() { }
 #elif defined(FT_MODULE_BUILDER) && !defined(WN_MARIO_FIREBALL_UNIT)
     ~soGeneralWorkAbstract(); // BYTES: out of line in the fighter RELs (defined in ft_builder_noinline.h)
 #else

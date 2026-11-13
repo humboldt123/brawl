@@ -13,6 +13,17 @@ struct hkTypeInfo {
     const void* m_vtable;    // 0x0C
 };
 
+// The per-class type info statics are built by a constructor at static-init time (the __sinit calls getVtable and
+// then stores the four fields in order).
+struct hkStaticTypeInfo : hkTypeInfo {
+    hkStaticTypeInfo(const char* name, void (*finish)(void*), void (*cleanup)(void*), const void* vtable) {
+        m_name = name;
+        m_finish = finish;
+        m_cleanup = cleanup;
+        m_vtable = vtable;
+    }
+};
+
 // Name -> reflection class table.
 struct hkClassNameRegistry : hkReferencedObject {
     hkStringMap<const hkClass*> m_map;  // 0x08

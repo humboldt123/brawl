@@ -8,13 +8,21 @@ struct hkContactPoint {
     hkVector4 m_position; // 0x00
     hkVector4 m_normal;   // 0x10 (w = distance)
 
-    hkVector4* getPosition();
-    // second overload (map: hkContactPoint::getPosition1, out of line in hkSimulation.o). HYPOTHESIS: const form.
+    // Empty (out-of-line copy in hkCollideCapsuleUtil.o, a bare blr).
+    hkContactPoint() {}
+
+    // 0x802F2ECC (map: hkContactPoint::getPosition1, out of line in hkSimulation.o): hkCollideCapsuleUtilCapsVsTri
+    // writes through it, so it is the non-const overload.
+    hkVector4& getPosition();
+    // 0x802947F0 (map: hkContactPoint::getPosition, hkSimpleContactConstraintInfo.o). HYPOTHESIS: the const overload.
     const hkVector4& getPosition() const;
-    hkVector4* getNormal();
-    // HYPOTHESIS: return type and const (map name only); returns the normal at 0x10
-    const hkVector4& getSeparatingNormal() const;
-    hkReal getDistance();
+    const hkVector4& getNormal() const;
+    // Returns the normal at 0x10; hkCollideCapsuleUtilCapsVsTri writes through it (non-const).
+    hkVector4& getSeparatingNormal();
+    hkReal getDistance() const;
+    // Out-of-line copy in hkSimpleContactConstraintInfo.o (0x80294804, not written yet): updates props'
+    // m_internalDataA from the distance and returns the contact rhs. HYPOTHESIS: the parameter meanings.
+    hkReal calculateRhs(struct hkContactPointProperties* props, int* unused, hkReal distance, hkReal deltaTime) const;
     // Added by the hkCollideCapsuleUtil unit: writes the w component of the normal (the contact distance).
     void setDistance(hkReal distance);
 };

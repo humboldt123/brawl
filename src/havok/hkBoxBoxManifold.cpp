@@ -16,27 +16,27 @@ hkBoxBoxManifold::hkBoxBoxManifold() {
     m_complete = hkBool(false);
 }
 
-int hkBoxBoxManifold::addPoint(int unk4, int unk8, const Point* key) {
+// Whether a point with the same feature pair is among the first count points (searched from the last one).
+static inline hkBool findFeaturePair(const hkBoxBoxManifold::Point* points, int count, const hkBoxBoxManifold::Point* key) {
+    const hkBoxBoxManifold::Point* p = &points[count - 1];
+    for (int i = count - 1; i >= 0; i--, p--) {
+        if (key->unk0 == p->unk0 && key->unk1 == p->unk1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+int hkBoxBoxManifold::addPoint(int unk4, int unk8, Point* key) {
     int count = m_numPoints;
     if (count > 8) {
         return -1;
     }
-    s8 found = 0;
-    const Point* p = &m_points[count - 1];
-    for (int i = count - 1; i >= 0; i--, p--) {
-        if (key->unk0 == p->unk0 && key->unk1 == p->unk1) {
-            found = 1;
-            break;
-        }
-    }
-    if (found) {
+    if (findFeaturePair(m_points, count, key)) {
         return -1;
     }
     if (count < 8) {
-        m_points[count].unk0 = key->unk0;
-        Point* dst = &m_points[count];
-        dst->unk1 = key->unk1;
-        dst->unk2 = key->unk2;
+        m_points[count] = *key;
         m_numPoints++;
     } else {
         return -1;

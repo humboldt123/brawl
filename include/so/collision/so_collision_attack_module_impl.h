@@ -92,7 +92,7 @@ public:
     virtual soCollision* getCollision();
     virtual void addPastLog(void*, u32, u32 groupIndex);
     virtual void invalidLog(soCollisionLog* collisionLog, u32 groupIndex);
-    virtual bool checkRebound(float, soModuleAccesser* moduleAccesser, StageObject*, soCollisionLog* collisionLog, float* out1, float* out2);
+    virtual bool checkRebound(soModuleAccesser* moduleAccesser, StageObject*, soCollisionLog* collisionLog, float power, float* out1, float* out2);
     virtual void setRestrict(bool isRestrict);
     virtual void renderDebug();
 };
@@ -199,7 +199,7 @@ public:
     virtual soCollision* getCollision();
     virtual void addPastLog(void*, u32, u32 groupIndex);
     virtual void invalidLog(soCollisionLog* collisionLog, u32 groupIndex);
-    virtual bool checkRebound(float, soModuleAccesser* moduleAccesser, StageObject*, soCollisionLog* collisionLog, float* out1, float* out2);
+    virtual bool checkRebound(soModuleAccesser* moduleAccesser, StageObject*, soCollisionLog* collisionLog, float power, float* out1, float* out2);
     virtual void setRestrict(bool isRestrict);
     virtual void renderDebug();
 

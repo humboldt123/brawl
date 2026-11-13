@@ -33,8 +33,8 @@ void ftPikminKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcc
 
 // BYTES: the native changeKinetic calls the mode function out of line.
 #pragma dont_inline on
-void ftPikminKineticTransactor::changeKineticSub(bool*, void* pools, Vec2f*, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(0);
+void ftPikminKineticTransactor::changeKineticSub(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(0, pools, speed, moduleAccesser);
     // MATCH-ONLY: the original keeps a dead flag in the frame.
     volatile bool result = false;
     *reinterpret_cast<float*>(reinterpret_cast<u8*>(pools) + 0x78) = soValueAccesser::getConstantFloat(moduleAccesser, 0xfac, 0);

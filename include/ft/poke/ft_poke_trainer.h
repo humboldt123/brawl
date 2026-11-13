@@ -4,11 +4,49 @@
 #ifndef FT_FIGHTER_ANIMCMD_LONG
 #define FT_FIGHTER_ANIMCMD_LONG
 #endif
-#include <ft/fighter.h>
+#include <ft/ft_fighter_builder.h>
 #include <types.h>
 #include <ft/ft_extend_param_accesser.h>
 
+// HYPOTHESIS: inside-event article cap is 2 (the map's ninth number). Status unk starts with 13
+// and is unused by the builder layout. Motion partial-anim count is 0.
+typedef soInsideEventManageModuleBuildConfig<
+    32, 40, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 1, 1, 0, 2, 1, ftInsideEventManageModuleTypes
+> ftPokeTrainerInsideEventManageModuleBuildConfig;
+typedef soHeapModuleBuildConfig<soHeapModuleImpl> ftPokeTrainerHeapModuleBuildConfig;
+typedef soParamCustomizeModuleBuildConfig<ftParamCustomizeModuleImpl> ftPokeTrainerParamCustomizeModuleBuildConfig;
+typedef soResourceModuleBuildConfigDynamic<0, ftResourceIdAccesserImpl, soResourceModuleImpl> ftPokeTrainerResourceModuleBuildConfig;
+typedef soModelModuleBuildConfig<3, 0, soModelModuleImpl> ftPokeTrainerModelModuleBuildConfig;
+typedef ftAnimCmdModuleSubBuildConfig<299, 515> ftPokeTrainerAnimCmdModuleSubBuildConfig;
+typedef soMotionModuleBuildConfig<515, soMotionModuleImpl, 0, 1, soTransitionModuleBuildConfig<ftMotionTransitionTypeList>, soMotionAnimObjCacheModuleBuildConfig<5, soMotionAnimObjCacheModuleImpl> > ftPokeTrainerMotionModuleBuildConfig;
+typedef soStatusModuleBuildConfig<299, soGeneralWorkBuildConfig<18, 14, 2>, 274, 13, soTransitionModuleBuildConfig<ftStatusTransitionTypeList> > ftPokeTrainerStatusModuleBuildConfig;
+typedef soGeneralWorkBuildConfig<76, 35, 3> ftPokeTrainerGeneralWorkBuildConfig;
+
+// HYPOTHESIS: the real builder is 0x3A68 bytes (ftPokeTrainerArticleManageModuleBuilder); the fighter keeps this stand-in because
+// the module sizes of the other builders are not exact yet and the fighter's own layout would no longer fit.
+typedef ftOpaqueGenerateArticleManageModuleBuilder<0x168, Fighter_PokeTrainer> ftPokeTrainerGenerateArticleManageModuleBuilder;
+
+class ftPokeTrainerBuildConfig : public ftCommonBuildConfig {
+public:
+    typedef ftPokeTrainerInsideEventManageModuleBuildConfig InsideEventManageModuleBuildConfig;
+    typedef ftPokeTrainerHeapModuleBuildConfig HeapModuleBuildConfig;
+    typedef ftPokeTrainerParamCustomizeModuleBuildConfig ParamCustomizeModuleBuildConfig;
+    typedef ftPokeTrainerResourceModuleBuildConfig ResourceModuleBuildConfig;
+    typedef ftPokeTrainerModelModuleBuildConfig ModelModuleBuildConfig;
+    typedef ftPokeTrainerAnimCmdModuleSubBuildConfig AnimCmdModuleSubBuildConfig;
+    typedef ftPokeTrainerMotionModuleBuildConfig MotionModuleBuildConfig;
+    typedef ftPokeTrainerStatusModuleBuildConfig StatusModuleBuildConfig;
+    typedef ftPokeTrainerGeneralWorkBuildConfig GeneralWorkBuildConfig;
+    // HYPOTHESIS: article storage is 0x168. The null builder occupies 4 bytes, and 0x164 is the gap
+    // between this fighter's cancel module and the original. The ctor and dtor stay in the original
+    // and are not defined here.
+    typedef ftPokeTrainerGenerateArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
+};
+
 class ftPokeTrainer;
+#ifdef FT_POKETRAINER_ARTICLE_POOLS
+#include <ft/poke/ft_poke_trainer_article_pools.h>
+#else
 class wnPokeTrainerMBall;
 
 // The Final Smash article of the trainer (wn_poke_trainer_final.cpp). HYPOTHESIS: only the position query is known here.
@@ -16,6 +54,7 @@ class wnPokeTrainerFinal : public StageObject {
 public:
     Vec3f getFinalPokemonPos(int index);
 };
+#endif
 
 // Sends the entry events (a Pokemon dies, a Pokemon starts, ...) to the observers of the entry. The trainer owns one for the
 // Pokemon it tells about its own update.
@@ -55,20 +94,15 @@ public:
 
 // Pokemon Trainer (fighter kind 0x1C). It is the one fighter that is built into the main melee module: the three
 // Pokemon it hands out are separate fighters (ft_poke_zenigame / fushigisou / lizardon) with their own RELs.
-// HYPOTHESIS: the block between Fighter and the trainer members is the module storage of
-// ftFighterBuilder<ftPokeTrainerBuildConfig>; it stays opaque until the build config is recovered.
-class ftPokeTrainerBuilderBlock : public Fighter {
+class ftPokeTrainer : public ftFighterBuilder<ftPokeTrainerBuildConfig> {
+    u8 unkTail[0x7F9C - sizeof(ftFighterBuilder<ftPokeTrainerBuildConfig>)];
 public:
-    u8 m_builderBlock[0x7F64 - 0x194];
-};
-
-class ftPokeTrainer : public ftPokeTrainerBuilderBlock {
-public:
-    u8 unk7F64[0x7F9C - 0x7F64];
     ftData* m_commonData; // 0x7F9C
     ftEntryEventPresenter m_entryEventPresenter; // 0x7FA0
     ftPokeTrainerWanderingModule m_wandering; // 0x7FAC
     Vec2f m_advFollowPos; // 0x800C: where the "follow" effect of the adventure mode was last placed
+
+    ftPokeTrainer(s32 entryId, Heaps::HeapType instHeap, Heaps::HeapType nwModelInstHeap, Heaps::HeapType nwMotionInstHeap);
 
     ftKind getKindDirect() const { return *reinterpret_cast<const ftKind*>(&_272[0]); }
 
@@ -114,11 +148,16 @@ public:
 
     Fighter* getPartner();
     static bool activeArticle(wnPokeTrainerMBall* weapon, soModuleAccesser* acc);
+    static bool shootArticle(wnPokeTrainerMBall* weapon, soModuleAccesser* acc);
     void setChange(int changeKind);
     void sendPartnerPosEvents();
     void reqAdvFollowEffect(Vec2f* pos);
     bool isExistAdvFollowEffect();
 };
+static_assert(offsetof(ftPokeTrainer, m_commonData) == 0x7F9C, "m_commonData");
+static_assert(offsetof(ftPokeTrainer, m_entryEventPresenter) == 0x7FA0, "presenter");
+static_assert(offsetof(ftPokeTrainer, m_wandering) == 0x7FAC, "wandering");
+static_assert(offsetof(ftPokeTrainer, m_advFollowPos) == 0x800C, "follow");
 
 class ftPokeTrainerExtendParamAccesser : public ftExtendParamAccesserEx<3999, 9, 23999, 4> {
 public:

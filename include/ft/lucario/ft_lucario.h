@@ -9,13 +9,7 @@
 // Lucario-only builder variants
 ////////////////////////////////////////
 
-// HYPOTHESIS: ftLucarioParamCustomizeModule is an ftParamCustomizeModuleImpl with the attack power overrides (the aura).
-// Opaque stand-in (same size as the base): the constructor and destructor are not defined here.
-class ftLucarioParamCustomizeModule : public ftParamCustomizeModuleImpl {
-public:
-    ftLucarioParamCustomizeModule(soModuleAccesser* acc);
-    virtual ~ftLucarioParamCustomizeModule();
-};
+#include <ft/lucario/ft_lucario_param_customize_module.h>
 
 ////////////////////////////////////////
 // Lucario Build Configuration

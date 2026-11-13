@@ -91,8 +91,7 @@ void ftPokeFushigisou::change(void* work, int kind) {
     }
 }
 
-// HYPOTHESIS: the original passes the second argument to the bool parameter without a conversion (see PokeLizardon).
-void ftPokeFushigisou::notifyEventSetRumble(int kind, int unk2) {
+void ftPokeFushigisou::notifyEventSetRumble(int kind, bool unk2) {
     m_moduleAccesser->getControllerModule().setRumble(kind, 0, unk2, -1);
 }
 

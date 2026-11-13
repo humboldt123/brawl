@@ -320,6 +320,16 @@ public:
 };
 
 // HYPOTHESIS: soSelectInstanceHolder<1, Mediator>: holds the mediator the generate-article-manage module talks to.
+#ifdef FT_PIKACHU_SELECT_HOLDER_NAME
+template <class Mediator>
+class soSelectInstanceHolderArticle {
+    Mediator m_mediator;
+public:
+    soSelectInstanceHolderArticle(soModuleAccesser* acc) : m_mediator(acc) { }
+    ~soSelectInstanceHolderArticle();
+    soArticleMediator* getMediator() { return &m_mediator; }
+};
+#else
 template <class Mediator>
 class wnSelectedArticleMediator {
     Mediator m_mediator;
@@ -328,6 +338,7 @@ public:
     ~wnSelectedArticleMediator();
     soArticleMediator* getMediator() { return &m_mediator; }
 };
+#endif
 
 // HYPOTHESIS: soGenerateArticleManageModuleBuilder<Config>: the article lists, the mediator with the pools of the
 // articles, and the module itself.
@@ -335,7 +346,11 @@ template <class Mediator, int N>
 class wnArticleManageModuleBuilder {
     soArrayVector<soArticle*, N> m_articles;
     soArrayVector<soArticleEventObserver, N> m_observers;
+#ifdef FT_PIKACHU_SELECT_HOLDER_NAME
+    soSelectInstanceHolderArticle<Mediator> m_mediator;
+#else
     wnSelectedArticleMediator<Mediator> m_mediator;
+#endif
     soGenerateArticleManageModuleImpl m_module;
 public:
 #ifdef WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE

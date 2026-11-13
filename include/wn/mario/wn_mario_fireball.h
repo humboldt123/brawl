@@ -3,13 +3,26 @@
 #include <so/so_value_accesser.h>
 #include <wn/wn_module_accesser_builder.h>
 
+// HYPOTHESIS: tuning names, from how the article uses the block: activate flies it at `speed` along `angle` (radians) with
+// the gravity and fall speed below, and a ground contact reflects the velocity scaled by `bounceScale`; below
+// `minBounceSpeed` the fireball breaks up instead of bouncing.
+struct wnMarioFireballParam {
+    float gravity;         // 0x00: downward acceleration (negated into the energy's acceleration)
+    float fallSpeedMax;    // 0x04: the energy's target (terminal) vertical speed
+    float bounceScale;     // 0x08: velocity scale after a bounce
+    float speed;           // 0x0C: launch speed
+    float angle;           // 0x10: launch angle in radians
+    int life;              // 0x14: lifetime in frames
+    float minBounceSpeed;  // 0x18
+};
+
 // HYPOTHESIS: the Mario fireball article data (kind 0, shared with the Luigi fireball kind 149): the class
 // info createArray reads the resource group number (+0x00, cast to u8 for the module build data) and the
 // parameter pointer (+0x34, stored at article +0x1F40); the middle stays unreconstructed.
 struct wnMarioFireballData {
     s32 m_resGroupNo;     // 0x00
     u8 unk4[0x30];        // 0x04
-    const void* m_param;  // 0x34 HYPOTHESIS: parameter block, type unreconstructed
+    const wnMarioFireballParam* m_param; // 0x34
 };
 
 #ifdef WN_MARIO_FIREBALL_UNIT
@@ -170,16 +183,19 @@ public:
     soDebugModuleBuilder<soDebugModuleBuildConfigNull> m_debugModuleBuilder;                                           // +0x1844
 
     soModuleAccesserBuilder(StageObject* owner, const wnModuleAccesserBuildData& bd);
-    ~soModuleAccesserBuilder() { }
+    ~soModuleAccesserBuilder();
     soModuleAccesser* getModuleAccesser() { return &m_moduleAccsr; }
 };
 #endif
 
+// A unit that builds its weapon builders without the two common energies (WN_WEAPON_NO_COMMON_ENERGIES, the Toad's
+// spore) includes this header only for the sora_melee null builders above, so it does not see the article.
+#ifndef WN_WEAPON_NO_COMMON_ENERGIES
 // The bullet article. The shared class info placement-news it with the constructor below; defining it in
 // the class body lets wnClassInfoImpl<0,...>::createArray inline it (the 0x3D8 createArray allocates the
 // 0x1F44 extent and ends with the nine multiple-inheritance vptr writes).
 class wnMarioFireball : public wnWeaponBuilder<wnMarioFireballModuleAccesserBuildConfig> {
-    const void* m_param;  // 0x1F40
+    const wnMarioFireballParam* m_param;  // 0x1F40
 public:
 #if defined(WN_MARIO_FIREBALL_CTOR_OUTLINE) || defined(WN_MARIO_FIREBALL_UNIT)
     // The Luigi fireball unit sees this constructor as a declaration only and calls the out-of-line
@@ -203,12 +219,20 @@ public:
 #else
     virtual ~wnMarioFireball() { }
 #endif
+    // HYPOTHESIS: parameter meanings from the fighter transactor's call: the founder task, the effect resource, the team, the
+    // start position, the first status kind and the facing.
+    void activate(int founderTaskId, int resourceId, int team, Vec3f* __restrict pos, int statusKind, float lr);
+    virtual bool notifyEventAnimCmd(acAnimCmd* cmd, soModuleAccesser* moduleAccesser, int index);
 };
+
+#endif
 
 static_assert(sizeof(soModuleAccesserBuilder<wnMarioFireballModuleAccesserBuildConfig>) == 0x1848,
               "Mario module builder extent");
 static_assert(sizeof(wnModuleAccesserBuilder<wnMarioFireballModuleAccesserBuildConfig>) == 0x1DF8,
               "Mario article modules extent");
+#ifndef WN_WEAPON_NO_COMMON_ENERGIES
 static_assert(sizeof(wnWeaponBuilder<wnMarioFireballModuleAccesserBuildConfig>) == 0x1F40,
               "Mario weapon builder extent");
 static_assert(sizeof(wnMarioFireball) == 0x1F44, "Mario fireball article extent");
+#endif

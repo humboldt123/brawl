@@ -39,12 +39,22 @@ protected:
 public:
     ftExtendParamAccesserEx(ftKind kind)
         : ftExtendParamAccesser(kind) { }
+#ifdef FT_EXTEND_PARAM_EX_DTOR_OUT_OF_LINE
+    // sora_melee emits this deleting destructor on its own; fighter RELs inline the empty body.
+    virtual ~ftExtendParamAccesserEx();
+#else
     virtual ~ftExtendParamAccesserEx() { }
+#endif
     virtual float getParamFloat(soModuleAccesser* moduleAccesser, s32 p2, s32 p3 = 0) {
         return m_floats[soValueAccesser::getValueVariation()][p2 - OffsetFloat][p3];
     }
     virtual s32 getParamInt(soModuleAccesser* moduleAccesser, s32 p2, s32 p3 = 0) {
         return m_ints[soValueAccesser::getValueVariation()][p2 - OffsetInt][p3];
     }
+#ifdef FT_EXTEND_PARAM_EX_SETUP_OUT_OF_LINE
+    // BYTES: sora_melee emits this empty override out of line (4 bytes).
+    virtual void setup(const u8* extData);
+#else
     virtual void setup(const u8* extData) { }
+#endif
 };

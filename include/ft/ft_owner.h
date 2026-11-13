@@ -185,11 +185,12 @@ public:
     s32 getTeam();
     // Adventure mode (Subspace Emissary) unit kind of the owner; 1 is the main unit. HYPOTHESIS: the meaning of the values.
     int getAdventureUnitKind();
+    void setAdventureUnitKind(int kind);
     bool isSlipInterval(); // HYPOTHESIS: map name ftOwner::isSlipInterval
     u8 getStartPointIndex(); // map name ftOwner::getStartPointIndex
     u8 getFighterColor();
     void setPointTeam(int pointTeam);
-    int setDeadCount(int deadCount);
+    void setDeadCount(int deadCount);
     void setStockCount(int stockCount);
     int getDeadCount();
     void addLostCoin(int numCoinsToAdd);
@@ -274,6 +275,7 @@ public:
     void setGlowDefense(int);
     int getGlowDefense();
     int getGlowDefenseAdd();
+    void addSeal(unsigned int kind, float value, float second);
     void clearSeal();
     int getSealCount();
     void getSeal(int index, ftOwnerSeal* seal);
@@ -285,6 +287,19 @@ public:
     float getMaximTomatoHealAdd();
     float getHeartHealAdd();
     int getSwimDrownFrameAdd();
+    // HYPOTHESIS: the linker map names these one slot off from the fields the code reads and writes.
+    void getAttackRatio(float value);
+    float setDamageRatio();
+    void getDamageRatio(float value);
+    float setAttackReactionMul();
+    void getAttackReactionMul(float value);
+    float getAttackReactionMulSeal();
+    float setDamageReactionMul();
+    void getDamageReactionMul(float value);
+    float getDamageReactionMulSeal();
+    float getSpecialGlowAttack();
+    int getSpecialWeaponGlowAttack();
+    float getStaminaMaxAdd();
     int getGenerateCoin();
     int getLostCoin();
     void setCoinDropRate(float rate);

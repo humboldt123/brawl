@@ -20,6 +20,7 @@
 //   0x802D45D0   100  calcStatistics   [map: hkCylinderShape__calcStatistics]
 
 #include <havok/hkCylinderShape.h>
+#include <havok/hkRegistry.h>
 #include <havok/hkShapeType.h>
 
 void hkCylinderShape::finishLoadedObjecthkCylinderShape(void* p) {
@@ -35,6 +36,8 @@ void hkCylinderShape::cleanupLoadedObjecthkCylinderShape(void* p) {
 hkCylinderShape::~hkCylinderShape() {
 }
 
+#pragma push
+#pragma auto_inline off
 const void* hkCylinderShape::getVtablehkCylinderShape() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
@@ -42,6 +45,7 @@ const void* hkCylinderShape::getVtablehkCylinderShape() {
     ::new (buf) hkCylinderShape(flag);
     return *(const void**)buf;
 }
+#pragma pop
 
 hkReal hkCylinderShape::getCylinderRadius() const {
     return m_cylRadius;
@@ -92,3 +96,36 @@ void hkCylinderShape::calcStatistics(hkStatisticsCollector* collector) const {
 //   0x802D3478  1720  getAabb   [map: hkCylinderShape__getAabb]
 //   0x802D3B30  2712  castRay   [map: hkCylinderShape__castRay]
 //   0x802D45D0   100  calcStatistics   [map: hkCylinderShape__calcStatistics]
+
+static hkStaticTypeInfo hkCylinderShapeTypeInfo("hkCylinderShape", hkCylinderShape::finishLoadedObjecthkCylinderShape, hkCylinderShape::cleanupLoadedObjecthkCylinderShape,
+                                      hkCylinderShape::getVtablehkCylinderShape());
+
+// Weak inline copies emitted in this unit; extern "C" placeholders under their fn_ names until the
+// instantiating callers are written (shape from https://github.com/jj-link/brawl src/havok/fn_<addr>.cpp).
+// hkCylinderShape::assertRoundUpThreshold (empty)
+// TODO: cleanup (shape from jj-link/brawl fn_802D2798)
+extern "C" void fn_802D2798(void) {}
+
+// fn_802D2714: body from https://github.com/jj-link/brawl src/havok/fn_802D2714.cpp (namespaced; callee rebound to our C++ name).
+#include <types.h>
+#include <havok/hkMath.h>
+namespace jj_fn_802D2714 {
+extern "C" {
+extern const float lbl_805A40D8;
+extern const float lbl_805A40DC;
+extern const float lbl_805A40E0;
+extern const float lbl_805A40E4;
+}
+
+// TODO: cleanup (shape from jj-link/brawl fn_802D2714)
+extern "C" float fn_802D2714(void) {
+    float x = lbl_805A40D8;
+    while (x < lbl_805A40E0) {
+        if (hkMath::hkFloatToInt(x) != 0) {
+            return x;
+        }
+        x += lbl_805A40DC;
+    }
+    return lbl_805A40E4;
+}
+} // namespace jj_fn_802D2714

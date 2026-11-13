@@ -410,6 +410,7 @@ public:
     u32 getItVariation();
     itCustomizerInterface* getCustomizer();
     int getLotCreateItKind();
+    void* getIndefinite(u32 id);
     bool isUseOuterRes();
     bool isVanishMode();
     float getInhaledCount();
@@ -538,6 +539,7 @@ template <class T>
 class itCustomizer : public itCustomizerInterface {
 public:
     virtual ~itCustomizer() {}
+    static T* getInstance();
 };
 
 class itNullCustomizer : public itCustomizer<itNullCustomizer> {
@@ -551,4 +553,5 @@ static_assert(sizeof(itNullCustomizer) == 12, "Class is wrong size!");
 class itGroundConditionCheckerImpl : public soGroundConditionChecker {
 public:
     virtual bool isConditionNoCliffStop(soModuleAccesser* moduleAccesser);
+    static itGroundConditionCheckerImpl* getInstance();
 };

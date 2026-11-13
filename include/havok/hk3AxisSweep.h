@@ -67,6 +67,11 @@ struct hk3AxisSweep : hkBroadPhase {
     int m_numMarkers;   // 0xA0 (1 << m_markerBits) - 1, from the constructor
     int m_markerBits;   // 0xA4 bits selecting a check-marker interval from an X key
     hkBpCheckMarker* m_markers; // 0xA8
+    u32 unkAC;                  // 0xAC HYPOTHESIS: unknown or padding (hk3AxisSweep16CreateBroadPhase allocates 0xB0)
+
+    // Map name hk3AxisSweep::hk3AxisSweep (not written yet). HYPOTHESIS: parameter names (the world extents and the
+    // number of check markers).
+    hk3AxisSweep(const hkVector4& worldMin, const hkVector4& worldMax, int numMarkers);
 
     // Existing node indices shift when the new pair of endpoints is inserted or removed.
     void updateNodesAfterInsert(hkBpNode* nodes, int count, const hkBpNode& inserted);
@@ -86,6 +91,7 @@ struct hk3AxisSweep : hkBroadPhase {
     static void endOverlapCheckMarker(hkBpCheckMarker* markers, const hkBpNode* a, u32 value, const hkBpNode* b, hkArray<hkBroadPhaseHandlePair>& pairs);
 };
 
+static_assert(sizeof(hk3AxisSweep) == 0xB0, "Broad-phase object size");
 static_assert(sizeof(hk3AxisSweep::hkBpNode) == 0x10, "Broad-phase node layout");
 static_assert(sizeof(hk3AxisSweep::hkBpEndPoint) == 4, "Broad-phase endpoint layout");
 static_assert(sizeof(hk3AxisSweep::hkBpCheckMarker) == 0x10, "Broad-phase marker layout");

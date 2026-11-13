@@ -4,6 +4,7 @@
 #include <types.h>
 #include <mu/wifi/mu_wifi_interface.h>
 #include <mu/mu_msg.h>
+#include <gf/gf_heap_manager.h>
 #include <gf/gf_pad_system.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,13 +18,61 @@
 extern "C" int getNumCharColor__6muMenuFiii(int charKind);
 extern "C" void startRumbleController__6muMenuFiii(int controller, int strength, int nameId);
 
-// The animation of the colors of each team color.
-static const u8 sTeamColorAnim[] = { 0, 1, 3 };
+// The pool ahead of the form tables. The form lookup addresses that pool and then these tables.
+// HYPOTHESIS: these leading bytes are the constants the earlier missing functions emit; kept here so the
+// form tables stay at the original offsets from the start of the pool.
+// HYPOTHESIS: these leading bytes belong to functions that are still missing. They keep the form
+// tables at the original offsets from the start of the pool.
+#pragma force_active on
+extern const u8 sFormPoolHead[0x18] = {
+    0x00, 0x00, 0x00, 0x00, 0x3D, 0x80, 0x00, 0x00, 0x41, 0xE0, 0x00, 0x00, 0x01, 0x02, 0x05, 0x06,
+    0x3F, 0x80, 0x00, 0x00, 0x01, 0x02, 0x05, 0x06,
+};
+#pragma force_active reset
 
 // The two forms of Zelda and of Samus, and the Pokemon Trainer with his three Pokemon.
 static const u8 sZeldaKinds[] = { 0x0E, 0x0F };
 static const u8 sSamusKinds[] = { 0x03, 0x04 };
 static const u8 sPokeKinds[] = { 0x1B, 0x1C, 0x1D, 0x1E };
+
+// The animation of the colors of each team color.
+static const u8 sTeamColorAnim[] = { 0, 1, 3 };
+
+#pragma dont_inline on
+// Reads the pad again and, after a short wait, shows the controller that is actually plugged in.
+void muSelCharPlayerArea::updateController() {
+    int read = 0;
+    int nextKind = 4;
+    int updated = 0;
+    if (m_controllerNo >= 0) {
+        gfPadStatus pad;
+        g_gfPadSystem->getSysPadStatus(m_controllerNo, &pad);
+        if (pad.m_error == gfPadError::NONE) {
+            nextKind = pad.m_controllerType;
+            read = 1;
+        }
+    }
+    if (getControllerKind() != 4) {
+        if (read == 0) {
+            if (--unk1E4 <= 0) {
+                m_controllerKind = static_cast<gfPadType::PadType>(4);
+                // The pad-read flag is finished, so the player kind stays in that register across the call.
+                read = *(volatile int*)&m_playerKind;
+                dispControllerKind(read, getControllerKind(), m_controllerNo);
+            }
+            updated = 1;
+        }
+    }
+    if (updated == 0) {
+        if (m_controllerKind != nextKind) {
+            m_controllerKind = static_cast<gfPadType::PadType>(nextKind);
+            read = *(volatile int*)&m_playerKind;
+            dispControllerKind(read, getControllerKind(), m_controllerNo);
+        }
+        unk1E4 = 0xF;
+    }
+}
+#pragma dont_inline reset
 
 int muSelCharPlayerArea::getNumCharColor(int charKind) {
     return getNumCharColor__6muMenuFiii(charKind);
@@ -113,13 +162,19 @@ void muSelCharPlayerArea::dispNameEntryButtonColor(bool isTeamBattle, int teamCo
 }
 
 void muSelCharPlayerArea::openCpLevelList() {
-    Vec3f pos(0.0f, 0.0f, 0.0f);
-    m_chrList.open(MuSelctChrList::Kind_CpLevel, m_cpLevel, &pos);
+    int level = m_cpLevel;
+    MuSelctChrList* list = &m_chrList;
+    Vec3f pos;
+    pos.m_x = pos.m_y = pos.m_z = 0.0f;
+    list->open(MuSelctChrList::Kind_CpLevel, level, &pos);
 }
 
 void muSelCharPlayerArea::openNameList() {
-    Vec3f pos(0.0f, 0.0f, 0.0f);
-    m_chrList.open(MuSelctChrList::Kind_Name, m_nameId, &pos);
+    int name = m_nameId;
+    MuSelctChrList* list = &m_chrList;
+    Vec3f pos;
+    pos.m_x = pos.m_y = pos.m_z = 0.0f;
+    list->open(MuSelctChrList::Kind_Name, name, &pos);
 }
 
 void muSelCharPlayerArea::closeNameList() {
@@ -194,6 +249,11 @@ void muSelCharPlayerArea::setHandiVisible(bool visible) {
     }
 }
 
+// Widens an index and adds one. Both branches of the color switches share this conversion.
+static inline float onePlusIndex(int index) {
+    return 1.0f + index;
+}
+
 // The color of the mark of the series of the character.
 void muSelCharPlayerArea::dispMarkColor(int playerKind, bool isTeamBattle, int teamColor) {
     float frame;
@@ -206,9 +266,9 @@ void muSelCharPlayerArea::dispMarkColor(int playerKind, bool isTeamBattle, int t
         break;
     case 1:
         if (isTeamBattle) {
-            frame = 1.0f + sTeamColorAnim[teamColor];
+            frame = onePlusIndex(sTeamColorAnim[teamColor]);
         } else {
-            frame = 1.0f + m_areaIdx;
+            frame = onePlusIndex(m_areaIdx);
         }
         break;
     }
@@ -218,14 +278,14 @@ void muSelCharPlayerArea::dispMarkColor(int playerKind, bool isTeamBattle, int t
 // The kind of the controller of the player (and its number, for a Wii Remote) on the button of the player kind.
 void muSelCharPlayerArea::dispControllerKind(int playerKind, int controllerKind, int controllerNo) {
     // The frame of the button of each kind of controller.
-    static const u8 kindFrame[] = { 2, 1, 3, 4, 0 };
+    static const u8 sControllerKindFrame[] = { 2, 1, 3, 4, 0 };
     MuObject* obj = m_objs[Obj_Nameplate];
     int number = 0;
     if (controllerKind != 4) {
         number = controllerNo % 4;
     }
     obj->setFrameTex(number);
-    float frame = kindFrame[controllerKind];
+    float frame = sControllerKindFrame[controllerKind];
     if (playerKind == 2) {
         frame += 5.0f;
     }
@@ -236,8 +296,86 @@ u8 muSelCharPlayerArea::exchangePoke3ToGmCharKind(int poke) {
     return sPokeKinds[poke];
 }
 
+// The two functions below keep the call to exchangeCharKindDetail out of line (the original has them in another object).
+extern "C" int exchangeCharKindDetail__19muSelCharPlayerAreaF11MuSelchkind(muSelCharPlayerArea* self, int charKind);
+
+// Whether another area with a player on it already uses this color of this character.
+static inline int isCharColorUsed(muSelCharPlayerArea* self, muSelCharTask* task, int charKind, int color) {
+    muSelCharPlayerArea* other;
+    for (int i = 0; i < task->m_numPlayerAreas; i++) {
+        if (i == self->m_areaIdx) {
+            continue;
+        }
+        other = task->m_selCharPlayerAreas[i];
+        if (other->m_playerKind != 0 && charKind == other->m_charKind && color == other->m_charColorNo) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// Steps to the next color of the character that no other area already uses.
+void muSelCharPlayerArea::incCharColorNo() {
+    int charKind = m_charKind;
+    if ((unsigned int)(charKind - 0x28) > 1) {
+        int teamSet;
+        int teamColor;
+        int playerKind;
+        bool isTeamBattle;
+        int color;
+        int numColor = getNumCharColor(charKind);
+        muSelCharTask* task = m_selCharTask;
+        color = m_charColorNo;
+        do {
+            color++;
+            if (color >= numColor) {
+                color = 0;
+            }
+        } while (isCharColorUsed(this, task, charKind, color));
+        isTeamBattle = task->m_isTeamBattle;
+        if (!isTeamBattle) {
+            teamSet = m_teamSet;
+            teamColor = m_teamColor;
+            playerKind = m_playerKind;
+            int kind = exchangeCharKindDetail__19muSelCharPlayerAreaF11MuSelchkind(this, m_charKind);
+            setCharPic(kind, playerKind, color, isTeamBattle, teamColor, teamSet);
+        }
+        m_charColorNo = color;
+    }
+}
+
+// Steps to the previous color of the character that no other area already uses.
+void muSelCharPlayerArea::decCharColorNo() {
+    int charKind = m_charKind;
+    if ((unsigned int)(charKind - 0x28) > 1) {
+        int teamSet;
+        int teamColor;
+        int playerKind;
+        bool isTeamBattle;
+        int color;
+        int numColor = getNumCharColor(charKind);
+        muSelCharTask* task = m_selCharTask;
+        color = m_charColorNo;
+        do {
+            color--;
+            if (color < 0) {
+                color = numColor - 1;
+            }
+        } while (isCharColorUsed(this, task, charKind, color));
+        isTeamBattle = task->m_isTeamBattle;
+        if (!isTeamBattle) {
+            teamSet = m_teamSet;
+            teamColor = m_teamColor;
+            playerKind = m_playerKind;
+            int kind = exchangeCharKindDetail__19muSelCharPlayerAreaF11MuSelchkind(this, m_charKind);
+            setCharPic(kind, playerKind, color, isTeamBattle, teamColor, teamSet);
+        }
+        m_charColorNo = color;
+    }
+}
+
 // The character that is picked: the form of Zelda or Samus, or the Pokemon, that the area has chosen.
-u8 muSelCharPlayerArea::exchangeCharKindDetail(MuSelchkind charKind) {
+MuSelchkind muSelCharPlayerArea::exchangeCharKindDetail(MuSelchkind charKind) {
     switch (charKind) {
     case 14:
         charKind = static_cast<MuSelchkind>(sZeldaKinds[m_selectedZelda]);
@@ -264,9 +402,9 @@ void muSelCharPlayerArea::dispBaseMdlColor(int playerKind, bool isTeamBattle, in
         break;
     case 1:
         if (isTeamBattle) {
-            frame = 1.0f + sTeamColorAnim[teamColor];
+            frame = onePlusIndex(sTeamColorAnim[teamColor]);
         } else {
-            frame = 1.0f + m_areaIdx;
+            frame = onePlusIndex(m_areaIdx);
         }
         break;
     }
@@ -362,15 +500,15 @@ muSelCharPlayerArea::muSelCharPlayerArea()
 int muSelCharPlayerArea::getHandiDispMode() {
     int type = g_GameGlobal->m_selCharData->m_selCharType;
     int group;
-    if (isSelCharTypeIn(type, 0, 4)) {
-        group = 0;
-    } else if (isSelCharTypeIn(type, 4, 12)) {
-        group = 1;
-    } else if (isSelCharTypeIn(type, 12, 16)) {
-        group = 2;
-    } else {
+    if (isSelCharTypeIn(type, 0, 4)) { group = 0; goto groupSelected; }
+    if (isSelCharTypeIn(type, 4, 12)) { group = 1; goto groupSelected; }
+    {
+        bool inGroup = isSelCharTypeIn(type, 12, 16);
         group = 3;
+        if (!inGroup) goto groupSelected;
+        group = 2;
     }
+    groupSelected:
     if (group == 1) {
         return 0;
     }
@@ -875,4 +1013,191 @@ extern const u32 lbl_10_rodata_798[8];
 bool muSelCharPlayerArea::isColorDecButtonPushed() {
     gfPadStatus pad = getPadStatus();
     return (pad.m_buttonsPressedThisFrame.bits & lbl_10_rodata_798[pad.m_controllerType]) != 0;
+}
+
+// A computer takes the area over wifi: the entry models go away and the area becomes a computer.
+void muSelCharPlayerArea::wifiCPUPlayerEntry() {
+    g_muWifiInterfaceTask->setCpuPlayerArea(m_areaIdx, 1);
+    unk41C->setWifiDispState(0);
+    unk420Value = 0;
+    removeObj(0x25);
+    removeObj(0x26);
+    removeObj(0x27);
+    m_controllerNo = -1;
+    initDispSelect();
+    _0 = 0;
+    setPlayerKind(2);
+}
+
+muSelCharPlayerArea::~muSelCharPlayerArea() {
+    if (m_selCharCoin) {
+        delete m_selCharCoin;
+    }
+    if (m_selCharHand) {
+        m_selCharHand->exit();
+    }
+    if (m_objProcTask) {
+        static_cast<gfTask*>(m_objProcTask)->exit();
+        m_objProcTask = NULL;
+    }
+    for (int index = 0; index < 2; ++index) {
+        nw4r::g3d::ScnMdlExpand* group = (&m_baseMdlGroup)[index];
+        if (group) {
+            group->Destroy();
+        }
+    }
+    for (int index = 0; index < Obj_Num; ++index) {
+        if (m_objs[index]) {
+            delete m_objs[index];
+        }
+    }
+    if (unk41C) {
+        delete unk41C;
+    }
+    if (unk40C) {
+        delete unk40C;
+    }
+    if (m_charPicData) {
+        gfHeapManager::free(m_charPicData);
+        m_charPicData = NULL;
+    }
+}
+
+// The hand stores the mode through a pointer. Defined after the caller so the check stays.
+static int readHandMode(muSelCharHand* hand, int* arg);
+
+// Closes a list the hand of this area still has open, then puts that hand back to moving.
+void muSelCharPlayerArea::forceCloseList() {
+    int modeArg;
+    int closed = 0;
+    for (int index = 0; index < m_selCharTask->m_numPlayerAreas; ++index) {
+        muSelCharHand* hand = m_selCharTask->getHand(index);
+        int mode = readHandMode(hand, &modeArg);
+        switch (mode) {
+        case 5:
+            if (modeArg == m_areaIdx) {
+                m_chrList.close();
+                closed = 1;
+            }
+            break;
+        case 6:
+            if (modeArg == m_areaIdx) {
+                m_chrList.close();
+                closed = 1;
+            }
+            break;
+        case 7:
+            if (modeArg == m_areaIdx) {
+                m_chrList.clearDisableName();
+                m_chrList.close();
+                closed = 1;
+            }
+            break;
+        case 8:
+            if (modeArg == m_areaIdx) {
+                m_nameEntry.close();
+                closed = 1;
+            }
+            break;
+        }
+        if (closed) {
+            hand->setMode(0, 0);
+            break;
+        }
+    }
+}
+
+// The picture flash reads 0, 1 and 20 from one pool. The leading bytes are the common-model table.
+struct PicPool {
+    u8 head[0xE8];
+    float zero;
+    u8 gap[0xC];
+    float one;
+    u8 gap2[0x84];
+    float twenty;
+};
+static const PicPool sPicPool = {
+    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x00 },
+    0.0f,
+    {},
+    1.0f,
+    {},
+    20.0f,
+};
+
+// Finishes the flash of the character picture once its color animation has played out.
+void muSelCharPlayerArea::charPicEffectMain() {
+    const PicPool* pool = &sPicPool;
+    MuObject* charPic = m_objs[Obj_CharPic];
+    if (!m_unk1F9) {
+        return;
+    }
+    float frame = m_objs[Obj_Unk5]->m_modelAnim->m_anmObjMatClrRes->GetFrame();
+    if (frame >= pool->twenty) {
+        charPic->changeAnimN(0, 0x10, false, false);
+        float col = m_charPicInter ? pool->one : pool->zero;
+        charPic->setFrameMatCol(col);
+        m_objs[Obj_Unk5]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(pool->zero);
+        m_unk1F9 = false;
+    }
+}
+
+static int readHandMode(muSelCharHand* hand, int* arg) {
+    if (arg) {
+        *arg = hand->m_modeArg;
+    }
+    return hand->m_mode;
+}
+
+// HYPOTHESIS: only the count of the friends held by the matching manager is used here.
+struct SelCharMatchingHyp {
+    char _pad[0x3408];
+    int m_friendCount;
+};
+extern SelCharMatchingHyp* lbl_805A0434;
+extern "C" int fn_800C9F14(muWifiInterfaceTask* self, int index);
+
+// The state that the wifi conditions give to the area (0 when the select screen is not the wifi one).
+// HYPOTHESIS: the values are the states that dispWifiDispState shows.
+int muSelCharPlayerArea::getWifiStateByWifiCond() {
+    int type = g_GameGlobal->m_selCharData->m_selCharType;
+    int group;
+    if (isSelCharTypeIn(type, 0, 4)) { group = 0; goto groupSelected; }
+    if (isSelCharTypeIn(type, 4, 12)) { group = 1; goto groupSelected; }
+    {
+        bool inGroup = isSelCharTypeIn(type, 12, 16);
+        group = 3;
+        if (!inGroup) goto groupSelected;
+        group = 2;
+    }
+    groupSelected:
+    if (group != 2) {
+        return 0;
+    }
+    if (unk428 > 0) {
+        return 2;
+    }
+    if (unk426Flag) {
+        return 1;
+    }
+    muWifiInterfaceTask* wifi = g_muWifiInterfaceTask;
+    if (!fn_800C9F14(wifi, m_areaIdx)) {
+        return 0;
+    }
+    if (wifi->isExchangingFriendKey(m_areaIdx)) {
+        return 5;
+    }
+    if (wifi->getFriendAIDIndex(m_areaIdx) >= 0) {
+        return 5;
+    }
+    if (unk425) {
+        return 4;
+    }
+    if (wifi->isRequestedExchangeFriendKey(m_areaIdx)) {
+        return 7;
+    }
+    if (!wifi->isEnoughRoomForFriendList(m_areaIdx) || lbl_805A0434->m_friendCount >= 0x40) {
+        return 6;
+    }
+    return 3;
 }

@@ -45,7 +45,7 @@ struct hkMotion : hkReferencedObject {
         hkThreadMemory::s_instance->deallocateChunk(p, ((hkReferencedObject*)p)->m_memSizeAndFlags, 0x2c);
     }
 
-    u8 m_type;                     // 0x08 (MotionType)
+    hkEnum<MotionType, u8> m_type; // 0x08
     hkMotionState m_motionState;   // 0x10
     hkVector4 m_inertiaAndMassInv; // 0xD0 (x, y, z: inverse inertia diagonal, w: inverse mass)
     hkVector4 m_linearVelocity;    // 0xE0
@@ -81,6 +81,10 @@ struct hkMotion : hkReferencedObject {
     virtual void getMotionStateAndVelocities(hkMotion* out) const;      // 0x64 HYPOTHESIS: out type
 
     hkReal getMass() const;
+    // The transform of the motion state (map name hkMotion__getTransform; out-of-line copy in hkPoweredChainData.o).
+    const hkTransform& getTransform() const { return m_motionState.getTransform(); }
     void setDeactivationClass(u16 deactivationClass);
-    void setDeactivationCounter(u16 deactivationCounter); // defined in src/havok/hkRigidMotionUtil.cpp
+    // Defined in src/havok/hkRigidMotionUtil.cpp. The parameter is a full word: hkRigidMotionUtilApplyAccumulators
+    // passes the accumulator's word without truncating it; the store is a halfword.
+    void setDeactivationCounter(int deactivationCounter);
 };

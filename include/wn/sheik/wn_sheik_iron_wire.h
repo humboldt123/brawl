@@ -55,5 +55,7 @@ public:
     const wnSheikIronWireParam* m_param;
     wnSheikIronWireParamAccesser m_paramAccesser;
     wnSheikIronWire(s32 articleId, const wnArticleBuildInfo& info, const wnSheikIronWireData* data);
+    // HYPOTHESIS: the parameter meanings (the fighter passes its model archive, team, facing and the air status flag).
+    void activate(int founderTaskId, int archiveId, int team, float lr, bool fromAir);
     virtual ~wnSheikIronWire() { }
 };

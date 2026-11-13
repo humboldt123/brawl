@@ -16,6 +16,7 @@
 //   0x802CE534    84  __sinit_\hkBoxShape_cpp   [map: hkBoxShapecpp____sinit_]
 
 #include <havok/hkBoxShape.h>
+#include <havok/hkRegistry.h>
 #include <havok/hkShapeType.h>
 
 void hkBoxShape::finishLoadedObjecthkBoxShape(void* p) {
@@ -31,6 +32,8 @@ void hkBoxShape::cleanupLoadedObjecthkBoxShape(void* p) {
 hkBoxShape::~hkBoxShape() {
 }
 
+#pragma push
+#pragma auto_inline off
 const void* hkBoxShape::getVtablehkBoxShape() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
@@ -38,6 +41,7 @@ const void* hkBoxShape::getVtablehkBoxShape() {
     hkBoxShape* p = ::new (buf) hkBoxShape(flag);
     return *(const void**)p;
 }
+#pragma pop
 
 int hkBoxShape::getType() const {
     return HK_SHAPE_BOX;
@@ -55,9 +59,29 @@ void hkBoxShape::getCollisionSpheresInfo(hkCollisionSpheresInfo* out) const {
 }
 
 // Not yet decompiled in this unit:
-//   0x802CD950    96  calcStatistics   [map: hkBoxShape__calcStatistics]
 //   0x802CD9DC   748  getAabb   [map: hkBoxShape__getAabb]
 //   0x802CDCC8   204  getSupportingVertex   [map: hkBoxShape__getSupportingVertex]
 //   0x802CDD94   300  convertVertexIdsToVertices   [map: hkBoxShape__convertVertexIdsToVertices]
 //   0x802CDED4   448  getCollisionSpheres   [map: hkBoxShape__getCollisionSpheres]
 //   0x802CE094  1184  castRay   [map: hkBoxShape__castRay]
+
+static hkStaticTypeInfo hkBoxShapeTypeInfo("hkBoxShape", hkBoxShape::finishLoadedObjecthkBoxShape, hkBoxShape::cleanupLoadedObjecthkBoxShape,
+                                      hkBoxShape::getVtablehkBoxShape());
+
+// Statistics collector slots used by calcStatistics (vtable offsets 0x0C and 0x20); see hkCylinderShape.cpp.
+// Shape from https://github.com/jj-link/brawl src/havok/fn_802CD950.cpp.
+struct hkStatisticsCollectorIface {
+    virtual void unk00();
+    virtual void addObject(const char* name, int count, const void* object); // 0x0C
+    virtual void unk10();
+    virtual void unk14();
+    virtual void unk18();
+    virtual void unk1C();
+    virtual void unk20();                                                    // 0x20
+};
+
+// TODO: cleanup (shape from jj-link/brawl fn_802CD950)
+void hkBoxShape::calcStatistics(hkStatisticsCollector* collector) const {
+    ((hkStatisticsCollectorIface*)collector)->addObject("BoxShape", 1, this);
+    ((hkStatisticsCollectorIface*)collector)->unk20();
+}

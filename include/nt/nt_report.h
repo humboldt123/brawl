@@ -51,7 +51,12 @@ struct NtBase {
     NtBase() : unk4(0) { }
     virtual ~NtBase() { }
     static bool isMatchStatusOnline();
+#ifdef MU_WIFI_NETCOND_OUTLINE
+    // HYPOTHESIS: this unit keeps an int-sized out-of-line copy; other units call the sora_melee definition.
+    static s32 isNetCondOnline() __attribute__((never_inline));
+#else
     static bool isNetCondOnline();
+#endif
     static bool isParent() __attribute__((never_inline));
     static bool isParentInit();
     static void setSIDPlayer(u8 station, u8 count);

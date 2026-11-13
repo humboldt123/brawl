@@ -396,10 +396,19 @@ public:
 
     virtual void updatePosture(bool);
     virtual void processFixPositionPreAnimCmd();
+#ifdef EM_ENEMY_UNIT
+    // The Enemy unit emits these three as weak copies among the inline virtuals its vtables reference (in reverse
+    // vtable order, after the IpNull destructor), so the original defined them in the class.
+    virtual soKind soGetKind() { return StageObject_Enemy; }
+    virtual int soGetSubKind() { return m_enemyKind; }
+    virtual void updateNodeSRT();
+    virtual bool isTreadPassive() { return true; }
+#else
     virtual soKind soGetKind();
     virtual int soGetSubKind();
     virtual void updateNodeSRT();
     virtual bool isTreadPassive();
+#endif
     virtual bool isObserv(char unk1);
 #if defined(FT_FIGHTER_ANIMCMD_LONG) || defined(YK_STAGE_FULL)
     // The override must follow the StageObject slot (long) so that it does not add a vtable slot in those units.

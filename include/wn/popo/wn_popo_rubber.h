@@ -56,4 +56,5 @@ class wnPopoRubber : public wnWeaponBuilder<wnPopoRubberModuleAccesserBuildConfi
 public:
     wnPopoRubber(s32 articleId, const wnArticleBuildInfo& info, const wnPopoRubberData* data);
     virtual ~wnPopoRubber() { }
+    void activate(int founderTaskId, u32 resourceId, int team, int parentTaskId); // HYPOTHESIS: parameter meaning
 };

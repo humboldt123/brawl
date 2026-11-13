@@ -6,6 +6,7 @@
 #include <StaticAssert.h>
 #include <revolution/OS/OSTime.h>
 #include <gf/gf_task.h>
+#include <mu/mu_collection.h>
 #include <sr/sr_common.h>
 #include <types.h>
 
@@ -14,112 +15,7 @@ class MuMsg;
 class gfJpegEncodeWork;
 namespace nw4r { namespace g3d { class ResFile; class ScnGroup; } }
 
-// HYPOTHESIS: one storage drive of the collection task (0x14 bytes, two of them at 0x358).
-struct muCollectionDrive {
-    u8 unk0;
-    u8 unk1;       // 0x01 HYPOTHESIS: the drive can be written
-    u8 unk2[2];
-    s32 m_state;   // 0x04
-    s32 unk8;
-    u32 m_free;    // 0x0C HYPOTHESIS: free blocks
-    u8 unk10[4];
-};
-static_assert(sizeof(muCollectionDrive) == 0x14, "Class is the wrong size!");
-
-// HYPOTHESIS: view of the collection (album) save task (mu_collection.o); only the members read here.
-class muCollection : public gfTask {
-public:
-    class FileInfo {
-    public:
-        // HYPOTHESIS: field types follow constructor stores and filename-copy accesses.
-        u8 unk0;
-        u8 unk1;
-        u16 unk2;
-        u32 unk4;
-        u32 unk8;
-        u32 unkC;
-        char* unk10;
-
-        FileInfo();
-    };
-
-    class FileHandle {
-    public:
-        // HYPOTHESIS: the collection filename occupies 0x41 bytes.
-        char unk0[0x41];
-
-        FileHandle(const char* name);
-    };
-
-    // HYPOTHESIS: a plain 0x41 byte file name, copied around as a structure.
-    struct FileName {
-        char unk0[0x41];
-    };
-
-    // HYPOTHESIS: a request key: a word followed by a file name.
-    struct FileKey {
-        s32 unk0;
-        char unk4[0x41];
-    };
-
-    union {
-        u8 unk40[0x310];
-        struct {
-            u8 unk40_pad0[0xD0];
-            void* unk110;                // 0x110
-            u8 unk114_pad[0x15D - 0x114];
-            FileName unk15D;             // 0x15D
-            union {
-                u8 unk19E_pad[0x204 - 0x19E];
-                struct {
-                    u8 unk19E[0xA];
-                    FileName unk1A8;
-                };
-            };
-            char unk204[0x41];           // 0x204
-        };
-    };
-    s32 m_busy;                    // 0x350 HYPOTHESIS: non-zero while a request runs
-    u8 unk354[0x4];
-    muCollectionDrive m_drives[2]; // 0x358
-    union {
-        u8 unk380[0x14];
-        struct {
-            bool unk380_scan;
-            bool unk381_scan;
-            u8 unk382_b7 : 1;
-            u8 unk382_b6 : 1;
-            u8 unk382_rest : 6;
-        };
-        struct {
-            union {
-                u8 unk380_flag;          // 0x380
-                s32 unk380_word;
-            };
-            union {
-                void* unk384_ptr;        // 0x384
-                s32 unk384_word;
-            };
-            char* unk388;                // 0x388
-            s32 unk38C;
-            s32 unk390;
-        };
-    };
-
-    void* lock();
-    void checkLimit(int drive);
-    void scanAll(int unk, int unk2);
-    void scan(int drive, int unk, int unk2);
-    void write(void* data, int size, int unk);
-    void overwriteIf1000(FileKey key, int size, int unk);
-    void read(int drive, FileName name);
-    void erase(int drive, FileName name);
-    void erase(const FileKey& key);
-    void copy(int drive, FileName name);
-    void move(int drive, FileName name);
-    void readSummary(int drive, FileName name);
-};
-static_assert(sizeof(muCollection) == 0x394, "Class is the wrong size!");
+// muCollection (the collection task) and muCollectionDrive (its FileInfo) are in mu/mu_collection.h.
 
 // HYPOTHESIS: the photo data object (nt_etc_file.o) has a virtual destructor after eight bytes of data.
 class nteFileDataPhotoBase {

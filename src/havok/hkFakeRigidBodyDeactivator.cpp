@@ -41,10 +41,10 @@ int hkFakeRigidBodyDeactivator::getRigidBodyDeactivatorType() const {
     return DEACTIVATOR_NEVER;
 }
 
-hkBool hkFakeRigidBodyDeactivator::shouldDeactivateHighFrequency() const {
+hkBool hkFakeRigidBodyDeactivator::shouldDeactivateHighFrequency(hkEntity* entity) {
     return hkBool(false);
 }
 
-hkBool hkFakeRigidBodyDeactivator::shouldDeactivateLowFrequency() const {
+hkBool hkFakeRigidBodyDeactivator::shouldDeactivateLowFrequency(hkEntity* entity) {
     return hkBool(false);
 }

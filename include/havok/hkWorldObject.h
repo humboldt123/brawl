@@ -1,5 +1,7 @@
 #pragma once
 
+#include <havok/hkMemory.h>
+
 #include <havok/hkBase.h>
 #include <havok/hkWorldCinfo.h> // hkFinishLoadedObjectFlag (HYPOTHESIS: should move to hkBase.h)
 #include <havok/hkArray.h>
@@ -13,6 +15,8 @@ struct hkWorld;
 
 // Base of all objects that live in an hkWorld (0x58 bytes). Layout from hkWorldObjectClass.cpp.
 struct hkWorldObject : hkReferencedObject {
+    HK_DECLARE_REF_ALLOCATOR(0x13) // the weak deleting dtor in hkEntity.o frees as class 0x13
+
     enum BroadPhaseType {
         BROAD_PHASE_INVALID,
         BROAD_PHASE_ENTITY,

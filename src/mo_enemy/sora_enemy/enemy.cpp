@@ -1,3 +1,22 @@
+// TODO(link): all 295 functions are exact and the test link gives equal .text/.rodata/.bss sizes, but the unit does not
+// link yet. Remaining blockers (test link against the original asm object, 2026-11-07):
+// 1. .data order: MWCC writes a unit's vtables and RTTI in reverse class-definition order, and the weak-copy tail of
+//    .text (the inline virtuals those vtables reference) follows the same order. Our order is the reverse of our
+//    include graph (so/so_module_accesser.h and the stageobject.h chain define every module class early); the original's
+//    is readable backwards from the asm object's .data (wnemSwHolder, Enemy, the anim cmd control unit manager, the
+//    transition entity, soCaptureEventObserver, em area / kinetic / link / status module impls, ..., soNullable, gfTask).
+//    Pre-including headers in that order in this file does not help while so_module_accesser.h includes them all:
+//    it needs forward declarations there (as em_damage_module_impl.cpp needed), then an ordered include list here.
+// 2. __RTTI__12wnemSwHolder (with __RTTI__9soArticle and its presenter base) opens the original's .data although nothing
+//    in the unit references it; an unused inline dynamic_cast<wnemSwHolder*> and a same-type cast do not emit it.
+// 3. Four shared-header forms, tested as an opt-in patch (all exact, .text diff moved from 0x2188 to 0x2bbc, soNull RTTI
+//    gone, soTransitionModule vtable present): explicit empty destructors on the five collision/capture observer bases
+//    and on soGeneralWorkSimple (an implicit one is deferred behind the addObserver copies; soStatusEventObserver's is
+//    prompt because derived module classes define it first), soNull as a private base of soGroundModule (its RTTI base
+//    list has only soNullable), and soTransitionModule's virtuals pure (its vtable has only the destructor slot filled).
+// 4. Small first-need placements in .text: soInstanceManagerFixed's destructor copy before soInstanceManagerFullProperty's
+//    (ours after), isNull__10soNullableCFv after activate (ours after shoot: the original inlines an isNull() there),
+//    the Vec3f(f, f, f) copy after reqEffectAreaOut (ours at its first call, getEmLrRot, because of MT_VEC3F_CTOR_NOINLINE).
 #define MT_VEC3F_SUB_FRESH_REGS
 // The Enemy unit builds the StageObject virtuals that the SDK defines inline (getInput, isActive, ...) as weak copies,
 // like the yakumono stage units: the vtables reference them.
@@ -19,6 +38,8 @@
 #define FT_MODULE_BUILDER
 #define FT_REL_LINK_EXTERN
 #define EM_ENEMY_BUILDER
+// Only this unit: soGetKind / soGetSubKind / isTreadPassive are inline in the class (weak copies of the vtable tail).
+#define EM_ENEMY_UNIT
 #define SO_ARRAY_LIST_CTOR_FLAG
 // BYTES: the unit's destructor chain is not inlined: soTeamImpl calls soTeam's destructor, the anim cmd control unit
 // manager calls soInstanceManagerFullProperty's, which calls soInstanceManagerFixed's (each a weak copy of this unit), and
@@ -311,10 +332,6 @@ void Enemy::remove(Enemy* enemy) {
     }
 }
 
-// TODO(nonmatching): 99.90%, (a) non-semantic: only the slope module's angle (20.0f) is loaded before its three integer
-// arguments in the original (ours loads it after them, in parameter order). Tried: a double literal, (float)20, a static
-// const, a static inline helper (folded), a helper with a named local (loads it before this/acc instead), the module
-// built through a builder-style wrapper, default arguments. Every other instruction agrees.
 Enemy::Enemy(u32 p1, emCreate* create, soArray<soInterpolation<Vec3f> >* interpolations, soArray<soAreaInstance>* areaInstances,
              void* areaWork, emTargetSearchUnit* targetSearchUnits, emAIUnit* aiEntries, soArticleMediator* articleMediator,
              void* wind, soArray<soCameraSubject>* cameraSubjects, soReflectModule* reflectModule) :
@@ -394,7 +411,7 @@ Enemy::Enemy(u32 p1, emCreate* create, soArray<soInterpolation<Vec3f> >* interpo
                    &m_otherAnims, reinterpret_cast<soArray<soTransitionTermPack>*>(lbl_27_bss_9BC),
                    reinterpret_cast<soArray<u32>*>(g_u32ArrayNull), -1, false,
                    reinterpret_cast<soMotionAnimObjCacheModule*>(lbl_27_bss_DBC)),
-    m_slopeModule(&moduleAccesser, 0, 0, true, 20.0f),
+    m_slopeModule(&moduleAccesser, 20.0f, 0, 0, true),
     m_groundShapes(1, 0),
     m_groundModule(&moduleAccesser, &m_groundShapes, soValueAccesser::getConstantIndefinite(&moduleAccesser, 0xa813, 0)),
     m_targetSearchModule(&moduleAccesser, targetSearchUnits,
@@ -780,10 +797,6 @@ void Enemy::initCameraSubject() {
     }
 }
 
-// TODO(nonmatching): 99.71%, (a) non-semantic, two spots: the original copies spawnPos into r4 before the two float
-// arguments of StageObject::activate (ours after them, in parameter order; the same shape in isolation, with a local
-// copy, an identity inline or a wrapper gives our order), and materializes constructInstance's 4th argument with its own
-// `li 1` where ours reuses the register of the `true` before it (an int, s8 or u8 parameter all reuse it here).
 // Activates the enemy at spawnPos with statusKind (createPost): the model and its shadow, the works, the strength, the
 // ground collision, the link to the parent, the anim cmd table and the first status. A status kind outside the
 // enemy kind's status table activates nothing.
@@ -791,7 +804,7 @@ void Enemy::activate(Vec3f* spawnPos, float lr, float unk, int statusKind) {
     if ((u32)statusKind >= emInfo::getInstance()->getStatusNum(m_enemyKind)) {
         return;
     }
-    StageObject::activate(lr, unk, spawnPos, false);
+    StageObject::activate(spawnPos, lr, unk, false);
 
     u32 modelFlags = soValueAccesser::getValueInt(&moduleAccesser, 0x59f9, 0) | 0x10;
     if (m_moduleAccesser->getColorBlendModule().isNull() == false) {
@@ -2211,17 +2224,12 @@ u32 Enemy::getFrameCounter(int index) {
     return m_frameCounters[index].getCounter();
 }
 
-// TODO(nonmatching): 94.83%, (a) non-semantic: the original copies acc into r3 before the power argument of
-// calcHitStopFrame and loads the 1.0 constant in parameter position (ours loads it first, then power, then acc); the
-// same difference is in wnNessYoyoHead's and wnWarioBike's copies of this function (both 95.3%), and no spelling of the
-// constant (local, literal, double, static const, register) or wrapper of the call changes it in isolation.
 // Keeps the largest attack power and hit stop of the frame; notifyEventCollisionAttackCheck applies them.
 void Enemy::notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* acc) {
     gfTask* task = gfTaskScheduler::getInstance()->getTaskById(getTaskCategory(collisionLog), collisionLog->m_taskId);
     soCollisionAttackData* attackData =
         acc->getCollisionAttackModule().getData(collisionLog->m_damageIndex, collisionLog->m_isAbsolute);
-    float one = 1.0f;
-    int hitStopFrame = soDamageUtilActor::calcHitStopFrame(power, one, one, acc, attackData, 0);
+    int hitStopFrame = soDamageUtilActor::calcHitStopFrame(acc, power, 1.0f, 1.0f, attackData, 0);
     switch (collisionLog->m_kind) {
     case 1:
         // The hit stop of a reaction frame target replaces the computed one.
@@ -2236,7 +2244,7 @@ void Enemy::notifyEventCollisionAttack(float power, soCollisionLog* collisionLog
         if (acc->getSituationModule().getKind() == 0 && task != NULL) {
             float rebound1 = 0.0f;
             float rebound2 = 0.0f;
-            if (!acc->getCollisionAttackModule().checkRebound(power, acc, &dynamic_cast<StageObject&>(*task), collisionLog,
+            if (!acc->getCollisionAttackModule().checkRebound(acc, &dynamic_cast<StageObject&>(*task), collisionLog, power,
                                                               &rebound1, &rebound2)) {
                 return;
             }
@@ -2673,14 +2681,3 @@ void Enemy::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* acc, S
     StageObject::notifyEventLink(eventInfo, acc, sender, unk4);
 }
 
-bool Enemy::isTreadPassive() {
-    return true;
-}
-
-int Enemy::soGetSubKind() {
-    return m_enemyKind;
-}
-
-soKind Enemy::soGetKind() {
-    return StageObject_Enemy;
-}

@@ -7,19 +7,53 @@
 #include <nt/nt_offline.h>
 #include <revolution/NWC24/NWC24Config.h>
 #include <revolution/OS/OSTime.h>
+#include <revolution/OS/OSMutex.h>
+#include <revolution/NWC24/NWC24Manage.h>
+#include <revolution/NWC24/NWC24MsgCommit.h>
+#include <sr/sr_getappname.h>
 #include <string.h>
 #include <types.h>
 
-// HYPOTHESIS: untyped placeholders for the zero-initialized .bss of this unit, sizes and order from the original layout.
-unsigned char lbl_8049ECB8[0x10] __attribute__((aligned(8))) = { 0 };
-unsigned char lbl_8049ECC8[0x18] __attribute__((aligned(8))) = { 0 };
-// HYPOTHESIS: untyped placeholders for the zero-initialized .sbss of this unit, sizes and order from the original layout.
-unsigned char lbl_805A0450[0x4] __attribute__((aligned(4))) = { 0 };
-unsigned char lbl_805A0454[0x4] __attribute__((aligned(4))) = { 0 };
+// gfMutex is identified by the global object's registered destructor.
+class gfMutex {
+public:
+    gfMutex() { OSInitMutex(&m_mutex); }
+    ~gfMutex();
+    OSMutex m_mutex;
+};
+
+// HYPOTHESIS: the scoped guard's original class name is unknown.
+class NwcScopedLock {
+public:
+    NwcScopedLock(OSMutex* mutex) : m_mutex(mutex), m_locked(1) {
+        if (m_locked) OSLockMutex(m_mutex);
+    }
+    ~NwcScopedLock() {
+        if (m_locked) OSUnlockMutex(m_mutex);
+    }
+private:
+    OSMutex* m_mutex;
+    // BYTES: the destructor reads and rewrites the complete eight-bit lock flag.
+    u8 m_locked : 8;
+};
+
+gfMutex lbl_8049ECC8 __attribute__((aligned(8)));
+// Shared SDK workspace and count of objects that own an open operation.
+NWC24Work* lbl_805A0450 = 0;
+int lbl_805A0454 = 0;
 
 // WiiConnect24 SDK calls, under the names RVL_SDK/nwc24/nwc24.c defines them with.
 extern "C" {
 // HYPOTHESIS: SDK signatures follow the argument registers and the records accessed by their callees.
+s32 NWC24GetErrorCode();
+int NWC24GetMsgSize(const NWC24MsgObj* message, u32* size);
+int fn_8039B1B0(NWC24MsgObj* message, u32* id);
+int fn_8039B5AC(int box, u32 id);
+int fn_8039A350(int kind);
+int fn_803A3324(NWC24DlTask* task);
+int fn_803A3058(const NWC24DlTask* task, char* url, u32 capacity);
+int fn_803A3D64(NWC24DlTask* task);
+int fn_803A38C0(NWC24DlTask* task);
 int fn_803A0158();
 int fn_803A01D0(int box);
 int fn_803A0240(u32 appId);
@@ -222,6 +256,284 @@ bool nteWiiConnect24::_setupDlTask(NWC24DlTask* task, u16 index, int* error) {
     if (result != 0) {
         *error = result;
         return false;
+    }
+    return true;
+}
+
+// Query first: the SDK error query precedes reloading the current callback.
+static inline void NotifySdkError(nteWiiConnect24* owner, int kind, int error) {
+    s32 code = NWC24GetErrorCode();
+    IWiiConnect24_Error* handler = owner->m_errorHandler;
+    if (handler) {
+        int display = code;
+        if (code < 0) display = static_cast<int>(0u - static_cast<u32>(code));
+        handler->notify_Error(kind, error, display);
+    }
+}
+
+nteWiiConnect24::nteWiiConnect24(Heaps::HeapType heap) {
+    m_heap = heap;
+    m_bufferSize = 0;
+    m_buffer = 0;
+    m_opened = false;
+    m_errorHandler = 0;
+}
+
+nteWiiConnect24::~nteWiiConnect24() {
+    if (m_buffer) {
+        gfHeapManager::free(m_buffer);
+        m_bufferSize = 0;
+        m_buffer = 0;
+    }
+    NwcScopedLock lock(&lbl_8049ECC8.m_mutex);
+    if (m_opened) {
+        if (--lbl_805A0454 == 0) {
+            NWC24CloseLib();
+            if (lbl_805A0450) {
+                gfHeapManager::free(lbl_805A0450);
+                lbl_805A0450 = 0;
+            }
+        }
+        m_opened = false;
+    }
+}
+
+void nteWiiConnect24::setErrorHandler(IWiiConnect24_Error* handler) {
+    m_errorHandler = handler;
+}
+
+bool nteWiiConnect24::check_getStatus(int kind) {
+    if (!_openLibrary(1)) return false;
+    bool ready = false;
+    int result = fn_8039A350(kind);
+    switch (result) {
+    case 0: ready = true; break;
+    case NWC24_ERR_DISABLED: NotifySdkError(this, 5, result); break;
+    case NWC24_ERR_NETWORK: NotifySdkError(this, 6, result); break;
+    case NWC24_ERR_SERVER: NotifySdkError(this, 7, result); break;
+    case NWC24_ERR_FULL: NotifySdkError(this, 8, result); break;
+    default: NotifySdkError(this, 3, result); break;
+    }
+    return ready;
+}
+
+bool nteWiiConnect24::dl_isRegisterDLTask() {
+    if (!_openLibrary(1)) return false;
+    NWC24DlTask task;
+    if (fn_803A3324(&task) != 0) return false;
+    if (NWC24CheckDlTask(&task, FALSE) != 0) return false;
+    char url[128];
+    url[0] = 0;
+    if (fn_803A3058(&task, url, sizeof(url)) != 0 ||
+        strncmp(url, lbl_80460F48, strlen(lbl_80460F48)) != 0) return false;
+    return true;
+}
+
+static inline void NotifyError(IWiiConnect24_Error* handler, int kind, int error, int code) {
+    if (handler) handler->notify_Error(kind, error, code);
+}
+
+static inline void NotifyDownloadError(nteWiiConnect24* owner, const int& error) {
+    if (!owner->_procGeneralError(error)) return;
+    if (!nteGlobal::isEnableNWCMail() && nteGlobal::isEnableNWCDL() == 1) {
+        NotifyError(owner->m_errorHandler, 6, error, 109144);
+    } else {
+        NotifyError(owner->m_errorHandler, 3, error, 109999);
+    }
+}
+
+static inline void NotifyUnhandledError(nteWiiConnect24* owner, const int& error) {
+    if (owner->_procGeneralError(error)) {
+        NotifyError(owner->m_errorHandler, 3, error, 109999);
+    }
+}
+
+bool nteWiiConnect24::dl_registerDLTask() {
+    u16 language = getLangId();
+    if (language >= 17 || lbl_80460F04[language][0] == 0) return false;
+    if (!nteGlobal::isPermitService()) return false;
+    if (!_openLibrary(1)) return false;
+    NWC24DlTask task;
+    int error = fn_803A3324(&task);
+    if (error == NWC24_ERR_NOT_FOUND) {
+        if (!_setupDlTask(&task, language, &error)) {
+            NotifyUnhandledError(this, error);
+            return false;
+        }
+        error = fn_803A3D64(&task);
+        if (error != 0) {
+            NotifyDownloadError(this, error);
+            return false;
+        }
+    } else if (error != 0) {
+        NotifyUnhandledError(this, error);
+        return false;
+    } else {
+        error = fn_803A2C58(&task, lbl_8059E7D4);
+        if (error != 0) {
+            NotifyUnhandledError(this, error);
+            return false;
+        }
+        error = fn_803A31D0(&task, lbl_8059E7D2);
+        if (error != 0) {
+            NotifyUnhandledError(this, error);
+            return false;
+        }
+        error = fn_803A38C0(&task);
+        if (error != 0) {
+            NotifyDownloadError(this, error);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool nteWiiConnect24::dl_deleteDLTask() {
+    if (!_openLibrary(1)) return false;
+    int error = Patch_NWC24DeleteDlTasksForOptOut(srGetAppInitialCode(), FALSE);
+    if (error != 0) {
+        NotifyUnhandledError(this, error);
+        return false;
+    }
+    return true;
+}
+
+bool nteWiiConnect24::dl_deleteDLTaskAll() {
+    if (!_openLibrary(1)) return false;
+    int error = Patch_NWC24DeleteDlTasksForOptOut(srGetAppInitialCode(), TRUE);
+    if (error != 0) {
+        NotifyUnhandledError(this, error);
+        return false;
+    }
+    return true;
+}
+
+#pragma push
+// BYTES: callers retain the out-of-line library and general-error boundaries.
+#pragma auto_inline off
+int nteWiiConnect24::_openLibrary(int kind) {
+    OSMutex* mutex = &lbl_8049ECC8.m_mutex;
+    OSLockMutex(mutex);
+    if (m_opened) {
+        OSUnlockMutex(mutex);
+        return 1;
+    }
+    if (lbl_805A0454 != 0) {
+        OSUnlockMutex(mutex);
+        return 1;
+    }
+    OSUnlockMutex(mutex);
+    NWC24Work* work = lbl_805A0450;
+    if (!work) {
+        work = static_cast<NWC24Work*>(gfHeapManager::alloc(m_heap, 0x4000, 0x20));
+        lbl_805A0450 = work;
+        if (!work) {
+            if (m_errorHandler) m_errorHandler->notify_Error(3, NWC24_ERR_FATAL, 109999);
+            return 0;
+        }
+    }
+    // The game makes one open attempt, then sleeps on transient errors before reporting failure.
+    int result = NWC24_ERR_FATAL;
+    if (work) {
+        result = NWC24OpenLib(lbl_805A0450);
+        if (kind) {
+            switch (result) {
+            case NWC24_ERR_MUTEX:
+            case NWC24_ERR_BUSY:
+            case NWC24_ERR_INPROGRESS:
+                OSSleepTicks(OS_MSEC_TO_TICKS(1000LL));
+                break;
+            }
+        }
+    }
+    if (result != 0 && lbl_805A0450) {
+        gfHeapManager::free(lbl_805A0450);
+        lbl_805A0450 = 0;
+    }
+    switch (result) {
+    case 0:
+        OSLockMutex(&lbl_8049ECC8.m_mutex);
+        m_opened = true;
+        ++lbl_805A0454;
+        OSUnlockMutex(&lbl_8049ECC8.m_mutex);
+        return 1;
+    case NWC24_ERR_MUTEX: case NWC24_ERR_BUSY: case NWC24_ERR_INPROGRESS:
+        NotifySdkError(this, 4, result);
+        break;
+    case NWC24_ERR_FILE_BROKEN: case NWC24_ERR_INTERNAL_VF: case NWC24_ERR_NAND_CORRUPT:
+    case NWC24_ERR_FILE_OTHER: case NWC24_ERR_FILE_NOEXISTS: case NWC24_ERR_FILE_WRITE: case NWC24_ERR_FILE_READ: case NWC24_ERR_FILE_CLOSE: case NWC24_ERR_FILE_OPEN:
+    case NWC24_ERR_BROKEN:
+        NotifySdkError(this, 1, result);
+        break;
+    case NWC24_ERR_OLD_SYSTEM:
+        NotifySdkError(this, 2, result);
+        break;
+    case NWC24_ERR_INTERNAL_IPC: case NWC24_ERR_FATAL:
+        NotifySdkError(this, 3, result);
+        break;
+    default:
+        NotifySdkError(this, 3, result);
+        break;
+    }
+    return 0;
+}
+
+int nteWiiConnect24::_procGeneralError(int error) {
+    int unhandled = 0;
+    if ((error <= NWC24_ERR_FILE_OPEN && error >= NWC24_ERR_FILE_OTHER) || error == NWC24_ERR_NAND_CORRUPT || error == NWC24_ERR_FILE_EXISTS ||
+        error == NWC24_ERR_INTERNAL_VF || error == NWC24_ERR_FILE_BROKEN) {
+        NotifySdkError(this, 1, error);
+    } else if (error == NWC24_ERR_FATAL || error == NWC24_ERR_NOMEM || error == NWC24_ERR_INTERNAL_IPC) {
+        NotifySdkError(this, 3, error);
+    } else {
+        unhandled = 1;
+    }
+    return unhandled;
+}
+#pragma pop
+
+bool nteWiiConnect24::sendMails(u32 count, NWC24MsgObj** messages) {
+    if (!_openLibrary(1)) return false;
+    int error;
+    u32 sent = 0;
+    u32 totalSize = 0;
+    bool failed = false;
+    for (u32 i = 0; i < count; ++i) {
+        error = NWC24CommitMsg(messages[i]);
+        if (error != 0) {
+            if (_procGeneralError(error)) {
+                switch (error) {
+                case NWC24_ERR_BROKEN: NotifySdkError(this, 1, error); break;
+                case NWC24_ERR_OVERFLOW: case NWC24_ERR_FULL: NotifySdkError(this, 8, error); break;
+                default: NotifySdkError(this, 3, error); break;
+                }
+            }
+            failed = true;
+            break;
+        }
+        u32 size = 0;
+        if (NWC24GetMsgSize(messages[i], &size) == 0) totalSize += size;
+        ++sent;
+    }
+    if (failed) {
+        // Roll back messages already committed by this batch.
+        for (u32 i = 0; i < sent; ++i) {
+            u32 id = 0;
+            if (fn_8039B1B0(messages[i], &id) == 0) fn_8039B5AC(0, id);
+        }
+        return false;
+    }
+    OSCalendarTime today;
+    OSCalendarTime sentDate;
+    OSTicksToCalendarTime(OSGetTime(), &today);
+    OSTicksToCalendarTime(nteGlobal::getNWCSendDate(), &sentDate);
+    if (sentDate.year == today.year && sentDate.yday == today.yday) {
+        u32 size = nteGlobal::getNWCSendSize();
+        size += totalSize;
+        nteGlobal::setNWCSendSize(size);
+    } else {
+        nteGlobal::setNWCSendDate(OSGetTime());
+        nteGlobal::setNWCSendSize(totalSize);
     }
     return true;
 }

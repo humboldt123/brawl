@@ -1,3 +1,4 @@
+#define SO_GROUND_MODULE_IMPL_CTOR // opt-in: this unit defines the soGroundModuleImpl constructor
 #define MT_VEC2F_IMPLICIT_ASSIGN
 #define MT_VEC2F_LENGTH_SQ_SPLIT // MATCH-ONLY: getTouchNormal swaps two float registers with the one-expression lengthSq.
 #include <so/ground/so_ground_module_impl.h>
@@ -10,7 +11,51 @@
 #include <so/so_external_value_accesser.h>
 #include <so/so_module_accesser.h>
 #include <gf/gf_task_scheduler.h>
+#include <st/stage.h>
+#include <st/st_collision_attr_param.h>
 #include <math.h>
+
+soGroundModuleImpl::soGroundModuleImpl(soModuleAccesser* acc, soArray<soGroundShapeImpl>* shapes, soGroundConditionChecker* checker, soEventObserverRegistrationDesc* regDesc) :
+    soStatusEventObserver(static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(), -1),
+    soAnimCmdEventObserver(5, static_cast<soEventManager&>(acc->getEventManageModule()).getManageId()) {
+    m_groundShapeArray = shapes;
+    m_cliffHangData = NULL;
+    m_cliffBackRangeXMul = 1.0f; // HYPOTHESIS: default
+    m_groundTracer = reinterpret_cast<soGroundTracer*>(regDesc);
+    m_groundConditionChecker = checker;
+    m_Z = 0.0f; // HYPOTHESIS: default
+    m_pause = false;
+    m_applied = false;
+    m_fixedPos = false;
+    m_detachChangeStatus = true;
+    m_ignoreFriction = false;
+    m_moduleAccesser = acc;
+    m_collData = NULL;
+    m_collision = NULL;
+    m_matrixData = NULL;
+    m_56_0 = false;
+    m_56_1 = false;
+    m_56_2 = false;
+    m_collisionOn = false;
+}
+
+soGroundModuleImpl::~soGroundModuleImpl() {
+    if (m_matrixData != NULL) {
+        delete[] m_matrixData;
+        m_matrixData = NULL;
+    }
+    if (m_collision != NULL) {
+        delete m_collision;
+        m_collision = NULL;
+        if (m_groundShapeArray->size() > 0) {
+            m_groundShapeArray->at(0).m_collStatus->m_collision = NULL;
+        }
+    }
+    if (m_collData != NULL) {
+        delete m_collData;
+        m_collData = NULL;
+    }
+}
 
 void soGroundModuleImpl::begin() {
     m_applied = false;
@@ -858,4 +903,75 @@ void soGroundModuleImpl::receive(int, bool flag) {
             m_moduleAccesser->m_stageObject->notifyLostGround(m_moduleAccesser);
         }
     }
+}
+
+bool soGroundModuleImpl::attachGround(u32 index) {
+    Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
+    getCenterPos(index);
+    m_moduleAccesser->m_stageObject->updateNodeSRT();
+    m_groundShapeArray->at(index).reset((Vec2f*)&pos);
+    m_groundShapeArray->at(index).setEventToGround(false, 0);
+    m_groundShapeArray->at(index).update(m_moduleAccesser, 1);
+    grCollStatus* status = m_groundShapeArray->at(index).m_collStatus;
+    status->m_setting = (grCollStatus::Setting)0;
+    status->m_touchDown = false;
+    m_groundShapeArray->at(index).m_collStatus->test();
+    Vec3f correct = getCorrectPos(0);
+    m_moduleAccesser->getPostureModule().setPos(&correct);
+    m_groundShapeArray->at(index).update(m_moduleAccesser, 1);
+    Vec2f center = getCenterPos(index);
+    Vec2f safe = center;
+    m_groundShapeArray->at(index).setSafePos(&safe);
+    if (m_groundShapeArray->at(index).m_collStatus->isTouch(grCollStatus::Touch_Down) == true) {
+        soGroundShapeImpl& shapeGround = m_groundShapeArray->at(index);
+        shapeGround.m_correctKind = 1; // HYPOTHESIS: Correct_Ground
+        m_groundShapeArray->at(index).updateDownMaterialInfo();
+        return true;
+    }
+    soGroundShapeImpl& shapeAir = m_groundShapeArray->at(index);
+    shapeAir.m_correctKind = 5; // HYPOTHESIS: Correct_Air
+    return false;
+}
+
+// HYPOTHESIS: the attribute parameter set's word at +8 is the ground damage record index (0 = none); the sora_melee
+// function at 0x228034 (no name in the map) fills the attack data and the team number from it.
+struct soGroundAttrDamageView {
+    char _spacer[8];
+    int m_damageIndex;
+};
+extern "C" void fn_27_228034(stCollisionAttrParam* param, int damageIndex, soCollisionAttackData* outAttackData, int* outTeamNo);
+
+bool soGroundModuleImpl::getTouchAttackData(soCollisionAttackData* outAttackData, int* outTouchKind, int* outTeamNo, u32 index) {
+    // HYPOTHESIS: the original table order of the four touch ids (down, up, left, right).
+    static const grCollStatus::TouchId touchIds[4] = { grCollStatus::Touch_Down, grCollStatus::Touch_Up, grCollStatus::Touch_Left, grCollStatus::Touch_Right };
+    for (u32 i = 0; i < 4; i++) {
+        if (m_groundShapeArray->at(index).m_collStatus->isTouch(touchIds[i])) {
+            int material = m_groundShapeArray->at(index).m_collStatus->getTouchLineMaterialType(touchIds[i]);
+            soGroundAttrDamageView* param = (soGroundAttrDamageView*)g_Stage->m_collisionAttrParam.getCollisionAttrParamSet(material);
+            if (param->m_damageIndex != 0) {
+                int kind;
+                switch (touchIds[i]) {
+                case grCollStatus::Touch_Up:
+                    kind = 1;
+                    break;
+                case grCollStatus::Touch_Down:
+                    kind = 8;
+                    break;
+                case grCollStatus::Touch_Left:
+                    kind = 2;
+                    break;
+                case grCollStatus::Touch_Right:
+                    kind = 4;
+                    break;
+                default:
+                    kind = 0;
+                    break;
+                }
+                *outTouchKind = kind;
+                fn_27_228034(&g_Stage->m_collisionAttrParam, param->m_damageIndex, outAttackData, outTeamNo);
+                return true;
+            }
+        }
+    }
+    return false;
 }

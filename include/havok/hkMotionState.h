@@ -21,4 +21,5 @@ struct hkMotionState {
     u16 m_deactivationCounter;         // 0xB6
 
     void initMotionState(const hkVector4& position, const hkQuaternion& rotation);
+    const hkTransform& getTransform() const { return m_transform; }
 };

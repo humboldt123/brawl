@@ -65,6 +65,14 @@ mo_fighter/ft_dedede/ft_dedede_status_uniq_process_final.cpp:
 	.text       start:0x00011320 end:0x00011BBC
 	.ctors      start:0x00000024 end:0x00000028
 
+mo_fighter/ft_dedede/ft_dedede_waddledee_search_impl.cpp:
+	.text       start:0x00011BBC end:0x00011F00
+	.ctors      start:0x00000028 end:0x0000002C
+
+mo_fighter/ft_dedede/ft_dedede_waddledee_pick_transactor_impl.cpp:
+	.text       start:0x00011F00 end:0x00012204
+	.ctors      start:0x0000002C end:0x00000030
+
 mo_fighter/ft_dedede/wn_dedede_star.cpp:
 	.text       start:0x00012204 end:0x00018284
 
@@ -79,7 +87,7 @@ mo_fighter/ft_dedede/wn_dedede_jethammer_status_uniq_process.cpp:
 	.ctors      start:0x00000030 end:0x00000034
 
 mo_fighter/ft_dedede/wn_dedede_follower.cpp:
-	.text       start:0x0001C984 end:0x00023E58
+	.text       start:0x0001C984 end:0x00023E68
 	.ctors      start:0x00000034 end:0x00000040
 
 mo_fighter/mo_fighter.cpp:

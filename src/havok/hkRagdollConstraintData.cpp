@@ -12,9 +12,9 @@
 //   0x80325F84     8  getType   [map: hkRagdollConstraintData__getType]
 //   0x80325F8C    80  __sinit_\hkRagdollConstraintData_cpp   [map: hkRagdollConstraintDatacpp____sinit_]
 #include <havok/hkRagdollConstraintData.h>
+#include <havok/hkRegistry.h>
 
 // Constraint info block copied from the data at 0x10 (0x12A bytes). Helper lives in another TU.
-extern "C" void fn_802DE264(void* begin, u32 size, hkConstraintInfo* info);
 
 void hkRagdollConstraintData::finishLoadedObjecthkRagdollConstraintData(void* p) {
     hkFinishLoadedObjectFlag flag;
@@ -22,6 +22,8 @@ void hkRagdollConstraintData::finishLoadedObjecthkRagdollConstraintData(void* p)
     ::new (p) hkRagdollConstraintData(flag);
 }
 
+#pragma push
+#pragma auto_inline off
 const void* hkRagdollConstraintData::getVtablehkRagdollConstraintData() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
@@ -29,6 +31,7 @@ const void* hkRagdollConstraintData::getVtablehkRagdollConstraintData() {
     ::new (buf) hkRagdollConstraintData(flag);
     return *(const void**)buf;
 }
+#pragma pop
 
 hkRagdollConstraintData::~hkRagdollConstraintData() {
     for (int i = 0; i < 3; i++) {
@@ -45,7 +48,7 @@ void cleanupLoadedObjecthkRagdollConstraintData(hkRagdollConstraintData* self) {
 
 void hkRagdollConstraintData::getConstraintInfo(hkConstraintInfo* info) {
     u8* end = (u8*)this + 0x13A;
-    fn_802DE264(m_unk10, (u32)(end - m_unk10), info);
+    getConstraintInfoUtil((const hkConstraintAtom*)m_unk10, (u32)(end - m_unk10), *(ConstraintInfo*)info);
 }
 
 void hkRagdollConstraintData::getRuntimeInfo(void* unusedA, hkConstraintRuntimeInfo* out) {
@@ -142,15 +145,17 @@ hkBool hkRagdollConstraintData::isValid() const {
     return okG;
 }
 
-u32 hkRagdollConstraintData::getType() const {
+int hkRagdollConstraintData::getType() const {
     return 7; // CONSTRAINT_TYPE_RAGDOLL
 }
-
-// Static initialiser: not yet recovered.
-static hkBool s_hkRagdollConstraintData_unk(false);
 
 // Not yet decompiled in this unit:
 //   0x80325BB0    32  finishLoadedObjecthkRagdollConstraintData   [map: hkRagdollConstraintData__finishLoadedObjecthkRagdollConstraintData]
 //   0x80325BE4    60  getVtablehkRagdollConstraintData   [map: hkRagdollConstraintData__getVtablehkRagdollConstraintData]
 //   0x80325C48   396  isValid   [map: hkRagdollConstraintData__isValid]
 //   0x80325E9C   232  __dt   [map: hkRagdollConstraintData____dt]
+
+static hkStaticTypeInfo hkRagdollConstraintDataTypeInfo("hkRagdollConstraintData",
+    hkRagdollConstraintData::finishLoadedObjecthkRagdollConstraintData,
+    (void (*)(void*))cleanupLoadedObjecthkRagdollConstraintData,
+    hkRagdollConstraintData::getVtablehkRagdollConstraintData());

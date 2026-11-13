@@ -32,6 +32,26 @@ typedef ftCaptainArticleManageModuleBuilder ftCaptainGenerateArticleManageModule
 typedef ftOpaqueGenerateArticleManageModuleBuilder<0x4118, Fighter_Captain> ftCaptainGenerateArticleManageModuleBuilder;
 #endif
 
+// Captain Falcon's own kinetic modes 0x64..0x6D (ft_captain_kinetic_transactor.cpp). The fighter unit still builds the
+// generic mediator; the original's mediator calls these (HYPOTHESIS: ftKineticMediatorImplT with postUpdateEnergy).
+class ftCaptainKineticTransactor : public ftKineticTransactor {
+public:
+    static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
+    static void changeKineticSub(bool*, void*, Vec2f* speed, soModuleAccesser* acc);
+    static void changeKineticSub1(bool*, void*, Vec2f* speed, soModuleAccesser* acc);
+    static void postUpdateEnergy(void* pools, soModuleAccesser* acc);
+    template <typename E>
+    static void updateEnergy(E* energy, soModuleAccesser* acc) {
+        if (energy->isEnable() != true) {
+            return;
+        }
+        if (energy->isSuspend()) {
+            return;
+        }
+        return energy->updateEnergy(acc);
+    }
+};
+
 class ftCaptainBuildConfig : public ftCommonBuildConfig {
 public:
     enum { UniqueStatusCount = 16 };

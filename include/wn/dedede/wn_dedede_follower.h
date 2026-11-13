@@ -116,6 +116,8 @@ public:
     void updateAttackInfoStatus();
     virtual bool isCanInhaled();
     virtual bool isCanEat();
+    virtual void onDeactivate();
+    virtual void notifyEventCollisionHit(float power, soCollisionAttackData* attackData, u32 index, int, soModuleAccesser* moduleAccesser, soCollisionLog* log);
     void had(int ownerTaskId, int nodeId, int teamNo);
     bool isPossibleDeadChange();
     void toDead();

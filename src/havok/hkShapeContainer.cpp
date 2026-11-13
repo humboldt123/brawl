@@ -7,6 +7,7 @@
 //   0x802D4DBC    80  __sinit_\hkShapeContainer_cpp   [map: hkShapeContainercpp____sinit_]
 
 #include <havok/hkShapeContainer.h>
+#include <havok/hkRegistry.h>
 
 void hkSingleShapeContainer::finishLoadedObjecthkSingleShapeContainer(void* p) {
     hkFinishLoadedObjectFlag flag;
@@ -18,6 +19,8 @@ void hkSingleShapeContainer::cleanupLoadedObjecthkSingleShapeContainer(void* p) 
     ((hkShapeContainer*)p)->~hkShapeContainer();
 }
 
+#pragma push
+#pragma auto_inline off
 const void* hkSingleShapeContainer::getVtablehkSingleShapeContainer() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
@@ -25,6 +28,7 @@ const void* hkSingleShapeContainer::getVtablehkSingleShapeContainer() {
     hkSingleShapeContainer* p = ::new (buf) hkSingleShapeContainer(flag);
     return *(const void**)p;
 }
+#pragma pop
 
 int hkShapeContainer::getNumChildShapes() const {
     int count = 0;
@@ -33,3 +37,6 @@ int hkShapeContainer::getNumChildShapes() const {
     }
     return count;
 }
+
+static hkStaticTypeInfo hkSingleShapeContainerTypeInfo("hkSingleShapeContainer", hkSingleShapeContainer::finishLoadedObjecthkSingleShapeContainer, hkSingleShapeContainer::cleanupLoadedObjecthkSingleShapeContainer,
+                                      hkSingleShapeContainer::getVtablehkSingleShapeContainer());

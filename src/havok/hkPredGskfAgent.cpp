@@ -8,16 +8,21 @@
 #include <havok/hkCollisionDispatcher.h>
 #include <havok/hkShapeType.h>
 
-// Stand-ins for the static query functions of hkGskBaseAgent and hkIterativeLinearCastAgent (other units, not recovered).
-extern "C" void fn_802B2490();
-extern "C" void fn_802B1C3C();
 void hkPredGskfAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
     hkAgentFuncs funcs;
+    funcs.create = (hkAgentFunc)createPredGskfAgent;
+    funcs.staticGetPenetrations = (hkAgentFunc)hkGskBaseAgent::staticGetPenetrations;
+    funcs.staticGetClosestPoints = (hkAgentFunc)hkGskBaseAgent::staticGetClosestPoints;
+    funcs.staticLinearCast = (hkAgentFunc)hkIterativeLinearCastAgent::staticLinearCast;
     funcs.symmetricA = 0;
     funcs.symmetricB = 1;
-    funcs.create = (hkAgentFunc)createPredGskfAgent;
-    funcs.staticGetPenetrations = (hkAgentFunc)fn_802B2490;
-    funcs.staticGetClosestPoints = (hkAgentFunc)fn_802B1C3C;
-    funcs.staticLinearCast = (hkAgentFunc)hkIterativeLinearCastAgent::staticLinearCast;
     dispatcher->registerCollisionAgent(&funcs, HK_SHAPE_CONVEX, HK_SHAPE_CONVEX);
+}
+
+hkGskBaseAgent* hkPredGskfAgent::createPredGskfAgent(const hkCdBody& bodyA, const hkCdBody& bodyB,
+                                                     hkCollisionInput& input, hkContactMgr* contactMgr) {
+    if (contactMgr != 0) {
+        return new hkPredGskfAgent(bodyA, bodyB, contactMgr);
+    }
+    return new hkGskBaseAgent(bodyA, bodyB, contactMgr);
 }

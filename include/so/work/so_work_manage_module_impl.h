@@ -39,10 +39,12 @@ public:
 static_assert(sizeof(soWorkManageModule) == 8, "Class is wrong size!");
 
 class soWorkManageModuleImpl : public soWorkManageModule, public soLockable, public soAnimCmdEventObserver {
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 public:
     soWorkManageModuleImpl(soModuleAccesser* acc, void* paramAccesser);
+#ifdef FT_MODULE_BUILDER
 private:
+#endif
 #endif
 
 public:

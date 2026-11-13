@@ -24,7 +24,16 @@ typedef soInstanceManagerFullPropertyVector<soKineticEnergy*, 12> ftKineticEnerg
 class soKineticModuleGenericImpl : public soKineticModuleImpl, public soStatusEventObserver {
 public:
     soKineticModuleGenericImpl(soModuleAccesser* acc, ftKineticEnergyManager* manager, void* mediator);
-    void* m_mediator; // +0x2c (HYPOTHESIS)
+    // The overrides forward to the mediator first (so_kinetic_module_generic_impl.cpp).
+    virtual void eraseEnergy(int index);
+    virtual void eraseEnergyAll();
+    virtual void updateEnergy(soModuleAccesser* moduleAccesser, soKineticEnergy::AttributeFlag flag);
+    virtual void changeKinetic(int kineticType, soModuleAccesser* moduleAccesser);
+    virtual void addSpeed(Vec3f* speed, soModuleAccesser* moduleAccesser);
+    virtual void addSpeedOutside(soKineticEnergy::OutsideType type, Vec3f* speed);
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData,
+                                         soModuleAccesser* moduleAccesser);
+    soKineticMediator* m_mediator; // +0x2c
 };
 
 // sora_melee: the fighter specific part of the mediator work. HYPOTHESIS: parameter types.
@@ -33,7 +42,8 @@ public:
     static void changeKinetic(soModuleAccesser* acc, void* pools);
     // Native generic dispatcher: mode in r3, pool in r4, accesser in r5.
     static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
-    static void changeKineticImpl(int mode);
+    // The generic mode switch: runs the numbered setup for `mode` with the pools, the pre-change speed and the accesser.
+    static void changeKineticImpl(int mode, void* pools, Vec2f* speed, soModuleAccesser* acc);
     // HYPOTHESIS: the modes a fighter reserves without an energy change of its own go through an empty hook selected
     // by a soIntToType<mode> tag; the value-initialized tag temporary is the zero byte each such case stores.
     template <int Mode>

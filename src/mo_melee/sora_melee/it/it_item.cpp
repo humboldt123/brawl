@@ -1,3 +1,12 @@
+#define IT_VEC2F_DEFAULT_OUT_OF_LINE
+#define IT_GENERAL_FLAG_OOL
+#define IT_GENERAL_FLAG_DEFAULT
+#define IT_SET_MANAGE_ID_OOL
+#define IT_ITEM_OBSERVER_CTORS
+#define IT_PARAM_CUSTOMIZE_CTOR_OOL
+#define IT_CONTROLLER_LINK_CTOR_OOL
+#define IT_ANIM_PACK_CTOR_OOL
+#define IT_RESOURCE_ACCESSER_DTOR_INLINE
 #define MT_VEC3F_SCALE_FRESH_REGS
 #define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 // BaseItem: the base class of every item (food, bombs, capsules, trophies' stand-ins, Pokeballs, ...). It is a
@@ -10,6 +19,8 @@
 
 #define IT_CUSTOMIZER_BOOL_HOOKS // the default hooks below return values, see it/item.h
 #define MT_VEC3F_MUL_INLINE // paired-single Vec3f scale, as in the original code
+#define IT_ANIM_CMD_CONTROL_UNIT_CTOR_OOL
+#define IT_GENERAL_WORK_CTOR_OOL
 #include <it/item.h>
 #include <so/sound/so_sound_module_impl.h>
 #include <so/collision/so_collision_shield_module_impl.h>
@@ -34,10 +45,21 @@
 #include <so/team/so_team.h>
 #include <so/event/so_event_manage_module_impl.h>
 #include <so/work/so_work_manage_module_impl.h>
+#include <so/work/so_general_work.h>
 #include <so/param/so_param_customize_module_impl.h>
+#include <so/controller/so_controller_module_link_ref.h>
+#include <so/team/so_team_impl.h>
+#include <so/model/so_model_virtual_node.h>
+#include <so/templates/so_array_value_soPartialAnim.h>
+#include <so/templates/so_array_value_soTransitionTermPack.h>
+#include <so/templates/so_array_value_soEffectTime.h>
+#include <so/templates/so_array_value_soPhysicsIKHandle.h>
 #include <it/it_resource_id_accesser_impl.h>
 #include <it/it_status_uniq_process.h>
 #include <so/resource/so_resource_module_ref.h>
+#include <so/article/so_generate_article_manage_module.h>
+#include <so/color/so_color_blend_module_impl.h>
+#include <so/shadow/so_shadow_module_impl.h>
 
 // MATCH-ONLY: it_manager.h cannot be included here (its customizer declarations disagree with the bool hooks of
 // itCustomizerInterface below), so the two itManager members BaseItem uses are declared on their own.
@@ -238,6 +260,27 @@ struct ItemVtableHyp : ItemVtableHypPad {
     virtual void unk254();
 };
 
+// HYPOTHESIS: setWhole and setSyncVisibility take the raw integer the caller already has. A bool parameter
+// normalizes it (neg/or/srwi) and the original does not. Slots: setWhole 0x8C, setSyncVisibility 0xBC.
+struct EffectByteArgs {
+    IT_V16(ea) IT_V16(eb)
+    virtual void ec0();
+    virtual void setWhole(int);
+    virtual void reqPause(int);
+    virtual void ed0();
+    virtual void ed1();
+    virtual void ed2();
+    virtual void ed3();
+    virtual void ed4();
+    virtual void ed5();
+    virtual void ed6();
+    virtual void ed7();
+    virtual void ed8();
+    virtual void ed9();
+    virtual void setSyncVisibility(int);
+    virtual int isSyncVisibility();
+};
+
 namespace {
 // HYPOTHESIS: the modules that BaseItem::BaseItem builds inline, by offset in the item (module accesser at 0xCC).
 const int kEventManageModule = 0x264;
@@ -305,6 +348,21 @@ soKind BaseItem::soGetKind() {
 
 void BaseItem::notifyEventChangeSituation(SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser) { }
 void BaseItem::notifyEventCollisionShield(soCollisionAttackModule*, float, soCollisionLog*, int, float, float, soModuleAccesser*) { }
+void BaseItem::notifyEventCollisionShieldSearch(soCollisionSearchModule*, soCollisionLog*, u32, soModuleAccesser*) { }
+bool BaseItem::notifyEventCollisionShieldCheck() {
+    return false;
+}
+void BaseItem::notifyEventCollisionReflector(soCollisionAttackModule*, float, soCollisionLog*, int, float, float, soModuleAccesser*) { }
+void BaseItem::notifyEventCollisionReflectorSearch(soCollisionSearchModule*, soCollisionLog*, u32, soModuleAccesser*) { }
+
+void BaseItem::updatePosture(bool honourSlow) {
+    StageObject::updatePosture(honourSlow);
+}
+
+void BaseItem::resetDamage() {
+    // HYPOTHESIS: the tail call is the damage module's no-argument init.
+    moduleAccesser.getDamageModule().initInfo();
+}
 
 // ---- Forwarders to the embedded modules -----------------------------------------------------------------------------
 
@@ -629,8 +687,8 @@ soLogAttackInfo BaseItem::getLogAttackInfo() {
 }
 
 void BaseItem::setLogAttackInfo(soLogAttackInfo* info) {
-    ItemView* v = reinterpret_cast<ItemView*>(this);
     int serial = info->_0;
+    ItemView* v = reinterpret_cast<ItemView*>(this);
     v->workManage.setInt(serial, Instance::Work::Int_Attack_Serial_Id);
     v->workManage.setInt(info->_4, Instance::Work::Int_Attack_Kind);
 }
@@ -734,8 +792,13 @@ void BaseItem::updateLifeTime() {
             }
             if (visible != v->visibility.isVisible()) {
                 bool sync = false;
-                if (m_kind == 0x6A || (m_kind < 0x6A && m_kind == 0x67)) {
+                switch (m_kind) {
+                case 0x67:
+                case 0x6A:
                     sync = true;
+                    break;
+                default:
+                    break;
                 }
                 v->visibility.setWhole(visible);
                 embedded<soEffectModuleImpl>(this, 0x38CC)
@@ -870,13 +933,12 @@ inline T* castTask(u32 taskId) {
 }
 
 BaseItem* BaseItem::getCreaterItem() {
-    BaseItem* item;
     if (static_cast<u32>(m_createOwnerTaskId) == 0xFFFFFFFF) {
-        item = NULL;
-    } else {
-        item = castTask<BaseItem>(m_createOwnerTaskId);
+        return NULL;
     }
-    return item;
+    // The inlined task cast checks the id again; a volatile reload keeps that second test.
+    u32 id = *reinterpret_cast<volatile u32*>(&m_createOwnerTaskId);
+    return castTask<BaseItem>(id);
 }
 
 // HYPOTHESIS: the item's motion module sits at 0xC08.
@@ -899,13 +961,15 @@ void BaseItem::setVisibilityWhole(u8 visible) {
     ItemView* v = reinterpret_cast<ItemView*>(this);
     v->visibility.setWhole(visible);
     u32 synced = v->effect.isSyncVisibility();
-    if (*(reinterpret_cast<u8*>(this) + 0x3D27) != synced) {
-        v->effect.setSyncVisibility(*reinterpret_cast<bool*>(reinterpret_cast<u8*>(this) + 0x3D27));
-        bool whole = true;
-        if (*(reinterpret_cast<u8*>(this) + 0x3D27) != 0) {
+    volatile u8* syncFlag = reinterpret_cast<u8*>(this) + 0x3D27;
+    if (*syncFlag != synced) {
+        reinterpret_cast<EffectByteArgs*>(&v->effect)->setSyncVisibility(*syncFlag);
+        EffectByteArgs* fx = reinterpret_cast<EffectByteArgs*>(&v->effect);
+        int whole = 1;
+        if (*syncFlag != 0) {
             whole = visible;
         }
-        v->effect.setWhole(whole);
+        fx->setWhole(whole);
     }
     if (*(reinterpret_cast<u8*>(this) + 0x3D26) != 0) {
         v->effect.reqPause(false);
@@ -918,10 +982,10 @@ void BaseItem::setVisibilityWholeForce(u8 visible) {
     v->visibility.setWhole(visible);
     if (v->effect.isSyncVisibility() != 1) {
         v->effect.setSyncVisibility(true);
-        v->effect.setWhole(visible);
+        reinterpret_cast<EffectByteArgs*>(&v->effect)->setWhole(visible);
     }
-    bool hidden = (visible == 0);
-    *(reinterpret_cast<u8*>(this) + 0x3D26) = hidden;
+    bool hidden = visible == 0;
+    *reinterpret_cast<bool*>(reinterpret_cast<u8*>(this) + 0x3D26) = hidden;
     v->effect.reqPause(hidden);
 }
 
@@ -952,7 +1016,7 @@ Vec3f BaseItem::getHavedParentSafePos() {
     }
     if (held != 0) {
         Vec2f center = v->link.getParentShapeCenterPos(Link::No_Have);
-        return Vec3f(center.m_x, center.m_y, 0.0f);
+        return Vec3f(center, 0.0f);
     }
     return v->posture.getPos();
 }
@@ -1020,8 +1084,9 @@ bool BaseItem::onShield() {
         return true;
     } else if (*(reinterpret_cast<u8*>(this) + 0x2130) != 0) {
         work->offFlag(0x22000003);
-        float reflectX = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x2128);
-        float reflectY = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x212C);
+        float reflectX, reflectY;
+        reflectY = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x212C);
+        reflectX = *reinterpret_cast<float*>(reinterpret_cast<u8*>(this) + 0x2128);
         Vec3f reflect;
         reflect.m_x = reflectX;
         reflect.m_y = reflectY;
@@ -1213,7 +1278,9 @@ void BaseItem::throwAttack(float lr, Vec3f* velocity, float powerMulStatus) {
         v->workManage.onFlag(0x22000000);
         if (v->workManage.isFlag(0x22000000) &&
             (v->intWork.at(8) & 0x4C00) == 0) {
-            Vec2f arg = speed;
+            Vec2f arg;
+            arg.m_y = speed.m_y;
+            arg.m_x = speed.m_x;
             v->attack.setSpeed(&arg);
             v->attack.setSpeedPowerAdd(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD6F, 0));
             v->attack.setSpeedPowerMul(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD70, 0));
@@ -1256,9 +1323,11 @@ void BaseItem::fall(Vec3f* velocity, float lr) {
     v->workManage.onFlag(0x22000000);
     if (v->workManage.isFlag(0x22000000) &&
         (v->intWork.at(8) & 0x4C00) == 0) {
+        float speedX = velocity->m_x;
+        float speedY = velocity->m_y;
         Vec2f arg;
-        arg.m_y = velocity->m_y;
-        arg.m_x = velocity->m_x;
+        arg.m_y = speedY;
+        arg.m_x = speedX;
         v->attack.setSpeed(&arg);
         v->attack.setSpeedPowerAdd(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD6F, 0));
         v->attack.setSpeedPowerMul(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD70, 0));
@@ -1354,10 +1423,10 @@ void BaseItem::appear(Vec3f* position, int mode, float speed) {
 void BaseItem::appear1(float rate, Vec3f* speed) {
     ItemView* v = reinterpret_cast<ItemView*>(this);
     float gravity = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD50, 0);
-    if (gravity <= 0.0f) {
-        speed->m_y = 0.0f;
-    } else {
+    if (gravity > 0.0f) {
         speed->m_y = mtSqrtf(speed->m_y * 2.0f * gravity);
+    } else {
+        speed->m_y = 0.0f;
     }
     float limit = itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD50, 0) * 30.0f;
     if (limit > itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD51, 0)) {
@@ -1624,7 +1693,7 @@ void BaseItem::updateScaleAnim() {
                         rate = 1.0f - (1.0f - rate) * (1.0f - rate);
                     }
                     scale = rate * 0.5f + 0.5f;
-                    if (1.0f <= scale) {
+                    if (scale >= 1.0f) {
                         work->setInt(Scale::Anim_None, Instance::Work::Int_Scale_Anim_Type);
                         work->setInt(0, Instance::Work::Int_Scale_Anim_Counter);
                         scale = 1.0f;
@@ -1808,44 +1877,49 @@ void BaseItem::processFixPosition() {
 // ignored (the same shield / reflector hit again, or an attack that does no damage and cannot be countered).
 // HYPOTHESIS: the attack data is only read through the offsets (+0 power, +0x38 bit 5 flag).
 void BaseItem::notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
-    u8 kind = collisionLog->m_kind;
+    soCollisionLog* log = collisionLog;
+    u8 kind = log->m_kind;
     if (kind == 3) {
-        if (static_cast<u32>(m_15672) == static_cast<u32>(collisionLog->m_taskId)) {
+        if (static_cast<u32>(m_15672) == static_cast<u32>(log->m_taskId)) {
             return;
         }
     } else if (kind == 2) {
-        if (static_cast<u32>(m_15676) == static_cast<u32>(collisionLog->m_taskId)) {
+        if (static_cast<u32>(m_15676) == static_cast<u32>(log->m_taskId)) {
             return;
         }
     } else if (kind == 0) {
         gfTask* task = gfTaskScheduler::getInstance()->getTaskById(
-            static_cast<gfTask::Category>(collisionLog->m_taskCategory), collisionLog->m_taskId);
+            static_cast<gfTask::Category>(log->m_taskCategory), log->m_taskId);
         if (task != NULL) {
             StageObject& attacker = dynamic_cast<StageObject&>(*task);
             soCollisionAttackModule* attack = soExternalValueAccesser::getCollisionAttackModule(&attacker);
-            int* data = reinterpret_cast<int*>(attack->getData(collisionLog->m_collsionIndex, collisionLog->m_isAbsolute));
+            int* data = reinterpret_cast<int*>(attack->getData(log->m_collsionIndex, log->m_isAbsolute));
             if (data[0] <= 0 && ((static_cast<u32>(data[14]) >> 5) & 1) != 0) {
                 return;
             }
         }
     }
-    if (m_customizer->onNotifyEventCollisionSearch(this, collisionLog)) {
-        kind = collisionLog->m_kind;
-        int taskId = collisionLog->m_taskId;
-        u8 index = collisionLog->m_collsionIndex;
-        float posX = collisionLog->m_pos.m_x;
-        float posY = collisionLog->m_pos.m_y;
-        float posZ = collisionLog->m_pos.m_z;
+    if (m_customizer->onNotifyEventCollisionSearch(this, log)) {
+        kind = log->m_kind;
+        int taskId = log->m_taskId;
+        u8 index = log->m_collsionIndex;
+        float posZ = log->m_pos.m_z;
+        float posY = log->m_pos.m_y;
+        float posX = log->m_pos.m_x;
         m_searchHitTaskId = taskId;
         searchHitCollisionIndex = index;
         m_searchHitPos.m_x = posX;
         m_searchHitPos.m_y = posY;
         m_searchHitPos.m_z = posZ;
-        m_15672 = (kind == 3) ? taskId : -1;
-        kind = collisionLog->m_kind;
+        if (kind == 3) {
+            m_15672 = taskId;
+        } else {
+            m_15672 = -1;
+        }
+        kind = log->m_kind;
         if (kind == 2) {
             m_15676 = m_searchHitTaskId;
-            m_15681 = ftUtil::isCounterShield(collisionLog);
+            m_15681 = ftUtil::isCounterShield(log);
         } else {
             m_15676 = -1;
             m_15681 = 0;
@@ -1910,10 +1984,12 @@ bool BaseItem::onReflect() {
         int owner = m_moduleAccesser->getReflectModule().getTaskId();
         v->team.setTeamOwnerId(owner);
         linkTeamOwner(this, owner);
+        float mirrorX = -1.0f;
+        float mirrorY = 1.0f;
         Vec3f mirror;
-        mirror.m_z = 1.0f;
-        mirror.m_x = -1.0f;
-        mirror.m_y = 1.0f;
+        mirror.m_y = mirrorY;
+        mirror.m_x = mirrorX;
+        mirror.m_z = mirrorY;
         m_moduleAccesser->getKineticModule().mulSpeed(&mirror, soKineticEnergy::AttributeFlag(1));
         m_moduleAccesser->getKineticModule().mulAccel(&mirror, soKineticEnergy::AttributeFlag(1));
         if ((v->intWork.at(8) & 0x4000) != 0 &&
@@ -2237,6 +2313,311 @@ gfTask::Category gfTask::getCategory() {
     return m_taskCategory;
 }
 
+int gfTask::getId() {
+    return m_taskId;
+}
+
+int itArchive::getBrresId() const {
+    return m_brresId;
+}
+
+void StageObject::setModuleAccesser(soModuleAccesser* moduleAccesser) {
+    m_moduleAccesser = moduleAccesser;
+}
+
+void soResourceModuleRef::setReference(soResourceModule* resource) {
+    unk24 = resource;
+}
+
+void soResourceModuleRef::clearReference() {
+    unk24 = &unkC;
+}
+
+void* soModuleAccesser::getPhysicsModule() const {
+    return m_enumerationStart->m_physicsModule;
+}
+
+void* BaseItem::getIndefinite(u32 id) {
+    return soValueAccesser::getConstantIndefinite(&moduleAccesser, id, 0);
+}
+
+// The resource reference lives at 0x920: its embedded module is at 0x92C and the active pointer at 0x944.
+// Outer when that pointer does not address the embedded module.
+bool BaseItem::isUseOuterRes() {
+    soResourceModule* active = *reinterpret_cast<soResourceModule**>(reinterpret_cast<u8*>(this) + 0x944);
+    soResourceModule* embeddedRes = reinterpret_cast<soResourceModule*>(reinterpret_cast<u8*>(this) + 0x92C);
+    return active != embeddedRes;
+}
+
+extern char g_soCollisionAbsorberModuleNull[];
+extern char g_soDebugModuleNull[];
+extern char g_soGenerateArticleManageModuleNull[];
+extern char g_soTerritoryModuleNull[];
+extern char g_soTargetSearchModuleNull[];
+extern char g_soItemManageModuleNull[];
+extern char g_soTeamModuleNullArg[];
+
+class soCollisionShieldModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soCollisionShieldModuleNull::getNullInstance() {
+    return g_soCollisionAbsorberModuleNull;
+}
+
+class soDebugModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soDebugModuleNull::getNullInstance() {
+    return g_soDebugModuleNull;
+}
+
+soGenerateArticleManageModuleNull* soGenerateArticleManageModuleNull::getNullInstance() {
+    return reinterpret_cast<soGenerateArticleManageModuleNull*>(g_soGenerateArticleManageModuleNull);
+}
+
+class soTerritoryModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soTerritoryModuleNull::getNullInstance() {
+    return g_soTerritoryModuleNull;
+}
+
+class soTargetSearchModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soTargetSearchModuleNull::getNullInstance() {
+    return g_soTargetSearchModuleNull;
+}
+
+class soItemManageModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soItemManageModuleNull::getNullInstance() {
+    return g_soItemManageModuleNull;
+}
+
+soEventObserverRegistrationDesc* soEventObserverRegistrationDescNull::getNullInstance() {
+    return reinterpret_cast<soEventObserverRegistrationDesc*>(g_soTeamModuleNullArg);
+}
+
+soSoundIdExchangerNull* soSoundIdExchangerNull::getNullInstance() {
+    return &g_soSoundIdExchangerNull;
+}
+
+soParamAccesserNull* soParamAccesserNull::getNullInstance() {
+    return &g_soParamAccesserNull;
+}
+
+extern char lbl_27_bss_404[];
+extern char lbl_27_bss_584[];
+extern char lbl_27_bss_604[];
+extern char lbl_27_bss_614[];
+extern char lbl_27_bss_640[];
+extern char lbl_27_bss_66C[];
+extern char lbl_27_bss_DBC[];
+extern char lbl_27_bss_6414[];
+extern char lbl_27_bss_714C[];
+extern char lbl_27_bss_7164[];
+extern char lbl_27_bss_6404[];
+extern char lbl_27_bss_63F4[];
+extern char lbl_27_bss_6430[];
+
+class soCaptureModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soCaptureModuleNull::getNullInstance() { return lbl_27_bss_404; }
+
+class soComboModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soComboModuleNull::getNullInstance() { return lbl_27_bss_584; }
+
+class soSlopeModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soSlopeModuleNull::getNullInstance() { return lbl_27_bss_604; }
+
+soShadowModuleNull* soShadowModuleNull::getNullInstance() {
+    return reinterpret_cast<soShadowModuleNull*>(lbl_27_bss_614);
+}
+
+soColorBlendModuleNull* soColorBlendModuleNull::getNullInstance() {
+    return reinterpret_cast<soColorBlendModuleNull*>(lbl_27_bss_640);
+}
+
+class soAbnormalModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soAbnormalModuleNull::getNullInstance() { return lbl_27_bss_66C; }
+
+class soMotionAnimObjCacheModuleNull {
+public:
+    static void* getNullInstance();
+};
+void* soMotionAnimObjCacheModuleNull::getNullInstance() { return lbl_27_bss_DBC; }
+
+itGroundConditionCheckerImpl* itGroundConditionCheckerImpl::getInstance() {
+    return reinterpret_cast<itGroundConditionCheckerImpl*>(lbl_27_bss_6414);
+}
+
+class itDamageEffectorImpl {
+public:
+    static void* getInstance();
+};
+void* itDamageEffectorImpl::getInstance() { return lbl_27_bss_714C; }
+
+class itDamageTransactorImpl {
+public:
+    static void* getInstance();
+};
+void* itDamageTransactorImpl::getInstance() { return lbl_27_bss_7164; }
+
+itStatusUniqProcessStandby* itStatusUniqProcessStandby::getInstance() {
+    return reinterpret_cast<itStatusUniqProcessStandby*>(lbl_27_bss_6404);
+}
+
+itStatusUniqProcessHave* itStatusUniqProcessHave::getInstance() {
+    return reinterpret_cast<itStatusUniqProcessHave*>(lbl_27_bss_63F4);
+}
+
+template<>
+itNullCustomizer* itCustomizer<itNullCustomizer>::getInstance() {
+    return reinterpret_cast<itNullCustomizer*>(lbl_27_bss_6430);
+}
+
+Vec2f::Vec2f() { }
+
+// HYPOTHESIS: gfSlowHandle's constructor stores 0xFF in its first byte (an invalid slow-request id).
+class gfSlowHandle {
+    u8 m_id;
+public:
+    gfSlowHandle();
+};
+gfSlowHandle::gfSlowHandle() : m_id(0xFF) { }
+
+template <typename T>
+soGeneralFlag<T>::soGeneralFlag(T init) : flag(init) { }
+
+template <typename T>
+soGeneralFlag<T>::soGeneralFlag() : flag(0) { }
+
+template soGeneralFlag<long>::soGeneralFlag(long);
+template soGeneralFlag<long>::soGeneralFlag();
+template soGeneralFlag<short>::soGeneralFlag(short);
+template soGeneralFlag<unsigned char>::soGeneralFlag(unsigned char);
+
+template <typename T>
+void soEventPresenter<T>::setManageId(s16 id) {
+    if (m_manageID != id) {
+        m_manageID = id;
+        if (id > -1)
+            m_obsrvrList = nullptr;
+    }
+}
+template void soEventPresenter<soArticleEventObserver>::setManageId(s16);
+
+// Call sites keep the inline body. Returning the address emits the out-of-line copy.
+__declspec(weak) soCameraModule& (soModuleAccesser::*itItemCameraModule())() const {
+    return &soModuleAccesser::getCameraModule;
+}
+
+soAnimCmdAddressPackArraySeparate::soAnimCmdAddressPackArraySeparate(soArrayFixed<const acAnimCmdConv*>* addrs1,
+                                                                     soArrayFixed<const acAnimCmdConv*>* addrs2,
+                                                                     soArrayFixed<const acAnimCmdConv*>* addrs3)
+    : m_addrArr1(addrs1), m_addrArr2(addrs2), m_addrArr3(addrs3) { }
+
+__declspec(weak) void itItemDeleteResource(itResourceIdAccesserImpl* accesser) {
+    delete accesser;
+}
+
+soStatusEventObserver::soStatusEventObserver(short manageId, s8 p2)
+    : soEventObserver<soStatusEventObserver>(0x4) {
+    initialize(manageId, p2);
+}
+
+soCollisionAttackEventObserver::soCollisionAttackEventObserver(short manageId, s8 p2)
+    : soEventObserver<soCollisionAttackEventObserver>(0x1) {
+    initialize(manageId, p2);
+}
+
+soCollisionSearchEventObserver::soCollisionSearchEventObserver(short manageId, s8 p2)
+    : soEventObserver<soCollisionSearchEventObserver>(0x11) {
+    initialize(manageId, p2);
+}
+
+soGimmickEventObserver::soGimmickEventObserver(short manageId, s8 p2)
+    : soEventObserver<soGimmickEventObserver>(0x3) {
+    initialize(manageId, p2);
+}
+
+soParamCustomizeModuleImpl::soParamCustomizeModuleImpl()
+    : m_attackPowerMulPattern(1.0f), m_attackPowerMulScale(1.0f) { }
+
+soControllerModuleLinkRef::soControllerModuleLinkRef(soModuleAccesser* acc, s16 manageID, soArray<soControllerImpl>* controllers, soArray<soControllerClatter>* clatters)
+    : soControllerModuleImpl(manageID, (int)controllers, clatters), m_moAccessor(acc), m_lkController(0) { }
+
+// HYPOTHESIS: each null array lives in this unit's bss, and the singleton accessor returns that object.
+template <typename T>
+class soSingletonConcrete {
+public:
+    static T* getInstance();
+};
+
+extern char lbl_27_bss_91C[];
+extern char lbl_27_bss_A14[];
+extern char lbl_27_bss_9BC[];
+extern char g_u32ArrayNull[];
+extern char lbl_27_bss_9E4[];
+extern char lbl_27_bss_8B4[];
+extern char lbl_27_bss_99C[];
+extern char lbl_27_bss_A6C[];
+
+template<>
+soArrayNull<soModelVirtualNode>* soSingletonConcrete<soArrayNull<soModelVirtualNode> >::getInstance() {
+    return reinterpret_cast<soArrayNull<soModelVirtualNode>*>(lbl_27_bss_91C);
+}
+template<>
+soArrayNull<soPartialAnim>* soSingletonConcrete<soArrayNull<soPartialAnim> >::getInstance() {
+    return reinterpret_cast<soArrayNull<soPartialAnim>*>(lbl_27_bss_A14);
+}
+template<>
+soArrayNull<soTransitionTermPack>* soSingletonConcrete<soArrayNull<soTransitionTermPack> >::getInstance() {
+    return reinterpret_cast<soArrayNull<soTransitionTermPack>*>(lbl_27_bss_9BC);
+}
+template<>
+soArrayNull<unsigned long>* soSingletonConcrete<soArrayNull<unsigned long> >::getInstance() {
+    return reinterpret_cast<soArrayNull<unsigned long>*>(g_u32ArrayNull);
+}
+template<>
+soArrayNull<soControllerImpl>* soSingletonConcrete<soArrayNull<soControllerImpl> >::getInstance() {
+    return reinterpret_cast<soArrayNull<soControllerImpl>*>(lbl_27_bss_9E4);
+}
+template<>
+soArrayFixedNull<const acAnimCmdConv*>* soSingletonConcrete<soArrayFixedNull<const acAnimCmdConv*> >::getInstance() {
+    return reinterpret_cast<soArrayFixedNull<const acAnimCmdConv*>*>(lbl_27_bss_8B4);
+}
+template<>
+soArrayNull<soEffectTime>* soSingletonConcrete<soArrayNull<soEffectTime> >::getInstance() {
+    return reinterpret_cast<soArrayNull<soEffectTime>*>(lbl_27_bss_99C);
+}
+template<>
+soArrayNull<soPhysicsIKHandle>* soSingletonConcrete<soArrayNull<soPhysicsIKHandle> >::getInstance() {
+    return reinterpret_cast<soArrayNull<soPhysicsIKHandle>*>(lbl_27_bss_A6C);
+}
+
+__declspec(weak) void itItemEmitTeamImpl(soTeamImpl* team, int no) {
+    new (team) soTeamImpl(no);
+}
+
 soResourceIdAccesser* soResourceModuleRef::getResourceIdAccesser() {
     return unk24->getResourceIdAccesser();
 }
@@ -2253,6 +2634,13 @@ u32 soResourceModuleRef::getGroupNo(int index) {
     }
     return unk24->getGroupNo(index);
 }
+
+soAnimCmdControlUnit::soAnimCmdControlUnit(soAnimCmdInterpreter* interpreter, soAnimCmdAddressPackArraySeparate* pack)
+    : m_animCmdInterpreter(interpreter), m_animCmdAddressPackArraySeparate(pack) { }
+
+// HYPOTHESIS: the item builds its general work as not-null. The out-of-line default constructor stores true.
+soGeneralWork::soGeneralWork(soArray<s32>* ints, soArray<float>* floats, soArray<soGeneralFlag<s32> >* flags)
+    : soGeneralWorkAbstract(false), m_ints(ints), m_floats(floats), m_flags(flags) { }
 
 void itKineticModuleImpl::addSpeed(Vec3f* speed, soModuleAccesser* moduleAccesser) {
     addSpeed(speed, true, moduleAccesser);

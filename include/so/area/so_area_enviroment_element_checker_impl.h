@@ -23,7 +23,7 @@ public:
     virtual int getWaterAreaId();
     virtual float getWaterSurfaceY();
     virtual u32 getOnMovementGroundArea();
-    virtual bool testWater(Vec2f*, int*);
+    virtual bool testWater(Vec2f*, float* surfaceY);
 };
 static_assert(sizeof(soAreaEnviromentElementChecker) == 0xC, "Class is wrong size!");
 
@@ -49,7 +49,7 @@ public:
     virtual int getWaterAreaId();
     virtual float getWaterSurfaceY();
     virtual u32 getOnMovementGroundArea();
-    virtual bool testWater(Vec2f*, int*);
+    virtual bool testWater(Vec2f*, float* surfaceY);
 };
 static_assert(sizeof(soAreaEnviromentElementCheckerImpl) == 0x1C, "Class is wrong size!");
 

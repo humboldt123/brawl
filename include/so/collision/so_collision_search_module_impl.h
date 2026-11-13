@@ -39,10 +39,12 @@ public:
 static_assert(sizeof(soCollisionSearchModule) == 4, "Class is wrong size!");
 
 class soCollisionSearchModuleImpl : public soCollisionSearchModule, public soStatusEventObserver, public soAnimCmdEventObserver, public soEventPresenter<soCollisionSearchEventObserver> {
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 public:
     soCollisionSearchModuleImpl(soModuleAccesser* acc, int taskId, u8 category, void* parts, bool b);
+#ifdef FT_MODULE_BUILDER
 private:
+#endif
 #endif
 public:
     soModuleAccesser* m_moduleAccesser;

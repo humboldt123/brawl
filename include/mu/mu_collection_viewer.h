@@ -6,6 +6,7 @@
 #include <if/if_utility.h>
 #include <memory.h>
 #include <mu/mu_msg.h>
+#include <mu/mu_collection.h>
 #include <mu/mu_object.h>
 #include <stdio.h>
 #include <string.h>
@@ -54,9 +55,8 @@ struct muCollectionName {
 
 // The name of a file of the collection, as the collection hands it out.
 // HYPOTHESIS: the size follows from how the name is copied around.
-struct muCollectionFileName {
-    char m_name[0x41];
-};
+// It is muCollection::FileHandle (the constructor that picks the index-th name is fn_800C3538 of main.dol).
+typedef muCollection::FileHandle muCollectionFileName;
 
 // The base of the menus that browse through the pictures of the collection (module sora_menu_collect_viewer). HYPOTHESIS:
 // only what the snapshot menu needs is declared; the names of the virtual functions come from the map of that module and

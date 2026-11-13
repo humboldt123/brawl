@@ -17,8 +17,10 @@ struct hkNullCollisionFilter : hkCollisionFilter {
 
     // The four overloads of the Havok map (hkNullCollisionFilter__isCollisionEnabled, ...1 to ...3). The
     // arguments are never read, so their types are not recovered; they are pointers here.
-    hkBool isCollisionEnabled(const void* a, const void* b) const;
-    hkBool isCollisionEnabled1(const void* a, const void* b) const;
-    hkBool isCollisionEnabled2(const void* a, const void* b) const;
-    hkBool isCollisionEnabled3(const void* a, const void* b) const;
+    virtual hkBool isCollisionEnabled(const hkCollidable& a, const hkCollidable& b) const;
+    virtual hkBool isCollisionEnabled(const hkCollisionInput& input, const hkCdBody& a, const hkCdBody& b,
+                                      const hkShapeCollection& bContainer, u32 bKey) const;
+    virtual hkBool isCollisionEnabled(const hkShapeRayCastInput& aInput, const hkShapeCollection& bContainer,
+                                      u32 bKey) const;
+    virtual hkBool isCollisionEnabled(const hkWorldRayCastInput& a, const hkCollidable& collidableB) const;
 };

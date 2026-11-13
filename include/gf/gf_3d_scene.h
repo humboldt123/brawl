@@ -150,7 +150,9 @@ public:
                     u8 unk464_0 : 1;
                     u8 unk465_7 : 1;
                     u8 unk465_6 : 1;
-                    u8 unk465_0 : 6;
+                    u8 unk465_4 : 2;
+                    u8 unk465_3 : 1; // HYPOTHESIS: cleared while a Final Smash camera animation plays (ftCaptainFinalSubRoutine)
+                    u8 unk465_0 : 3;
                     u8 unk466[2];
                     utList unk468;
                     u8 unk474[8];

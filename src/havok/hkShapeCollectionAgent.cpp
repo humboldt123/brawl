@@ -74,18 +74,18 @@ hkShapeCollectionAgent::hkShapeCollectionAgent(const hkCdBody& bodyA, const hkCd
     const hkShapeCollection* collection = (const hkShapeCollection*)bodyA.m_shape;
     hkCdBody childBody(&bodyA);
     hkShapeContainer::ShapeBuffer shapeBuffer;
-    int numChildren = collection->m_container.getNumChildShapes();
+    int numChildren = collection->getNumChildShapes();
     m_agents.reserveSmart(numChildren);
-    u32 key = collection->m_container.getFirstKey();
+    u32 key = collection->getFirstKey();
     for (int i = 0; i < numChildren; i++) {
-        childBody.m_shape = (hkShape*)collection->m_container.getChildShape(key, shapeBuffer);
+        childBody.m_shape = (hkShape*)collection->getChildShape(key, shapeBuffer);
         childBody.m_shapeKey = key;
         if (input.m_filter->isCollisionEnabled(input, bodyB, bodyA, *collection, key)) {
             hkShapeCollectionAgentKeyAgentPair* pair = m_agents.expandByUnchecked(1);
             pair->m_agent = input.m_dispatcher->getNewCollisionAgent(childBody, bodyB, input, mgr);
             pair->m_key = key;
         }
-        key = collection->m_container.getNextKey(key);
+        key = collection->getNextKey(key);
     }
 }
 
@@ -121,7 +121,7 @@ void hkShapeCollectionAgent::processCollision(const hkCdBody& unk0, const hkCdBo
     for (int i = m_agents.m_size - 1; i >= 0; i--) {
         u32 key = pair->m_key;
         const u32& keyRef = key; // MATCH-ONLY: the reference keeps the key in a callee-saved register
-        childBody.m_shape = (hkShape*)collection->m_container.getChildShape(keyRef, shapeBuffer);
+        childBody.m_shape = (hkShape*)collection->getChildShape(keyRef, shapeBuffer);
         childBody.m_shapeKey = key;
         pair->m_agent->processCollision(childBody, unk1, unk2, unk3);
         pair++;
@@ -139,7 +139,7 @@ void hkShapeCollectionAgent::getClosestPoints(const hkCdBody& a, const hkCdBody&
     for (int i = m_agents.m_size - 1; i >= 0; i--) {
         u32 key = pair->m_key;
         const u32& keyRef = key; // MATCH-ONLY: the reference keeps the key in a callee-saved register
-        childBody.m_shape = (hkShape*)collection->m_container.getChildShape(keyRef, shapeBuffer);
+        childBody.m_shape = (hkShape*)collection->getChildShape(keyRef, shapeBuffer);
         childBody.m_shapeKey = key;
         pair->m_agent->getClosestPoints(childBody, b, c, target);
         pair++;
@@ -155,10 +155,10 @@ void hkShapeCollectionAgent::staticGetClosestPoints(const hkCdBody& bodyA, const
     hkCdBody childBody(&bodyA);
     hkShapeContainer::ShapeBuffer shapeBuffer;
     int typeB = bodyB.m_shape->getType();
-    for (u32 key = collection->m_container.getFirstKey(); key != 0xFFFFFFFF;
-         key = collection->m_container.getNextKey(key)) {
+    for (u32 key = collection->getFirstKey(); key != 0xFFFFFFFF;
+         key = collection->getNextKey(key)) {
         if (input.m_filter->isCollisionEnabled(input, bodyB, bodyA, *collection, key)) {
-            childBody.m_shape = (hkShape*)collection->m_container.getChildShape(key, shapeBuffer);
+            childBody.m_shape = (hkShape*)collection->getChildShape(key, shapeBuffer);
             childBody.m_shapeKey = key;
             int typeA = childBody.m_shape->getType();
             typedef void (*QueryFunc)(const hkCdBody&, const hkCdBody&, hkCollisionInput&, void*);
@@ -178,7 +178,7 @@ void hkShapeCollectionAgent::linearCast(const hkCdBody& a, const hkCdBody& b, hk
     for (int i = m_agents.m_size - 1; i >= 0; i--) {
         u32 key = pair->m_key;
         const u32& keyRef = key; // MATCH-ONLY: the reference keeps the key in a callee-saved register
-        childBody.m_shape = (hkShape*)collection->m_container.getChildShape(keyRef, shapeBuffer);
+        childBody.m_shape = (hkShape*)collection->getChildShape(keyRef, shapeBuffer);
         childBody.m_shapeKey = key;
         pair->m_agent->linearCast(childBody, b, c, target, d);
         pair++;
@@ -193,10 +193,10 @@ void hkShapeCollectionAgent::staticLinearCast(const hkCdBody& bodyA, const hkCdB
     hkCdBody childBody(&bodyA);
     hkShapeContainer::ShapeBuffer shapeBuffer;
     int typeB = bodyB.m_shape->getType();
-    for (u32 key = collection->m_container.getFirstKey(); key != 0xFFFFFFFF;
-         key = collection->m_container.getNextKey(key)) {
+    for (u32 key = collection->getFirstKey(); key != 0xFFFFFFFF;
+         key = collection->getNextKey(key)) {
         if (input.m_filter->isCollisionEnabled(input, bodyB, bodyA, *collection, key)) {
-            childBody.m_shape = (hkShape*)collection->m_container.getChildShape(key, shapeBuffer);
+            childBody.m_shape = (hkShape*)collection->getChildShape(key, shapeBuffer);
             childBody.m_shapeKey = key;
             int typeA = childBody.m_shape->getType();
             typedef void (*LinearCastFunc)(const hkCdBody&, const hkCdBody&, hkLinearCastCollisionInput&, void*, void*);
@@ -217,7 +217,7 @@ void hkShapeCollectionAgent::getPenetrations(const hkCdBody& a, const hkCdBody& 
     for (int i = m_agents.m_size - 1; i >= 0; i--) {
         u32 key = pair->m_key;
         const u32& keyRef = key; // MATCH-ONLY: the reference keeps the key in a callee-saved register
-        childBody.m_shape = (hkShape*)collection->m_container.getChildShape(keyRef, shapeBuffer);
+        childBody.m_shape = (hkShape*)collection->getChildShape(keyRef, shapeBuffer);
         childBody.m_shapeKey = key;
         pair->m_agent->getPenetrations(childBody, b, c, target);
         if (((hkCdBodyPairCollector*)target)->m_earlyOut) {
@@ -235,10 +235,10 @@ void hkShapeCollectionAgent::staticGetPenetrations(const hkCdBody& bodyA, const 
     hkCdBody childBody(&bodyA);
     hkShapeContainer::ShapeBuffer shapeBuffer;
     int typeB = bodyB.m_shape->getType();
-    for (u32 key = collection->m_container.getFirstKey(); key != 0xFFFFFFFF;
-         key = collection->m_container.getNextKey(key)) {
+    for (u32 key = collection->getFirstKey(); key != 0xFFFFFFFF;
+         key = collection->getNextKey(key)) {
         if (input.m_filter->isCollisionEnabled(input, bodyB, bodyA, *collection, key)) {
-            childBody.m_shape = (hkShape*)collection->m_container.getChildShape(key, shapeBuffer);
+            childBody.m_shape = (hkShape*)collection->getChildShape(key, shapeBuffer);
             childBody.m_shapeKey = key;
             int typeA = childBody.m_shape->getType();
             typedef void (*QueryFunc)(const hkCdBody&, const hkCdBody&, hkCollisionInput&, void*);
@@ -268,12 +268,12 @@ void hkShapeCollectionAgent::updateShapeCollectionFilter(const hkCdBody& bodyA, 
     const hkShapeCollection* collection = (const hkShapeCollection*)bodyA.m_shape;
     hkCdBody childBody(&bodyA);
     hkShapeContainer::ShapeBuffer shapeBuffer;
-    int numChildren = collection->m_container.getNumChildShapes();
-    u32 key = collection->m_container.getFirstKey();
+    int numChildren = collection->getNumChildShapes();
+    u32 key = collection->getFirstKey();
     for (int i = 0; i < numChildren; i++) {
         int index = findAgent(m_agents, key);
         if (input.m_filter->isCollisionEnabled(input, bodyB, bodyA, *collection, key)) {
-            childBody.m_shape = (hkShape*)collection->m_container.getChildShape(key, shapeBuffer);
+            childBody.m_shape = (hkShape*)collection->getChildShape(key, shapeBuffer);
             childBody.m_shapeKey = key;
             if (index == -1) {
                 hkShapeCollectionAgentKeyAgentPair& pair = m_agents.expandOne();
@@ -286,6 +286,6 @@ void hkShapeCollectionAgent::updateShapeCollectionFilter(const hkCdBody& bodyA, 
             m_agents[index].m_agent->cleanup();
             m_agents.removeAt(index);
         }
-        key = collection->m_container.getNextKey(key);
+        key = collection->getNextKey(key);
     }
 }

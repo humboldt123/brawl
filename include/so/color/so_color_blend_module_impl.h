@@ -44,8 +44,9 @@ class soColorBlendModuleImpl:
     public soAnimCmdEventObserver,
     public soModelEventObserver
 {
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 public:
+    // WN_EM_SIMPLE_UNIT: this article's color-blend builder calls the sora_melee constructor.
     soColorBlendModuleImpl(soModuleAccesser* acc, int a, int b);
 private:
 #endif

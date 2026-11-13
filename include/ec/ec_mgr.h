@@ -196,7 +196,9 @@ public:
     void setGroundAttach(u32, soGroundModule* groundModule);
     void setGroundAttach(u32, grCollisionLineWork* lineWork);
     void setVisible(u32, bool isVisible);
-    void setVisibleGroup(u32, bool isVisible, u32, u32);
+    // MATCH-ONLY: static. The map's name takes (u32, bool, u32, u32), but the body reads this, the flag and two masks
+    // (r3..r6); Captain Falcon's Final Smash passes g_ecMgr as the first argument (no other caller in the tree).
+    static void setVisibleGroup(u32 self, bool isVisible, u32, u32);
     void setPos(u32, Vec3f* pos);
     void setRot(u32, Vec3f* rot);
     void setScl(u32, Vec3f* scale);

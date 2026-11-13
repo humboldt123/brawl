@@ -289,5 +289,6 @@ public:
     int m_40;
 
     virtual ~itArchive();
+    int getBrresId() const;
 };
 static_assert(sizeof(itArchive) == 48, "Class is wrong size!");

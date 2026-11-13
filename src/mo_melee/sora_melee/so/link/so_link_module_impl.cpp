@@ -1,3 +1,5 @@
+#define SO_ANIM_CMD_ADDRESS_PACK_ARGS
+#define SO_LINK_PHYSICS_SLOTS
 #define SO_GLOW_MODULE_ATTACK_API
 #define SO_LINK_MODULE_IMPL_FULL
 #include <so/link/so_link_module_impl.h>
@@ -20,12 +22,62 @@
 #include <so/slow/so_slow_module_impl.h>
 #include <so/camera/so_camera_module_impl.h>
 #include <so/slope/so_slope_module_impl.h>
+#include <so/event/so_event_manage_module_impl.h>
+#include <so/so_module_hyp.h>
 
 soLinkModule::~soLinkModule() {
 }
 
+soLinkModuleImpl::soLinkModuleImpl(soModuleAccesser* moduleAccesser, soArray<soLinkConnection>* connections)
+    : soAnimCmdEventObserver(5, static_cast<soEventManager&>(moduleAccesser->getEventManageModule()).getManageId()) {
+    m_modelConstraintNo = -1;
+    m_modelConstraintFlag.m_mask = 0;
+    m_isModelConstraintMutual = false;
+    m_anmFileTransactorLinkNo = -1;
+    m_moduleAccesser = moduleAccesser;
+    m_connections = connections;
+    m_modelConstraintNode = -1;
+    m_modelConstraintTargetNode = -1;
+    m_serverNode.m_next = NULL;
+    m_serverNode.m_prev = NULL;
+    m_serverNodeOwner = this;
+    for (s32 i = 0; i < m_connections->size(); i++) {
+        soLinkConnection& connection = m_connections->at(i);
+        connection.m_id = i;
+        connection.reset();
+    }
+    m_nodes.m_tail = NULL;
+    m_nodes.m_head = NULL;
+    m_nodes.m_length = 0;
+    m_parents.m_tail = NULL;
+    m_parents.m_head = NULL;
+    m_parents.m_length = 0;
+}
+
+soLinkModuleImpl::~soLinkModuleImpl() {
+    deactivate();
+}
+
 void soLinkModuleImpl::adjustModelConstraintPosture(Vec3f* rot, Vec3f* pos) {
-    adjustModelConstraintPosture(m_modelConstraintFlag.m_mask, rot, pos);
+    static_cast<soLinkModule*>(this)->adjustModelConstraintPosture(m_modelConstraintFlag.m_mask, rot, pos);
+}
+
+void soLinkModuleImpl::adjustModelConstraintPosture(u16 flags, Vec3f* rot, Vec3f* pos) {
+    Matrix mtx(true);
+    static_cast<soLinkModule*>(this)->getModelConstraintTargetNodeWorldMtx(&mtx, false);
+    if ((flags & 1) != 0) {
+        Vec3f outPos;
+        mtx.mulPos(rot, &outPos);
+        m_moduleAccesser->getPostureModule().setPos(&outPos);
+    }
+    if ((flags & 2) != 0) {
+        Vec3f outRot;
+        mtx.getRotate(&outRot);
+        outRot.m_x = 57.29578f * outRot.m_x + pos->m_x;
+        outRot.m_y = 57.29578f * outRot.m_y + pos->m_y;
+        outRot.m_z = 57.29578f * outRot.m_z + pos->m_z;
+        m_moduleAccesser->getPostureModule().setRot(&outRot, 0);
+    }
 }
 
 Vec3f soLinkModuleImpl::getModelConstraintTargetNodePosition() {
@@ -34,6 +86,54 @@ Vec3f soLinkModuleImpl::getModelConstraintTargetNodePosition() {
 
 Vec3f soLinkModuleImpl::getModelConstraintTargetNodeRotation() {
     return m_connections->at(m_modelConstraintNo).m_parent.getLinkModule()->m_moduleAccesser->getModelModule().getNodeGlobalRotation(m_modelConstraintTargetNode, false);
+}
+
+bool soLinkModuleImpl::getNodeRotation(u32 index, u32 nodeIndex, Vec3f* rotation) {
+    rotation->m_x = rotation->m_y = rotation->m_z = 0.0f;
+    Vec3f rot = m_connections->at(index).m_parent.getLinkModule()->m_moduleAccesser->getModelModule().getNodeGlobalRotation(nodeIndex, false);
+    rotation->m_x = rot.m_x;
+    rotation->m_y = rot.m_y;
+    rotation->m_z = rot.m_z;
+    return true;
+}
+
+bool soLinkModuleImpl::setUpModelConstraintTargetMtx() {
+    soLinkConnection& connection = m_connections->at(m_modelConstraintNo);
+    if (connection.m_parent.getLinkModule()->m_moduleAccesser->getLinkModule().isModelConstraint() == true) {
+        connection.m_parent.getLinkModule()->m_moduleAccesser->getLinkModule().setUpModelConstraintTargetMtx();
+    }
+    connection.m_parent.getLinkModule()->m_moduleAccesser->getModelModule().setUpMtx(m_modelConstraintTargetNode);
+    return true;
+}
+
+void soLinkModuleImpl::getCmdAddressPackParents(u32 linkConnectionIndex, soArray<soAnimCmdAddressPack>* pack, int motionKind, short* ids) {
+    soLinkModuleImpl* parent = m_connections->at(linkConnectionIndex).m_parent.getLinkModule();
+    int linkNo = parent->m_anmFileTransactorLinkNo;
+    if (linkNo != -1) {
+        static_cast<soLinkModule*>(parent)->getCmdAddressPackParents(linkNo, pack, motionKind, ids);
+    } else {
+        parent->m_moduleAccesser->getAnimCmdModule().setAddressPackList(pack, motionKind, ids);
+    }
+}
+
+bool soLinkModuleImpl::correctParent2ndBoth(u32 index, Vec3f* pos, float value) {
+    soLinkModuleImpl* parent = m_connections->at(index).m_parent.getLinkModule();
+    return static_cast<soHyp::soPhysicsModuleHyp*>(parent->m_moduleAccesser->m_enumerationStart->m_physicsModule)->unk38(pos, value);
+}
+
+void soLinkModuleImpl::setConstraint2ndWind(u8 wind) {
+    for (soLinkNode* node = static_cast<soLinkNode*>(m_nodes.getNode(0)); node != NULL; node = static_cast<soLinkNode*>(node->m_next)) {
+        if (static_cast<soLinkModule*>(node->getLinkModule())->isModelConstraint() == true) {
+            static_cast<soHyp::soPhysicsModuleHyp*>(node->getLinkModule()->m_moduleAccesser->m_enumerationStart->m_physicsModule)->unkD8(wind);
+        }
+    }
+}
+
+void soLinkModuleImpl::getLinkParentCameraInfo(u32 index, u8* playerNo, u8* pri, u8* advPri) {
+    soLinkConnection& connection = m_connections->at(index);
+    *playerNo = connection.m_parent.getLinkModule()->m_moduleAccesser->getCameraModule().getPlayerNo(0);
+    *pri = connection.m_parent.getLinkModule()->m_moduleAccesser->getCameraModule().getPri(0);
+    *advPri = connection.m_parent.getLinkModule()->m_moduleAccesser->getCameraModule().getAdvPri(0);
 }
 
 StageObject* soLinkModuleImpl::getOwner() {
@@ -79,7 +179,7 @@ bool soLinkModuleImpl::isLinked(int index) {
 
 void soLinkModuleImpl::onUnlink(int id) {
     if (isModelConstraint() && m_modelConstraintNo == id) {
-        removeModelConstraint(true);
+        static_cast<soLinkModule*>(this)->removeModelConstraint(true);
     }
 }
 
@@ -563,8 +663,23 @@ int soLinkModuleImpl::getParentWeaponGlowDefense(u32 index) {
     return SO_PARENT_GLOW(index).getWeaponGlowDefense();
 }
 
+int soLinkModuleImpl::getParentGlowAttack(u32 index, soCollisionAttackData* data) {
+    return SO_PARENT_GLOW(index).getGlowAttackData(data);
+}
+
 int soLinkModuleImpl::getParentWeaponGlowAttack(u32 index) {
     return SO_PARENT_GLOW(index).getWeaponGlowAttack();
+}
+
+int soLinkModuleImpl::getParentGlowAttackAdd(soCollisionAttackData* data) {
+    if (isLink(-1)) {
+        for (soLinkNode* node = static_cast<soLinkNode*>(m_parents.getNode(0)); node != NULL; node = static_cast<soLinkNode*>(node->m_next)) {
+            if (node->m_connection->m_attribute & (1 << soLinkConnection::Attribute_Reference_Parent_Power_Up)) {
+                return reinterpret_cast<soGlowModuleLinkView*>(node->getLinkModule()->m_moduleAccesser->m_enumerationStart->m_glowModule)->getGlowAttackAdd(data);
+            }
+        }
+    }
+    return 0;
 }
 
 float soLinkModuleImpl::getParentWeaponGlowEff(u32 index) {
@@ -694,9 +809,86 @@ Vec3f soLinkModuleImpl::getModelConstraintNodeGlobalPositionRecursive(u32 nodeIn
     return accesser->getModelModule().getNodeGlobalPosition(nodeIndex, false);
 }
 
+void soLinkModuleImpl::removeModelConstraint(bool resetParent) {
+    if (!static_cast<soLinkModule*>(this)->isModelConstraint()) {
+        return;
+    }
+    soLinkConnection& connection = m_connections->at(m_modelConstraintNo);
+    static_cast<soLinkModule*>(this)->setModelConstraintAttribute(m_modelConstraintNo, false);
+    m_modelConstraintNo = -1;
+    m_modelConstraintNode = -1;
+    m_modelConstraintTargetNode = -1;
+    m_modelConstraintFlag.m_mask = 0;
+    m_isModelConstraintMutual = false;
+    if (resetParent == true) {
+        if (!connection.m_parent.getLinkModule()->m_moduleAccesser->getGroundModule().isNull()) {
+            Vec2f center = connection.m_parent.getLinkModule()->m_moduleAccesser->getGroundModule().getCenterPos(0);
+            Vec3f pos;
+            pos.m_x = center.m_x;
+            pos.m_y = center.m_y;
+            pos.m_z = 0.0f;
+            m_moduleAccesser->getGroundModule().relocate(reinterpret_cast<Vec2f*>(&pos), 0);
+        }
+    }
+    m_moduleAccesser->getModelModule().clearSetUpMtx();
+}
+
+void soLinkModuleImpl::setModelConstraintAttribute(u32 index, bool enable) {
+    soLinkConnection& connection = m_connections->at(index);
+    if (enable == true) {
+        connection.m_attribute |= 1 << soLinkConnection::Attribute_Reference_Parent_Stop;
+    } else {
+        connection.m_attribute &= ~(1 << soLinkConnection::Attribute_Reference_Parent_Stop);
+    }
+    if (enable == true) {
+        connection.m_attribute |= 1 << soLinkConnection::Attribute_Reference_Parent_Shake;
+    } else {
+        connection.m_attribute &= ~(1 << soLinkConnection::Attribute_Reference_Parent_Shake);
+    }
+    if (enable == true) {
+        connection.m_attribute |= 1 << soLinkConnection::Attribute_Reference_Parent_Color_Blend;
+    } else {
+        connection.m_attribute &= ~(1 << soLinkConnection::Attribute_Reference_Parent_Color_Blend);
+    }
+    if (enable == true) {
+        connection.m_attribute |= 1 << soLinkConnection::Attribute_Reference_Parent_Visibility;
+    } else {
+        connection.m_attribute &= ~(1 << soLinkConnection::Attribute_Reference_Parent_Visibility);
+    }
+    if (enable == true) {
+        connection.m_attribute |= 1 << 13;
+    } else {
+        connection.m_attribute &= ~(1 << 13);
+    }
+    if (enable == true) {
+        connection.m_attribute |= 1 << 14;
+    } else {
+        connection.m_attribute &= ~(1 << 14);
+    }
+}
+
+void soLinkModuleImpl::setModelConstraintPosOrt(u32 modelConstraintNo, int modelConstraintNode, int modelConstraintTargetNode, u16 modelConstraintFlag, bool modelConstraintAttribute) {
+    soLinkConnection& connection = m_connections->at(modelConstraintNo);
+    int correctedNode = m_moduleAccesser->getModelModule().getCorrectNodeId(modelConstraintNode);
+    m_moduleAccesser->getModelModule().getNodeGlobalPosition(correctedNode, false);
+    m_moduleAccesser->getModelModule().clearSetUpMtx();
+    soLinkModuleImpl* parentImpl = connection.m_parent.getLinkModule();
+    soLinkModule* parent = parentImpl;
+    m_modelConstraintNo = modelConstraintNo;
+    m_modelConstraintNode = correctedNode;
+    m_modelConstraintTargetNode = parentImpl->m_moduleAccesser->getModelModule().getCorrectNodeId(modelConstraintTargetNode);
+    m_modelConstraintFlag.m_mask = modelConstraintFlag;
+    if (parent->isModelConstraint() == true && parent->getParentTaskId(parent->getModelConstraintNo()) == getOwner()->m_taskId) {
+        m_isModelConstraintMutual = true;
+    } else {
+        m_isModelConstraintMutual = false;
+    }
+    static_cast<soLinkModule*>(this)->setModelConstraintAttribute(modelConstraintNo, modelConstraintAttribute);
+}
+
 void soLinkModuleImpl::setModelConstraintPosOrt(u32 modelConstraintNo, int modelConstraintNode, const char* modelConstraintTargetNode, u16 modelConstraintFlag, bool modelConstraintAttribute) {
     u32 nodeId = m_connections->at(modelConstraintNo).m_parent.getLinkModule()->m_moduleAccesser->getModelModule().getNodeId(modelConstraintTargetNode);
     if (nodeId != 0xFFFFFFFF) {
-        setModelConstraintPosOrt(modelConstraintNo, modelConstraintNode, nodeId, modelConstraintFlag, modelConstraintAttribute);
+        static_cast<soLinkModule*>(this)->setModelConstraintPosOrt(modelConstraintNo, modelConstraintNode, nodeId, modelConstraintFlag, modelConstraintAttribute);
     }
 }

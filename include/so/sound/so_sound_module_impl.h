@@ -33,6 +33,7 @@ public:
     virtual SndID getId(SndID sndID, soModuleAccesser* moduleAccesser);
     virtual int getStepId(int stepId, soModuleAccesser* moduleAccesser);
     virtual int getLandingId(int landingId, soModuleAccesser* moduleAccesser);
+    static soSoundIdExchangerNull* getNullInstance();
 };
 
 extern soSoundIdExchangerNull g_soSoundIdExchangerNull;
@@ -87,10 +88,12 @@ public:
 static_assert(sizeof(soSoundModule) == 4, "Class is wrong size!");
 
 class soSoundModuleImpl : public soSoundModule, public soStatusEventObserver, public soAnimCmdEventObserver, public soCollisionHitEventObserver, public soSituationEventObserver {
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 public:
     soSoundModuleImpl(soModuleAccesser* acc, soSound3dGeneratorAccesser* gen, soSoundIdExchanger* exchanger, bool b1, bool b2, soEventObserverRegistrationDesc* regDesc);
+#ifdef FT_MODULE_BUILDER
 private:
+#endif
 #endif
     int m_seGroupId;       // 0x34: HYPOTHESIS: the sound-group id issued by sndSystem for ordinary SEs
     int m_statusSEGroupId; // 0x38: HYPOTHESIS: the sound-group id issued by sndSystem for status SEs

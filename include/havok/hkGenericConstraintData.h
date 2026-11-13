@@ -47,7 +47,7 @@ struct hkGenericConstraintData : hkConstraintData {
     // HYPOTHESIS: member taking the scheme pointer first; body not yet recovered.
     void hatchScheme(hkGenericConstraintDataScheme* scheme, void* a, void* b);
     hkBool isValid() const;
-    u32 getType() const;
+    int getType() const;
 };
 
 // Parameter block for the generic constraint solver (empty constructor).

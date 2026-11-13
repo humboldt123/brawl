@@ -1,8 +1,10 @@
+#define MU_SELCHAR_UNIT_DECLS
 #include <gm/gm_global.h>
 #include <gm/gm_set_rule.h>
 #include <memory.h>
 #include <mt/mt_vector.h>
 #include <mu/mu_msg.h>
+#include <mu/menu.h>
 #include <mu/mu_object.h>
 #include <mu/mu_rule.h>
 #include <mu/selchar/mu_selchar.h>
@@ -398,7 +400,7 @@ const muSelCharTypeData* muSelCharTask::getSelCharTypeData(int selCharType) {
 }
 
 // The high score of a kind of the select screen; the Multi-Man Brawl (kinds 9 and 13) has one for each of its kinds.
-u8 muSelCharTask::getSelCharTypeHighScoreKind(int selCharType) {
+int muSelCharTask::getSelCharTypeHighScoreKind(int selCharType) {
     static const u8 sKumiteHighScoreKind[] = { 6, 7, 8, 9, 10, 11 };
     if (selCharType == 9 || selCharType == 13) {
         return sKumiteHighScoreKind[m_kumiteType];
@@ -1286,4 +1288,76 @@ void muSelCharTask::readyStateMain() {
             object->changeAnimN(lbl_10_rodata_4E8[group][1], 0x18, true, false);
         }
     }
+}
+
+void muSelCharTask::setVisibleAllPlayersHandi(bool visible) {
+    for (int i = 0; i < m_numPlayerAreas; i++) {
+        m_selCharPlayerAreas[i]->setHandiVisible(visible);
+    }
+    if (!visible) {
+        int i;
+        int* modeArg = nullptr;
+        int arg;
+        modeArg = &arg;
+        for (i = 0; i < m_numPlayerAreas; i++) {
+            muSelCharHand* hand = getHand(i);
+            if (modeArg != nullptr) {
+                arg = hand->m_modeArg;
+            }
+            // HYPOTHESIS: mode 5 is the one that opens the handicap list.
+            if (hand->m_mode == 5) {
+                getHand(i)->setMode(0, 0);
+                m_selCharPlayerAreas[arg]->closeHandiList();
+            }
+        }
+    }
+}
+
+// HYPOTHESIS: the style of the total high score for each kind of high score, in rows of six bytes.
+extern const u8 lbl_10_rodata_128[][6];
+
+void muSelCharTask::dispVersusHighScore() {
+    const u8* styles;
+    int offset = getSelCharTypeHighScoreKind(getSelCharType()) * 6;
+    styles = lbl_10_rodata_128[0];
+    setHighScoreStyle(6);
+    int c;
+    int sum = 0;
+    for (c = 0; c < 0x23; c++) {
+        sum += getCharHighScore(c, m_difficulty, 0, 0);
+    }
+    dispHighScore(3, sum, offset[styles]);
+}
+
+extern "C" int exchangeSelchkind2SelCharNarrationSndID__6muMenuFiii(int kind);
+extern "C" int exchangeMuSelchkind2MuStockchkind__6muMenuFiii(int kind);
+
+// The original passes the area index along; the function itself takes nothing.
+extern "C" void arrangeCoinPrio__13muSelCharTaskFv(muSelCharTask* task, int areaIdx);
+
+void muSelCharTask::decideCharKind(int areaIdx, int charKind) {
+    muSelCharCoin* coin;
+    muSelCharPlayerArea* area = m_selCharPlayerAreas[areaIdx];
+    coin = area->m_selCharCoin;
+    area->dispCharPicEffect();
+    setFaceIconMotion(getCharListIdx(charKind), 2);
+    coin->dispEffect();
+    if (charKind != 0x29) {
+        g_sndSystem->playSE((SndID)exchangeSelchkind2SelCharNarrationSndID__6muMenuFiii(
+                                area->exchangeCharKindDetail(area->m_charKind)), -1, 0, 0, -1);
+    }
+    if (area->m_playerKind == 1 && charKind != 0x29) {
+        int controllerNo = area->m_controllerNo;
+        if (controllerNo >= 0) {
+            gfPadType::PadType kind = area->getControllerKind();
+            if (kind != 0 && kind != 4) {
+                unsigned int stock = exchangeMuSelchkind2MuStockchkind__6muMenuFiii(area->exchangeCharKindDetail(area->m_charKind));
+                if (stock != -1) {
+                    g_sndSystem->playSERem(controllerNo - 4, (SndID)stock, -1, 0);
+                }
+            }
+        }
+    }
+    arrangeCoinPrio__13muSelCharTaskFv(this, areaIdx);
+    area->sendSystemCharKind();
 }

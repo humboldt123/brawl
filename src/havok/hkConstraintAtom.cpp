@@ -180,3 +180,22 @@ u32 hkModifierConstraintAtom::addAllModifierDataToConstraintInfo(hkConstraintInf
 
 // Unnamed static flag (lbl_805A0F18), initialised to false.
 static hkBool s_hkConstraintAtom_unk(false);
+
+// fn_802D9A94: body from https://github.com/jj-link/brawl src/havok/fn_802D9A94.cpp (namespaced; labels as in our symbols).
+#include <types.h>
+namespace jj_fn_802D9A94 {
+extern "C" {
+void __construct_array(void*, void (*)(void*), void (*)(void*), unsigned long, int);
+void fn_802D9AD8(void*);
+extern "C" float lbl_80532A10[16];
+extern "C" u8 lbl_805A0F18;
+}
+
+// TODO: cleanup (shape from jj-link/brawl fn_802D9A94)
+extern "C" void fn_802D9A94() {
+    __construct_array(lbl_80532A10, fn_802D9AD8, 0, 0x20, 2);
+    lbl_805A0F18 = 0;
+}
+
+__declspec(section ".ctors") extern void* const fn_802D9A94_ctor = (void*)fn_802D9A94;
+} // namespace jj_fn_802D9A94

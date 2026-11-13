@@ -30,8 +30,11 @@ struct hkConstrainedSystemFilter : hkCollisionFilter, hkConstraintListenerInterf
     virtual void constraintAddedCallback(const void* constraint);
     virtual void constraintRemovedCallback(const void* constraint);
 
-    // Forward to the wrapped filter (its virtual slots 0x54, 0x58, 0x5c); true when there is no child.
-    hkBool isCollisionEnabled1(const void* a, const void* b) const;
-    hkBool isCollisionEnabled2(const void* a, const void* b) const;
-    hkBool isCollisionEnabled3(const void* a, const void* b) const;
+    // Forward to the wrapped filter; true when there is no child.
+    virtual hkBool isCollisionEnabled(const hkCollidable& a, const hkCollidable& b) const;
+    virtual hkBool isCollisionEnabled(const hkCollisionInput& input, const hkCdBody& a, const hkCdBody& b,
+                                      const hkShapeCollection& bContainer, u32 bKey) const;
+    virtual hkBool isCollisionEnabled(const hkShapeRayCastInput& aInput, const hkShapeCollection& bContainer,
+                                      u32 bKey) const;
+    virtual hkBool isCollisionEnabled(const hkWorldRayCastInput& a, const hkCollidable& collidableB) const;
 };

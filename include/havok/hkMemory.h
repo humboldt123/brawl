@@ -69,5 +69,12 @@ struct hkMemory {
             p, ((hkReferencedObject*)p)->m_memSizeAndFlags, CLS);                              \
     }
 
+// Class-specific deletion with the static size (classes without a size field, such as the collision collectors,
+// which are freed as class 0x1d).
+#define HK_DECLARE_SIZED_DELETE(CLS)                                                         \
+    static void operator delete(void* p, unsigned long nbytes) {                             \
+        hkMemory::getInstance().deallocateChunk(p, nbytes, CLS);                             \
+    }
+
 void* hkRevolutionMalloc(int size, int alignment);
 void hkRevolutionFree(void* p);

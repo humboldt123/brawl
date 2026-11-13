@@ -69,6 +69,8 @@ hkAgentNnEntry* hkAgentNnMachine_CreateAgent(hkAgentNnTrack& track, hkLinkedColl
                                              const hkProcessCollisionInput& input, hkContactMgr* mgr);
 // Destroys the entry's agent and frees the entry in the track (map name). HYPOTHESIS: the parameter types.
 void hkAgentNnMachine_DestroyAgent(hkAgentNnTrack& track, hkAgentNnEntry* entry, hkCollisionDispatcher* dispatcher);
+// The agent entry of the pair, or null (map name; called by hkConstrainedSystemFilter::constraintAddedCallback).
+hkAgentNnEntry* hkAgentNnMachine_FindAgent(const hkLinkedCollidable* collA, const hkLinkedCollidable* collB);
 // Clears the entry's time-of-impact information.
 void hkAgentNnMachine_InvalidateTimInAgent(hkAgentNnEntry* entry, const hkProcessCollisionInput& input);
 // Moves the entry's time-of-impact information from oldTime to newTime (map name).

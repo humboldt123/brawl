@@ -22,11 +22,12 @@ struct hkGroupFilter : hkCollisionFilter {
 
     hkBool isCollisionEnabled(u32 infoA, u32 infoB) const;
     // Overloads 1-4 keep the numbering of the Havok map names (hkGroupFilter__isCollisionEnabledN).
-    hkBool isCollisionEnabled1(const hkCollidable* a, const hkCollidable* b) const;
-    hkBool isCollisionEnabled2(const void* a, const hkCollidable* b, const void* unk6, const void* c,
-                               const void* d) const;
-    hkBool isCollisionEnabled3(const void* a, const void* b, const void* c) const;
-    hkBool isCollisionEnabled4(const void* a, const hkCollidable* b) const;
+    virtual hkBool isCollisionEnabled(const hkCollidable& a, const hkCollidable& b) const;
+    virtual hkBool isCollisionEnabled(const hkCollisionInput& input, const hkCdBody& a, const hkCdBody& b,
+                                      const hkShapeCollection& bContainer, u32 bKey) const;
+    virtual hkBool isCollisionEnabled(const hkShapeRayCastInput& aInput, const hkShapeCollection& bContainer,
+                                      u32 bKey) const;
+    virtual hkBool isCollisionEnabled(const hkWorldRayCastInput& a, const hkCollidable& collidableB) const;
     void enableCollisionsUsingBitfield(u32 layersA, u32 layersB);
     void disableCollisionsBetween(u32 layerA, u32 layerB);
     hkBool dummyUnused() const;

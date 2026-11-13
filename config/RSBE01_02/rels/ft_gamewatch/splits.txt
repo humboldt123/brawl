@@ -16,6 +16,9 @@ mo_fighter/ft_gamewatch/ft_gamewatch.cpp:
 	.ctors      start:0x00000000 end:0x00000004
 	.rodata     start:0x00000000 end:0x00000090
 
+mo_fighter/ft_gamewatch/ft_gamewatch_kinetic_transactor.cpp:
+	.text       start:0x000100FC end:0x00011AE0
+
 mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_special_s.cpp:
 	.text       start:0x00011AE0 end:0x00011E94
 	.ctors      start:0x00000004 end:0x00000008
@@ -87,6 +90,10 @@ mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_landing.cpp:
 	.rodata     start:0x000000B0 end:0x000000C0
 	.data       start:0x000095D0 end:0x00009650
 	.bss        start:0x00000220 end:0x00000230
+
+mo_fighter/ft_gamewatch/ft_gamewatch_status_uniq_process_final_swim.cpp:
+	.text       start:0x00013FB4 end:0x000145EC
+	.ctors      start:0x0000003C end:0x00000040
 
 mo_fighter/ft_gamewatch/wn_game_watch_rescue.cpp:
 	.text       start:0x000145EC end:0x00016BB4

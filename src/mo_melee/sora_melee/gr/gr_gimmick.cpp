@@ -1,3 +1,4 @@
+#define GR_GIMMICK_EFFECT_INFO_CTOR
 #include <gr/gr_gimmick.h>
 #include <gr/gr_gimmick_motion_path.h>
 #include <memory.h>
@@ -264,5 +265,94 @@ void grGimmick::startGimmickEffect(u32 index) {
     if (m_effects[index].m_id != 0) {
         *(short*)&m_effects[index] = Effect_Info::State_Start; // HYPOTHESIS: halfword store
         m_effects[index].m_framesActive = 0.0f;
+    }
+}
+
+void grGimmick::updateCallback(u32 index) {
+    if ((int)m_calcWorldCallBack.m_numNodeCallbackData > 0) {
+        nw4r::g3d::ScnMdl* model = m_sceneModels[index];
+        if (model->m_calcWorldCallBack == NULL && model != NULL) {
+            m_calcWorldCallBack.m_index = 0;
+            model->m_calcWorldCallBack = &m_calcWorldCallBack;
+            model->EnableScnMdlCallbackTiming(1);
+            model->m_nodeIndex = m_calcWorldCallBack.m_nodeCallbackDatas[0].m_nodeIndex;
+        }
+    }
+}
+
+void grGimmick::stopGimmickSE(u32 index) {
+    if (m_soundEffects[index].m_handleId >= 0) {
+        m_soundGenerators[(u16)m_soundEffects[index].m_generatorIndex].stopSE(m_soundEffects[index].m_handleId, 0);
+        Effect_Info* info = &m_soundEffects[index];
+        *(short*)info = Effect_Info::State_Inactive; // HYPOTHESIS: halfword store
+        info->m_framesActive = 0.0f;
+        info->m_handleId = -1;
+        info->m_generatorIndex = 0;
+        info->m_offsetPos = Vec2f(0.0f, 0.0f);
+    }
+}
+
+void grGimmick::stopGimmickEffect(u32 index) {
+    if (m_effects[index].m_handleId >= 0) {
+        g_ecMgr->endEffect(m_effects[index].m_handleId);
+        Effect_Info* info = &m_effects[index];
+        *(short*)info = Effect_Info::State_Inactive; // HYPOTHESIS: halfword store
+        info->m_framesActive = 0.0f;
+        info->m_handleId = -1;
+        info->m_generatorIndex = 0;
+        info->m_offsetPos = Vec2f(0.0f, 0.0f);
+    }
+}
+
+void grGimmick::setSimpleEffectVisibleProduction() {
+    static u32 visibleProductionIndex = 4;
+    SimpleEffectData simpleEffectData;
+    createSimpleEffectData(&simpleEffectData, 0x1030006, "effect_locator");
+    createEffectVisibleProductionForExcel(&simpleEffectData, &visibleProductionIndex, m_visibleProductions);
+}
+
+void grGimmick::createEffectWork(int numEffects) {
+    if (m_effects != NULL) {
+        delete[] m_effects;
+        m_effects = NULL;
+    }
+    m_effectNum = numEffects;
+    m_effects = new (Heaps::StageInstance) Effect_Info[numEffects];
+    for (u32 i = 0; i < m_effectNum; i++) {
+        Effect_Info* info = &m_effects[i];
+        *(short*)info = Effect_Info::State_Inactive; // HYPOTHESIS: halfword store
+        info->m_framesActive = 0.0f;
+        info->m_handleId = -1;
+        info->m_generatorIndex = 0;
+        info->m_offsetPos = Vec2f(0.0f, 0.0f);
+        m_effects[i].m_repeatFrame = 0;
+        m_effects[i].m_id = 0;
+        m_effects[i].m_scale = 1.0f;
+    }
+}
+
+void grGimmick::createSoundWork(u32 unk1, u32 unk2) {
+    if (m_soundGenerators != NULL) {
+        delete[] m_soundGenerators;
+        m_soundGenerators = NULL;
+    }
+    if (m_soundEffects != NULL) {
+        delete[] m_soundEffects;
+        m_soundEffects = NULL;
+    }
+    m_soundGeneratorNum = unk2;
+    m_soundGenerators = new (Heaps::StageInstance) snd3DGenerator[unk2];
+    m_soundEffectNum = unk1;
+    m_soundEffects = new (Heaps::StageInstance) Effect_Info[unk1];
+    for (u32 i = 0; i < m_soundEffectNum; i++) {
+        Effect_Info* info = &m_soundEffects[i];
+        *(short*)info = Effect_Info::State_Inactive; // HYPOTHESIS: halfword store
+        info->m_framesActive = 0.0f;
+        info->m_handleId = -1;
+        info->m_generatorIndex = 0;
+        info->m_offsetPos = Vec2f(0.0f, 0.0f);
+        m_soundEffects[i].m_repeatFrame = 0;
+        m_soundEffects[i].m_id = -1;
+        m_soundEffects[i].m_scale = 1.0f;
     }
 }

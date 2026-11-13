@@ -56,6 +56,11 @@ struct hkConstraintAtom {
     };
 
     u16 m_type; // 0x00 (AtomType)
+
+    // HYPOTHESIS: name (getConstraintInfoUtil tests the type through an hkBool, cntlzw + extsb.).
+    hkBool isContact() const {
+        return m_type == TYPE_CONTACT;
+    }
 };
 
 // Hook called while a bridge atom is being solved; the bridge stores a function pointer to its thunk.

@@ -3,6 +3,7 @@
 #include <havok/hkBase.h>
 #include <havok/hkVector4.h>
 #include <havok/hkCdPoint.h>
+#include <havok/hkMemory.h>
 
 // Collector wrappers used by the symmetric (shape-swapping) agent wrappers. A wrapper builds one of these on
 // its stack and passes its address as the collector argument, so the results reach the original collector
@@ -12,7 +13,9 @@
 
 // HYPOTHESIS: base of the body pair collectors; the constructor clears the early-out flag.
 struct hkSymmetricAgentFlipBodyCollectorBase {
+    HK_DECLARE_SIZED_DELETE(0x1d)
     hkSymmetricAgentFlipBodyCollectorBase() { unk4 = 0; }
+    virtual ~hkSymmetricAgentFlipBodyCollectorBase() {}
     virtual void addCdBodyPair(void* bodyA, void* bodyB) = 0; // 0x0C HYPOTHESIS (the dtor is slot 0x08)
     u8 unk4; // 0x04 HYPOTHESIS: early-out flag
 };
@@ -27,7 +30,9 @@ struct hkSymmetricAgentFlipBodyCollector : hkSymmetricAgentFlipBodyCollectorBase
 // HYPOTHESIS: base of the point collectors; the constructor sets the early-out distance to HK_REAL_MAX (the value
 // the wrappers store; the bytes do not show it, the literal does).
 struct hkSymmetricAgentFlipPointCollectorBase {
+    HK_DECLARE_SIZED_DELETE(0x1d)
     hkSymmetricAgentFlipPointCollectorBase() : unk4(HK_REAL_MAX) {}
+    virtual ~hkSymmetricAgentFlipPointCollectorBase() {}
     virtual void addCdPoint(void* point) = 0; // 0x0C HYPOTHESIS (the dtor is slot 0x08)
     float unk4; // 0x04 HYPOTHESIS: early-out distance
 };
@@ -36,6 +41,11 @@ struct hkSymmetricAgentFlipPointCollectorBase {
 struct hkSymmetricAgentFlipCollector : hkSymmetricAgentFlipPointCollectorBase {
     void* unk8; // 0x08 wrapped collector
     hkSymmetricAgentFlipCollector(void* collector) : unk8(collector) {}
+    // HYPOTHESIS: the deleting destructor (0x802A38DC) frees 8 bytes although the object is 0xC: the original's
+    // allocator names the base's size (a non-virtual class allocator macro given the wrong class).
+    static void operator delete(void* p) {
+        hkMemory::getInstance().deallocateChunk(p, sizeof(hkSymmetricAgentFlipPointCollectorBase), 0x1d);
+    }
     virtual void addCdPoint(void* point);
 };
 

@@ -1,9 +1,12 @@
 #include <ft/builder/ft_builder_kinetic.h>
 #include <ft/ft_kinetic_energy.h>
+#include <so/so_kinetic_energy_normal.h>
 #include <so/so_kinetic_utility.h>
 #include <ft/ft_common_data_accesser.h>
 #include <so/stageobject.h>
 #include <so/so_module_accesser.h>
+#include <so/damage/so_damage_module_impl.h>
+#include <so/damage/so_damage.h>
 #include <so/so_value_accesser.h>
 #include <so/controller/so_controller_module_impl.h>
 #include <nw4r/math/math_arithmetic.h>
@@ -458,4 +461,77 @@ void ftKineticTransactor::changeKineticSub51(bool*, void*, Vec2f* speed, soModul
         y *= (float)pow(decay, (float)(moduleAccesser->getWorkManageModule().getInt(0x10000003) - 1));
     }
     soKineticUtility::resetEnableEnergy(1, moduleAccesser, 0, &Vec2f(0.0f, y), &Vec3f(0.0f, 0.0f, 0.0f));
+}
+
+void ftKineticTransactor::changeKineticSub42(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    soDamageLog* damageLog = moduleAccesser->getDamageModule().getDamageLog();
+    float y = damageLog->m_speed.m_y + moduleAccesser->getWorkManageModule().getFloat(0x11000010);
+    float x = damageLog->m_speed.m_x + moduleAccesser->getWorkManageModule().getFloat(0x1100000F);
+    Vec2f velocity(x, y);
+    soKineticUtility::resetEnableEnergy(4, moduleAccesser, 1, &velocity, &Vec3f(0.0f, 0.0f, 0.0f));
+    if (damageLog->m_isVector365) {
+        *(bool*)((u8*)pools + 0x178) = true;
+    }
+}
+
+void ftKineticTransactor::changeKineticSub43(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    soKineticUtility::resetEnableEnergy(1, moduleAccesser, 0, &Vec2f(0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f));
+    soDamageLog* damageLog = moduleAccesser->getDamageModule().getDamageLog();
+    float y = damageLog->m_speed.m_y + moduleAccesser->getWorkManageModule().getFloat(0x11000010);
+    float x = damageLog->m_speed.m_x + moduleAccesser->getWorkManageModule().getFloat(0x1100000F);
+    Vec2f velocity(x, y);
+    soKineticUtility::resetEnableEnergy(4, moduleAccesser, 2, &velocity, &Vec3f(0.0f, 0.0f, 0.0f));
+    if (damageLog->m_isVector365) {
+        *(bool*)((u8*)pools + 0x178) = true;
+    }
+}
+
+void ftKineticTransactor::changeKineticSub44(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    soKineticUtility::resetEnableEnergy(1, moduleAccesser, 0, &Vec2f(0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f));
+    soDamageLog* damageLog = moduleAccesser->getDamageModule().getDamageLog();
+    Vec2f velocity(damageLog->m_speed.m_x, damageLog->m_speed.m_y);
+    float scale = soValueAccesser::getConstantFloat(moduleAccesser, 0xCD9, 0);
+    float high = soValueAccesser::getConstantFloat(moduleAccesser, 0xBCF, 0);
+    float low = soValueAccesser::getConstantFloat(moduleAccesser, 0xCD8, 0);
+    velocity.m_y += scale * (high - low);
+    soKineticUtility::resetEnableEnergy(4, moduleAccesser, 2, &velocity, &Vec3f(0.0f, 0.0f, 0.0f));
+    if (damageLog->m_isVector365) {
+        *(bool*)((u8*)pools + 0x178) = true;
+    }
+}
+
+void ftKineticTransactor::changeKineticSub40(bool*, void*, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    Vec2f velocity = *speed + moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(2));
+    float lr = moduleAccesser->getPostureModule().getLr();
+    float boost = lr * soValueAccesser::getConstantFloat(moduleAccesser, 0xBBD, 0);
+    if (velocity.m_x * lr >= 0.0f) {
+        boost -= velocity.m_x;
+    }
+    soKineticUtility::resetEnableEnergy(3, moduleAccesser, 0x12, &Vec2f(velocity.m_x + boost, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f));
+}
+
+// HYPOTHESIS: the void* the transactor setups receive is the fighter's kinetic energy pool; its energy at +0x140 is a
+// normal energy whose speed these setups scale.
+void ftKineticTransactor::changeKineticSub25(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    soKineticEnergyNormal* energy = reinterpret_cast<soKineticEnergyNormal*>((u8*)pools + 0x140);
+    float scale = soValueAccesser::getConstantFloat(moduleAccesser, 0xC7F, 0);
+    energy->m_speed = energy->getSpeed() * scale;
+    soKineticUtility::resetEnableEnergy(3, moduleAccesser, 0, speed, &Vec3f(0.0f, 0.0f, 0.0f));
+}
+
+void ftKineticTransactor::changeKineticSub26(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    soKineticEnergyNormal* energy = reinterpret_cast<soKineticEnergyNormal*>((u8*)pools + 0x140);
+    float scale = soValueAccesser::getConstantFloat(moduleAccesser, 0xC7F, 0);
+    energy->m_speed = energy->getSpeed() * scale;
+    soKineticUtility::resetEnableEnergy(0, moduleAccesser, 2, speed, &Vec3f(0.0f, 0.0f, 0.0f));
+}
+
+Vec2f ftKineticTransactHelper::preHelpProcess(soModuleAccesser* moduleAccesser, int clearKind, int clearSpeed) {
+    Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
+    if ((u32)clearSpeed == 1) {
+        moduleAccesser->getKineticModule().unableEnergyAll();
+    }
+    moduleAccesser->getKineticModule().getEnergy(4)->enable();
+    moduleAccesser->getKineticModule().getEnergy(6)->enable();
+    return speed;
 }

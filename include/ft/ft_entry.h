@@ -156,9 +156,9 @@ public:
     virtual void notifyEventPokemonAppeal();
 #endif
 #ifdef FT_MODULE_BUILDER
-    virtual void notifyEventSetRumble(int, int) { }
+    virtual void notifyEventSetRumble(int, bool) { }
 #else
-    virtual void notifyEventSetRumble(int, int);
+    virtual void notifyEventSetRumble(int, bool);
 #endif
 #ifdef FT_MODULE_BUILDER
     virtual void notifyEventStopRumble(int) { }

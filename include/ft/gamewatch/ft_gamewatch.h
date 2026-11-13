@@ -28,8 +28,38 @@ typedef soCollisionReflectorModuleBuildConfigWithAbsorber<ftGameWatchCollisionRe
 typedef soLinkModuleBuildConfigCap<6, soLinkModuleImpl> ftGameWatchLinkModuleBuildConfig;
 typedef soStatusModuleBuildConfig<313, soGeneralWorkBuildConfig<18, 14, 2>, 274, 71, soTransitionModuleBuildConfig<ftStatusTransitionTypeList> > ftGameWatchStatusModuleBuildConfig;
 
-// HYPOTHESIS: this fighter has its own kinetic transactor (changeKinetic is in a later translation unit)
-FT_KINETIC_TRANSACTOR(ftGameWatchKineticTransactor);
+// Mr. Game & Watch's own kinetic modes 0x64..0x72 (ft_gamewatch_kinetic_transactor.cpp).
+class ftGameWatchKineticTransactor : public ftKineticTransactor {
+public:
+    static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
+#define FT_GAMEWATCH_KINETIC_SUB(Name) static void Name(bool*, void*, Vec2f* speed, soModuleAccesser* acc);
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub1)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub2)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub3)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub4)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub5)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub6)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub7)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub8)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub9)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub10)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub11)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub12)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub13)
+    FT_GAMEWATCH_KINETIC_SUB(changeKineticSub14)
+#undef FT_GAMEWATCH_KINETIC_SUB
+    template <typename E>
+    static void updateEnergy(E* energy, soModuleAccesser* acc) {
+        if (energy->isEnable() != true) {
+            return;
+        }
+        if (energy->isSuspend()) {
+            return;
+        }
+        return energy->updateEnergy(acc);
+    }
+};
 typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKineticMediatorImplT<ftGameWatchKineticTransactor, ftKineticTransactor> > ftGameWatchKineticModuleBuildConfig;
 
 // HYPOTHESIS: soGenerateArticleManageModuleBuilder (the article pools). Only the fighter unit builds the real pools; the other

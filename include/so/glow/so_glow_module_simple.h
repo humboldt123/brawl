@@ -19,6 +19,13 @@ public:
     virtual s32 getGlowAttack();        // 0x18: returns the glow attack (HYPOTHESIS name)
     virtual void setGlowAttack(s32 attack); // 0x1C: stores the attack and sets the glow flag
     virtual bool isGlow();              // 0x20: the local glow flag, or the linked parent's (HYPOTHESIS name)
+#ifdef WN_EM_SIMPLE_GLOW_API
+    // Opt-in (the enemy weapon unit): the rest of the glow slots, in vtable order. HYPOTHESIS: names; the weapon's
+    // setupGlowModule prints them as def and eff,min,max.
+    virtual s32 getGlowDefense();                        // 0x24
+    virtual void setGlowDefense(s32 defense);            // 0x28
+    virtual void setGlowEffect(float eff, float min, float max); // 0x2C
+#endif
 #endif
 };
 

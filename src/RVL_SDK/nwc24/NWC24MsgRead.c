@@ -41,7 +41,7 @@ static MsgListState MsgList;
 // BYTES: the static file-read buffer starts on a 32-byte boundary.
 static NWC24iMBCEntry ListEntry ATTRIBUTE_ALIGN(32);
 
-// which box a committed message lives in
+// Selects the committed message's send/receive box.
 static inline NWC24Err MsgBoxOf_i(const NWC24iMsgObj *msg, NWC24MsgBoxId *id) {
     if (msg->flags & NWC24_MSGOBJ_TO_SEND) {
         *id = NWC24_MSGBOX_SEND;
@@ -54,134 +54,49 @@ static inline NWC24Err MsgBoxOf_i(const NWC24iMsgObj *msg, NWC24MsgBoxId *id) {
     return NWC24_OK;
 }
 
-NWC24Err fn_803A0158(void) {
-    if (!NWC24IsMsgLibOpened() && !NWC24IsMsgLibOpenedByTool()) {
-        return NWC24_ERR_LIB_NOT_OPENED;
-    }
-
-    MsgList.valid = 0;
-    MsgList.pos = 0;
-    MsgList.count = 0;
-    MsgList.total = 0;
-    MsgList.flags = 0;
-    MsgList.box = NWC24_MSGBOX_RECV;
-    MsgList.from = 0;
-    MsgList.appId = 0;
-    MsgList.tagFilter = 0;
-    return NWC24_OK;
-}
-
-NWC24Err fn_803A01D0(NWC24MsgBoxId box) {
-    if (!NWC24IsMsgLibOpened() && !NWC24IsMsgLibOpenedByTool()) {
-        return NWC24_ERR_LIB_NOT_OPENED;
-    }
-
-    if (box != NWC24_MSGBOX_SEND && box != NWC24_MSGBOX_RECV) {
-        return NWC24_ERR_INVALID_VALUE;
-    }
-
-    MsgList.box = box;
-    return NWC24_OK;
-}
-
-NWC24Err fn_803A0240(u32 appId) {
-    if (!NWC24IsMsgLibOpened() && !NWC24IsMsgLibOpenedByTool()) {
-        return NWC24_ERR_LIB_NOT_OPENED;
-    }
-
-    MsgList.flags |= 0x20;
-    MsgList.appId = appId;
-    return NWC24_OK;
-}
-
-// does a mail box entry pass the filters that were set up for the list?
-static BOOL fn_803A0594(MsgListState *state, NWC24iMBCEntry *entry) {
-    u32 flags;
-    u32 mode;
-    u32 messageTag;
-    u32 filterTag;
-    BOOL ok;
-
-    if (!fn_8039B4C8(entry)) {
-        return FALSE;
-    }
-
-    flags = state->flags;
-    if ((flags & 1) && !(entry->flags & NWC24_MSGOBJ_FOR_MENU)) {
-        return FALSE;
-    }
-
-    if ((flags & 0x20) && state->appId != entry->appId) {
-        return FALSE;
-    }
-
-    if (flags & 0x10) {
-        if (!(entry->flags & NWC24_MSGOBJ_FOR_RECIPIENT)) {
-            return FALSE;
-        }
-
-        if (state->from != entry->from.id) {
-            return FALSE;
-        }
-    }
-
-    if (flags & 0x100) {
-        mode = state->tagFilter >> 16;
-        filterTag = state->tagFilter & 0xFFFF;
-        messageTag = entry->tag & 0xFFFF;
-
-        switch (mode) {
-        case 0:
-            ok = messageTag != filterTag;
-            break;
-        case 1:
-            ok = messageTag == filterTag;
-            break;
-        case 2:
-            ok = filterTag >= messageTag;
-            break;
-        case 3:
-            ok = filterTag <= messageTag;
-            break;
-        case 4:
-            ok = (messageTag & filterTag) != 0;
-            break;
-        default:
-            ok = FALSE;
-            break;
-        }
-
-        if (!ok) {
-            return FALSE;
-        }
-    }
-
-    return TRUE;
-}
-
-// reads the control file of the chosen box and writes the ids of everything that passes the filters
-NWC24Err fn_803A03F8(MsgListState *state, u32 *ids) {
-    u32 matched = 0;
-    u32 numMsgs;
-    NWC24File file;
-    NWC24iMBCHeader *hdr;
+// HYPOTHESIS: the caller owns the scan cursor and expected count; this stage
+// scans and closes the open file, returning its read/completeness status.
+// Valid IDs count toward numMsgs even when the list's filter rejects them.
+static inline NWC24Err ScanOpenMsgList_i(MsgListState *state, u32 *ids, NWC24iMBCHeader *hdr, NWC24File *file,
+                                        const u32 *numMsgs, u32 *matched, u32 *off) {
     NWC24Err result;
     NWC24Err err;
+    result = NWC24_ERR_BROKEN;
+    for (*off = MBC_FIRST_ENTRY; *off < hdr->fileSize; *off += MBC_BLOCK_SIZE) {
+        NWC24FSeek(file, *off, NWC24_SEEK_BEG);
+        err = NWC24FRead(&ListEntry, MBC_BLOCK_SIZE, file);
+        if (err != NWC24_OK) {
+            result = err;
+            break;
+        }
+
+        if (ListEntry.id != 0 && ListEntry.id <= 1000000) {
+            if (fn_803A0594(state, &ListEntry)) {
+                ids[state->count++] = ListEntry.id;
+            }
+
+            (*matched)++;
+            if (*matched == *numMsgs) {
+                result = NWC24_OK;
+                break;
+            }
+        }
+    }
+
+    NWC24FClose(file);
+    if (result != NWC24_OK) {
+        return result;
+    }
+    return NWC24_OK;
+}
+
+// HYPOTHESIS: file preparation propagates errors, while the scan's result is
+// deliberately ignored so an opened list can publish the entries collected so far.
+static inline NWC24Err ReadMsgListFile_i(MsgListState *state, u32 *ids, NWC24File *file,
+                                        const u32 *numMsgs, u32 *matched, u32 *off) {
+    NWC24iMBCHeader *hdr;
     char *path;
-    u32 off;
-
-    state->count = 0;
-    state->total = 0;
-
-    err = fn_8039B1C0(state->box, &numMsgs);
-    if (err != NWC24_OK) {
-        return err;
-    }
-
-    if (numMsgs == 0) {
-        return NWC24_OK;
-    }
-
+    NWC24Err err;
     if (state->box == NWC24_MSGBOX_SEND) {
         hdr = &NWC24WorkP->sendCtrl;
     } else if (state->box == NWC24_MSGBOX_RECV) {
@@ -194,94 +109,18 @@ NWC24Err fn_803A03F8(MsgListState *state, u32 *ids) {
         return err;
     }
 
-    err = NWC24FOpen(&file, path, NWC24_OPEN_READ);
+    err = NWC24FOpen(file, path, NWC24_OPEN_READ);
     if (err != NWC24_OK) {
         return err;
     }
 
-    result = NWC24_ERR_BROKEN;
-    for (off = MBC_FIRST_ENTRY; off < hdr->fileSize; off += MBC_BLOCK_SIZE) {
-        NWC24FSeek(&file, off, NWC24_SEEK_BEG);
-        err = NWC24FRead(&ListEntry, MBC_BLOCK_SIZE, &file);
-        if (err != NWC24_OK) {
-            result = err;
-            break;
-        }
-
-        if (ListEntry.id != 0 && ListEntry.id <= 1000000) {
-            if (fn_803A0594(state, &ListEntry)) {
-                ids[state->count++] = ListEntry.id;
-            }
-
-            matched++;
-            if (matched == numMsgs) {
-                result = NWC24_OK;
-                break;
-            }
-        }
-    }
-
-    NWC24FClose(&file);
-    if (result != NWC24_OK) {
-    }
+    ScanOpenMsgList_i(state, ids, hdr, file, numMsgs, matched, off);
 
     state->total = state->count;
     return NWC24_OK;
 }
 
-// hands out the next batch of messages from the list
-NWC24Err fn_803A02A4(NWC24iMsgObj *out, u32 max, u32 *count, u32 *remaining) {
-    MsgListState *state = &MsgList;
-    NWC24Err result;
-    u32 i;
-    u32 *ids;
-
-    if (!NWC24IsMsgLibOpened() && !NWC24IsMsgLibOpenedByTool()) {
-        return NWC24_ERR_LIB_NOT_OPENED;
-    }
-
-    *count = 0;
-    *remaining = 0;
-    ids = (u32 *)NWC24WorkP->WORK_0x1400;
-    if (out == NULL && max != 0) {
-        return NWC24_ERR_NULL;
-    }
-
-    if (state->valid == 0) {
-        Mail_memset(ids, 0, 0x1000);
-        result = fn_803A03F8(state, ids);
-        if (result != NWC24_OK) {
-            return result;
-        }
-
-        state->valid = 1;
-    }
-
-    if (state->total == 0) {
-        return NWC24_OK;
-    }
-
-    for (i = 0; i < state->total; i++) {
-        if (i >= max) {
-            break;
-        }
-
-        result = fn_8039B244(out, state->box, ids[state->pos++]);
-        if (result != NWC24_OK) {
-            return result;
-        }
-
-        (*count)++;
-        out++;
-    }
-
-    state->total -= *count;
-    *remaining = state->total;
-    return NWC24_OK;
-}
-
-// reads the subject of a committed message back out of its file
-// NWC24ReadMsgSubject: truncate the committed subject and terminate a successful read.
+// Reads and truncates a committed subject, terminating successful output.
 NWC24Err fn_8039FD68(const NWC24MsgObj *pMsg, char *buf, u32 size) {
     NWC24iMsgObj *msg = (NWC24iMsgObj *)pMsg;
     NWC24File file;
@@ -331,8 +170,7 @@ NWC24Err fn_8039FD68(const NWC24MsgObj *pMsg, char *buf, u32 size) {
     return result;
 }
 
-// reads (and decodes) attachment number idx of a committed message
-// NWC24ReadMsgAttached: require the decoded length to match the stored attachment size.
+// Reads a committed attachment through its encoded file extent.
 NWC24Err fn_8039FEB0(const NWC24MsgObj *pMsg, u32 idx, u8 *buf, u32 size) {
     NWC24iMsgObj *msg = (NWC24iMsgObj *)pMsg;
     NWC24File file;
@@ -379,7 +217,7 @@ NWC24Err fn_8039FEB0(const NWC24MsgObj *pMsg, u32 idx, u8 *buf, u32 size) {
     return result;
 }
 
-// decodes a base64 block out of the message file (up to the line that ends in "=" padding)
+// Decodes a file extent incrementally into the bounded output buffer.
 NWC24Err fn_803A001C(NWC24File *file, const NWC24Data *src, void *buffer, u32 outSize, u32 *written) {
     int chunk;
     int remaining = src->size;
@@ -442,4 +280,187 @@ NWC24Err fn_803A001C(NWC24File *file, const NWC24Data *src, void *buffer, u32 ou
     }
 
     return result;
+}
+
+// Initializes message-list state and selects the receive box.
+NWC24Err fn_803A0158(void) {
+    if (!NWC24IsMsgLibOpened() && !NWC24IsMsgLibOpenedByTool()) {
+        return NWC24_ERR_LIB_NOT_OPENED;
+    }
+
+    MsgList.valid = 0;
+    MsgList.pos = 0;
+    MsgList.count = 0;
+    MsgList.total = 0;
+    MsgList.flags = 0;
+    MsgList.box = NWC24_MSGBOX_RECV;
+    MsgList.from = 0;
+    MsgList.appId = 0;
+    MsgList.tagFilter = 0;
+    return NWC24_OK;
+}
+
+// Selects the send or receive box for subsequent enumeration.
+NWC24Err fn_803A01D0(NWC24MsgBoxId box) {
+    if (!NWC24IsMsgLibOpened() && !NWC24IsMsgLibOpenedByTool()) {
+        return NWC24_ERR_LIB_NOT_OPENED;
+    }
+
+    if (box != NWC24_MSGBOX_SEND && box != NWC24_MSGBOX_RECV) {
+        return NWC24_ERR_INVALID_VALUE;
+    }
+
+    MsgList.box = box;
+    return NWC24_OK;
+}
+
+// Enables filtering by the owning application's ID.
+NWC24Err fn_803A0240(u32 appId) {
+    if (!NWC24IsMsgLibOpened() && !NWC24IsMsgLibOpenedByTool()) {
+        return NWC24_ERR_LIB_NOT_OPENED;
+    }
+
+    MsgList.flags |= 0x20;
+    MsgList.appId = appId;
+    return NWC24_OK;
+}
+
+// Returns the next batch from the cached list of matching message IDs.
+NWC24Err fn_803A02A4(NWC24iMsgObj *out, u32 max, u32 *count, u32 *remaining) {
+    MsgListState *state = &MsgList;
+    NWC24Err result;
+    u32 i;
+    u32 *ids;
+
+    if (!NWC24IsMsgLibOpened() && !NWC24IsMsgLibOpenedByTool()) {
+        return NWC24_ERR_LIB_NOT_OPENED;
+    }
+
+    *count = 0;
+    *remaining = 0;
+    ids = (u32 *)NWC24WorkP->WORK_0x1400;
+    if (out == NULL && max != 0) {
+        return NWC24_ERR_NULL;
+    }
+
+    if (state->valid == 0) {
+        Mail_memset(ids, 0, 0x1000);
+        result = fn_803A03F8(state, ids);
+        if (result != NWC24_OK) {
+            return result;
+        }
+
+        state->valid = 1;
+    }
+
+    if (state->total == 0) {
+        return NWC24_OK;
+    }
+
+    for (i = 0; i < state->total; i++) {
+        if (i >= max) {
+            break;
+        }
+
+        result = fn_8039B244(out, state->box, ids[state->pos++]);
+        if (result != NWC24_OK) {
+            return result;
+        }
+
+        (*count)++;
+        out++;
+    }
+
+    state->total -= *count;
+    *remaining = state->total;
+    return NWC24_OK;
+}
+
+// Collects control-file IDs. Count, path and open errors escape; scan errors
+// after a successful open still publish the available filtered IDs.
+NWC24Err fn_803A03F8(MsgListState *state, u32 *ids) {
+    u32 matched = 0;
+    u32 off;
+    u32 numMsgs;
+    NWC24File file;
+    NWC24Err err;
+
+    state->count = 0;
+    state->total = 0;
+
+    err = fn_8039B1C0(state->box, &numMsgs);
+    if (err != NWC24_OK) {
+        return err;
+    }
+
+    if (numMsgs == 0) {
+        return NWC24_OK;
+    }
+
+    return ReadMsgListFile_i(state, ids, &file, &numMsgs, &matched, &off);
+}
+
+// Applies message validity, menu, application, sender and tag filters.
+static BOOL fn_803A0594(MsgListState *state, NWC24iMBCEntry *entry) {
+    u32 flags;
+    u32 mode;
+    u32 messageTag;
+    u32 filterTag;
+    BOOL ok;
+
+    if (!fn_8039B4C8(entry)) {
+        return FALSE;
+    }
+
+    flags = state->flags;
+    if ((flags & 1) && !(entry->flags & NWC24_MSGOBJ_FOR_MENU)) {
+        return FALSE;
+    }
+
+    if ((flags & 0x20) && state->appId != entry->appId) {
+        return FALSE;
+    }
+
+    if (flags & 0x10) {
+        if (!(entry->flags & NWC24_MSGOBJ_FOR_RECIPIENT)) {
+            return FALSE;
+        }
+
+        if (state->from != entry->from.id) {
+            return FALSE;
+        }
+    }
+
+    if (flags & 0x100) {
+        mode = state->tagFilter >> 16;
+        filterTag = state->tagFilter & 0xFFFF;
+        messageTag = entry->tag & 0xFFFF;
+
+        switch (mode) {
+        case 0:
+            ok = messageTag != filterTag;
+            break;
+        case 1:
+            ok = messageTag == filterTag;
+            break;
+        case 2:
+            ok = filterTag >= messageTag;
+            break;
+        case 3:
+            ok = filterTag <= messageTag;
+            break;
+        case 4:
+            ok = (messageTag & filterTag) != 0;
+            break;
+        default:
+            ok = FALSE;
+            break;
+        }
+
+        if (!ok) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }

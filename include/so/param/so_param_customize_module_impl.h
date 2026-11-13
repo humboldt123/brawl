@@ -40,7 +40,11 @@ class soParamCustomizeModuleImpl : public soParamCustomizeModule {
     float m_attackPowerMulScale;
 
 public:
+#ifdef IT_PARAM_CUSTOMIZE_CTOR_OOL
+    soParamCustomizeModuleImpl();
+#else
     soParamCustomizeModuleImpl() : m_attackPowerMulPattern(1.0f), m_attackPowerMulScale(1.0f) { }
+#endif
 #ifdef WN_SIMPLE_UNIT
     // The shared builder passes the module accesser; this module does not store it.
     soParamCustomizeModuleImpl(soModuleAccesser*) : m_attackPowerMulPattern(1.0f), m_attackPowerMulScale(1.0f) { }

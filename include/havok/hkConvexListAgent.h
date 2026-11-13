@@ -1,27 +1,34 @@
 #pragma once
 
-#include <havok/hkCollisionAgent.h>
+#include <havok/hkPredGskfAgent.h>
+#include <havok/hkConvexShape.h>
 
 struct hkCollisionDispatcher;
 
-// Collision agent for a convex shape against a convex-list shape (HK_SHAPE_CONVEX_LIST). Object size 0x80.
-// The constructor (not recovered yet) fills the 0x0C..0x2F sub-object and the pair pointers; the
-// 0x30 sub-object is torn down by cleanup(). Layout is HYPOTHESIS until the constructor is matched.
-struct hkConvexListAgent : hkCollisionAgent {
-    HK_DECLARE_REF_ALLOCATOR(0x1d)
-
-    u8 unkC[0x18 - 0x0C];
-    float m_unk18;                 // 0x18 set to 0.0f by the constructor
-    u8 unk1C[0x2C - 0x1C];
-    float m_unk2C;                 // 0x2C set to 0.0f by the constructor
-    u8 m_subObject[0x10];          // 0x30 embedded list-like sub-object; its helpers take this+0x30 as `this`
-    float m_unk40;                 // 0x40 set by switchToStreamMode
-    u8 unk44[0x74 - 0x44];
-    void* m_pairData;              // 0x74 HYPOTHESIS: pointer read from the constructor's third argument
-    s8 m_streamMode;               // 0x78 nonzero selects the stream-mode helpers
-    u8 unk79;                      // 0x79
+// Collision agent for a convex shape against a list shape (HK_SHAPE_CONVEX_LIST). Object size 0x80: derives from
+// hkPredGskfAgent (its constructor's exception table destroys that base; the vtables of hkGskfAgent and hkPredGskfAgent
+// take their destructors from this unit) and puts its own members in the base's tail padding at 0x74. In GSK mode the
+// list is treated as one convex shape (hkConvexListConvexShape); stream mode (switchToStreamMode) reuses the manifold
+// area at 0x30 for a child agent track.
+struct hkConvexListAgent : hkPredGskfAgent {
+    void* m_pairData;              // 0x74 HYPOTHESIS: the input's dispatcher (stored by the constructor)
+    s8 m_streamMode;               // 0x78 set by the constructor; nonzero selects the GSK helpers (HYPOTHESIS: m_inGskMode)
+    u8 unk79;                      // 0x79 cleared by the constructor
     u16 m_unk7A;                   // 0x7A set to 0x19 by switchToStreamMode
     u8 unk7C[0x80 - 0x7C];
+
+    // Not inlined into createConvexListAgent (called there).
+    hkConvexListAgent(const hkCdBody& bodyA, const hkCdBody& bodyB, hkCollisionInput& input, hkContactMgr* contactMgr)
+        __attribute__((never_inline));
+
+    // The 0x30 sub-object (GSK manifold in GSK mode, list-agent stream data in stream mode).
+    void* subObject() {
+        return &unk30;
+    }
+    // 0x40 float of the stream-mode sub-object.
+    float& streamUnk40() {
+        return *(float*)(unk34 + 0x0C);
+    }
 
     virtual ~hkConvexListAgent();
 
@@ -36,7 +43,7 @@ struct hkConvexListAgent : hkCollisionAgent {
     static void staticGetPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* d);
     static void staticLinearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* d, void* e);
 
-    // Overrides of the hkCollisionAgent slots (vtable 0x28..0x38 of lbl_80486AE8), base parameter lists.
+    // Overrides of the hkCollisionAgent slots (vtable 0x28..0x38 of __vt__17hkConvexListAgent), base parameter lists.
     virtual void invalidateTim(void* arg);
     virtual void warpTime(float t0, float t1, void* arg);
     virtual void removePoint(u16 key);
@@ -55,10 +62,17 @@ struct hkConvexListAgent : hkCollisionAgent {
 
 // HYPOTHESIS: hkSymmetricAgent<hkConvexListAgent> (map name); only its linear cast is written.
 struct hkSymmetricAgent_17hkConvexListAgent_ : hkConvexListAgent {
+    hkSymmetricAgent_17hkConvexListAgent_(const hkCdBody& bodyA, const hkCdBody& bodyB, hkCollisionInput& input,
+                                          hkContactMgr* contactMgr)
+        : hkConvexListAgent(bodyA, bodyB, input, contactMgr) {}
     virtual void linearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d);
 };
 
-// HYPOTHESIS: hkSymmetricAgentLinearCast<hkConvexListAgent> (map name); only its static linear cast is written.
+// HYPOTHESIS: hkSymmetricAgentLinearCast<hkConvexListAgent> (map name); its static linear cast is written.
+// Created by createListConvexAgent (vtable 0x80486A6C).
 struct hkSymmetricAgentLinearCast_17hkConvexListAgent_ : hkSymmetricAgent_17hkConvexListAgent_ {
+    hkSymmetricAgentLinearCast_17hkConvexListAgent_(const hkCdBody& bodyA, const hkCdBody& bodyB,
+                                                    hkCollisionInput& input, hkContactMgr* contactMgr)
+        : hkSymmetricAgent_17hkConvexListAgent_(bodyA, bodyB, input, contactMgr) {}
     static void staticLinearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d);
 };

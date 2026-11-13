@@ -19,6 +19,11 @@ struct ftLogActionInfo {
     u32 unk0;
     u32 unk4;
     ftLogActionInfo() : unk0(0), unk4(0) { }
+    ftLogActionInfo(u32 kind, u32 id) : unk0(kind), unk4(id) { } // ftLogTransactor::resetLogActionInfo
+#ifdef FT_LOG_ACTION_INFO_COPY_CTOR
+    // MATCH-ONLY: ftLogTransactor builds the by-value argument in place; ftOwnerImpl copies it with the implicit copy.
+    ftLogActionInfo(const ftLogActionInfo& other) : unk0(other.unk0), unk4(other.unk4) { }
+#endif
 };
 static_assert(sizeof(ftLogActionInfo) == 0x8, "Class is wrong size!");
 

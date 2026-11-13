@@ -14,6 +14,6 @@ struct hkFakeRigidBodyDeactivator : hkRigidBodyDeactivator {
     static const void* getVtablehkFakeRigidBodyDeactivator() __attribute__((never_inline));
 
     virtual int getRigidBodyDeactivatorType() const;      // 0x0C
-    virtual hkBool shouldDeactivateHighFrequency() const; // 0x10
-    virtual hkBool shouldDeactivateLowFrequency() const;  // 0x14
+    virtual hkBool shouldDeactivateHighFrequency(hkEntity* entity); // 0x10
+    virtual hkBool shouldDeactivateLowFrequency(hkEntity* entity);  // 0x14
 };

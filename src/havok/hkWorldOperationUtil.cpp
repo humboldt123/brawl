@@ -38,7 +38,7 @@ void hkWorldOperationUtil::addPhantomBP(hkWorld* world, hkPhantom* phantom) {
     hkLocalArray<hkBroadPhaseHandlePair> newPairs(at<int>(world, 0x2E4)); // world's broadphase query size
 
     hkAabb aabb;
-    phantom->calcAabb(&aabb);
+    phantom->calcAabb(aabb);
 
     // world +0x54 is the broadphase
     at<hkBroadPhase*>(world, 0x54)->addObject(&phantom->m_collidable.m_broadPhaseHandle, aabb, newPairs);
@@ -49,7 +49,7 @@ void hkWorldOperationUtil::addPhantomBP(hkWorld* world, hkPhantom* phantom) {
             filter = reinterpret_cast<char*>(filter) + 8; // the collision filter interface sits 8 bytes in
         }
         at<hkTypedBroadPhaseDispatcher*>(world, 0x58)
-            ->addPairs(newPairs.begin(), newPairs.getSize(), (const hkCollisionFilterInterface0*)filter);
+            ->addPairs(newPairs.begin(), newPairs.getSize(), (const hkCollidableCollidableFilter*)filter);
     }
 }
 
@@ -87,7 +87,7 @@ void hkWorldOperationUtil::addEntityBP(hkWorld* world, hkEntity* entity) {
             filter = reinterpret_cast<char*>(filter) + 8;
         }
         at<hkTypedBroadPhaseDispatcher*>(world, 0x58)
-            ->addPairs(newPairs.begin(), newPairs.getSize(), (const hkCollisionFilterInterface0*)filter);
+            ->addPairs(newPairs.begin(), newPairs.getSize(), (const hkCollidableCollidableFilter*)filter);
     }
 }
 
@@ -225,3 +225,106 @@ void hkWorldOperationUtil::removeConstraintImmediately(hkWorld* world, hkConstra
         world->unlockAndAttemptToExecutePendingOperations();
     }
 }
+
+// Weak inline copies emitted in this unit; extern "C" placeholders under their fn_ names until the
+// instantiating callers are written (shape from https://github.com/jj-link/brawl src/havok/fn_<addr>.cpp).
+// 12-byte swap (unnamed in the map)
+// TODO: cleanup (shape from jj-link/brawl fn_802FB210)
+extern "C" void fn_802FB210(int* a, int* b) {
+    int t;
+    t = a[0]; a[0] = b[0]; b[0] = t;
+    t = a[1]; a[1] = b[1]; b[1] = t;
+    t = a[2]; a[2] = b[2]; b[2] = t;
+}
+
+// TODO: cleanup (shape from jj-link/brawl fn_802F83E8)
+// fn_802F83E8: body from https://github.com/jj-link/brawl src/havok/fn_802F83E8.cpp (namespaced; callees rebound to our C++ names).
+#include <types.h>
+#include <havok/hkSimulationIsland.h>
+#include <havok/hkWorld.h>
+namespace jj_fn_802F83E8 {
+class Object_vptr_0 {
+public:
+    virtual void slot0();
+    virtual void slot1();
+    virtual void slot2();
+    virtual void slot3();
+    virtual void* slot4(u32 size, s32 align);
+};
+
+struct Node {
+    u8 pad0[4];
+    s16 size;
+    u8 pad6[0x20 - 6];
+    s16 index;
+    u8 pad22[4];
+    u8 pad26a : 6;
+    u8 b : 2;
+    u8 a : 2;
+    u8 pad27a : 6;
+};
+
+struct Owner {
+    u8 pad0[0x20];
+    Node* node;
+    u8 pad24[4];
+    Node** data1;
+    s32 size1;
+    u32 cap1;
+    Node** data2;
+    s32 size2;
+    u32 cap2;
+    u8 pad40[0xb4 - 0x40];
+    signed char flag;
+};
+
+struct Flag {
+    signed char v;
+};
+
+struct Target {
+    u8 pad0[8];
+    Owner* owner;
+    u8 padc[0xa8 - 0xc];
+    u8 kind;
+    Flag isKind7() {
+        Flag f;
+        f.v = kind == 7;
+        return f;
+    }
+};
+
+
+extern "C" void fn_802F83E8(Owner* owner, Target* target, int mode) {
+    target->owner = owner;
+    if (target->isKind7().v) {
+        ((hkSimulationIsland*)(owner->node))->internalAddEntity((hkEntity*)(target));
+        return;
+    }
+    if (owner->flag) {
+        Node* n = (Node*)new hkSimulationIsland((hkWorld*)owner);
+        if (mode == 1) {
+            n->a = 1;
+            n->b = 1;
+            n->index = owner->size1;
+            if (owner->size1 == (s32)(owner->cap1 & 0x3FFFFFFF)) {
+                hkArrayUtil::_reserveMore((hkArrayBase*)(&owner->data1), 4);
+            }
+            owner->data1[owner->size1++] = n;
+        } else {
+            n->a = 0;
+            n->b = 0;
+            n->index = owner->size2;
+            if (owner->size2 == (s32)(owner->cap2 & 0x3FFFFFFF)) {
+                hkArrayUtil::_reserveMore((hkArrayBase*)(&owner->data2), 4);
+            }
+            owner->data2[owner->size2++] = n;
+        }
+        ((hkSimulationIsland*)(n))->internalAddEntity((hkEntity*)(target));
+        return;
+    }
+    if (mode == 1) {
+        ((hkSimulationIsland*)(owner->data1[0]))->internalAddEntity((hkEntity*)(target));
+    }
+}
+} // namespace jj_fn_802F83E8

@@ -78,7 +78,7 @@ extern "C" void fn_800DF4AC(void* center, int kills);
 // HYPOTHESIS: map names muNoticeWndTask::dispSubMsg
 extern "C" void fn_800BF928(muNoticeWndTask* wnd, const char* text);
 // HYPOTHESIS: map names IfAdvBoss::eraseBoss
-extern "C" void fn_80109540(IfAdvBoss* boss);
+extern "C" void fn_80109540(IfAdvBoss* boss, int index);
 // HYPOTHESIS: map names IfSnapSaveTask::create, getState
 extern "C" gfTask* fn_800F18C4(nw4r::g3d::ResFile* arg1, nw4r::g3d::ResFile* resFile, void* msgData, u32 scnRoot, int arg5,
                                nteFileDataReplay* data, int arg7, int heap, int heap2, int heap3);
@@ -371,10 +371,10 @@ void IfMngr::setTrainingStatusTotalDamage(int damage) {
     }
 }
 
-void IfMngr::eraseBoss() {
+void IfMngr::eraseBoss(int index) {
     IfAdvBoss* boss = static_cast<IfAdvBoss*>(m_ifAdvBoss);
     if (boss != NULL) {
-        fn_80109540(boss);
+        fn_80109540(boss, index);
     }
 }
 

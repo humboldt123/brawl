@@ -21,6 +21,8 @@ struct hkReportContactMgr : hkDynamicsContactMgr {
 
     // Factory that creates a hkReportContactMgr for a pair of collidables (0x0C bytes).
     struct Factory : hkReferencedObject {
+        HK_DECLARE_REF_ALLOCATOR(0x20)
+
         hkWorld* m_factoryWorld; // 0x08
 
         Factory(hkWorld* world);

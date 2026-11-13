@@ -112,7 +112,7 @@ public:
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
     virtual void notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
     virtual void notifyEventOnDamage(soDamage* damage, bool unk2, soModuleAccesser* moduleAccesser);
-    virtual void notifyEventSetRumble(int kind, int unk2);
+    virtual void notifyEventSetRumble(int kind, bool unk2);
     virtual void notifyEventStopRumble(int kind);
     virtual bool notifyEventPokemonRequestChange(Vec3f* pos, float* lr);
     virtual void notifyEventPokemonTrainerUpdate();

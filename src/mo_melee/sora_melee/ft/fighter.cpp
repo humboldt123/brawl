@@ -1,8 +1,10 @@
+#define FT_FIGHTER_REFLECTOR_DTOR // BYTES: fighter.o holds the out-of-line soCollisionReflectorEventObserver destructor
 #define FT_FIGHTER_ANIMCMD_LONG // MATCH-ONLY: Fighter::notifyEventAnimCmd(long) overrides the StageObject slot
 #define FT_FIGHTER_ONINHALED_BOOL // MATCH-ONLY: Fighter::onInhaled returns true after the flag write
 #include <ft/fighter.h>
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_manager.h>
+#include <ft/ft_log_transactor.h>
 #include <ft/ft_owner.h>
 #include <so/so_external_value_accesser.h>
 #include <so/so_slow.h>
@@ -13,6 +15,8 @@
 #include <so/article/so_generate_article_manage_module.h>
 #include <so/item/so_item_manage_module_impl.h>
 #include <so/so_module_hyp.h>
+#include <so/turn/so_turn_module.h>
+#include <ft/ft_kinetic_energy.h>
 
 template <>
 inline void soEventObserver<soCollisionAbsorberEventObserver>::addObserverSub(s32 manageId, soCollisionAbsorberEventObserver* observer, s8 priority) {
@@ -241,7 +245,7 @@ void ftEntryEventObserver::notifyEventPokemonInflict() { }
 void ftEntryEventObserver::notifyEventPokemonAttack() { }
 void ftEntryEventObserver::notifyEventPokemonRebirthEnd() { }
 void ftEntryEventObserver::notifyEventStopRumble(int) { }
-void ftEntryEventObserver::notifyEventSetRumble(int, int) { }
+void ftEntryEventObserver::notifyEventSetRumble(int, bool) { }
 void ftEntryEventObserver::notifyEventPokemonAppeal() { }
 void ftEntryEventObserver::notifyEventPokemonSpecial(int, int) { }
 void ftEntryEventObserver::notifyEventPokemonChangeCancel() { }
@@ -714,15 +718,12 @@ void Fighter::notifyEventChangeAdvUnit() {
     }
 }
 
-// HYPOTHESIS: map name unknown; takes the module accesser and the owner.
-extern "C" void fn_27_1D6E58(soModuleAccesser* moduleAccesser, ftOwner* owner);
-
 void Fighter::notifyEventCollisionReflectorSearch(soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) {
     if ((int)groupIndex == 1) {
         unk138_1 = true;
     }
     soModuleAccesser* acc = m_moduleAccesser;
-    fn_27_1D6E58(acc, getOwner());
+    ftLogTransactor::notifyEventCollisionReflector(acc, getOwner());
 }
 
 bool Fighter::notifyEventCollisionReflectorCheck() {
@@ -745,7 +746,7 @@ void Fighter::notifyEventCollisionReflector(soCollisionAttackModule* attackModul
         }
     }
     soModuleAccesser* acc = m_moduleAccesser;
-    fn_27_1D6E58(acc, getOwner());
+    ftLogTransactor::notifyEventCollisionReflector(acc, getOwner());
 }
 
 bool Fighter::checkTransitionStatus(u32 status) {
@@ -910,4 +911,43 @@ void Fighter::updateRoughPos() {
     soPostureModule& posture = m_moduleAccesser->getPostureModule();
     Vec3f pos = m_moduleAccesser->getModelModule().getNodeGlobalPosition(nodeId, false);
     posture.setPrevRoughPos(&pos);
+}
+
+template class soEventObserver<soTurnEventObserver>;
+template class soEventObserver<soMotionEventObserver>;
+template class soEventObserver<soItemManageEventObserver>;
+template class soEventObserver<ftEntryEventObserver>;
+
+soCollisionReflectorEventObserver::~soCollisionReflectorEventObserver() {}
+
+void Fighter::notifyEventTurn(float lr, float prevLr, soModuleAccesser* moduleAccesser) {
+    moduleAccesser->getStatusModule().onChangeLr(moduleAccesser, lr, prevLr);
+    if (static_cast<soTurnModule*>(moduleAccesser->m_enumerationStart->m_turnModule)->isExtern() == true) {
+        Vec3f reflection(-1.0f, 0.0f, 0.0f);
+        moduleAccesser->getKineticModule().reflectSpeed(&reflection, soKineticEnergy::AttributeFlag(1));
+        ftKineticEnergyMotion& motion = dynamic_cast<ftKineticEnergyMotion&>(*moduleAccesser->getKineticModule().getEnergy(0));
+        if (prevLr != motion.m_facing) {
+            motion.m_prevMotionSpeed.m_x = -motion.m_prevMotionSpeed.m_x;
+            motion.m_facing = prevLr;
+        }
+    }
+}
+
+void Fighter::notifyEventBeat() {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    if (moduleAccesser->getItemManageModule().getHaveItemKind(0) == 0x1b) {
+        int count = moduleAccesser->getWorkManageModule().getInt(0x1000001b);
+        if (count > 0) {
+            int remain = count - soValueAccesser::getConstantInt(moduleAccesser, 0x5a73, 0);
+            if (remain < 0) {
+                remain = 0;
+            }
+            moduleAccesser->getWorkManageModule().setInt(remain, 0x1000001b);
+        }
+    }
+    if (moduleAccesser->getWorkManageModule().isFlag(0x12000028) == true) {
+        int frame = moduleAccesser->getSlowModule().getWholeFrame();
+        int decrement = soValueAccesser::getConstantInt(moduleAccesser, 0x5a81, 0);
+        moduleAccesser->getSlowModule().setWholeFrame(frame - decrement);
+    }
 }

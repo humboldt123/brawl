@@ -232,7 +232,11 @@ class soGimmickEventObserver : public soEventObserver<soGimmickEventObserver> {
 public:
     soGimmickEventObserver() : soEventObserver<soGimmickEventObserver>(0x3) {};
     soGimmickEventObserver(short unitID) : soEventObserver<soGimmickEventObserver>(unitID) {};
+#ifdef IT_ITEM_OBSERVER_CTORS
+    soGimmickEventObserver(short manageId, s8 p2);
+#else
     soGimmickEventObserver(short manageId, s8 p2) : soEventObserver<soGimmickEventObserver>(0x3) { initialize(manageId, p2); }
+#endif
 
 #ifdef SO_GIMMICK_EVENT_OBSERVER_INLINE
     // BYTES: the Sonic spring unit emits its own weak copies of these two.

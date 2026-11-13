@@ -7,9 +7,17 @@ struct hkTransform {
     hkRotation m_rotation;     // 0x00
     hkVector4 m_translation;   // 0x30
 
+    // Empty default constructor (map name hkTransform::hkTransform; its out-of-line copy in hkBvTreeStreamAgent.o is a
+    // bare blr).
+    hkTransform() {}
+
     // Out-of-line members defined in src/havok/hkInertiaTensorComputer.cpp.
     void setRotation(const hkQuaternion& q);
-    void setIdentity();
+    // Identity rotation, zero translation (out-of-line copy in hkInertiaTensorComputer.o).
+    void setIdentity() {
+        m_rotation.setIdentity();
+        m_translation.setZero4();
+    }
     void setTranslation(const hkVector4& t);
     hkVector4& getTranslation();
 
@@ -18,7 +26,21 @@ struct hkTransform {
     void setInverse(const hkTransform& t);
     void setMul(const hkTransform& a, const hkTransform& b);
     void setMulInverseMul(const hkTransform& a, const hkTransform& b);
+
+    // Out-of-line copy (a bare blr) in hkPoweredChainData.o.
+    const hkRotation& getRotation() const { return m_rotation; }
+    // Column i of the rotation (out-of-line copy in hkSimpleContactConstraintInfo.o).
+    const hkVector4& getColumn(int i) const { return (&m_rotation.m_col0)[i]; }
+    // The identity transform in .data (out-of-line copy in hkSimpleContactConstraintInfo.o).
+    static inline const hkTransform& getIdentity();
 };
+
+// The identity transform (unnamed in .data; hkMathUtil reads its rotation as an hkMatrix3).
+extern hkMatrix3 lbl_804864F0;
+
+inline const hkTransform& hkTransform::getIdentity() {
+    return (const hkTransform&)lbl_804864F0;
+}
 
 inline void hkVector4::_setTransformedPos(const hkTransform& t, const hkVector4& v) {
     const hkRotation& r = t.m_rotation;

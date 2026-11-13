@@ -27,7 +27,7 @@ struct hkBallSocketChainData : hkConstraintData {
     static void finishLoadedObjecthkBallSocketChainData(void* p);
     static const void* getVtablehkBallSocketChainData();
 
-    u32 getType() const;
+    int getType() const;
     void getConstraintInfo(hkConstraintInfo* info) const;
     void getRuntimeInfo(const hkBool* hasChain, hkConstraintRuntimeInfo* out) const;
     virtual void buildJacobian();

@@ -174,10 +174,12 @@ public:
 };
 
 class soLinkModuleImpl : public soLinkModule, public soAnimCmdEventObserver {
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 public:
     soLinkModuleImpl(soModuleAccesser* moduleAccesser, soArray<soLinkConnection>* connections);
+#ifdef FT_MODULE_BUILDER
 private:
+#endif
 #endif
 public:
     soLinkModuleImpl(short unitID) : soAnimCmdEventObserver(unitID) { }

@@ -30,7 +30,7 @@ struct hkGskManifold {
     u32 getTotalSizeInBytes() const;
     hkGskManifoldEntry* getEntries() { return (hkGskManifoldEntry*)((u8*)this + 4); }
 
-    // Clears the manifold through hkGskManifoldUtil cleanup (arg receives the removePoint calls), copies the 8-byte count
-    // into dst and zeroes the header (map name hkGskManifold__resetGskManifold).
-    static void resetGskManifold(hkGskManifold* manifold, hkGskManifold* dst, void* arg);
+    // Clears the manifold through hkGskManifoldUtil cleanup (arg receives the removePoint calls), copies the emptied
+    // point count into the agent entry and zeroes the header (map name hkGskManifold__resetGskManifold).
+    static void resetGskManifold(hkGskManifold* manifold, struct hkAgentEntry* entry, void* arg);
 };

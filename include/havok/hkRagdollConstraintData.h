@@ -43,5 +43,5 @@ struct hkRagdollConstraintData : hkConstraintData {
     hkBool isValid() const;
     void getConstraintFrameA(hkMatrix3* out) const;
     void getConstraintFrameB(hkMatrix3* out) const;
-    u32 getType() const; // HYPOTHESIS: virtual in Havok; slot not yet identified
+    int getType() const; // virtual (hkConstraintData slot 0x14)
 };

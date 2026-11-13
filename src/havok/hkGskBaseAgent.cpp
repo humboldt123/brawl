@@ -61,8 +61,6 @@ void hkGskBaseAgent::cleanup() {
     delete this;
 }
 
-hkGskBaseAgent::~hkGskBaseAgent() {}
-
 void hkGskBaseAgent::warpTime(float oldTime, float newTime, void* arg) {
     if (unk18 == oldTime) {
         unk18 = newTime;
@@ -74,3 +72,50 @@ void hkGskBaseAgent::warpTime(float oldTime, float newTime, void* arg) {
         unk20 = 0.0f;
     }
 }
+
+// fn_802B1B3C: body from https://github.com/jj-link/brawl src/havok/fn_802B1B3C.cpp (namespaced; callee rebound to our C++ name).
+#include <types.h>
+#include <havok/hkTransform.h>
+namespace jj_fn_802B1B3C {
+#pragma fp_contract on
+
+struct Vec4 {
+    float x, y, z, w;
+};
+
+struct Matrix {
+    float m[4][4];
+} __attribute__((aligned(16)));
+
+struct Object {
+    Vec4* shape;
+    void* unk4;
+    Matrix* transform;
+};
+
+extern "C" void fn_803198C8(void*, Vec4*, Vec4*, Matrix*, Vec4*);
+extern "C" const float lbl_805A3F38;
+
+// TODO: cleanup (shape from jj-link/brawl fn_802B1B3C)
+extern "C" void fn_802B1B3C(Object* a, Object* b, void* c, Vec4* out) {
+    Matrix matrix;
+    Vec4 v;
+    Vec4* sa = a->shape;
+    Vec4* sb = b->shape;
+
+    ((hkTransform*)(&matrix))->setMulInverseMul(*(const hkTransform*)(a->transform), *(const hkTransform*)(b->transform));
+    fn_803198C8(c, sa, sb, &matrix, &v);
+
+    Matrix* m = a->transform;
+    float x = v.x, y = v.y, z = v.z;
+
+    out->x = z * m->m[2][0] + (x * m->m[0][0] + y * m->m[1][0]);
+    out->y = z * m->m[2][1] + (x * m->m[0][1] + y * m->m[1][1]);
+    out->z = z * m->m[2][2] + (x * m->m[0][2] + y * m->m[1][2]);
+    out->w = lbl_805A3F38;
+
+    float ra = sa->w;
+    float rb = sb->w;
+    out->w = (v.w - ra) - rb;
+}
+} // namespace jj_fn_802B1B3C

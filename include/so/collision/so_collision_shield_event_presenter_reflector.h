@@ -12,6 +12,9 @@ class soCollisionSearchModule;
 
 class soCollisionReflectorEventObserver : public soEventObserver<soCollisionReflectorEventObserver> {
 public:
+#ifdef FT_FIGHTER_REFLECTOR_DTOR
+    ~soCollisionReflectorEventObserver();
+#endif
     soCollisionReflectorEventObserver() : soEventObserver<soCollisionReflectorEventObserver>(0xf) {};
     soCollisionReflectorEventObserver(short unitID) : soEventObserver<soCollisionReflectorEventObserver>(unitID) {};
 #ifdef EM_ENEMY_BUILDER

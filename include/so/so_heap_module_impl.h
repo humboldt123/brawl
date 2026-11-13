@@ -35,7 +35,7 @@ public:
         return m_heapSlotNo;
     }
 
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_HEAP_DTOR)
     ~soHeapModuleImpl(); // BYTES: the fighter RELs call the sora_melee destructor
 #else
     ~soHeapModuleImpl() { }

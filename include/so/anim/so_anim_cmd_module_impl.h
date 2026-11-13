@@ -9,7 +9,7 @@
 #include <so/anim/so_anim_cmd_event_presenter.h>
 #include <so/status/so_status_event_presenter.h>
 #include <so/so_instance_manager.h>
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 #include <ac/ac_cmd_interpreter.h>
 #endif
 
@@ -29,7 +29,7 @@ struct soAnimCmdAddressPackConv;
  *
  * I'm leaving it like this for now, since it is still somewhat useful/usable.
  */
-#ifndef FT_MODULE_BUILDER
+#if !defined(FT_MODULE_BUILDER) && !defined(WN_EM_SIMPLE_UNIT)
 class soAnimCmdInterpreter /*: soEventPresenter<soAnimCmdEventObserver> */ {
 public:
     char _inheritance_data[8]; // 0x0; not sure what this is.
@@ -51,9 +51,13 @@ public:
     u32 unk48;
     u32 unk4C;
 
-    soAnimCmdInterpreter(s16 manageId, soArrayVector<acCmdInterpreterStackData, 8>* stack, int kind, int mode, float fixedTimeStep, const u8* resetMode) :
+    soAnimCmdInterpreter(s16 manageId, soArrayVector<acCmdInterpreterStackData, 8>* stack, int kind, int mode, float fixedTimeStep, const u8* resetMode)
+#ifdef WN_EM_SIMPLE_UNIT
+        __attribute__((never_inline))
+#endif
+        :
         acCmdInterpreter(stack, mode, nullptr, resetMode, fixedTimeStep),
-#ifdef WN_MARIO_FIREBALL_UNIT
+#if defined(WN_MARIO_FIREBALL_UNIT) && !defined(WN_ANIMCMD_PRESENTER_LOCAL_STORE) // the Mario fireball opts back in
         soEventPresenter<soAnimCmdEventObserver>(manageId, 5),
 #else
         soEventPresenter<soAnimCmdEventObserver>(manageId, 5, soEventPresenterLocalStore),
@@ -140,10 +144,16 @@ public:
 
     virtual bool isNull() const { return false; }
 
+#ifdef IT_ANIM_PACK_CTOR_OOL
+    soAnimCmdAddressPackArraySeparate(soArrayFixed<const acAnimCmdConv*>* addrs1,
+                                      soArrayFixed<const acAnimCmdConv*>* addrs2,
+                                      soArrayFixed<const acAnimCmdConv*>* addrs3);
+#else
     soAnimCmdAddressPackArraySeparate(soArrayFixed<const acAnimCmdConv*>* addrs1,
                                       soArrayFixed<const acAnimCmdConv*>* addrs2,
                                       soArrayFixed<const acAnimCmdConv*>* addrs3) :
         m_addrArr1(addrs1), m_addrArr2(addrs2), m_addrArr3(addrs3) { }
+#endif
 
     virtual ~soAnimCmdAddressPackArraySeparate() { }
 };
@@ -154,6 +164,10 @@ public:
     soAnimCmdInterpreter* m_animCmdInterpreter; // 0x0
     soAnimCmdAddressPackArraySeparate* m_animCmdAddressPackArraySeparate; // 0x4
     // The id/attribute fields that used to be listed here belong to soInstanceUnitFullProperty<soAnimCmdControlUnit> (0x10 bytes).
+#ifdef IT_ANIM_CMD_CONTROL_UNIT_CTOR_OOL
+    // BYTES: item.cpp emits the two-pointer constructor out of line.
+    soAnimCmdControlUnit(soAnimCmdInterpreter* interpreter, soAnimCmdAddressPackArraySeparate* pack);
+#endif
 };
 static_assert(sizeof(soAnimCmdControlUnit) == 0x8, "Class is the wrong size!");
 
@@ -197,7 +211,13 @@ public:
     virtual int getAnimCmdFrame();
 #endif
     virtual void getCmdAddressPack();
+#ifdef SO_ANIM_CMD_ADDRESS_PACK_ARGS
+    // BYTES: soLinkModuleImpl::getCmdAddressPackParents forwards the address pack, the motion kind and an out id list
+    // through the slot after getCmdAddressPack. Off by default so other units keep the no-argument declaration.
+    virtual void setAddressPackList(soArray<soAnimCmdAddressPack>* pack, int motionKind, short* ids);
+#else
     virtual void setAddressPackList();
+#endif
     virtual void unk44(); // HYPOTHESIS: unnamed slot; the article initialize reads the interpreter count one slot later (0x48)
     virtual int getInterpreterNum();
 #ifdef FT_MODULE_BUILDER
@@ -231,9 +251,12 @@ class soAnimCmdModuleImpl:
     public soStatusEventObserver,
     public soAnimCmdEventObserver
 {
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 public:
     soAnimCmdModuleImpl(short unitId, void* controlUnits);
+#endif
+#ifdef FT_MODULE_BUILDER
+public:
     // MATCH-ONLY: the vtable lives in sora_melee; a non-inline override (key function) keeps this TU from emitting a copy.
     virtual void registInterpreter(const soAnimCmdControlUnit& unit, const soAttributeFlag& attr);
     virtual ~soAnimCmdModuleImpl() { }

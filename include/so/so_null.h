@@ -23,7 +23,12 @@ public:
     virtual bool isNull() const = 0;
 };
 
+// MATCH-ONLY: upstream derives soNullable from soNullableInterface; units that need its RTTI define SO_NULLABLE_INTERFACE_BASE.
+#ifdef SO_NULLABLE_INTERFACE_BASE
+class soNullable : private soNullableInterface {
+#else
 class soNullable {
+#endif
 public:
     soNullable() { m_isNull = false; }
 #if defined(SO_BUILDER_HELPERS_WEAK)

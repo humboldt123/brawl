@@ -4,13 +4,17 @@
 #include <types.h>
 
 // NOTE: shadows the BrawlHeaders copy to add the member functions (names from the map).
+// One no-reaction rule: its mode and the two limits the mode compares against.
+struct soDamageNoReactionStatus {
+    int m_mode; // -1 off; 1 always; 2 and 3 compare the reaction or the power with the limit (see checkNoReaction)
+    float m_reaction;
+    float m_powerMax;
+};
+
 class soDamageNoReactionModule {
 public:
     int m_mode;
-    int m_modeStatus;
-    char _8[8];
-    int m_modeStatus2nd;
-    char _20[8];
+    soDamageNoReactionStatus m_status[2]; // [0] the status's rule, [1] the second rule
     bool m_isModeAlways;
     bool m_isModePerfect;
     char _30[2];

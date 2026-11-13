@@ -35,11 +35,14 @@ public:
     bool friend_makeList();
     u16* friend_getName(u32 index);
     u64 friend_getWiiID(u32 index);
+    // HYPOTHESIS: count and message-pointer array follow the commit loop.
+    bool sendMails(u32 count, NWC24MsgObj** messages);
     void startSearchMail(u32 appId);
     bool getNextMailForMe(NWC24MsgObj* message, u32* remaining);
     bool _setupDlTask(NWC24DlTask* task, u16 index, int* error);
     int _openLibrary(int kind);
     int _procGeneralError(int error);
+    bool dl_isRegisterDLTask();
     bool dl_registerDLTask();
     bool dl_deleteDLTask();
     bool dl_deleteDLTaskAll();

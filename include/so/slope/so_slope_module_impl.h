@@ -56,7 +56,8 @@ class soSlopeModuleImpl : public soSlopeModule, public soStatusEventObserver, pu
 #ifdef FT_MODULE_BUILDER
 public:
     // HYPOTHESIS: the byte axis selector is boolean; both update paths test zero/nonzero.
-    soSlopeModuleImpl(soModuleAccesser* acc, int a, int b, bool useZAxis, float angle);
+    // The angle follows the accesser: Enemy's constructor loads its 20.0f before the integer arguments.
+    soSlopeModuleImpl(soModuleAccesser* acc, float angle, int a, int b, bool useZAxis);
 private:
 #endif
     soModuleAccesser* m_moduleAccesser;

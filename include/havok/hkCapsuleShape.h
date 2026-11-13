@@ -17,8 +17,10 @@ struct hkCapsuleShape : hkConvexShape {
     hkVector4 m_vertexB; // 0x20
 
     hkCapsuleShape(hkFinishLoadedObjectFlag flag) {} // finish-loading ctor: only the vtable is written
+    // Out of line at 0x802CEBE0 (not written yet). HYPOTHESIS: the parameters (the cylinder agent passes the
+    // cylinder's axis ends and the radius).
+    hkCapsuleShape(const hkVector4& vertexA, const hkVector4& vertexB, hkReal radius);
     virtual ~hkCapsuleShape();
-    HK_DECLARE_REF_ALLOCATOR(0x25)
 
     static void finishLoadedObjecthkCapsuleShape(void* p);
     static void cleanupLoadedObjecthkCapsuleShape(void* p);
@@ -31,7 +33,7 @@ struct hkCapsuleShape : hkConvexShape {
     virtual void getCollisionSpheresInfo(hkCollisionSpheresInfo* out) const; // 0x28
     virtual hkVector4* getCollisionSpheres(hkVector4* out) const;            // 0x2C
     virtual void getSupportingVertex(const hkVector4& direction, hkVector4& out) const; // 0x30
-    virtual void convertVertexIdsToVertices(const void* ids, int numIds, hkVector4* out) const; // 0x34
+    virtual void convertVertexIdsToVertices(const u16* ids, int numIds, hkVector4* out) const; // 0x34
     virtual void getFirstVertex(hkVector4& out) const;                       // 0x38
     virtual int getNumVertices() const;                                      // 0x3C
 };

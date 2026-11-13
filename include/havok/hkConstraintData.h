@@ -1,8 +1,13 @@
 #pragma once
 
 #include <havok/hkBase.h>
+#include <havok/hkString.h>
 
 struct hkConstraintInfo;
+struct hkConstraintInstance;
+struct hkConstraintAtom;
+struct hkConstraintRuntime;
+struct hkSolverResults;
 
 // Runtime info record written by getRuntimeInfo (two words; the ragdoll writes 0x70 and 0xC).
 struct hkConstraintRuntimeInfo {
@@ -29,18 +34,36 @@ struct hkConstraintInfoWithAtoms : hkConstraintInfo {
 
 // Base constraint description. Reflection layout: hkConstraintDataClass.cpp (size 0xC, userData at 0x8).
 // Virtual slot numbers follow the target vtable: slot 2 dtor, slot 3 calcStatistics (hkReferencedObject),
-// slots 4..8 are not yet identified, slot 9 is buildJacobian (checked against the bridge atom call thunk).
+// slot 4 isValid and slot 5 getType (the derived data vtables), slots 6..8 getRuntimeInfo / getSolverResults /
+// addInstance (hkSimpleContactConstraintData overrides 6 and 7; the base 7 and 8 are weak copies in its unit), slot 9
+// is buildJacobian (checked against the bridge atom call thunk). Slot 10 is getConstraintInfo (declared by the
+// derived classes for now: their non-virtual getConstraintInfo symbols use other signatures).
+// HYPOTHESIS: the parameter types of slots 6..8.
 struct hkConstraintData : hkReferencedObject {
     u32 m_userData; // 0x08
 
-    hkConstraintData();
+    hkConstraintData() : m_userData(0) {}
     hkConstraintData(hkFinishLoadedObjectFlag flag) {} // finish-loading ctor: the base ctors set refcount
     virtual ~hkConstraintData() {} // empty in the target (no base dtor call in the derived dtors)
 
-    virtual void unk04();
-    virtual void unk05();
-    virtual void unk06();
-    virtual void unk07();
-    virtual void unk08();
+    virtual hkBool isValid() const;
+    virtual int getType() const; // 11 = the contact constraint (hkConstrainedSystemFilter skips those)
+    virtual void getRuntimeInfo(hkBool wantRuntime, hkConstraintRuntimeInfo& infoOut) const;
+    virtual hkSolverResults* getSolverResults(hkConstraintRuntime* runtime) const {
+        return (hkSolverResults*)runtime;
+    }
+    virtual void addInstance(hkConstraintInstance* constraint, hkConstraintRuntime* runtime, int sizeOfRuntime) const {
+        if (runtime) {
+            hkString::memSet(runtime, 0, sizeOfRuntime);
+        }
+    }
     virtual void buildJacobian();
+
+    // getConstraintInfo record: the summary plus the atoms it was computed from.
+    struct ConstraintInfo : hkConstraintInfo {
+        const hkConstraintAtom* m_atoms; // 0x10
+        u32 m_sizeOfAllAtoms;            // 0x14
+    };
+    // Sums the solver sizes of a constraint's atoms (weak copy in hkSimpleContactConstraintData.o).
+    static void getConstraintInfoUtil(const hkConstraintAtom* atoms, int sizeOfAllAtoms, ConstraintInfo& infoOut);
 };

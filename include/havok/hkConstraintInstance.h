@@ -7,8 +7,8 @@ struct hkModifierConstraintAtom;
 struct hkEntity;
 
 // A constraint between two entities (0x2C bytes). Layout and names from main.dol's hkConstraintInstanceClass;
-// the owner and internal pointers are runtime-only (not serialized). Methods are not recovered yet
-// (src/havok/hkConstraintInstance.cpp).
+// the owner and internal pointers are runtime-only (not serialized). Only the methods other units call are
+// declared.
 struct hkConstraintInstance : hkReferencedObject {
     enum ConstraintPriority {
         PRIORITY_INVALID = 0,
@@ -35,4 +35,13 @@ struct hkConstraintInstance : hkReferencedObject {
     const char* m_name;                              // 0x20
     u32 m_userData;                                  // 0x24
     void* m_internal;                                // 0x28
+
+    // Out of line in the (unsplit) hkConstraintInstance unit: 0x802DE764 / 0x802DE7E0 / 0x802DE79C.
+    hkConstraintInstance(ConstraintPriority priority);
+    virtual ~hkConstraintInstance();
+    void setPriority(ConstraintPriority priority);
+
+    hkConstraintData* getData() const { return m_data; }
+    hkEntity* getEntityA() const { return m_entities[0]; }
+    hkEntity* getEntityB() const { return m_entities[1]; }
 };

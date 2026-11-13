@@ -24,7 +24,23 @@ typedef soLinkModuleBuildConfigCap<6, soLinkModuleImpl> ftGanonLinkModuleBuildCo
 typedef soStatusModuleBuildConfig<290, soGeneralWorkBuildConfig<18, 14, 2>, 274, 71, soTransitionModuleBuildConfig<ftStatusTransitionTypeList> > ftGanonStatusModuleBuildConfig;
 
 // HYPOTHESIS: this fighter has its own kinetic transactor (changeKinetic is in a later translation unit)
-FT_KINETIC_TRANSACTOR(ftGanonKineticTransactor);
+// Ganon's own kinetic modes (ft_ganon_kinetic_transactor.cpp): FT_KINETIC_TRANSACTOR's members plus the two mode setups.
+class ftGanonKineticTransactor : public ftKineticTransactor {
+public:
+    static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
+    static void changeKineticSub(bool*, void*, Vec2f* speed, soModuleAccesser* acc);
+    static void changeKineticSub1(bool*, void*, Vec2f* speed, soModuleAccesser* acc);
+    template <typename E>
+    static void updateEnergy(E* energy, soModuleAccesser* acc) {
+        if (energy->isEnable() != true) {
+            return;
+        }
+        if (energy->isSuspend()) {
+            return;
+        }
+        return energy->updateEnergy(acc);
+    }
+};
 typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKineticMediatorImplT<ftGanonKineticTransactor> > ftGanonKineticModuleBuildConfig;
 
 // HYPOTHESIS: soGenerateArticleManageModuleBuilder (weapon pools), not reconstructed yet

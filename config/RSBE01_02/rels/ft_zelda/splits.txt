@@ -44,6 +44,10 @@ mo_fighter/ft_zelda/ft_zelda_status_uniq_process_final.cpp:
 	.text       start:0x0000F104 end:0x0000FA0C
 	.ctors      start:0x00000018 end:0x0000001C
 
+mo_fighter/ft_zelda/ft_zelda_cut_in_transactor_final.cpp:
+	.text       start:0x0000FA0C end:0x0000FF60
+	.ctors      start:0x0000001C end:0x00000020
+
 mo_fighter/ft_zelda/wn_zelda_dein.cpp:
 	.text       start:0x0000FF60 end:0x00013408
 
@@ -67,6 +71,13 @@ mo_fighter/ft_zelda/wn_zelda_dein_s_status_uniq_process_bang.cpp:
 	.rodata     start:0x000000D0 end:0x000000D8
 	.data       start:0x00008908 end:0x00008980
 	.bss        start:0x00000330 end:0x00000340
+
+mo_fighter/ft_zelda/ft_sheik.cpp:
+	.text       start:0x000159D0 end:0x0001D9CC
+	.ctors      start:0x0000002C end:0x00000030
+
+mo_fighter/ft_zelda/ft_sheik_kinetic_transactor.cpp:
+	.text       start:0x0001D9CC end:0x0001DECC
 
 mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_s_start.cpp:
 	.text       start:0x0001DECC end:0x0001E4D0

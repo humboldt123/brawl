@@ -53,6 +53,7 @@ public:
 class soGenerateArticleManageModuleNull : public soGenerateArticleManageModule {
 public:
     virtual ~soGenerateArticleManageModuleNull();
+    static soGenerateArticleManageModuleNull* getNullInstance();
 };
 
 static_assert(sizeof(soGenerateArticleManageModule) == 4, "Article interface layout is wrong!");

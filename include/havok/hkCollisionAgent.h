@@ -57,9 +57,18 @@ struct hkCollisionAgent : hkReferencedObject {
 // Slot names from hkNullContactMgr's vtable in the image (lbl_80488348: 0x10 addContactPoint, 0x14
 // reserveContactPoints, 0x18 removeContactPoint, 0x1C processContact, 0x20 cleanup, 0x24 addToi, 0x28 removeToi,
 // 0x2C processToi). HYPOTHESIS: the parameters of the slots nothing here calls yet (declared without any).
+struct hkContactPoint;
+struct hkContactPointProperties;
+struct hkContactPointMaterial;
+struct hkGskCache;
+struct hkCollisionConstraintOwner;
+
 struct hkContactMgr : hkReferencedObject {
-    virtual void addContactPoint();      // 0x10
-    virtual void reserveContactPoints(); // 0x14
+    // 0x10 HYPOTHESIS: the parameter list (hkSimpleConstraintContactMgr reads the two bodies and the point).
+    virtual u16 addContactPoint(const hkCdBody& a, const hkCdBody& b, const hkProcessCollisionInput& input,
+                                hkProcessCollisionOutput& output, const hkGskCache* cache, hkContactPoint& cp);
+    // 0x14: returns 1 (failure) when the points do not fit.
+    virtual hkResult reserveContactPoints(int numPoints);
     // 0x18 HYPOTHESIS: Havok's hkContactMgr::removeContactPoint(hkContactPointId), the id being 16 bits; the agents' cleanup
     // calls it once for every contact point they still hold (key != 0xFFFF).
     virtual void removeContactPoint(u16 contactPointId);
@@ -69,6 +78,15 @@ struct hkContactMgr : hkReferencedObject {
                                 hkProcessCollisionOutput& output);
     // 0x20: hkWorldAgentUtil::removeAgent calls it after the agent entry is destroyed.
     virtual void cleanup();
+    // 0x24..0x2C time-of-impact events. HYPOTHESIS: the parameter lists (register use of
+    // hkSimpleConstraintContactMgr's overrides).
+    virtual int addToi(const hkCdBody& a, const hkCdBody& b, const hkProcessCollisionInput& input,
+                       hkProcessCollisionOutput& output, hkReal toi, hkContactPoint& cp, hkReal& projectedVelocity,
+                       hkContactPointMaterial& materialOut);
+    virtual void removeToi(const hkCollidable& a, const hkCollidable& b, hkContactPointMaterial& material);
+    // HYPOTHESIS: the event is the continuous simulation's toi record (entities at 0x04/0x08, separating velocity at
+    // 0x0C, contact point at 0x10, properties at 0x20); the other two arguments go to the simple collision response.
+    virtual void processToi(const void* toiEvent, hkReal rotateNormal, void* entitiesOut);
 };
 
 // Makes the contact manager of a new agent (hkCollisionDispatcher holds one per pair of material response types).

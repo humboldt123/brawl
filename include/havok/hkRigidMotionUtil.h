@@ -6,12 +6,16 @@
 struct hkStepInfo;
 struct hkVector4;
 struct hkEntity;
+struct hkVelocityAccumulator;
 
-// Rigid motion helpers from the hkRigidMotionUtil TU. Parameter types are HYPOTHESIS: the callers pass the
-// solver object, a motion or entity pointer, a pointer to a small record (its first word is the motion
-// pointer), a count-like word, a stride-like word and the motion pointer again.
+// Rigid motion helpers from the hkRigidMotionUtil TU.
 struct hkRigidMotionUtil {
-    static void hkRigidMotionUtilApplyAccumulators(void* self, void* p1, void* p2, u32 p3, u32 p4, void* p5);
+    // Writes the solver's velocities back into the motions of the entities and steps them: the step, one
+    // accumulator per entity, the entities, their count and the offset of the motion in an entity.
+    // HYPOTHESIS: unk5 (both callers pass a sixth word; the function does not read it).
+    static void hkRigidMotionUtilApplyAccumulators(const hkStepInfo& info, hkVelocityAccumulator* accumulators,
+                                                   hkEntity** entities, int numEntities, int motionOffset,
+                                                   void* unk5);
     // Steps the motions of the entities on their own (hkSimulation::integrateInternal, islands without
     // constraints): the step, the velocity change from gravity over it, the entities, and the offset of the motion
     // in an entity. HYPOTHESIS: the parameter types.

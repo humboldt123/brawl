@@ -4,7 +4,7 @@
 #pragma once
 struct soEffectContinual;
 struct soEffectTime;
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 class efScreenHandle;
 #endif
 
@@ -83,10 +83,12 @@ public:
 static_assert(sizeof(soEffectModule) == 8, "Class is wrong size!");
 
 class soEffectModuleImpl : public soEffectModule, public soAnimCmdEventObserver, public soStatusEventObserver, public soModelEventObserver, public soCollisionAttackEventObserver, public soCollisionShieldEventObserver {
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 public:
     soEffectModuleImpl(soModuleAccesser* acc, soArray<soEffectContinual>* continuals, void* nodeData, soArray<u32>* u32s, soArray<soEffectTime>* times, void* emitData, soEventObserverRegistrationDesc* regDesc, void* commonData, int n, void* screenData, soArray<efScreenHandle>* screens);
+#ifdef FT_MODULE_BUILDER
 private:
+#endif
 #endif
 public:
     // HYPOTHESIS: one queued common-effect request. The list unit is 16 bytes with the element at offset 4,

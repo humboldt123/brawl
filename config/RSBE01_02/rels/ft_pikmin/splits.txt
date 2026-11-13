@@ -109,6 +109,10 @@ mo_fighter/ft_pikmin/wn_pikmin_pikmin_status_uniq_process_catch_common.cpp:
 	.text       start:0x00025FB8 end:0x000261DC
 	.ctors      start:0x00000024 end:0x00000028
 
+mo_fighter/ft_pikmin/wn_pikmin_pikmin_damage_effector_impl.cpp:
+	.text       start:0x000261DC end:0x000263DC
+	.ctors      start:0x00000028 end:0x0000002C
+
 mo_fighter/ft_pikmin/wn_pikmin_pikmin_status_uniq_process_ground_follow.cpp:
 	.text       start:0x00026808 end:0x00026AE4
 	.ctors      start:0x0000002C end:0x00000030

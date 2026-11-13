@@ -54,6 +54,7 @@ struct hkSymmetricAgentLinearCast_18hkMultiSphereAgent_ : hkMultiSphereAgent {
     static void staticGetClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     static void staticLinearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d);
     virtual void processCollision(const hkCdBody& a, const hkCdBody& b, hkProcessCollisionInput& c, void* d);
+    virtual void updateShapeCollectionFilter(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c);
 };
 
 // Flipped (symmetric) variant created by createListBAgent; the class name follows the Havok TU map.
@@ -64,19 +65,42 @@ struct hkSymmetricAgent_18hkMultiSphereAgent_ : hkSymmetricAgentLinearCast_18hkM
     virtual void linearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d);
 };
 
-// HYPOTHESIS: hkSymmetricAgentLinearCast<hkMultiSphereTriangleAgent> (map name, in hkMultiSphereAgent.o); the
-// triangle agent itself is not recovered. Its static linear cast goes to the iterative linear cast.
+// Multi-sphere against triangle agent (object size 0x2C, map names; in hkMultiSphereAgent.o). The 0x08 word is the
+// contact manager, 0x0C the triangle's closest-point cache (hkCollideTriangleUtil::setupClosestPointTriangleCache) and
+// 0x1C one contact point id per sphere (0xFFFF when unused, released by cleanup). Its static linear cast goes to the
+// iterative linear cast.
 struct hkMultiSphereTriangleAgent : hkIterativeLinearCastAgent {
+    u8 m_closestPointTriangleCache[16]; // 0x0C
+    u16 m_contactPointId[8];            // 0x1C HYPOTHESIS: eight = the most spheres a multi-sphere shape holds
+
+    // triangleBody: the body holding the triangle (bodyB, or bodyA for the symmetric variant).
+    hkMultiSphereTriangleAgent(const hkCdBody& triangleBody, hkContactMgr* contactMgr);
+    virtual ~hkMultiSphereTriangleAgent() {}
+
+    // Registers the triangle/multi-sphere agent functions with the dispatcher (both orders).
+    static void registerAgent(hkCollisionDispatcher* dispatcher);
+    // Triangle first: the triangle is bodyA; builds the symmetric variant.
+    static hkMultiSphereTriangleAgent* createTriangleMultiSphereAgent(const hkCdBody& bodyA, const hkCdBody& bodyB,
+                                                                      hkCollisionInput& input, hkContactMgr* contactMgr);
+    // Multi-sphere first: the triangle is bodyB; builds the plain agent.
+    static hkMultiSphereTriangleAgent* createMultiSphereTriangleAgent(const hkCdBody& bodyA, const hkCdBody& bodyB,
+                                                                      hkCollisionInput& input, hkContactMgr* contactMgr);
+
+    virtual void cleanup();
     virtual void getPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target); // not written yet
     virtual void getClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target); // not written yet
     static void staticGetPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target); // not written yet
     static void staticGetClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target); // not written yet
 };
 
+// HYPOTHESIS: hkSymmetricAgentLinearCast<hkMultiSphereTriangleAgent> (map name).
 struct hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_ : hkMultiSphereTriangleAgent {
+    hkSymmetricAgentLinearCast_26hkMultiSphereTriangleAgent_(const hkCdBody& triangleBody, hkContactMgr* contactMgr)
+        : hkMultiSphereTriangleAgent(triangleBody, contactMgr) {}
     virtual void getPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     static void staticGetPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     virtual void getClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     static void staticGetClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     static void staticLinearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d);
+    virtual void updateShapeCollectionFilter(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c);
 };

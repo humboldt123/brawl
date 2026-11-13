@@ -19,6 +19,10 @@
 #include <havok/hkShapeType.h>
 #include <havok/hkCollisionInput.h>
 #include <havok/hkBoxShape.h>
+#include <havok/hkBoxBoxCollisionDetection.h>
+#include <havok/hkMonitorStream.h>
+#include <havok/hkCdPoint.h>
+#include <havok/hkCdBodyPairCollector.h>
 
 // Stand-in for hkIterativeLinearCastAgent::staticLinearCast (other unit).
 // Contact manager view with the feature-id removal slot used by cleanup (0x18). HYPOTHESIS: the other slots are unnamed.
@@ -30,6 +34,9 @@ struct hkBoxBoxContactMgr : hkReferencedObject {
 
 // HYPOTHESIS: the size scale that the box test multiplies the shape size with.
 static const float kBoxSizeScale = 1.999f;
+
+// Dynamically initialised (hkBool has a constructor): the unit's __sinit stores the false.
+hkBool hkBoxBoxAgent::m_attemptToFindAllEdges = false;
 
 void hkBoxBoxAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
     hkAgentFuncs funcs;
@@ -60,6 +67,76 @@ void hkBoxBoxAgent::cleanup() {
 }
 
 hkBoxBoxAgent::~hkBoxBoxAgent() {}
+
+void hkBoxBoxAgent::processCollision(const hkCdBody& bodyA, const hkCdBody& bodyB, hkProcessCollisionInput& input,
+                                     void* result) {
+    HK_TIMER_BEGIN("BoxBox");
+    const hkBoxShape* boxA = (const hkBoxShape*)bodyA.getShape();
+    const hkBoxShape* boxB = (const hkBoxShape*)bodyB.getShape();
+    hkVector4 rA4;
+    rA4.setAll(boxA->m_radius);
+    hkVector4 rA;
+    rA.setAdd4(boxA->m_halfExtents, rA4);
+    hkVector4 rB4;
+    rB4.setAll(boxB->m_radius);
+    hkVector4 rB;
+    rB.setAdd4(boxB->m_halfExtents, rB4);
+    hkTransform aTb;
+    aTb.setMulInverseMul(bodyA.getTransform(), bodyB.getTransform());
+    hkBoxBoxCollisionDetection detector(bodyA, bodyB, &input, (hkContactMgr*)unk8, (hkProcessCollisionOutput*)result,
+                                        aTb, bodyA.getTransform(), rA, bodyB.getTransform(), rB, input.getTolerance());
+    detector.calcManifold(m_manifold);
+    HK_TIMER_END();
+}
+
+void hkBoxBoxAgent::staticGetClosestPoints(const hkCdBody& bodyA, const hkCdBody& bodyB, hkCollisionInput& input,
+                                           void* collector) {
+    HK_TIMER_BEGIN("BoxBox");
+    const hkBoxShape* boxA = (const hkBoxShape*)bodyA.getShape();
+    const hkBoxShape* boxB = (const hkBoxShape*)bodyB.getShape();
+    hkVector4 rA4;
+    rA4.setAll(boxA->m_radius);
+    hkVector4 rA;
+    rA.setAdd4(boxA->m_halfExtents, rA4);
+    hkVector4 rB4;
+    rB4.setAll(boxB->m_radius);
+    hkVector4 rB;
+    rB.setAdd4(boxB->m_halfExtents, rB4);
+    hkTransform aTb;
+    aTb.setMulInverseMul(bodyA.getTransform(), bodyB.getTransform());
+    hkBoxBoxCollisionDetection detector(bodyA, bodyB, 0, 0, 0, aTb, bodyA.getTransform(), rA, bodyB.getTransform(), rB,
+                                        input.getTolerance());
+    hkCdPoint event;
+    event.m_cdBodyA = &bodyA;
+    event.m_cdBodyB = &bodyB;
+    if (detector.calculateClosestPoint(event.m_contact)) {
+        ((hkCdPointCollector*)collector)->addCdPoint(&event);
+    }
+    HK_TIMER_END();
+}
+
+void hkBoxBoxAgent::staticGetPenetrations(const hkCdBody& bodyA, const hkCdBody& bodyB, hkCollisionInput& input,
+                                          void* collector) {
+    HK_TIMER_BEGIN("BoxBox");
+    const hkBoxShape* boxA = (const hkBoxShape*)bodyA.getShape();
+    const hkBoxShape* boxB = (const hkBoxShape*)bodyB.getShape();
+    hkVector4 rA4;
+    rA4.setAll(boxA->m_radius);
+    hkVector4 rA;
+    rA.setAdd4(boxA->m_halfExtents, rA4);
+    hkVector4 rB4;
+    rB4.setAll(boxB->m_radius);
+    hkVector4 rB;
+    rB.setAdd4(boxB->m_halfExtents, rB4);
+    hkTransform aTb;
+    aTb.setMulInverseMul(bodyA.getTransform(), bodyB.getTransform());
+    hkBoxBoxCollisionDetection detector(bodyA, bodyB, 0, 0, 0, aTb, bodyA.getTransform(), rA, bodyB.getTransform(), rB,
+                                        input.getTolerance());
+    if (detector.getPenetrations()) {
+        ((hkCdBodyPairCollector*)collector)->addCdBodyPair(bodyA, bodyB);
+    }
+    HK_TIMER_END();
+}
 
 void hkBoxBoxAgent::getClosestPoints(const hkCdBody& unk0, const hkCdBody& unk1, hkCollisionInput& unk2, void* unk3) {
     staticGetClosestPoints(unk0, unk1, unk2, unk3);

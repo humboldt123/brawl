@@ -945,12 +945,7 @@ struct ftKirbyArticleBuildInfo : wnArticleBuildInfo {
 
 // Explicit specializations are strong. The original inlines these into the builder, so the out-of-line copy stays weak.
 #define FT_KIRBY_SIMPLE_HOLDER(ID)                                                                                      \
-    template <>                                                                                                         \
-    __declspec(weak)                                                                                                    \
-    wnInstanceHolder<wnSimple, soKindInfoGeneric<0, 5>, soIntToType<ID> >::wnInstanceHolder(soModuleAccesser* acc) :   \
-        m_instance(ID, wnSimpleConstructionInfo(wnSimpleKindInfo(Fighter_Kirby), acc->m_enumerationStart->m_heapModule), \
-                   g_ftCommonDataAccesser.getSimpleData(Fighter_Kirby, &ftArticleDataFlags().get().resourceGroup),     \
-                   false) { }
+    template <>                                                                                                             inline __declspec(weak)                                                                                                 wnInstanceHolder<wnSimple, soKindInfoGeneric<0, 5>, soIntToType<ID> >::wnInstanceHolder(soModuleAccesser* acc) :           m_instance(ID, wnSimpleConstructionInfo(wnSimpleKindInfo(Fighter_Kirby), acc->m_enumerationStart->m_heapModule),                    g_ftCommonDataAccesser.getSimpleData(static_cast<ftKind>(wnSimpleKindInfo(Fighter_Kirby).subKind), &ftArticleDataFlags().get().resourceGroup),                        false) { }
 
 FT_KIRBY_SIMPLE_HOLDER(10)
 FT_KIRBY_SIMPLE_HOLDER(9)
@@ -961,7 +956,7 @@ FT_KIRBY_SIMPLE_HOLDER(6)
 
 #define FT_KIRBY_WEAPON_HOLDER(WEAPON, DATA, ID, GETTER)                                                                \
     template <>                                                                                                         \
-    __declspec(weak)                                                                                                    \
+    inline __declspec(weak)                                                                                                    \
     wnInstanceHolder<WEAPON, soKindInfoGeneric<0, 5>, soIntToType<ID> >::wnInstanceHolder(soModuleAccesser* acc) :     \
         m_instance(ID,                                                                                                  \
                    ftKirbyArticleBuildInfo(ftKirbyArticleKind(),                                                        \
@@ -1025,3 +1020,232 @@ template class soInstancePool<soInstancePoolInfo<wnSimple, 1, wnInstanceHolder, 
 // The simple article's teardown is a copy in each fighter that pools one. Weak until the animcmd sub-builder
 // teardown matches the original: this copy destroys that builder in one call and runs long.
 __declspec(weak) wnSimple::~wnSimple() { }
+
+bool ftKirby::activeArticle(wnKirbyHammer* article, soModuleAccesser* acc) {
+    soResourceModule& resource = acc->getResourceModule();
+    int founderTaskId = acc->getStageObject().m_taskId;
+    article->activate(founderTaskId, resource.getResourceIdAccesser()->getEtcResId(), acc->getSituationModule().getKind());
+    return true;
+}
+
+// ---- the article mediator (slots 0..10: hammer, final cutter, starmissile, stone, nabe, cook hat, five simple articles) ----
+typedef soInstancePool<ftKirbyHammerInfo, ftKirbyArticlePool0Parent, ftKirbyArticleKindInfo, 0> ftKirbyHammerPool;
+typedef soInstancePool<ftKirbyFinalCutterInfo, ftKirbyArticlePool1Parent, ftKirbyArticleKindInfo, 1> ftKirbyFinalCutterPool;
+typedef soInstancePool<ftKirbyStarmissileInfo, ftKirbyArticlePool2Parent, ftKirbyArticleKindInfo, 2> ftKirbyStarmissilePool;
+typedef soInstancePool<ftKirbyStoneInfo, ftKirbyArticlePool3Parent, ftKirbyArticleKindInfo, 3> ftKirbyStonePool;
+typedef soInstancePool<ftKirbyNabeInfo, ftKirbyArticlePool4Parent, ftKirbyArticleKindInfo, 4> ftKirbyNabePool;
+typedef soInstancePool<ftKirbyCookHatInfo, ftKirbyArticlePool5Parent, ftKirbyArticleKindInfo, 5> ftKirbyCookHatPool;
+typedef soInstancePool<ftKirbySimple6Info, ftKirbyArticlePool6Parent, ftKirbyArticleKindInfo, 6> ftKirbySimple6Pool;
+typedef soInstancePool<ftKirbySimple7Info, ftKirbyArticlePool7Parent, ftKirbyArticleKindInfo, 7> ftKirbySimple7Pool;
+typedef soInstancePool<ftKirbySimple8Info, ftKirbyArticlePool8Parent, ftKirbyArticleKindInfo, 8> ftKirbySimple8Pool;
+typedef soInstancePool<ftKirbySimple9Info, ftKirbyArticlePool9Parent, ftKirbyArticleKindInfo, 9> ftKirbySimple9Pool;
+typedef ftKirbySimple10Pool ftKirbySimple10PoolAlias;
+
+// HYPOTHESIS: the original is a functor over the predicate type that the simple articles' pools count with; its call
+// operator stays out of line there. Name as in include/em/em_article_mediator.h (not includable here).
+inline bool ftKirbyArticleIsActiveRef(soArticle& article) { return article.isActiveArticle(); }
+template <class Fn>
+struct soEachCounter {
+    Fn* m_fn;
+    s32 m_trueNum;
+    s32 m_falseNum;
+    soEachCounter(Fn* fn) : m_fn(fn), m_trueNum(0), m_falseNum(0) { }
+    template <class T>
+    bool operator()(T* instance) __attribute__((never_inline)) {
+        if (m_fn(static_cast<soArticle&>(*instance)) == true) {
+            ++m_trueNum;
+        } else {
+            ++m_falseNum;
+        }
+        return true;
+    }
+};
+
+template <int N, class Level, int S, int L>
+inline s32 ftKirbySlotActiveNumEach(Level& pool, const soIntToType<S>&, const soIntToType<L>&) {
+    soEachCounter<bool(soArticle&)> counter(ftKirbyArticleIsActiveRef);
+    for (s32 i = 0; i < N; ++i) {
+        soEachCounter<bool(soArticle&)>* c = &counter;
+        if (!(*c)(pool.getSub().getInstanceAt(i))) {
+            break;
+        }
+    }
+    return counter.m_trueNum;
+}
+
+template <int S, int L>
+inline s32 ftKirbySlotRestNum(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    return 2 - acc->getGenerateArticleManageModule().getNum(11);
+}
+
+template <class W, int N, class Level, int S, int L>
+inline s32 ftKirbySlotActiveNum(Level& pool, const soIntToType<S>&, const soIntToType<L>&) {
+    wnArticleSlotCounter counter;
+    counter.m_isActive = wnArticleIsActive;
+    counter.m_activeNum = 0;
+    counter.m_inactiveNum = 0;
+    for (s32 i = 0; i < N; ++i) {
+        wnArticleSlotCounter* c = &counter;
+        if (c->m_isActive(&static_cast<soArticle&>(*pool.getSub().getInstanceAt(i))) == true) {
+            ++c->m_activeNum;
+        } else {
+            ++c->m_inactiveNum;
+        }
+    }
+    return counter.m_activeNum;
+}
+
+template <int N, class Level, int S, int L>
+inline bool ftKirbySlotIsGeneratable(Level& pool, const soIntToType<S>&, const soIntToType<L>&) {
+    bool allActive;
+    s32 i;
+    for (i = 0; i < N; ++i) {
+        if (static_cast<soArticle&>(*pool.getSub().getInstanceAt(i)).isActiveArticle() == false) {
+            allActive = false;
+            goto done;
+        }
+    }
+    allActive = true;
+done:
+    return allActive == false;
+}
+
+#define FT_KIRBY_UNUSED_SLOTS(value) \
+    WN_ARTICLE_UNUSED_SLOT(11, value) WN_ARTICLE_UNUSED_SLOT(12, value) WN_ARTICLE_UNUSED_SLOT(13, value) \
+    WN_ARTICLE_UNUSED_SLOT(14, value) WN_ARTICLE_UNUSED_SLOT(15, value) WN_ARTICLE_UNUSED_SLOT(16, value)
+
+#define FT_KIRBY_DEACTIVATE(P, W)                                                  \
+    for (s32 i = 0; i < 1; ++i) {                                                  \
+        W* weapon = static_cast<P&>(m_pools).getSub().getInstanceAt(i);            \
+        if (!static_cast<soArticle&>(*weapon).setDeactivateDescendant()) {         \
+            return;                                                                \
+        }                                                                          \
+    }
+
+template <class PoolList, class Founder>
+void soArticleMediatorImpl<PoolList, Founder>::deactivate() {
+    FT_KIRBY_DEACTIVATE(ftKirbyHammerPool, wnKirbyHammer)
+    FT_KIRBY_DEACTIVATE(ftKirbyFinalCutterPool, wnKirbyFinalCutter)
+    FT_KIRBY_DEACTIVATE(ftKirbyStarmissilePool, wnKirbyStarmissile)
+    FT_KIRBY_DEACTIVATE(ftKirbyStonePool, wnKirbyStone)
+    FT_KIRBY_DEACTIVATE(ftKirbyNabePool, wnKirbyNabe)
+    FT_KIRBY_DEACTIVATE(ftKirbyCookHatPool, wnKirbyCookHat)
+    FT_KIRBY_DEACTIVATE(ftKirbySimple6Pool, wnSimple)
+    FT_KIRBY_DEACTIVATE(ftKirbySimple7Pool, wnSimple)
+    FT_KIRBY_DEACTIVATE(ftKirbySimple8Pool, wnSimple)
+    FT_KIRBY_DEACTIVATE(ftKirbySimple9Pool, wnSimple)
+    FT_KIRBY_DEACTIVATE(ftKirbySimple10PoolAlias, wnSimple)
+}
+
+template <class PoolList, class Founder>
+s32 soArticleMediatorImpl<PoolList, Founder>::getGenerateMaxNum(s32 articleId) {
+    switch (articleId) {
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 8: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 9: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 10: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    FT_KIRBY_UNUSED_SLOTS(0)
+    default: return 0;
+    }
+}
+
+template <class PoolList, class Founder>
+s32 soArticleMediatorImpl<PoolList, Founder>::getActiveNum(soModuleAccesser* acc, s32 articleId) {
+    switch (articleId) {
+    case 0: return ftKirbySlotActiveNum<wnKirbyHammer, 1>(static_cast<ftKirbyHammerPool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftKirbySlotActiveNum<wnKirbyFinalCutter, 1>(static_cast<ftKirbyFinalCutterPool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftKirbySlotActiveNum<wnKirbyStarmissile, 1>(static_cast<ftKirbyStarmissilePool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftKirbySlotActiveNum<wnKirbyStone, 1>(static_cast<ftKirbyStonePool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftKirbySlotActiveNum<wnKirbyNabe, 1>(static_cast<ftKirbyNabePool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftKirbySlotActiveNum<wnKirbyCookHat, 1>(static_cast<ftKirbyCookHatPool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 6: return ftKirbySlotActiveNumEach<1>(static_cast<ftKirbySimple6Pool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 7: return ftKirbySlotActiveNumEach<1>(static_cast<ftKirbySimple7Pool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 8: return ftKirbySlotActiveNumEach<1>(static_cast<ftKirbySimple8Pool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 9: return ftKirbySlotActiveNumEach<1>(static_cast<ftKirbySimple9Pool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 10: return ftKirbySlotActiveNumEach<1>(static_cast<ftKirbySimple10PoolAlias&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 11: return ftKirbySlotRestNum(acc, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOT(12, 0) WN_ARTICLE_UNUSED_SLOT(13, 0) WN_ARTICLE_UNUSED_SLOT(14, 0)
+    WN_ARTICLE_UNUSED_SLOT(15, 0) WN_ARTICLE_UNUSED_SLOT(16, 0)
+    default: return 0;
+    }
+}
+
+template <int S, int L>
+inline bool ftKirbySlotGeneratableByCount(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    return acc->getGenerateArticleManageModule().getNum(11) < 2;
+}
+
+template <class PoolList, class Founder>
+bool soArticleMediatorImpl<PoolList, Founder>::isGeneratable(soModuleAccesser* acc, s32 articleId) {
+    switch (articleId) {
+    case 0: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbyHammerPool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbyFinalCutterPool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbyStarmissilePool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbyStonePool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbyNabePool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbyCookHatPool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 6: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbySimple6Pool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 7: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbySimple7Pool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 8: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbySimple8Pool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 9: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbySimple9Pool&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    case 10: return ftKirbySlotIsGeneratable<1>(static_cast<ftKirbySimple10PoolAlias&>(m_pools), WN_ARTICLE_SLOT_TAGS);
+    // HYPOTHESIS: the copy ability article is generatable while fewer than two of them exist.
+    case 11: return ftKirbySlotGeneratableByCount(acc, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOT(12, false) WN_ARTICLE_UNUSED_SLOT(13, false) WN_ARTICLE_UNUSED_SLOT(14, false)
+    WN_ARTICLE_UNUSED_SLOT(15, false) WN_ARTICLE_UNUSED_SLOT(16, false)
+    default: return false;
+    }
+}
+
+// HYPOTHESIS: virtual view of the copy ability module (its first word is a vtable pointer); slot 4 takes the article.
+struct ftKirbyCopyAbilityShootView {
+    virtual void unk0();
+    virtual void unk1();
+    virtual void unk2();
+    virtual void unk3();
+    virtual bool shootArticle(soArticle* article, soModuleAccesser* acc);
+};
+
+template <int S, int L>
+inline void ftKirbySlotTags(const soIntToType<S>&, const soIntToType<L>&) { }
+
+template <class PoolList, class Founder>
+bool soArticleMediatorImpl<PoolList, Founder>::shoot(soModuleAccesser* acc, soArticle* article) {
+    switch (article->getArticleId()) {
+    case 0: return wnArticleSlotShoot<wnKirbyHammer>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnKirbyFinalCutter>(article, WN_ARTICLE_SLOT_TAGS);
+    case 2: return wnArticleSlotShoot<wnKirbyStarmissile>(article, WN_ARTICLE_SLOT_TAGS);
+    case 3: return wnArticleSlotShoot<wnKirbyStone>(article, WN_ARTICLE_SLOT_TAGS);
+    case 4: return wnArticleSlotShoot<wnKirbyNabe>(article, WN_ARTICLE_SLOT_TAGS);
+    case 5: return wnArticleSlotShoot<wnKirbyCookHat>(article, WN_ARTICLE_SLOT_TAGS);
+    case 6: return wnArticleSlotShoot<wnSimple>(article, WN_ARTICLE_SLOT_TAGS);
+    case 7: return wnArticleSlotShoot<wnSimple>(article, WN_ARTICLE_SLOT_TAGS);
+    case 8: return wnArticleSlotShoot<wnSimple>(article, WN_ARTICLE_SLOT_TAGS);
+    case 9: return wnArticleSlotShoot<wnSimple>(article, WN_ARTICLE_SLOT_TAGS);
+    case 10: return wnArticleSlotShoot<wnSimple>(article, WN_ARTICLE_SLOT_TAGS);
+    case 11: {
+        ftKirbySlotTags(WN_ARTICLE_SLOT_TAGS);
+        ftKirby* kirby = dynamic_cast<ftKirby*>(&acc->getStageObject());
+        if (kirby == NULL) {
+            return false;
+        }
+        return reinterpret_cast<ftKirbyCopyAbilityShootView*>(kirby->getCopyAbility())->shootArticle(article, acc);
+    }
+    WN_ARTICLE_UNUSED_SLOT(12, true) WN_ARTICLE_UNUSED_SLOT(13, true) WN_ARTICLE_UNUSED_SLOT(14, true)
+    WN_ARTICLE_UNUSED_SLOT(15, true) WN_ARTICLE_UNUSED_SLOT(16, true)
+    default: return false;
+    }
+}
+
+template void soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::deactivate();
+template s32 soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::getGenerateMaxNum(s32);
+template s32 soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::getActiveNum(soModuleAccesser*, s32);
+template bool soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::isGeneratable(soModuleAccesser*, s32);
+template bool soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::shoot(soModuleAccesser*, soArticle*);

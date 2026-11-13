@@ -120,3 +120,9 @@ void hkSymmetricAgentLinearCast_22hkCapsuleTriangleAgent_::staticLinearCast(cons
         hkIterativeLinearCastAgent::staticLinearCast(b, a, flippedInput, &flipped, 0);
     }
 }
+
+// Weak inline copies emitted in this unit; extern "C" placeholders under their fn_ names until the
+// instantiating callers are written (shape from https://github.com/jj-link/brawl src/havok/fn_<addr>.cpp).
+// hkSymmetricAgentLinearCast<hkCapsuleTriangleAgent>::updateShapeCollectionFilter (empty)
+// TODO: cleanup (shape from jj-link/brawl fn_802AEDFC)
+extern "C" void fn_802AEDFC(void) {}

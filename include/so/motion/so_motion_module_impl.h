@@ -16,7 +16,7 @@
 #include <types.h>
 
 class soModuleAccesser;
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 struct soPartialAnim;
 struct soOtherAnim;
 struct soTransitionTermPack;
@@ -152,8 +152,9 @@ public:
 static_assert(sizeof(soMotionModule) == 4, "Class is wrong size!");
 
 class soMotionModuleImpl : public soMotionModule, public soStatusEventObserver, public soAnimCmdEventObserver, public soModelEventObserver, public soEventPresenter<soMotionEventObserver> {
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
 public:
+    // WN_EM_SIMPLE_UNIT: the enemy weapon's motion builder calls the sora_melee constructor.
     soMotionModuleImpl(soModuleAccesser* acc, soArrayFixed<const soMotionData>* motionData, soTransitionModule* transition, soArray<soPartialAnim>* partialAnims, soArray<soOtherAnim>* otherAnims, soArray<soTransitionTermPack>* termPacks, soArray<u32>* u32s, s16 unitId, bool b, soMotionAnimObjCacheModule* animObjCache);
 private:
 #endif

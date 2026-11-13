@@ -362,7 +362,7 @@ void StageObject::deactivate(bool treatAsRemoved) {
 // (animation commands, status, controller, camera, model, ..., the collision modules once the posture, situation and
 // scale are known, then the remaining modules). lr is the facing (1.0 right, -1.0 left); damage is the percent the
 // damage module starts with.
-void StageObject::activate(float lr, float damage, Vec3f* pos, bool updateTaskId) {
+void StageObject::activate(Vec3f* pos, float lr, float damage, bool updateTaskId) {
     m_isActive = true;
     soModuleAccesser* acc = m_moduleAccesser;
     m_alive = true;

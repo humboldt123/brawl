@@ -196,6 +196,10 @@ class ftKirby : public ftFighterBuilder<ftKirbyBuildConfig> {
     ftKirbyCopyAbilityModule m_copyAbility;                      // +0x1B72C
     Heaps::HeapType m_nwModelHeap;                               // +0x1C290
 public:
+    // HYPOTHESIS: the article mediator hands article 11 (the copy ability article) to the copy ability module of the founder.
+    ftKirbyCopyAbilityModule* getCopyAbility() { return &m_copyAbility; }
+    // Article activators: the mediator's generate() hands each new article to the founder to set it up.
+    static bool activeArticle(class wnKirbyHammer* article, soModuleAccesser* moduleAccesser);
     ftKirby(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,

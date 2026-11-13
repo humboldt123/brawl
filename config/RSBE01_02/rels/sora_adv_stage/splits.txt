@@ -11,6 +11,34 @@ global_destructor_chain.c:
 	.dtors      start:0x00000000 end:0x00000008
 	.bss        start:0x00000000 end:0x00000004
 
+mo_adv_stage/st_adventure2.cpp:
+	.text       start:0x00000070 end:0x0000DBE8
+	.ctors      start:0x00000000 end:0x00000004
+
+mo_adv_stage/st_trigger_observe_adv.cpp:
+	.text       start:0x0000DBE8 end:0x0000E554
+	.ctors      start:0x00000004 end:0x00000008
+
+mo_adv_stage/st_trigger_actor.cpp:
+	.text       start:0x0000E554 end:0x00012278
+	.ctors      start:0x00000008 end:0x0000000C
+
+mo_adv_stage/st_trigger_actor_enemy.cpp:
+	.text       start:0x00012278 end:0x00013FB0
+	.ctors      start:0x0000000C end:0x00000010
+
+mo_adv_stage/st_trigger_actor_sound.cpp:
+	.text       start:0x00013FB0 end:0x00014988
+	.ctors      start:0x00000010 end:0x00000014
+
+mo_adv_stage/st_trigger_actor_area_sound.cpp:
+	.text       start:0x00014988 end:0x000152CC
+	.ctors      start:0x00000014 end:0x00000018
+
+mo_adv_stage/st_adv_versus_item_drop.cpp:
+	.text       start:0x000152CC end:0x000155A0
+	.ctors      start:0x00000018 end:0x0000001C
+
 mo_adv_stage/st_adventure_info_basis.cpp:
 	.text       start:0x000155A0 end:0x000156DC
 
@@ -35,6 +63,10 @@ mo_adv_stage/st_adventure_info_mediation.cpp:
 	.data       start:0x000036A0 end:0x00003750
 	.bss        start:0x000007C0 end:0x000007C8
 
+mo_adv_stage/st_adventure_menu_savepoint.cpp:
+	.text       start:0x00017478 end:0x00019740
+	.ctors      start:0x0000001C end:0x00000020
+
 mo_adv_stage/gr_adventure_background.cpp:
 	.text       start:0x00019740 end:0x0001A240
 	.ctors      start:0x00000020 end:0x00000024
@@ -54,6 +86,9 @@ mo_adv_stage/gr_adventure_barrel_cannon.cpp:
 	.rodata     start:0x00000280 end:0x000002D0
 	.data       start:0x000046B0 end:0x00004BF0
 	.bss        start:0x00000B58 end:0x00000C88
+
+mo_adv_stage/gr_adventure_block_mng.cpp:
+	.text       start:0x0001C014 end:0x000220F8
 
 mo_adv_stage/gr_adventure_block_pos_sympathetic.cpp:
 	.text       start:0x000220F8 end:0x00022E24
@@ -236,12 +271,31 @@ mo_adv_stage/gr_adventure_warpzone.cpp:
 	.data       start:0x00012110 end:0x00012650
 	.bss        start:0x000023C8 end:0x000024F8
 
+mo_adv_stage/gr_adventure_king_statue.cpp:
+	.text       start:0x00038488 end:0x0003A0C8
+	.ctors      start:0x00000074 end:0x00000078
+
+mo_adv_stage/gr_adventure_door_bomb_factory.cpp:
+	.text       start:0x0003A0C8 end:0x0003A2F4
+
+mo_adv_stage/gr_adventure_door_three_pin.cpp:
+	.text       start:0x0003A2F4 end:0x0003B4E0
+	.ctors      start:0x00000078 end:0x0000007C
+
+mo_adv_stage/gr_adventure_door_boss.cpp:
+	.text       start:0x0003B4E0 end:0x0003BF90
+	.ctors      start:0x0000007C end:0x00000080
+
 mo_adv_stage/gr_adventure_savepoint.cpp:
 	.text       start:0x0003BF90 end:0x0003C590
 	.ctors      start:0x00000080 end:0x00000084
 	.rodata     start:0x00000838 end:0x00000848
 	.data       start:0x00015968 end:0x00015E58
 	.bss        start:0x00002768 end:0x00002898
+
+mo_adv_stage/gr_adventure_new_item_box.cpp:
+	.text       start:0x0003C590 end:0x0003D6E4
+	.ctors      start:0x00000084 end:0x00000088
 
 mo_adv_stage/gr_adventure_final.cpp:
 	.text       start:0x0003D6E4 end:0x0003DA24

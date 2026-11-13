@@ -1,10 +1,31 @@
 // The trainer's long animation-command override puts an extra Fighter virtual before getOwner.
 #define FT_FIGHTER_ANIMCMD_LONG
+#define FT_POKETRAINER_ARTICLE_POOLS
+#define FT_ANIMCMD_ARRAY_NULL_INLINE_CTOR
+#define WN_WEAPON_ANIMCMD_LONG
+#define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define SO_EVENT_PRESENTER_STORE_NULL_LIST
+#define FT_PRESENTER_RELOAD_MANAGE_ID
+#define FT_NULL_TAIL_MODULES
+#define FT_SOUND_GENERATOR_DTOR_INLINE
+#define FT_GIMMICK_POOL_INLINE_DTOR
+#define FT_VIRTUAL_NODE_POOL_INLINE_DTOR
+#define FT_GENERAL_WORK_ABSTRACT_DTOR_INLINE
+#define FT_TEAM_INLINE_DTOR
+#define FT_MODULE_BUILDER
+#define SO_NULLABLE_INLINE_CTOR
+#define SO_GENERAL_WORK_BOUNDED_CLEAR
+#define FT_EXTEND_PARAM_EX_SETUP_OUT_OF_LINE
+#define SO_GENERAL_WORK_SIMPLE_CTOR_INLINE
+#define FT_EXTEND_PARAM_EX_DTOR_OUT_OF_LINE
+#include <ft/builder/ft_dol_array_list.h>
+#include <ft/ft_event_unit_instance.h>
+#include <ft/poke/ft_poke_trainer.h>
+// The original keeps the disguise list setup out of line.
+template void soAnimCmdControlUnitBuilderDisguise<soAnimCmdControlUnitBuildConfigDisguise<0, 1, 299, 299, 0, 1, 0, 8> >::setupDisguiseList(int, soAnimCmdDisguiseListEntry*);
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_manager.h>
 #include <ft/ft_owner.h>
-#include <ft/poke/ft_poke_trainer.h>
 #include <so/so_slow.h>
 #include <so/motion/so_motion_change_param.h>
 #include <mt/mt_prng.h>
@@ -17,6 +38,29 @@
 #include <st/stage.h>
 #include <types.h>
 #include <so/templates/so_array_value_wnPokeTrainerMBall_BallInfo.h>
+
+#define FT_NOINLINE_SKIP_SHARED_DEFS
+#define FT_BC ftPokeTrainerBuildConfig
+#include <ft/builder/ft_builder_noinline.h>
+
+template <u32 T1, u32 NumFloats, u32 T3, u32 NumInts>
+void ftExtendParamAccesserEx<T1, NumFloats, T3, NumInts>::setup(const u8*) { }
+
+template <u32 T1, u32 NumFloats, u32 T3, u32 NumInts>
+ftExtendParamAccesserEx<T1, NumFloats, T3, NumInts>::~ftExtendParamAccesserEx() { }
+
+#pragma force_active on
+template void ftExtendParamAccesserEx<3999, 9, 23999, 4>::setup(const u8*);
+template ftExtendParamAccesserEx<3999, 9, 23999, 4>::~ftExtendParamAccesserEx();
+#pragma force_active off
+
+// The third argument is passed as the raw int. The declared bool would normalize it.
+extern "C" void toChange__9ftManagerFiibb(ftManager*, int, int, int, int);
+
+// The original names this constructor only as fn_27_377C48. A differing strong copy is a non-weak extra.
+__declspec(weak) ftPokeTrainer::ftPokeTrainer(s32 entryId, Heaps::HeapType instHeap, Heaps::HeapType nwModelInstHeap, Heaps::HeapType nwMotionInstHeap) :
+    ftFighterBuilder<ftPokeTrainerBuildConfig>(entryId, Fighter_PokeTrainer, instHeap, nwModelInstHeap, nwMotionInstHeap) {
+}
 
 // HYPOTHESIS: only the module slots called here are known.
 class soDebugModuleTrainerView {
@@ -142,10 +186,24 @@ void ftPokeTrainer::detachInstance() {
     Fighter::detachInstance();
 }
 
+// Same slots as soVisibilityModule. Whole is a full register here: the caller does not mask it.
+class ftPokeTrainerVisibilityView {
+public:
+    virtual void activate();
+    virtual void setData(void*);
+    virtual void set(u32, int);
+    virtual void setStatusDefault(u32, int, bool);
+    virtual void setDefaultAll();
+    virtual void update();
+    virtual void hideAll();
+    virtual void setWhole(int);
+    virtual unsigned int getWhole();
+};
+
 void ftPokeTrainer::setVisibility(int visibility) {
     soModuleAccesser* acc = m_moduleAccesser;
-    if (acc->getVisibilityModule().getWhole() != visibility) {
-        acc->getVisibilityModule().setWhole(visibility);
+    if (reinterpret_cast<ftPokeTrainerVisibilityView&>(acc->getVisibilityModule()).getWhole() != visibility) {
+        reinterpret_cast<ftPokeTrainerVisibilityView&>(acc->getVisibilityModule()).setWhole(visibility);
         struct {
             Vec3f rotRange;
             Vec3f posRange;
@@ -595,7 +653,6 @@ void ftPokeTrainer::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser
         break;
     case 0x458: {
         ftPokeTrainerPosEvent forward(0x455);
-        // MATCH-ONLY: the original copies the position words as a plain struct.
         *reinterpret_cast<ftPokeTrainerRawPos*>(&forward.m_pos) = *reinterpret_cast<ftPokeTrainerRawPos*>(&posEvent->m_pos);
         moduleAccesser->getLinkModule().sendEventParents(6, forward);
         break;
@@ -685,7 +742,14 @@ void ftPokeTrainer::notifyEventDeadPartner(int index) {
             acc->getWorkManageModule().onFlag(Work_Flag_NoPartnerLeft);
             return;
         }
-        if (g_ftManager->isGameSet() == true) {
+        // A bool bitfield folds the normalizing conversion away. An unsigned bit does not.
+        struct FtPokeTrainerGameSetView {
+            char pad[0x6C];
+            u8 : 2;
+            u8 m_isGameSet : 1;
+            bool isGameSet() const { return m_isGameSet; }
+        };
+        if (reinterpret_cast<FtPokeTrainerGameSetView*>(g_ftManager)->isGameSet() == true) {
             return;
         }
     }
@@ -865,7 +929,8 @@ void ftPokeTrainer::notifyEventBeat() {
     if (acc->getSituationModule().getKind() != Situation_Outfield) {
         switch (acc->getStatusModule().getStatusKind()) {
         case 0x122:
-            if (acc->getMotionModule().getKind() == 0x1EB || acc->getMotionModule().getKind() == 0x1E9) {
+            if (acc->getMotionModule().getKind() == 0x1EB) {
+            } else if (acc->getMotionModule().getKind() == 0x1E9) {
             } else {
             }
             break;
@@ -901,7 +966,7 @@ void ftPokeTrainer::setChange(int changeKind) {
             }
             tries++;
         } while (tries < 3);
-        g_ftManager->toChange(m_entryId, (u8)next, changeKind, 0);
+        toChange__9ftManagerFiibb(g_ftManager, m_entryId, (u8)next, changeKind, 0);
     }
     acc->getWorkManageModule().offFlag(Work_Flag_ChangeRequested);
 }
@@ -971,3 +1036,154 @@ bool ftPokeTrainer::activeArticle(wnPokeTrainerMBall* weapon, soModuleAccesser* 
                      kind, acc->getWorkManageModule().isFlag(Work_Flag_ChangeRequested), &pos);
     return true;
 }
+
+// ---- the article holders, builder and mediator ----------------------------------------------------------------------------
+// Articles borrow the owner's kind record and heap while their constructors run.
+#include <ft/builder/ft_builder_article.h>
+
+struct ftPokeTrainerArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
+    ftPokeTrainerArticleKind() {
+        kind = 0;
+        subKind = Fighter_PokeTrainer;
+    }
+};
+
+template <>
+inline wnInstanceHolder<wnPokeTrainerMBall, ftPokeTrainerArticleKindInfo, soIntToType<0> >::wnInstanceHolder(soModuleAccesser* acc) :
+    m_instance(0, ftArticleBuildInfo(ftPokeTrainerArticleKind(), &acc->getHeapModule()),
+               static_cast<const wnPokeTrainerMBallData*>(g_ftCommonDataAccesser.getWeaponData42(
+                   ftPokeTrainerArticleKind().getSubKind(), &ftArticleDataFlags().get().resourceGroup))) { }
+
+template <>
+inline wnInstanceHolder<wnPokeTrainerFinal, ftPokeTrainerArticleKindInfo, soIntToType<1> >::wnInstanceHolder(soModuleAccesser* acc) :
+    m_instance(1, ftArticleBuildInfo(ftPokeTrainerArticleKind(), &acc->getHeapModule()),
+               static_cast<const wnPokeTrainerFinalData*>(g_ftCommonDataAccesser.getWeaponData43(
+                   ftPokeTrainerArticleKind().getSubKind(), &ftArticleDataFlags().get().resourceGroup))) { }
+
+#pragma dont_inline on
+template <class Mediator>
+soSelectInstanceHolder<Mediator, soArticleMediatorNull>::~soSelectInstanceHolder() { }
+template <class BC>
+soGenerateArticleManageModuleBuilder<BC>::~soGenerateArticleManageModuleBuilder() { }
+template <class BC>
+soGenerateArticleManageModuleBuilder<BC>::soGenerateArticleManageModuleBuilder(soModuleAccesser* acc) :
+    m_articles(0), m_observers(BC::ArticleCount, 0), m_mediator(acc), m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
+template soSelectInstanceHolder<ftPokeTrainerArticleMediator, soArticleMediatorNull>::~soSelectInstanceHolder();
+template soGenerateArticleManageModuleBuilder<soGenerateArticleManageModuleBuildConfig<ftPokeTrainerArticleMediator> >::~soGenerateArticleManageModuleBuilder();
+template soGenerateArticleManageModuleBuilder<soGenerateArticleManageModuleBuildConfig<ftPokeTrainerArticleMediator> >::soGenerateArticleManageModuleBuilder(soModuleAccesser*);
+template <class PoolList, class Founder>
+soArticleMediatorImpl<PoolList, Founder>::~soArticleMediatorImpl() { }
+#pragma dont_inline off
+
+template <class PoolList, class Founder>
+s32 soArticleMediatorImpl<PoolList, Founder>::getMediateNum() { return 2; }
+
+template <class PoolList, class Founder>
+void soArticleMediatorImpl<PoolList, Founder>::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
+
+template <class PoolList, class Founder>
+void soArticleMediatorImpl<PoolList, Founder>::deactivate() {
+    for (s32 i = 0; i < 1; ++i) {
+        wnPokeTrainerMBall* weapon = static_cast<ftPokeTrainerMBallPool&>(m_pools).getSub().getInstanceAt(i);
+        if (!static_cast<soArticle&>(*weapon).setDeactivateDescendant()) {
+            return;
+        }
+    }
+    for (s32 i = 0; i < 1; ++i) {
+        wnPokeTrainerFinal* weapon = static_cast<ftPokeTrainerFinalPool&>(m_pools).getSub().getInstanceAt(i);
+        if (!static_cast<soArticle&>(*weapon).setDeactivateDescendant()) {
+            return;
+        }
+    }
+}
+
+template void soArticleMediatorImpl<ftPokeTrainerArticleList, ftPokeTrainer>::deactivate();
+template s32 soArticleMediatorImpl<ftPokeTrainerArticleList, ftPokeTrainer>::getMediateNum();
+template void soArticleMediatorImpl<ftPokeTrainerArticleList, ftPokeTrainer>::setAutoRecycle(bool);
+template soArticleMediatorImpl<ftPokeTrainerArticleList, ftPokeTrainer>::~soArticleMediatorImpl();
+
+template <class Level, class W, int N, class Mediator, int S, int L>
+inline s32 ftPokeTrainerSlotActiveNum(Mediator* mediator, const soIntToType<S>&, const soIntToType<L>&) {
+    wnArticleSlotCounter counter;
+    counter.m_isActive = wnArticleIsActive;
+    counter.m_activeNum = 0;
+    counter.m_inactiveNum = 0;
+    for (s32 i = 0; i < N; ++i) {
+        wnArticleSlotCounter* c = &counter;
+        if (c->m_isActive(&static_cast<soArticle&>(*static_cast<Level&>(mediator->getPools()).getSub().getInstanceAt(i))) == true) {
+            ++c->m_activeNum;
+        } else {
+            ++c->m_inactiveNum;
+        }
+    }
+    return counter.m_activeNum;
+}
+
+template <class Level, int N, class Mediator, int S, int L>
+inline bool ftPokeTrainerSlotIsGeneratable(Mediator* mediator, const soIntToType<S>&, const soIntToType<L>&) {
+    bool allActive;
+    s32 i;
+    for (i = 0; i < N; ++i) {
+        if (static_cast<soArticle&>(*static_cast<Level&>(mediator->getPools()).getSub().getInstanceAt(i)).isActiveArticle() == false) {
+            allActive = false;
+            goto done;
+        }
+    }
+    allActive = true;
+done:
+    return allActive == false;
+}
+
+#define FT_POKETRAINER_UNUSED_SLOTS(value) \
+    WN_ARTICLE_UNUSED_SLOT(2, value) WN_ARTICLE_UNUSED_SLOT(3, value) WN_ARTICLE_UNUSED_SLOT(4, value) \
+    WN_ARTICLE_UNUSED_SLOT(5, value) WN_ARTICLE_UNUSED_SLOT(6, value) WN_ARTICLE_UNUSED_SLOT(7, value) \
+    WN_ARTICLE_UNUSED_SLOT(8, value) WN_ARTICLE_UNUSED_SLOT(9, value) WN_ARTICLE_UNUSED_SLOT(10, value) \
+    WN_ARTICLE_UNUSED_SLOT(11, value) WN_ARTICLE_UNUSED_SLOT(12, value) WN_ARTICLE_UNUSED_SLOT(13, value) \
+    WN_ARTICLE_UNUSED_SLOT(14, value) WN_ARTICLE_UNUSED_SLOT(15, value) WN_ARTICLE_UNUSED_SLOT(16, value)
+
+template <class PoolList, class Founder>
+s32 soArticleMediatorImpl<PoolList, Founder>::getGenerateMaxNum(s32 articleId) {
+    switch (articleId) {
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    FT_POKETRAINER_UNUSED_SLOTS(0)
+    default: return 0;
+    }
+}
+
+template <class PoolList, class Founder>
+s32 soArticleMediatorImpl<PoolList, Founder>::getActiveNum(soModuleAccesser*, s32 articleId) {
+    switch (articleId) {
+    case 0: return ftPokeTrainerSlotActiveNum<ftPokeTrainerMBallPool, wnPokeTrainerMBall, 1>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftPokeTrainerSlotActiveNum<ftPokeTrainerFinalPool, wnPokeTrainerFinal, 1>(this, WN_ARTICLE_SLOT_TAGS);
+    FT_POKETRAINER_UNUSED_SLOTS(0)
+    default: return 0;
+    }
+}
+
+template <class PoolList, class Founder>
+bool soArticleMediatorImpl<PoolList, Founder>::isGeneratable(soModuleAccesser*, s32 articleId) {
+    switch (articleId) {
+    case 0: return ftPokeTrainerSlotIsGeneratable<ftPokeTrainerMBallPool, 1>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftPokeTrainerSlotIsGeneratable<ftPokeTrainerFinalPool, 1>(this, WN_ARTICLE_SLOT_TAGS);
+    FT_POKETRAINER_UNUSED_SLOTS(false)
+    default: return false;
+    }
+}
+
+template s32 soArticleMediatorImpl<ftPokeTrainerArticleList, ftPokeTrainer>::getGenerateMaxNum(s32);
+template s32 soArticleMediatorImpl<ftPokeTrainerArticleList, ftPokeTrainer>::getActiveNum(soModuleAccesser*, s32);
+template bool soArticleMediatorImpl<ftPokeTrainerArticleList, ftPokeTrainer>::isGeneratable(soModuleAccesser*, s32);
+
+template <class PoolList, class Founder>
+bool soArticleMediatorImpl<PoolList, Founder>::shoot(soModuleAccesser* acc, soArticle* article) {
+    switch (article->getArticleId()) {
+    case 0: return Founder::shootArticle(&dynamic_cast<wnPokeTrainerMBall&>(*article), acc);
+    case 1: return wnArticleSlotShoot<wnPokeTrainerFinal>(article, WN_ARTICLE_SLOT_TAGS);
+    FT_POKETRAINER_UNUSED_SLOTS(true)
+    default: return false;
+    }
+}
+
+template bool soArticleMediatorImpl<ftPokeTrainerArticleList, ftPokeTrainer>::shoot(soModuleAccesser*, soArticle*);

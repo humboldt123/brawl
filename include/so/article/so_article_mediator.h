@@ -28,7 +28,12 @@ public:
 class soArticleMediator : public soArticleGenerator, public soArticleOperator {
 public:
     soArticleMediator(soModuleAccesser*) { }
+#ifdef FT_ARTICLE_MEDIATOR_DTOR_INLINE
+    // Opt-in: this unit inlines the empty base and the next teardown is soEventUnit's.
+    virtual ~soArticleMediator() { }
+#else
     virtual ~soArticleMediator();
+#endif
     virtual void deactivate() = 0;
     virtual bool isGeneratable(soModuleAccesser* acc, s32 articleId) = 0;
     virtual s32 getActiveNum(soModuleAccesser* acc, s32 articleId) = 0;

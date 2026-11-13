@@ -182,7 +182,7 @@ s32 VFipf2_unmount(s8 drv_char, u32 mode);
 s8* VF_path2handleidx(s32* o_handle_idx_p, const s8* i_path_p);
 s32 fn_803C63FC(void* unk0, s8* path, u32 unk2);
 s32 fn_803C64EC(void* unk0, s32 handle_idx, s8* path, u32 unk3);
-void fn_803C68D8(void);
+void fn_803C68D8(u32 i_handleIdx);
 // Per-drive NAND access functions (normal or private namespace).
 typedef struct VFNandFuncs {
     s32 (*create)(const char* path, u8 perm, u8 attr);

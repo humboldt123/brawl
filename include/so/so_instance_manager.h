@@ -261,8 +261,12 @@ public:
         s32 idx = (p4 <= -1) ? size() : unkFindIndex(p4);
         if (idx < 0)
             return -1;
+#ifdef WN_EM_SIMPLE_PROPERTY_COPY
+        m_arrayVector.insert(idx, soInstanceUnitFullProperty<T>(elm, id, soAttributeFlag(attr.m_mask), p4));
+#else
         m_arrayVector.insert(idx,
             soInstanceUnitFullPropertyWrapper<T>(attr, elm, id, p4).m_prop);
+#endif
         return id;
     }
 
@@ -284,7 +288,12 @@ public:
         s32 sz = m_arrayVector.size();
         for (s32 i = 0; i < sz; i++) {
             soAttributeFlag attrFlag = m_arrayVector.at(i).getAttribute();
+#ifdef WN_EM_SIMPLE_PROPERTY_COPY
+            s32 mask = targetAttr.m_mask;
+            if (bool(attrFlag.m_mask & mask) == true) {
+#else
             if (attrFlag.m_mask & targetAttr.m_mask) {
+#endif
                 arr.push(&m_arrayVector.at(i).m_element);
             }
         }

@@ -13,8 +13,8 @@ public:
     ftTeam(int entryId);
     // The native getNo implementation keeps the vtable in sora_melee.
     virtual int getNo() const;
-#if defined(FT_TEAM_TYPED_INTERFACE) || !defined(FT_MODULE_BUILDER)
-    // sora_melee's ft_team.cpp emits it next to the vtable.
+#if defined(FT_TEAM_INLINE_DTOR) || defined(FT_TEAM_TYPED_INTERFACE) || !defined(FT_MODULE_BUILDER)
+    // sora_melee's ft_team.cpp emits it next to the vtable. FT_TEAM_INLINE_DTOR: the trainer builder inlines it.
     virtual ~ftTeam() { }
 #else
     virtual ~ftTeam() __attribute__((never_inline));
@@ -43,7 +43,10 @@ public:
     virtual int getIndirectNo() const { return m_indirectTeamNo; }
     virtual void setIndirectNo(int num) { m_indirectTeamNo = num; }
 #else
-#ifdef FT_TEAM_TYPED_INTERFACE
+#if defined(FT_TEAM_INLINE_DTOR)
+    // The trainer's team builder inlines both team destructors.
+    virtual ~ftTeamIndirect() { }
+#elif defined(FT_TEAM_TYPED_INTERFACE)
     // MATCH-ONLY: retain this call while allowing the ftTeam base teardown
     // to inline into it, as in the native fighter REL.
     virtual ~ftTeamIndirect() __attribute__((never_inline));

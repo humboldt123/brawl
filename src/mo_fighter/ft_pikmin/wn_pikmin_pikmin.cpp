@@ -9,9 +9,12 @@
 #define WN_BUILD_DATA_INLINE_QUERIES
 #define WN_ARTICLE_ANIMCMD_INT
 #define WN_KINETIC_GENERIC_BUILDER
+// Destructor spelling stays wnKineticTransactor. This is the transactor the pool forEach calls.
+#define WN_KINETIC_UPDATE_TRANSACTOR wnPikminPikminKineticTransactor
 #define WN_EXTEND_PARAM_ACCESSER_NOINLINE
 #define SO_ARRAY_CONTRACTIBLE_DTORS_NOINLINE
 #define MT_VEC2F_CTOR_NOINLINE
+#define MT_VEC2F_CTOR_OUT_OF_LINE
 #define WN_KINETIC_GRAVITY_INLINE_DTOR
 #define MT_VEC2F_SUB_NOINLINE
 #define MT_VEC3F_FROM_VEC2_CTOR_NOINLINE
@@ -413,11 +416,11 @@ static bool mtIsNormal(float value) {
     return result;
 }
 
-Vec2f wnPikminPikmin::getTargetDiffVec() {
+__declspec(weak) Vec2f wnPikminPikmin::getTargetDiffVec() {
     Vec2f current(m_moduleAccesser->getPostureModule().getPos().m_x, m_moduleAccesser->getPostureModule().getPos().m_y);
     soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
-    Vec2f target(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY));
-    return target - current;
+    // A temporary keeps the constructor's return register as the left operand of the subtraction.
+    return Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)) - current;
 }
 
 bool wnPikminPikmin::isEnableHold() {
@@ -2127,16 +2130,19 @@ void wnPikminPikminKineticTransactor::updateEnergy10(soKineticEnergyNormal* ener
     energy->updateEnergy(acc);
 }
 
-void wnPikminPikminKineticTransactor::updateEnergy(wnKineticEnergyGravity* energy, soModuleAccesser* acc) {
-    if (energy->isEnable() == true && energy->isSuspend() != true) {
-        if (acc->getKineticModule().getKineticType() == 0x34) {
+__declspec(weak) void wnPikminPikminKineticTransactor::updateEnergy(wnKineticEnergyGravity* energy, soModuleAccesser* acc) {
+    // MATCH-ONLY: a bare enable test is the bit extract. An empty true-branch keeps the suspend test as
+    // compare, branch-over, then branch-to-exit.
+    if (energy->isEnable()) {
+        if (energy->isSuspend() == true) {
+        } else if (acc->getKineticModule().getKineticType() == 0x34) {
             wnPikminPikminKineticTransactor empty = {};
             volatile u8 unk15 = 0; // MATCH-ONLY: native clears this unused local byte.
             empty.updateEnergy12(energy, acc);
         } else if (acc->getKineticModule().getKineticType() == 0x35) {
-            wnPikminPikminKineticTransactor empty = {};
             volatile u8 unk17 = 0; // MATCH-ONLY: native clears this unused local byte.
             volatile u8 unk16 = 0; // MATCH-ONLY: native clears this unused local byte.
+            wnPikminPikminKineticTransactor empty = {};
             empty.updateEnergy12(energy, acc);
         } else {
             energy->updateEnergy(acc);
@@ -2144,79 +2150,86 @@ void wnPikminPikminKineticTransactor::updateEnergy(wnKineticEnergyGravity* energ
     }
 }
 
-void wnPikminPikminKineticTransactor::updateEnergy(soKineticEnergyNormal* energy, soModuleAccesser* acc) {
-    if (energy->isEnable() == true && energy->isSuspend() != true) {
-        switch (acc->getKineticModule().getKineticType()) {
-        case 0x21: {
-            volatile u8 unk16 = 0; // MATCH-ONLY: native clears this unused local byte.
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy1(energy, acc);
-            break;
-        }
-        case 0x22: {
-            volatile u8 unk1A = 0; // MATCH-ONLY: native clears this unused local byte.
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy3(energy, acc);
-            break;
-        }
-        case 0x23: {
-            volatile u8 unk1C = 0; // MATCH-ONLY: native clears this unused local byte.
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy4(energy, acc);
-            break;
-        }
-        default:
-            energy->updateEnergy(acc);
-            break;
-        case 0x25: {
-            volatile u8 unk18 = 0; // MATCH-ONLY: native clears this unused local byte.
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy2(energy, acc);
-            break;
-        }
-        case 0x27:
-        case 0x28:
-        case 0x29: {
-            volatile u8 unk1E = 0; // MATCH-ONLY: native clears this unused local byte.
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy5(energy, acc);
-            break;
-        }
-        case 0x2A:
-        case 0x30: {
-            volatile u8 unk20 = 0; // MATCH-ONLY: native clears this unused local byte.
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy6(energy, acc);
-            break;
-        }
-        case 0x2C: {
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy10(energy, acc);
-            break;
-        }
-        case 0x2D: {
-            volatile u8 unk22 = 0; // MATCH-ONLY: native clears this unused local byte.
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy7(energy, acc);
-            break;
-        }
-        case 0x32: {
-            volatile u8 unk24 = 0; // MATCH-ONLY: native clears this unused local byte.
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy8(energy, acc);
-            break;
-        }
-        case 0x35: {
-            volatile u8 unk26 = 0; // MATCH-ONLY: native clears this unused local byte.
-            wnPikminPikminKineticTransactor empty = {};
-            empty.updateEnergy9(energy, acc);
-            break;
-        }
-        }
+__declspec(weak) void wnPikminPikminKineticTransactor::updateEnergy(soKineticEnergyNormal* energy, soModuleAccesser* acc) {
+    // MATCH-ONLY: empty true-branch on suspend, same shape as the gravity overload. Case bodies follow
+    // the native call order.
+    if (!energy->isEnable()) {
+        return;
+    }
+    if (energy->isSuspend() == true) {
+    } else switch (acc->getKineticModule().getKineticType()) {
+    case 0x21: {
+        volatile u8 unk16 = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy1(energy, acc);
+        break;
+    }
+    case 0x25: {
+        volatile u8 unk18 = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy2(energy, acc);
+        break;
+    }
+    case 0x22: {
+        volatile u8 unk1A = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy3(energy, acc);
+        break;
+    }
+    case 0x23: {
+        volatile u8 unk1C = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy4(energy, acc);
+        break;
+    }
+    case 0x27:
+    case 0x28:
+    case 0x29: {
+        volatile u8 unk1E = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy5(energy, acc);
+        break;
+    }
+    case 0x2A:
+    case 0x30: {
+        volatile u8 unk20 = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy6(energy, acc);
+        break;
+    }
+    case 0x2D: {
+        volatile u8 unk22 = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy7(energy, acc);
+        break;
+    }
+    case 0x32: {
+        volatile u8 unk24 = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy8(energy, acc);
+        break;
+    }
+    case 0x35: {
+        volatile u8 unk26 = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy9(energy, acc);
+        break;
+    }
+    case 0x2C: {
+        volatile u8 unk28 = 0; // MATCH-ONLY: native clears this unused local byte.
+        wnPikminPikminKineticTransactor empty = {};
+        empty.updateEnergy10(energy, acc);
+        break;
+    }
+    default:
+        energy->updateEnergy(acc);
+        break;
     }
 }
 
-void wnPikminPikminKineticTransactor::updateEnergy4(soKineticEnergyNormal* energy, soModuleAccesser* acc) {
+// The map names this overload updateEnergy, so the updateEnergy4 spelling cannot pair. Weak, so it is not a
+// strong extra while the body is still a few bytes short of that overload.
+__declspec(weak) void wnPikminPikminKineticTransactor::updateEnergy4(soKineticEnergyNormal* energy, soModuleAccesser* acc) {
     soPostureModule& posture = acc->getPostureModule();
     Vec2f pos(posture.getPos().m_x, posture.getPos().m_y);
     soWorkManageModule& work = acc->getWorkManageModule();
@@ -2621,4 +2634,38 @@ s32 soArrayContractibleTable<const acAnimCmdConv*>::size() const {
 
 bool soArrayFixed<const acAnimCmdConv*>::isEmpty() const {
     return this->size() == 0;
+}
+
+// The article's jostle slot. The interface's set-priority virtual takes the priority in the second argument; the
+// declared unk44 has none, so the call is spelled through a view with the same vtable.
+class wnPikminJostleView : public soNull, public soNullable {
+public:
+    virtual ~wnPikminJostleView();
+    virtual void unk10();
+    virtual void setByte47(u8);
+    virtual void setByte46(int);
+    virtual void setByte48(bool);
+    virtual void setByte4B(u8);
+    virtual void setByte4A(bool);
+    virtual void unk30();
+    virtual float getSpeedX();
+    virtual void unk38();
+    virtual float getPosZ();
+    virtual void unk40();
+    virtual void setPriority(int priority);
+};
+
+void wnPikminPikmin::setJostlePriority(int priority) {
+    reinterpret_cast<wnPikminJostleView*>(&m_moduleAccesser->getJostleModule())->setPriority(priority);
+}
+
+// The observer bases keep an empty default in this object. The article overrides the ones it handles.
+void soDamageEventObserver::notifyEventAddDamage(soDamage*, soModuleAccesser*) { }
+
+void soDamageEventObserver::notifyEventOnDamage(soDamage*, bool, soModuleAccesser*) { }
+
+void soSituationEventObserver::notifyEventChangeSituation(SituationKind, SituationKind, soModuleAccesser*) { }
+
+bool soCollisionSearchEventObserver::notifyEventCollisionSearchCheck() {
+    return false;
 }

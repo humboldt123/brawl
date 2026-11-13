@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-static u32 VFiPFENT_compareAttr(u8 attr, u8 attr_required, u8 attr_unwanted);
+u32 VFiPFENT_compareAttr(u8 attr, u8 attr_required, u8 attr_unwanted);
 static s32 VFiPFENT_compareEntryName(struct PF_DIR_ENT* p_ent, struct PF_STR* p_pattern, u8 attr);
 static s32 VFiPFENT_getEntry(struct PF_DIR_ENT* p_ent, struct PF_ENT_ITER* p_iter, struct PF_STR* p_pattern, u8 attr_required, u8 attr_unwanted, u32* logical_index);
 static s32 VFiPFENT_searchEmptyTailSFN(struct PF_FFD* p_ffd, u32 tail_index, const s8* pattern, u32* p_tail_bit);

@@ -60,6 +60,10 @@ mo_fighter/ft_diddy/ft_diddy_status_uniq_process_special_s_throw.cpp:
 	.text       start:0x00010D50 end:0x000111D4
 	.ctors      start:0x00000028 end:0x0000002C
 
+mo_fighter/ft_diddy/ft_diddy_damage_transactor_impl.cpp:
+	.text       start:0x000111D4 end:0x00011468
+	.ctors      start:0x0000002C end:0x00000030
+
 mo_fighter/ft_diddy/ft_diddy_status_uniq_process_final.cpp:
 	.text       start:0x00011468 end:0x00013100
 	.ctors      start:0x00000030 end:0x00000034

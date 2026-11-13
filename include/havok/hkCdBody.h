@@ -4,6 +4,7 @@
 
 struct hkShape;
 struct hkMotion;
+struct hkTransform;
 
 // Collision body (0x10 bytes). Layout from hkCdBodyClass.cpp.
 struct hkCdBody {
@@ -32,6 +33,10 @@ struct hkCdBody {
         }
         return body;
     }
-    // Returns the motion of the body (map name hkCdBody__getTransform; the function reads the 0x08 word).
-    hkMotion* getTransform() const { return m_motion; }
+    // The transform at the start of the body's motion (map name hkCdBody__getTransform; the function reads the 0x08
+    // word, its out-of-line copy is in hkPredGskCylinderAgent3.o).
+    const hkTransform& getTransform() const { return *(const hkTransform*)m_motion; }
+    // The same word seen as the body's motion state (map name hkCdBody__getMotionState).
+    const struct hkMotionState* getMotionState() const { return (const struct hkMotionState*)m_motion; }
+    const hkShape* getShape() const { return m_shape; }
 };

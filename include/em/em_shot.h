@@ -74,7 +74,12 @@ struct wnemSimple_Data {
     u8 unk2C[0x8];
     // The inline constructor the unit's static initializer runs (the module map's wnemSimple_Data::__ct, weak, at
     // 0x47FAC): it only sets the description pointer. wnemSimple's constructors build their m_shotWork member with the
-    // default constructor (fn_41_2D9B4), which clears it.
+    // default constructor (fn_41_2D9B4), which clears the description pointer.
+#ifdef WN_EM_SIMPLE_UNIT
+    wnemSimple_Data() __attribute__((never_inline));
+#else
+    wnemSimple_Data() : m_param(NULL) { }
+#endif
     wnemSimple_Data(emShotParam* param) : m_param(param) { }
 };
 extern wnemSimple_Data lbl_41_bss_504;

@@ -12,6 +12,11 @@
 
 #include <havok/hkConstrainedSystemFilter.h>
 #include <havok/hkRegistry.h>
+#include <havok/hkConstraintInstance.h>
+#include <havok/hkConstraintData.h>
+#include <havok/hkEntity.h>
+#include <havok/hkAgentNnMachine.h>
+#include <havok/hkWorldAgentUtil.h>
 
 void hkConstrainedSystemFilter::finishLoadedObjecthkConstrainedSystemFilter(void* p) {
     hkFinishLoadedObjectFlag flag;
@@ -47,17 +52,27 @@ hkConstrainedSystemFilter::~hkConstrainedSystemFilter() {
     }
 }
 
+// A new non-contact constraint removes the agent between its two bodies (and the agent's TOI events).
+void hkConstrainedSystemFilter::constraintAddedCallback(const void* constraint) {
+    hkConstraintInstance* instance = (hkConstraintInstance*)constraint;
+    if (instance->getData()->getType() != 11) {
+        hkAgentNnEntry* entry = hkAgentNnMachine_FindAgent(&instance->m_entities[0]->m_collidable,
+                                                           &instance->m_entities[1]->m_collidable);
+        if (entry != 0) {
+            hkWorldAgentUtil::removeAgentAndItsToiEvents(entry);
+        }
+    }
+}
+
 void hkConstrainedSystemFilter::constraintRemovedCallback(const void* constraint) {}
 
-// Child filters are called through their primary vtable: slot 0x54 for isCollisionEnabled1, 0x58 for 2, 0x5C for 3.
-typedef hkBool (*ChildCollisionEnabledFn)(const void* self, const void* a, const void* b);
-
-hkBool hkConstrainedSystemFilter::isCollisionEnabled1(const void* a, const void* b) const {
+hkBool hkConstrainedSystemFilter::isCollisionEnabled(const hkCollisionInput& input, const hkCdBody& a,
+                                                     const hkCdBody& b, const hkShapeCollection& bContainer,
+                                                     u32 bKey) const {
     hkBool enabled = true;
     hkCollisionFilter* child = m_childFilter;
     if (child != 0) {
-        hkBool childResult = ((ChildCollisionEnabledFn)((void* const*)*(void* const*)child)[0x54 / 4])(child, a, b);
-        if (childResult) {
+        if (child->isCollisionEnabled(input, a, b, bContainer, bKey)) {
         } else {
             enabled = false;
         }
@@ -65,12 +80,12 @@ hkBool hkConstrainedSystemFilter::isCollisionEnabled1(const void* a, const void*
     return enabled;
 }
 
-hkBool hkConstrainedSystemFilter::isCollisionEnabled2(const void* a, const void* b) const {
+hkBool hkConstrainedSystemFilter::isCollisionEnabled(const hkShapeRayCastInput& aInput,
+                                                     const hkShapeCollection& bContainer, u32 bKey) const {
     hkBool enabled = true;
     hkCollisionFilter* child = m_childFilter;
     if (child != 0) {
-        hkBool childResult = ((ChildCollisionEnabledFn)((void* const*)*(void* const*)child)[0x58 / 4])(child, a, b);
-        if (childResult) {
+        if (child->isCollisionEnabled(aInput, bContainer, bKey)) {
         } else {
             enabled = false;
         }
@@ -78,12 +93,12 @@ hkBool hkConstrainedSystemFilter::isCollisionEnabled2(const void* a, const void*
     return enabled;
 }
 
-hkBool hkConstrainedSystemFilter::isCollisionEnabled3(const void* a, const void* b) const {
+hkBool hkConstrainedSystemFilter::isCollisionEnabled(const hkWorldRayCastInput& a,
+                                                     const hkCollidable& collidableB) const {
     hkBool enabled = true;
     hkCollisionFilter* child = m_childFilter;
     if (child != 0) {
-        hkBool childResult = ((ChildCollisionEnabledFn)((void* const*)*(void* const*)child)[0x5C / 4])(child, a, b);
-        if (childResult) {
+        if (child->isCollisionEnabled(a, collidableB)) {
         } else {
             enabled = false;
         }
@@ -91,9 +106,41 @@ hkBool hkConstrainedSystemFilter::isCollisionEnabled3(const void* a, const void*
     return enabled;
 }
 
-static hkTypeInfo hkConstrainedSystemFilterTypeInfo = {
-    "hkConstrainedSystemFilter",
-    hkConstrainedSystemFilter::finishLoadedObjecthkConstrainedSystemFilter,
-    hkConstrainedSystemFilter::cleanupLoadedObjecthkConstrainedSystemFilter,
-    hkConstrainedSystemFilter::getVtablehkConstrainedSystemFilter(),
-};
+static hkStaticTypeInfo hkConstrainedSystemFilterTypeInfo("hkConstrainedSystemFilter", hkConstrainedSystemFilter::finishLoadedObjecthkConstrainedSystemFilter,
+                                                    hkConstrainedSystemFilter::cleanupLoadedObjecthkConstrainedSystemFilter,
+                                                    hkConstrainedSystemFilter::getVtablehkConstrainedSystemFilter());
+
+// fn_8032BD74: body from https://github.com/jj-link/brawl src/havok/fn_8032BD74.cpp (namespaced; labels as in our symbols).
+#include <types.h>
+namespace jj_fn_8032BD74 {
+extern "C" {
+extern "C" const float lbl_805A4840;
+extern "C" const float lbl_805A4844;
+}
+// TODO: cleanup (shape from jj-link/brawl fn_8032BD74)
+extern "C" void fn_8032BD74(float *p)
+{
+    float arr[4] __attribute__((aligned(16)));
+    float zero = lbl_805A4840;
+    float one = lbl_805A4844;
+    p[0] = zero;
+    p[5] = zero;
+    p[10] = zero;
+    p[1] = zero;
+    p[2] = zero;
+    p[3] = zero;
+    p[4] = zero;
+    p[6] = zero;
+    p[7] = zero;
+    p[8] = zero;
+    p[9] = zero;
+    p[11] = zero;
+    arr[3] = zero;
+    arr[2] = zero;
+    arr[1] = zero;
+    arr[0] = zero;
+    p[0] = one;
+    p[5] = one;
+    p[10] = one;
+}
+} // namespace jj_fn_8032BD74

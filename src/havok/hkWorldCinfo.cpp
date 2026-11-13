@@ -135,9 +135,5 @@ hkWorldCinfo::hkWorldCinfo(hkFinishLoadedObjectFlag flag) {
 
 #pragma auto_inline reset
 
-static hkTypeInfo hkWorldCinfoTypeInfo = {
-    "hkWorldCinfo",
-    hkWorldCinfo::finishLoadedObjecthkWorldCinfo,
-    hkWorldCinfo::cleanupLoadedObjecthkWorldCinfo,
-    hkWorldCinfo::getVtablehkWorldCinfo(),
-};
+static hkStaticTypeInfo hkWorldCinfoTypeInfo("hkWorldCinfo", hkWorldCinfo::finishLoadedObjecthkWorldCinfo, hkWorldCinfo::cleanupLoadedObjecthkWorldCinfo,
+                                      hkWorldCinfo::getVtablehkWorldCinfo());

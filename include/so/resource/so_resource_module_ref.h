@@ -11,4 +11,6 @@ public:
     virtual soResourceIdAccesser* getResourceIdAccesser();
     virtual u32 getGroupNo(int index);
     virtual void setGroupNo(u8 group, u16 index);
+    void setReference(soResourceModule* resource);
+    void clearReference();
 };

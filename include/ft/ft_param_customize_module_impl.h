@@ -11,7 +11,10 @@ class soModuleAccesser;
 
 class ftParamCustomizeModuleImpl : soParamCustomizeModuleImpl {
     u8 unk10[0x4];
+protected:
     soModuleAccesser* m_moduleAccsr;
+
+private:
     // HYPOTHESIS: the parameter ids start at 3001 (float), 23001 (int) and 43001 (indefinite), from the table offsets.
     float m_paramFloat[2][114];
     s32 m_paramInt[2][27];

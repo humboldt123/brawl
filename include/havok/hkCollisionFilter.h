@@ -2,44 +2,51 @@
 
 #include <havok/hkBase.h>
 #include <havok/hkCollidable.h>
+#include <havok/hkCollisionInput.h>
 #include <havok/hkMemory.h>
+#include <havok/hkRegistry.h>
 
-// Base of the collision filter family (0x18 bytes: hkReferencedObject plus four interface vptrs,
-// at offsets 0x08, 0x0C, 0x10 and 0x14). Layout from hkCollisionFilterClass.cpp.
-// Each interface vtable is 0x10 bytes (two unused slots, a virtual destructor, one more virtual).
-// HYPOTHESIS: the interface names are not recovered yet, so they are numbered. The second virtual
-// is a placeholder for the interface's real method, whose name and signature are not known.
-struct hkCollisionFilterInterface0 {
-    virtual ~hkCollisionFilterInterface0() {}
-    virtual void unkVirtual0() {}
+struct hkShapeRayCastInput;
+struct hkWorldRayCastInput;
+
+// The four filter interfaces of hkCollisionFilter (0x18 bytes: hkReferencedObject plus the interface vptrs at 0x08,
+// 0x0C, 0x10 and 0x14; layout from hkCollisionFilterClass.cpp). Each interface vtable is 0x10 bytes. The filters'
+// vtables put the destructor first in the first and last interface and second in the middle two (the thunk tables
+// after hkGroupFilter, hkNullCollisionFilter and hkConstrainedSystemFilter), which is the Havok declaration order.
+// hkShapeCollectionFilter (0x0C) is declared in hkCollisionInput.h.
+struct hkCollidableCollidableFilter {
+    virtual ~hkCollidableCollidableFilter() {}
+    virtual hkBool isCollisionEnabled(const hkCollidable& a, const hkCollidable& b) const = 0;
 };
 
-struct hkCollisionFilterInterface1 {
-    virtual ~hkCollisionFilterInterface1() {}
-    virtual void unkVirtual1() {}
+// HYPOTHESIS: the container type (calls go through the collection's slot 0x44, the first virtual after the embedded
+// shape container vtable: getCollisionFilterInfo in the hkMeshShape map names).
+struct hkRayShapeCollectionFilter {
+    virtual hkBool isCollisionEnabled(const hkShapeRayCastInput& aInput, const hkShapeCollection& bContainer,
+                                      u32 bKey) const = 0;
+    virtual ~hkRayShapeCollectionFilter() {}
 };
 
-struct hkCollisionFilterInterface2 {
-    virtual ~hkCollisionFilterInterface2() {}
-    virtual void unkVirtual2() {}
+struct hkRayCollidableFilter {
+    virtual ~hkRayCollidableFilter() {}
+    virtual hkBool isCollisionEnabled(const hkWorldRayCastInput& a, const hkCollidable& collidableB) const = 0;
 };
 
-// The last interface holds the four isCollisionEnabled overloads of the filters (vtable 0x20 bytes).
-struct hkCollisionFilterInterface3 {
-    virtual ~hkCollisionFilterInterface3() {}
-    virtual void unkVirtual3() {}
-    virtual void unkVirtual4() {}
-    virtual void unkVirtual5() {}
-    virtual void unkVirtual6() {}
-    virtual void unkVirtual7() {}
-};
-
+// The filter redeclares the four overloads, so they also get primary slots 0x50..0x5C (hkConstrainedSystemFilter
+// calls its child filter through them).
 struct hkCollisionFilter : hkReferencedObject,
-                           hkCollisionFilterInterface0,
-                           hkCollisionFilterInterface1,
-                           hkCollisionFilterInterface2,
-                           hkCollisionFilterInterface3 {
+                           hkCollidableCollidableFilter,
+                           hkShapeCollectionFilter,
+                           hkRayShapeCollectionFilter,
+                           hkRayCollidableFilter {
     hkCollisionFilter() {}
     hkCollisionFilter(hkFinishLoadedObjectFlag flag) {}
     virtual ~hkCollisionFilter() {}
+
+    virtual hkBool isCollisionEnabled(const hkCollidable& a, const hkCollidable& b) const = 0;
+    virtual hkBool isCollisionEnabled(const hkCollisionInput& input, const hkCdBody& a, const hkCdBody& b,
+                                      const hkShapeCollection& bContainer, u32 bKey) const = 0;
+    virtual hkBool isCollisionEnabled(const hkShapeRayCastInput& aInput, const hkShapeCollection& bContainer,
+                                      u32 bKey) const = 0;
+    virtual hkBool isCollisionEnabled(const hkWorldRayCastInput& a, const hkCollidable& collidableB) const = 0;
 };

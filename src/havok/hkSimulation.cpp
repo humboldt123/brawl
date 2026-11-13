@@ -498,7 +498,7 @@ void hkSimulation::processAgentsOfEntities(hkEntity** entities, int numEntities,
                     normal.setNeg4(normal);
                 }
                 hkVector4 arm;
-                const hkContactPoint& contact = output.m_contactPoints[0].m_contact;
+                hkContactPoint& contact = output.m_contactPoints[0].m_contact;
                 arm.setSub4(body->getCenterOfMassInWorld(), contact.getPosition());
                 hkVector4 axis;
                 axis.setCross(normal, arm);
@@ -572,7 +572,7 @@ const hkQuaternion& hkMotion::getRotation() const {
     return m_motionState.m_sweptTransform.m_rotation1;
 }
 
-const hkVector4& hkContactPoint::getSeparatingNormal() const {
+hkVector4& hkContactPoint::getSeparatingNormal() {
     return m_normal;
 }
 
@@ -584,7 +584,7 @@ hkVector4& hkRigidBody::getCenterOfMassInWorld() {
     return getMotion()->m_motionState.m_sweptTransform.m_centerOfMass1;
 }
 
-const hkVector4& hkContactPoint::getPosition() const {
+hkVector4& hkContactPoint::getPosition() {
     return m_position;
 }
 

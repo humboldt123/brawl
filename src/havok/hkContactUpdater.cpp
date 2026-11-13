@@ -6,8 +6,8 @@
 
 #include <havok/hkDynamicsContactMgr.h>
 
-int hkDynamicsContactMgr::getContactPointProperties() {
+hkContactPointProperties* hkDynamicsContactMgr::getContactPointProperties(hkContactPointId id) {
     return 0;
 }
 
-void hkDynamicsContactMgr::getAllContactPointIds() {}
+void hkDynamicsContactMgr::getAllContactPointIds(hkArray<hkContactPointId>& contactPointIds) const {}

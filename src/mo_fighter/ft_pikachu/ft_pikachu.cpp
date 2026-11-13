@@ -1,13 +1,23 @@
+#define SO_KINETIC_ROTATION_FIELDWISE_ZERO
+#define FT_ARTICLE_MEDIATOR_DTOR_INLINE
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
 #define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_PIKACHU_ARTICLE_POOLS
+#define FT_PIKACHU_SELECT_HOLDER_NAME
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR
+#define FT_PIKACHU_WEAPON_MOTION_DTOR
 #define WN_ARTICLE_BUILDER_DTORS
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define FT_PARAM_ACCESSER_TYPED_DTOR
 #define FT_TEAM_TYPED_INTERFACE
+#define FT_WEAK_KEPT_OBSERVERS
+// The article headers define the rotational-energy destructor inline. This unit emits it out of line.
+#define FT_ROT_ENERGY_DTOR_OUT_OF_LINE
+// The cloud's command-thread builder destructor is a separate function in this unit.
+#define FT_ANIMCMD_SUB_DTOR_NOINLINE
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/fighter.h>
@@ -21,6 +31,16 @@
 #include <so/so_value_accesser.h>
 #include <so/so_value_accesser.h>
 #include <ft/ft_common_data_accesser.h>
+#include <wn/pikachu/wn_pikachu_thunder_jolt2.h>
+#include <ft/ft_kinetic_energy_controller.h>
+
+// Quick Attack aim: the controller energy takes the stick speed. The other modes keep a dead flag and update normally.
+// Defined before the builder instantiations so the call inlines into updateEnergy.
+inline void ftPikachuEnergyModeUpdate<0x64, ftKineticEnergyController>::update(ftKineticEnergyController* energy, soModuleAccesser* acc) {
+    volatile bool dead = false;
+    bool passed = false;
+    ftPikachuKineticTransactor::updateEnergySub(energy, &passed, acc);
+}
 
 // ftManager::setParamPattern selects the shared parameter-table variation (same accessor as ft_marth.cpp).
 extern int g_soValueVariation;
@@ -76,6 +96,9 @@ ftPikachu::ftPikachu(s32 entryId,
     processes[13] = &g_ftPikachuStatusUniqProcessSpecialVortexEnd;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 14);
 }
+
+// The status-data table lives past the builder tail; its destructor is the sora_melee function.
+ftPikachu::~ftPikachu() { }
 
 // The Thunder Jolt starts through the transactor of the fighter with the effect resource of the fighter.
 // BYTES: the native function addresses the local static's guard, object and destructor registration separately
@@ -157,20 +180,16 @@ template wnArticleHolder<wnPikachuThunderJolt>::~wnArticleHolder();
 template wnArticleHolder<wnPikachuCloud>::~wnArticleHolder();
 template wnArticleHolder<wnPikachuVortex>::~wnArticleHolder();
 template wnArticleHolder<wnPikachuThunder>::~wnArticleHolder();
-template wnArticleHolder<wnPikachuThunderJolt>::wnArticleHolder(soModuleAccesser*);
-template wnArticleHolder<wnPikachuCloud>::wnArticleHolder(soModuleAccesser*);
-template wnArticleHolder<wnPikachuThunder>::wnArticleHolder(soModuleAccesser*);
 template <class Mediator>
-wnSelectedArticleMediator<Mediator>::~wnSelectedArticleMediator() { }
+soSelectInstanceHolderArticle<Mediator>::~soSelectInstanceHolderArticle() { }
 template <class Mediator, int N>
 wnArticleManageModuleBuilder<Mediator, N>::~wnArticleManageModuleBuilder() { }
 template <class Mediator, int N>
 wnArticleManageModuleBuilder<Mediator, N>::wnArticleManageModuleBuilder(soModuleAccesser* acc) :
     m_articles(0), m_observers(N, 0), m_mediator(acc), m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
-template wnSelectedArticleMediator<ftPikachuArticleMediator>::~wnSelectedArticleMediator();
+template soSelectInstanceHolderArticle<ftPikachuArticleMediator>::~soSelectInstanceHolderArticle();
 template wnArticleManageModuleBuilder<ftPikachuArticleMediator, 5>::~wnArticleManageModuleBuilder();
 template wnArticleManageModuleBuilder<ftPikachuArticleMediator, 5>::wnArticleManageModuleBuilder(soModuleAccesser*);
-ftPikachuArticleMediator::~ftPikachuArticleMediator() { }
 // The module accesser builders of the articles are destroyed out of line by the article destructors.
 soSlowModuleBuilder<soSlowModuleBuildConfig<soSlowModuleSimple> >::~soSlowModuleBuilder() { }
 soGlowModuleBuilder<soGlowModuleBuildConfig<soGlowModuleSimple> >::~soGlowModuleBuilder() { }
@@ -185,10 +204,138 @@ typedef wnAnimCmdModuleSubBuilder<wnAnimCmdModuleSubBuildConfigDefault<1, 1, 0, 
 template void ftBuilderDtorUse<ftPikachuArticleAnimCmdSubBuilder>(ftPikachuArticleAnimCmdSubBuilder*);
 typedef soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfigUniq<4, 8> > ftPikachuArticleAnimCmdUniqBuilder;
 template void ftBuilderDtorUse<ftPikachuArticleAnimCmdUniqBuilder>(ftPikachuArticleAnimCmdUniqBuilder*);
+// Weapon-module teardowns the thunder article calls out of line.
+typedef soGeneralWorkBuilder<soGeneralWorkBuildConfig<2, 2, 1> > ftPikachuWeaponWorkBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponWorkBuilder>(ftPikachuWeaponWorkBuilder*);
+typedef soVisibilityModuleBuilder<soVisibilityModuleBuildConfig<soVisibilityModuleSimple, 1> > ftPikachuWeaponVisibilityBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponVisibilityBuilder>(ftPikachuWeaponVisibilityBuilder*);
+typedef soShakeModuleBuilder<soShakeModuleBuildConfig<0, soShakeModuleSimple> > ftPikachuWeaponShakeBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponShakeBuilder>(ftPikachuWeaponShakeBuilder*);
+typedef soTeamModuleBuilder<soTeamModuleBuildConfig<soTeamImpl, soTeamModuleImpl> > ftPikachuWeaponTeamBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponTeamBuilder>(ftPikachuWeaponTeamBuilder*);
+typedef soAnimCmdModuleBuilder<soAnimCmdModuleBuildConfig<6, soAnimCmdModuleImpl> > ftPikachuWeaponAnimCmdBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponAnimCmdBuilder>(ftPikachuWeaponAnimCmdBuilder*);
+typedef soModelModuleBuilder<soModelModuleBuildConfig<5, 0, soModelModuleImpl> > ftPikachuWeaponModelBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponModelBuilder>(ftPikachuWeaponModelBuilder*);
+typedef soLinkModuleBuilder<soLinkModuleBuildConfigCap<5, soLinkModuleImpl> > ftPikachuWeaponLinkBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponLinkBuilder>(ftPikachuWeaponLinkBuilder*);
+typedef soKineticModuleBuilder<soKineticModuleBuildConfigMediator<wnKineticModuleImpl, soKineticMediatorNull> > ftPikachuWeaponKineticBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponKineticBuilder>(ftPikachuWeaponKineticBuilder*);
+typedef soSoundModuleBuilder<wnSoundModuleBuildConfig<0, soSound3dGeneratorAccesserImpl, soSoundModuleImpl> > ftPikachuWeaponSoundBuilder;
+typedef soTransitionModuleBuilder<soTransitionModuleBuildConfig<wnStatusTransitionTypeList> > ftPikachuWeaponStatusTransitionBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponStatusTransitionBuilder>(ftPikachuWeaponStatusTransitionBuilder*);
+typedef soTransitionModuleBuilder<soTransitionModuleBuildConfig<wnMotionTransitionTypeList> > ftPikachuWeaponMotionTransitionBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponMotionTransitionBuilder>(ftPikachuWeaponMotionTransitionBuilder*);
+// The one-status article builder's teardown is its own function. The primary template inlines it into the caller.
+template <>
+class soStatusModuleBuilder<wnStatusModuleBuildConfig<1, soGeneralWorkBuildConfig<2, 2, 1>, 1, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> > > {
+    soArrayContractibleTable<const soStatusData> m_statusTable;
+    soGeneralWorkBuilder<soGeneralWorkBuildConfig<2, 2, 1> > m_generalWorkBuilder;
+    soTransitionModuleBuilder<soTransitionModuleBuildConfig<wnStatusTransitionTypeList> > m_transitionBuilder;
+    soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, 1>, soArrayNull<soStatusUniqProcess*> > m_uniqProcs;
+    soArrayQueueImpl<soArrayVector<s32, 1> > m_changeRequests;
+    soStatusModuleImpl m_module;
+public:
+    ~soStatusModuleBuilder();
+};
+typedef soStatusModuleBuilder<wnStatusModuleBuildConfig<1, soGeneralWorkBuildConfig<2, 2, 1>, 1, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> > > ftPikachuWeaponStatusBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponStatusBuilder>(ftPikachuWeaponStatusBuilder*);
+typedef soMotionModuleBuilder<soMotionModuleBuildConfig<1, soMotionModuleImpl, 0, 0, soTransitionModuleBuildConfig<wnMotionTransitionTypeList>, soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > > ftPikachuWeaponMotionBuilder;
+template <u32 DataNum, typename T, typename TransitionConfig>
+__declspec(weak) soMotionModuleBuilder<soMotionModuleBuildConfig<DataNum, T, 0, 0, TransitionConfig, soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > >::~soMotionModuleBuilder() { }
+template void ftBuilderDtorUse<ftPikachuWeaponMotionBuilder>(ftPikachuWeaponMotionBuilder*);
+typedef soResourceModuleBuilder<soResourceModuleBuildConfig<0, soResourceIdAccesserImpl, soResourceModuleImpl> > ftPikachuWeaponResourceBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponResourceBuilder>(ftPikachuWeaponResourceBuilder*);
+typedef soCollisionAttackModuleBuilder<soCollisionAttackModuleBuildConfig<soCollision::Category_Fighter, 1, 0, soCollisionAttackModuleImpl, 1, false, true> > ftPikachuWeaponAttackBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponAttackBuilder>(ftPikachuWeaponAttackBuilder*);
+typedef soInsideEventManageModuleBuilder<soInsideEventManageModuleBuildConfig<16, 32, 4, 2, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 1, 1, 0, 0, 0, wnInsideEventManageModuleTypes>, wnInsideEventManageModuleTypes> ftPikachuWeaponInsideEventBuilder;
+template void ftBuilderDtorUse<ftPikachuWeaponInsideEventBuilder>(ftPikachuWeaponInsideEventBuilder*);
 #pragma dont_inline off
 
-s32 ftPikachuArticleMediator::getMediateNum() { return 4; }
-void ftPikachuArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
+// Instantiated with inlining enabled so the kind record is stored before the article data call.
+template wnArticleHolder<wnPikachuThunderJolt>::wnArticleHolder(soModuleAccesser*);
+template wnArticleHolder<wnPikachuCloud>::wnArticleHolder(soModuleAccesser*);
+template wnArticleHolder<wnPikachuThunder>::wnArticleHolder(soModuleAccesser*);
+
+// The article sound builder destroys only the module. The generator teardown is empty and has to inline.
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
+template void ftBuilderDtorUse<ftPikachuWeaponSoundBuilder>(ftPikachuWeaponSoundBuilder*);
+
+// Outside dont_inline so the process-array holder inlines and leaves the vector teardown call.
+template <>
+__declspec(weak) soStatusModuleBuilder<wnStatusModuleBuildConfig<1, soGeneralWorkBuildConfig<2, 2, 1>, 1, soTransitionModuleBuildConfig<wnStatusTransitionTypeList> > >::~soStatusModuleBuilder() { }
+
+// Outside dont_inline so the empty soArticleMediator base inlines and the pool base inlines to wnArticlePool.
+ftPikachuArticleMediator::~ftPikachuArticleMediator() { }
+
+// The original names these on soArticleMediatorImpl. Keep the bodies, and keep them weak so they are not a second global.
+__declspec(weak) s32 ftPikachuArticleMediator::getMediateNum() { return 4; }
+__declspec(weak) void ftPikachuArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
+
+// Empty out-of-line teardowns. The base destructors do the work.
+ftKineticEnergyController::~ftKineticEnergyController() { }
+soKineticEnergyRotNormal::~soKineticEnergyRotNormal() { }
+
+// Thunder Jolt 2's pool lives in this unit (three instances, kind info <0, 7>, index 3).
+// HYPOTHESIS: the parent of this level is the non-polymorphic pool root. The primary templates define these
+// destructors inline, so each level is specialized here and the teardown is only the member destructors.
+typedef soKindInfoGeneric<0, 7> ftPikachuJolt2Kind;
+typedef soIntToType<3> ftPikachuJolt2Index;
+typedef soInstancePoolInfo<wnPikachuThunderJolt2, 1, wnInstanceHolder, ftPikachuJolt2Index> ftPikachuJolt2Info1;
+typedef soInstancePoolInfo<wnPikachuThunderJolt2, 2, wnInstanceHolder, ftPikachuJolt2Index> ftPikachuJolt2Info2;
+typedef soInstancePoolInfo<wnPikachuThunderJolt2, 3, wnInstanceHolder, ftPikachuJolt2Index> ftPikachuJolt2Info3;
+
+template <>
+class wnInstanceHolder<wnPikachuThunderJolt2, ftPikachuJolt2Kind, ftPikachuJolt2Index> {
+public:
+    virtual ~wnInstanceHolder();
+private:
+    wnPikachuThunderJolt2 m_instance;
+};
+
+template <>
+class soInstancePoolSub<ftPikachuJolt2Info1, ftPikachuJolt2Kind> {
+public:
+    virtual ~soInstancePoolSub();
+private:
+    soInstancePoolSubNull<wnPikachuThunderJolt2> m_next;
+    wnInstanceHolder<wnPikachuThunderJolt2, ftPikachuJolt2Kind, ftPikachuJolt2Index> m_holder;
+};
+
+template <>
+class soInstancePoolSub<ftPikachuJolt2Info2, ftPikachuJolt2Kind> {
+public:
+    virtual ~soInstancePoolSub();
+private:
+    soInstancePoolSub<ftPikachuJolt2Info1, ftPikachuJolt2Kind> m_next;
+    wnInstanceHolder<wnPikachuThunderJolt2, ftPikachuJolt2Kind, ftPikachuJolt2Index> m_holder;
+};
+
+template <>
+class soInstancePoolSub<ftPikachuJolt2Info3, ftPikachuJolt2Kind> {
+public:
+    virtual ~soInstancePoolSub();
+private:
+    soInstancePoolSub<ftPikachuJolt2Info2, ftPikachuJolt2Kind> m_next;
+    wnInstanceHolder<wnPikachuThunderJolt2, ftPikachuJolt2Kind, ftPikachuJolt2Index> m_holder;
+};
+
+template <>
+class soInstancePool<ftPikachuJolt2Info3, soInstancePoolRoot, ftPikachuJolt2Kind, 3> : public soInstancePoolRoot {
+public:
+    virtual ~soInstancePool();
+private:
+    soInstancePoolSub<ftPikachuJolt2Info3, ftPikachuJolt2Kind> m_sub;
+};
+
+// Weak: the primary pool templates also emit these teardowns. A strong copy here is a second global.
+#pragma force_active on
+__declspec(weak) wnInstanceHolder<wnPikachuThunderJolt2, ftPikachuJolt2Kind, ftPikachuJolt2Index>::~wnInstanceHolder() { }
+__declspec(weak) soInstancePoolSub<ftPikachuJolt2Info1, ftPikachuJolt2Kind>::~soInstancePoolSub() { }
+__declspec(weak) soInstancePoolSub<ftPikachuJolt2Info2, ftPikachuJolt2Kind>::~soInstancePoolSub() { }
+__declspec(weak) soInstancePoolSub<ftPikachuJolt2Info3, ftPikachuJolt2Kind>::~soInstancePoolSub() { }
+__declspec(weak) soInstancePool<ftPikachuJolt2Info3, soInstancePoolRoot, ftPikachuJolt2Kind, 3>::~soInstancePool() { }
+#pragma force_active reset
 
 // ---- the article mediator -------------------------------------------------------------------------------------------
 // Slots: 0 ThunderJolt, 1 Cloud, 2 Vortex, 3 Thunder (the rest are unused).
@@ -314,7 +461,7 @@ bool ftPikachuArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) 
 
 
 // FIXME: Test code present only to emit the shared builder functions; delete once ftPikachu is done
-void testBuilder() {
+__declspec(weak) void testBuilder() {
     soInsideEventManageModuleBuilder<ftPikachuInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
     soResourceIdAccesserImpl idAccImpl(0, 1, 2);
 }
@@ -323,9 +470,6 @@ soInsideEventManageModuleBuilder<ftPikachuInsideEventManageModuleBuildConfig, ft
 // Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
 extern "C" {
 
-u8 fn_98_744C(u8* p) { return *(u8*)(p + 0x4); }
-void fn_98_939C() {}
-int fn_98_98C0() { return 0x0; }
 void fn_98_9AAC() {}
 void fn_98_9C24() {}
 u8 fn_98_9C28(u8* p) { return *(u8*)(p + 0x44); }
@@ -348,7 +492,6 @@ void fn_98_9D5C() {}
 void fn_98_9D60() {}
 void fn_98_9D64() {}
 void fn_98_9D68() {}
-int fn_98_9D6C() { return 0x0; }
 void fn_98_9D74() {}
 void fn_98_9D78() {}
 void fn_98_9D7C() {}
@@ -359,7 +502,6 @@ void fn_98_9DB4() {}
 void fn_98_9DB8() {}
 void fn_98_9DBC() {}
 int fn_98_9DC0(u8* p) { return *(int*)(p + 0x110); }
-int fn_98_9DD8() { return 0x0; }
 void fn_98_9DE0() {}
 void fn_98_9DE4() {}
 void fn_98_9DE8() {}
@@ -378,14 +520,6 @@ int fn_98_B59C() { return 0x4; }
 void fn_98_C430() {}
 void fn_98_CCDC() {}
 int fn_98_CD18() { return 0x8; }
-int fn_98_CFC0() { return 0x0; }
-int fn_98_D25C() { return 0x0; }
-int fn_98_D4F4() { return 0x0; }
-int fn_98_D790() { return 0x0; }
-int fn_98_DA2C() { return 0x0; }
-int fn_98_DCC8() { return 0x0; }
-int fn_98_DF64() { return 0x0; }
-int fn_98_E200() { return 0x0; }
 
 // soArticleMediatorImpl<...wnPikachuThunderJolt...>::setAutoRecycle: stores the flag at this+0x22A2C.
 void fn_98_B5A4(u8* p, u8 flag) { *(u8*)(p + 0x22A2C) = flag; }
@@ -415,7 +549,7 @@ void ftPikachu::notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, 
 
 void** ftPikachu::getExtendParam() { return m_data->extendParam; }
 
-void* ftPikachu::getThunderParam() {
+__declspec(weak) void* ftPikachu::getThunderParam() {
     return g_ftCommonDataAccesser.getData(Fighter_Pikachu)->extendParam[3];
 }
 
@@ -435,9 +569,11 @@ bool ftPikachu::activeArticle1(wnPikachuCloud* weapon, soModuleAccesser* acc) {
 
 // The Final Smash vortex: the fighter's work area keeps the article's task, the vortex starts at the fighter.
 bool ftPikachu::activeArticle2(wnPikachuVortex* weapon, soModuleAccesser* acc) {
+    // BYTES: the task id is declared before the cast so it keeps r30 and the fighter keeps r29.
+    s32 founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
     acc->getWorkManageModule().setInt(weapon->m_taskId, 0x20000003);
-    s32 founderTaskId = fighter.m_taskId;
+    founderTaskId = fighter.m_taskId;
     int finalResId = dynamic_cast<ftResourceIdAccesserImpl&>(*acc->getResourceModule().getResourceIdAccesser()).getFinalResId();
     int team = fighter.getOwner()->getTeam();
     Vec3f position;
@@ -458,29 +594,6 @@ void ftPikachu::rec_cloud_pointer1(soModuleAccesser* acc, wnPikachuCloud* cloud)
     acc->getWorkManageModule().setInt(reinterpret_cast<int>(cloud), 0x10000043);
 }
 
-// soInstancePoolSub::getInstanceAt for the wnPikachu* instance holders: instance slots by index, null past the last one.
-void* fn_98_B62C(u8* p, int index) {
-    if (index == 2) return p + 0x3FA4;
-    if (index == 1) return p + 0x1FDC;
-    if (index == 0) return p + 0x14;
-    return 0;
-}
-void* fn_98_B664(u8* p, int index) {
-    if (index == 0) return p + 0xC;
-    return 0;
-}
-void* fn_98_B67C(u8* p, int index) {
-    if (index == 1) return p + 0xA610;
-    if (index == 0) return p + 0x10;
-    return 0;
-}
-void* fn_98_B6A8(u8* p, int index) {
-    if (index == 2) return p + 0x3F44;
-    if (index == 1) return p + 0x1FAC;
-    if (index == 0) return p + 0x14;
-    return 0;
-}
-
 // soKineticMediatorImpl::addSpeed:forwards to the transactor with the pools at this+4.
 void fn_98_CCE0(u8* p, void* speed, soModuleAccesser* acc) { ftKineticTransactor::addSpeed(speed, p + 4, acc); }
 
@@ -489,54 +602,17 @@ void* fn_98_9540() { return *(void**)((u8*)g_ftCommonDataAccesser.getData(Fighte
 
 }
 
-// Fighter event thunks: adjust `this` back to the Fighter base, then tail-call the Fighter method.
+// The situation-change thunk is still named by address. The other Fighter thunks are the real virtuals.
 extern "C" {
-void fn_98_E424(u8* self, int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x64))->Fighter::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser); }
-void fn_98_E444(u8* self, soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) { ((Fighter*)(self - 0x54))->Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4); }
 void fn_98_E454(u8* self, SituationKind kind, SituationKind prevKind, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x70))->Fighter::notifyEventChangeSituation(kind, prevKind, moduleAccesser); }
-bool fn_98_E45C(u8* self, u32 flags) { return ((Fighter*)(self - 0x7C))->Fighter::notifyEventCollisionAttackCheck(flags); }
-void fn_98_E464(u8* self, float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x7C))->Fighter::notifyEventCollisionAttack(power, collisionLog, moduleAccesser); }
-void fn_98_E46C(u8* self, int index, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x88))->Fighter::notifyEventChangeCollisionHit(index, moduleAccesser); }
-bool fn_98_E474(u8* self) { return ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShieldCheck(); }
-bool fn_98_E48C(u8* self) { return ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorCheck(); }
-bool fn_98_E4A4(u8* self) { return ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorberCheck(); }
-bool fn_98_E4B4(u8* self) { return ((Fighter*)(self - 0xB8))->Fighter::notifyEventCollisionSearchCheck(); }
-void fn_98_E4BC(u8* self, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xB8))->Fighter::notifyEventCollisionSearch(collisionLog, moduleAccesser); }
-bool fn_98_E4C4(u8* self, soModuleAccesser* moduleAccesser, int taskId, int unk2, int unk3) { return ((Fighter*)(self - 0xC4))->Fighter::notifyEventCaptureStatus(moduleAccesser, taskId, unk2, unk3); }
-void fn_98_E4CC(u8* self, BaseItem* item, int unk2, bool unk3, u8 unk4) { ((Fighter*)(self - 0xD0))->Fighter::notifyVisibilityItem(item, unk2, unk3, unk4); }
-void fn_98_E4D4(u8* self, BaseItem* item, u32 index, bool unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyEjectAttachItem(item, index, unk3); }
-void fn_98_E4DC(u8* self, BaseItem* item, u32 index, bool unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyEjectItem(item, index, unk3); }
-void fn_98_E4E4(u8* self, BaseItem* item) { ((Fighter*)(self - 0xD0))->Fighter::notifyShootBulletItem(item); }
-void fn_98_E4EC(u8* self, BaseItem* item) { ((Fighter*)(self - 0xD0))->Fighter::notifyDropItem(item); }
-void fn_98_E4F4(u8* self, BaseItem* item, u32 nodeIndex, int* unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyThrowItem(item, nodeIndex, unk3); }
-void fn_98_E4FC(u8* self, BaseItem* item, u32 nodeIndex, int* unk3) { ((Fighter*)(self - 0xD0))->Fighter::notifyUseItem(item, nodeIndex, unk3); }
-void fn_98_E504(u8* self, BaseItem* item, u32 nodeIndex, u32 attachNodeIndex, bool unk4, bool unk5) { ((Fighter*)(self - 0xD0))->Fighter::notifyAttachItem(item, nodeIndex, attachNodeIndex, unk4, unk5); }
-void fn_98_E50C(u8* self, itParam::SizeKind sizeKind, BaseItem* item, u32 nodeIndex, u32 index, bool unk5) { ((Fighter*)(self - 0xD0))->Fighter::notifyHaveItem(sizeKind, item, nodeIndex, index, unk5); }
-bool fn_98_E514(u8* self, BaseItem* item, bool* unk2) { return ((Fighter*)(self - 0xD0))->Fighter::notifyHaveItemPreCheck(item, unk2); }
-void fn_98_E51C(u8* self, soDamage* damage, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xE8))->Fighter::notifyEventAddDamage(damage, moduleAccesser); }
-void fn_98_E524(u8* self, soDamage* damage, bool unk2, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xE8))->Fighter::notifyEventOnDamage(damage, unk2, moduleAccesser); }
-void fn_98_E52C(u8* self, float unk1, int unk2) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventPikminFinalAttack(unk1, unk2); }
-void fn_98_E534(u8* self) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventChangeAdvUnit(); }
-void fn_98_E53C(u8* self) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventBeat(); }
-void fn_98_E544(u8* self, float unk1) { ((Fighter*)(self - 0xF4))->Fighter::notifyEventSetDamage(unk1); }
-void fn_98_E54C(u8* self, float unk1, float unk2, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x100))->Fighter::notifyEventTurn(unk1, unk2, moduleAccesser); }
-bool fn_98_E434(u8* self, acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3) { return ((Fighter*)(self - 0x48))->Fighter::notifyEventAnimCmd(acmd, moduleAccesser, unk3); }
-void fn_98_E47C(u8* self, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShieldSearch(searchModule, collisionLog, groupIndex, moduleAccesser); }
-void fn_98_E484(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0x94))->Fighter::notifyEventCollisionShield(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-void fn_98_E494(u8* self, soCollisionSearchModule* searchModule, soCollisionLog* collisionLog, u32 groupIndex, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflectorSearch(searchModule, collisionLog, groupIndex, moduleAccesser); }
-void fn_98_E49C(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xA0))->Fighter::notifyEventCollisionReflector(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
-void fn_98_E4AC(u8* self, soCollisionAttackModule* attackModule, float power, soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) { ((Fighter*)(self - 0xAC))->Fighter::notifyEventCollisionAbsorber(attackModule, power, collisionLog, groupIndex, posX, posY, moduleAccesser); }
 } // extern "C"
 
 // Leaf functions shared with other fighter modules (same module-map names and bodies).
 extern "C" {
 void* fn_98_1DD8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_98_4048(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_98_4480(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_98_47F8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_98_4B58(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_98_4B98(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_98_4D60(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_98_4DA0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_98_4DE0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 } // extern "C"

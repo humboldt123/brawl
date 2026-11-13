@@ -21,7 +21,8 @@ struct hkGskfAgent : hkGskBaseAgent {
     HK_DECLARE_REF_ALLOCATOR(0x1d)
 
     int unk30; // 0x30 list header (cleared by the constructor)
-    u8 unk34[0x80 - 0x34]; // 0x34 point entries (see points()) and the rest of the object
+    u8 unk34[0x74 - 0x34]; // 0x34 point entries (see points()). The object is 0x80 bytes through the base's 16-byte
+                           // alignment; derived agents (hkConvexListAgent) put their members in the tail padding at 0x74.
 
     hkGskfAgent(const hkCdBody& bodyA, const hkCdBody& bodyB, hkContactMgr* contactMgr);
 

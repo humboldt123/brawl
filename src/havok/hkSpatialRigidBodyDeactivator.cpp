@@ -9,10 +9,16 @@
 //   0x802E3958   312  shouldDeactivateHighFrequency   [map: hkSpatialRigidBodyDeactivator__shouldDeactivateHighFrequency]
 //   0x802E3A90   312  shouldDeactivateLowFrequency   [map: hkSpatialRigidBodyDeactivator__shouldDeactivateLowFrequency]
 //   0x802E3BC8    80  __sinit_\hkSpatialRigidBodyDeactivator_cpp   [map: hkSpatialRigidBodyDeactivatorcpp____sinit_]
+#include <new>
 #include <havok/hkSpatialRigidBodyDeactivator.h>
+#include <havok/hkEntity.h>
+#include <havok/hkRegistry.h>
+#include <havok/hkMath.h>
+#include <havok/hkCdPoint.h> // HK_REAL_MAX
 
-// The finish, getVtable and static-init functions (0x802E37E0, 0x802E3870, 0x802E3BC8) and the constructor
-// (0x802E38AC) need a concrete instance. They wait for the two high/low frequency functions, see below.
+void hkSpatialRigidBodyDeactivator::finishLoadedObjecthkSpatialRigidBodyDeactivator(void* p) {
+    new (p) hkSpatialRigidBodyDeactivator(hkFinishLoadedObjectFlag());
+}
 
 void hkSpatialRigidBodyDeactivator::cleanupLoadedObjecthkSpatialRigidBodyDeactivator(void* p) {
     ((hkSpatialRigidBodyDeactivator*)p)->~hkSpatialRigidBodyDeactivator();
@@ -20,10 +26,72 @@ void hkSpatialRigidBodyDeactivator::cleanupLoadedObjecthkSpatialRigidBodyDeactiv
 
 hkSpatialRigidBodyDeactivator::~hkSpatialRigidBodyDeactivator() {}
 
+#pragma push
+#pragma auto_inline off
+const void* hkSpatialRigidBodyDeactivator::getVtablehkSpatialRigidBodyDeactivator() {
+    hkVector4 buf[7]; // placed object storage (0x70 bytes, 16-byte aligned)
+    new (buf) hkSpatialRigidBodyDeactivator(hkFinishLoadedObjectFlag());
+    return *(const void**)buf;
+}
+#pragma pop
+
+hkSpatialRigidBodyDeactivator::hkSpatialRigidBodyDeactivator() {
+    m_radiusSqrd = -1.0f;
+    m_minHighFrequencyTranslation = 0.01f;
+    m_minHighFrequencyRotation = 0.005f;
+    m_minLowFrequencyTranslation = 0.1f;
+    m_minLowFrequencyRotation = 0.2f;
+    m_highFrequencySample.m_refPosition.setAll(HK_REAL_MAX);
+    m_lowFrequencySample.m_refPosition.setAll(HK_REAL_MAX);
+    m_highFrequencySample.m_refRotation.m_vec.set(0.0f, 0.0f, 0.0f, 1.0f);
+    m_lowFrequencySample.m_refRotation.m_vec.set(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 int hkSpatialRigidBodyDeactivator::getRigidBodyDeactivatorType() const {
     return DEACTIVATOR_SPATIAL;
 }
 
-// Not yet decompiled in this unit:
-//   0x802E3958  shouldDeactivateHighFrequency: the argument type (fields read at +0x100..+0x150) is not known.
-//   0x802E3A90  shouldDeactivateLowFrequency: same.
+hkBool hkSpatialRigidBodyDeactivator::shouldDeactivateHighFrequency(hkEntity* entity) {
+    hkMotionState& ms = entity->m_motion.m_motionState;
+    hkVector4& position = ms.m_sweptTransform.m_centerOfMass1;
+    hkQuaternion& rotation = ms.m_sweptTransform.m_rotation1;
+    hkVector4 dPos;
+    dPos.setSub4(m_highFrequencySample.m_refPosition, position);
+    hkVector4 dRot;
+    dRot.setSub4(m_highFrequencySample.m_refRotation.m_vec, rotation.m_vec);
+    hkReal radius = ms.m_objectRadius;
+    hkReal distSqrd = dPos.lengthSquared3();
+    hkReal rotSqrd = radius * (radius * dRot.lengthSquared4());
+    if (distSqrd < m_minHighFrequencyTranslation * m_minHighFrequencyTranslation &&
+        rotSqrd < m_minHighFrequencyRotation * m_minHighFrequencyRotation) {
+        return true;
+    }
+    m_highFrequencySample.m_refPosition = position;
+    m_highFrequencySample.m_refRotation = rotation;
+    return false;
+}
+
+hkBool hkSpatialRigidBodyDeactivator::shouldDeactivateLowFrequency(hkEntity* entity) {
+    hkMotionState& ms = entity->m_motion.m_motionState;
+    hkVector4& position = ms.m_sweptTransform.m_centerOfMass1;
+    hkQuaternion& rotation = ms.m_sweptTransform.m_rotation1;
+    hkVector4 dPos;
+    dPos.setSub4(m_lowFrequencySample.m_refPosition, position);
+    hkVector4 dRot;
+    dRot.setSub4(m_lowFrequencySample.m_refRotation.m_vec, rotation.m_vec);
+    hkReal radius = ms.m_objectRadius;
+    hkReal distSqrd = dPos.lengthSquared3();
+    hkReal rotSqrd = radius * (radius * dRot.lengthSquared4());
+    if (distSqrd < m_minLowFrequencyTranslation * m_minLowFrequencyTranslation &&
+        rotSqrd < m_minLowFrequencyRotation * m_minLowFrequencyRotation) {
+        return true;
+    }
+    m_lowFrequencySample.m_refPosition = position;
+    m_lowFrequencySample.m_refRotation = rotation;
+    return false;
+}
+
+static hkStaticTypeInfo hkSpatialRigidBodyDeactivatorTypeInfo("hkSpatialRigidBodyDeactivator",
+    hkSpatialRigidBodyDeactivator::finishLoadedObjecthkSpatialRigidBodyDeactivator,
+    hkSpatialRigidBodyDeactivator::cleanupLoadedObjecthkSpatialRigidBodyDeactivator,
+    hkSpatialRigidBodyDeactivator::getVtablehkSpatialRigidBodyDeactivator());

@@ -1,19 +1,10 @@
 #include <havok/hkGroupFilter.h>
 #include <havok/hkRegistry.h>
 #include <havok/hkShape.h>
-
-// HYPOTHESIS: slot 0x44 of the object held by a body (shape or shape container) maps a shape key to a
-// collision info word. Called through the vtable with the same slot as the original code.
-typedef u32 (*ShapeKeyInfoFn)(const void* self, u32 shapeKey);
-typedef u32 (*ObjectInfoFn)(const void* self, const void* arg);
-
-static inline u32 callShapeKeyInfo(const void* obj, u32 shapeKey) {
-    return ((ShapeKeyInfoFn)((void* const*)*(void* const*)obj)[0x44 / 4])(obj, shapeKey);
-}
-
-static inline u32 callObjectInfo(const void* obj, const void* arg) {
-    return ((ObjectInfoFn)((void* const*)*(void* const*)obj)[0x44 / 4])(obj, arg);
-}
+#include <havok/hkShapeCollection.h>
+#include <havok/hkBvTreeShape.h>
+#include <havok/hkCollisionDispatcher.h>
+#include <havok/hkShapeType.h>
 
 void hkGroupFilter::finishLoadedObjecthkGroupFilter(void* p) {
     hkFinishLoadedObjectFlag flag;
@@ -61,61 +52,63 @@ hkBool hkGroupFilter::isCollisionEnabled(u32 infoA, u32 infoB) const {
 }
 #pragma auto_inline reset
 
-hkBool hkGroupFilter::isCollisionEnabled1(const hkCollidable* a, const hkCollidable* b) const {
-    return isCollisionEnabled(a->m_broadPhaseHandle.m_collisionFilterInfo,
-                              b->m_broadPhaseHandle.m_collisionFilterInfo);
+hkBool hkGroupFilter::isCollisionEnabled(const hkCollidable& a, const hkCollidable& b) const {
+    return isCollisionEnabled(a.m_broadPhaseHandle.m_collisionFilterInfo, b.m_broadPhaseHandle.m_collisionFilterInfo);
 }
 
-// a: holder of a pointer to a table of per-shape-type flags (flags at +0x10C); b: body with parent chain.
-// Bit 2 uses the shape's slot 0x44, bit 3 the slot 0x44 of the shape's sub-object at +0x10, bit 11 walks
-// up to the root body. A null chain falls back to a zero info word.
-hkBool hkGroupFilter::isCollisionEnabled2(const void* a, const hkCollidable* b, const void* unk6,
-                                          const void* c, const void* d) const {
-    u32 infoB = callObjectInfo(c, d);
-    if (b->m_shapeKey == 0xFFFFFFFF) {
-        const hkCdBody* root = b;
+// The child's own info word comes from the container. The other body's info is its root collidable's when it is a
+// root itself; otherwise the first parent that is a collection, a bv tree (its collection) or a multi-sphere decides.
+hkBool hkGroupFilter::isCollisionEnabled(const hkCollisionInput& input, const hkCdBody& a, const hkCdBody& b,
+                                         const hkShapeCollection& bContainer, u32 bKey) const {
+    u32 infoB = bContainer.getCollisionFilterInfo(bKey);
+    u32 infoA;
+    if (a.m_shapeKey == 0xFFFFFFFF) {
+        const hkCdBody* root = &a;
         while (root->m_parent != 0) {
             root = root->m_parent;
         }
-        return isCollisionEnabled(((const hkCollidable*)root)->m_broadPhaseHandle.m_collisionFilterInfo,
-                                  infoB);
-    }
-    const u8* table = *(const u8* const*)a;
-    const hkCdBody* body = b->m_parent;
-    do {
-        const hkShape* shape = (const hkShape*)body->m_shape;
-        u32 flags = *(const u32*)(table + 0x10C + shape->getType() * 4);
-        if (flags & 0x4) {
-            return isCollisionEnabled(callShapeKeyInfo(body->m_shape, b->m_shapeKey), infoB);
-        }
-        if (flags & 0x8) {
-            void* sub = *(void* const*)((const char*)body->m_shape + 0x10);
-            return isCollisionEnabled(callShapeKeyInfo(sub, b->m_shapeKey), infoB);
-        }
-        if (flags & 0x800) {
-            const hkCdBody* root = b;
-            while (root->m_parent != 0) {
-                root = root->m_parent;
+        infoA = ((const hkCollidable*)root)->m_broadPhaseHandle.m_collisionFilterInfo;
+    } else {
+        const hkCdBody* p = a.m_parent;
+        while (true) {
+            int type = p->m_shape->getType();
+            if (input.m_dispatcher->hasAlternateType(type, HK_SHAPE_COLLECTION)) {
+                infoA = ((const hkShapeCollection*)p->m_shape)->getCollisionFilterInfo(a.m_shapeKey);
+                break;
             }
-            return isCollisionEnabled(((const hkCollidable*)root)->m_broadPhaseHandle.m_collisionFilterInfo,
-                                      infoB);
+            if (input.m_dispatcher->hasAlternateType(type, HK_SHAPE_BV_TREE)) {
+                infoA = ((const hkBvTreeShape*)p->m_shape)->getShapeCollection()->getCollisionFilterInfo(a.m_shapeKey);
+                break;
+            }
+            if (input.m_dispatcher->hasAlternateType(type, HK_SHAPE_MULTI_SPHERE)) {
+                const hkCdBody* root = &a;
+                while (root->m_parent != 0) {
+                    root = root->m_parent;
+                }
+                infoA = ((const hkCollidable*)root)->m_broadPhaseHandle.m_collisionFilterInfo;
+                break;
+            }
+            p = p->m_parent;
+            if (p == 0) {
+                infoA = 0;
+                break;
+            }
         }
-        body = body->m_parent;
-    } while (body != 0);
-    return isCollisionEnabled(0u, infoB);
-}
-
-// a carries the body's info word at 0x20; c is passed to b's slot 0x44 to produce the other info word.
-hkBool hkGroupFilter::isCollisionEnabled3(const void* a, const void* b, const void* c) const {
-    u32 infoB = callObjectInfo(b, c);
-    u32 infoA = *(const u32*)((const char*)a + 0x20);
+    }
     return isCollisionEnabled(infoA, infoB);
 }
 
-// a carries its info word at 0x24 (HYPOTHESIS: a different body layout from hkCollidable).
-hkBool hkGroupFilter::isCollisionEnabled4(const void* a, const hkCollidable* b) const {
-    return isCollisionEnabled(*(const u32*)((const char*)a + 0x24),
-                              b->m_broadPhaseHandle.m_collisionFilterInfo);
+// The ray input carries its info word at 0x20.
+hkBool hkGroupFilter::isCollisionEnabled(const hkShapeRayCastInput& aInput, const hkShapeCollection& bContainer,
+                                         u32 bKey) const {
+    u32 infoB = bContainer.getCollisionFilterInfo(bKey);
+    u32 infoA = *(const u32*)((const char*)&aInput + 0x20);
+    return isCollisionEnabled(infoA, infoB);
+}
+
+// The world ray input carries its info word at 0x24.
+hkBool hkGroupFilter::isCollisionEnabled(const hkWorldRayCastInput& a, const hkCollidable& collidableB) const {
+    return isCollisionEnabled(*(const u32*)((const char*)&a + 0x24), collidableB.m_broadPhaseHandle.m_collisionFilterInfo);
 }
 
 void hkGroupFilter::enableCollisionsUsingBitfield(u32 layersA, u32 layersB) {
@@ -170,9 +163,6 @@ hkBool hkGroupFilter::dummyUnused() const {
     return false;
 }
 
-static hkTypeInfo hkGroupFilterTypeInfo = {
-    "hkGroupFilter",
-    hkGroupFilter::finishLoadedObjecthkGroupFilter,
-    hkGroupFilter::cleanupLoadedObjecthkGroupFilter,
-    hkGroupFilter::getVtablehkGroupFilter(),
-};
+static hkStaticTypeInfo hkGroupFilterTypeInfo("hkGroupFilter", hkGroupFilter::finishLoadedObjecthkGroupFilter,
+                                                    hkGroupFilter::cleanupLoadedObjecthkGroupFilter,
+                                                    hkGroupFilter::getVtablehkGroupFilter());

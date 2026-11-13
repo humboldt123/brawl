@@ -35,7 +35,7 @@ typedef struct DWCMatchControl {
     void* unkF8;
     u8 _FC[0xC];
     int unk108;
-    u8 _10C[0x7C];
+    int profiles1[0x1F]; // HYPOTHESIS: profile ids of the other members, index 1 onward.
     s64 unk188; // HYPOTHESIS: cleared at init as a pair of words
     u8 unk190;
     u8 unk191;
@@ -60,7 +60,8 @@ typedef struct DWCMatchControl {
     u32 unk218;
     int unk21C;
     void* unk220;
-    u8 _224[0xC4];
+    u32 unk224;
+    u8 _228[0xC0];
     u8 aidList[1];
     u8 _2E9[0x1F];
     u32 unk308;
@@ -273,7 +274,7 @@ BOOL DWC_IsServerMyself(void);
 void DWCi_DoCancelMatching(void);
 int DWCi_SBUpdateAsync(int arg);
 int DWCi_HandleSBError(int result);
-int DWCi_HandleGPError(int result);
+int fn_80349C88(int result);
 int fn_80349C88(int result);
 int DWCi_ResetMatchParam(int arg);
 int DWCi_SendResvCommand(void* reservation, int arg);
@@ -518,7 +519,7 @@ int DWCi_StartMatching(void) {
         if (lbl_805A0FA8[0]->unk16 == 0) {
             result = DWCi_HandleSBError(result);
         } else {
-            result = DWCi_HandleGPError(result);
+            result = fn_80349C88(result);
         }
         if (result != 0) {
             return 0;
@@ -531,7 +532,7 @@ int DWCi_StartMatching(void) {
             if (lbl_805A0FA8[0]->unk16 == 0) {
                 result = DWCi_HandleSBError(result);
             } else {
-                result = DWCi_HandleGPError(result);
+                result = fn_80349C88(result);
             }
             if (result != 0) {
                 return 0;
@@ -633,7 +634,7 @@ void DWCi_SetGPStatus(int status, const char* statusString, const char* location
 
 void DWCi_GPSetServerStatus(int status) {
     char value[12];
-    char buffer[0x2F];
+    char buffer[0x2C];
     const char* modifier;
     const char* key;
     snprintf(value, 12, "%u", lbl_805A0FA8[0]->unk19 + 1);
@@ -780,4 +781,14 @@ int fn_8033CBEC(DWCMatchControl* control, void* conn, void** gt2, u32 word8, u32
     }
     memset(lbl_805338B0, 0, 0x738);
     return DWCi_ResetMatchParam(0);
+}
+
+int fn_8033FE10(int a, int b) {
+    if (lbl_805A0F94 == 0) {
+        return 1;
+    }
+    if (a == 0 || b == 0) {
+        return 0;
+    }
+    return __abs(a - b) <= 1;
 }

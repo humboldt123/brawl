@@ -16,7 +16,9 @@
 #include <havok/hkEntity.h>
 
 void hkConstraintSolverSetup::integrate(void* a, void* b, void* c) {
-    hkRigidMotionUtil::hkRigidMotionUtilApplyAccumulators(this, (u8*)c + 0x80, a, (u32)b, 0xa0, a);
+    hkRigidMotionUtil::hkRigidMotionUtilApplyAccumulators(*(const hkStepInfo*)this,
+                                                          (hkVelocityAccumulator*)((u8*)c + 0x80), (hkEntity**)a,
+                                                          (int)b, 0xa0, a);
 }
 
 void hkConstraintSolverSetup::oneStepIntegrate(hkEntity** entities, int count, u8* base) {
@@ -35,8 +37,79 @@ void hkConstraintSolverSetup::oneStepIntegrate(hkEntity** entities, int count, u
         dst[7] = src[7];
         void* record[2];
         record[0] = (u8*)entity + 0xa0;
-        hkRigidMotionUtil::hkRigidMotionUtilApplyAccumulators(this, state, record, 1, 0, (u8*)entity + 0xa0);
+        hkRigidMotionUtil::hkRigidMotionUtilApplyAccumulators(*(const hkStepInfo*)this, (hkVelocityAccumulator*)state,
+                                                              (hkEntity**)record, 1, 0, (u8*)entity + 0xa0);
     }
 }
 
 void hkConstraintSolverSetup::shutdownSolver() {}
+
+// Function body below is taken from https://github.com/jj-link/brawl (src/havok/fn_802E09D8.cpp).
+// hkConstraintSolverSetup::internalIsMemoryOkForNewAccumulators
+// TODO: cleanup (shape from jj-link/brawl fn_802E09D8)
+extern "C" int fn_802E09D8(const char* o, int, int n) {
+    unsigned int a = *(const unsigned int*)(o + 0x4C);
+    unsigned int b = *(const unsigned int*)(o + 0xC);
+    int d = *(const int*)(o + 0x10) - (int)a;
+    if (a == b) n++;
+    if ((n << 7) > d - 0x10) return 0;
+    return 0x1000000;
+}
+
+// fn_802E0D84: body from https://github.com/jj-link/brawl src/havok/fn_802E0D84.cpp (namespaced; labels as in our symbols).
+#include <types.h>
+namespace jj_fn_802E0D84 {
+extern "C" void fn_802987AC(void*, u32, u32, u32, u32);
+extern "C" f32 lbl_805A4310;
+
+struct Fn802E0D84Obj {
+    u8 pad0[0x4];
+    void* unk4;
+    u8 pad8[0x4];
+    u32 unkC;
+    u8 pad10[0xC];
+    u32 unk1C;
+    u8 pad20[0x4];
+    u32 unk24;
+    u8 pad28[0x4];
+    u32 unk2C;
+    u8 pad30[0x4];
+    u32 unk34;
+    u32 unk38;
+    u32 unk3C;
+    u8 pad40[0x4];
+    u32 unk44;
+    u32 unk48;
+    u32 unk4C;
+    u32 unk50;
+    f32* unk54;
+    f32* unk58;
+};
+
+// TODO: cleanup (shape from jj-link/brawl fn_802E0D84)
+extern "C" void fn_802E0D84(Fn802E0D84Obj* self, s32 arg1) {
+    f32* p;
+    f32* end;
+    f32 val;
+
+    if (arg1 == 0) {
+        self->unk38 = self->unk2C;
+        self->unk48 = self->unk3C;
+    }
+    p = self->unk58;
+    val = lbl_805A4310;
+    while (p < (end = self->unk54)) {
+        *p = val;
+        p++;
+    }
+    self->unk58 = end;
+    if (self->unk38 != self->unk34) {
+        fn_802987AC(self->unk4, self->unk38, self->unkC, self->unk1C, self->unk24);
+    }
+    if (self->unk48 != self->unk44) {
+        fn_802987AC(self->unk4, self->unk48, self->unkC, self->unk1C, self->unk24);
+    }
+    self->unk38 = self->unk34;
+    self->unk48 = self->unk44;
+}
+} // namespace jj_fn_802E0D84

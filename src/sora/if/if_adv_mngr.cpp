@@ -66,7 +66,7 @@ void fn_80108DE4();
 void fn_80108E44(nw4r::g3d::ScnGroup* group);
 void fn_80108E5C(void* boss);
 void fn_801092E0(void* boss, IfAdvDispInfo info);
-void fn_80109540(void* boss);
+void fn_80109540(void* boss, int index);
 void fn_80108404(nw4r::g3d::ResFile* resFile);
 void* fn_80108014(int arg, void* data);
 void fn_801081C8(void* zako, nw4r::g3d::ResFile* resFile);
@@ -697,9 +697,9 @@ extern "C" void fn_80107848(IfAdvMngr* mngr, IfAdvDispInfo info) {
     }
 }
 
-void IfAdvMngr::eraseBoss() {
+void IfAdvMngr::eraseBoss(int index) {
     if (m_boss) {
-        fn_80109540(m_boss);
+        fn_80109540(m_boss, index);
     }
 }
 

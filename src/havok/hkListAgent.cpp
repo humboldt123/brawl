@@ -17,11 +17,40 @@
 //   0x802B8E34    68  updateShapeCollectionFilter   [map: hkListAgent__updateShapeCollectionFilter]
 
 #include <havok/hkListAgent.h>
+#include <havok/hkListShape.h>
+#include <havok/hkMonitorStream.h>
+#include <havok/hkMotionState.h>
+#include <havok/hkSweptTransformUtil.h>
+#include <havok/hkCollisionInput.h>
+#include <havok/hkShapeCollectionAgent.h>
+#include <havok/hkUnionFind.h>
+#include <havok/hkCollisionDispatcher.h>
+#include <havok/hkShapeType.h>
+
+// The list in A goes to the shape collection agent's static queries; the reverse record uses their symmetric forms.
+void hkListAgent::registerAgent(void* dispatcher) {
+    hkAgentFuncs listAny;
+    listAny.create = (hkAgentFunc)createListAAgent;
+    listAny.staticGetPenetrations = (hkAgentFunc)hkShapeCollectionAgent::staticGetPenetrations;
+    listAny.staticGetClosestPoints = (hkAgentFunc)hkShapeCollectionAgent::staticGetClosestPoints;
+    listAny.staticLinearCast = (hkAgentFunc)hkShapeCollectionAgent::staticLinearCast;
+    listAny.symmetricA = true;
+    listAny.symmetricB = true;
+    ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&listAny, HK_SHAPE_LIST, HK_SHAPE_ALL);
+    hkAgentFuncs anyList;
+    anyList.create = (hkAgentFunc)createListBAgent;
+    anyList.staticGetPenetrations = (hkAgentFunc)hkSymmetricAgentLinearCast<hkShapeCollectionAgent>::staticGetPenetrations;
+    anyList.staticGetClosestPoints = (hkAgentFunc)hkSymmetricAgentLinearCast<hkShapeCollectionAgent>::staticGetClosestPoints;
+    anyList.staticLinearCast = (hkAgentFunc)hkSymmetricAgentLinearCast<hkShapeCollectionAgent>::staticLinearCast;
+    anyList.symmetricA = false;
+    anyList.symmetricB = true;
+    ((hkCollisionDispatcher*)dispatcher)->registerCollisionAgent(&anyList, HK_SHAPE_ALL, HK_SHAPE_LIST);
+}
 
 hkListAgent* hkListAgent::createListAAgent(void* a, void* b, void* c, int d) {
     hkListAgent* agent = (hkListAgent*)hkMemory::s_instance->allocateChunk(sizeof(hkListAgent), 0x1d);
     agent->m_memSizeAndFlags = sizeof(hkListAgent);
-    return new (agent) hkListAgentVariant(b, a, c, d);
+    return new (agent) hkSymmetricAgent_11hkListAgent_(b, a, c, d);
 }
 
 hkListAgent* hkListAgent::createListBAgent(void* a, void* b, void* c, int d) {
@@ -29,6 +58,17 @@ hkListAgent* hkListAgent::createListBAgent(void* a, void* b, void* c, int d) {
     agent->m_memSizeAndFlags = sizeof(hkListAgent);
     new (agent) hkListAgent(a, b, c, d);
     return agent;
+}
+
+// HYPOTHESIS: hkAgent1nMachine_Create (map name): sets up an empty track.
+extern "C" void fn_802FCB14(hkAgent1nTrack* track);
+
+// HYPOTHESIS: the track is constructed a second time in place before hkAgent1nMachine_Create (the target initialises
+// the in-place array twice, the second time behind a null test of the member address).
+hkListAgent::hkListAgent(void* a, void* b, void* c, int unk8Value) : hkCollisionAgent(unk8Value) {
+    unkC = (int)((hkCollisionInput*)c)->m_dispatcher;
+    new (&m_agentTrack) hkAgent1nTrack;
+    fn_802FCB14(&m_agentTrack);
 }
 
 // Stand-ins for the member functions of the embedded object at 0x10 (other unit, not recovered yet).
@@ -47,7 +87,7 @@ struct FilterArgs {
 };
 
 void hkListAgent::cleanup() {
-    fn_802FC6AC(m_subObject, unkC, unk8);
+    fn_802FC6AC(&m_agentTrack, unkC, unk8);
     delete this;
 }
 
@@ -58,15 +98,41 @@ void hkListAgent::updateShapeCollectionFilter(const hkCdBody& a, const hkCdBody&
     args.d = &d;
     args.unk8 = unk8;
     args.bValue = (u32)b.m_shape;
-    fn_802FEA54(m_subObject, &args);
+    fn_802FEA54(&m_agentTrack, &args);
 }
 
 void hkListAgent::invalidateTim(void* arg) {
-    fn_802FC824((char*)this + 0x10, arg);
+    fn_802FC824(&m_agentTrack, arg);
 }
 
 void hkListAgent::warpTime(float t0, float t1, void* arg) {
-    fn_802FC988((char*)this + 0x10, t0, t1, arg);
+    fn_802FC988(&m_agentTrack, t0, t1, arg);
+}
+
+// Runs the track on every child of the list in B: the hit list is all child keys, ended by the invalid key.
+void hkListAgent::processCollision(const hkCdBody& bodyA, const hkCdBody& bodyB, hkProcessCollisionInput& input,
+                                   void* output) {
+    HK_TIMER_BEGIN("list");
+    const hkListShape* list = (const hkListShape*)bodyB.getShape();
+    hkAgent3ProcessInput in3;
+    {
+        in3.m_bodyA = &bodyA;
+        in3.m_bodyB = &bodyB;
+        in3.m_contactMgr = (hkContactMgr*)unk8;
+        in3.m_input = &input;
+        const hkMotionState* msA = bodyA.getMotionState();
+        const hkMotionState* msB = bodyB.getMotionState();
+        hkSweptTransformUtil::calcTimInfo(*msA, *msB, input.m_stepInfo.m_deltaTime, in3.m_linearTimInfo);
+        in3.m_aTb.setMulInverseMul(msA->getTransform(), msB->getTransform());
+    }
+    int size = list->m_childInfo.getSize();
+    hkLocalBuffer<u32> hitList(size + 1);
+    for (int i = 0; i < size; i++) {
+        hitList[i] = i;
+    }
+    hitList[size] = 0xFFFFFFFF;
+    fn_802FCCF0(&m_agentTrack, &in3, list, hitList.m_data, size, output);
+    HK_TIMER_END();
 }
 
 void hkListAgent::getClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target) {
@@ -79,4 +145,26 @@ void hkListAgent::getPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollis
 
 void hkListAgent::linearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d) {
     staticLinearCast(a, b, c, (hkPenetrationTarget*)target, d);
+}
+
+// The static queries treat the list as a shape collection (with the bodies the other way round).
+void hkListAgent::staticGetClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c,
+                                         hkPenetrationTarget* target) {
+    HK_TIMER_BEGIN("ListAgent");
+    hkSymmetricAgentLinearCast<hkShapeCollectionAgent>::staticGetClosestPoints(a, b, c, target);
+    HK_TIMER_END();
+}
+
+void hkListAgent::staticLinearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c,
+                                   hkPenetrationTarget* target, void* d) {
+    HK_TIMER_BEGIN("ListAgent");
+    hkSymmetricAgentLinearCast<hkShapeCollectionAgent>::staticLinearCast(a, b, c, target, d);
+    HK_TIMER_END();
+}
+
+void hkListAgent::staticGetPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c,
+                                        hkPenetrationTarget* target) {
+    HK_TIMER_BEGIN("ListAgent");
+    hkSymmetricAgentLinearCast<hkShapeCollectionAgent>::staticGetPenetrations(a, b, c, target);
+    HK_TIMER_END();
 }

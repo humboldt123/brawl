@@ -21,6 +21,18 @@ struct hkBool {
 typedef int hkResult;
 enum { HK_SUCCESS = 0, HK_FAILURE = 1 };
 
+// An enum stored in a smaller integer (Havok's hkEnum). The conversion has an out-of-line copy in
+// hkRigidMotionUtil.o (map name hkEnum<hkMotion::MotionType, u8>::operator hkMotion::MotionType).
+template <class ENUM, class STORAGE>
+struct hkEnum {
+    STORAGE m_storage;
+
+    operator ENUM() const { return (ENUM)m_storage; }
+    void operator=(ENUM e) { m_storage = (STORAGE)e; }
+    bool operator==(ENUM e) const { return m_storage == (STORAGE)e; }
+    bool operator!=(ENUM e) const { return m_storage != (STORAGE)e; }
+};
+
 // Passed to the load-time ("finish loaded object") constructors; read and written as a 32-bit word.
 struct hkFinishLoadedObjectFlag {
     int m_finishing; // 0x00

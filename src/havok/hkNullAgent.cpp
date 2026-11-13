@@ -16,7 +16,10 @@
 
 #include <havok/hkNullAgent.h>
 
+#pragma push
+#pragma auto_inline off
 hkNullAgent::hkNullAgent() {}
+#pragma pop
 
 static hkNullAgent s_nullAgent;
 

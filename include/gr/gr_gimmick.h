@@ -313,6 +313,12 @@ public:
         Vec2f m_offsetPos;
         float m_scale;
 
+#ifdef GR_GIMMICK_EFFECT_INFO_CTOR
+        // HYPOTHESIS: an empty constructor (sora_melee gr_gimmick.cpp defines the 4-byte one); opt-in so no other unit's
+        // arrays of this record change.
+        Effect_Info() { }
+#endif
+
         inline void set(SndID sndId, u32 repeatFrame, short nodeIndex, u32 endFrame, Vec2f offsetPos) {
             m_id = sndId;
             m_repeatFrame = repeatFrame;

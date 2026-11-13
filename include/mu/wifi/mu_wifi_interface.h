@@ -243,6 +243,7 @@ public:
     void answerRequestedEntry(bool accepted, u8 aid, int player);
     u8 getTeamColor(int index);
     u8 getAssignedTeamColor(int index);
+    u8 getAssignedCpuLevel(int index);
     u8 getAssignedHomerunRule();
     u8 getAssignedKumiteType();
     u8* getAssignedMeleeRule();
@@ -263,6 +264,7 @@ public:
     void sendAIDInfo(bool send, u8 aid);
     int getFriendAIDIndexAID(int aid);
     void clearShortComment(int aid);
+    void putShortComment(int aid, int index, const wchar_t* comment);
     void closeAIDWifi(int aid);
     s32 getMeleeRestTime(u8* flag);
     u8 getRuleType();
@@ -293,6 +295,8 @@ public:
     // HYPOTHESIS: outputs are wide strings stored as byte pairs in the save data.
     wchar_t* getMyFriendStatusName(wchar_t* name);
     wchar_t* getMyFriendStatusComment(wchar_t* comment);
+    wchar_t* getFriendStatusName(int index, wchar_t* name);
+    wchar_t* getFriendStatusComment(int index, wchar_t* comment);
     wchar_t* getMyShortComment(int index, wchar_t* comment);
     // HYPOTHESIS: argument and result types follow the original register accesses.
     int getNetworkErrorLevel();
@@ -328,12 +332,15 @@ public:
     u8 getFreeCharColor(int character, int count);
     int _getNetworkError(int* code);
     void startMatchingDaiRantou(int arg);
+    bool startMatchingAnybody(int arg);
     // HYPOTHESIS: argument and result types follow register use and string copies.
     int getFriendAIDIndex(int index);
     wchar_t* getShortComment(unsigned int aid, int index, wchar_t* comment);
     u8 getAssignedPlayerContNum(int index);
     int isPermittedEntry(int playerArea);
     void exitNodePlayer(int playerArea);
+    // HYPOTHESIS: the second argument is the computer flag the select screen passes as 1.
+    void setCpuPlayerArea(int playerArea, int cpu);
     // HYPOTHESIS: parameter types follow the original register accesses.
     bool isRequestedExchangeFriendKey(int index);
     bool getWifiPlayerInfo(int index, int* character, u8* color, bool* connected);

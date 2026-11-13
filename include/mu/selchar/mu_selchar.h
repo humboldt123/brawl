@@ -68,7 +68,13 @@ public:
         int unk40;
     };
     muSelCharPlayerArea* m_selCharPlayerAreas[num_player_areas];   // 0x44
+#ifdef MU_SELCHAR_UNIT_DECLS
+    char _0x54[0x10];
+    nw4r::g3d::ResFile* m_texResFile;           // 0x64 HYPOTHESIS: the file of the textures of the characters
+    char _0x68[4];
+#else
     char _0x54[0x18];
+#endif
     nw4r::g3d::ScnGroup* m_scnGroup;            // 0x6C the group of the scene that the models of the screen are drawn in
     int m_charList[50];                         // 0x70 the kinds of the characters of the screen, in their order
     int m_charListNum;                          // 0x138
@@ -242,7 +248,11 @@ public:
     int getDifficulty();
     u8 isEntried2P();
     muSelCharCoin* getCoin(int areaIdx);
+#ifdef MU_SELCHAR_UNIT_DECLS
+    muSelCharHand* getHand(int areaIdx) __attribute__((never_inline));
+#else
     muSelCharHand* getHand(int areaIdx);
+#endif
     int getRuleTaskState();
     void setDifficulty(int difficulty);
     u8 isTeamBattleTouch();
@@ -273,7 +283,12 @@ public:
     // The kind of the select screen (versus, a solo mode ...), from the global select data.
     static int getSelCharType();
     static const muSelCharTypeData* getSelCharTypeData(int selCharType);
+#ifdef MU_SELCHAR_UNIT_DECLS
+    // HYPOTHESIS: the original returns an int here (the callers do not extend it).
+    int getSelCharTypeHighScoreKind(int selCharType) __attribute__((never_inline));
+#else
     u8 getSelCharTypeHighScoreKind(int selCharType);
+#endif
     static u8 getGlobalHandiType();
     int getRuleTimeMax();
     int getRuleTimeMin();
@@ -294,7 +309,11 @@ public:
     void bindCalcWorldFlag();
     int getCollKindPlayerArea(Vec2f* pos, int* areaIdx, int* arg, float* rect);
     void setRuleNumHoldCursorVisible(bool visible);
-    void setFaceIconMotion(int faceIdx, int motion);
+    void setFaceIconMotion(int faceIdx, int motion)
+#ifdef MU_SELCHAR_UNIT_DECLS
+        __attribute__((never_inline))
+#endif
+        ;
     int findFreeWiiControllerNo();
     void dispWifiPrompt(u32 message);
     int getCollCharKind(Vec2f* pos);
@@ -308,6 +327,12 @@ public:
     void dispHomerunRule(int rule);
     bool isWifiMode();
     void readyStateMain();
+#ifdef MU_SELCHAR_UNIT_DECLS
+    // Declarations that only mu_selchar.cpp defines.
+    void setVisibleAllPlayersHandi(bool visible);
+    void dispVersusHighScore();
+    void decideCharKind(int areaIdx, int charKind);
+#endif
     // HYPOTHESIS: range classification shared by the character select menus.
     static inline bool isSelCharTypeIn(int type, int first, int end) {
         bool in;

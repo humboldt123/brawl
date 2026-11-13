@@ -18,6 +18,7 @@
 //   0x802CEAC0    84  __sinit_\hkBvShape_cpp   [map: hkBvShapecpp____sinit_]
 
 #include <havok/hkBvShape.h>
+#include <havok/hkRegistry.h>
 #include <havok/hkShapeType.h>
 
 void hkBvShape::finishLoadedObjecthkBvShape(void* p) {
@@ -34,6 +35,8 @@ hkBvShape::~hkBvShape() {
     m_boundingVolumeShape->removeReference();
 }
 
+#pragma push
+#pragma auto_inline off
 const void* hkBvShape::getVtablehkBvShape() {
     hkFinishLoadedObjectFlag flag;
     flag.m_finishing = 0;
@@ -41,6 +44,7 @@ const void* hkBvShape::getVtablehkBvShape() {
     hkBvShape* p = ::new (buf) hkBvShape(flag);
     return *(const void**)p;
 }
+#pragma pop
 
 void hkBvShape::getAabb(const hkTransform& xf, hkReal expansion, hkAabb& out) const {
     m_boundingVolumeShape->getAabb(xf, expansion, out);
@@ -74,4 +78,25 @@ int hkSingleShapeContainer::getNumChildShapes() const {
 //   0x802CE61C   132  __dt   [map: hkSingleShapeContainer____dt]
 //   0x802CE824   260  castRay   [map: hkBvShape__castRay]
 //   0x802CE928   216  castRayWithCollector   [map: hkBvShape__castRayWithCollector]
-//   0x802CEA00   152  calcStatistics   [map: hkBvShape__calcStatistics]
+
+static hkStaticTypeInfo hkBvShapeTypeInfo("hkBvShape", hkBvShape::finishLoadedObjecthkBvShape, hkBvShape::cleanupLoadedObjecthkBvShape,
+                                      hkBvShape::getVtablehkBvShape());
+
+// Statistics collector slots used by calcStatistics (vtable offsets 0x0C, 0x14 and 0x20); see hkCylinderShape.cpp.
+// Shape from https://github.com/jj-link/brawl src/havok/fn_802CEA00.cpp.
+struct hkStatisticsCollectorIface {
+    virtual void unk00();
+    virtual void addObject(const char* name, int count, const void* object);      // 0x0C
+    virtual void unk10();
+    virtual void addChildObject(const char* name, int count, const void* object); // 0x14
+    virtual void unk18();
+    virtual void unk1C();
+    virtual void unk20();                                                         // 0x20
+};
+
+// TODO: cleanup (shape from jj-link/brawl fn_802CEA00)
+void hkBvShape::calcStatistics(hkStatisticsCollector* collector) const {
+    ((hkStatisticsCollectorIface*)collector)->addObject("BvShape", 1, this);
+    ((hkStatisticsCollectorIface*)collector)->addChildObject("Child", 1, m_childContainer.m_childShape);
+    ((hkStatisticsCollectorIface*)collector)->unk20();
+}

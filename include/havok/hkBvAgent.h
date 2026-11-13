@@ -63,6 +63,11 @@ struct hkSymmetricBvAgent : hkBvAgent {
 // around the target.
 template <class T>
 struct hkSymmetricAgentLinearCast : T {
+    // Forwards to T's constructor. A member template, so the explicit instantiations of the class
+    // (hkBvAgent.cpp) do not instantiate it for agents without a four-argument constructor.
+    template <class A, class B, class C, class D>
+    hkSymmetricAgentLinearCast(A& a, B& b, C& c, D d) : T(a, b, c, d) {}
+
     virtual void getPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);
     static void staticGetPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, hkPenetrationTarget* target);
     virtual void getClosestPoints(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target);

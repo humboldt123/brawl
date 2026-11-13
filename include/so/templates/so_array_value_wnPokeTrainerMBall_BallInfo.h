@@ -7,6 +7,8 @@ class Vec3f;
 
 // Local copy layout used only by abstract array instantiations; SDK unchanged.
 // HYPOTHESIS: field grouping follows copies; field meanings remain unknown.
+// The fighter unit defines the full article instead (ft/poke/ft_poke_trainer_article_pools.h).
+#ifndef FT_POKETRAINER_ARTICLE_POOLS
 class wnPokeTrainerMBall {
 public:
     // HYPOTHESIS: activation parameter types follow the trainer's article callback.
@@ -26,4 +28,5 @@ public:
     float unk38;
 };
 };
+#endif
 static_assert(sizeof(wnPokeTrainerMBall::BallInfo) == 60, "Class is wrong size!");

@@ -146,11 +146,13 @@ public:
     soInstanceManagerFullPropertyEccentric<soTransitionTerm> m_transitionTermInstanceManager;
     int m_unitID;
 
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
     // constructor / destructor live in sora_melee
     soTransitionTermGroup();
     soTransitionTermGroup(soArray<soInstanceUnitFullProperty<soTransitionTerm> >* terms);
+#ifdef FT_MODULE_BUILDER
     ~soTransitionTermGroup();
+#endif
 #endif
 
     // Checks if any of the terms within this group currently have all of their soGeneralTerms satisfied.
@@ -195,7 +197,7 @@ public:
     soArray<soTransitionTermGroup>* m_transitionTermGroupArray;
     int m_groupID;
     soTransitionInfo m_transitionInfo;
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
     // inlined into the builders
 #ifdef WN_TRANSITION_CTOR_INLINE
     // MATCH-ONLY: an article with a single transition builder has the constructor expanded in its own constructor.
@@ -204,7 +206,9 @@ public:
 #else
     soTransitionModuleImpl(soArray<soTransitionTermGroup>* groups); // out of line (ft_builder_noinline.h)
 #endif
+#ifdef FT_MODULE_BUILDER
     soArray<soTransitionTermGroup>* getGroups() { return m_transitionTermGroupArray; }
+#endif
 #endif
     virtual int checkEstablish(soModuleAccesser* accesser, u32* targetKindOut, int groupID, u16* attrMask, soGeneralTermCache* generalTermCache);
     virtual void enableTerm(int unitID, int groupID);

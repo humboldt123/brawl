@@ -25,6 +25,6 @@ struct hkBoxShape : hkConvexShape {
     virtual void getCollisionSpheresInfo(hkCollisionSpheresInfo* out) const; // 0x28
     virtual hkVector4* getCollisionSpheres(hkVector4* out) const;            // 0x2C
     virtual void getSupportingVertex(const hkVector4& direction, hkVector4& out) const; // 0x30
-    virtual void convertVertexIdsToVertices(const void* ids, int numIds, hkVector4* out) const; // 0x34
+    virtual void convertVertexIdsToVertices(const u16* ids, int numIds, hkVector4* out) const; // 0x34
     virtual void getFirstVertex(hkVector4& out) const;                       // 0x38
 };

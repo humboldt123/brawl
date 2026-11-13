@@ -12,5 +12,7 @@ public:
     int getCopySlotNo();
     void copySetup(soModuleAccesser* moduleAccesser, int slotNo, int copyKind, bool effect);
     void* getExtendParam();
+    void decisionStoneMetamorphosis();
+    u8* getWorkStone();
     bool checkKirbyFinalRayCheck(ftKirbyFinalRayQuery* query);
 };

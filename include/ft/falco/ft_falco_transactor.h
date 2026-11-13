@@ -3,6 +3,7 @@
 #include <ft/ft_transactor.h>
 #include <types.h>
 
+class soArticle;
 class soModuleAccesser;
 class wnFalcoBlaster;
 class wnFalcoBlasterBullet;
@@ -12,6 +13,7 @@ class ftFalcoTransactor : public ftTransactor {
 public:
     ftFalcoTransactor();
     virtual ~ftFalcoTransactor();
+    virtual bool activeArticle(soArticle* article, soModuleAccesser* acc);
     // Local declaration of the REL singleton-holder entry point.
     static ftFalcoTransactor* getInstance();
     // HYPOTHESIS: the two ids are the model and the texture resource of the blaster; the flags are unknown.

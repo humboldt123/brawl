@@ -9,13 +9,13 @@ class StageObject;
 
 class soDamageAttackerInfo {
 public:
-    gfTask::Category m_directTaskCategory : 8;
+    u8 m_directTaskCategory; // gfTask::Category; read as a plain byte (ftLogTransactor::processFixPosition)
     char _spacer[3];
     int m_directTaskId;
     soKind m_directSoKind;
     int m_directSoSubKind;
 
-    gfTask::Category m_indirectTaskCategory : 8;
+    u8 m_indirectTaskCategory; // gfTask::Category; read as a plain byte (ftLogTransactor::processFixPosition)
     char _spacer2[3];
     int m_indirectTaskId;
     soKind m_indirectSoKind;

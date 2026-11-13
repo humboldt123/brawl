@@ -164,6 +164,10 @@ FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 286);
 FT_DOL_ARRAY_VECTOR(soPartialAnim, 3);
 // ft_pit
 FT_DOL_ARRAY_VECTOR(soCollisionShieldGroup, 4);
+// ft_poke_trainer: status kind cap and the disguise-list cap. The neighboring array units
+// define these on the primary template (they include only so/so_array.h).
+FT_DOL_ARRAY_VECTOR(soStatusUniqProcess*, 299);
+FT_DOL_ARRAY_VECTOR(ftAnimCmdConvPtr, 299);
 
 // soArrayContractibleTable<const soStatusData>: the (table, size) constructor and the destructor are calls into sora_melee.
 template <>

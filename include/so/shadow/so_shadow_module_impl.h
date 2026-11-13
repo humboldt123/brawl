@@ -98,4 +98,5 @@ public:
     virtual int getMode(); // maybe static? unsure.
     virtual void setIgnoreMode(int);
     virtual bool isDispProjection();
+    static soShadowModuleNull* getNullInstance();
 };

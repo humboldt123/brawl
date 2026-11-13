@@ -34,7 +34,7 @@ public:
     void setBossPacknWnLeft(u32 createId);
     void setBossPacknWnRight(u32 createId);
     void notifyDead(u32 createId);
-    void notifyDamage(u32 createId);
+    void notifyDamage(int createId, u32 taskId);
     void remove();
 };
 static_assert(sizeof(stAdventureInfoEmBoss) == 0x5C, "Class is wrong size!");

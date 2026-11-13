@@ -103,6 +103,133 @@ Adapted from [decomp-triage](https://github.com/KakarottoCake/decomp-triage/tree
 - **Two stack temporaries in the reverse order and declaration order changes nothing: they were locals of an inlined function.** At function scope MWCC gives the first-declared local the higher address; locals of an inlined callee come out the other way round. Move the temporaries into a small `static inline` helper (or the header inline they came from). Seen: `hkRotation::isOrthonormal` (its tail is `hkVector4::equals3`), the path box in both `hkBvTreeAgent` linear casts (`hkBvTreeAgent_expandByPath`). **MED**
 - **Havok interpolation is `(1 - t) * a + t * b`** (`fmuls t*b`, then `fmadds (1-t)*a + that`; `1 - t` computed once), not `a + (b - a) * t`. In `hkSweptTransformUtil` this, plus the quaternion normalize as a guarded `__frsqrte` + one Newton step (0 gives 0, negative gives +inf), took lerp2/lerp2Ha/backStep/freeze from 62-75 to 87-95 objdiff. **HIGH**
 - **Which class owns a deleting destructor:** count the `beq` that follow the `this` null test before the first member's destruction; each one is an inlined destructor level. 0x802A8D68 has three (linear-cast variant, `hkSymmetricAgent`, `hkBvTreeAgent`), so it is `hkSymmetricAgentLinearCast<hkBvTreeAgent>`'s dtor although the map labels it `hkSymmetricAgent<..>`'s. **MED**
+- **A Havok function that calls tiny accessors out of line (`getSize`, `getShape`, `memoryAvailable`, `setTime`, a 4-byte
+  `blr` constructor) was compiled without inlining:** wrap it in `#pragma push` / `#pragma dont_inline on` / `#pragma pop`
+  and spell it with the accessors (the Havok macro forms: `HK_TIMER_*_ACCESSORS` in hkMonitorStream.h). Every accessor
+  then comes out as a weak copy identical to the unnamed `fn_` functions after it; name those in `symbols.txt` and each
+  counts as an exact function (hkBvTreeStreamAgent::processCollision gave 18). The calls to `hkBool::operator bool` go
+  to the copy at 0x802A0BD8 (`__opb__6hkBoolCFv`). **HIGH**
+- **More functions of that kind, and what to check when writing one:** find them by grepping the unit asm for calls
+  to `__opb__6hkBoolCFv`, `memoryAvailable__15hkMonitorStreamCFv` or `__ct__9hkVector4Fv`. The static helpers next to
+  such a function are often compiled with inlining (only the big function sits in the `dont_inline` region), so read
+  each helper separately. A `clrlwi r11, r1, 28` prologue means a 16-byte aligned local (an hkVector4, or a scratch
+  struct that needs `} __attribute__((aligned(16)));`). The member `hkMath::fabs` becomes `__fabs` because MSL's
+  math.h defines `fabs(x)` as a macro: declare it `static float(fabs)(float x);` and call `(hkMath::fabs)(x)`.
+  Seen: `hkPredGskAgent3::process`, `hkPredGskCylinderAgent3::process` (unit fully exact),
+  `hkRigidMotionUtilApplyForcesAndStep` / `ApplyAccumulators` (the `hkEnum<MotionType, u8>` conversion and
+  `hkAddByteOffset<hkMotion>` copies). (2026-11-11) **HIGH**
+- **More notes on writing `dont_inline` Havok functions (2026-11-12):**
+  a float literal that the target keeps in a saved register for several calls (`lfs f26, lit` once, then `fmr f1, f26`
+  before each call) is a plain non-const local (`hkReal realMax = HK_REAL_MAX;`); a literal or a `const` local is
+  re-loaded at every call. A loop that walks several arrays with separate saved pointers in the target (`mr r24, r23`,
+  `addi r22, r1, 0xf0`, `addi r21, r1, 0x10`, each bumped at the bottom) was written with pointers; the index form
+  shares one offset register between arrays of the same stride. Which saved register each pointer gets follows the
+  declaration order (first declared = highest). The accessor copies name const-ness: a copy the function writes through
+  is the non-const overload, so check the callers before trusting a map-derived `CFv`/`Fv` label (hkContactPoint:
+  getPosition at 0x802F2ECC is the non-const one). Seen: `hkCollideCapsuleUtilCapsVsTri`. **MED**
+- **A `dont_inline` function whose vector locals are never constructed (no `bl __ct__9hkVector4Fv` for stack vectors
+  that `setZero4`/`__as` are called on), while its other accessors are out-of-line calls:** no pragma or flag reproduces
+  that (dont_inline, always_inline, inline_depth/auto_inline, `-inline off`, exceptions on/off all call the empty
+  constructor). Untyped 16-aligned storage plus a `(*(hkVector4*)&storage)` alias per name (scoped `#define`s, MATCH-ONLY)
+  gave the exact function; a reference alias does not (it takes a saved register). Also check the function for the
+  propagation-off mode first: an `hkSimdReal` local (the normal's `lengthSquared3()`, reused for two tests) lined up all
+  saved registers there, and an `extrwi.` test of a compare is a `bool` local in that mode. Seen:
+  `hkSimpleContactConstraintDataBuildJacobian` (`src/havok/hkSimpleContactConstraintInfo.cpp`). **MED**
+- **Reading a `dont_inline` function's call order back into source (2026-11-12):** with out-of-line accessors in
+  both operands, MWCC evaluates the right operand of a binary operator first when both sides weigh the same, and the
+  heavier side first otherwise; `set()` takes its arguments right to left. A target that calls `r(2)` then `M(1,2)`,
+  then `r(1)`, `M(2,2)`, then `M(0,1)`/`r(0)` and `M(0,0)`/`r(1)` is `M(2,2)*r(1) + M(1,2)*r(2) + M(0,1)*r(0) +
+  M(0,0)*r(1)` (the asm operand order of each `fmuls`/`fmadds` is the source order). Such functions also emit the
+  implicit copy constructors of `hkVector4` and `hkBool` as weak copies (`__ct__9hkVector4FRC9hkVector4`,
+  `__ct__6hkBoolFRC6hkBool`), so no user copy constructor is needed. `!b` on an `hkBool` calls our `operator!`;
+  where the target calls `operator bool` and branches, write `!(bool)b`. Seen: `hkBoxBoxCollisionDetection`
+  `checkIntersection`/`calcManifold` (`src/havok/hkBoxBoxCollisionDetection.cpp`). **HIGH**
+- **Unnamed 8-byte `subi r3, r3, N; b <fn>` functions right after a unit (or split off as a unit of their own) are the
+  class's `@N@` this-adjusting thunks:** they appear once the class really overrides a virtual of a secondary base. Check
+  the DebugMode `RSBE01.map` (it names the object file of every function) before trusting a split from
+  `havok_map.csv`: the csv had the hkConstrainedSystemFilter thunks as two fake units (hkGeometryUtility,
+  hk_constrained_system_filter) and the hkGroupFilter / hkNullCollisionFilter thunks outside any unit. Inside each
+  secondary vtable MWCC emits the thunks in reverse slot order (`@8@isCollisionEnabled` before `@8@__dt__`, but
+  `@12@__dt__` before `@12@isCollisionEnabled` when that interface declares the destructor second), so the thunk order
+  also gives the interface's declaration order. Name them `@<N>@<mangled target>` in `symbols.txt`. Seen:
+  `include/havok/hkCollisionFilter.h` (the four Havok filter interfaces, +32 exact). (2026-11-12) **HIGH**
+- **Havok `__sinit_\<unit>_cpp` that calls `getVtable<Class>` and then stores four words into a 16-byte .bss record:**
+  the class's `hkTypeInfo` static built by a constructor (`hkStaticTypeInfo` in `include/havok/hkRegistry.h`), not an
+  aggregate initialiser (that only stores the vtable word). Keep `getVtable<Class>` out of line with `#pragma push` /
+  `#pragma auto_inline off` / `#pragma pop` around its definition, or `-ipa file` inlines it into the `__sinit`. When the
+  target adds an offset to the string pool base (`addi r0, r8, 0x14`), the class name sits after timer strings of
+  functions not written yet; the `__sinit` scores 94-99.95 until those exist (the name itself is right). (2026-11-12)
+  **HIGH**
+- **`extrwi rX, rY, 1, N` + `extsb.` on a table word (one bit tested through an `hkBool`):** an inline `hkBool`
+  helper, e.g. `hkCollisionDispatcher::hasAlternateType(type, alt)` = `(m_hasAlternateType[type] & (1 << alt)) != 0`;
+  a plain `if (flags & 4)` gives `rlwinm.`. The table load stays inside the loop because it goes through
+  `input.m_dispatcher` each time. Several early `return f(x, infoB)` in the original are one `infoA` variable and a single
+  call at the end (the target has one `bl`). Seen: `hkGroupFilter::isCollisionEnabled` (shape collection overload).
+  **MED**
+- **Small Havok recipes found while sweeping unwritten functions (2026-11-12):** (a) a recursive member that MWCC
+  inlines one level into itself: `#pragma push` / `#pragma auto_inline off` / `#pragma pop` around its definition
+  (`hkCollisionDispatcher::updateHasAlternateType`); (b) `cmpw rField, rParam` where ours gives `cmpw rParam, rField`
+  for `a[i].f == p`: take a `const T& e = a[i];` local first (`registerAlternateShapeType`); (c) a destructor that
+  calls a sibling member with `bl` although it is defined earlier in the file: the same pragma around the sibling
+  (`~hkCollisionDispatcher` -> `disableDebugging`); (d) a `pushBack` whose capacity load lands in the other register
+  pair: `m_size == getCapacity()` instead of the masked field (hkArray.h; made `hkWorldOperationQueue::queueOperation`
+  exact, checked over every unit with `hvtools/xu.sh`); (e) a 4-float copy back into `this` that alternates `lfs`/
+  `stfs` while the rest of the function is scheduled: the source object came in through a non-const pointer parameter
+  (`hkSpatialRigidBodyDeactivator::shouldDeactivate*Frequency(hkEntity*)`); (f) unnamed weak deleting dtors with
+  `li r6, <class>` name the class allocator id: `hkWorldObject` 0x13, `hkCollisionDispatcher` 0x25 (its constructor
+  call site in hkWorld allocates with the same id), `hkPhantomBroadPhaseListener` 0x1f. **MED**
+- **Before writing a function, check whether it is already written under our name:** a function can sit in our object
+  with a real mangled name while `symbols.txt` still calls the target `fn_...` (hkBoxMotion's inertia getters, the
+  world island callbacks). `hvtools/out/unnamed.py` pairs our-only functions with unnamed target functions by the
+  DebugMode map's method/class name. **MED**
+- **Dead stack copies of a transform in reverse column order (col0 at the highest address) right before an inline
+  constructor's member stores: the member's copy goes through four `hkVector4` temporaries** (`r0..r3 = columns`, then
+  assigned). Seen only in propagation-off callers. Put the copy in a member-local type (`hkBoxBoxTransform` in
+  `include/havok/hkBoxBoxCollisionDetection.h`); as a global `hkTransform` copy constructor it breaks other units
+  (hkTransformAgent create functions). An `extrwi rX, rY, 8, 19` after `cntlzw` (the `== 0` result masked to a byte)
+  is an `hkBool` returned by value from an inline function. Seen: `hkBoxBoxAgent::processCollision` and the static
+  queries. (2026-11-12) **MED**
+- **Loads kept after stores they could be hoisted over (a 4-float copy that alternates `lfs`/`stfs`, or a member read
+  after a `setZero4`): the source operand is reached through a non-const reference or pointer.** MWCC treats data read
+  through a `const` reference as not aliased by stores through other pointers and schedules those loads early; a
+  non-const parameter keeps source order. Seen: `hkBoxBoxCollisionDetection::calcManifoldNormal` (non-const
+  `hkFeaturePointCache&`, plus an `hkSimdReal` local for the column offset), `hkBoxBoxManifold::addPoint` (non-const
+  key). **MED**
+- **A flag set to 1 on a loop's break path and to 0 only after the loop falls through, then tested with `extsb.`:**
+  an inline helper that returns `hkBool` from inside the loop (`return true;` / `return false;` after it). A local flag
+  initialised before the loop gives `li rX, 0` up front and `cmpwi`. Seen: `findFeaturePair` in
+  `src/havok/hkBoxBoxManifold.cpp`; the same inlined search shows up in the box-box `tryToAddPoint*` functions. **MED**
+- **A u16 accessor result added to an int without `clrlwi rX, rY, 16` in the target: the accessor returns `int`**
+  (its `lhz; blr` body is the same). Seen: `hkContactPointMaterial::getFriction8_8`. **MED**
+- **Before changing a widely inlined header body for one out-of-line copy, compile every Havok unit with the variant
+  header in a shadow include dir and compare per-function objdiff scores:** `hvtools/xu.sh INC unit...` (unit totals)
+  and `hvtools/out/xvar.py` (per function); about 3 minutes for all 251 units. hkVector4::setCross in lane form makes the
+  hkSimpleContactConstraintInfo copy exact but drops hkMatrix3::invertSymmetric and two others, so it stays on `set()`.
+  **MED**
+- **`bge body; bge body; b exit` in front of a long block (where `blt exit` would be the obvious form) is an early return
+  folded into an earlier test:** `if ((mask0 & mask1) || (a < -m && b < -m)) return;` gave the target's branches; the two
+  float tests as their own `if (...) return;` give `blt`. Seen: `hkCollideCapsuleUtilCapsVsTri`. **MED**
+- **A callee-saved register order that puts a walking pointer after the loop counter although it is a parameter:**
+  copy the parameter into a local just before the loop (`hkVelocityAccumulator* accumulator = accumulators;`); the
+  copy is coloured after the parameters and before the counter declared in the `for`. Seen:
+  `hkRigidMotionUtilApplyAccumulators`. **MED**
+- **A member load that sits between an allocation and an out-of-line call it is added to** (`lfs f30, m_radius` after
+  the `new`'s null test, before `bl getCylinderRadius`; a plain sum loads it after the call): the sum came from an
+  inline helper that reads the member into a local first. Seen: `getCapsuleRadius` in
+  `src/havok/hkPredGskCylinderAgent3.cpp`. **MED**
+- **A word field passed to a halfword parameter without `clrlwi rX, rY, 16`:** the parameter is a full int (the
+  callee's `sth` is the same either way); retype it and rename the symbol (`hkMotion::setDeactivationCounter(int)`).
+  **MED**
+- **objdiff ignores relocation-name differences when the target symbol is an auto name (`fn_`, `lbl_`):** a function
+  whose only diff is `bl fn_802B87B8` vs `bl __ct__11hkListAgentFPvPvPvi`, or a vtable `lbl_` vs `__vt__...`, already
+  scores 100. Named targets do not get this, so rename an unnamed callee only when you know its signature. **MED**
+- **Unnamed 32-byte `mr r4,r3; lwz s_instance__8hkMemory; lhz r5,4(r4); li r6,<class>; ... bctr` functions are class
+  `operator delete` copies,** emitted for the `DELETEPOINTER` cleanup of a `new X(...)` in an exceptions-on unit; name
+  them `__dl__<class>FPv` (`hvtools/fnmatch.py` finds the ones the unit already emits). **MED**
+- **Explicit class instantiations (`template struct X<T>;`) instantiate every member, constructors included:** a
+  forwarding constructor added to `hkSymmetricAgentLinearCast<T>` broke hkBvAgent.cpp. Write it as a member template
+  (`template <class A, class B, class C, class D> X(A& a, B& b, C& c, D d) : T(a, b, c, d) {}`); member templates are not
+  instantiated by the explicit class instantiation. **HIGH**
 - **Check Havok near-misses with objdiff, not only `tools/havok/cmp.py`:** after a shared vector-header change cmp's ratio said six functions went up while objdiff's fuzzy score (the one the report and the best-ever rule use) said they went down. `objdiff-cli report generate` on a small objdiff.json that pairs your compiled objects with the target ones takes about a second for all Havok units. **MED**
 - **Havok class layouts come from main.dol's reflection:** `python tools/havok_reflect.py dump <class>` prints a reflected class's size and member offsets, `seed <class>` prints a starting declaration, and `check` rewrites `tests/havok_layout/` (sizeof/offsetof asserts that the build compiles). Member names are the reflection's with `m_` in front. Run `check` after adding or moving a Havok header so the new class is covered. **HIGH**
 - **`__attribute__((aligned(16)))` between `struct` and the name does nothing in MWCC:** put it after the closing brace (`} __attribute__((aligned(16)));`, as `hkVector4` does). `hkMatrix3` had the prefix form and was 4-aligned; the layout check's `__alignof__` assert (from the DOL's `TYPE_PROPERTIES`) now catches it. Seen: `hkMatrix3`, the mass-changer and soft-contact atoms. **HIGH**
@@ -145,6 +272,48 @@ Adapted from [decomp-triage](https://github.com/KakarottoCake/decomp-triage/tree
 - **A bitfield cleared with `lbz`/`rlwinm`/`stb` where `&= 0x7F` gives `clrlwi`:** read the byte through a view struct with a one-bit `unsigned char` member and assign 0. Seen: `dxyorsterHitByte` in `gr_dxyorster_blockpos.cpp`. **MED**
 - **A derived virtual call is one slot too late:** compare the exact base and derived formal types in the translation unit. MWCC treats `int` and `long` as different overloads even when both occupy one register. Puff's `Weapon::notifyEventAnimCmd` used `int` while its `StageObject` base used `s32` (`long`), adding a virtual slot and shifting `deactivateArticle`. An opt-in matching declaration repaired the call without changing other translation units. Verify the native vtable and all affected call sites before changing shared declarations. Seen: `include/wn/weapon.h`, `src/mo_fighter/ft_purin/ft_purin.cpp`. **HIGH**
 - **An inline destructor on a base class can win the linker's weak-symbol dedup and shift every address behind your unit:** `~wnClassInfo() { }` made `wn_class_info.o` emit a weak `__dt__11wnClassInfoFv`; the module's named copy sits in an object that is later in link order, so the unit's own copy won, appended its 0x40 and shifted the destructor behind it plus every importer (the per-function scores stayed 100%, only the 127 hashes failed). Declare the destructor (`~wnClassInfo();`) removes the body but a user-declared base destructor also makes MWCC emit a base-dtor call in EVERY derived destructor (`wnClassInfoImpl` overshoots its native body by 0xC), while the `g_wnClassInfoNull` static initializer needs the declaration visible for its registration form. Gate the declaration behind an opt-in macro (`WN_CLASS_INFO_BASE_DTOR`) defined only by the registering unit; layout and vtable are identical under both views (same pattern as `MT_VEC2F_CTOR_OUT_OF_LINE`). Seen: `include/wn/wn_class_info.h`, `src/mo_melee/sora_melee/wn/wn_class_info.cpp`. **HIGH**
+
+- **MWCC reuses a base class's tail padding:** a derived class's first member can sit inside the base's `sizeof` when the
+  base is padded by alignment (a 16-aligned base with data ending at 0x74 is 0x80 bytes, and the derived members start
+  at 0x74). If a create function allocates the same size for base and derived and the derived fields overlap the base's
+  last bytes, give the base its real alignment (`__attribute__((aligned(16)))`, or the hkVector4 member that causes it)
+  and shrink its padding array to the real data end. Seen: `hkConvexListAgent : hkPredGskfAgent` (`include/havok/hkGskBaseAgent.h`). **HIGH**
+- **Multiple inheritance vtable order:** the combined vtable is the primary base part, then each secondary base's vtable
+  (each with its own 8-byte header, holding the `@N@` this-adjusting thunks), and only then the class's own new virtuals.
+  So a call through slot 0x34 of a class with two secondary bases can be the class's first own virtual. The thunks
+  (`@8@method`, `@12@__dt`) are emitted automatically once the class and its overrides exist; name them in symbols.txt
+  like any function. Seen: `hkBroadPhaseBorder` (`include/havok/hkBroadPhaseBorder.h`). **HIGH**
+- **The vtables of a base whose ctor is inlined somewhere are emitted (weak) in every unit that needs them, and the linker
+  keeps the first copy:** a weak destructor that the map puts in an unexpected unit (`~hkGskfAgent` in hkConvexListAgent.o)
+  is that unit's copy, kept because the unit links first. Check which vtable in the data section points at it (the
+  vtable may sit in a later unit's data). An extab `DESTROYBASE` action names the direct base's destructor, which tells
+  you the real parent class (hkPredGskfAgent, not hkCollisionAgent). Seen: `src/havok/hkConvexListAgent.cpp`. **HIGH**
+- **A `__attribute__((never_inline))` constructor keeps its own inline helpers; `#pragma dont_inline on` around it does not:**
+  the pragma also stops the base and member constructors from inlining into it (they become `bl`s to out-of-line copies).
+  Use the attribute when a create function must call the constructor but the constructor's body must inline its parts. **HIGH**
+- **Stack slots of block-scoped locals are not shared:** six `{ hkAabb aabb; ... }` blocks get six frame slots; one
+  `hkAabb` declared once and refilled gives the single slot the target reuses (the frame size tells you). Seen:
+  `hkBroadPhaseBorder` constructor. **HIGH**
+- **A wrong symbols.txt name can hide a real function:** a 40-50% "match" whose target has a different parameter use
+  (here a loaded-object constructor against a code path that copies an aabb and a filter word) is a misnamed address;
+  rename it to the real signature and write the real function. Seen: 0x802E7988 `hkAabbPhantom(const hkAabb&, u32)`. **MED**
+- **A virtual `const` method's loads move above its stores; a non-const one keeps strict `lfs/stfs` pairs:** `this` behaves
+  like a pointer-to-const parameter. Strict pairs into an out reference meant `calcAabb(hkAabb&)` without `const`. **MED**
+- **A unit's string pool can start with literals that no function in the image uses: the function was dead-stripped by
+  the linker.** Write it back (in source order before the functions whose strings follow) and the later string
+  offsets line up. hkAabbPhantom's pool starts with "TtrcPhantom"/"Et" from the stripped `setAabb` timer; writing it
+  made `calcStatistics` and `__sinit_` exact. Mark the body HYPOTHESIS, since only its literals are evidence. **HIGH**
+- **`#pragma auto_inline off` around a callee's definition is what stops MWCC from inlining a function defined later in
+  the unit (deferred inlining):** `__attribute__((never_inline))` on a declaration of an explicit specialization is
+  ignored, and a `dont_inline` helper wrapper did not stop it either. Seen: the hkShapeCollectionAgent symmetric
+  queries called by `hkConvexListAgent`'s static queries. **HIGH**
+- **The Havok collision collectors are freed with their static size as class 0x1d** (`li r5,<sizeof>; li r6,0x1d` in
+  the weak deleting dtor): `HK_DECLARE_SIZED_DELETE(0x1d)` (`include/havok/hkMemory.h`) on hkCdPointCollector,
+  hkFlagCdBodyPairCollector and hkSimpleClosestContactCollector; then name the `dtor_` copies in symbols.txt. **HIGH**
+- **`hkArray::operator=` copies through a helper `copy(dst, src, n)` called as `copy(m_data, other.m_data, m_size)`
+  after `m_size = other.m_size`** (arguments right to left: the size reload, then src, then dst). Writing the loop
+  inline loads src before the size store. Exact: `hkPackfileData::getImportsExports`; `hkAabbPhantom::clone` 97.5 (a
+  flags/size load order swap in the capacity update remains). **MED**
 
 ## 5. Integers and bools
 - **An all-energy mask emits `lis/subi` for 65535 instead of `li -1`:** audit the callee before changing temporaries. Native kinetic speed sums use signed halfword loads and compare against the -1 sentinel; that path sums every enabled energy in reverse order. Correcting `soKineticEnergy::AttributeMask` to `s16` matched Yoshi Egg Roll exit/power callers. Seen: `so/kinetic/so_kinetic_energy.h`, `ft_yoshi_status_uniq_process_special_s_{end,utility}.cpp`. **HIGH**
@@ -202,6 +371,10 @@ Adapted from [decomp-triage](https://github.com/KakarottoCake/decomp-triage/tree
 - **A dead `mr rX, rThis` copy into a saved register inside an inlined constructor, or a `new` that keeps the allocation in a saved register and returns it instead of the out-of-line ctor's `r3`, means the unit was built with `-Cpp_exceptions on`.** With exceptions a new-expression keeps the allocation for the operator delete cleanup, and an inlined ctor keeps a copy of the object pointer for the cleanup of its already-built bases (the copy is dead when nothing after the last call uses `this`). No source form or `-opt` switch reproduces it with exceptions off. Check the unit's split first: a unit with `extab`/`extabindex` sections in `splits.txt` was built with exceptions; one without was not (turning it on for every Havok unit breaks the hash, so it is per unit). The extab entry of such a function names the cleanup actions and the registers they read (one `-Cpp_exceptions on` probe plus a dump of both objects' extab shows whether the actions agree). Once on, read the bodies through typed `const` references (`const hkCdBody&`, not `void*` plus casts) or the loads stay behind the vtable store. Seen: the Havok agent create functions (`hkSphereTriangleAgent`, `hkCapsuleTriangleAgent`, `hkGskfAgent`, `hkTransformAgent`), `configure.py`. **HIGH**
 
 - **Loads that move above stores to a stack object (each value loaded one step before its store, e.g. `lwz motion; stw parent; lwz shape; stw motion`) mean the source pointer is a pointer-to-const *parameter*.** MWCC lets a load through a parameter declared `const T*` / `const T&` / `const void*` pass stores to locals; the same load through a `void*` parameter cast to `const T*`, a `const T* const` local made from one, a non-const parameter, or the parameter of an inlined helper stays in strict source order. Aliases of a const parameter (`const T& x = param;`, `const T* p = &param;`) keep the freedom. The reverse also holds: when the target keeps strict order (a struct copy as `lwz/stw` pairs reusing `r0`, a reload of a field after the copy, a dispatcher load that stays behind a store), the parameter was not pointer-to-const there. Once the loads are free, statement order matters again: put the value into a local before the store that should come first (`hkShape* child = ...; body.m_shapeKey = key; body.m_shape = child;`). A non-explicit constructor from `const T*` turns a leftover `&x` argument into a silent temporary; make it `explicit` before retyping. Seen: the Havok agent slots (bodies `const hkCdBody&`, inputs plain `hkCollisionInput&`; 21 functions exact), `include/havok/hkCollisionAgent.h`. **HIGH**
+
+- **A constant scheduled one slot early or late in an otherwise exact struct fill (`li r31, 0` before `li r0, 1` in the target, ours the other way), invariant to assignment order and literals: the struct has a default constructor that stores that constant.** The constructor's stores are dead (the body overwrites the fields) and vanish, but the constant they used is created first and keeps its earlier place. `hkAgentFuncs() : symmetricA(false), symmetricB(false) {}` made six parked `registerAgent` functions exact at once. Side effects to check: a record declared at the top but filled after a call now keeps the zero live across the call (declare it where it is filled), and records filled in a non-standard field order move. Seen: `include/havok/hkCollisionDispatcher.h`. (2026-11-11) **HIGH**
+
+- **A loop counter and its element offset (or two loop variables) in swapped callee-saved registers, invariant to declaration order and increment spelling: try an inline function boundary or a block scope.** Locals of an inlined callee and locals declared in an inner block are created in a different order than function-scope ones. `hkAabbPhantom::add/removeOverlappingCollidable` became exact with the listener loop moved into a static inline `fire...` helper (the Havok shape: `hkPhantom::fireCollidableAdded`); `~hkPhysicsSystem` became exact with each of its four loops wrapped in `{ int n = ...; for (int i ...) }` (one shared `i`/`n` pair gave the first loop's coloring to all four). Seen: `src/havok/hkAabbPhantom.cpp`, `src/havok/hkPhysicsSystem.cpp`. (2026-11-11) **MED**
 
 ## 6. Control flow and registers
 
@@ -853,6 +1026,13 @@ Same source. These apply when the decomp is built for PC:
 - **Two simple address arguments come out in parameter order:** `&local` and `&ptr->member` are simple operands, so `f(&normal, &wn->m_speed)` computes `&normal` first whatever you write; casts, `&*&`, `+ 0`, reference or pointer locals, and an accessor that returns the expression directly change nothing. An inline accessor that stores the address in a named local and returns that makes the operand non-simple, and MWCC evaluates it first (right to left). A reference-returning accessor with a local works too. It is MATCH-ONLY unless other evidence backs the accessor. Seen: `wnemPrimProc::BoomerangFly`, `vec2fAngle`. **MED**
 - **A NULL-initialised pointer's saved register follows its first definition:** where `param = NULL` first appears relative to the other definitions at the top of a function decides every saved register, not just its own. In `BoomerangFly`, after a call block gives one assignment, just after a `member = false` store gives another, and before that store a third, where the store also shares the zero register. A later redundant `param = NULL` is dead-store-eliminated into the later position. Open: the original has the second assignment but emits the `li` after the call block, and about 40 source shapes and several permuter runs did not reproduce that. **LOW**
 
+- **A constant or argument that comes out "in the wrong order" around a call usually means the callee's signature is our guess:** MWCC evaluates arguments in declared order, and moving a float parameter between the integer ones keeps the registers but changes the order. Check `frsp` in the callee to tell `float` from `double`, and prefer the BrawlHeaders order when it differs from our symbol. Fixing `StageObject::activate`, the `soSlopeModuleImpl` constructor, `soDamageUtilActor::calcHitStopFrame`, `checkRebound`, `emWeaponManager::activateObject` and `IfAdvMngr`/`IfMngr::eraseBoss` made the Enemy base, `wnemSwHolder::active`, Wario's bike and Ness's yo-yo collision handlers exact. **HIGH**
+- **A caller that copies a by-value class argument the original passes by address needs `const T&`:** the mangled name changes, so `symbols.txt` must follow. Seen: `stAdventureInfoContact::sendToBossInfo`. **MED**
+- **A local `int a[10] = {...}` copied to the stack gives a `.rodata` template; a file-static non-const struct copied by value gives a `.data` one** with the same code, which reproduces an original `.data` array of that shape. Seen: `stAdventureInfoEmBoss`. **MED**
+- **mwld strips unreferenced dummy constants even with `#pragma force_active`,** so an unreferenced `.rodata` tail in the original (contact's 0.5f) cannot be reproduced that way. **LOW**
+- **A loop with duplicate induction pointers for one slot:** the original passed an `s32` (long) counter into an inline helper's `int` parameter; the conversion blocks copy propagation, so the helper's `m_slots[index]` keeps its own pointers. With an `int` counter they merge. Seen: `stAdventureInfoEmZako::update`. **MED**
+- **Name the unit's vtable `lbl_` symbols as `__vt__...` before linking:** asm objects still reference the old labels, and mwld drops our vtables otherwise. **MED**
+
 ## ft_pikachu status and transactor units (follow-up findings)
 
 - **The full-gate report scores `NonMatching` units too:** their objects are compared function by function, so exact-function gains in a `NonMatching` unit count in `newly_matched_bytes`. Flipping a unit to `Matching` is a separate step that additionally needs the relinked REL to hash to the original: flip the object, `ninja build/RSBE01_02/<rel>/<rel>.rel`, compare `sha1sum` with `config/RSBE01_02/build.sha1`, and locate a difference with a section dump (text offset minus the split start gives the function). A unit whose functions are all exact can still fail to link when its relocations name builder functions that the original object names differently (Zako Ball/Child/Girl: the link stops at the first missing symbol, `Failed to find symbol ... in any module`). Seen: the Pikachu kinetic transactor (4/4) and the R.O.B. Burner unit linked on the first try. **HIGH**
@@ -1033,3 +1213,181 @@ Method used for `soModelModuleImpl` (sora_melee 0x77DC-0xE268, `include/so/model
 - **Align an actual I/O record instead of adding a gap to a view struct:** the reader's static mailbox-entry buffer needs the SDK's 32-byte alignment. Its alignment naturally separates the 40-byte list state from the 128-byte entry and raises the unit's BSS alignment. Verify the symbol offsets and whole live section; a code-only comparison can miss the wrong buffer address while the containing unit remains unlinked. **HIGH**
 - **Count the `beq` lines after the first this-test to find a Havok agent's class depth:** each inlined base destructor adds one `beq` on the same cr0. The symmetric multi-sphere destructor has three (hkSymmetricAgent<T> derives from hkSymmetricAgentLinearCast<T>, which derives from T), and a symbol that has only one is the agent's own destructor; check the vtable slot before trusting a dtor name. Seen: `include/havok/hkMultiSphereAgent.h`. **HIGH**
 - **Look for unnamed `fn_` targets that our objects already emit under a real name:** compare every function in our object that has no same-named target symbol against the target's `fn_` symbols with label and `lbl_/fn_` names normalized; several weak agent destructors matched this way just by naming the symbol in `symbols.txt`. Equal 23-instruction deleting destructors are common, so pick the address with the map comment at the top of the unit's .cpp. **HIGH**
+
+## Adventure HUD (if_adv_hud, if_adv_boss, if_adv_enemy) findings
+
+- **An exact unit still needs real callees to link.** The boss and enemy HUD units were 100% but called
+  `MuObject::enableSkipMatrix` / `enableSkipMaterial` through `extern "C" fn_800B20B0` stand-ins. `missing_syms.py` lists
+  such names; when `symbols.txt` already names the address, call the member and flip the unit.
+- **Two callee-saved registers swapped on a value read from a member near the top:** read it through a trivial inline
+  accessor (`getObject(no)`). MWCC colors an inline's return value differently from a plain local (closed drawScore).
+- **The same "look up by name, then call" block at several call sites, with locals copied first:** it is an inline helper
+  with by-value arguments, which are evaluated before the lookup. Passing the lookup name as a parameter also fixed the
+  r3/r4 setup order (updateStockSlot, drawStockFaceMove).
+- **Asm block with a store emitted one slot early:** an in-place `ps_abs fr1, fr1` makes the store of fr1 before it a
+  dependency. Writing the result to a new register variable frees the scheduler, and the allocator still picks the same register.
+- **String pool order follows the order of first parse:** a local holding the first-used literal moves it ahead in `.data`.
+- **MWCC folds `(float)60u` and a `const` local, but not a `u32` variable holding 60**, so a run-time int-to-float
+  conversion of a constant in the original needs the variable (tag it `MATCH-ONLY`).
+- **A struct returned by hidden pointer and then assigned** (`Vec3f p; p = obj->get();`) gives the extra lfs/stfs copy
+  that constructing it in place does not.
+
+## Adventure loaders, operators and menus (st_loader_local_adventure, st_operator_adv_bgm, sc_adv_gameover, mu_adv_comer)
+
+- **An exact sora_melee unit whose source defines a vtable fails the `.plf` link with a multiply-defined `__vt__`** until
+  its splits entry has a `.data` range (and `.bss` for its statics). `missing_syms.py` does not catch this. Take the ranges
+  from the asm object's labels, then compare our object's section sizes with the original's: a larger `.data` is weak
+  base RTTI that the original keeps elsewhere. Name those records (`__RTTI__15stLoaderSandBag`, `__RTTI__13stOperatorBgm`)
+  and the vtable label (`__vt__16stOperatorAdvBgm`) in `symbols.txt`, and mwld drops our copies. **HIGH**
+- **Weak inline getters with float constants** (`Stage::getBgmVolume`) make our `.text` and `.rodata` larger than the
+  original's; when the getters are already named elsewhere in the module, the link drops the copies and their
+  constants, and the hashes match. Judge by the REL hash, not by the object sizes.
+- **A `bool` function returning `cond ? false : intFn()`** gives a plain truthiness test; `intFn() != 0` reproduces the
+  original's neg/or/srwi normalisation (mu_adv_comer `isAnimEnd`).
+- **A local filled and then struct-assigned (`PadInfo none; ...; info = none;`)** reproduces a larger stack frame and a
+  byte-store/word-load pair that a direct field fill does not (mu_adv_comer, as in sc_adv_result).
+- **When the build lock is held by a long link, compile one unit directly:** take `ninja -t commands <obj>`, point `-o`
+  at a scratch path, then diff the function with `dtk elf disasm`. A sora_melee `.plf` link can take 30 minutes under
+  load, so parallel workers should not each run a full `ninja`.
+
+## Linking fighter neutral-special status units (Ike Eruption, Sheik needle statuses)
+
+- **When dtk refuses a carve with "ends within symbol",** an 8-byte float label in `symbols.txt` straddles the carve
+  end because its second float belongs to the next unit. Shrink the label to 4 bytes, and add a 4-byte label for the
+  second word if the next unit needs one. Do not widen the carve. Seen at `lbl_27_rodata_7E90` (Ike start) and
+  `7770` / `77E0` / `7878` (Sheik needles). **HIGH**
+- **If a carved unit with exact functions links to a REL whose vtable relocations point at the wrong functions, check
+  the definition order before the carve.** Sheik's drop and jump needle statuses defined `exitStatus` before
+  `execFixPos`; the original's `symbols.txt` order is `initStatus`, `execFixPos`, `exitStatus`, `__dt`. **HIGH**
+- **A small per-step ID table the code reads by label from `.data` (not `.rodata`) is a file-local non-const array:**
+  Ike's charge sound IDs are `static s32 s_chargeSoundIds[7]` and Kirby's copy table follows it, both before the
+  vtable. Take the values from the original REL bytes; objdiff does not compare them. **MED**
+- **`a + (q / 30) * f()` with the call written last** gives `mullw rD, rQuot, rCall`; caching `f()` in a local first, or
+  writing the product the other way round, swaps the operands (Ike Eruption end `execFixPos`). **MED**
+- The weak `soStatusUniqProcess` and kinetic-energy RTTI/vtables/destructors these units emit are dropped at link
+  without naming, because their owners are already linked; only the unit's own derived-chain RTTI
+  (`__RTTI__35ftIkeStatusUniqProcessSpecialNStart`, `__RTTI__33ftIkeStatusUniqProcessSpecialNEnd`) needed a name.
+
+## Peach module (ft_peach, wn_peach_kassar, wn_peach_kinopio)
+
+- **Weak names on the wrong twin:** a module's `symbols.txt` can give a weak name to a code-identical function at the
+  wrong address. objdiff then reports a false exact match, and the REL can never link. Compare the module map's name at
+  each address with the names our object emits, and rename only where the result has no duplicates. In ft_peach this
+  fixed about 100 names. **HIGH**
+- **Empty base destructors that the original expands to nothing** (soTeam, the sound generator accesser, the resource id
+  accesser, param customize, `soArrayVector<soArticleEventObserver, N>`) need an inline definition in the article's unit:
+  `inline X::~X() { }` in the `.cpp`, or an explicit inline member specialization for a template. This moved the Toad and
+  weapon-builder destructors from about 19% to 100%.
+- **`#pragma dont_inline on` around a definition keeps it out of line for every later caller.** A destructor defined
+  before the `ft_builder_noinline.h` region still inlines its bases.
+- **An explicit instantiation of a template builder destructor (`template X<...>::~X();`) crashes mwcceppc silently:**
+  no object file and no error message.
+- **Weak copies are emitted right after the function that first references them, callees first.** Out-of-class template
+  members come in a declaration-order batch triggered by the vtable reference, wherever their definitions sit. Compiler
+  version (GC 3.0a3 to Wii 1.5) and the inline/ipa flags do not change this. The original emits a status class's
+  destructor before the `soArrayVector` members it calls, which no source placement reproduced, so the ten fighter
+  status units with a `soArrayVector` local (Peach's down special, Pikmin's side special, ...) stay unlinked. Template
+  members are auto-inlined even under `-inline on,noauto`.
+- **`li rB,0` then `mr rC,rB` for two zero arguments comes from a 0 converted late to a bool or u8 parameter.** When the
+  callee takes ints and is a DOL symbol you cannot redeclare, no argument spelling, default argument, wrapper, flag or
+  compiler version reproduced it (IfPeachFinalTask::initProc). An enum local gives the copy but hoists its `li`. MWCC
+  evaluates call arguments right to left.
+- **`#pragma opt_propagation off` on a static inline helper does not carry into the caller it is inlined into.** The
+  kinetic transactors' shared `li r4,1; mr r5,r4` flag pair comes from the pragma over the whole function, which
+  Peach's changeKinetic float block (compiled with propagation on) cannot take.
+
+## Linking sora_melee fighter articles (Zelda Light Bow, Peach transactor, Toad spore)
+
+- **objdiff "exact" does not check function order inside a unit.** Before flipping, compare our object's `.fn` order
+  (`dtk elf disasm` on a direct compile) with the original unit's asm. MWCC emits inline and weak bodies in the order they
+  are defined, counting a template from where it is instantiated; a function does not pull its callees in after itself.
+  Move each inline body (in-class ones included: declare in the class, define `inline` later in the `.cpp`) to where the
+  original order needs it. This linked both Light Bow units. **HIGH**
+- **An exact weapon article whose object carries hundreds of weak template copies grows the REL** when the original copies
+  only have `fn_27_`/`lbl_27_` names: the linker keeps ours. Pair them using the original asm objects' own relocations
+  (each reloc target in the unit's functions is the original copy of a callee), RTTI by class-name string, vtables by the
+  RTTI pointer in their first word, and remaining code by masked bytes plus a unique map name, then rename them in
+  `symbols.txt`. Link sora_melee in scratch with your objects swapped in: the section-size difference breaks down exactly
+  into the leftover weak copies.
+- **A sora_melee article with a function-local static** (`deactivateDescendantForce`'s 12-byte guard) needs its own `.bss`
+  split; otherwise the linker moves the static and every later `.bss` address shifts, failing many fighter RELs.
+- **Exact objects can hide a different call target:** two blr-only functions with the same bytes score as exact, but the
+  link needs the original's address. Add a `type:label` alias in `symbols.txt` for the name our code calls.
+- **Builder destructors that inline everything:** declare `~soModuleAccesserBuilder();` in the explicit specialization and
+  define it `inline` in the `.cpp` inside the `#pragma dont_inline on ... reset` region of the hand-written builder ctor.
+  The original's is "compact" (the big builder dtors stay calls), and the weapon builder and article dtors then match
+  (22% to 100% for the Light Bow, the Toad and the spore).
+- **A non-const `T*` parameter whose loads the original hoists above stack stores:** `T* __restrict` gives the same
+  freedom as a pointer to const and keeps the mangled name; casts, const aliases, const helper parameters and by-value
+  copies do not. This fixed `wnPeachKinopioSpore::activate` (75% to 100%); Wolf's blaster bullet, Fox's Landmaster and
+  Samus's grapple beam activates take a non-const `Vec3f*` the same way and are the unmatched ones of that family.
+- **Mirrored 8-byte temporaries in a switch arm** (an `operator*` result and its copy in swapped slots): move the arm into a
+  static inline tag-dispatched helper (`updateEnergySub(soIntToType<N>(), ...)`); a named local adds a copy instead.
+- **A register swap between a callee-saved module and a task id** came from reading `m_taskId` directly; the accessor
+  (`acc->getStageObject().getTaskId()`) fixes it (ftPeachTransactor::activeArticle).
+- **A base-register float pool declared as one large object in `symbols.txt`** shows as a relocation-name mismatch; split
+  it into one 4-byte `data:float` label per constant.
+- **A sora_melee copy of a fighter-module kinetic transactor needs `cflags=cflags_fighter`** in `configure.py`.
+- **A fighter unit that needs a sora_melee article's full class must not include `wn/mario/wn_mario_fireball.h`:** its
+  inline constructor instantiates the fighter ground builder constructor before `ft_builder_noinline.h` instantiates it
+  explicitly (error 10333).
+
+- **Bind file-operation resources after the guards that permit the operation:** NWC24's two task key/hash writers validate ownership and the input first, then enter a block holding the path buffer and filename. Keeping the filename in that operation's scope restores the native saved-register reuse in both callers. The directory and filename builders are separate SDK stages, each preserving its own validation contract. **HIGH**
+
+- **A normalized instruction match can still hide a swapped string pool:** the task path builders need their used directory-format array before the filename literal in the live data section. Restoring the shared static format array matches every live data/small-data byte and the relocated operands; neither function percentages nor mocked filesystem traces alone establish that layout. **HIGH**
+
+- **Share the real public SDK pipeline when it is also inlined into allocation:** scoped auto-inlining on the update entrypoint and its allocation caller preserves the standalone definition and expands the same implementation at the call site. This recovers timestamp/error/subtask/persistence stages without a second private update body. The ownership/context lesson below resolves the public update routine's remaining cached-header layout. **MED**
+
+- **An opaque SDK task handle and its internal typed view have different inline lifetimes:** passing the public handle through the read/delete helpers keeps the stack buffer pointer in its native saved register across I/O. The eviction routine then matches with real iterator initialization and existing read/delete stages. In cleanup, using the stack object directly instead of a second pointer alias restores the three-instruction prologue order. **HIGH**
+
+- **Loop header selection and ownership validation are separate compiler boundaries:** NWC24's scanner and subtask loop need the nullable header expression at the validation point. Pass that context into one shared validator rather than cloning it; the app-ownership predicate remains a separate inline stage. This preserves permission-before-slot error precedence and matches both loops and the public update routine. **HIGH**
+
+- **Keep parsed title IDs whole across initialization stages:** NWC24 parses the two home-directory components into word locals, returns a 64-bit ID, and passes that ID into record initialization. A wide accumulator and a flattened initializer had equivalent behavior but different saved-register lifetimes. The component parser plus record-default stage matches the constructor without artificial copies. **HIGH**
+
+- **A caller can intentionally ignore a meaningful helper status:** NWC24's message collector propagates count/path/open failures, but publishes partial results after scan/read failures. A scan-and-close helper returns its real status; the file transaction ignores that status and publishes the count. Caller-owned expected-count, matched-count and cursor values recover the original lifetimes while retaining that behavior. Empty conditionals are unnecessary. **HIGH**
+
+- **Per-function matches do not establish physical function or literal order:** before enabling a whole SDK unit, check emitted function offsets, every live data section and relocated operands. Definition order and the point where used format arrays are emitted can matter even when every normalized function reports exact. **HIGH**
+
+- **Check inline field-accessor boundaries when only an imported caller differs:** a typed application-ID getter removes two saved-register operand differences from NWC24 task allocation while preserving the already-exact standalone update routine. A group-ID getter changes other callers, so verify every use and the whole report before adopting one. Same-width integer types and equivalent getter bodies can produce different MWCC temporary lifetimes; an improvement remains partial until every operand matches. **MED**
+
+- **Equal live ranges can still produce different saved registers:** MWCC virtual-register numbering affects allocation order. In NWC24, a getter variant has the same intermediate operations, control flow and mapped interference edges as the nearer match, but renumbers the group value and rotates several saved registers. Compare allocation order as well as lifetimes before widening types or adding helpers. Compiler-graph inspection must use the exact compiler version and reproduce the ordinary compiled object hash; the public [mwcc-debugger](https://github.com/cadmic/mwcc-debugger) describes the approach for older GC versions, whose internal layouts are not interchangeable with GC/3.0. This diagnosis does not make the remaining allocator exact. **MED**
+
+## Order, pooling and stack-slot control (batch 3: Mario fireball, Toad spore, Fox Landmaster, Samus grapple beam)
+
+- **Hoisted `...bss.0`/`...rodata` anchor in a template member with function-local statics** (one more saved GPR than the
+  original): put `#pragma push` / `#pragma pool_data off` / `#pragma pop` around the explicit instantiation in the `.cpp`.
+  Around the class definition in the header it has no effect (motion builder ctor 90.8% to 100%). **HIGH**
+- **A by-address byte temporary that the original gives a word-aligned slot** (frame 16 bytes larger) comes from a
+  one-byte struct local, not a `u8`. **MEDIUM**
+- **Stack-slot order of binding temporaries follows inline depth:** at function scope MWCC allocates them per statement,
+  root first. One inline helper moves a group below the caller's temporaries but reverses its order; a second inline
+  level restores it (`wnMarioFireball::notifyEventAnimCmd`). **MEDIUM**
+- **Physical FPRs for an inline paired-single helper follow the declaration order of its `register f32` locals.** Sweep
+  the orders with a script (about 1 s per compile) when a Vec3f add/sub sequence is register-swapped. Named locals take
+  stack slots in declaration order; inline helpers' locals go below them. **MEDIUM**
+- **Weak emission order:**
+  - Members of an explicit class specialization are emitted with the class's vtable group, before template getters; to get
+    the generic position, use the generic template.
+  - A strong explicit specialization of a class-template member, defined after the function that uses it, is emitted in
+    definition order. That places weak-chain members where in-class or out-of-class template definitions cannot; it
+    needs the member only declared in the class (an in-class body is flushed early and cannot be specialized, error
+    10333).
+  - The declaration order of pure overriders sets the order of the vtable-only weak batch without changing the vtable.
+    Gate such a change per unit, because linked units depend on the current order. **MEDIUM**
+- **`.data` vtable order follows the order classes are defined in the header.** **MEDIUM**
+- **`.rodata` float pools follow creation order, and weak copies that the linker later strips still fix that order.** A
+  scratch REL diff of a 4-byte swap plus ±4 relocation addends points to this (the spore's 1.0f/0.0f pair comes from the
+  shared animation-command sub builder ctor). **MEDIUM**
+- **dtk split silently drops a second `type:label` at an address that already has one.** **HIGH**
+- **Name unnamed weak copies from the module map before touching source:** it shows which 0% functions are already near
+  exact (Fox Landmaster went from 35% to 70% with no source change). **HIGH**
+- **`-I<scratch>` header overrides do nothing with this compile command (`-nosyspath`).** Experiment with a partial
+  specialization in the unit's own header, or a scratch copy of the whole tree path. **MEDIUM**
+  A `-i <scratch>` (lower-case, user path) inserted *before* the command's `-i include` does shadow headers (edit the
+  `ninja -t commands` line), so header experiments can be compiled to a scratch object while a gate runs. **MEDIUM**
+
+### Fighter kinetic transactors, item search/pick transactors and stand-in argument order (ft_captain, ft_gamewatch, ft_dedede, ft_pikmin)
+- **The argument order of an `extern "C" fn_` stand-in decides the order of the argument moves, not only the registers:** floats and ints use separate register files, so `(float..., acc, data, log)` and `(acc, float..., data, log, float...)` give the same registers, but MWCC emits the moves in parameter order. When the original moves `r3` between `f4` and `f1`, put the pointer parameters where the moves are. Seen: `fn_27_60CDC` from the Pikmin damage effector (accesser first) vs. the sora_melee `wnDamageEffectorImpl` (floats first). **HIGH**
+- **A fighter REL's own `soItemSearch`/`soItemPickTransactor` subclass calls the base destructor out of line and expands the Impl one:** the shadow headers `include/so/item/so_item_search_impl.h` / `so_item_pick_transactor_impl.h` have `SO_ITEM_SEARCH_INLINE_DTORS` / `SO_ITEM_PICK_TRANSACTOR_INLINE_DTORS` for that; with `SO_NULLABLE_INLINE_CTOR` the 8-instruction constructor matches too. Calls to the unnamed sora_melee base methods go through `extern "C" fn_27_` stand-ins, as sora_melee itself does. **HIGH**
+- **Status/handler units whose bodies are not done yet still give the static frame:** the class declarations, the static instances and empty processes reproduce the `__sinit`, the constructors and the destructors exactly (name the vtables `__vt__...` in `symbols.txt`). Seen: Captain Falcon's and Kirby's Stone units. **MEDIUM**
+- **A one-case `switch` on an event kind gives `bnelr` plus a dead `blr` after the tail branch;** an `if` gives neither. Seen: `ftCaptainStatusUniqProcessFinalMessageHandler::linkMessageProcedure` (an early `mr r6,r4` still differs). **MED**

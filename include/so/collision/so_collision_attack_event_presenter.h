@@ -45,7 +45,11 @@ public:
 
     soCollisionAttackEventObserver(short unitID) : soEventObserver<soCollisionAttackEventObserver>(unitID) {};
     // (manageId, p2) constructor of the generic article base (observer unit 1)
+#ifdef IT_ITEM_OBSERVER_CTORS
+    soCollisionAttackEventObserver(short manageId, s8 p2);
+#else
     soCollisionAttackEventObserver(short manageId, s8 p2) : soEventObserver<soCollisionAttackEventObserver>(0x1) { initialize(manageId, p2); }
+#endif
 
 #if defined(FT_MODULE_BUILDER) || defined(YK_STAGE_FULL) || defined(SO_EVENT_OBSERVER_INLINE)
     virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // BYTES: the owning unit's weak copy; the #else units call the sora_melee instance

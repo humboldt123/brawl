@@ -23,12 +23,7 @@ hkAgentNnEntry* hkWorldAgentUtil::addAgent(hkLinkedCollidable* collA, hkLinkedCo
                                            const hkProcessCollisionInput& input) {
     hkEntity* entityA = (hkEntity*)((char*)collA + collA->m_ownerOffset);
     hkEntity* entityB = (hkEntity*)((char*)collB + collB->m_ownerOffset);
-    int needMerge = 0;
-    int bothMovable = entityA->isFixed() == false && entityB->isFixed() == false;
-    if (bothMovable && entityA->m_simulationIsland != entityB->m_simulationIsland) {
-        needMerge = 1;
-    }
-    if (needMerge) {
+    if (entityA->isFixed() == false && entityB->isFixed() == false && entityA->m_simulationIsland != entityB->m_simulationIsland) {
         hkWorldOperationUtil::mergeIslands(entityA->m_world, entityA, entityB);
     }
     // the agent goes to an island that is not the fixed one when there is one
@@ -309,7 +304,7 @@ void hkWorldCallbackUtil::fireIslandActivated(hkWorld* world, hkSimulationIsland
         for (int j = entityList.m_size - 1; j >= 0; j--) {
             EntityActivationListener* listener = entityList.begin()[j];
             if (listener != 0) {
-                listener->entityActivated(entity);
+                listener->entityActivated(island->m_entities[i]);
             }
         }
         removeNullListeners(entityList);
@@ -336,7 +331,7 @@ void hkWorldCallbackUtil::fireIslandDeactivated(hkWorld* world, hkSimulationIsla
         for (int j = entityList.m_size - 1; j >= 0; j--) {
             EntityActivationListener* listener = entityList.begin()[j];
             if (listener != 0) {
-                listener->entityDeactivated(entity);
+                listener->entityDeactivated(island->m_entities[i]);
             }
         }
         removeNullListeners(entityList);
@@ -416,3 +411,32 @@ void hkWorldCallbackUtil::fireIslandPostCollideCallback(hkWorld* world, void* a,
 // Instantiations of the hkArray<hkConstraintInternal> insertion helpers.
 template void hkArray<hkConstraintInternal>::insertAt(int i, const hkConstraintInternal& t);
 template void hkArray<hkConstraintInternal>::insertAt(int i, const hkArray<hkConstraintInternal>& other);
+
+// fn_802F58CC: body from https://github.com/jj-link/brawl src/havok/fn_802F58CC.cpp (namespaced; labels as in our symbols).
+#include <types.h>
+namespace jj_fn_802F58CC {
+struct Node { u32 pad0; s16 value; u16 pad6; Node* next; Node* other; s16 otherValue; };
+struct Object { char pad0[0x10]; Node* head; char pad14[0x14]; Node* tail; };
+// TODO: cleanup (shape from jj-link/brawl fn_802F58CC)
+extern "C" void fn_802F58CC(Object* obj, Node* oldNode, Node* newNode, s16 value) {
+    Node* tail;
+    Node* node;
+    node = obj->head;
+    tail = obj->tail;
+    if (node == 0) {
+        if (tail != 0) { tail->other = newNode; tail->otherValue = value; }
+    } else if (node == oldNode) {
+        obj->head = newNode;
+        if (tail != 0) { tail->other = newNode; tail->otherValue = value; }
+    } else {
+    loop:
+        Node* next = node->next;
+        if (next != oldNode) {
+            node = next;
+            goto loop;
+        }
+        node->next = newNode;
+        node->value = value;
+    }
+}
+} // namespace jj_fn_802F58CC

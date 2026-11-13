@@ -23,7 +23,7 @@ public:
     virtual void mulAccel(Vec3f*);
     virtual void reflectSpeed(Vec3f*);
     virtual void reflectAccel(Vec3f*);
-#ifdef WN_ARTICLE_NATIVE_BUILDERS
+#if defined(WN_ARTICLE_NATIVE_BUILDERS) && !defined(FT_ROT_ENERGY_DTOR_OUT_OF_LINE) && !defined(FT_ROT_ENERGY_DTOR_OUTLINE)
     virtual ~soKineticEnergyRotNormal() { }
 #else
     virtual ~soKineticEnergyRotNormal();

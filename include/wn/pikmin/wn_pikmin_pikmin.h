@@ -223,6 +223,8 @@ typedef soTypeList<soInstancePoolInfo<soKineticEnergyNormal, 1, soKineticEnergyH
         soTypeList<soInstancePoolInfo<soKineticEnergyJostle, 1, soKineticEnergyHolder, soKineticEnergyInitInfo<4, 4> >,
         soTypeList<soInstancePoolInfo<soKineticEnergyStop, 1, soKineticEnergyHolder, soKineticEnergyInitInfo<5, 2> >,
         soTypeListNullType> > > > > > wnPikminPikminKineticEnergyTypeList;
+// The destructors are spelled with wnKineticTransactor. The pool walk uses the Pikmin transactor
+// (WN_KINETIC_UPDATE_TRANSACTOR in this unit).
 typedef soKineticTransactorInfo<wnPikminPikminKineticTransactor, wnKineticTransactor, wnPikminPikminKineticTransactor,
                                 soKineticTransactHelper>
     wnPikminPikminKineticTransactorInfo;

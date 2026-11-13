@@ -23,9 +23,6 @@ public:
 } // namespace g3d
 } // namespace nw4r
 
-// HYPOTHESIS: map names MuObject::enableSkipMatrix, enableSkipMaterial
-extern "C" void fn_800B20B0(MuObject* object, bool enableSkip);
-extern "C" void fn_800B21C4(MuObject* object, bool enableSkip);
 // HYPOTHESIS: MuMsg::create with a third argument that is not a HeapType in the symbol
 // HYPOTHESIS: Message::setBufField34 on the private message of MuMsg
 extern "C" void setBufField34__7MessageFii(void* message, int index, int value);
@@ -112,8 +109,8 @@ void IfAdvZako::createModel(nw4r::g3d::ResFile* resFile) {
     MuObject* object;
     for (int i = 0; i < 2; i++) {
         object = m_objects[i];
-        fn_800B20B0(object, true);
-        fn_800B21C4(object, true);
+        object->enableSkipMatrix(true);
+        object->enableSkipMaterial(true);
     }
 }
 

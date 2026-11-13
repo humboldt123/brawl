@@ -51,7 +51,11 @@ public:
 
     soInstanceUnitFullProperty() : m_attribute(0), m_10(-1) { }
     soInstanceUnitFullProperty(T& elm, s32 id, soAttributeFlag attr, s16 p4) :
+#ifdef WN_EM_SIMPLE_PROPERTY_COPY
+        soInstanceUnit<T>(elm, id), m_attribute(attr.m_mask), m_10(p4) { }
+#else
         soInstanceUnit<T>(elm, id), m_attribute(attr), m_10(p4) { }
+#endif
     ~soInstanceUnitFullProperty() { }
 
     soAttributeFlag getAttribute() const {

@@ -303,9 +303,7 @@ void ftPokeLizardon::processUpdate() {
     }
 }
 
-// HYPOTHESIS: the original passes the second argument to the bool parameter without a conversion (the observer parameter may be
-// a bool); the int spelling of the shared observer declaration adds one.
-void ftPokeLizardon::notifyEventSetRumble(int kind, int unk2) {
+void ftPokeLizardon::notifyEventSetRumble(int kind, bool unk2) {
     m_moduleAccesser->getControllerModule().setRumble(kind, 0, unk2, -1);
 }
 

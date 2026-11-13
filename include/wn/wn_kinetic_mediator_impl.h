@@ -132,10 +132,18 @@ public:
         m_pools.clearSpeed();
     }
     virtual void updateEnergy(soModuleAccesser* acc) {
+#ifdef WN_KINETIC_UPDATE_TRANSACTOR
+        m_pools.template updateEnergy<WN_KINETIC_UPDATE_TRANSACTOR>(acc);
+#else
         m_pools.template updateEnergy<typename Transactors::UpdateType>(acc);
+#endif
     }
     virtual void updateEnergy1(soModuleAccesser* acc, soKineticAttributeMask flag) {
+#ifdef WN_KINETIC_UPDATE_TRANSACTOR
+        soKineticUpdateEnergyHolderHelper<WN_KINETIC_UPDATE_TRANSACTOR> helper(flag);
+#else
         soKineticUpdateEnergyHolderHelper<typename Transactors::UpdateType> helper(flag);
+#endif
         m_pools.updateEnergy1(helper, acc);
     }
     virtual void updateEnergy2(soArray<soKineticEnergy**>* energies, soModuleAccesser* acc) {

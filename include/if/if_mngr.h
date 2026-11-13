@@ -97,7 +97,8 @@ public:
     void setTrainingStatusDamage(int damage);
     void setTrainingStatusCombo(int combo);
     void setTrainingStatusTotalDamage(int damage);
-    void eraseBoss();
+    // The boss slot (0 or 1), passed on to IfAdvBoss::eraseBoss.
+    void eraseBoss(int index);
     void setBossDamageDisp(int index);
     void setBossDeathDisp(int index);
     void setBossMoveDispFlag(bool flag);

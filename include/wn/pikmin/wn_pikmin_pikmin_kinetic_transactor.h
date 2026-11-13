@@ -54,7 +54,13 @@ public:
     // gravity energies have their own mode-dependent updates.
     template <typename E>
     static void updateEnergy(E* energy, soModuleAccesser* moduleAccesser) {
-        if (energy->isEnable() != true || energy->isSuspend()) return;
+        // Separate returns: one combined condition compiles the second test as beq/blr instead of a conditional return.
+        if (energy->isEnable() != true) {
+            return;
+        }
+        if (energy->isSuspend()) {
+            return;
+        }
         energy->updateEnergy(moduleAccesser);
     }
     static void updateEnergy(soKineticEnergyNormal* energy, soModuleAccesser* moduleAccesser);

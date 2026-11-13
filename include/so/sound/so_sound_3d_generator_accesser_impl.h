@@ -26,7 +26,15 @@ protected:
     struct GeneratorInstance {
         int m_0;
         snd3DGenerator m_soundGenerator;
+#ifdef WN_SOUND_GENERATOR_HELPERS
+        // The fighter accesser calls these; an article TU that does not use the 8-byte generator still has to parse it.
+        void initialize() { }
+#endif
     };
+#ifdef WN_SOUND_GENERATOR_HELPERS
+    static void allocateInstance(GeneratorInstance*, Vec3f*) { }
+    static void freeInstance(GeneratorInstance*) { }
+#endif
 #endif
 
 public:

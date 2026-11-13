@@ -42,5 +42,7 @@ public:
     virtual bool checkDamage();
     virtual void setSendCutEvent(bool sendCutEvent);
     virtual void check();
+    // Runs the catch check of the module (soCatchManager::processCatch calls it in check order).
+    void checkOrder();
 };
 static_assert(sizeof(soCatchModuleImpl) == 0x64, "Class is wrong size!");

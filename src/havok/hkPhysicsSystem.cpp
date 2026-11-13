@@ -28,45 +28,35 @@ const void* hkPhysicsSystem::getVtablehkPhysicsSystem() {
 
 #pragma auto_inline reset
 
-static void hkPhysicsSystemFreeArray(hkArrayBase& a) {
-    if ((a.m_capacityAndFlags & hkArrayBase::DONT_DEALLOCATE_FLAG) == 0) {
-        hkThreadMemory::s_instance->deallocateChunk(a.m_data, (a.m_capacityAndFlags & hkArrayBase::CAPACITY_MASK) * 4, 0x15);
-    }
-}
-
 hkPhysicsSystem::~hkPhysicsSystem() {
-    int i;
-    int n = m_rigidBodies.m_size;
-    for (i = 0; i < n; i++) {
-        ((hkWorldObject**)m_rigidBodies.m_data)[i]->removeReference();
-    }
-    n = m_phantoms.m_size;
-    for (i = 0; i < n; i++) {
-        ((hkWorldObject**)m_phantoms.m_data)[i]->removeReference();
-    }
-    n = m_constraints.m_size;
-    for (i = 0; i < n; i++) {
-        hkReferencedObject* c = ((hkReferencedObject**)m_constraints.m_data)[i];
-        if (c != 0) {
-            c->removeReference();
+    {
+        int n = m_rigidBodies.m_size;
+        for (int i = 0; i < n; i++) {
+            ((hkWorldObject**)m_rigidBodies.m_data)[i]->removeReference();
         }
     }
-    n = m_actions.m_size;
-    for (i = 0; i < n; i++) {
-        hkReferencedObject* a = ((hkReferencedObject**)m_actions.m_data)[i];
-        if (a != 0) {
-            a->removeReference();
+    {
+        int n = m_phantoms.m_size;
+        for (int i = 0; i < n; i++) {
+            ((hkWorldObject**)m_phantoms.m_data)[i]->removeReference();
         }
     }
-    hkPhysicsSystemFreeArray(m_phantoms);
-    hkPhysicsSystemFreeArray(m_actions);
-    hkPhysicsSystemFreeArray(m_constraints);
-    hkPhysicsSystemFreeArray(m_rigidBodies);
+    {
+        int n = m_constraints.m_size;
+        for (int i = 0; i < n; i++) {
+            ((hkReferencedObject**)m_constraints.m_data)[i]->removeReference();
+        }
+    }
+    {
+        int n = m_actions.m_size;
+        for (int i = 0; i < n; i++) {
+            hkReferencedObject* a = ((hkReferencedObject**)m_actions.m_data)[i];
+            if (a != 0) {
+                a->removeReference();
+            }
+        }
+    }
 }
 
-static hkTypeInfo hkPhysicsSystemTypeInfo = {
-    "hkPhysicsSystem",
-    hkPhysicsSystem::finishLoadedObjecthkPhysicsSystem,
-    hkPhysicsSystem::cleanupLoadedObjecthkPhysicsSystem,
-    hkPhysicsSystem::getVtablehkPhysicsSystem(),
-};
+static hkStaticTypeInfo hkPhysicsSystemTypeInfo("hkPhysicsSystem", hkPhysicsSystem::finishLoadedObjecthkPhysicsSystem, hkPhysicsSystem::cleanupLoadedObjecthkPhysicsSystem,
+                                      hkPhysicsSystem::getVtablehkPhysicsSystem());

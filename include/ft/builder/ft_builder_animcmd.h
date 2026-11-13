@@ -80,7 +80,12 @@ FT_DOL_CONTRACTIBLE_TABLE(acAnimCmdConvPtr);
 template <>
 class soArrayNull<const acAnimCmdConv*> : public soArray<const acAnimCmdConv*> {
 public:
+#ifdef FT_ANIMCMD_ARRAY_NULL_INLINE_CTOR
+    // The unit whose original inlines the constructor (it only stores the vtable pointer) defines the macro.
+    soArrayNull() { }
+#else
     soArrayNull();
+#endif
     virtual ~soArrayNull();
     virtual bool isNull() const;
     virtual const acAnimCmdConv*& at(s32 index);
@@ -148,10 +153,24 @@ public:
     ~soAnimCmdFirstMember() { }
 };
 
+#ifdef WN_ANIMCMD_RESET_MODE_BOX
+// BYTES: in the Mario fireball's animation command sub builder each reset-mode temporary takes a word-aligned slot below
+// the constructor's own locals (the original frame is 16 bytes larger), which a one-byte struct gives and a plain byte
+// does not. HYPOTHESIS: the original passes a small reset-mode structure.
+struct ftResetModeBox {
+    u8 value;
+};
+inline const u8* ftAddressOf(u8 value) {
+    ftResetModeBox box;
+    box.value = value;
+    return &box.value;
+}
+#else
 // MATCH-ONLY: address of a temporary that lives in the frame of the (inlined) caller.
 inline const u8* ftAddressOf(u8 value) {
     return &value;
 }
+#endif
 
 // The manage id is read through the soEventManager part of the event manage module.
 inline s16 ftGetManageId(const soModuleAccesser* acc) {
@@ -203,8 +222,13 @@ template <class BC>
 class soAnimCmdControlUnitBuilder {
     typedef soArrayContractibleTable<const acAnimCmdConv*> TableT;
     typedef soArrayVector<acCmdInterpreterStackData, BC::StackCapacity> StackT;
+#ifdef WN_EM_SIMPLE_UNIT
+    // BYTES: the enabled threads leave the first word unused. The stack, the null address pack and the interpreter follow.
+    u32 unk0;
+#else
     soAnimCmdFirstMember<TableT> m_table;                                                                   // +0
     u32 unk10;                                                                                              // +0x10
+#endif
     soArraySelectHolder<1, StackT, soSingletonHolder<soArrayNull<acCmdInterpreterStackData> > > m_stack;   // +0x14
     soAnimCmdAddressPackArraySeparate m_pack;                                                               // +0xC0
     soAnimCmdInterpreter m_interpreter;                                                                     // +0xDC
@@ -219,9 +243,16 @@ public:
         __attribute__((never_inline))
 #endif
         :
+#ifdef WN_EM_SIMPLE_UNIT
+        m_stack(),
+        m_pack((soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull,
+               (soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull,
+               (soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull),
+#else
         m_table((const acAnimCmdConv**)data0, BC::Capacity),
         m_stack(),
         m_pack(&m_table.m_member, (soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull, (soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull),
+#endif
         m_interpreter(ftGetManageId(acc),
 #ifdef WN_ANIMCMD_STACK_PTR
                       // MATCH-ONLY: a pointer return stays in a callee-saved register across getManageId.
@@ -236,12 +267,21 @@ public:
                       1.0f,
 #endif
                       ftAddressOf((u8)0)) {
+#ifdef WN_EM_SIMPLE_UNIT
+        (void)data0;
+        (void)data1;
+        (void)data2;
+#endif
         soAttributeFlag attr(BC::AttrMask);
         soAnimCmdControlUnit unit = { &m_interpreter, &m_pack };
         acc->getAnimCmdModule().registInterpreter(unit, attr);
     }
     // MATCH-ONLY: MWCC needs an explicit definition for selected weak instantiations.
+#ifdef FT_ANIMCMD_UNIT_DTOR_OUTLINE
+    ~soAnimCmdControlUnitBuilder();
+#else
     ~soAnimCmdControlUnitBuilder() { }
+#endif
 };
 
 // Unit 9: no command table / address pack of its own (uses the null pack), a deeper interpreter stack.
@@ -274,6 +314,9 @@ public:
         unit.m_animCmdAddressPackArraySeparate = (soAnimCmdAddressPackArraySeparate*)g_soAnimCmdAddressPackArrayNull;
         acc->getAnimCmdModule().registInterpreter(unit, attr);
     }
+#ifdef FT_ANIMCMD_UNIT_DTOR_OUTLINE
+    ~soAnimCmdControlUnitBuilderUniq();
+#endif
 };
 
 // Unit 0: the two disguise lists (Cap entries each) instead of a command table.

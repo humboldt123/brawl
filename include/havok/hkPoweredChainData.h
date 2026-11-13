@@ -12,7 +12,7 @@ struct hkPoweredChainData : hkConstraintData {
     u8 m_unk18[0x04];                    // 0x18
     s32 m_chainLength;                   // 0x1C
 
-    u32 getType() const;
+    int getType() const;
     void getConstraintInfo(hkConstraintInfo* info) const;
     void getRuntimeInfo(void* unusedA, hkConstraintRuntimeInfo* out) const;
     void* getConstraintFlags(void* base) const;

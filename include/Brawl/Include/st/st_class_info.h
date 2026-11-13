@@ -7,7 +7,9 @@
 class stClassInfo {
 private:
 public:
-    void setClassInfo(Stages::srStageKind, stClassInfo*);
+    static stClassInfo* getClassInfo(Stages::srStageKind kind);
+    // HYPOTHESIS: a member although it does not read this (the native code takes this in r3).
+    void setClassInfo(Stages::srStageKind kind, stClassInfo* info);
     stClassInfo();
     virtual ~stClassInfo();
 };

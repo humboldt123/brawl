@@ -1,7 +1,7 @@
 // Havok translation unit hkVehicleFrictionSolver.o (main.dol 0x802A0BCC-0x802A0C68).
 // Functions in address order (method names from the Havok TU map):
 //   0x802A0BCC    12  fabs   [map: hkMath__fabs]
-//   0x802A0BD8    24  __opb   [map: hkBool____opb]
+//   0x802A0BD8    24  __opb   [map: hkBool____opb]  (hkBool::operator bool, weak copy)
 //   0x802A0BF0     8  __as   [map: hkBool____as]
 //   0x802A0BF8    84  sqrt   [map: hkMath__sqrt]
 //   0x802A0C4C    16  min2<f>   [map: hkMath__min2_f_]
@@ -19,10 +19,16 @@ float hkMath::fabs(float x) {
     return (float)__fabs((double)x);
 }
 
-// HYPOTHESIS: hkBool::operator bool() const. Free function because hkBool members live in hkBase.h.
-bool hkBoolOpBool(const hkBool* b) {
-    return b->m_bool != 0;
+// The solver code of this unit is not in the image (only the out-of-line copies of the inlines it called survive);
+// hkBool::operator bool() is one of them, called by the functions compiled without inlining
+// (hkBvTreeStreamAgent::processCollision).
+// MATCH-ONLY: a stand-in caller compiled without inlining, so the unit emits the weak copy.
+#pragma push
+#pragma dont_inline on
+bool hkVehicleFrictionSolver_testBool(const hkBool& b) {
+    return b;
 }
+#pragma pop
 
 // HYPOTHESIS: hkBool assignment from bool. Free function because hkBool has no operator= in hkBase.h.
 void hkBoolAssign(hkBool* b, bool v) {

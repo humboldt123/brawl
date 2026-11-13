@@ -41,7 +41,11 @@ public:
     soStatusEventObserver() : soEventObserver<soStatusEventObserver>(0x4) {};
     soStatusEventObserver(short unitID) : soEventObserver<soStatusEventObserver>(unitID) {};
     // NOTE: shadows the BrawlHeaders copy; (manageId, p2) constructor added by agent/damage
+#ifdef IT_ITEM_OBSERVER_CTORS
+    soStatusEventObserver(short manageId, s8 p2);
+#else
     soStatusEventObserver(short manageId, s8 p2) : soEventObserver<soStatusEventObserver>(0x4) { initialize(manageId, p2); }
+#endif
 
 #if defined(FT_MODULE_BUILDER) && !defined(WN_MARIO_FIREBALL_UNIT)
     virtual void addObserver(short param1, s8 param2) { addObserverSub(param1, this, param2); } // BYTES: the owning unit's weak copy; the #else units call the sora_melee instance

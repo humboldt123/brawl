@@ -27,7 +27,11 @@ class Vec2f : public Vec2fPlainBase {
 public:
 #endif
 
+#ifdef IT_VEC2F_DEFAULT_OUT_OF_LINE
+    Vec2f();
+#else
     Vec2f() { }
+#endif
     // The map names it Vec2f::set; the one unit that uses it (wnem_proc_common.cpp) calls the weak copy out of line.
     void set(float x, float y) __attribute__((never_inline)) {
         m_x = x;

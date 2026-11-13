@@ -18,7 +18,6 @@
 
 // HYPOTHESIS: the RVL SDK texture-object accessor, which the GX headers do not declare.
 extern "C" void* GXGetTexObjData(const _GXTexObj* texture);
-extern "C" muCollectionFileName fn_800C3538(const char* names, int index);
 extern "C" int fn_800C39D8(void* collection);
 extern "C" int fn_6_308C(muCollectionViewer* viewer, int* cursor);
 extern "C" void fn_5_B43C(muStageEditUI* ui);
@@ -437,7 +436,7 @@ int muStageEditSelectTask::getNumPic(int media) {
 }
 
 muCollectionFileName muStageEditSelectTask::getFileHandle(int index) {
-    return fn_800C3538(m_work->m_media[m_work->m_curMedia].m_names, index);
+    return muCollectionFileName(m_work->m_media[m_work->m_curMedia].m_names, index);
 }
 
 void muStageEditSelectTask::controlPopUpCheckStart() {

@@ -20,6 +20,28 @@
 #include <havok/hkPredGskAgent3.h>
 #include <havok/hkGskManifoldUtil.h>
 #include <types.h>
+#include <havok/hkCollisionDispatcher.h>
+#include <havok/hkAgent1nTrack.h>
+#include <havok/hkCollidable.h>
+#include <havok/hkCollisionInput.h>
+#include <havok/hkProcessCollisionOutput.h>
+#include <havok/hkMonitorStream.h>
+#include <havok/hkMath.h>
+
+// The agent3 functions of the predictive GSK agent; predictive, with a symmetric version.
+void hkPredGskAgent3::registerAgent3(hkCollisionDispatcher* dispatcher, int typeA, int typeB) {
+    hkAgent3Funcs f;
+    f.m_createFunc = (hkAgentFunc)create;
+    f.m_processFunc = (hkAgentFunc)process;
+    f.m_sepNormalFunc = (hkAgentFunc)sepNormal;
+    f.m_cleanupFunc = (hkAgentFunc)cleanup;
+    f.m_removePointFunc = (hkAgentFunc)removePoint;
+    f.m_commitPotentialFunc = (hkAgentFunc)commitPotential;
+    f.m_createZombieFunc = (hkAgentFunc)createZombie;
+    f.m_destroyFunc = (hkAgentFunc)destroy;
+    f.m_isPredictive = true;
+    dispatcher->registerAgent3(f, typeA, typeB);
+}
 
 
 void* hkPredGskAgent3::cleanup(hkGskManifold* dst, hkPredGskAgent3* agent, void* arg) {
@@ -76,6 +98,64 @@ void hkPredGskAgent3::createZombie(void* ctx, hkPredGskAgent3* agent, u16 key) {
     }
 }
 
+// BYTES: the whole function is compiled without inlining; every accessor is a call to its out-of-line copy.
+#pragma push
+#pragma dont_inline on
+void* hkPredGskAgent3::process(const hkAgent3ProcessInput& input, hkAgentEntry* entry, void* agentData,
+                               hkVector4* separatingNormal, hkProcessCollisionOutput& output) {
+    HK_TIMER_BEGIN_ACCESSORS("PredGskf3");
+    HK_TIMER_BEGIN_LIST_ACCESSORS("intern", "init");
+
+    hkGskCache* gskCache = (hkGskCache*)agentData;
+    hkGskManifold* gskManifold = (hkGskManifold*)(gskCache + 1);
+    hkReal distAtT1 = input.m_distAtT1;
+    {
+        const hkCollisionQualityInfo& qi = *input.m_input->m_collisionQualityInfo;
+        if (qi.unk10) {
+            hkReal radiusA = ((const hkCollidable*)input.m_bodyA->getRootCollidable())->m_allowedPenetrationDepth;
+            hkReal radiusB = ((const hkCollidable*)input.m_bodyB->getRootCollidable())->m_allowedPenetrationDepth;
+            hkReal allowedPenetrationDepth = hkMath::min2(radiusA, radiusB);
+            hkReal distAtT0 = (*separatingNormal)(3);
+            hkReal minSeparation = hkMath::min2(qi.unk14[0] * allowedPenetrationDepth,
+                                                distAtT0 + qi.unk14[1] * allowedPenetrationDepth);
+            if (distAtT1 >= minSeparation) {
+                goto QUICK_VERIFY_MANIFOLD;
+            }
+            hkReal toiSeparation = hkMath::min2(qi.unk14[4] * allowedPenetrationDepth,
+                                                distAtT0 + qi.unk14[5] * allowedPenetrationDepth);
+            HK_TIMER_SPLIT_LIST_ACCESSORS("toi");
+            hk4dGskCollideCalcToi(input, allowedPenetrationDepth, minSeparation, toiSeparation, *gskCache,
+                                  *separatingNormal, output);
+            goto PROCESS_AT_T1;
+        }
+    QUICK_VERIFY_MANIFOLD:
+        if (distAtT1 > qi.unk0[3]) {
+            (*separatingNormal)(3) = distAtT1;
+            if (gskManifold->m_countC) {
+                HK_TIMER_SPLIT_LIST_ACCESSORS("getPoints");
+                hkGskManifoldWork work;
+                hkGskManifold_init(*gskManifold, *separatingNormal, *input.m_bodyA, *input.m_bodyB,
+                                   input.m_input->getTolerance(), work);
+                hkGskManifold_verifyAndGetPoints(*gskManifold, work, 0, output, input.m_contactMgr);
+                if (gskManifold->m_countC && output.m_potentialContacts) {
+                    *output.m_potentialContacts->m_firstFreeRepresentativeContact++ =
+                        output.m_firstFreeContactPoint - gskManifold->m_countC;
+                }
+            }
+            goto END;
+        }
+    }
+PROCESS_AT_T1:
+    HK_TIMER_SPLIT_LIST_ACCESSORS("process");
+    hkGskAgentUtil_processCollisionNoTim(input, entry, agentData, *gskCache, *gskManifold, *separatingNormal, output);
+END:
+    entry->m_numContactPoints = gskManifold->m_countC;
+    HK_TIMER_END_LIST_ACCESSORS();
+    HK_TIMER_END_ACCESSORS();
+    return hkAddByteOffset(agentData, (gskManifold->getTotalSizeInBytes() + sizeof(hkGskCache) + 15) & ~15);
+}
+#pragma pop
+
 u32 hkGskManifold::getTotalSizeInBytes() const {
     u8 a = m_countA;
     u8 b = m_countB;
@@ -83,8 +163,4 @@ u32 hkGskManifold::getTotalSizeInBytes() const {
     return ((a + b) << 1) + (c << 3) + 4;
 }
 
-// Function bodies below are taken from https://github.com/jj-link/brawl.
 
-extern "C" int fn_8030099C(int arg0, int arg1) {
-    return arg0 + arg1;
-}

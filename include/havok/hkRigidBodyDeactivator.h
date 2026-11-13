@@ -1,5 +1,7 @@
 #pragma once
 
+struct hkEntity;
+
 #include <havok/hkEntityDeactivator.h>
 #include <havok/hkRegistry.h>
 
@@ -28,7 +30,8 @@ struct hkRigidBodyDeactivator : hkEntityDeactivator {
     virtual ~hkRigidBodyDeactivator() {} // 0x08
 
     virtual int getRigidBodyDeactivatorType() const = 0;         // 0x0C
-    // HYPOTHESIS: the real parameters are not visible in the implementations (they ignore them).
-    virtual hkBool shouldDeactivateHighFrequency() const = 0;    // 0x10
-    virtual hkBool shouldDeactivateLowFrequency() const = 0;     // 0x14
+    // The spatial deactivator reads the entity's motion state and stores new reference samples (not const).
+    // HYPOTHESIS: a non-const entity (the sample copies keep their load/store pairs, so the source may alias).
+    virtual hkBool shouldDeactivateHighFrequency(hkEntity* entity) = 0; // 0x10
+    virtual hkBool shouldDeactivateLowFrequency(hkEntity* entity) = 0;  // 0x14
 };

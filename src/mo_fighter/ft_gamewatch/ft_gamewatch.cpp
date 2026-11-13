@@ -101,8 +101,8 @@ void ftGameWatch::processHit() {
         int statusKind = moduleAccesser->getStatusModule().getStatusKind();
         if (statusKind >= 0x11d && statusKind < 0x138) {
             Vec3f position = moduleAccesser->getModelModule().getNodeGlobalPosition(14, false);
-            int waterArea;
-            if (moduleAccesser->getAreaModule().getEnviromentElementChecker()->testWater((Vec2f*)&position, &waterArea) == true &&
+            float surfaceY;
+            if (moduleAccesser->getAreaModule().getEnviromentElementChecker()->testWater((Vec2f*)&position, &surfaceY) == true &&
                 !moduleAccesser->getWorkManageModule().isFlag(0x12000041)) {
                 Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(0xffff));
                 if (moduleAccesser->getSituationModule().getKind() == 0) {

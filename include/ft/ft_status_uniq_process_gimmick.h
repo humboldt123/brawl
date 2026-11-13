@@ -134,7 +134,10 @@ static_assert(sizeof(ftStatusUniqProcessGimmickBarrel) == 0x18, "Class is the wr
 class ftStatusGimmickUniqProcessPool : public soNullable {
 public:
     ftStatusGimmickUniqProcessPool(bool isNull) : soNullable(isNull) { }
-#ifdef FT_MODULE_BUILDER
+#if defined(FT_GIMMICK_POOL_INLINE_DTOR)
+    // sora_melee inlines this empty base into the null pool (the REL copies call it).
+    virtual ~ftStatusGimmickUniqProcessPool() { }
+#elif defined(FT_MODULE_BUILDER)
     // BYTES: the fighter RELs call this destructor out of line from ftStatusGimmickUniqProcessPoolImpl's (defined in ft_builder_noinline.h)
     virtual ~ftStatusGimmickUniqProcessPool();
 #else
@@ -204,6 +207,7 @@ public:
 
 class ftStatusGimmickUniqProcessPoolNull : public ftStatusGimmickUniqProcessPool {
 public:
+    ftStatusGimmickUniqProcessPoolNull() : ftStatusGimmickUniqProcessPool(true) { }
     virtual ~ftStatusGimmickUniqProcessPoolNull() { }
 
     virtual soStatusUniqProcess* getUniqProcessBarrel() {

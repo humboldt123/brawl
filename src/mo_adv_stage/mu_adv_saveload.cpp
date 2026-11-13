@@ -3,11 +3,7 @@
 
 #include <mu/adv/mu_adv_saveload.h>
 
-// muRecorder::Data::reset (the map name); include/mu/mu_snap_shot.h calls it by this stand-in name.
-extern "C" void fn_800C2BB4(muRecorder::Data* data, void* pixels);
-
-inline muRecorder::Data::~Data() { fn_800C2BB4(this, 0); }
-inline void muRecorder::Data::reset(void* data) { fn_800C2BB4(this, data); }
+inline muRecorder::Data::~Data() { reset(0); }
 
 void muAdvSaveLoadTask::update() {
     controllProc();
@@ -87,8 +83,8 @@ bool muAdvSaveLoadTask::loading(bool advance) {
 
 muRecorder::Data muRecorder::getAdvData() {
     Data data;
-    void* buffer = unk108;
-    unk108 = 0;
+    void* buffer = m_advData.unk0;
+    m_advData.unk0 = 0;
     data.reset(buffer);
     return data;
 }

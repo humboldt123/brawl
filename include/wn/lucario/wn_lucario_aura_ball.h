@@ -107,6 +107,8 @@ public:
     virtual void notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
     static float getChargeRate(soModuleAccesser* moduleAccesser);
+    // HYPOTHESIS: arguments are the fighter's facing, a work float and the fighter's scale.
+    void shoot(float lr, float unk, float scale);
     int getChargeLevel();
     int getChargeFrame();
     static void setEffectScale(soModuleAccesser* moduleAccesser);

@@ -19,12 +19,16 @@ mo_fighter/ft_kirby/ft_kirby.cpp:
 	.bss        start:0x00000008 end:0x00000CC0
 
 mo_fighter/ft_kirby/ft_kirby_status_uniq_process_final_cutter.cpp:
-	.text       start:0x000136CC end:0x00013EF0
+	.text       start:0x000136CC end:0x00013F20
 	.ctors      start:0x00000004 end:0x00000008
 
 mo_fighter/ft_kirby/ft_kirby_status_uniq_process_hammer.cpp:
 	.text       start:0x00013F20 end:0x00014374
 	.ctors      start:0x00000008 end:0x0000000C
+
+mo_fighter/ft_kirby/ft_kirby_status_uniq_process_stone.cpp:
+	.text       start:0x00014374 end:0x00015BD8
+	.ctors      start:0x0000000C end:0x00000010
 
 mo_fighter/ft_kirby/ft_kirby_status_uniq_process_special_n.cpp:
 	.text       start:0x00015BD8 end:0x00016160
@@ -59,6 +63,10 @@ mo_fighter/ft_kirby/ft_kirby_status_uniq_process_special_n_drink.cpp:
 mo_fighter/ft_kirby/ft_kirby_status_uniq_process_final.cpp:
 	.text       start:0x00018020 end:0x0001C244
 	.ctors      start:0x00000028 end:0x0000002C
+
+mo_fighter/ft_kirby/ft_kirby_copy_ability_module.cpp:
+	.text       start:0x0001C244 end:0x000217F0
+	.ctors      start:0x0000002C end:0x00000030
 
 mo_fighter/ft_kirby/wn_kirby_final_cutter.cpp:
 	.text       start:0x000217F0 end:0x0002408C

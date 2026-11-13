@@ -34,7 +34,7 @@ struct hkMeshShape : hkShapeCollection {
     hkReal m_radius;                        // 0x40
     int m_pad[3];                           // 0x44
 
-    hkMeshShape(const hkFinishLoadedObjectFlag& flag); // finish-loading ctor: vtables and refcount only
+    hkMeshShape(const hkFinishLoadedObjectFlag& flag) __attribute__((never_inline)); // finish-loading ctor: vtables and refcount only
     virtual ~hkMeshShape();
 
     static void finishLoadedObjecthkMeshShape(void* p);

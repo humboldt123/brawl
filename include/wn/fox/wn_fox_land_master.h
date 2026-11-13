@@ -11,7 +11,13 @@ class soDamage;
 // The parameter block of the Landmaster (the constructor stores the data block's +0x34 pointer).
 // HYPOTHESIS: meaning of the fields.
 struct wnFoxLandMasterParam {
-    u8 unk0[0x40];
+    u8 unk0[0x24];
+    float unk24; // speed below which the tread attacks are cleared in status 1
+    float unk28; // tread attack power per unit of speed in status 1
+    float unk2C; // vertical speed threshold of the tread attacks in the air statuses
+    u8 unk30[0x8];
+    float unk38; // frames of the life counter per unit of scale (HYPOTHESIS)
+    float unk3C; // life counter reduction per unit of (1 + scale)
     float unk40; // scales the attack power of a collision hit
     float unk44; // initial value of work float 0x11000008
     float unk48; // speed at or above which motion 10 starts
@@ -63,6 +69,8 @@ public:
     wnFoxLandMasterGroundModuleImpl(soModuleAccesser* acc, soArray<soGroundShapeImpl>* shapes,
                                     soGroundConditionChecker* checker, soEventObserverRegistrationDesc* regDesc);
     virtual ~wnFoxLandMasterGroundModuleImpl();
+    // The ground-module unit owns the constructor and this method (it moves the collision's vertices with the node).
+    void updateVtxFromNode(u32 mode);
     // HYPOTHESIS: one word past soGroundModuleImpl. The ground-module unit owns the constructor.
     u32 m_unk58;
 };
@@ -200,7 +208,8 @@ public:
     soGenerateArticleManageModuleBuilder(soModuleAccesser* acc) :
         m_articles(0), m_observers(BC::ArticleCount, 0), m_mediator(acc),
         m_module(acc, &m_articles, &m_mediator, &m_observers) { }
-    ~soGenerateArticleManageModuleBuilder() { }
+    // BYTES: the weapon builder destructor calls this one out of line.
+    ~soGenerateArticleManageModuleBuilder() __attribute__((never_inline)) { }
     void* getModule() { return &m_module; }
     soArticleMediator* getMediator() { return &m_mediator; }
 };
@@ -225,6 +234,8 @@ public:
         m_effectModule(acc, this->get(), nodeData, &m_u32s, soSingletonHolder<soArrayNull<soEffectTime> >::getInstance(),
                        emitData, regDesc, commonData, 5, screenData, m_screens.get()) { }
     T* getModule() { return &m_effectModule; }
+    // BYTES: the weapon builder destructor calls this one out of line.
+    ~soEffectModuleBuilder() __attribute__((never_inline)) { }
 };
 
 class wnFoxLandMasterAnimCmdModuleSubBuildConfig :
@@ -287,7 +298,7 @@ public:
     const wnFoxLandMasterParam* getParam() const { return m_param; }
     wnFoxLandMaster(s32 articleId, const wnArticleBuildInfo& info, const wnFoxLandMasterData* data);
     virtual ~wnFoxLandMaster();
-    void activate(int founderTaskId, int resourceId, int team, Vec3f* pos, float lr, float scale, int life);
+    void activate(int founderTaskId, int resourceId, int team, Vec3f* pos, float lr, float scale, int heapType);
     virtual void processUpdate();
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* sender, int unk4);
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
@@ -326,7 +337,7 @@ public:
     virtual ~wnFoxLandMaster();
     // HYPOTHESIS: parameter meanings follow the call in the fighters' article hooks (founder, resource id, team, position,
     // facing, two floats, life/frame count).
-    void activate(int founderTaskId, int resourceId, int team, Vec3f* pos, float lr, float scale, int life);
+    void activate(int founderTaskId, int resourceId, int team, Vec3f* pos, float lr, float scale, int heapType);
     virtual void processUpdate();
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* sender, int unk4);
     virtual bool notifyEventCollisionAttackCheck(u32 flags);

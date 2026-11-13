@@ -8,13 +8,12 @@ struct hkCollisionDispatcher;
 struct hkCollisionInput;
 
 // Collision agent for box x box pairs (and the box side of box x other pairs) with a contact manifold. Object size 0x60.
-// The 0x08 word (inherited) holds the contact manager; the manifold sits at 0x10 (its point count is at 0x31).
+// The 0x08 word (inherited) holds the contact manager; the manifold sits at 0x10 (0x50 bytes: its point count is at 0x31).
 struct hkBoxBoxAgent : hkIterativeLinearCastAgent {
     HK_DECLARE_REF_ALLOCATOR(0x1d)
 
     u8 unkC[0x10 - 0x0C]; // 0x0C not identified yet
     hkBoxBoxManifold m_manifold; // 0x10
-    u8 unk34[0x60 - 0x34];       // 0x34 not identified yet
 
     hkBoxBoxAgent(hkContactMgr* contactMgr) : hkIterativeLinearCastAgent((int)contactMgr) {}
     virtual ~hkBoxBoxAgent();
@@ -27,8 +26,13 @@ struct hkBoxBoxAgent : hkIterativeLinearCastAgent {
     static void staticGetClosestPoints(const hkCdBody& unk0, const hkCdBody& unk1, hkCollisionInput& unk2, void* unk3);
     static void staticGetPenetrations(const hkCdBody& unk0, const hkCdBody& unk1, hkCollisionInput& unk2, void* unk3);
 
+    // Global switch read by hkBoxBoxCollisionDetection::findAdditionalManifoldPoints (.sbss 0x805A0F08; its accessor
+    // has an out-of-line copy in hkBoxBoxCollisionDetection.o). HYPOTHESIS: the names.
+    static hkBool m_attemptToFindAllEdges;
+    static hkBool getAttemptToFindAllEdges() { return m_attemptToFindAllEdges; }
+
     virtual void cleanup();
-    virtual void processCollision(const hkCdBody& unk0, const hkCdBody& unk1, hkProcessCollisionInput& unk2, void* unk3); // 0x1C, not written yet
+    virtual void processCollision(const hkCdBody& bodyA, const hkCdBody& bodyB, hkProcessCollisionInput& input, void* result); // 0x1C
     virtual void getClosestPoints(const hkCdBody& unk0, const hkCdBody& unk1, hkCollisionInput& unk2, void* unk3);
     virtual void getPenetrations(const hkCdBody& unk0, const hkCdBody& unk1, hkCollisionInput& unk2, void* unk3);
 };

@@ -106,6 +106,23 @@ public:
     typedef wnAnimCmdModuleSubBuildConfigDefault<1, 3, 0, 0, 1, 2, 0, 0, 1, 2, 0, 0, 1, 2, 0, 0> AnimCmdModuleSubBuildConfig;
 };
 
+// Same no-common-energies layout as the ice berg: this unit defines WN_WEAPON_NO_COMMON_ENERGIES, the fighter pool does not.
+#ifdef FT_POPO_ARTICLE_POOLS
+template <>
+class wnWeaponBuilder<wnPopoIceShotModuleAccesserBuildConfig> : public Weapon {
+protected:
+    wnModuleAccesserBuilder<wnPopoIceShotModuleAccesserBuildConfig> m_modules; // +0xCC
+    u32 m_modulesPad;
+public:
+    // Defined in the ice shot unit. Defining it here instantiates the shared fighter posture and ground builders.
+    wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd,
+                    bool weaponFlag = true);
+    virtual ~wnWeaponBuilder() { }
+    virtual void deactivateDescendantForce() {
+        wnDeactivateArticleDescendants(this->m_modules.m_generateArticleBuilder);
+    }
+};
+#endif
 
 class wnPopoIceShot : public wnWeaponBuilder<wnPopoIceShotModuleAccesserBuildConfig>, public soDamageEventObserver,
                       public soCollisionAttackEventObserver {

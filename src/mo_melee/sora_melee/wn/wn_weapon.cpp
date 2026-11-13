@@ -107,7 +107,7 @@ Weapon::~Weapon() {
 
 void Weapon::activate(wnActivateDesc* desc) {
     unk30 = 9;
-    StageObject::activate(desc->lr, 0.0f, &desc->pos, true);
+    StageObject::activate(&desc->pos, desc->lr, 0.0f, true);
     bool hasOwner = false;
     if (m_moduleAccesser->getLinkModule().isNull() == false && desc->founderTaskId != -1 && desc->flagBit7 == 1) {
         hasOwner = m_moduleAccesser->getLinkModule().link(3, desc->founderTaskId);
@@ -506,8 +506,8 @@ void Weapon::notifyEventCollisionAttack(float power, soCollisionLog* collisionLo
         if (task != NULL) {
             float reboundX = 0.0f;
             float reboundY = 0.0f;
-            if (moduleAccesser->getCollisionAttackModule().checkRebound(power, moduleAccesser, dynamic_cast<StageObject*>(task),
-                                                                        collisionLog, &reboundX, &reboundY)) {
+            if (moduleAccesser->getCollisionAttackModule().checkRebound(moduleAccesser, dynamic_cast<StageObject*>(task),
+                                                                        collisionLog, power, &reboundX, &reboundY)) {
             }
         }
         break;

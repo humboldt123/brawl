@@ -6,6 +6,9 @@
 
 #include <so/so_module_accesser.h>
 #include <so/slope/so_slope_module_impl.h>
+#ifdef SO_LINK_PHYSICS_SLOTS
+#include <mt/mt_vector.h>
+#endif
 
 namespace soHyp {
 
@@ -25,7 +28,12 @@ struct soPhysicsModuleHyp {
     virtual void unk2C();
     virtual void unk30(int);
     virtual bool unk34(int);
+#ifdef SO_LINK_PHYSICS_SLOTS
+    // BYTES: soLinkModuleImpl::correctParent2ndBoth passes a position and a float and returns the bool result.
+    virtual bool unk38(Vec3f* pos, float value);
+#else
     virtual void unk38();
+#endif
     virtual void unk3C();
     virtual void unk40();
     virtual void renderPreUnk44();
@@ -53,6 +61,26 @@ struct soPhysicsModuleHyp {
     virtual void unk90();
     // HYPOTHESIS: resets the physics state when a fighter starts (Sonic's onStart).
     virtual void unk94();
+#ifdef SO_LINK_PHYSICS_SLOTS
+    // Slots 0x98..0xD4 are unnamed here. 0xD8 is the u8 argument of soLinkModuleImpl::setConstraint2ndWind.
+    virtual void unk98();
+    virtual void unk9C();
+    virtual void unkA0();
+    virtual void unkA4();
+    virtual void unkA8();
+    virtual void unkAC();
+    virtual void unkB0();
+    virtual void unkB4();
+    virtual void unkB8();
+    virtual void unkBC();
+    virtual void unkC0();
+    virtual void unkC4();
+    virtual void unkC8();
+    virtual void unkCC();
+    virtual void unkD0();
+    virtual void unkD4();
+    virtual void unkD8(u8 wind);
+#endif
 };
 
 // HYPOTHESIS: the target search module; slot 0x28 runs in the fix position pass.

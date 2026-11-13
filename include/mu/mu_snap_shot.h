@@ -8,6 +8,7 @@
 #include <string.h>
 #include <mu/mu_collection_viewer.h>
 #include <mu/mu_object.h>
+#include <mu/mu_recorder.h>
 #include <types.h>
 
 // The scene of the snapshot browser (module sora_scene).
@@ -15,9 +16,7 @@ struct scSnapShot : scCollectionScene { };
 
 // The decoded picture of a snapshot: the pixels and the size.
 // HYPOTHESIS: the first word owns the pixels (the destructor gives them back).
-struct muSnapShotJpeg;
-// muRecorder::Data::reset(pixels), the function of main.dol that gives the pixels back and takes new ones
-extern "C" void fn_800C2BB4(muSnapShotJpeg* jpeg, void* pixels);
+// The pixels are owned like a muRecorder::Data (the same layout, one pointer), and given back with Data::reset.
 
 struct muSnapShotJpeg {
     void* m_pixels;                 // 0x00
@@ -30,7 +29,7 @@ struct muSnapShotJpeg {
             reset(0);
         }
     }
-    void reset(void* pixels) { fn_800C2BB4(this, pixels); }
+    void reset(void* pixels) { reinterpret_cast<muRecorder::Data*>(this)->reset(pixels); }
 };
 
 // The snapshot browser of the collection: shows the pictures that the player took in the snapshot mode, one at a time.

@@ -7,7 +7,6 @@
 #include <wn/wn_article_pool.h>
 #include <wn/wn_article_build_info.h>
 #include <wn/weapon.h>
-#include <wn/peach/wn_peach_kinopio.h>
 #pragma dont_inline off // it/it_gen_archive.h (reached through weapon.h) leaves dont_inline on for everything parsed after it
 
 class Vec3f;
@@ -20,16 +19,13 @@ public:
     static BaseItem* createItem(int itemKind, int articleId, int ownerTaskId);
     static soArticle* castArticle(BaseItem* item);
 };
-struct wnPeachKassarData;
-
-// Peach's Kassar (the Final Smash castle, wn/peach/wn_peach_kassar.h). Opaque shell: the full class is a weapon builder that cannot coexist with this unit.
-class wnPeachKassar : public Weapon {
-    u8 m_unreconstructed[0x20E4 - sizeof(Weapon)];
-public:
-    wnPeachKassar(s32 articleId, const wnArticleBuildInfo& info, const wnPeachKassarData* data);
-    virtual ~wnPeachKassar();
-    void activate(int founderTaskId, int resourceId, int unkC, int team);
-};
+// Full article types let the fighter own their pools and teardown (Kinopio stays an opaque shell, its class is in sora_melee).
+#define WN_WEAPON_BUILDER
+#define WN_ARTICLE_NATIVE_BUILDERS
+#define WN_SHARED_ARRAYS_1
+#include <wn/wn_module_accesser_builder.h>
+#include <wn/peach/wn_peach_kassar.h>
+#include <wn/peach/wn_peach_kinopio.h>
 static_assert(sizeof(wnPeachKassar) == 0x20E4, "wnPeachKassar layout is wrong!");
 
 typedef wnArticleHierarchy<wnPeachKinopio, 1, soInstancePoolRoot> ftPeachKinopioPool;

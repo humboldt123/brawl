@@ -585,11 +585,16 @@ public:
             m_instances[i].initialize();
         }
     }
+#if defined(FT_SOUND_GENERATOR_DTOR_INLINE)
+    // sora_melee inlines this empty teardown into the sound-module builder.
+    virtual ~ftSound3dGeneratorAccesserImpl() { }
+#else
     virtual ~ftSound3dGeneratorAccesserImpl()
 #ifdef FT_SOUND_GENERATOR_DTOR_NOINLINE
         __attribute__((never_inline))
 #endif
         ; // BYTES: out of line (ft_builder_noinline.h)
+#endif
     virtual void activate(Vec3f* pos) {
         for (s32 i = 0; i < 2; i++) {
             allocateInstance(&m_instances[i], pos);
@@ -678,7 +683,9 @@ class soStopModuleBuilder {
     typename BC::ModuleType m_module;
 public:
     soStopModuleBuilder(soModuleAccesser* acc) : m_module(acc) { }
-#ifdef WN_ARTICLE_BUILDER_DTORS // MATCH-ONLY: the fighter REL calls these builder destructors out of line
+#ifdef FT_ARTICLE_BUILDER_DTOR_OUTLINE
+    ~soStopModuleBuilder();
+#elif defined(WN_ARTICLE_BUILDER_DTORS) // MATCH-ONLY: the fighter REL calls these builder destructors out of line
     ~soStopModuleBuilder() { }
 #endif
     typename BC::ModuleType* getModule() { return &m_module; }
@@ -741,7 +748,7 @@ template <typename BC>
 class soSlopeModuleBuilder {
     typename BC::ModuleType m_module;
 public:
-    soSlopeModuleBuilder(soModuleAccesser* acc, float slopeAngleLimit) : m_module(acc, BC::Arg0, BC::Arg1, false, slopeAngleLimit) { }
+    soSlopeModuleBuilder(soModuleAccesser* acc, float slopeAngleLimit) : m_module(acc, slopeAngleLimit, BC::Arg0, BC::Arg1, false) { }
     typename BC::ModuleType* getModule() { return &m_module; }
 };
 

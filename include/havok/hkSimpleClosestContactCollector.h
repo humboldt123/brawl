@@ -8,6 +8,7 @@
 // agree. Deriving keeps the iterative linear cast's collector address in a register as in the target, but the base's
 // hkSimdReal store then turns copy propagation off in hkBvAgent's linear casts, which the target does not.
 struct hkSimpleClosestContactCollector {
+    HK_DECLARE_SIZED_DELETE(0x1d)
     hkSimpleClosestContactCollector() { reset(); }
     virtual ~hkSimpleClosestContactCollector() {}
     // The iterative linear cast reuses one collector per query.

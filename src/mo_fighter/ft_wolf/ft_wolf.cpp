@@ -4,6 +4,12 @@
 #define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_WOLF_ARTICLE_POOLS
+#define WN_ARTICLE_BUILDER_DTORS
+#define FT_ARTICLE_BUILDER_DTOR_OUTLINE
+#define FT_ANIMCMD_UNIT_DTOR_OUTLINE
+#define FT_OBSERVER_VTABLE_ANCHOR_WEAK
+#define FT_WEAK_KINETIC_ENERGY_DTOR
+#define FT_ROT_ENERGY_DTOR_OUTLINE
 #define MT_VEC3F_CTOR_NOINLINE
 #define MT_VEC3F_ASSIGN_NOINLINE
 #define MT_VEC2F_FROM_VEC3_CTOR_NOINLINE
@@ -27,6 +33,8 @@
 #include <so/team/so_team.h>
 #include <so/param/so_param_customize_module_impl.h>
 
+// The fighter owns the shared out-of-line kinetic teardown.
+#undef WN_ARTICLE_NATIVE_BUILDERS
 #define FT_BC ftWolfBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
 
@@ -48,11 +56,19 @@ ftWolfExtendParamAccesser g_ftWolfExtendParamAccesser;
 
 ftClassInfoImpl<Fighter_Wolf, ftWolf> g_ftClassInfoWolf;
 
-// Wolf's reflector process: the shared one with Wolf's own turn (setTurn is in ft_wolf_status_uniq_process_reflector.cpp).
+// Wolf's reflector process: the shared one with Wolf's own turn .
 ftWolfStatusUniqProcessReflectorImpl::ftWolfStatusUniqProcessReflectorImpl() { }
 #pragma dont_inline on
-ftWolfStatusUniqProcessReflectorImpl::~ftWolfStatusUniqProcessReflectorImpl() { }
+__declspec(weak) ftWolfStatusUniqProcessReflectorImpl::~ftWolfStatusUniqProcessReflectorImpl() { }
 #pragma dont_inline off
+void ftWolfStatusUniqProcessReflectorImpl::setTurn(soModuleAccesser* moduleAccesser) {
+    ftWolfData* data = dynamic_cast<ftWolf&>(moduleAccesser->getStageObject()).m_commonData;
+    const soModuleEnumeration& modules = *moduleAccesser->m_enumerationStart;
+    soTurnModule& turn = *static_cast<soTurnModule*>(modules.m_turnModule);
+    // The shared process requests this when the stick opposes Wolf's facing.
+    // Start his reflector rotation using the current facing and character turn data.
+    turn.set(&data->reflectorTurnData, true, false, modules.m_postureModule->getLr());
+}
 ftWolfStatusUniqProcessReflectorImpl g_ftWolfStatusUniqProcessReflector;
 
 // BYTES: the trail's constructor is called out of line (the copy sora_melee owns).
@@ -295,9 +311,32 @@ template wnSelectedArticleMediator<ftWolfArticleMediator>::~wnSelectedArticleMed
 template wnArticleManageModuleBuilder<ftWolfArticleMediator, 5>::~wnArticleManageModuleBuilder();
 template wnArticleManageModuleBuilder<ftWolfArticleMediator, 5>::wnArticleManageModuleBuilder(soModuleAccesser*);
 ftWolfArticleMediator::~ftWolfArticleMediator() { }
+// The article destructors call these builder teardowns out of line.
+template <class BC>
+soAnimCmdControlUnitBuilder<BC>::~soAnimCmdControlUnitBuilder() { }
+template soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<3, 2, 3, 0, 0, 1, 0, 8> >::~soAnimCmdControlUnitBuilder();
+template soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<2, 2, 3, 0, 0, 1, 0, 8> >::~soAnimCmdControlUnitBuilder();
+template soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<1, 2, 3, 0, 0, 1, 0, 8> >::~soAnimCmdControlUnitBuilder();
+template soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<0, 1, 1, 0, 0, 0, 0, 8> >::~soAnimCmdControlUnitBuilder();
+template <class BC>
+soAnimCmdControlUnitBuilderUniq<BC>::~soAnimCmdControlUnitBuilderUniq() { }
+template soAnimCmdControlUnitBuilderUniq<soAnimCmdControlUnitBuildConfigUniq<4, 8> >::~soAnimCmdControlUnitBuilderUniq();
+template <class BC>
+soStopModuleBuilder<BC>::~soStopModuleBuilder() { }
+template soStopModuleBuilder<soStopModuleBuildConfig<soStopModuleImpl> >::~soStopModuleBuilder();
+template <s32 Kind, typename T>
+soReflectModuleBuilder<soReflectModuleBuildConfig<Kind, T> >::~soReflectModuleBuilder() { }
+template soReflectModuleBuilder<soReflectModuleBuildConfig<0, soReflectModuleImpl> >::~soReflectModuleBuilder();
+template <class T>
+soEffectModuleBuilder<wnEffectModuleBuildConfig<1, 1, 0, 1, -1, T> >::~soEffectModuleBuilder() { }
+template soEffectModuleBuilder<wnEffectModuleBuildConfig<1, 1, 0, 1, -1, soEffectModuleImpl> >::~soEffectModuleBuilder();
+soSlowModuleBuilder<soSlowModuleBuildConfig<soSlowModuleSimple> >::~soSlowModuleBuilder() { }
+soGlowModuleBuilder<soGlowModuleBuildConfig<soGlowModuleSimple> >::~soGlowModuleBuilder() { }
+__declspec(weak) soKineticEnergyRotNormal::~soKineticEnergyRotNormal() { }
+ftKineticEnergyController::~ftKineticEnergyController() { }
 #pragma dont_inline off
 
-s32 ftWolfArticleMediator::getMediateNum() { return 4; }
+__declspec(weak) s32 ftWolfArticleMediator::getMediateNum() { return 4; }
 void ftWolfArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
 
 // ---- the article mediator -------------------------------------------------------------------------------------------
@@ -478,8 +517,8 @@ bool ftWolf::activeArticle2(wnFoxLandMaster* weapon, soModuleAccesser* acc) {
     return true;
 }
 
-// FIXME: Test code present only to emit the shared builder functions; delete once ftWolf is done
-void testBuilder() {
+// Keeps the shared inside-event builder emitted. Weak: the original object has no such function.
+__declspec(weak) void testBuilder() {
     soInsideEventManageModuleBuilder<ftWolfInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
     soResourceIdAccesserImpl idAccImpl(0, 1, 2);
 }
@@ -489,43 +528,17 @@ soInsideEventManageModuleBuilder<ftWolfInsideEventManageModuleBuildConfig, ftIns
 // Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
 extern "C" {
 
-// Empty virtual overrides and default observers.
-void fn_125_9F74() {}
-void fn_125_DE30() {}
-void fn_125_DF18() {}
-void fn_125_E000() {}
-void fn_125_E0E8() {}
-void fn_125_E1D0() {}
-void fn_125_E2B8() {}
-void fn_125_E3A0() {}
-void fn_125_E488() {}
-
-// Constant-zero returns. The parameters are unused; they exist so callers can pass arguments.
-int fn_125_DEDC(void*, void*, void*) { return 0; }
-int fn_125_DFC4(void*, void*, void*) { return 0; }
-int fn_125_E0AC(void*, void*, void*) { return 0; }
-int fn_125_E194(void*, void*, void*) { return 0; }
-int fn_125_E27C(void*, void*, void*) { return 0; }
-int fn_125_E364(void*, void*, void*) { return 0; }
-int fn_125_E44C(void*, void*, void*) { return 0; }
-int fn_125_E534(void*, void*, void*) { return 0; }
-
 } // extern "C"
 
 // Leaf functions shared with other fighter modules (same module-map names and bodies).
 extern "C" {
 void* fn_125_1EAC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_3720(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_3F78(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_42F0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_45C8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_4608(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_4CD8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_4E6C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_6130(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_6170(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_125_61B0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-int fn_125_AAEC() { return 0; }
 int fn_125_B160() { return 0x1; }
 void fn_125_B168() {}
 int fn_125_B16C() { return 0x0; }

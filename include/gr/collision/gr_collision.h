@@ -6,6 +6,7 @@
 #include <gr/collision/gr_collision_handle.h>
 #include <gr/collision/gr_collision_linework.h>
 #include <nw4r/ut/ut_LinkList.h>
+#include <sr/sr_common.h>
 #include <types.h>
 
 class Stage;
@@ -64,6 +65,11 @@ public:
     // TOTAL_SIZE == 56
 public:
     static grCollision* create(Stage* stage, void* colData, Ground* ground, int unk2);
+    // sora_melee gr_collision_create.cpp (names from the symbol map; HYPOTHESIS argument roles).
+    static grCollision* createHeap(Stage* stage, void* colData, Ground* ground, int enable, Heaps::HeapType heapType);
+    void initialize(grCollData* colData);
+    void setupJointRef(Stage* stage, Ground* ground, grCollData* colData);
+    grCollision() { } // HYPOTHESIS: create/createHeap set the object up themselves
     grCollision(void* colData, int unk1, int unk2);
     ~grCollision();
 

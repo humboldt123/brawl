@@ -23,6 +23,8 @@ struct hkCylinderShape : hkConvexShape {
     static const void* getVtablehkCylinderShape();
 
     hkReal getCylinderRadius() const;
+    // The two ends of the axis, vertexA and vertexB (map name hkCylinderShape__getVertex).
+    const hkVector4& getVertex(int i) const { return (&m_vertexA)[i]; }
 
     virtual void calcStatistics(hkStatisticsCollector* collector) const;     // 0x0C
     virtual int getType() const;                                             // 0x10
@@ -31,7 +33,7 @@ struct hkCylinderShape : hkConvexShape {
     virtual void getCollisionSpheresInfo(hkCollisionSpheresInfo* out) const; // 0x28
     virtual hkVector4* getCollisionSpheres(hkVector4* out) const;            // 0x2C
     virtual void getSupportingVertex(const hkVector4& direction, hkVector4& out) const; // 0x30
-    virtual void convertVertexIdsToVertices(const void* ids, int numIds, hkVector4* out) const; // 0x34
+    virtual void convertVertexIdsToVertices(const u16* ids, int numIds, hkVector4* out) const; // 0x34
     virtual void getFirstVertex(hkVector4& out) const;                       // 0x38
     virtual int getNumVertices() const;                                      // 0x3C
 };

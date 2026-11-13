@@ -36,3 +36,6 @@ compile_commands.json
 
 # Local-only Havok progress notes, not for the repo
 havok/PARKED.md
+
+# local-only Havok notes
+havok/havok_map.csv

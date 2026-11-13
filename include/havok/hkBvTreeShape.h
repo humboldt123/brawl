@@ -18,4 +18,6 @@ struct hkBvTreeShape : hkShape {
     virtual void unkSlot2C() const; // 0x2C HYPOTHESIS: not called by the agents
     // Collects the keys of the children whose bounding volume overlaps the box (given in the tree's space).
     virtual void queryAabb(const hkAabb& aabb, hkArray<u32>& hits) const; // 0x30
+
+    const hkShapeCollection* getShapeCollection() const { return m_collection; }
 };

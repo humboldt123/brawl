@@ -1,3 +1,8 @@
+// stAdventureInfoEmZako: the Subspace Emissary health display for ordinary (non-boss) enemies. It has two slots, which
+// init fills (by index) for any enemy that isBoss would not claim. update refreshes each slot's icon parameters, forwards
+// them with damage and death events to the adventure HUD through stAdventureInfoContact, and drops the slot 300 frames
+// after it was shown or when its enemy dies.
+#include <em/em_create.h>
 #include <em/enemy.h>
 #include <sora_adv_stage/st_adventure_info_emzako.h>
 
@@ -15,38 +20,49 @@ void stAdventureInfoEmZako::init(int createId, int index) {
     }
 }
 
+// HYPOTHESIS: an inlined per-slot refresh, the zako counterpart of stAdventureInfoEmBoss::setInfoParam (no symbol of
+// its own survives).
+inline void stAdventureInfoEmZako::setInfoParam(int createId, int index) {
+    Enemy* enemy = getEnemy(createId);
+    if (enemy != NULL) {
+        m_slots[index].m_param = getIconParamForEnemy(createId, enemy->getTaskId(), index, &m_slots[index].m_param);
+    }
+}
+
 void stAdventureInfoEmZako::update() {
-    for (int i = 0; i < 2; i++) {
-        Slot* slot = &m_slots[i];
-        if (slot->m_isDisp) {
-            int createId = slot->m_createId;
-            Enemy* enemy = getEnemy(createId);
-            if (enemy != NULL) {
-                slot->m_param = getIconParamForEnemy(createId, enemy->getTaskId(), i, &slot->m_param);
-            }
-            sendToZakoInfo(slot->m_param);
-            if (slot->m_isDamage) {
+    // BYTES: an s32 (long) counter handed to the int parameter of setInfoParam; the conversion keeps the inlined
+    // slot accesses on their own loop pointers, as in the original (with an int counter they merge, 93.05%).
+    for (s32 i = 0; i < 2; i++) {
+        if (m_slots[i].m_isDisp) {
+            setInfoParam(m_slots[i].m_createId, i);
+            sendToZakoInfo(m_slots[i].m_param);
+            if (m_slots[i].m_isDamage) {
                 sendToDamageZakoInfo(i);
-                slot->m_isDamage = false;
+                m_slots[i].m_isDamage = false;
             }
-            if (slot->m_isDead) {
+            if (m_slots[i].m_isDead) {
                 sendToDestroyZakoInfo(i);
-                slot->m_isDisp = false;
-                slot->m_isDead = false;
-                slot->m_createId = -1;
+                m_slots[i].m_isDisp = false;
+                m_slots[i].m_isDead = false;
+                m_slots[i].m_createId = -1;
             }
-            if (slot->m_dispFrame > 300) {
+            if (m_slots[i].m_dispFrame > 300) {
                 sendToEraseZakoInfo(i);
-                slot->m_isDisp = false;
+                m_slots[i].m_isDisp = false;
             } else {
-                slot->m_dispFrame++;
+                m_slots[i].m_dispFrame++;
             }
         }
     }
 }
 
 bool stAdventureInfoEmZako::isZako(int createId) {
-    int kinds[10] = {0x2E, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x3A, 0x3B, 0x3C};
+    // The boss kinds (the same list as stAdventureInfoEmBoss::isBoss); here a local .rodata template.
+    int kinds[10] = {
+        Enemy_Boss_BossPackun, Enemy_Boss_Galleom,    Enemy_Boss_Ridley,     Enemy_Boss_Rayquaza,
+        Enemy_Boss_Duon,       Enemy_Boss_Porky,      Enemy_Boss_MetaRidley, Enemy_Boss_Tabuu,
+        Enemy_Boss_MasterHand, Enemy_Boss_CrazyHand,
+    };
     Enemy* enemy = getEnemy(createId);
     for (int i = 0; i < 10; i++) {
         if (enemy != NULL && kinds[i] == enemy->getEnemyKind()) {

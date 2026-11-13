@@ -37,4 +37,7 @@ public:
     wnGKoopaBreath(s32 articleId, const wnArticleBuildInfo& info, const wnGKoopaBreathData* data);
     virtual ~wnGKoopaBreath() { }
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    // Starts the breath (the same parameters as Bowser's wnKoopaBreath::activate).
+    void activate(int founderTaskId, int team, const Vec3f* position, int kind, float lr, float speed, float scale,
+                  float speedMul, float angle);
 };

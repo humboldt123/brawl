@@ -120,8 +120,24 @@ public:
     typedef soGlowModuleBuildConfigNull GlowModuleBuildConfig;
 };
 
-// The builder of this article carries no appended common energies (WN_WEAPON_NO_COMMON_ENERGIES in the unit): its only
-// energy is the normal one of the kinetic mediator.
+// The builder of this article carries no appended common energies (WN_WEAPON_NO_COMMON_ENERGIES in its own unit).
+// The fighter pool includes it beside articles that keep those energies, so the same layout is a specialization there.
+#ifdef FT_POPO_ARTICLE_POOLS
+template <>
+class wnWeaponBuilder<wnPopoIceBergModuleAccesserBuildConfig> : public Weapon {
+protected:
+    wnModuleAccesserBuilder<wnPopoIceBergModuleAccesserBuildConfig> m_modules; // +0xCC
+    u32 m_modulesPad;
+public:
+    // Defined in the ice berg unit. Defining it here instantiates the shared fighter posture and ground builders.
+    wnWeaponBuilder(const char* name, s32 articleId, const wnArticleBuildInfo& info, const wnModuleAccesserBuildData& bd,
+                    bool weaponFlag = true);
+    virtual ~wnWeaponBuilder() { }
+    virtual void deactivateDescendantForce() {
+        wnDeactivateArticleDescendants(this->m_modules.m_generateArticleBuilder);
+    }
+};
+#endif
 static_assert(sizeof(wnWeaponBuilder<wnPopoIceBergModuleAccesserBuildConfig>) == 0x2708, "Ice berg builder extent");
 
 class wnPopoIceBerg : public wnWeaponBuilder<wnPopoIceBergModuleAccesserBuildConfig>, public soDamageEventObserver {

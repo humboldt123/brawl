@@ -833,7 +833,7 @@ sora/mu/mu_prize_wnd.cpp:
 	.sdata      start:0x8059E0F8 end:0x8059E118
 	.sdata2     start:0x805A22D0 end:0x805A2300
 
-sora/mu/mu_recorder.cpp:
+sora/mu/mu_collection.cpp:
 	.text       start:0x800C1B3C end:0x800C7410
 	.rodata     start:0x804080F8 end:0x80408478
 	.data       start:0x80456FE0 end:0x80457158
@@ -3195,6 +3195,9 @@ havok/hkSimpleContactConstraintInfo.cpp:
 havok/hk_pad_spu_p16hk_jacobian_schema.cpp:
 	.text       start:0x80295108 end:0x80295118
 
+havok/hk_weak_80295118.cpp:
+	.text       start:0x80295118 end:0x802951A0
+
 havok/hkMotorBuildJacobian.cpp:
 	extab       start:0x800066A8 end:0x800066B0
 	extabindex  start:0x80009A0C end:0x80009A18
@@ -3385,6 +3388,11 @@ havok/hkTransformAgent.cpp:
 	extabindex  start:0x8000AD38 end:0x8000AE40
 	.text       start:0x802C8E9C end:0x802CAA50
 
+havok/hkTypedBroadPhaseDispatcher.cpp:
+	extab       start:0x800081A0 end:0x800081F8
+	extabindex  start:0x8000AE40 end:0x8000AEAC
+	.text       start:0x802CAA50 end:0x802CB41C
+
 havok/hkTypedBroadPhaseHandleClass.cpp:
 	extab       start:0x800081F8 end:0x80008200
 	extabindex  start:0x8000AEAC end:0x8000AEB8
@@ -3407,7 +3415,7 @@ havok/hkCollisionDispatcher.cpp:
 havok/hkGroupFilter.cpp:
 	extab       start:0x80008288 end:0x800082B0
 	extabindex  start:0x8000AF54 end:0x8000AF90
-	.text       start:0x802CD000 end:0x802CD568
+	.text       start:0x802CD000 end:0x802CD5A8
 	.ctors      start:0x80406638 end:0x8040663C
 
 havok/hkGroupFilterClass.cpp:
@@ -3429,7 +3437,7 @@ havok/hkCollisionFilterClass.cpp:
 havok/hkNullCollisionFilter.cpp:
 	extab       start:0x800082C0 end:0x800082D8
 	extabindex  start:0x8000AFA8 end:0x8000AFCC
-	.text       start:0x802CD66C end:0x802CD7E8
+	.text       start:0x802CD66C end:0x802CD828
 	.ctors      start:0x80406644 end:0x80406648
 
 havok/hkNullCollisionFilterClass.cpp:
@@ -3550,6 +3558,9 @@ havok/hkFastMeshShape.cpp:
 	.text       start:0x802D46F4 end:0x802D4A94
 	.ctors      start:0x80406680 end:0x80406684
 
+havok/hk_weak_802D4A94.cpp:
+	.text       start:0x802D4A94 end:0x802D4AB4
+
 havok/hkShape.cpp:
 	extab       start:0x8000854C end:0x80008554
 	extabindex  start:0x8000B344 end:0x8000B350
@@ -3585,6 +3596,9 @@ havok/hkMeshShape.cpp:
 	extabindex  start:0x8000B398 end:0x8000B410
 	.text       start:0x802D51F4 end:0x802D5CAC
 	.ctors      start:0x80406690 end:0x80406694
+
+havok/hk_weak_802D5CAC.cpp:
+	.text       start:0x802D5CAC end:0x802D5CBC
 
 havok/hkMeshShapeClass.cpp:
 	extab       start:0x800085D4 end:0x800085DC
@@ -3649,6 +3663,9 @@ havok/hkReportContactMgr.cpp:
 havok/hk_dynamics_contact_mgr.cpp:
 	.text       start:0x802D7FC8 end:0x802D7FD0
 
+havok/hk_weak_802D7FD0.cpp:
+	.text       start:0x802D7FD0 end:0x802D8064
+
 havok/hkSimpleConstraintContactMgr.cpp:
 	.text       start:0x802D8064 end:0x802D94A8
 	.rodata     start:0x80411050 end:0x80411068
@@ -3674,6 +3691,9 @@ havok/hkConstraintAtom.cpp:
 	.text       start:0x802D95D0 end:0x802D9AD8
 	.ctors      start:0x804066B4 end:0x804066B8
 
+havok/hk_weak_802D9AD8.cpp:
+	.text       start:0x802D9AD8 end:0x802D9ADC
+
 havok/hkConstraintAtomClasses.cpp:
 	.text       start:0x802D9ADC end:0x802DA104
 	.ctors      start:0x804066B8 end:0x804066BC
@@ -3683,11 +3703,18 @@ havok/hkConstraintAtomClasses.cpp:
 	.sdata      start:0x8059EFD8 end:0x8059EFE0
 	.sdata2     start:0x805A4208 end:0x805A4260
 
+havok/hk_weak_802DA104.cpp:
+	.text       start:0x802DA104 end:0x802DA49C
+
 havok/hkBallSocketChainData.cpp:
 	.text       start:0x802DA49C end:0x802DAA68
 
 havok/hk_inplace_array27hk_velocity_accumulator_offset32.cpp:
 	.text       start:0x802DAA68 end:0x802DAAF8
+
+havok/hk_weak_802DAAF8.cpp:
+	.text       start:0x802DAAF8 end:0x802DAD64
+	.ctors      start:0x804066BC end:0x804066C0
 
 havok/hk_array_q218hk_powered_chain_data14_constraint_info.cpp:
 	.text       start:0x802DAD64 end:0x802DAD74
@@ -3695,8 +3722,15 @@ havok/hk_array_q218hk_powered_chain_data14_constraint_info.cpp:
 havok/hkPoweredChainData.cpp:
 	.text       start:0x802DAD74 end:0x802DB990
 
+havok/hk_weak_802DB990.cpp:
+	.text       start:0x802DB990 end:0x802DB9BC
+
 havok/hk_inplace_array26hk3d_angular_motor_solver_info32.cpp:
 	.text       start:0x802DB9BC end:0x802DBA6C
+
+havok/hk_weak_802DBA6C.cpp:
+	.text       start:0x802DBA6C end:0x802DBC80
+	.ctors      start:0x804066C0 end:0x804066C4
 
 havok/hkGenericConstraintData.cpp:
 	.text       start:0x802DBC80 end:0x802DD570
@@ -3718,7 +3752,7 @@ havok/hkGenericConstraintSchemeClass.cpp:
 
 havok/hkSimpleContactConstraintData.cpp:
 	.text       start:0x802DD63C end:0x802DE624
-	.data       start:0x80487B48 end:0x80487BB4
+	.data       start:0x80487B10 end:0x80487BB4
 	.sdata2     start:0x805A42B8 end:0x805A42E0
 
 havok/hkConstraintDataClass.cpp:
@@ -3732,6 +3766,10 @@ havok/hkConstraintInfoClass.cpp:
 	.ctors      start:0x804066D4 end:0x804066D8
 	.rodata     start:0x80412638 end:0x804126F0
 	.bss        start:0x80532EE8 end:0x80532F10
+
+havok/hkConstraintInstance_part0.cpp:
+	.text       start:0x802DE6F4 end:0x802DE99C
+	.ctors      start:0x804066D8 end:0x804066DC
 
 havok/hkConstraintInstanceClass.cpp:
 	.text       start:0x802DE99C end:0x802DEA10
@@ -3806,6 +3844,9 @@ havok/hkSpatialRigidBodyDeactivatorClass.cpp:
 	.ctors      start:0x80406704 end:0x80406708
 	.rodata     start:0x80412DC8 end:0x80412F78
 	.bss        start:0x80533068 end:0x805330B0
+
+havok/hk_entity_callback_util_part0.cpp:
+	.text       start:0x802E3CD4 end:0x802E4044
 
 havok/hk_entity_callback_util.cpp:
 	.text       start:0x802E4044 end:0x802E4338
@@ -3930,6 +3971,9 @@ havok/hkSimulation.cpp:
 havok/hk_array_q218hk_linked_collidable14_collision_entry.cpp:
 	.text       start:0x802F30BC end:0x802F30D4
 
+havok/hk_weak_802F30D4.cpp:
+	.text       start:0x802F30D4 end:0x802F34F0
+
 havok/hkWorldAgentUtil.cpp:
 	.text       start:0x802F34F0 end:0x802F5D5C
 
@@ -3946,6 +3990,11 @@ havok/hkBoxBoxAgent3.cpp:
 	extab       start:0x8000865C end:0x80008684
 	extabindex  start:0x8000B4DC end:0x8000B518
 	.text       start:0x802FB244 end:0x802FB894
+
+havok/hk_weak_802FB894.cpp:
+	extab       start:0x80008684 end:0x800086AC
+	extabindex  start:0x8000B518 end:0x8000B554
+	.text       start:0x802FB894 end:0x802FC6AC
 
 havok/hkAgent1nMachine.cpp:
 	extab       start:0x800086AC end:0x8000870C
@@ -3987,6 +4036,11 @@ havok/hk3AxisSweep.cpp:
 	extabindex  start:0x8000B7D0 end:0x8000B9F8
 	.text       start:0x8030880C end:0x80312F7C
 	.ctors      start:0x80406750 end:0x80406754
+
+havok/hk_weak_80312F7C.cpp:
+	extab       start:0x80008B18 end:0x80008B3C
+	extabindex  start:0x8000B9F8 end:0x8000BA10
+	.text       start:0x80312F7C end:0x80313088
 
 havok/hkBroadPhaseHandleClass.cpp:
 	extab       start:0x80008B3C end:0x80008B44
@@ -4058,17 +4112,11 @@ havok/hkDefaultToiResourceMgr.cpp:
 havok/hkConstrainedSystemFilter.cpp:
 	extab       start:0x80009128 end:0x80009130
 	extabindex  start:0x8000BF8C end:0x8000BF98
-	.text       start:0x8032BD74 end:0x8032C304
+	.text       start:0x8032BD74 end:0x8032C35C
 	.ctors      start:0x80406764 end:0x80406768
 
-havok/hkGeometryUtility.cpp:
-	.text       start:0x8032C304 end:0x8032C344
-
-havok/hk_constrained_system_filter.cpp:
-	.text       start:0x8032C344 end:0x8032C42C
-
 havok/hkInertiaTensorComputer.cpp:
-	.text       start:0x8032C42C end:0x8032D42C
+	.text       start:0x8032C35C end:0x8032D42C
 
 havok/hkPhysicsDataClass.cpp:
 	.text       start:0x8032D42C end:0x8032D494

@@ -467,6 +467,41 @@ void wnDededeFollower::processHit() {
     }
 }
 
+bool wnDededeFollower::isPossibleDeadChange() {
+    switch (m_moduleAccesser->getStatusModule().getStatusKind()) {
+    case 0:
+    case 1:
+    case 7:
+    case 8:
+    case 9:
+        return false;
+    }
+    return !isInhaled();
+}
+
+void wnDededeFollower::toDead() {
+    m_moduleAccesser->getStatusModule().changeStatusForce(8, m_moduleAccesser);
+}
+
+void wnDededeFollower::had(int ownerTaskId, int nodeId, int teamNo) {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    if (moduleAccesser->getLinkModule().link(3, ownerTaskId)) {
+        // HYPOTHESIS: the second word of the article data block is the model node of the constraint.
+        m_moduleAccesser->getLinkModule().setModelConstraintPosOrt(3, ((const int*)Weapon::m_data)[1], nodeId, 3, true);
+        moduleAccesser->getWorkManageModule().setInt(ownerTaskId, 0x20000007);
+        m_moduleAccesser->getTeamModule().setTeam(teamNo, true);
+        m_moduleAccesser->getTeamModule().setHitTeam(-1);
+        m_moduleAccesser->getTeamModule().setTeamOwnerId(ownerTaskId);
+        moduleAccesser->getStatusModule().changeStatusForce(1, moduleAccesser);
+    }
+}
+
+void wnDededeFollower::onDeactivate() { }
+
+void wnDededeFollower::notifyEventCollisionHit(float power, soCollisionAttackData* attackData, u32 index, int unk, soModuleAccesser* moduleAccesser, soCollisionLog* log) {
+    Weapon::notifyEventCollisionHit(power, attackData, index, unk, moduleAccesser, log);
+}
+
 void wnDededeFollowerStatusUniqProcessFinal::initStatus(soModuleAccesser* moduleAccesser) {
     soParamAccesser* params = (soParamAccesser*)moduleAccesser->getWorkManageModule().getParamAccesser();
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
