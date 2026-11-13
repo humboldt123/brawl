@@ -130,9 +130,10 @@ bool grCollisionLineWork::getPrevNoVLink(grCollisionLineWork* out) const {
     grCollisionLine* line = m_collision->getLeftLine(m_collisionLine);
     if (line != NULL) {
         result = true;
+        grCollision* collision = m_collision;
         out->m_collisionLine = line;
-        out->m_collision = m_collision;
         out->m_collisionJoint = m_collisionJoint;
+        out->m_collision = collision;
         out->m_unkC = 0;
         out->m_unkD = false;
     } else {
@@ -149,9 +150,10 @@ bool grCollisionLineWork::getNextNoVLink(grCollisionLineWork* out) const {
     grCollisionLine* line = m_collision->getRightLine(m_collisionLine);
     if (line != NULL) {
         result = true;
+        grCollision* collision = m_collision;
         out->m_collisionLine = line;
-        out->m_collision = m_collision;
         out->m_collisionJoint = m_collisionJoint;
+        out->m_collision = collision;
         out->m_unkC = 0;
         out->m_unkD = false;
     } else {

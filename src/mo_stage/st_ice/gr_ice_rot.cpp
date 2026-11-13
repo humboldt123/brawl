@@ -100,7 +100,7 @@ void grIceRot::updateRot(float deltaFrame) {
         m_angle = m_angle + m_speed;
         if ((data->unk48 - 90.0f) + 90.0f < rot.m_z + m_angle) {
             m_speed = m_speed * data->unk4C;
-            m_dir = m_dir * -1.0f;
+            m_dir *= -1.0f;
             m_state = 0xD;
             m_scale = m_scale * data->unk4C;
         }
@@ -122,7 +122,7 @@ void grIceRot::updateRot(float deltaFrame) {
         if ((0.0f < m_dir && (data->unk48 - 90.0f) * m_scale + 90.0f < rot.m_z + angle + m_speed) ||
             (m_dir < 0.0f && rot.m_z + m_angle < 90.0f - (data->unk48 - 90.0f) * m_scale)) {
             m_speed = m_speed * data->unk4C;
-            m_dir = m_dir * -1.0f;
+            m_dir *= -1.0f;
             m_scale = m_scale * data->unk4C;
             if (m_scale < 0.1f && m_state == 0xD) {
                 m_timer = data->unk50;

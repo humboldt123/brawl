@@ -200,6 +200,12 @@ public:
     ftKirbyCopyAbilityModule* getCopyAbility() { return &m_copyAbility; }
     // Article activators: the mediator's generate() hands each new article to the founder to set it up.
     static bool activeArticle(class wnKirbyHammer* article, soModuleAccesser* moduleAccesser);
+    static bool activeArticle(class wnKirbyFinalCutter* article, soModuleAccesser* moduleAccesser);
+    static bool activeArticle(class wnKirbyStarmissile* article, soModuleAccesser* moduleAccesser);
+    static bool activeArticle(class wnKirbyStone* article, soModuleAccesser* moduleAccesser);
+    static bool activeArticle(class wnKirbyNabe* article, soModuleAccesser* moduleAccesser);
+    static bool activeArticle(class wnKirbyCookHat* article, soModuleAccesser* moduleAccesser);
+    static bool activeArticle(class wnSimple* article, soModuleAccesser* moduleAccesser);
     ftKirby(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,

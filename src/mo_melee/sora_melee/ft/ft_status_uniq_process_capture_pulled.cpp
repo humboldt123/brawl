@@ -160,11 +160,7 @@ void ftStatusUniqProcessCapturePulled::exitStatus(soModuleAccesser* moduleAccess
     default:
         {
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
-            stop.m_speed.m_x = 0.0f;
-            stop.m_speed.m_y = 0.0f;
-            Vec2f zero;
-            zero.m_x = 0.0f;
-            zero.m_y = 0.0f;
+            stop.m_speed = Vec2f(0.0f, 0.0f);
         }
         reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot30(0, 0);
         break;

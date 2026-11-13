@@ -1,6 +1,7 @@
 #define FT_FIGHTER_REFLECTOR_DTOR // BYTES: fighter.o holds the out-of-line soCollisionReflectorEventObserver destructor
 #define FT_FIGHTER_ANIMCMD_LONG // MATCH-ONLY: Fighter::notifyEventAnimCmd(long) overrides the StageObject slot
 #define FT_FIGHTER_ONINHALED_BOOL // MATCH-ONLY: Fighter::onInhaled returns true after the flag write
+#define FT_FIGHTER_FIELDS
 #include <ft/fighter.h>
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_manager.h>
@@ -17,6 +18,7 @@
 #include <so/so_module_hyp.h>
 #include <so/turn/so_turn_module.h>
 #include <ft/ft_kinetic_energy.h>
+#include <so/event/so_log_event_presenter.h>
 
 template <>
 inline void soEventObserver<soCollisionAbsorberEventObserver>::addObserverSub(s32 manageId, soCollisionAbsorberEventObserver* observer, s8 priority) {
@@ -949,5 +951,182 @@ void Fighter::notifyEventBeat() {
         int frame = moduleAccesser->getSlowModule().getWholeFrame();
         int decrement = soValueAccesser::getConstantInt(moduleAccesser, 0x5a81, 0);
         moduleAccesser->getSlowModule().setWholeFrame(frame - decrement);
+    }
+}
+
+// HYPOTHESIS: per-fighter flags; bit 2 requests the common Final Smash sound.
+extern const u8 lbl_27_rodata_1E18[];
+
+void Fighter::startFinal() {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    startFinalCommon();
+    moduleAccesser->getCameraModule().zoomOut();
+    float slowRate = soValueAccesser::getConstantFloat(moduleAccesser, 0xc29, 0);
+    int slowFrames = soValueAccesser::getConstantInt(moduleAccesser, 0x59e7, 0);
+    m_outsideEventPresenter.notifyOutsideEventFinalSlow(slowRate, slowFrames);
+    if (lbl_27_rodata_1E18[getFtKind()] & 4) {
+        moduleAccesser->getSoundModule().playSENo3d(static_cast<SndID>(0xdb), false);
+    }
+    moduleAccesser->getWorkManageModule().offFlag(0x12000008);
+    m_outsideEventPresenter.notifyOutsideEventStartFinal();
+    onStartFinal();
+}
+
+void Fighter::attachItemHoldAnim(int holdKind, u32 index) {
+    const ftData* data = g_ftCommonDataAccesser.getData(m_kind);
+    int motionKind;
+    switch (holdKind) {
+    case 0: motionKind = 7; break;
+    case 1: motionKind = 6; break;
+    case 2: motionKind = 8; break;
+    case 3: motionKind = 9; break;
+    }
+    int nodeSet = data->itemHoldNodeSets[holdKind];
+    if (nodeSet != 0 && m_moduleAccesser->getMotionModule().isAnimResFile(motionKind) == true) {
+        m_moduleAccesser->getMotionModule().addPartialAnimChr(0, motionKind, nodeSet, false, 0.0f, 1.0f, false);
+        if (holdKind == 2) {
+            m_moduleAccesser->getMotionModule().enablePartialCancelNode(true);
+        }
+        m_moduleAccesser->getItemManageModule().setHaveItemHoldAnim(true, index);
+    }
+}
+
+void Fighter::warp(Vec3f* pos, float lr, u32 showEffect) {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    moduleAccesser->getPostureModule().initPos(pos);
+    moduleAccesser->getPostureModule().setLr(lr);
+    moduleAccesser->getStatusModule().changeStatusRequest(0xe, moduleAccesser);
+    if (showEffect == 1) {
+        moduleAccesser->getEffectModule().req(static_cast<EfID>(0x104004e), 0x12e,
+            &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), 1.0f,
+            &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), false, 0);
+    }
+}
+
+// HYPOTHESIS: common effect indices for the collision-hit statuses; negative means no effect.
+extern const int lbl_27_rodata_1038[];
+
+void Fighter::notifyEventChangeCollisionHit(int previousStatus, soModuleAccesser* moduleAccesser) {
+    int status = moduleAccesser->getCollisionHitModule().getTotalStatus(0);
+    if (status != previousStatus) {
+        int previousEffect = lbl_27_rodata_1038[previousStatus];
+        if (previousEffect >= 0) {
+            moduleAccesser->getEffectModule().removeCommon(previousEffect);
+        }
+    }
+    if (status == 0) {
+        if (moduleAccesser->getWorkManageModule().isFlag(0x12000035) == true) {
+            moduleAccesser->getCollisionReflectorModule().setStatusAll(2, 1);
+        }
+    } else {
+        int effect = lbl_27_rodata_1038[status];
+        if (effect >= 0) {
+            moduleAccesser->getEffectModule().reqCommon(effect, 0.0f);
+        }
+        if (moduleAccesser->getWorkManageModule().isFlag(0x12000035) == true) {
+            moduleAccesser->getCollisionReflectorModule().clearAll(1);
+        }
+    }
+}
+
+// HYPOTHESIS: the outside-event damage hook forwards the damage, owner and module accesser.
+extern "C" void fn_27_156ED8(ftOutsideEventPresenter*, soDamage*, ftOwner*, soModuleAccesser*);
+
+void Fighter::notifyEventAddDamage(soDamage* damage, soModuleAccesser* moduleAccesser) {
+    fn_27_156ED8(&m_outsideEventPresenter, damage, getOwner(), moduleAccesser);
+    if (damage->m_damageAdd_ > 0.0f && unk139_0 == true) {
+        moduleAccesser->getControllerModule().setRumble(4, 0, false, -1);
+    }
+    moduleAccesser->getCameraModule().setDamage(static_cast<unsigned short>(damage->m_damage), 0);
+    bool knockedOut;
+    if (static_cast<bool>(g_ftManager->m_isStamina) == true &&
+        getOwner()->getHitPoint() < 1.0f &&
+        m_moduleAccesser->getWorkManageModule().isFlag(0x12000018) == false) {
+        knockedOut = true;
+    } else {
+        knockedOut = false;
+    }
+    if (knockedOut == true) {
+        toKnockOut();
+    }
+}
+
+void Fighter::notifyShootBulletItem(BaseItem* item) {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    switch (moduleAccesser->getItemManageModule().getHaveItemKind(0)) {
+    case 0xd:
+    case 0x3a:
+        if (static_cast<int>(moduleAccesser->getItemManageModule().getShootItemBullet(0)) > 0) {
+            getOwner()->addLogInt(1, 0x1d, 0);
+        }
+        break;
+    case 0x2c:
+        if (static_cast<int>(moduleAccesser->getItemManageModule().getShootItemBullet(0)) > 0) {
+            getOwner()->addLogInt(1, 0x1d, 0);
+            moduleAccesser->getEffectModule().req(static_cast<EfID>(0xd), 0,
+                &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), 1.0f,
+                &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), false, 0);
+        }
+        break;
+    }
+    item->updateLogAttackInfo();
+}
+
+void Fighter::notifyEjectAttachItem(BaseItem* item, u32 index, bool silent) {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    bool playSound = false;
+    switch (item->soGetSubKind()) {
+    case 0x2f:
+        moduleAccesser->getControllerModule().endClatter(1);
+        moduleAccesser->getWorkManageModule().offFlag(0x12000009);
+        break;
+    case 1:
+        moduleAccesser->getCollisionReflectorModule().clearAll(1);
+        playSound = true;
+        moduleAccesser->getWorkManageModule().offFlag(0x12000035);
+        onHitReflector(moduleAccesser, false);
+        break;
+    case 0x32:
+        moduleAccesser->getWorkManageModule().offFlag(0x1200000f);
+        playSound = true;
+        break;
+    case 0x44:
+        moduleAccesser->getParamCustomizeModule().removeCustomize(2);
+        moduleAccesser->getWorkManageModule().offFlag(0x12000013);
+        playSound = true;
+        break;
+    }
+    if (!silent && playSound == true) {
+        moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0x1fae), false, false, 0);
+    }
+}
+
+extern soLogEventPresenter lbl_27_bss_2CBC;
+
+void Fighter::notifyEventPikminFinalAttack(float damage, int attackerTaskId) {
+    if (static_cast<u32>(attackerTaskId) == m_taskId ||
+        m_moduleAccesser->getCameraModule().isClipIn(true) == true ||
+        m_moduleAccesser->getCollisionHitModule().getWhole(0) != 0 ||
+        m_moduleAccesser->getCollisionHitModule().getGlobal(0) != 0 ||
+        m_moduleAccesser->getSituationModule().getKind() == 5 ||
+        m_moduleAccesser->getWorkManageModule().isFlag(0x12000018) == true) {
+        return;
+    }
+    Fighter* attacker = g_ftManager->getFighter(g_ftManager->m_finalEntryId, -1);
+    if (attacker != 0) {
+        soTeamModule& team = m_moduleAccesser->getTeamModule();
+        int attackerTeam = soExternalValueAccesser::getTeamNo(attacker);
+        int teamNo = team.getTeam()->getNo();
+        if (teamNo == attackerTeam) {
+            return;
+        }
+    }
+    m_moduleAccesser->getDamageModule().addDamage(damage, 0);
+    int entryId = g_ftManager->m_finalEntryId;
+    if (g_ftManager->isValidEntryId(entryId)) {
+        Fighter* fighter = g_ftManager->getFighter(entryId, -1);
+        if (fighter != 0) {
+            lbl_27_bss_2CBC.notifyLogEventCollisionHit(damage, fighter->m_taskId, m_taskId, 0);
+        }
     }
 }

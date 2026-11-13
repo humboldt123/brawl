@@ -6,6 +6,9 @@
 class gfReturnStatusCallback {
 public:
     gfReturnStatusCallback* m_next;
+#ifdef MU_NAME_CPP
+    gfReturnStatusCallback() : m_next(NULL) {}
+#endif
     virtual bool returnStatus() const = 0;
 };
 static_assert(sizeof(gfReturnStatusCallback) == 0x8, "Class is the wrong size!");

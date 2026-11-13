@@ -167,6 +167,18 @@ Ground::Ground(const char* taskName) : gfTask(taskName, Category_Ground, 3, 2, t
     m_scnObjOptions[8] = 0;
 }
 
+static inline bool bindResFile(nw4r::g3d::ResFile& mdlFile, nw4r::g3d::ResFile& texFile, Ground* ground) {
+    bool bound = mdlFile.Bind(mdlFile);
+    if (!bound && texFile.ptr() != NULL) {
+        if (!ground->m_hasBindedData) {
+            nw4r::g3d::ResFile::Init(&texFile);
+            ground->m_hasBindedData = true;
+        }
+        bound = mdlFile.Bind(texFile);
+    }
+    return bound;
+}
+
 void Ground::bindData(gfArchive* data) {
     if (m_mdlIndex == -1) {
         return;
@@ -178,15 +190,7 @@ void Ground::bindData(gfArchive* data) {
         return;
     }
     nw4r::g3d::ResFile::Init(&mdlFile);
-    bool bound = mdlFile.Bind(mdlFile);
-    if (!bound && texFile.ptr() != NULL) {
-        if (!m_hasBindedData) {
-            nw4r::g3d::ResFile::Init(&texFile);
-            m_hasBindedData = true;
-        }
-        bound = mdlFile.Bind(texFile);
-    }
-    if (!bound) {
+    if (!bindResFile(mdlFile, texFile, this)) {
         OSReport("TaskName = %s\n", m_taskName);
     }
 }

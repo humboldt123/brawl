@@ -24,12 +24,20 @@ struct muNameModel {
 
 // A name that the menu lists: the first bit says that the name is already taken (by another player), the number
 // is the number of the name in the record of the game (-1: a place to make a new name, -2: an empty line).
+#ifdef MU_NAME_CPP
+struct muNameSlot {
+    u8 m_taken : 1;             // 0x00 bit 7
+    u8 m_unk : 7;
+    s16 m_nameNo;               // 0x02
+};
+#else
 struct muNameSlot {
     u8 m_taken : 1;             // 0x00 bit 7
     u8 m_unk : 7;
     u8 m_pad;                   // 0x01
     s16 m_nameNo;               // 0x02
 };
+#endif
 
 // The Wii Remote can keep a name: this is what is read from it and written to it.
 struct muNameRemoteData {
@@ -78,7 +86,11 @@ public:
     void read() __attribute__((never_inline)); // called out of line by the name menu steps
     int getReadStatus();
     void readProcess();
+#ifdef MU_NAME_CPP
+    void write(const muNameRemoteData* data) __attribute__((never_inline));
+#else
     void write(const muNameRemoteData* data);
+#endif
     void writeProcess();
 };
 static_assert(sizeof(muNameRemoteTask) == 0xDC, "Class is wrong size!");
@@ -249,8 +261,13 @@ public:
     void updateAll();
     int disableSelectName(int nameNo);
     void createRemoteModel(nw4r::g3d::ResFile* resFile, int priority);
+#ifdef MU_NAME_CPP
+    void printBaseNameHelp(int msgIndexA, const u16* name, int msgIndexB, bool shown) __attribute__((never_inline));
+    void dispRemoteCursor(int selected) __attribute__((never_inline));
+#else
     void printBaseNameHelp(int msgIndexA, const u16* name, int msgIndexB, bool shown);
     void dispRemoteCursor(int selected);
+#endif
     int registRimoName(const u16* name, bool flag, const u8* data, bool overwrite);
 
     static void mainStepAppearInit(muNameTask* task);

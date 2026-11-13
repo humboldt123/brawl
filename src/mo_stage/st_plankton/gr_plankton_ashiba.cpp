@@ -313,7 +313,8 @@ void grPlanktonAshiba::updateLine(float deltaFrame) {
                         nw4r::g3d::ScnMdl::CopiedMatAccess access(scnMdl, mat.ptr()->m_id);
                         tevColor = access.GetResMatTevColor(0);
                         if (tevColor.IsValid()) {
-                            float rate = nw4r::math::SinFIdx(NW4R_MATH_IDX_TO_FIDX(nw4r::math::U16ToF32((u16)(int)((1.0f - m_lineTimer / 10.0f) * 16384.0f))));
+                            float t = 1.0f - m_lineTimer / 10.0f;
+                            float rate = nw4r::math::SinFIdx(NW4R_MATH_IDX_TO_FIDX(nw4r::math::U16ToF32((u16)(int)(t * 16384.0f))));
                             if (rate < 0.0f) {
                                 rate = 0.0f;
                             }

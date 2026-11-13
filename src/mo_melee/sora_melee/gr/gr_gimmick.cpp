@@ -83,7 +83,9 @@ void grGimmick::processUpdate() {
     } else {
         m_hasUpdatedG3dCalcWorld = true;
     }
-    update(g_stGameFrame.m_frameDelta * m_motionRatio);
+    float ratio = m_motionRatio;
+    float frame = g_stGameFrame.m_frameDelta;
+    fixedPosition(frame * ratio);
 }
 
 void grGimmick::setTgtNode(const char* name) {

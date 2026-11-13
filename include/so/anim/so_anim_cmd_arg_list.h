@@ -31,7 +31,11 @@ struct soAnimCmdArgList {
     // Returns the integer value of the specified argument. If the specified argument isn't a variable or Value/Integer typed, m_errorOnValueFetch is set to 1!
     int getInt(u32 index);
     // Returns the float value of the specified argument. If the specified argument isn't a variable or Scalar/Float typed, m_errorOnValueFetch is set to 1!
+#ifdef WN_EM_SIMPLE_UNIT
+    float getFloat(u32 index);
+#else
     double getFloat(u32 index);
+#endif
     // Returns the boolean value of the specified argument. If the specified argument isn't Boolean typed, m_errorOnValueFetch is set to 1!
     bool getBool(u32 index);
 };

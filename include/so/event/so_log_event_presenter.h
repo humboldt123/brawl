@@ -19,6 +19,14 @@ public:
 static_assert(sizeof(soLogEventManagerStatic) == 0x74, "Class is wrong size!");
 extern soLogEventManagerStatic g_soLogEventManager;
 
+#ifdef FT_FIGHTER_FIELDS
+// HYPOTHESIS: interface of the log presenter used by the damage and Fighter callbacks.
+class soLogEventPresenter {
+public:
+    void notifyLogEventCollisionHit(float damage, int attackerTaskId, int defenderId, int unk);
+};
+#endif
+
 class soLogEventObserver : public soEventObserver<soLogEventObserver> {
 public:
     soLogEventObserver() : soEventObserver<soLogEventObserver>(0) {

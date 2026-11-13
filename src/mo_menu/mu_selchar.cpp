@@ -1,7 +1,9 @@
 #define MU_SELCHAR_UNIT_DECLS
+#include <gf/gf_archive.h>
 #include <gm/gm_global.h>
 #include <gm/gm_set_rule.h>
 #include <memory.h>
+#include <ms/ms_message.h>
 #include <mt/mt_vector.h>
 #include <mu/mu_msg.h>
 #include <mu/menu.h>
@@ -10,6 +12,7 @@
 #include <mu/selchar/mu_selchar.h>
 #include <mu/selchar/mu_selchar_coin.h>
 #include <mu/selchar/mu_selchar_hand.h>
+#include <mu/selchar/mu_selchar_panel_ctrl.h>
 #include <mu/selchar/mu_selchar_player_area.h>
 #include <types.h>
 #include <snd/snd_system.h>
@@ -371,6 +374,33 @@ int muSelCharTask::getRuleTimeMin() {
         return 1;
     }
     return 0;
+}
+
+extern const int lbl_10_rodata_178[3];
+extern "C" const muSelCharTypeData* getSelCharTypeData__13muSelCharTaskFi(int);
+
+void muSelCharTask::updateCharHighScore(int line, int selchKind, int difficulty) {
+    int type = getSelCharType();
+    getSelCharTypeData__13muSelCharTaskFi(type);
+    int msgIdx;
+    if (type == 10) {
+        msgIdx = 5;
+    } else {
+        msgIdx = lbl_10_rodata_178[line];
+    }
+    int style;
+    int level;
+    if (selchKind >= 0 && selchKind < 0x28) {
+        int charKind = exchangeMuSelchkindToMuCharKind__6muMenuFiii(selchKind);
+        int score = getCharHighScore(charKind, difficulty, &style, &level);
+        dispHighScore(msgIdx, score, style);
+    } else {
+        eraseHighScore(msgIdx);
+        level = -1;
+    }
+    if (getSelCharType() != 7) {
+        dispHighScoreDiffLevel(level);
+    }
 }
 
 static const muSelCharTypeData sSelCharTypeData[] = {
@@ -1360,4 +1390,222 @@ void muSelCharTask::decideCharKind(int areaIdx, int charKind) {
     }
     arrangeCoinPrio__13muSelCharTaskFv(this, areaIdx);
     area->sendSystemCharKind();
+}
+
+extern const int lbl_10_rodata_304[9];
+
+int muSelCharTask::getFaceSize() {
+    const int* tbl = lbl_10_rodata_304;
+    int num = m_charListNum;
+    int i;
+    for (i = 0; i < 9; i++) {
+        if (tbl[i] >= num) {
+            break;
+        }
+    }
+    return i;
+}
+
+extern "C" int fn_800C9F14(muWifiInterfaceTask* self, int index);
+extern "C" int getTeamColor__19muWifiInterfaceTaskFi(muWifiInterfaceTask* self, int index);
+
+bool muSelCharTask::canTeamBattle() {
+    int selCharType = getSelCharType();
+    if (!((getSelCharTypeData(selCharType)->m_unk4 >> 4) & 1)) {
+        return false;
+    }
+    if (getSelCharTypeGroup(selCharType) == 2) {
+        if (!isWifiGameMaster()) {
+            return false;
+        }
+        muWifiInterfaceTask* wifi = g_muWifiInterfaceTask;
+        for (int i = 0; i < m_numPlayerAreas; i++) {
+            int state = fn_800C9F14(wifi, i);
+            if ((state == 2 || state == 3) && getTeamColor__19muWifiInterfaceTaskFi(wifi, i) == 3) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+muSelCharTask::~muSelCharTask() {
+    if (unk60C != nullptr) {
+        unk60C->exit();
+    }
+    if (unk614 != nullptr) {
+        unk614->exit();
+    }
+    if (unk68 != nullptr) {
+        unk68->exit();
+    }
+    if (m_ruleTask != nullptr) {
+        m_ruleTask->exit();
+    }
+    if (m_panelCtrl != nullptr) {
+        m_panelCtrl->detachMsg();
+        m_panelCtrl->exit();
+    }
+    for (int i = 0; i < num_player_areas; i++) {
+        if (m_selCharPlayerAreas[i] != nullptr) {
+            delete m_selCharPlayerAreas[i];
+        }
+    }
+    muSelCharPlayerArea::clearCharPicTexResArchive();
+    for (int i = 0; i < 4; i++) {
+        if (unk54[i] != nullptr) {
+            unk54[i]->Destroy();
+        }
+    }
+    for (int i = 0; i < 56; i++) {
+        if (m_allExpands[i] != nullptr) {
+            m_allExpands[i]->Destroy();
+        }
+    }
+    for (int i = 0; i < Obj_Num; i++) {
+        if (m_objs[i] != nullptr) {
+            delete m_objs[i];
+        }
+    }
+    if (m_highScoreMsg != nullptr) {
+        delete m_highScoreMsg;
+    }
+}
+
+int muSelCharTask::getCharHighScore(int charKind, int difficulty, int* style, int* level) {
+    u8 selCharType = getSelCharType();
+    gmGlobalRecord::CharaNumData::SelCharView* view = &g_GameGlobal->m_record->m_charaNumData[charKind].m_selCharView;
+    int offset = getSelCharTypeHighScoreKind(selCharType) * 6;
+    const u8* styles = lbl_10_rodata_128[0] + offset;
+    bool flag = false;
+    int lv = -1;
+    int score;
+    switch (selCharType) {
+    case 4:
+        lv = view->unk9C_b10 - 1;
+        score = view->unk4;
+        break;
+    case 5:
+        lv = view->unk9C_7 - 1;
+        score = view->unk8;
+        break;
+    case 6:
+    case 15:
+        lv = view->unk9C_4 - 1;
+        score = view->unkC;
+        break;
+    case 7:
+        score = view->unkCC[difficulty].unk0_low;
+        if (view->unkCC[difficulty].unk0_30 == 1) {
+            flag = true;
+        }
+        break;
+    case 8:
+    case 14:
+        score = view->unk10;
+        break;
+    case 9:
+    case 13:
+        switch (m_kumiteType) {
+        case 0:
+            score = view->unk14;
+            if (view->unk9C_14) {
+                flag = true;
+            }
+            break;
+        case 1:
+            score = view->unk18;
+            if (view->unk9C_13) {
+                flag = true;
+            }
+            break;
+        case 2:
+            score = view->unk1C;
+            if (view->unk9C_12) {
+                flag = true;
+            }
+            break;
+        case 3:
+            score = view->unk20;
+            if (view->unk9C_11) {
+                flag = true;
+            }
+            break;
+        case 4:
+            score = view->unk24;
+            break;
+        case 5:
+            score = view->unk28;
+            break;
+        }
+        break;
+    case 10:
+        score = view->unk2C;
+        break;
+    case 11:
+    case 12:
+        break;
+    }
+    if (style != nullptr) {
+        int s0 = styles[0];
+        if (styles[1] != 7 && (lv >= 0 || flag)) {
+            s0 = styles[1];
+        }
+        *style = s0;
+    }
+    if (level != nullptr) {
+        *level = lv;
+    }
+    return score;
+}
+
+extern "C" int fn_10_AA74(muSelCharTask* task);
+
+int muSelCharTask::readyProc() {
+    int decided = 0;
+    int ready = fn_10_AA74(this);
+    if (ready != 0) {
+        if (m_readyState == 0) {
+            setReadyState(1);
+            g_sndSystem->playSE((SndID)0x1EEC, -1, 0, 0, -1);
+        }
+    } else {
+        if (m_readyState != 0) {
+            setReadyState(0);
+        }
+    }
+    if (ready != 0 && unk64C < 0) {
+        int i;
+        for (i = 0; i < m_numPlayerAreas; i++) {
+            int ctrlNo = m_selCharPlayerAreas[i]->m_controllerNo;
+            if (ctrlNo >= 0) {
+                gfPadStatus pad;
+                g_gfPadSystem->getSysPadStatus(ctrlNo, &pad);
+                if (pad.m_error == 0) {
+                    decided = 0;
+                    if (pad.m_buttonsPressedThisFrame.bits & 0x1000) {
+                        decided = 1;
+                    } else if (pad.m_buttonsPressedThisFrame.bits & 0x100) {
+                        if (m_selCharPlayerAreas[i]->m_selCharHand->getCollKind(nullptr, nullptr) == 8) {
+                            decided = 1;
+                        }
+                    }
+                    if (decided != 0) {
+                        setReadyButtonDecided();
+                        g_sndSystem->playSE((SndID)1, -1, 0, 0, -1);
+                        g_sndSystem->playSE((SndID)0x16, -1, 0, 0, -1);
+                        break;
+                    }
+                }
+            }
+        }
+        if (i < m_numPlayerAreas) {
+            g_sndSystem->playSE((SndID)1, -1, 0, 0, -1);
+            for (int j = 0; j < m_numPlayerAreas; j++) {
+                m_selCharPlayerAreas[j]->rumbleController();
+            }
+            setState(1, i, 0);
+        }
+    }
+    return decided;
 }

@@ -4,6 +4,7 @@
 #define FT_TEAM_TYPED_INTERFACE
 #define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define FT_FIGHTER_ANIMCMD_LONG // MATCH-ONLY: Fighter::notifyEventAnimCmd(long) overrides the StageObject slot (as in ft_marth.cpp)
+#define WN_WEAPON_ANIMCMD_LONG // Weapon::notifyEventAnimCmd(long) overrides the StageObject slot, so deactivateArticle is at 0x1F8
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_POPO_ARTICLE_POOLS
 #define MT_VEC3F_OPERATORS_NOINLINE

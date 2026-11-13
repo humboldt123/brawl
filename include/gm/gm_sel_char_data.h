@@ -15,7 +15,12 @@ struct gmSelCharData {
             union {
                 char _5[0xb3];
                 struct {
+#ifdef MU_SELCHAR_UNIT_DECLS
+                    u8 unk5;
+                    u8 _pad5[0x28];
+#else
                     u8 _pad5[0x29];
+#endif
                     // HYPOTHESIS: 3-bit difficulty setting at offset 0x2E
                     u8 unk2E_b7 : 3;
                     // HYPOTHESIS: 3-bit stock setting at offset 0x2E.

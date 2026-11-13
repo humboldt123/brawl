@@ -41,7 +41,7 @@ public:
     // Moves the color one frame on.
     inline void update() {
         if (m_running) {
-            m_frame = m_frame + 1.0f;
+            m_frame += 1.0f;
             float rate = m_frame / m_duration;
             m_current.m_r = m_start.m_r + rate * (m_end.m_r - m_start.m_r);
             m_current.m_g = m_start.m_g + rate * (m_end.m_g - m_start.m_g);

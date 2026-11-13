@@ -1,3 +1,5 @@
+#define MU_NAME_CPP
+
 #include <gf/gf_3d_scene.h>
 #include <gf/gf_application.h>
 #include <gf/gf_heap_manager.h>
@@ -693,9 +695,9 @@ void MuSelctChrNameEntry::init(void* scnGroup, nw4r::g3d::ScnMdl* scnMdl, MuObje
     m_scnMdl = scnMdl;
     m_msgIndex = msgIndex;
     m_posNo = posNo;
-    m_base->m_modelAnim->m_anmObjChrRes->SetUpdateRate(1.0f);
+    cursorObj->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(1.0f);
     if (lineObj != NULL) {
-        lineObj->m_modelAnim->m_anmObjChrRes->SetUpdateRate(1.0f);
+        lineObj->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(1.0f);
     }
     m_allowEmpty = allowEmpty;
     m_padNo = 0;
@@ -751,11 +753,13 @@ void MuSelctChrNameEntry::open(const char* initial, char* buf, int maxLen) {
     PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, m_base->m_sceneModel, posName);
     int setNo = m_setList[m_curSet];
     detachSet();
-    MuObject* setObj = m_setObj[setNo];
-    char setPosName[12];
-    sprintf(setPosName, "cpos%d", m_posNo + 1);
-    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, setObj->m_sceneModel, setPosName);
-    m_curSetObj = setObj;
+    {
+        MuObject* setObj = m_setObj[setNo];
+        char setPosName[12];
+        sprintf(setPosName, "cpos%d", m_posNo + 1);
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, setObj->m_sceneModel, setPosName);
+        m_curSetObj = setObj;
+    }
     PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, m_cursorObj->m_sceneModel, posName);
     if (m_lineObj != NULL) {
         PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(m_scnMdl, m_lineObj->m_sceneModel, posName);
@@ -1342,6 +1346,7 @@ static void detachRemoteModels(muNameTask* task) {
 void muNameTask::updateAll() {
     dispUpdate(m_cursor, m_scroll);
     m_objects[Obj_List]->setFrameNode(static_cast<float>(m_cursor));
+    MuObject* list = m_objects[Obj_List];
     int visible = 0;
     if (m_cursor + m_scroll > 0) {
         visible |= 2;
@@ -1349,7 +1354,7 @@ void muNameTask::updateAll() {
     if (m_cursor + m_scroll < m_slotCount - 1) {
         visible |= 1;
     }
-    m_objects[Obj_List]->setFrameVisible(static_cast<float>(visible));
+    list->setFrameVisible(static_cast<float>(visible));
 }
 
 // Adds the line of a name that was just made, under the line of the new name.
@@ -1360,10 +1365,13 @@ void muNameTask::addNameList(int nameNo) {
     m_slots[1].m_nameNo = nameNo;
     m_slots[1].m_taken = false;
     m_slotCount++;
-    if (m_slotCount > 5 && m_slots[m_slotCount - 1].m_nameNo != -2) {
-        m_slots[m_slotCount].m_nameNo = -2;
-        m_slots[m_slotCount].m_taken = false;
-        m_slotCount++;
+    if (m_slotCount > 5) {
+        muNameSlot* slot = &m_slots[m_slotCount];
+        if (slot[-1].m_nameNo != -2) {
+            slot->m_nameNo = -2;
+            m_slots[m_slotCount].m_taken = false;
+            m_slotCount++;
+        }
     }
 }
 
@@ -1414,33 +1422,12 @@ muNameTask* muNameTask::create1(nw4r::g3d::ScnGroup* scnGroup, int kind, MuObjec
     return task;
 }
 
-muNameTask::muNameTask() : gfTask("MuName", Category_Menu, 0xF, 8, true), m_controller() {
-    m_kind = 0;
-    m_step = Step_None;
-    m_stepPrev = Step_Count;
-    m_stepAfter = 0;
-    m_scnGroup = NULL;
-    m_msg = NULL;
-    m_cursor = 0;
-    m_scroll = 0;
-    m_padNo = 0;
-    m_playerNo = 0;
-    m_resultKind = 0;
-    m_resultNameNo = 0;
-    m_timer = 0;
-    m_sharedModels = false;
-    m_parentMdl = NULL;
-    m_parentNode = 0;
-    m_remotePadNo = 4;
-    m_remoteNameNo = 0;
-    m_remote = NULL;
-    m_remoteResult = 0;
-    m_remoteMenuSel = 0;
-    m_msgData = NULL;
-    m_wnd = NULL;
-    m_wndResFile = NULL;
-    m_remoteConnectedPad = -1;
-    m_errorMsgId = 0;
+muNameTask::muNameTask()
+    : gfTask("MuName", Category_Menu, 0xF, 8, true), m_kind(0), m_step(Step_None), m_stepPrev(Step_Count), m_stepAfter(0), m_scnGroup(NULL),
+      m_controller(), m_msg(NULL), m_entry(), m_cursor(0), m_scroll(0), m_padNo(0), m_playerNo(0), m_resultKind(0), m_resultNameNo(0),
+      m_timer(0), m_sharedModels(false), m_parentMdl(NULL), m_parentNode(0), m_remotePadNo(4), m_remoteNameNo(0), m_remote(NULL),
+      m_remoteResult(0), m_remoteMenuSel(0), m_msgData(NULL), m_wnd(NULL), m_wndResFile(NULL), m_returnCallback(), m_remoteConnectedPad(-1),
+      m_errorMsgId(0) {
     unk2C_b1 = false;
     for (int i = 0; i < Obj_Count; i++) {
         m_objects[i] = NULL;
@@ -1449,8 +1436,7 @@ muNameTask::muNameTask() : gfTask("MuName", Category_Menu, 0xF, 8, true), m_cont
     m_scnMdls[1] = NULL;
     m_scnMdls[2] = NULL;
     memset(m_slots, 0, sizeof(m_slots));
-    memset(&m_remoteData, 0, sizeof(m_remoteData));
-    memset(m_pad448, 0, sizeof(m_pad448));
+    memset(&m_remoteData, 0, sizeof(m_remoteData) + sizeof(m_pad448));
     memset(m_remoteFlags, 0, sizeof(m_remoteFlags));
 }
 
@@ -1511,10 +1497,11 @@ void muNameTask::deleteModel() {
 void muNameTask::initProc(nw4r::g3d::ScnGroup* scnGroup, int kind, int padNo, int priority, nw4r::g3d::ScnMdl* parentMdl,
                           const char* parentNode, void* msgData, nw4r::g3d::ResFile* wndRes) {
     int nodeId = 0;
+    nw4r::g3d::ResMdl resMdl(NULL);
     if (parentMdl != NULL) {
         PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(parentMdl, m_scnMdls[0], parentNode);
         m_parentMdl = parentMdl;
-        nw4r::g3d::ResMdl resMdl(*reinterpret_cast<void**>(*reinterpret_cast<u8**>(reinterpret_cast<u8*>(parentMdl) + 0xE8) + 0xE8));
+        resMdl = nw4r::g3d::ResMdl(*reinterpret_cast<void**>(*reinterpret_cast<u8**>(reinterpret_cast<u8*>(parentMdl) + 0xE8) + 0xE8));
         nw4r::g3d::ResNode node = resMdl.GetResNode(parentNode);
         if (node.ptr() != NULL) {
             nodeId = node.ptr()->m_nodeIndex;
@@ -1653,13 +1640,14 @@ static int compareNameSlots(const void* a, const void* b) {
 void muNameTask::makeNameList() {
     m_slots[0].m_nameNo = -1;
     m_slotCount = 1;
+    muNameSlot* slot = &m_slots[1];
     int count = g_GameGlobal->getNumName();
-    for (int i = 0; i < count; i++) {
-        m_slots[1 + i].m_nameNo = i;
+    for (int i = 0; i < count; i++, slot++) {
+        slot->m_nameNo = i;
         m_slotCount++;
     }
     if (m_slotCount > 5) {
-        m_slots[m_slotCount].m_nameNo = -2;
+        slot->m_nameNo = -2;
         m_slotCount++;
     }
     if (count > 1) {
@@ -1669,11 +1657,9 @@ void muNameTask::makeNameList() {
 
 // Takes the line of the name with the number out of the list.
 bool muNameTask::deleteNameID(int nameNo) {
-    for (int i = 0; i < m_slotCount; i++) {
-        int id = m_slots[i].m_nameNo;
-        if (id == -2 || id == -1) {
-            id = -1;
-        }
+    muNameSlot* slot = m_slots;
+    for (int i = 0; i < m_slotCount; i++, slot++) {
+        int id = static_cast<u16>(slot->m_nameNo + 2) > 1 ? static_cast<int>(slot->m_nameNo) : -1;
         if (nameNo == id) {
             deleteName(i);
             updateAll();
@@ -1736,24 +1722,32 @@ int muNameTask::getCurNameIndex() {
 // Writes the lines of the list that are on the screen (5 lines, the color depends on whether the name is taken, the cursor is on it
 // and whether a new name can still be made).
 void muNameTask::dispUpdate(int cursor, int scroll) {
+    const muNameSlot* slot = &m_slots[static_cast<u16>(scroll)];
     int count = m_slotCount;
-    const muNameSlot* slot = &m_slots[scroll];
     for (int i = 0; i < 5; i++, scroll++, slot++) {
         if (scroll < count) {
-            int id = slot->m_nameNo;
-            int nameNo = -1;
-            if (id != -2 && id != -1) {
-                nameNo = id;
-            }
+            int nameNo = static_cast<u16>(slot->m_nameNo + 2) > 1 ? static_cast<int>(slot->m_nameNo) : -1;
             int colorKind;
             if (nameNo != -1) {
                 if (!slot->m_taken) {
-                    colorKind = i == cursor ? 1 : 0;
+                    if (i != cursor) {
+                        colorKind = 0;
+                    } else {
+                        colorKind = 1;
+                    }
                 } else {
-                    colorKind = i == cursor ? 6 : 5;
+                    if (i != cursor) {
+                        colorKind = 5;
+                    } else {
+                        colorKind = 6;
+                    }
                 }
             } else if (g_GameGlobal->getNameCapacityRest() > 0) {
-                colorKind = i == cursor ? 3 : 2;
+                if (i != cursor) {
+                    colorKind = 2;
+                } else {
+                    colorKind = 3;
+                }
             } else {
                 colorKind = 4;
             }
@@ -1775,22 +1769,21 @@ void muNameTask::dispUpdate(int cursor, int scroll) {
 // Marks the line of a name as taken (another player has it). The result: 0 done, 1 there is no such line, 2 it was already taken.
 int muNameTask::disableSelectName(int nameNo) {
     int i = 0;
-    for (; i < m_slotCount; i++) {
-        int id = m_slots[i].m_nameNo;
-        if (id != -1 && id != -2 && id == nameNo) {
+    muNameSlot* slot = m_slots;
+    int count = m_slotCount;
+    for (; i < count; i++, slot++) {
+        if (slot->m_nameNo != -1 && slot->m_nameNo != -2 && slot->m_nameNo == nameNo) {
             break;
         }
     }
-    if (i >= m_slotCount) {
-        i = -1;
-    }
-    if (i < 0) {
+    int idx = i < count ? i : -1;
+    if (idx < 0) {
         return 1;
     }
-    if (m_slots[i].m_taken) {
+    if (m_slots[idx].m_taken == 1) {
         return 2;
     }
-    m_slots[i].m_taken = true;
+    m_slots[idx].m_taken = true;
     dispUpdate(m_cursor, m_scroll);
     return 0;
 }
@@ -1855,7 +1848,7 @@ int muNameTask::mainStepSelectNameMain(muNameTask* task) {
     bool moved = false;
     bool scrolled = false;
     gfPadStatus pad;
-    g_gfPadSystem->getSysPadStatus(task->m_padNo, &pad);
+    pad = g_gfPadSystem->getSysPadStatus(task->m_padNo);
     u32 ctrlBits = ctrlWord(task, 0x10);
     u32 pressed = pad.m_buttonsPressedThisFrame.bits;
     if ((pressed & GF_PAD_BUTTON_BIT_B) != 0) {
@@ -1867,18 +1860,17 @@ int muNameTask::mainStepSelectNameMain(muNameTask* task) {
         if (g_GameGlobal->getNumName() <= 0) {
             task->m_remoteNameNo = -1;
         } else {
-            const muNameSlot* slot = &task->m_slots[task->m_scroll + task->m_cursor];
-            const muNameSlot* use = slot;
-            if (slot->m_nameNo == -1) {
-                use = slot + 1;
-            } else if (slot->m_nameNo == -2) {
-                use = slot - 1;
+            const muNameSlot* use = &task->m_slots[task->m_scroll + task->m_cursor];
+            if (task->m_slots[task->m_scroll + task->m_cursor].m_nameNo == -1) {
+                use = &task->m_slots[task->m_scroll + task->m_cursor] + 1;
+            } else if (task->m_slots[task->m_scroll + task->m_cursor].m_nameNo == -2) {
+                use = &task->m_slots[task->m_scroll + task->m_cursor] - 1;
             }
             task->m_remoteNameNo = use->m_nameNo;
         }
         return Step_RemoteSimpleSync;
     }
-    u32 decide = task->m_remote == NULL ? GF_PAD_BUTTON_BIT_A | GF_PAD_BUTTON_BIT_START : GF_PAD_BUTTON_BIT_A;
+    u32 decide = task->m_remote != NULL ? GF_PAD_BUTTON_BIT_A : GF_PAD_BUTTON_BIT_A | GF_PAD_BUTTON_BIT_START;
     if ((pressed & decide) != 0) {
         const muNameSlot* slot = &task->m_slots[task->m_scroll + task->m_cursor];
         if (slot->m_taken) {
@@ -1886,10 +1878,7 @@ int muNameTask::mainStepSelectNameMain(muNameTask* task) {
         } else {
             task->m_playerNo = muMenuController::getAButtonPushedControllerID();
             int id = slot->m_nameNo;
-            int nameNo = -1;
-            if (id != -2 && id != -1) {
-                nameNo = id;
-            }
+            int nameNo = static_cast<u16>(id + 2) > 1 ? id : -1;
             if (nameNo == -1) {
                 if (g_GameGlobal->getNameCapacityRest() <= 0) {
                     playSE(3);
@@ -1997,7 +1986,7 @@ int muNameTask::mainStepNameEntryMain(muNameTask* task) {
     if (CHR_ANIM(nameWindow)->GetUpdateRate() > 0.0f) {
         if (CHR_ANIM(nameWindow)->GetFrame() >= 4.0f) {
             nameWindow->setFrameNode(4.0f);
-            CHR_ANIM(nameWindow)->SetUpdateRate(1.0f);
+            CHR_ANIM(nameWindow)->SetUpdateRate(0.0f);
         }
     }
     gfPadStatus pad;
@@ -2156,7 +2145,7 @@ void muNameTask::createRemoteModel(nw4r::g3d::ResFile* resFile, int priority) {
 
 // Writes a text that is made of two texts of the file of texts around a name.
 void muNameTask::printBaseNameHelp(int msgIndexA, const u16* name, int msgIndexB, bool shown) {
-    char text[0x118];
+    char text[0x100];
     char nameUtf8[0x18];
     char* part;
     u32 partLen;
@@ -2173,17 +2162,16 @@ void muNameTask::printBaseNameHelp(int msgIndexA, const u16* name, int msgIndexB
     size += partLen;
     text[size] = 0;
     m_msg->printData(6, text, size);
-    m_objects[Obj_RemoteWindow]->setFrameVisible(shown ? 1.0f : 0.0f);
+    float vis = shown ? 1.0f : 0.0f;
+    m_objects[Obj_RemoteWindow]->setFrameVisible(vis);
 }
 
 // Shows which button of the menu of the Wii Remote is selected (the buttons that cannot be used look different).
 void muNameTask::dispRemoteCursor(int selected) {
-    int disabled[3];
-    disabled[0] = !m_remoteFlags[0];
-    disabled[1] = !m_remoteFlags[1];
-    disabled[2] = !m_remoteFlags[2];
+    int disabled[3] = {!m_remoteFlags[0], !m_remoteFlags[1], !m_remoteFlags[2]};
     for (int i = 0; i < 3; i++) {
-        m_objects[Obj_RemoteItem0 + i]->changeAnimN(i == selected ? 2 : disabled[i], 0x11, true, false);
+        // HYPOTHESIS: sRemoteModels places the three MenRemote0001_TopN buttons at indices 13..15 (Obj_RemoteIcon + i).
+        m_objects[Obj_RemoteIcon + i]->changeAnimN(i == selected ? 2 : disabled[i], 0x11, true, false);
     }
 }
 
@@ -2249,7 +2237,7 @@ int muNameTask::mainStepRemoteSimpleSyncMain(muNameTask* task) {
     } while (channel < 4);
     if (channel >= 4) {
         gfPadStatus pad;
-        g_gfPadSystem->getSysPadStatus(GF_PAD_SYSTEM_GET_ALL_PADS, &pad);
+        pad = g_gfPadSystem->getSysPadStatus(GF_PAD_SYSTEM_GET_ALL_PADS);
         if ((pad.m_buttonsPressedThisFrame.bits & GF_PAD_BUTTON_BIT_START) != 0 || (pad.m_buttonsPressedThisFrame.bits & GF_PAD_BUTTON_BIT_B) != 0) {
             playSE(2);
             done = true;
@@ -2310,7 +2298,11 @@ int muNameTask::mainStepRemoteReadMain(muNameTask* task) {
         task->m_remoteFlags[1] = true;
         task->m_remoteFlags[0] = false;
     } else {
-        memcpy(&task->m_remoteData, task->m_remote->m_readBuf, 0x40);
+        struct RemoteReadPacket {
+            muNameRemoteData data;
+            u32 sum;
+        };
+        *reinterpret_cast<RemoteReadPacket*>(&task->m_remoteData) = *reinterpret_cast<const RemoteReadPacket*>(task->m_remote->m_readBuf);
         task->m_remoteFlags[0] = true;
         task->m_remoteFlags[1] = true;
     }
@@ -2393,10 +2385,10 @@ int muNameTask::mainStepRemoteNoNameMain(muNameTask* task) {
 }
 
 // The text and the place of the three buttons of the menu of the Wii Remote.
-static const u8 sRemoteItems[6] = {0x0F, 0x00, 0x10, 0x01, 0x11, 0x03};
+static const u8 sRemoteItems[3][2] = {{0x0F, 0x00}, {0x10, 0x01}, {0x11, 0x03}};
 
 // The colors of the text of the buttons of the menu of the Wii Remote: a button that cannot be used, and one that can.
-static const u32 sRemoteItemColors[2] = {0xC5C5C5FF, 0x000000FF};
+static const u8 sRemoteItemColors[2][4] = {{0xC5, 0xC5, 0xC5, 0xFF}, {0x00, 0x00, 0x00, 0xFF}};
 
 // Shows the menu of the Wii Remote: the name that is on the Wii Remote, the name that the player picked in the game and the
 // three buttons (restore, store, close).
@@ -2408,7 +2400,7 @@ void muNameTask::mainStepRemoteMenuAppearInit(muNameTask* task) {
     bool readOk = task->m_remoteResult == 0;
     reinterpret_cast<nw4r::g3d::ScnGroup*>(models2)->Remove(scnObjOf(remoteName));
     if (readOk) {
-        char name[0x20];
+        char name[0x15];
         Message::utf16to8(name, reinterpret_cast<const wchar_t*>(task->m_remoteData.m_name));
         task->m_msg->printf(10, name);
         PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models2, remoteName->m_sceneModel, "pos04");
@@ -2423,25 +2415,25 @@ void muNameTask::mainStepRemoteMenuAppearInit(muNameTask* task) {
     if (task->m_remoteMenuSel == 0 || task->m_remoteNameNo < 0) {
         reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2])->Remove(scnObjOf(task->m_objects[Obj_RemoteLine]));
     } else {
-        wchar_t wide[8];
+        wchar_t wide[6];
         g_GameGlobal->getNameUTF16(task->m_remoteNameNo, wide);
         nw4r::g3d::ScnGroup* group = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
         MuObject* line = task->m_objects[Obj_RemoteLine];
         group->Remove(scnObjOf(line));
         PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(group, line->m_sceneModel, "pos05");
-        char name[0x20];
+        char name[0x15];
         Message::utf16to8(name, wide);
         task->m_msg->printf(11, name);
     }
     for (int i = 0; i < 3; i++) {
-        char posName[0x10];
-        sprintf(posName, "pos%02d", sRemoteItems[i * 2 + 1]);
-        MuObject* item = task->m_objects[Obj_RemoteItem0 + i];
-        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, item->m_sceneModel, posName);
-        item->changeAnimN(!task->m_remoteFlags[i], 0x11, false, false);
-        u32 color = sRemoteItemColors[task->m_remoteFlags[i] ? 1 : 0];
-        task->m_msg->setFontColor(7 + i, color >> 24, (color >> 16) & 0xFF, (color >> 8) & 0xFF, 0xFF);
-        task->m_msg->printIndex(7 + i, sRemoteItems[i * 2], task->m_msgData);
+        char posName[8];
+        sprintf(posName, "pos%02d", sRemoteItems[i][1]);
+        // HYPOTHESIS: sRemoteModels places the three MenRemote0001_TopN buttons at indices 13..15 (Obj_RemoteIcon + i).
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, task->m_objects[Obj_RemoteIcon + i]->m_sceneModel, posName);
+        task->m_objects[Obj_RemoteIcon + i]->changeAnimN(!task->m_remoteFlags[i], 0x11, false, false);
+        const u8* color = sRemoteItemColors[task->m_remoteFlags[i] != 0];
+        task->m_msg->setFontColor(7 + i, color[0], color[1], color[2], 0xFF);
+        task->m_msg->printIndex(7 + i, sRemoteItems[i][0], task->m_msgData);
     }
     task->m_objects[Obj_RemoteWindow]->changeAnimN(1, 0x11, true, false);
     task->m_remoteConnectedPad = task->m_remotePadNo + 4;
@@ -2473,18 +2465,22 @@ int muNameTask::mainStepRemoteMenuMain(muNameTask* task) {
     u32 ctrlBits = ctrlWord(task, 0x10);
     int selected = task->m_remoteMenuSel;
     if ((ctrlBits & GF_PAD_BUTTON_BIT_DPAD_UP) != 0) {
-        int i = selected - 1;
-        while (i >= 0 && !task->m_remoteFlags[i]) {
-            i--;
+        int i;
+        for (i = selected - 1; i >= 0; i--) {
+            if (task->m_remoteFlags[i]) {
+                break;
+            }
         }
         if (i >= 0) {
             selected = i;
         }
     }
     if ((ctrlBits & GF_PAD_BUTTON_BIT_DPAD_DOWN) != 0) {
-        int i = selected + 1;
-        while (i < 3 && !task->m_remoteFlags[i]) {
-            i++;
+        int i;
+        for (i = selected + 1; i < 3; i++) {
+            if (task->m_remoteFlags[i]) {
+                break;
+            }
         }
         if (i < 3) {
             selected = i;
@@ -2497,32 +2493,32 @@ int muNameTask::mainStepRemoteMenuMain(muNameTask* task) {
         if (selected == 0 || task->m_remoteNameNo < 0) {
             reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2])->Remove(scnObjOf(task->m_objects[Obj_RemoteLine]));
         } else {
-            wchar_t wide[8];
+            wchar_t wide[6];
             g_GameGlobal->getNameUTF16(task->m_remoteNameNo, wide);
             nw4r::g3d::ScnGroup* group = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
             MuObject* line = task->m_objects[Obj_RemoteLine];
             group->Remove(scnObjOf(line));
             PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(group, line->m_sceneModel, "pos05");
-            char name[0x20];
+            char name[0x15];
             Message::utf16to8(name, wide);
             task->m_msg->printf(11, name);
         }
     }
     gfPadStatus pad;
-    g_gfPadSystem->getSysPadStatus(GF_PAD_SYSTEM_GET_ALL_PADS, &pad);
+    pad = g_gfPadSystem->getSysPadStatus(GF_PAD_SYSTEM_GET_ALL_PADS);
     u32 pressed = pad.m_buttonsPressedThisFrame.bits;
     if ((pressed & (GF_PAD_BUTTON_BIT_A | GF_PAD_BUTTON_BIT_START)) != 0) {
         switch (selected) {
         case 0: {
             playSE(1);
-            int result = task->registRimoName(task->m_remoteData.m_name, task->m_remoteData.m_flag == 1, task->m_remoteData.m_data, false);
-            if (result == -1) {
+            switch (task->registRimoName(task->m_remoteData.m_name, task->m_remoteData.m_flag == 1, task->m_remoteData.m_data, false)) {
+            case -1:
                 return Step_RemoteRestoreOverwriteConfirm;
-            }
-            if (result >= -2) {
+            case -2:
                 return Step_RemoteNoNameCapacity;
+            default:
+                return Step_RemoteRestoreComplete;
             }
-            return Step_RemoteRestoreComplete;
         }
         case 1:
             playSE(1);
@@ -2537,7 +2533,8 @@ int muNameTask::mainStepRemoteMenuMain(muNameTask* task) {
             playSE(2);
             return Step_SelectName;
         }
-    } else if ((pressed & GF_PAD_BUTTON_BIT_B) != 0) {
+    }
+    if ((pressed & GF_PAD_BUTTON_BIT_B) != 0) {
         g_gfHomeMenu->setBan(0, 3);
         detachRemoteModels(task);
         playSE(2);
@@ -2583,20 +2580,23 @@ int muNameTask::mainStepRemoteRestoreOverwriteConfirmMain(muNameTask* task) {
 
 // Tells that the name of the Wii Remote is now in the game.
 void muNameTask::mainStepRemoteRestoreCompleteInit(muNameTask* task) {
-    nw4r::g3d::ScnGroup* models = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
+    nw4r::g3d::ScnGroup* models2 = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
     MuObject* item2 = task->m_objects[Obj_RemoteItem2];
     playSE(0x27);
     task->printBaseNameHelp(9, task->m_remoteData.m_name, 10, true);
     task->m_timer = 30;
-    MuObject* line = task->m_objects[Obj_RemoteLine];
-    models->Remove(scnObjOf(line));
-    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, line->m_sceneModel, "pos05");
+    {
+        nw4r::g3d::ScnGroup* models = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
+        MuObject* line = task->m_objects[Obj_RemoteLine];
+        models->Remove(scnObjOf(line));
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, line->m_sceneModel, "pos05");
+    }
     char name[0x20];
     Message::utf16to8(name, reinterpret_cast<const wchar_t*>(task->m_remoteData.m_name));
     task->m_msg->printf(11, name);
     task->m_objects[Obj_RemoteWindow]->changeAnimN(2, 0x11, false, false);
-    models->Remove(scnObjOf(item2));
-    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, item2->m_sceneModel, "pos05");
+    models2->Remove(scnObjOf(item2));
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models2, item2->m_sceneModel, "pos05");
 }
 
 // Waits half a second and then for a button.
@@ -2676,26 +2676,28 @@ int muNameTask::mainStepRemoteWriteErrorMain(muNameTask* task) {
 // Tells that the name is now on the Wii Remote.
 void muNameTask::mainStepRemoteStoreCompleteInit(muNameTask* task) {
     GameGlobal* global = g_GameGlobal;
-    nw4r::g3d::ScnGroup* models = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
     MuObject* item2 = task->m_objects[Obj_RemoteItem2];
+    nw4r::g3d::ScnGroup* models2 = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
     playSE(0x27);
-    wchar_t wide[8];
+    wchar_t wide[6];
     global->getNameUTF16(task->m_remoteNameNo, wide);
     task->printBaseNameHelp(4, reinterpret_cast<const u16*>(wide), 5, true);
     task->m_timer = 30;
-    MuObject* cursor = task->m_objects[Obj_RemoteCursor];
-    models->Remove(scnObjOf(cursor));
-    char name[0x20];
-    Message::utf16to8(name, reinterpret_cast<const wchar_t*>(wide));
-    task->m_msg->printf(10, name);
-    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, cursor->m_sceneModel, "pos04");
-    MuObject* window = task->m_objects[Obj_RemoteWindow];
-    window->setFrameNode(0.0f);
-    window->m_modelAnim->m_anmObjChrRes->SetUpdateRate(0.0f);
-    window->setFrameMatCol(0.0f);
-    window->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(0.0f);
-    models->Remove(scnObjOf(item2));
-    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, item2->m_sceneModel, "pos04");
+    {
+        nw4r::g3d::ScnGroup* models = reinterpret_cast<nw4r::g3d::ScnGroup*>(task->m_scnMdls[2]);
+        MuObject* cursor = task->m_objects[Obj_RemoteCursor];
+        models->Remove(scnObjOf(cursor));
+        char name[0x15];
+        Message::utf16to8(name, reinterpret_cast<const wchar_t*>(wide));
+        task->m_msg->printf(10, name);
+        PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models, cursor->m_sceneModel, "pos04");
+    }
+    task->m_objects[Obj_RemoteWindow]->setFrameNode(0.0f);
+    CHR_ANIM(task->m_objects[Obj_RemoteWindow])->SetUpdateRate(0.0f);
+    task->m_objects[Obj_RemoteWindow]->setFrameMatCol(0.0f);
+    task->m_objects[Obj_RemoteWindow]->m_modelAnim->m_anmObjMatClrRes->SetUpdateRate(0.0f);
+    models2->Remove(scnObjOf(item2));
+    PushBack__Q34nw4r3g3d12ScnMdlExpandFPQ34nw4r3g3d6ScnObjPCc(models2, item2->m_sceneModel, "pos04");
 }
 
 int muNameTask::mainStepRemoteStoreCompleteMain(muNameTask* task) {
@@ -2733,7 +2735,27 @@ int muNameTask::mainStepRemoteDisconnectMain(muNameTask* task) {
 // The bytes of the status of the pad system: bit 7 of the byte at 0x35 says that the request for the game data of the Wii Remote
 // is over, and the code at 0xB6C is how it ended.
 static inline bool isGameDataRequestOver() {
-    return (*(reinterpret_cast<u8*>(g_gfPadSystem) + 0x35) & 0x80) != 0;
+    return g_gfPadSystem->m_flags35.f7 != 0;
+}
+
+static inline bool wcscmpEqual(const u16* a, const u16* b) {
+    while (*a != 0 || *b != 0) {
+        if (*a != *b) {
+            return false;
+        }
+        a++;
+        b++;
+    }
+    return true;
+}
+
+static inline bool isBufZero(const u8* p) {
+    for (int i = 0; i < 0x3C; i++, p++) {
+        if (*p != 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 static inline int getGameDataRequestCode() {
@@ -2745,13 +2767,13 @@ static const int sGameDataSize = 0x40;
 
 muNameRemoteTask* muNameRemoteTask::create() {
     muNameRemoteTask* task = new (Heaps::MenuInstance) muNameRemoteTask();
-    wchar_t owner[0x20];
+    wchar_t owner[0x18];
     Message::utf8to16(owner, sRemoteMagic);
     fn_80225454(reinterpret_cast<const u16*>(owner));
     return task;
 }
 
-muNameRemoteTask::muNameRemoteTask() : gfTask("MuNameRemoteTask", Category_Menu, 0xF, 8, true) {
+inline muNameRemoteTask::muNameRemoteTask() : gfTask("MuNameRemoteTask", Category_Menu, 0xF, 8, true) {
     m_pad = 0;
     m_wait = 0;
     m_readRetries = 0;
@@ -2793,54 +2815,40 @@ int muNameRemoteTask::getReadStatus() {
     if (!isGameDataRequestOver()) {
         return Status_Busy;
     }
-    int code = getGameDataRequestCode();
-    if (code != 0) {
-        if (code == -6) {
-            return Status_Unknown4;
-        }
-        if (code == -5) {
-            return Status_Unknown3;
-        }
+    switch (getGameDataRequestCode()) {
+    case 0:
+        break;
+    case -4:
+        return Status_NoRemote;
+    case -5:
+        return Status_Unknown3;
+    case -6:
+        return Status_Unknown4;
+    default:
         return Status_NoRemote;
     }
     const u16* ownerName;
     if (fn_802253B4(m_pad, &ownerName) != 0) {
         return Status_BadData;
     }
-    wchar_t magic[0x20];
+    wchar_t magic[0x12];
     Message::utf8to16(magic, sRemoteMagic);
-    const u16* a = ownerName;
-    const u16* b = reinterpret_cast<const u16*>(magic);
-    bool same = true;
-    while (*a != 0 || *b != 0) {
-        if (*a != *b) {
-            same = false;
-            break;
-        }
-        a++;
-        b++;
-    }
-    if (!same) {
+    if (!wcscmpEqual(ownerName, reinterpret_cast<const u16*>(magic))) {
         return Status_BadData;
     }
-    bool empty = true;
-    for (int i = 0; i < 0x3C; i++) {
-        if (m_readBuf[i] != 0) {
-            empty = false;
-            break;
-        }
-    }
-    if (empty) {
+    if (isBufZero(m_readBuf)) {
         return Status_BadData;
     }
     u32 sum = 0;
-    for (int i = 0; i < 0x3C; i++) {
-        sum += m_readBuf[i];
+    const u8* q = m_readBuf;
+    for (int i = 0; i < 0x3C; i++, q++) {
+        sum += *q;
     }
+    int err = Status_Ok;
     if (*reinterpret_cast<u32*>(&m_readBuf[0x3C]) != sum) {
-        return Status_BadData;
+        err = Status_BadData;
     }
-    return Status_Ok;
+    return err;
 }
 
 void muNameRemoteTask::readProcess() {

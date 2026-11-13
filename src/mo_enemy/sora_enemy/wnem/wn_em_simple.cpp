@@ -40,8 +40,11 @@
 #include <so/anim/so_anim_cmd_module_impl.h>
 #include <so/collision/so_collision_hit_module_impl.h>
 #include <so/collision/so_collision_log.h>
+#include <so/effect/so_effect_module_impl.h>
+#include <so/anim/so_anim_cmd_arg_list.h>
 #include <st/st_trigger.h>
 #include <gf/gf_task_scheduler.h>
+#include <mt/mt_trig.h>
 #include <math.h>
 #include <wn/wn_em_simple.h>
 #include <wn/wn_em_sw_holder.h>
@@ -221,13 +224,16 @@ struct wnemAnimCmdSet {
 };
 // BYTES: emShotParam keeps the set pointer in its unnamed bytes; read it through a typed view of the description.
 struct wnemShotParamView {
-    u8 unk0[0x20];
+    u8 unk0[0x18];
+    s32 m_startAnimCmd;   // 0x18
+    u8 unk1C[0x4];
     s32 m_constraintNode; // 0x20, the model node of the owner the weapon is constrained to (-1: none)
     u8 m_flag24;          // 0x24, HYPOTHESIS: four flag bytes the weapon copies (setupParam)
     u8 m_flag25;
     u8 m_flag26;
     u8 m_flag27;
-    u8 unk28[0x8];
+    u32 m_modelFlags;     // 0x28
+    void* m_motionData;   // 0x2C
     s32 m_resetHitStatus; // 0x30, HYPOTHESIS: nonzero when the weapon keeps the hit status of its hit module
     void* m_groundData;   // 0x34, the ground shape data of the weapon (setupGroundData); null: no ground collision
     u8 unk38[0x38];
@@ -311,91 +317,18 @@ bool wnemSimple::setupParam(emShotParam* param, emWeaponParamWork* work, float l
     return true;
 }
 
-// Shapes the weapon's ground module after the ground data of its shot description.
-void wnemSimple::setupGroundData() {
-    soGroundModuleImpl& ground = dynamic_cast<soGroundModuleImpl&>(m_moduleAccesser->getGroundModule());
-    wnemGroundShapeData* data = static_cast<wnemGroundShapeData*>(reinterpret_cast<wnemShotParamView*>(m_shotWork.m_param)->m_groundData);
-    ground.setShapeKind(static_cast<soGroundShapeImpl::ShapeKind>(static_cast<u8>(data->m_kind)), 0);
-    data = static_cast<wnemGroundShapeData*>(reinterpret_cast<wnemShotParamView*>(m_shotWork.m_param)->m_groundData);
-    s32 kind = data->m_kind;
-    if (kind == 2) {
-        ground.modifyRhombusFollowNode(data->m_followNode.m_up, data->m_followNode.m_down, data->m_followNode.m_width,
-                                       data->m_followNode.m_node, 0);
-        wnemReport("--- SO_GROUND_CORRECT_SHAPE_RHOMBUS_FOLLOW_NODE ----------- \n");
-    } else if (kind == 1) {
-        ground.modifyRhombus(data->m_rhombus.m_up, data->m_rhombus.m_down, data->m_rhombus.m_width, 0);
-    }
-}
-
-// HYPOTHESIS: the item shot description (the Botron ball's item block, wnemSimple::unk2234 + 4): the model node of the
-// item's start and its offset from that node.
-struct wnemItemShootParam {
-    u8 unk0[0x14];
-    u32 m_nodeId;   // 0x14 of the block (0x18 of the ball's parameters)
-    Vec3f m_offset;
-};
-
-// Map name wnemSimple::ShootItem: creates the item at the node of the weapon's model (the first call only preloads its
-// archive), as the Enemy's emShootItem does.
-extern "C" bool fn_41_320F8(wnemSimple* wnem, int kind, int variation, s32* param) {
-    if (kind == -1) {
-        return false;
-    }
-    if (itManager::getInstance()->isCompItemKindArchive(static_cast<itKind>(kind), 0, true) == false) {
-        itManager::getInstance()->preloadItemKindArchive(static_cast<itKind>(kind), 0, itArchive::Temp, true);
-        return true;
-    }
-    itManager* items;
-    int ownerTaskId = wnem->m_moduleAccesser->getStageObject().m_taskId;
-    items = itManager::getInstance();
-    BaseItem* item = items->createItem(static_cast<itKind>(kind), variation, ownerTaskId);
-    if (item != NULL) {
-        wnemItemShootParam* shootParam = reinterpret_cast<wnemItemShootParam*>(reinterpret_cast<u8*>(param) + 4);
-        soModelModule& model = wnem->m_moduleAccesser->getModelModule();
-        Vec3f pos;
-        Vec3f offset;
-        offset.m_x = shootParam->m_offset.m_x;
-        offset.m_y = shootParam->m_offset.m_y;
-        offset.m_z = shootParam->m_offset.m_z;
-        pos = model.getNodeGlobalPosition(shootParam->m_nodeId, &offset, false, false);
-        item->warp(&pos);
-        item->updateNodeSRT();
-    } else {
-        wnemReport("wnemSimple::ShootItem : --- field!! -------------- \n");
-        return false;
-    }
-    wnemReport("wnemSimple::ShootItem : --- success!! -------------- \n");
-    return true;
-}
+// Map name wnemSimple::resetAnimCmd: clears the interpreters of the three sub groups.
+extern "C" void fn_41_31708(wnemSimple* wnem);
 
 void wnemSimple::RequestDeactive() {
     m_requestDeactive = true;
 }
-
-extern "C" void fn_41_31708(wnemSimple* wnem);
 
 // The glow module of the accesser (the accesser has no accessor for it).
 static inline soGlowModule& wnemGlowModule(soModuleAccesser* moduleAccesser) {
     return *static_cast<soGlowModule*>(moduleAccesser->m_enumerationStart->m_glowModule);
 }
 
-// A weapon linked to a glowing owner (link connection 3) takes over the owner's glow values.
-void wnemSimple::setupGlowModule() {
-    if (m_moduleAccesser->getLinkModule().isParentGlow(3) == 1) {
-        s32 attack = m_moduleAccesser->getLinkModule().getParentWeaponGlowAttack(3);
-        wnemGlowModule(m_moduleAccesser).setGlowAttack(attack);
-        s32 defense = m_moduleAccesser->getLinkModule().getParentWeaponGlowDefense(3);
-        wnemGlowModule(m_moduleAccesser).setGlowDefense(defense);
-        float eff = m_moduleAccesser->getLinkModule().getParentWeaponGlowEff(3);
-        float damageMin = m_moduleAccesser->getLinkModule().getParentWeaponGlowDamageMin(3);
-        float damageMax = m_moduleAccesser->getLinkModule().getParentWeaponGlowDamageMax(3);
-        wnemGlowModule(m_moduleAccesser).setGlowEffect(eff, damageMin, damageMax);
-        wnemReport("wnemSimple::setupGlowModule : atk( %d ), def( %d ), eff,min,max( %f, %f, %f ) \n", wnemGlowModule(m_moduleAccesser).getGlowAttack(),
-                   wnemGlowModule(m_moduleAccesser).getGlowDefense(), eff, damageMin, damageMax);
-    }
-}
-
-// Map name wnemSimple::resetAnimCmd: clears the interpreters of the three sub groups.
 extern "C" void fn_41_31708(wnemSimple* wnem) {
     soAnimCmdModule& animCmd = wnem->m_moduleAccesser->getAnimCmdModule();
     animCmd.resetInterpreter3(4, NULL, wnem->m_moduleAccesser);
@@ -418,44 +351,6 @@ bool wnemSimple::executeAnimCmd(s32 cmd, s32 group, s32 isOneShot) {
             animCmd.resetInterpreter3(group, NULL, m_moduleAccesser);
         }
     }
-}
-
-bool wnemSimple::executeAnimCmd(u32 index) {
-    wnemAnimCmdSet* set = reinterpret_cast<wnemShotParamView*>(m_shotWork.m_param)->m_animCmdSet;
-    if (set == NULL) {
-        wnemReport("[warning!!] wnemSimple::existAnimCmd : pParam->_pAnimCmdSet is null \n");
-        return false;
-    }
-    if (index >= set->m_size) {
-        wnemReport("wnemSimple::executeAnimCmd :[warning] index(%d) out og range _pAnimCmdSet._size(%d) \n ", index, set->m_size);
-        return false;
-    }
-    void* cmd = set->m_data[index].m_cmd;
-    if (cmd == NULL) {
-        wnemReport("wnemSimple::executeAnimCmd :[warning] _pAnimCmdSet->_pData[ %d ]._pData is null \n", index);
-        return false;
-    }
-    s32 kind = set->m_data[index].m_kind;
-    s32 isOneShot = 0;
-    if (kind == 4) {
-        isOneShot = 1;
-    }
-    executeAnimCmd(reinterpret_cast<s32>(cmd), kind, isOneShot);
-    return true;
-}
-
-// Map name wnemSimple::existAnimCmd: whether the command list of the index is set.
-extern "C" bool fn_41_31960(wnemSimple* wnem, u32 index);
-extern "C" bool fn_41_31960(wnemSimple* wnem, u32 index) {
-    wnemAnimCmdSet* set = reinterpret_cast<wnemShotParamView*>(wnem->m_shotWork.m_param)->m_animCmdSet;
-    if (set == NULL) {
-        return false;
-    }
-    if (index >= set->m_size) {
-        wnemReport("wnemSimple::existAnimCmd :[warning] index(%d) out og range _pAnimCmdSet._size(%d) \n ", index, set->m_size);
-        return false;
-    }
-    return set->m_data[index].m_cmd != NULL;
 }
 
 bool wnemSimple::setProcFnc_HpZero(s32 id) {
@@ -506,55 +401,6 @@ bool wnemSimple::setProcFnc_HitShell(s32 id) {
     return false;
 }
 
-bool wnemSimple::changeProcFnc(s32 id, s32 isForce) {
-    if (isForce != 0 && static_cast<s32>(m_weaponKind) == id) {
-        return true;
-    }
-    if (id == -1) {
-        m_procFnc = NULL;
-    } else {
-        void* proc = emWeaponManager::getInstance()->GetProcFncPtr(id);
-        if (proc != NULL) {
-            m_weaponKind = id;
-            return changeProcFnc1(proc, isForce);
-        }
-    }
-    return false;
-}
-
-bool wnemSimple::changeProcFnc1(void* proc, s32 isForce) {
-    if (isForce != 0 && m_procFnc == proc) {
-        wnemReport("wnemSimple::changeProcFnc : already procFnc currentProcFnc \n");
-        return true;
-    }
-    if (proc != NULL) {
-        m_procFnc = proc;
-        unk2214 = true;
-        resetFrameCounter(1);
-        fn_41_31708(this);
-        m_moduleAccesser->getColorBlendModule().offAll(false);
-        m_procFncHpZero = NULL;
-        m_procFncLifeZero = NULL;
-        m_procFncTouchGround = NULL;
-        m_procFncHitShell = NULL;
-        wnemReport("wnemSimple::changeProcFnc( in newProcFuncPtr ) : change new procFnc \n");
-        return true;
-    }
-    return false;
-}
-
-void wnemSimple::SetLifeLimit(s32 frames) {
-    s32 now = static_cast<s32>(getFrameCounter(0));
-    m_lifeLimit = now + frames;
-    if (m_lifeLimit > 0) {
-        if (!unk21B9) {
-            unk21B9 = true;
-            m_frameCounters[0].start();
-        }
-        wnemReport("wnemSimple::SetLifeLimit now(%d), aim(%d) \n", getFrameCounter(0), m_lifeLimit);
-    }
-}
-
 void wnemSimple::resetFrameCounter(s32 index) {
     if (index <= -1 || index >= 2) {
         return;
@@ -578,21 +424,6 @@ void wnemSimple::setDamage(float damage) {
         if (unk21D4 <= lbl_41_rodata_E54) {
             OnDead();
         }
-    }
-}
-
-void wnemSimple::OnDead() {
-    wnemReport("wnemSimple::notifyEventOnDamage OnDead \n");
-    m_moduleAccesser->getCollisionAttackModule().clearAll();
-    m_moduleAccesser->getCollisionHitModule().setXluGlobal(0);
-    if (unk21D4 <= lbl_41_rodata_E54) {
-        unk21D4 = 0.0f;
-    }
-    if (m_procFncHpZero == NULL) {
-        m_requestDeactive = true;
-    } else {
-        wnemReport("wnemSimple::OnDead changeProcFnc( _pProcFunc_HpZero ) \n");
-        changeProcFnc1(m_procFncHpZero, 1);
     }
 }
 
@@ -624,6 +455,49 @@ extern "C" float fn_41_33B6C(emScaledValue* value, soModuleAccesser* acc) {
     return result;
 }
 
+extern const wnemDummy_Param lbl_41_data_3E50;
+
+struct wnemVec3Init {
+    float x, y, z;
+};
+
+struct wnemVec2Init {
+    float x, y;
+};
+
+struct wnemHitDataInit {
+    wnemVec3Init startOffsetPos;
+    wnemVec3Init endOffsetPos;
+    float size;
+    u32 flags;
+};
+
+struct wnemGroundDataInit {
+    const wnemVec2Init* points;
+    s32 count;
+    bool unk8;
+    bool unk9;
+};
+
+static u8 s_modelLoupeNo = 0xff;
+static wnemHitDataInit s_defaultHitData[2] = {
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 8.0f, 0x00090000 },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 8.0f, 0x00090000 }
+};
+static wnemHitDataInit s_nullHitData[2] = {
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0x000F0000 },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f, 0x000F0000 }
+};
+struct wnemHitDataSetInit {
+    wnemHitDataInit* elements;
+    s32 size;
+};
+static wnemHitDataSetInit s_defaultHitDataSet = { s_defaultHitData, 2 };
+static wnemVec2Init s_groundPts[5] = {
+    { 0.0f, 1.0f }, { -2.5f, -1.0f }, { -1.5f, 1.5f }, { 2.5f, -1.5f }, { 1.5f, 0.0f }
+};
+static wnemGroundDataInit s_groundData = { s_groundPts, 5, false, true };
+
 // Same layout as em/em_article_mediator.h. That header cannot be included here: its pool templates clash with the
 // fighter builder's soInstancePoolInfo.
 struct soArticleKindInfo {
@@ -631,27 +505,45 @@ struct soArticleKindInfo {
     s32 m_kind;
     soArticleKindInfo(s32 category, s32 kind) : m_category(category), m_kind(kind) { }
 };
+struct soKindInfo {
+    s32 m_category;
+    s32 m_kind;
+#pragma push
+#pragma dont_inline on
+    soKindInfo(s32 category, s32 kind) : m_category(category), m_kind(kind) { }
+#pragma pop
+};
 struct soArticleConstructInfo {
     const soArticleKindInfo* m_kindInfo;
     void* m_heapModule;
     soArticleConstructInfo(const soArticleKindInfo& kindInfo, void* heapModule) : m_kindInfo(&kindInfo), m_heapModule(heapModule) { }
+    wnemHeapModuleImpl* getHeapModule() const { return static_cast<wnemHeapModuleImpl*>(m_heapModule); }
+    operator const wnArticleBuildInfo&() const { return reinterpret_cast<const wnArticleBuildInfo&>(*this); }
 };
 
-// HYPOTHESIS: kind 0, resource group 0, team -1 and the null parameter accesser. The heaps come from the owner's heap
-// module (the same three queries Mario's fireball makes). The member block starts clear.
+static itGenSheetKind s_genSheetKindLevel0(Stages::srStageKind(0xff), 0);
+static itGenSheetKind s_genSheetKindLevel1(Stages::srStageKind(0xff), 1);
+static u8 s_genSheetKindPad[0x18];
+static soKindInfo s_kindInfo(2, 0);
+
 #pragma auto_inline off
-wnemSimple::wnemSimple(s32 articleId, s16 manageId, const soArticleConstructInfo& info, const wnemDummy_Param* param) :
+wnemSimple::wnemSimple() :
     utWeaponObjectBase(),
     wnWeaponBuilder<wnemSimple_ModuleAccesserBuildConfig>(
-        "wnemSimple", articleId, reinterpret_cast<const wnArticleBuildInfo&>(info),
-        wnModuleAccesserBuildData(0, param,
-            static_cast<wnemHeapModuleImpl*>(info.m_heapModule)->getInstanceHeap(),
-            static_cast<wnemHeapModuleImpl*>(info.m_heapModule)->getNWModelInstanceHeap(),
-            static_cast<wnemHeapModuleImpl*>(info.m_heapModule)->getNWMotionInstanceHeap(),
-            0, -1, &g_soParamAccesserNull, 0, 0, 0, 0, 0, 0, 0)),
-    soDamageEventObserver(ftGetManageId(m_moduleAccesser), -1),
-    soCollisionSearchEventObserver(ftGetManageId(m_moduleAccesser), -1),
+        "wnemSimple", 0,
+        wnArticleBuildInfo(reinterpret_cast<const wnArticleKindInfo*>(&s_kindInfo), &g_wnemHeapModule),
+        wnModuleAccesserBuildData(0x1a, reinterpret_cast<const u8*>(&lbl_41_data_3E50) + 8,
+            static_cast<soHeapModule&>(g_wnemHeapModule).getInstanceHeap(),
+            static_cast<soHeapModule&>(g_wnemHeapModule).getNWModelInstanceHeap(),
+            static_cast<soHeapModule&>(g_wnemHeapModule).getNWMotionInstanceHeap(),
+            0xa, -1, &g_soParamAccesserNull, 0, 0, reinterpret_cast<s32>(&s_groundData), 0, 0, 0, 0)),
+    soDamageEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1),
+    soCollisionSearchEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1),
     m_shotWork(),
+    unk21B4(false),
+    unk21B5(true),
+    unk21B6(false),
+    unk21B7(false),
     unk21B8(false),
     unk21B9(false),
     unk21BA(),
@@ -667,18 +559,14 @@ wnemSimple::wnemSimple(s32 articleId, s16 manageId, const soArticleConstructInfo
     m_weaponType(0),
     m_maxHitPower(0.0f),
     m_attackStopMax(0.0f),
-    unk21E8(0),
+    unk21E8(-1),
     unk21EC(0),
-#ifdef WN_EM_SIMPLE_UNIT
-    m_baseSpeed(),
-#else
-    unk21F0(),
-#endif
-    m_speed(),
-    m_accel(),
+    m_baseSpeed(0.0f, 0.0f),
+    m_speed(0.0f, 0.0f),
+    m_accel(0.0f, 0.0f),
     m_holder(NULL),
     m_procFnc(NULL),
-    m_weaponKind(0),
+    m_weaponKind(-1),
     unk2214(false),
     unk2215(false),
     unk2216(0),
@@ -687,13 +575,70 @@ wnemSimple::wnemSimple(s32 articleId, s16 manageId, const soArticleConstructInfo
     m_requestDeactive(false),
     m_isManaged(false),
     m_isFromPool(false),
-    unk2234(NULL),
     m_intParams(2, 0),
     m_floatParams(5, 0),
-    m_cmdInterpreter(ftGetManageId(m_moduleAccesser), &m_cmdStack, 6, 1, 1.0f, ftAddressOf((u8)0)),
+    m_cmdInterpreter(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), &m_cmdStack, 6, 1, -1.0f, ftAddressOf((u8)0)),
+    m_cmdStack(0) {
+    SetDefault();
+}
+
+wnemSimple::wnemSimple(s32 articleId, s16 manageId, const soArticleConstructInfo& info, const wnemDummy_Param* param) :
+    utWeaponObjectBase(),
+    wnWeaponBuilder<wnemSimple_ModuleAccesserBuildConfig>(
+        "wnemSimple", articleId, reinterpret_cast<const wnArticleBuildInfo&>(info),
+        wnModuleAccesserBuildData(0x1a, reinterpret_cast<const u8*>(param) + 8,
+            info.getHeapModule()->getInstanceHeap(),
+            info.getHeapModule()->getNWModelInstanceHeap(),
+            info.getHeapModule()->getNWMotionInstanceHeap(),
+            0xa, -1, &g_soParamAccesserNull, 0, 0, reinterpret_cast<s32>(&s_groundData), 0, 0, 0, 0)),
+    soDamageEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1),
+    soCollisionSearchEventObserver(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), -1),
+    m_shotWork(),
+    unk21B4(false),
+    unk21B5(true),
+    unk21B6(false),
+    unk21B7(false),
+    unk21B8(false),
+    unk21B9(false),
+    unk21BA(),
+    unk21BB(false),
+    m_procFncHpZero(NULL),
+    m_procFncLifeZero(NULL),
+    m_procFncTouchGround(NULL),
+    m_procFncHitShell(NULL),
+    m_linkId(0),
+    m_lifeLimit(0),
+    unk21D4(0.0f),
+    unk21D8(0.0f),
+    m_weaponType(0),
+    m_maxHitPower(0.0f),
+    m_attackStopMax(0.0f),
+    unk21E8(-1),
+    unk21EC(0),
+#ifdef WN_EM_SIMPLE_UNIT
+    m_baseSpeed(0.0f, 0.0f),
+#else
+    unk21F0(),
+#endif
+    m_speed(0.0f, 0.0f),
+    m_accel(0.0f, 0.0f),
+    m_holder(NULL),
+    m_procFnc(NULL),
+    m_weaponKind(-1),
+    unk2214(false),
+    unk2215(false),
+    unk2216(0),
+    unk2217(false),
+    unk2218(false),
+    m_requestDeactive(false),
+    m_isManaged(false),
+    m_isFromPool(false),
+    m_intParams(2, 0),
+    m_floatParams(5, 0),
+    m_cmdInterpreter(static_cast<soEventManager&>(m_moduleAccesser->getEventManageModule()).getManageId(), &m_cmdStack, 6, 1, -1.0f, ftAddressOf((u8)0)),
     m_cmdStack(0) {
     (void)manageId;
-    Weapon::deactivate(false);
+    SetDefault();
 }
 #pragma auto_inline on
 
@@ -722,103 +667,268 @@ wnemSimple_Data::wnemSimple_Data() : m_param(NULL) { }
 
 soArticleMediator::~soArticleMediator() { }
 
+inline void wnemSimple::setDeactivate(bool x) {
+    deactivate(x);
+}
+
 wnemSimple::~wnemSimple() { }
 
-void wnemSimple::initialize() {
-    Weapon::initialize();
+#pragma auto_inline off
+void wnemSimple::SetDefault() {
+    m_moduleAccesser->getSituationModule().setKind(Situation_Air, false);
+    soSet<soCollisionHitData>* hitSet = reinterpret_cast<soSet<soCollisionHitData>*>(&s_defaultHitDataSet);
+    if (hitSet != NULL) {
+        m_moduleAccesser->getCollisionHitModule().add(hitSet, 0);
+    }
+    m_moduleAccesser->getCollisionHitModule().setXluGlobal(0);
+    *reinterpret_cast<s32*>(unk2368 + 0) = 0;
+    *reinterpret_cast<void**>(unk2368 + 4) = unk2368;
+    *reinterpret_cast<s32*>(unk2368 + 8) = 1;
+    soEffectModuleImpl& eff = dynamic_cast<soEffectModuleImpl&>(m_moduleAccesser->getEffectModule());
+    eff.unk50 = reinterpret_cast<s32>(unk2368 + 4);
+    soAnimCmdAddressPackArraySeparate pack(
+        reinterpret_cast<soArrayFixed<const acAnimCmdConv*>*>(g_soAnimCmdAddrArrayNull),
+        reinterpret_cast<soArrayFixed<const acAnimCmdConv*>*>(g_soAnimCmdAddrArrayNull),
+        reinterpret_cast<soArrayFixed<const acAnimCmdConv*>*>(g_soAnimCmdAddrArrayNull));
+    soAttributeFlag attr(0x10);
+    soAnimCmdControlUnit unit;
+    unit.m_animCmdInterpreter = &m_cmdInterpreter;
+    unit.m_animCmdAddressPackArraySeparate = &pack;
+    m_moduleAccesser->getAnimCmdModule().registInterpreter(unit, attr);
+    Weapon::deactivate(false);
+    wnemByteAt(this, 0x21B4) = 1;
+}
+#pragma auto_inline on
+
+extern "C" void fn_41_3091C(wnemSimple* article, wnemSimple_Data* work, int founderTaskId, int resourceId,
+                            int arg4, bool flag, Vec3f* pos, float lr, int team, float scale,
+                            int, u32 life, s16 manageId) {
+    struct wnemShotDataCopy {
+        emShotParam* m_param;
+        u8 unk4[2];
+        bool m_unk6;
+        u32 m_nodeId;
+        u32 m_rot[3];
+        u32 m_vel[2];
+        u32 m_acc[2];
+        void* m_constantParam;
+        void* m_addressPack;
+    };
+    *reinterpret_cast<wnemShotDataCopy*>(&article->m_shotWork) = *reinterpret_cast<const wnemShotDataCopy*>(work);
+    article->m_procFnc = NULL;
+    article->m_weaponKind = -1;
+    article->m_maxHitPower = 0.0f;
+    article->m_attackStopMax = 0.0f;
+    for (s32 i = 0; i < 2; i++) {
+        article->resetFrameCounter(i);
+    }
+    article->setupParam(article->m_shotWork.m_param,
+                        reinterpret_cast<emWeaponParamWork*>(article->m_shotWork.unk4), lr);
+    article->StageObject::activate(pos, lr, 0.0f, true);
+    wnemReport("-------------------------------------------------------------- \n");
+    wnemReport("----- wnemSimple::activate ----- tskID( %u ), linkNo( %d ) === \n",
+               article->getTaskId(), arg4);
+    wnemReport("-------------------------------------------------------------- \n\n");
+    if (*reinterpret_cast<void**>(article->m_shotWork.unk2C) != NULL) {
+        dynamic_cast<soAnimCmdModuleImpl&>(article->m_moduleAccesser->getAnimCmdModule())
+            .unk44(6, *reinterpret_cast<void**>(article->m_shotWork.unk2C));
+    }
+    article->m_moduleAccesser->getSituationModule().setKind(Situation_Air, false);
+    if (article->m_weaponType == 1) {
+        article->m_moduleAccesser->getSituationModule().setKind(Situation_Air, true);
+    }
+    if (reinterpret_cast<wnemShotParamView*>(work->m_param)->m_groundData != NULL) {
+        article->m_moduleAccesser->getGroundModule().setCorrect(soGroundShapeImpl::Correct_Air, 0);
+    }
+    wnemResourceModuleImpl& resMod =
+        dynamic_cast<wnemResourceModuleImpl&>(article->m_moduleAccesser->getResourceModule());
+    resMod.setGroupNo(static_cast<u8>(static_cast<u8>(article->m_shotWork.m_param->m_weaponId) + 10), 0xff);
+    resMod.getResourceIdAccesser()->setResIdPacked(resourceId);
+
+    u32 modelFlag = (reinterpret_cast<wnemShotParamView*>(article->m_shotWork.m_param)->m_modelFlags | 0x10) & ~0x7000;
+    if (article->m_moduleAccesser->getColorBlendModule().isNull() == false) {
+        modelFlag |= 0x108;
+    }
+    u32 resIdx = 2;
+    if (static_cast<u32>(resourceId) != 0xffff) {
+        resIdx = 1;
+    }
+    article->m_moduleAccesser->getModelModule().constructInstance(
+        static_cast<gfSceneRoot::LayerType>(2),
+        modelFlag, false, resIdx,
+        static_cast<void*>(NULL), NULL, NULL, 0xffff, NULL, s_modelLoupeNo, 0);
+    article->m_moduleAccesser->getModelModule().activate();
+
+    void* motionData = reinterpret_cast<wnemShotParamView*>(work->m_param)->m_motionData;
+    if (motionData != NULL) {
+        article->m_moduleAccesser->getMotionModule().setData(motionData);
+    } else {
+        article->m_moduleAccesser->getMotionModule().setData(NULL);
+    }
+
+    if (reinterpret_cast<wnemShotParamView*>(work->m_param)->m_groundData != NULL) {
+        article->setupGroundData();
+    } else {
+        wnemReport("wnemSimple::activate : _pGoundShapeData is null....clear data \n");
+        article->m_moduleAccesser->getGroundModule().setCorrect(soGroundShapeImpl::Correct_None, 0);
+    }
+
+    article->setupCollisionHitData(pos->m_x, article->m_moduleAccesser->getPostureModule().getScale(),
+                                   article->m_moduleAccesser->getSituationModule().getKind(), lr);
+    article->setupCollisionHitStatus();
+
+    u32 nodeId = article->m_shotWork.m_nodeId;
+    u32 constraintNode = reinterpret_cast<wnemShotParamView*>(article->m_shotWork.m_param)->m_constraintNode;
+    if (constraintNode == 0xFFFFFFFFu || nodeId == 0xFFFFFFFFu) {
+        *reinterpret_cast<s32*>(article->unk2368 + 0) = 0;
+    } else {
+        *reinterpret_cast<s32*>(article->unk2368 + 0) = static_cast<s32>(constraintNode);
+    }
+    soEffectModuleImpl& eff = dynamic_cast<soEffectModuleImpl&>(article->m_moduleAccesser->getEffectModule());
+    eff.unk50 = reinterpret_cast<s32>(article->unk2368 + 4);
+
+    article->m_moduleAccesser->getWorkManageModule().setInt(founderTaskId, 0x10000005);
+    if (static_cast<u32>(founderTaskId) != 0xFFFFFFFF) {
+        if (!article->m_moduleAccesser->getLinkModule().link(3, founderTaskId)) {
+            return;
+        }
+        article->setupGlowModule();
+        if (flag == true) {
+            article->constraint();
+        }
+    }
+    if (team != -1) {
+        article->m_moduleAccesser->getTeamModule().setTeam(team, true);
+        article->m_moduleAccesser->getTeamModule().setHitTeam(team);
+        article->m_moduleAccesser->getTeamModule().setTeamOwnerId(founderTaskId);
+    }
+    if (manageId > -1) {
+        article->setManageId(manageId);
+    }
+    article->m_moduleAccesser->getWorkManageModule().setFloat(static_cast<float>(life), WeaponValueFloat_Scale);
+    article->m_moduleAccesser->getModelModule().setScale(scale);
+    article->m_moduleAccesser->getPostureModule().setRot(&article->m_shotWork.m_rotation, 0);
+    if (wnemByteAt(article, 0x21B7)) {
+        Vec3f rot(0.0f, 0.0f, 0.0f);
+        bool isLeft = false;
+        float vx = article->m_baseSpeed.m_x;
+        if (vx < 0.0f) {
+            isLeft = true;
+        }
+        rot.m_z = static_cast<float>(atan2(article->m_baseSpeed.m_y, vx)) * 57.29578f;
+        if (article->m_moduleAccesser->getPostureModule().getRotYLr() <= -90.0f) {
+            rot.m_y = 180.0f;
+        }
+        if (isLeft == true) {
+            rot.m_z += 180.0f;
+            rot.m_y -= 180.0f;
+        }
+        article->m_moduleAccesser->getPostureModule().setRot(&rot, 0);
+    }
+    article->updateNodeSRT();
+    s32 startCmd = reinterpret_cast<wnemShotParamView*>(article->m_shotWork.m_param)->m_startAnimCmd;
+    if (startCmd != 0) {
+        article->executeAnimCmd(startCmd, 4, 1);
+    }
+    wnemReport("wnemSimple::Activate : onExit \n");
 }
 
-soKind wnemSimple::soGetKind() {
-    return StageObject_Weapon;
-}
-
-bool wnemSimple::notifyEventCollisionSearchCheck() {
-    return false;
-}
-
-// The weapon falls out of the stage: it is removed, and deactivated when it is still active.
-void wnemSimple::processHit() {
-    StageObject::processHit();
-    m_maxHitPower = 0.0f;
-    m_attackStopMax = 0.0f;
-    if (unk21BA[0]) {
-        if (!isConstraint(false)) {
-            Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
-            if (soGroundUtil::checkDeadArea(&pos, 0.0f, 0.0f) != -1) {
-                setNotifyArticleEventRemove(m_moduleAccesser);
-                if (isActive() == 1) {
-                    wnemReport("wnemSimple::processHit : Dead OutScreen -- call deactivate \n");
-                    deactivate(false);
-                }
+// The weapon is switched off: the holder that started it lets go, the weapon leaves the manager's lists and goes back to
+// the pool, and the proc function and effects are cleared.
+void wnemSimple::onDeactivate() {
+    // TODO: the flag at 0x21B4 lies inside the 0x34-byte emShot work block of the header (unk2C[4]); see updatePosture.
+    if (unk21B4) {
+        wnemReport("---- wnemSimple::onDeactivate : onEnter ----- \n");
+        fn_41_31708(this);
+        if (m_holder != NULL) {
+            wnemReport("---- wnemSimple::onDeactivate : _pHolderArticle ----- \n");
+            if (m_holder->isNull() == false) {
+                m_holder->deactivateArticle();
             }
+            m_holder = NULL;
+        } else if (m_isManaged) {
+            wnemReport("---- wnemSimple::onDeactivate : UnregisterManageWeapon ----------- \n");
+            emWeaponManager::getInstance()->UnregisterManageWeapon(getTaskId());
         }
-    }
-}
-
-void wnemSimple::notifyEventCollisionHit(float power, soCollisionAttackData* attackData, u32 index, int p4,
-                                         soModuleAccesser* moduleAccesser, soCollisionLog* collisionLog) {
-    u32 targetTaskId = collisionLog->m_taskId;
-    if (targetTaskId != 0xFFFFFFFF) {
-        if (itManager::getInstance()->isSmashPlate(targetTaskId) == 1) {
-            unk2217 = true;
+        if (m_isFromPool) {
+            wnemReport("---- wnemSimple::onDeactivate : UnregisterManageWeaponPool ----------- \n");
+            emWeaponManager::getInstance()->releaseObject(this);
+            m_isFromPool = false;
         }
-    }
-    Weapon::notifyEventCollisionHit(power, attackData, index, p4, moduleAccesser, collisionLog);
-}
-
-void wnemSimple::notifyEventCollisionHit2nd(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex,
-                                            float posX, float collisionLr, soModuleAccesser* moduleAccesser, bool flag) {
-    Weapon::notifyEventCollisionHit2nd(attackModule, collisionLog, groupIndex, posX, collisionLr, moduleAccesser, flag);
-    if (!flag && g_stTriggerMng != NULL) {
-        const int& taskId = m_taskId;
-        fn_27_23313C(m_moduleAccesser->getWorkManageModule().getInt(0x10000005), collisionLog->m_taskId, taskId, 0x28);
+        m_procFnc = NULL;
+        m_weaponKind = -1;
+        m_moduleAccesser->getEffectModule().removeAll(0);
     }
 }
 
-bool wnemSimple::notifyEventAnimCmd(acAnimCmd* animCmd, soModuleAccesser* moduleAccesser, s32 unk3) {
-    if (Weapon::notifyEventAnimCmd(animCmd, moduleAccesser, unk3)) {
-        return true;
+// Shapes the weapon's ground module after the ground data of its shot description.
+void wnemSimple::setupGroundData() {
+    soGroundModuleImpl& ground = dynamic_cast<soGroundModuleImpl&>(m_moduleAccesser->getGroundModule());
+    wnemGroundShapeData* data = static_cast<wnemGroundShapeData*>(reinterpret_cast<wnemShotParamView*>(m_shotWork.m_param)->m_groundData);
+    ground.setShapeKind(static_cast<soGroundShapeImpl::ShapeKind>(static_cast<u8>(data->m_kind)), 0);
+    data = static_cast<wnemGroundShapeData*>(reinterpret_cast<wnemShotParamView*>(m_shotWork.m_param)->m_groundData);
+    s32 kind = data->m_kind;
+    if (kind == 2) {
+        ground.modifyRhombusFollowNode(data->m_followNode.m_up, data->m_followNode.m_down, data->m_followNode.m_width,
+                                       data->m_followNode.m_node, 0);
+        wnemReport("--- SO_GROUND_CORRECT_SHAPE_RHOMBUS_FOLLOW_NODE ----------- \n");
+    } else if (kind == 1) {
+        ground.modifyRhombus(data->m_rhombus.m_up, data->m_rhombus.m_down, data->m_rhombus.m_width, 0);
     }
-    char group = animCmd->getGroup();
-    if (!isObserv(group)) {
+}
+
+// A weapon linked to a glowing owner (link connection 3) takes over the owner's glow values.
+void wnemSimple::setupGlowModule() {
+    if (m_moduleAccesser->getLinkModule().isParentGlow(3) == 1) {
+        s32 attack = m_moduleAccesser->getLinkModule().getParentWeaponGlowAttack(3);
+        wnemGlowModule(m_moduleAccesser).setGlowAttack(attack);
+        s32 defense = m_moduleAccesser->getLinkModule().getParentWeaponGlowDefense(3);
+        wnemGlowModule(m_moduleAccesser).setGlowDefense(defense);
+        float eff = m_moduleAccesser->getLinkModule().getParentWeaponGlowEff(3);
+        float damageMin = m_moduleAccesser->getLinkModule().getParentWeaponGlowDamageMin(3);
+        float damageMax = m_moduleAccesser->getLinkModule().getParentWeaponGlowDamageMax(3);
+        wnemGlowModule(m_moduleAccesser).setGlowEffect(eff, damageMin, damageMax);
+        wnemReport("wnemSimple::setupGlowModule : atk( %d ), def( %d ), eff,min,max( %f, %f, %f ) \n", wnemGlowModule(m_moduleAccesser).getGlowAttack(),
+                   wnemGlowModule(m_moduleAccesser).getGlowDefense(), eff, damageMin, damageMax);
+    }
+}
+
+bool wnemSimple::executeAnimCmd(u32 index) {
+    wnemAnimCmdSet* set = reinterpret_cast<wnemShotParamView*>(m_shotWork.m_param)->m_animCmdSet;
+    if (set == NULL) {
+        wnemReport("[warning!!] wnemSimple::existAnimCmd : pParam->_pAnimCmdSet is null \n");
         return false;
     }
-    if (animCmd->getType() > -1 && animCmd->getType() < 0xb) {
-        return true;
+    if (index >= set->m_size) {
+        wnemReport("wnemSimple::executeAnimCmd :[warning] index(%d) out og range _pAnimCmdSet._size(%d) \n ", index, set->m_size);
+        return false;
     }
-    return false;
+    void* cmd = set->m_data[index].m_cmd;
+    if (cmd == NULL) {
+        wnemReport("wnemSimple::executeAnimCmd :[warning] _pAnimCmdSet->_pData[ %d ]._pData is null \n", index);
+        return false;
+    }
+    s32 kind = set->m_data[index].m_kind;
+    s32 isOneShot = 0;
+    if (kind == 4) {
+        isOneShot = 1;
+    }
+    executeAnimCmd(reinterpret_cast<s32>(cmd), kind, isOneShot);
+    return true;
 }
 
-// Moves the weapon by its speed (the speed grows by the acceleration) and, for a weapon that turns to its flight
-// direction, rotates it around z by the angle of the speed (flipped around y while it flies to the left).
-void wnemSimple::updatePosture(bool isUpdate) {
-    if (isUpdate) {
-        Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
-        pos.m_x += m_speed.m_x;
-        pos.m_y += m_speed.m_y;
-        m_speed.m_x += m_accel.m_x;
-        m_speed.m_y += m_accel.m_y;
-        m_moduleAccesser->getPostureModule().setPos(&pos);
-        // TODO: the flag at 0x21B7 lies inside the 0x34-byte emShot work block of the header (unk2C[7]); the block is
-        // really 0x30 bytes (wnemSimple's constructor writes the flags 0x21B4-0x21B7 itself).
-        if (m_shotWork.unk2C[7]) {
-            Vec3f rot(0.0f, 0.0f, 0.0f);
-            bool isLeft = false;
-            float speedX = m_speed.m_x;
-            if (speedX < 0.0f) {
-                isLeft = true;
-            }
-            rot.m_z = static_cast<float>(atan2(m_speed.m_y, speedX)) * 57.29578f;
-            if (m_moduleAccesser->getPostureModule().getRotYLr() <= -90.0f) {
-                rot.m_y = 180.0f;
-            }
-            if (isLeft == true) {
-                rot.m_z = rot.m_z + 180.0f;
-                rot.m_y = rot.m_y - 180.0f;
-            }
-            m_moduleAccesser->getPostureModule().setRot(&rot, 0);
-        }
+// Map name wnemSimple::existAnimCmd: whether the command list of the index is set.
+extern "C" bool fn_41_31960(wnemSimple* wnem, u32 index);
+extern "C" bool fn_41_31960(wnemSimple* wnem, u32 index) {
+    wnemAnimCmdSet* set = reinterpret_cast<wnemShotParamView*>(wnem->m_shotWork.m_param)->m_animCmdSet;
+    if (set == NULL) {
+        return false;
     }
+    if (index >= set->m_size) {
+        wnemReport("wnemSimple::existAnimCmd :[warning] index(%d) out og range _pAnimCmdSet._size(%d) \n ", index, set->m_size);
+        return false;
+    }
+    return set->m_data[index].m_cmd != NULL;
 }
 
 // Binds the weapon's model to a node of its owner (link connection 3). The weapon type 2 (parts) also references the
@@ -865,6 +975,302 @@ extern "C" void fn_41_31B34(wnemSimple* wnem) {
     }
 }
 
+bool wnemSimple::changeProcFnc(s32 id, s32 isForce) {
+    if (isForce != 0 && static_cast<s32>(m_weaponKind) == id) {
+        return true;
+    }
+    if (id == -1) {
+        m_procFnc = NULL;
+    } else {
+        void* proc = emWeaponManager::getInstance()->GetProcFncPtr(id);
+        if (proc != NULL) {
+            m_weaponKind = id;
+            return changeProcFnc1(proc, isForce);
+        }
+    }
+    return false;
+}
+
+bool wnemSimple::changeProcFnc1(void* proc, s32 isForce) {
+    if (isForce != 0 && m_procFnc == proc) {
+        wnemReport("wnemSimple::changeProcFnc : already procFnc currentProcFnc \n");
+        return true;
+    }
+    if (proc != NULL) {
+        m_procFnc = proc;
+        unk2214 = true;
+        resetFrameCounter(1);
+        fn_41_31708(this);
+        m_moduleAccesser->getColorBlendModule().offAll(false);
+        m_procFncHpZero = NULL;
+        m_procFncLifeZero = NULL;
+        m_procFncTouchGround = NULL;
+        m_procFncHitShell = NULL;
+        wnemReport("wnemSimple::changeProcFnc( in newProcFuncPtr ) : change new procFnc \n");
+        return true;
+    }
+    return false;
+}
+
+// HYPOTHESIS: the item shot description (the Botron ball's item block, wnemSimple::unk2234 + 4): the model node of the
+// item's start and its offset from that node.
+struct wnemItemShootParam {
+    u8 unk0[0x14];
+    u32 m_nodeId;   // 0x14 of the block (0x18 of the ball's parameters)
+    Vec3f m_offset;
+};
+
+// Map name wnemSimple::ShootItem: creates the item at the node of the weapon's model (the first call only preloads its
+// archive), as the Enemy's emShootItem does.
+extern "C" bool fn_41_320F8(wnemSimple* wnem, int kind, int variation, s32* param) {
+    if (kind == -1) {
+        return false;
+    }
+    if (itManager::getInstance()->isCompItemKindArchive(static_cast<itKind>(kind), 0, true) == false) {
+        itManager::getInstance()->preloadItemKindArchive(static_cast<itKind>(kind), 0, itArchive::Temp, true);
+        return true;
+    }
+    itManager* items;
+    int ownerTaskId = wnem->m_moduleAccesser->getStageObject().m_taskId;
+    items = itManager::getInstance();
+    BaseItem* item = items->createItem(static_cast<itKind>(kind), variation, ownerTaskId);
+    if (item != NULL) {
+        wnemItemShootParam* shootParam = reinterpret_cast<wnemItemShootParam*>(reinterpret_cast<u8*>(param) + 4);
+        soModelModule& model = wnem->m_moduleAccesser->getModelModule();
+        Vec3f pos;
+        Vec3f offset;
+        offset.m_x = shootParam->m_offset.m_x;
+        offset.m_y = shootParam->m_offset.m_y;
+        offset.m_z = shootParam->m_offset.m_z;
+        pos = model.getNodeGlobalPosition(shootParam->m_nodeId, &offset, false, false);
+        item->warp(&pos);
+        item->updateNodeSRT();
+    } else {
+        wnemReport("wnemSimple::ShootItem : --- field!! -------------- \n");
+        return false;
+    }
+    wnemReport("wnemSimple::ShootItem : --- success!! -------------- \n");
+    return true;
+}
+
+void wnemSimple::SetLifeLimit(s32 frames) {
+    s32 now = static_cast<s32>(getFrameCounter(0));
+    m_lifeLimit = now + frames;
+    if (m_lifeLimit > 0) {
+        if (!unk21B9) {
+            unk21B9 = true;
+            m_frameCounters[0].start();
+        }
+        wnemReport("wnemSimple::SetLifeLimit now(%d), aim(%d) \n", getFrameCounter(0), m_lifeLimit);
+    }
+}
+
+// Checks the weapon's ground contacts, runs its proc function and ends it when its life or a wall touch says so.
+// HYPOTHESIS: the touch masks 1/8 (floor and ceiling), 0xA4 (right wall) and 0x52 (left wall) are the ground module's.
+void wnemSimple::updateStatusProcFunc() {
+    bool touched = false;
+    soGroundModuleImpl& ground = dynamic_cast<soGroundModuleImpl&>(m_moduleAccesser->getGroundModule());
+    if (ground.isTouch(1, 0) == true || ground.isTouch(8, 0) == true) {
+        touched = true;
+        wnemReport("wnemSimple::updateStatusProcFunc : check Up/Down Wall \n");
+    } else if (m_speed.m_x >= 0.025f) {
+        if (ground.isTouch(0xA4, 0) == true) {
+            wnemReport("wnemSimple::updateStatusProcFunc : check Right Wall \n");
+            touched = true;
+        }
+    } else if (m_speed.m_x <= -0.025f) {
+        if (ground.isTouch(0x52, 0) == true) {
+            wnemReport("wnemSimple::updateStatusProcFunc : check Left Wall \n");
+            touched = true;
+        }
+    }
+    if (touched) {
+        if (m_procFncTouchGround == NULL) {
+            if (unk21BB) {
+                wnemReport("wnemSimple::processFixPositionPreAnimCmd TouchGround > deactive \n");
+                m_speed.m_y = 0.0f;
+                m_speed.m_x = 0.0f;
+                deactivate(false);
+                return;
+            }
+        } else {
+            wnemReport("wnemSimple::processFixPositionPreAnimCmd TouchGround > change pProcFunc_GroundTouch \n");
+            changeProcFnc1(m_procFncTouchGround, 1);
+            if (m_weaponType == 1) {
+                wnemReport("wnemSimple::processFixPositionPreAnimCmd TouchGround > _delta.setZero() \n");
+                m_speed.m_y = 0.0f;
+                m_speed.m_x = 0.0f;
+            }
+        }
+    }
+    if (m_procFnc != NULL) {
+        reinterpret_cast<void (*)(wnemSimple*, soModuleAccesser*)>(m_procFnc)(this, m_moduleAccesser);
+        if (m_requestDeactive) {
+            wnemReport("wnemSimple::updateStatusProcFunc Request Deactive in ProcFunc \n");
+            deactivate(false);
+            return;
+        }
+    }
+    if (unk21B9) {
+        u32 now = getFrameCounter(0);
+        if (now >= static_cast<u32>(m_lifeLimit)) {
+            if (m_procFncLifeZero == NULL) {
+                wnemReport("wnemSimple::updateStatusProcFunc deactive LifeCnt \n");
+                deactivate(false);
+            } else {
+                wnemReport("wnemSimple::updateStatusProcFunc *** call changeProcFnc[ LifeZero ] *** now(%d), aim(%d) \n", now,
+                           m_lifeLimit);
+                changeProcFnc1(m_procFncLifeZero, 1);
+            }
+        }
+    }
+}
+
+// The weapon falls out of the stage: it is removed, and deactivated when it is still active.
+void wnemSimple::processHit() {
+    StageObject::processHit();
+    m_maxHitPower = 0.0f;
+    m_attackStopMax = 0.0f;
+    if (unk21BA[0]) {
+        if (!isConstraint(false)) {
+            Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
+            if (soGroundUtil::checkDeadArea(&pos, 0.0f, 0.0f) != -1) {
+                setNotifyArticleEventRemove(m_moduleAccesser);
+                if (isActive() == 1) {
+                    wnemReport("wnemSimple::processHit : Dead OutScreen -- call deactivate \n");
+                    deactivate(false);
+                }
+            }
+        }
+    }
+}
+
+// A part weapon (type 2) remembers the strongest hit of the frame and the hit stop it asked for.
+void wnemSimple::notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
+    if (collisionLog != NULL) {
+        gfTask* task = gfTaskScheduler::getInstance()->getTaskById(static_cast<gfTask::Category>(collisionLog->m_taskCategory),
+                                                                  collisionLog->m_taskId);
+        switch (m_weaponType) {
+        case 0:
+        case 1:
+            break;
+        case 2:
+            if (power > m_maxHitPower) {
+                m_maxHitPower = power;
+            }
+            if (m_attackStopMax < power) {
+                wnemReport(" wnemSimple::notifyEventCollisionAttack(TypeParts) : getCollisionAttackModule().getData( (int)pLog->_noSelf, false )->_noStop = %d \n",
+                           m_moduleAccesser->getCollisionAttackModule().getData(collisionLog->m_damageIndex, false)->m_noHitStop);
+                if (m_moduleAccesser->getCollisionAttackModule().getData(collisionLog->m_damageIndex, false)->m_noHitStop == 0) {
+                    wnemReport(" wnemSimple::notifyEventCollisionAttack(TypeParts) : set _attackStopMax (%d) \n", m_attackStopMax);
+                    m_attackStopMax = power;
+                }
+            }
+            break;
+        }
+    }
+}
+
+void wnemSimple::OnDead() {
+    wnemReport("wnemSimple::notifyEventOnDamage OnDead \n");
+    m_moduleAccesser->getCollisionAttackModule().clearAll();
+    m_moduleAccesser->getCollisionHitModule().setXluGlobal(0);
+    if (unk21D4 <= lbl_41_rodata_E54) {
+        unk21D4 = 0.0f;
+    }
+    if (m_procFncHpZero == NULL) {
+        m_requestDeactive = true;
+    } else {
+        wnemReport("wnemSimple::OnDead changeProcFnc( _pProcFunc_HpZero ) \n");
+        changeProcFnc1(m_procFncHpZero, 1);
+    }
+}
+
+// Requests the common effect of the id: group 6 of the animation commands runs the effect table.
+// HYPOTHESIS: the id names a common effect entry (the string says "reqCommonEffect : id").
+void wnemSimple::reqCommonEffect(s32 id) {
+    wnemReport("wnemSimple::reqCommonEffect : id = %d \n", id);
+    m_moduleAccesser->getAnimCmdModule().resetInterpreter2(6, m_moduleAccesser, id, 0.0f);
+    m_moduleAccesser->getAnimCmdModule().interpretCmd1(6, m_moduleAccesser, 0.0f);
+}
+
+void wnemSimple::initialize() {
+    Weapon::initialize();
+}
+
+soKind wnemSimple::soGetKind() {
+    return StageObject_Weapon;
+}
+
+bool wnemSimple::notifyEventCollisionSearchCheck() {
+    return false;
+}
+
+void wnemSimple::notifyEventCollisionHit(float power, soCollisionAttackData* attackData, u32 index, int p4,
+                                         soModuleAccesser* moduleAccesser, soCollisionLog* collisionLog) {
+    u32 targetTaskId = collisionLog->m_taskId;
+    if (targetTaskId != 0xFFFFFFFF) {
+        if (itManager::getInstance()->isSmashPlate(targetTaskId) == 1) {
+            unk2217 = true;
+        }
+    }
+    Weapon::notifyEventCollisionHit(power, attackData, index, p4, moduleAccesser, collisionLog);
+}
+
+void wnemSimple::notifyEventCollisionHit2nd(soCollisionAttackModule* attackModule, soCollisionLog* collisionLog, u32 groupIndex,
+                                            float posX, float collisionLr, soModuleAccesser* moduleAccesser, bool flag) {
+    Weapon::notifyEventCollisionHit2nd(attackModule, collisionLog, groupIndex, posX, collisionLr, moduleAccesser, flag);
+    if (!flag && g_stTriggerMng != NULL) {
+        const int& taskId = m_taskId;
+        fn_27_23313C(m_moduleAccesser->getWorkManageModule().getInt(0x10000005), collisionLog->m_taskId, taskId, 0x28);
+    }
+}
+
+bool wnemSimple::notifyEventAnimCmd(acAnimCmd* animCmd, soModuleAccesser* moduleAccesser, s32 unk3) {
+    if (Weapon::notifyEventAnimCmd(animCmd, moduleAccesser, unk3)) {
+        return true;
+    }
+    if (!isObserv(animCmd->getGroup())) {
+        return false;
+    }
+    if (animCmd->getType() <= -1 || animCmd->getType() >= 0xb) {
+        return false;
+    }
+    return true;
+}
+
+// Moves the weapon by its speed (the speed grows by the acceleration) and, for a weapon that turns to its flight
+// direction, rotates it around z by the angle of the speed (flipped around y while it flies to the left).
+void wnemSimple::updatePosture(bool isUpdate) {
+    if (isUpdate) {
+        Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
+        pos.m_x += m_speed.m_x;
+        pos.m_y += m_speed.m_y;
+        m_speed.m_x += m_accel.m_x;
+        m_speed.m_y += m_accel.m_y;
+        m_moduleAccesser->getPostureModule().setPos(&pos);
+        // TODO: the flag at 0x21B7 lies inside the 0x34-byte emShot work block of the header (unk2C[7]); the block is
+        // really 0x30 bytes (wnemSimple's constructor writes the flags 0x21B4-0x21B7 itself).
+        if (unk21B7) {
+            Vec3f rot(0.0f, 0.0f, 0.0f);
+            bool isLeft = false;
+            float speedX = m_speed.m_x;
+            if (speedX < 0.0f) {
+                isLeft = true;
+            }
+            rot.m_z = static_cast<float>(atan2(m_speed.m_y, speedX)) * 57.29578f;
+            if (m_moduleAccesser->getPostureModule().getRotYLr() <= -90.0f) {
+                rot.m_y = 180.0f;
+            }
+            if (isLeft == true) {
+                rot.m_z += 180.0f;
+                rot.m_y -= 180.0f;
+            }
+            m_moduleAccesser->getPostureModule().setRot(&rot, 0);
+        }
+    }
+}
+
 // Sets the invincibility of the weapon's hit module: the weapon is hittable only when it asked for hit status (the
 // byte at 0x21B8) and its description keeps it.
 void wnemSimple::setupCollisionHitStatus() {
@@ -880,14 +1286,6 @@ void wnemSimple::setupCollisionHitStatus() {
     } else {
         hitModule.setXluGlobal(0);
     }
-}
-
-// Requests the common effect of the id: group 6 of the animation commands runs the effect table.
-// HYPOTHESIS: the id names a common effect entry (the string says "reqCommonEffect : id").
-void wnemSimple::reqCommonEffect(s32 id) {
-    wnemReport("wnemSimple::reqCommonEffect : id = %d \n", id);
-    m_moduleAccesser->getAnimCmdModule().resetInterpreter2(6, m_moduleAccesser, id, 0.0f);
-    m_moduleAccesser->getAnimCmdModule().interpretCmd1(6, m_moduleAccesser, 0.0f);
 }
 
 // Runs the animation commands of the weapon (the sub groups 0x1d while it moves, 0x10 while it is stopped), keeps the
@@ -918,50 +1316,6 @@ void wnemSimple::processFixPositionPreAnimCmd() {
     }
 }
 
-// The weapon is switched off: the holder that started it lets go, the weapon leaves the manager's lists and goes back to
-// the pool, and the proc function and effects are cleared.
-void wnemSimple::onDeactivate() {
-    // TODO: the flag at 0x21B4 lies inside the 0x34-byte emShot work block of the header (unk2C[4]); see updatePosture.
-    if (m_shotWork.unk2C[4]) {
-        wnemReport("---- wnemSimple::onDeactivate : onEnter ----- \n");
-        fn_41_31708(this);
-        if (m_holder != NULL) {
-            wnemReport("---- wnemSimple::onDeactivate : _pHolderArticle ----- \n");
-            if (m_holder->isNull() == false) {
-                m_holder->deactivateArticle();
-            }
-            m_holder = NULL;
-        } else if (m_isManaged) {
-            wnemReport("---- wnemSimple::onDeactivate : UnregisterManageWeapon ----------- \n");
-            emWeaponManager::getInstance()->UnregisterManageWeapon(getTaskId());
-        }
-        if (m_isFromPool) {
-            wnemReport("---- wnemSimple::onDeactivate : UnregisterManageWeaponPool ----------- \n");
-            emWeaponManager::getInstance()->releaseObject(this);
-            m_isFromPool = false;
-        }
-        m_procFnc = NULL;
-        m_weaponKind = -1;
-        m_moduleAccesser->getEffectModule().removeAll(0);
-    }
-}
-
-// HYPOTHESIS: the two generation sheets of no stage, then the article kind (category 2, kind 0). The 0x18 bytes between
-// them are not constructed.
-struct soKindInfo {
-    s32 m_category;
-    s32 m_kind;
-#pragma push
-#pragma dont_inline on
-    soKindInfo(s32 category, s32 kind) : m_category(category), m_kind(kind) { }
-#pragma pop
-};
-
-static itGenSheetKind s_genSheetKindLevel0(Stages::srStageKind(0xff), 0);
-static itGenSheetKind s_genSheetKindLevel1(Stages::srStageKind(0xff), 1);
-static u8 s_genSheetKindPad[0x18];
-static soKindInfo s_kindInfo(2, 0);
-
 // A search hit by a reflecting reflector (kind 3) turns the weapon to its team; a weapon that did not reflect flags itself.
 void wnemSimple::notifyEventCollisionSearch(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
     if (collisionLog != NULL) {
@@ -980,7 +1334,7 @@ void wnemSimple::notifyEventCollisionSearch(soCollisionLog* collisionLog, soModu
 // node update to the stage object.
 void wnemSimple::updateNodeSRT() {
     // TODO: the flag at 0x21B5 lies inside the emShot work block of the header (unk2C[5]); see updatePosture.
-    if (m_shotWork.unk2C[5]) {
+    if (unk21B5) {
         StageObject::updateNodeSRT();
     } else {
         soModuleAccesser* moduleAccesser = m_moduleAccesser;
@@ -992,33 +1346,5 @@ void wnemSimple::updateNodeSRT() {
         position = moduleAccesser->getPostureModule().getPos();
         rotation = moduleAccesser->getPostureModule().getRot(0);
         moduleAccesser->getModelModule().setNodeSRT(0, &scale, &rotation, &position);
-    }
-}
-
-
-
-// A part weapon (type 2) remembers the strongest hit of the frame and the hit stop it asked for.
-void wnemSimple::notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
-    if (collisionLog != NULL) {
-        gfTask* task = gfTaskScheduler::getInstance()->getTaskById(static_cast<gfTask::Category>(collisionLog->m_taskCategory),
-                                                                  collisionLog->m_taskId);
-        switch (m_weaponType) {
-        case 0:
-        case 1:
-            break;
-        case 2:
-            if (power > m_maxHitPower) {
-                m_maxHitPower = power;
-            }
-            if (m_attackStopMax < power) {
-                wnemReport(" wnemSimple::notifyEventCollisionAttack(TypeParts) : getCollisionAttackModule().getData( (int)pLog->_noSelf, false )->_noStop = %d \n",
-                           m_moduleAccesser->getCollisionAttackModule().getData(collisionLog->m_damageIndex, false)->m_noHitStop);
-                if (m_moduleAccesser->getCollisionAttackModule().getData(collisionLog->m_damageIndex, false)->m_noHitStop == 0) {
-                    wnemReport(" wnemSimple::notifyEventCollisionAttack(TypeParts) : set _attackStopMax (%d) \n", m_attackStopMax);
-                    m_attackStopMax = power;
-                }
-            }
-            break;
-        }
     }
 }

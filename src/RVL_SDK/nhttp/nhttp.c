@@ -239,7 +239,7 @@ typedef struct NHTTPConnNode {
 
 void* NHTTPi_GetSystemInfoP(void);
 void NHTTPi_CleanupAsync(void* sys, void* callback);
-void* NHTTPi_CommThreadProcMain(void* arg);
+void NHTTPi_CommThreadProcMain(void* arg);
 int addHdrList(void* list, void* bgn, const char* name, const char* value);
 struct NHTTPLink* NHTTPi_getHdrFromList(struct NHTTPLink** list);
 
@@ -256,11 +256,11 @@ int NCDGetCurrentIpConfig(void*);
 extern const char* lbl_8059FCB8;
 
 int fn_803900FC(void*, void*, void*, int);
-int fn_80390954(void*, int, void*);
+int fn_80390954(NHTTPCommThread*, int, void*);
 void fn_80390A64(void*, int);
 int fn_80391144(void*, unsigned int);
 int fn_80391160(void*, void*, void*, unsigned int, int);
-int fn_80391180(void*, void*, void*, unsigned int, int);
+int fn_80391180(void*, void*, void*, unsigned int, int, int);
 int fn_80391888(void*, void*);
 int fn_80391960(void*, void*);
 int fn_80391AE4(void*);
@@ -274,7 +274,7 @@ int SSLWrite(int, void*, unsigned int);
 int SSLShutdown(int);
 int NHTTP_AddPostDataAscii(void*, void*, const char*, const char*);
 void fn_80391784(void*, int);
-void NHTTPi_TemplateConnectionCallback();
+int NHTTPi_TemplateConnectionCallback();
 int NHTTPCreateConnection();
 int fn_803974A4(void*, void*);
 
@@ -647,7 +647,7 @@ int fn_80391160(void* a, void* req, void* c, unsigned int offset, int extra) {
 }
 
 // NHTTPi_RecvBufN
-int fn_80391180(void* a, void* req, void* c, unsigned int offset, int len) {
+int fn_80391180(void* a, void* req, void* c, unsigned int offset, int len, int flags) {
     u8* inner = *(u8**)((u8*)req + 0x2c);
     unsigned int cap = *(volatile unsigned int*)(inner + 0x1c);
     unsigned int pos;
@@ -663,7 +663,7 @@ int fn_80391180(void* a, void* req, void* c, unsigned int offset, int len) {
     if (len > remain) {
         len = remain;
     }
-    return NHTTPi_SocRecv(a, req, c, at, len);
+    return NHTTPi_SocRecv(a, req, c, at, len, flags);
 }
 
 // NHTTPi_SocOpen
@@ -682,7 +682,7 @@ int fn_80391ED0(void* req) {
 }
 
 // NHTTPi_SocClose
-void fn_80391F5C(void* mutex, u8* req, int sock) {
+int fn_80391F5C(void* mutex, u8* req, int sock) {
     int ssl;
     NHTTPi_lockReqList((OSMutex*)mutex);
     ssl = *(s32*)(req + 0xac);
@@ -691,7 +691,7 @@ void fn_80391F5C(void* mutex, u8* req, int sock) {
         *(s32*)(req + 0xac) = -1;
     }
     NHTTPi_unlockReqList((OSMutex*)mutex);
-    SOClose(sock);
+    return SOClose(sock);
 }
 
 // NHTTPi_SocSend
@@ -795,18 +795,14 @@ int fn_80392810(const char* s) {
 int fn_80392880(const char* s, int len) {
     s8 c = (s8)*s++;
     int n = 0;
-    if (len <= 0) {
-        return n;
-    }
-    do {
+    for (; len > 0; len--) {
         if ((c >= 0x30 && c <= 0x39) || (c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a) || c == 0x20) {
             n += 1;
         } else {
             n += 3;
         }
         c = (s8)*s++;
-        len -= 1;
-    } while (len != 0);
+    }
     return n;
 }
 
@@ -862,16 +858,13 @@ int fn_80392E18(const char* hay, int hayLen, const char* needle, int needleLen) 
 }
 
 // NHTTPi_createCommThread
-int fn_80390954(void* info, int priority, void* stack) {
-    void* stackTop = stack;
-    int prio = priority;
-    void* thread = info;
+int fn_80390954(NHTTPCommThread* thread, int priority, void* stack) {
     if (NHTTPi_IsCreateCommThreadMessageQueue((NHTTPThreadInfo*)thread) == 0) {
         OSInitMessageQueue((OSMessageQueue*)thread, (OSMessage*)((u8*)thread + 0x20), 3);
         NHTTPi_IsCreateCommThreadMessageQueueOn((NHTTPThreadInfo*)thread);
     }
-    OSCreateThread((OSThread*)((u8*)thread + 0x30), NHTTPi_CommThreadProc, 0, (u8*)stackTop + 0x2000, 0x2000, prio, 0);
-    OSResumeThread((OSThread*)((u8*)thread + 0x30));
+    OSCreateThread(&thread->thread, NHTTPi_CommThreadProc, 0, (u8*)stack + 0x2000, 0x2000, priority, 0);
+    OSResumeThread(&thread->thread);
     return 1;
 }
 
@@ -1004,13 +997,11 @@ void NHTTPi_CleanupAsync(void* sys, void* callback) {
 
 int addHdrList(void* list, void* bgn, const char* name, const char* value) {
     NHTTPHdrNode** headp = (NHTTPHdrNode**)list;
-    NHTTPHdrNode* node = *headp;
     int found = 0;
+    NHTTPHdrNode* node = *headp;
     NHTTPHdrNode* neu;
     if (node != 0) {
-        if (fn_80392CD4(name, node->name) == 0) {
-            found = 1;
-        } else {
+        if (fn_80392CD4(name, node->name) != 0) {
             node = node->prev;
             while (node != *headp) {
                 if (fn_80392CD4(name, node->name) == 0) {
@@ -1019,31 +1010,33 @@ int addHdrList(void* list, void* bgn, const char* name, const char* value) {
                 }
                 node = node->prev;
             }
+        } else {
+            found = 1;
         }
     }
     if (found != 0) {
         node->value = value;
-        return 1;
-    }
-    neu = (NHTTPHdrNode*)NHTTPi_alloc(0x18, 4);
-    if (neu == 0) {
-        printf("failed to allocate memory\n");
-        NHTTPi_SetError((NHTTPBgnEndInfo*)bgn, 1);
-        return 0;
-    }
-    neu->name = name;
-    neu->value = value;
-    neu->extra = 0;
-    neu->extra2 = 0;
-    if (*headp != 0) {
-        neu->next = (*headp)->next;
-        neu->prev = *headp;
-        (*headp)->next->prev = neu;
-        (*headp)->next = neu;
     } else {
-        neu->prev = neu;
-        neu->next = neu;
-        *headp = neu;
+        neu = (NHTTPHdrNode*)NHTTPi_alloc(0x18, 4);
+        if (neu == 0) {
+            printf("failed to allocate memory\n");
+            NHTTPi_SetError((NHTTPBgnEndInfo*)bgn, 1);
+            return 0;
+        }
+        neu->name = name;
+        neu->value = value;
+        neu->extra = 0;
+        neu->extra2 = 0;
+        if (*headp != 0) {
+            neu->next = (*headp)->next;
+            neu->prev = *headp;
+            (*headp)->next->prev = neu;
+            (*headp)->next = neu;
+        } else {
+            neu->prev = neu;
+            neu->next = neu;
+            *headp = neu;
+        }
     }
     return 1;
 }
@@ -1080,15 +1073,17 @@ int fn_803906BC(void* list, void* data) {
 }
 
 int NHTTPi_freeReqQueue(NHTTPLink** list, int arg, void* data) {
-    NHTTPLink* head = *list;
-    NHTTPLink* found = 0;
+    NHTTPLink* n;
+    NHTTPLink* head;
     int ret = 0;
+    NHTTPLink* found = 0;
     s32 id = (s32)data;
+    head = *list;
     if (head != 0) {
         if ((s32)head->data == id) {
             found = head;
         } else {
-            NHTTPLink* n = head->prev;
+            n = head->prev;
             while (n != head) {
                 if ((s32)n->data == id) {
                     found = n;
@@ -1100,19 +1095,17 @@ int NHTTPi_freeReqQueue(NHTTPLink** list, int arg, void* data) {
     }
     if (found != 0) {
         void* conn;
-        void* req;
-        if (head == head->next) {
-            *list = 0;
-        } else {
+        if (head != head->next) {
             found->next->prev = found->prev;
             found->prev->next = found->next;
             if (*list == found) {
                 *list = found->prev;
             }
+        } else {
+            *list = 0;
         }
-        req = *(void**)((u8*)found + 0xc);
-        conn = NHTTPi_Request2Connection(arg, (int)req);
-        fn_80391888((void*)arg, req);
+        conn = NHTTPi_Request2Connection(arg, *(int*)((u8*)found + 0xc));
+        fn_80391888((void*)arg, *(void**)((u8*)found + 0xc));
         NHTTPi_free(found);
         if (conn != 0) {
             *(s32*)((u8*)conn + 4) = 8;
@@ -1160,32 +1153,25 @@ int fn_8039602C(int id) {
 int NHTTPGetBodyBuffer(void* conn, void* out, int* local) {
     void* mutex = NHTTPi_GetMutexInfoP(NHTTPi_GetSystemInfoP());
     void* found = NHTTPi_GetConnection((int)mutex, (int)conn);
-    u8* resp;
-    if (found == 0) {
-        return -1;
-    }
-    resp = (u8*)NHTTPi_Connection2Response((int)mutex, (int)found);
-    if (resp == 0) {
-        return -1;
-    }
-    *(void**)out = *(void**)(resp + 0x28);
-    *local = *(s32*)(resp + 0x1c);
-    return *(s32*)(resp + 4);
+    if (found != 0) {
+        u8* resp = (u8*)NHTTPi_Connection2Response((int)mutex, (int)found);
+        if (resp != 0) {
+            *(void**)out = *(void**)(resp + 0x28);
+            *local = *(s32*)(resp + 0x1c);
+            return *(s32*)(resp + 4);
+        } else return -1;
+    } else return -1;
 }
 
 // NHTTPGetUserParam
 void* fn_80396188(int id) {
     void* mutex = NHTTPi_GetMutexInfoP(NHTTPi_GetSystemInfoP());
     void* conn = NHTTPi_GetConnection((int)mutex, id);
-    u8* resp;
-    if (conn == 0) {
-        return 0;
-    }
-    resp = (u8*)NHTTPi_Connection2Response((int)mutex, (int)conn);
-    if (resp == 0) {
-        return 0;
-    }
-    return *(void**)(resp + 0x438);
+    if (conn != 0) {
+        u8* resp = (u8*)NHTTPi_Connection2Response((int)mutex, (int)conn);
+        if (resp != 0) return *(void**)(resp + 0x438);
+        else return 0;
+    } else return 0;
 }
 
 int NHTTPStartup(NHTTPAlloc alloc, NHTTPFree free, u32 priority) {
@@ -1194,7 +1180,7 @@ int NHTTPStartup(NHTTPAlloc alloc, NHTTPFree free, u32 priority) {
         OSRegisterVersion(lbl_8059FCB8);
         *(s32*)lbl_805A1148 = 1;
     }
-    return fn_803900FC(sys, (void*)alloc, (void*)free, (int)priority) ? 0 : -1;
+    return -!fn_803900FC(sys, (void*)alloc, (void*)free, (int)priority);
 }
 
 // NHTTPCreateRequestEx
@@ -1317,7 +1303,7 @@ int fn_80396D78(int id) {
 // NHTTPi_WaitForCompletion. The condvar lives in the unit's .bss block.
 void fn_80396DE8(u8* obj) {
     u8* base = lbl_805365E0;
-    if (*(s32*)base == 0) {
+    if (*(s32*)lbl_805365E0 == 0) {
         OSInitMutex((OSMutex*)(base + 4));
         OSInitCond((OSCond*)(base + 0x1c));
         *(s32*)base = 1;
@@ -1332,7 +1318,7 @@ void fn_80396DE8(u8* obj) {
 // NHTTPi_NotifyCompletion
 void fn_80396E70(u8* obj) {
     u8* base = lbl_805365E0;
-    if (*(s32*)base == 0) {
+    if (*(s32*)lbl_805365E0 == 0) {
         OSInitMutex((OSMutex*)(base + 4));
         OSInitCond((OSCond*)(base + 0x1c));
         *(s32*)base = 1;
@@ -1355,10 +1341,10 @@ int fn_803974A4(void* sys, void* conn) {
 }
 
 int NHTTP_CancelRequestAsync(void* sys, int id) {
+    int ret = 0;
     void* reqInfo = NHTTPi_GetReqInfoP(sys);
     void* mutex = NHTTPi_GetMutexInfoP(sys);
     u8* head = *(u8**)reqInfo;
-    int ret = 0;
     NHTTPi_lockReqList((OSMutex*)mutex);
     if (head != 0 && *(s32*)(head + 8) == id && *(s32*)(*(u8* volatile*)(head + 0xc)) == 0) {
         *(s32*)(*(u8* volatile*)(head + 0xc)) = 1;
@@ -1397,8 +1383,9 @@ int NHTTP_GetProgress(void* sys, int received, int total) {
     NHTTPi_lockReqList((OSMutex*)mutex);
     if (head != 0) {
         if (*(s32*)(*(u8* volatile*)(*(u8* volatile*)(head + 0xc) + 0x2c) + 0xc) != 0) {
-            s32 len = *(s32*)(*(u8* volatile*)(*(u8* volatile*)(head + 0xc) + 0x2c) + 0xc);
+            s32 len;
             *outR = *(s32*)(*(u8* volatile*)(*(u8* volatile*)(head + 0xc) + 0x2c) + 4);
+            len = *(s32*)(*(u8* volatile*)(*(u8* volatile*)(head + 0xc) + 0x2c) + 0xc);
             if ((unsigned)(len + 0x10000) == 0xFFFFu) {
                 len = 0;
             } else {
@@ -1570,7 +1557,7 @@ int fn_80391FC8(void* a, void* b, s32* c, int sock, int addr, int port) {
     return 0;
 }
 
-int NHTTPi_BufferFullCallback(int, void*);
+void NHTTPi_BufferFullCallback(int, void*);
 
 // NHTTPi_BufFull
 int fn_803935E4(int a, u32* b) {
@@ -2218,3 +2205,868 @@ int NHTTPi_SocSSLConnect(void* sysv, void* av, void* connv, int sock) {
     return 0;
 }
 #undef CF
+
+// HYPOTHESIS: request fields used by the connection thread, verified by its
+// host lookup, connection and proxy steps; intervening fields remain unknown.
+typedef struct NHTTPThreadRequest {
+    s32 cancelled;
+    s32 state;
+    s32 ssl;
+    s32 proxy;
+    s32 rawPost;
+    s32 hostLength;
+    u8 unk18[8];
+    s32 port;
+    char* url;
+    char* host;
+    struct NHTTPThreadResponse* response;
+    NHTTPHdrNode* headers;
+    NHTTPHdrNode* postData;
+    char boundary[0x15];
+    u8 unk4d[0x5f];
+    s32 sslHandle;
+    u8 unkB0[0x30];
+    char proxyHost[0x100];
+    s32 proxyPort;
+    char proxyAuth[0x5c];
+    s32 proxyAuthLength;
+    s32 socketOption;
+    void* rawData;
+    s32 rawLength;
+    int (*postCallback)(void*, void*, void*, int, void*);
+} NHTTPThreadRequest;
+
+// HYPOTHESIS: active queue entry layout also follows NHTTPi_setReqQueue.
+typedef struct NHTTPActiveRequest {
+    struct NHTTPActiveRequest* next;
+    struct NHTTPActiveRequest* prev;
+    s32 requestId;
+    NHTTPThreadRequest* request;
+    s32 socket;
+} NHTTPActiveRequest;
+
+// HYPOTHESIS: connection-thread state and cached endpoint fields.
+typedef struct NHTTPThreadState {
+    s32 unk0;
+    char host[0x100];
+    u8 unk104[0x200];
+    char statusLine[0xe];
+    u8 unk312[2];
+    u32 address;
+    u32 previousAddress;
+    s32 port;
+    s32 previousPort;
+    s32 sent;
+    s32 received;
+    s32 contentLength;
+    s32 error;
+    s32 unk334;
+    s32 reuseConnection;
+    s32 chunked;
+} NHTTPThreadState;
+
+// HYPOTHESIS: response completion and body ownership fields used at request end.
+typedef struct NHTTPThreadResponse {
+    s32 headerLength;
+    s32 received;
+    u8 unk8[4];
+    s32 contentLength;
+    s32 completed;
+    s32 headerParsed;
+    s32 statusCode;
+    s32 capacity;
+    u8 unk20[8];
+    void* body;
+    void* (*bufferCallback)(void**, s32*, int, void* (*)(u32, s32), void (*)(void*), void*);
+    void* cleanupCallback;
+    NHTTPHdrBlock* blocks;
+    u8 inlineHeader[0x400];
+} NHTTPThreadResponse;
+
+// HYPOTHESIS: the public connection exposes status followed by error.
+typedef struct NHTTPConnectionStatus {
+    s32 status;
+    s32 error;
+    s32 sslError;
+    s32 running;
+    NHTTPThreadRequest* request;
+    NHTTPThreadResponse* response;
+    s32 requestId;
+    void* callback;
+    struct NHTTPConnectionStatus* next;
+    void* postData;
+    s32 postLength;
+    s32 virtualLength;
+    void (*completeCallback)(int, void*, void*);
+} NHTTPConnectionStatus;
+
+// HYPOTHESIS: network configuration stores enable flags, host, port and login.
+typedef struct NHTTPProxyConfig {
+    u8 enabled;
+    u8 authenticated;
+    u8 unk2[2];
+    char host[0x100];
+    u16 port;
+    char user[0x21];
+    char password[0x21];
+} NHTTPProxyConfig;
+
+extern char lbl_80491778[];
+int fn_80396A74(void*, const char*, int, const char*, const char*);
+
+// NHTTPSetProxyDefault
+int fn_80396BE4(int id) {
+    const char* base = lbl_80491778;
+    void* sys = NHTTPi_GetSystemInfoP();
+    NHTTPThreadRequest* req = (NHTTPThreadRequest*)NHTTPi_GetRequest((int)NHTTPi_GetMutexInfoP(sys), id);
+    u8* bgn = NHTTPi_GetBgnEndInfoP(sys);
+    NHTTPProxyConfig* proxy;
+    const char* user;
+    const char* password;
+    int result;
+    if (req->ssl != 0) {
+        proxy = (NHTTPProxyConfig*)(bgn + 0x170);
+    } else {
+        proxy = (NHTTPProxyConfig*)(bgn + 0x28);
+    }
+    if (proxy->enabled == 1) {
+        user = 0;
+        password = 0;
+        if (proxy->authenticated == 1) {
+            user = proxy->user;
+            password = proxy->password;
+        }
+        OSReport(base + 0x21c, proxy->host, proxy->port,
+                 user ? user : base + 0x210,
+                 password ? password : base + 0x210);
+        result = fn_80396A74(req, proxy->host, proxy->port, user, password);
+        if (result < 0) {
+            OSReport(base + 0x240, result);
+            OSPanic(base + 0x25c, 0x37d, base + 0x268);
+        } else {
+            return 0;
+        }
+    } else {
+        printf(base + 0x278);
+    }
+    return -1;
+}
+
+// NHTTPi_ThreadHostAddrProc
+int fn_8039471C(NHTTPThreadState* thread) {
+    NHTTPThreadRequest* req = (*(NHTTPActiveRequest**)NHTTPi_GetReqInfoP(NHTTPi_GetSystemInfoP()))->request;
+    char* host = req->host;
+    if (req->proxy != 0) {
+        host = req->proxyHost;
+    }
+    if (NHTTPi_strlen(host) == 0 || NHTTPi_strcmp(host, thread->host) != 0) {
+        thread->address = fn_803926B8(req, host);
+        if (thread->address == 0) {
+            if (req->proxy != 0) {
+                thread->error = 12;
+                return 0;
+            }
+            thread->error = 4;
+            return 0;
+        }
+    } else {
+        thread->address = thread->previousAddress;
+    }
+    NHTTPi_memclr(thread->host, 0x100);
+    NHTTPi_memcpy(thread->host, host, NHTTPi_strlen(host));
+    thread->port = req->port;
+    if (req->proxy != 0) {
+        thread->port = req->proxyPort;
+    }
+    if (thread->address != thread->previousAddress || thread->port != thread->previousPort || req->ssl == 1) {
+        thread->reuseConnection = 0;
+    }
+    thread->previousAddress = thread->address;
+    thread->previousPort = thread->port;
+    return 1;
+}
+
+int fn_8039375C(NHTTPThreadState*);
+int fn_80393A04(NHTTPThreadState*);
+
+// NHTTPi_ThreadProxyProc
+int fn_803949F0(NHTTPThreadState* thread) {
+    void* sys = NHTTPi_GetSystemInfoP();
+    NHTTPBgnEndInfo* bgn = NHTTPi_GetBgnEndInfoP(sys);
+    NHTTPActiveRequest** active = NHTTPi_GetReqInfoP(sys);
+    void* mutex = NHTTPi_GetMutexInfoP(sys);
+    NHTTPThreadRequest* req = (*active)->request;
+    int result;
+    thread->error = 10;
+    thread->sent = 0;
+    if (req->ssl != 0 && req->proxy != 0) {
+        result = fn_8039375C(thread);
+        if (result != 0) {
+            return result;
+        }
+        if (fn_80393A04(thread) == 0) {
+            return 1;
+        }
+        result = NHTTPi_SocSSLConnect(bgn, mutex, req, bgn->unk_7d0);
+        if (result != 0) {
+            if (result == -0x3ec) {
+                if (NHTTPi_GetSSLError(bgn) != 0) {
+                    thread->error = 16;
+                }
+                return 1;
+            }
+            if (result == -0x3ed) {
+                if (NHTTPi_GetSSLError(bgn) != 0) {
+                    thread->error = 17;
+                }
+                return 1;
+            }
+            if (NHTTPi_GetSSLError(bgn) != 0) {
+                thread->error = 14;
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int fn_80392EC4(char*, const char*);
+
+// NHTTPSetProxy
+int fn_80396A74(void* id, const char* host, int port, const char* user, const char* password) {
+    const char* base = lbl_80491778;
+    NHTTPThreadRequest* req;
+    int hostLength;
+    int userLength;
+    int passwordLength;
+    char credentials[0x41];
+    req = NHTTPi_GetRequest((int)NHTTPi_GetMutexInfoP(NHTTPi_GetSystemInfoP()), (int)id);
+    if (req == 0 || host == 0) {
+        return -1;
+    }
+    hostLength = NHTTPi_strlen(host);
+    if (hostLength > 0x100) {
+        printf(base + 0x1a0);
+        return -1;
+    }
+    NHTTPi_memcpy(req->proxyHost, host, hostLength);
+    req->proxyPort = port;
+    if (user != 0 && password != 0) {
+        userLength = NHTTPi_strlen(user);
+        passwordLength = NHTTPi_strlen(password);
+        if (userLength > 0x20) {
+            printf(base + 0x1c8);
+            return -1;
+        }
+        if (passwordLength > 0x20) {
+            printf(base + 0x1ec);
+            return -1;
+        }
+        NHTTPi_memclr(credentials, 0x41);
+        NHTTPi_memcpy(credentials, user, userLength);
+        NHTTPi_memcpy(credentials + userLength, ":", 1);
+        NHTTPi_memcpy(credentials + (userLength + 1), password, passwordLength);
+        req->proxyAuthLength = fn_80392EC4(req->proxyAuth, credentials);
+    }
+    req->proxy = 1;
+    return 0;
+}
+
+// NHTTPi_ThreadReqEnd
+void fn_803944E4(NHTTPThreadState* thread) {
+    void* sys = NHTTPi_GetSystemInfoP();
+    NHTTPBgnEndInfo* bgn = NHTTPi_GetBgnEndInfoP(sys);
+    NHTTPActiveRequest** active = NHTTPi_GetReqInfoP(sys);
+    OSMutex* mutex = NHTTPi_GetMutexInfoP(sys);
+    NHTTPThreadRequest* req = (*active)->request;
+    NHTTPThreadResponse* response = req->response;
+    NHTTPConnectionStatus* conn = NHTTPi_Request2Connection((int)mutex, (int)req);
+    if (req->cancelled != 0) {
+        thread->error = 8;
+        thread->reuseConnection = 0;
+    }
+    if (thread->reuseConnection == 0 && bgn->unk_7d0 >= 0) {
+        if (fn_80391F5C(mutex, (u8*)req, bgn->unk_7d0) < 0) {
+            thread->error = 10;
+        }
+        bgn->unk_7d0 = -1;
+    }
+    if (thread->error == 0) {
+        response->completed = 1;
+    } else {
+        response->completed = 0;
+        NHTTPi_SetError(bgn, thread->error);
+        if (response->body == thread->unk104) {
+            response->body = 0;
+            response->capacity = 0;
+        }
+    }
+    if (conn != 0) {
+        conn->error = thread->error;
+    }
+    NHTTPi_lockReqList(mutex);
+    NHTTPi_free(*active);
+    *active = 0;
+    NHTTPi_unlockReqList(mutex);
+    fn_80391888(mutex, req);
+    if (conn != 0 && response->completed != 0) {
+        conn->status = 5;
+    }
+    fn_803974A4(mutex, conn);
+    if (conn != 0) {
+        fn_80396E70((u8*)conn);
+    }
+}
+
+// NHTTPi_ThreadConnectProc
+int fn_80394870(NHTTPThreadState* thread) {
+    void* sys = NHTTPi_GetSystemInfoP();
+    NHTTPBgnEndInfo* bgn = NHTTPi_GetBgnEndInfoP(sys);
+    NHTTPActiveRequest** active = NHTTPi_GetReqInfoP(sys);
+    NHTTPThreadRequest* req = (*active)->request;
+    OSMutex* mutex = NHTTPi_GetMutexInfoP(sys);
+    if (thread->reuseConnection == 0) {
+        if (bgn->unk_7d0 >= 0) {
+            if (fn_80391F5C(mutex, (u8*)req, bgn->unk_7d0) < 0) {
+                bgn->unk_7d0 = -1;
+                thread->error = 10;
+                return 0;
+            }
+        }
+        bgn->unk_7d0 = fn_80391ED0(req);
+        if (bgn->unk_7d0 < 0) {
+            thread->error = 3;
+            return 0;
+        }
+        NHTTPi_lockReqList(mutex);
+        (*active)->socket = bgn->unk_7d0;
+        NHTTPi_unlockReqList(mutex);
+        if (req->cancelled != 0) {
+            return 0;
+        }
+        if (fn_80391FC8(bgn, mutex, (s32*)req, bgn->unk_7d0, thread->address, thread->port) < 0) {
+            if (req->proxy != 0) {
+                thread->error = 13;
+                return 0;
+            }
+            if (NHTTPi_GetSSLError(bgn) != 0) {
+                thread->error = 14;
+                return 0;
+            }
+            thread->error = 5;
+            return 0;
+        }
+    } else {
+        NHTTPi_lockReqList(mutex);
+        (*active)->socket = bgn->unk_7d0;
+        NHTTPi_unlockReqList(mutex);
+    }
+    return 1;
+}
+
+// HYPOTHESIS: callback arguments carry a body pointer and two word-sized
+// lengths/flags, with the post-data offset in the fourth word.
+typedef struct NHTTPCallbackData {
+    void* body;
+    s32 length;
+    s32 unk8;
+    s32 offset;
+} NHTTPCallbackData;
+
+static inline int nhttpInvokePostCallback(int mutex, NHTTPConnectionStatus* conn, NHTTPCallbackData* data) {
+    if (conn != 0) {
+        NHTTPThreadRequest* req = NHTTPi_Connection2Request(mutex, (int)conn);
+        if (req != 0) {
+            int (*callback)(void*, void*, void*, int, void*) = req->postCallback;
+            if (callback != 0) {
+                return callback(data->body, &data->length, &data->unk8, data->offset, fn_80396188((int)conn));
+            }
+        }
+    }
+    return -1;
+}
+
+static inline void nhttpInvokeBufferCallback(int mutex, NHTTPConnectionStatus* conn, NHTTPCallbackData* data) {
+    if (conn != 0) {
+        NHTTPThreadResponse* response = NHTTPi_Connection2Response(mutex, (int)conn);
+        if (response != 0) {
+            void* (*callback)(void**, s32*, int, void* (*)(u32, s32), void (*)(void*), void*) = response->bufferCallback;
+            if (callback != 0) {
+                void* body = data->body;
+                int length = NHTTPi_GetVirtualContentLength((NHTTPVirtLen*)conn);
+                data->body = callback(&body, &data->length, length, NHTTPi_alloc, NHTTPi_free, fn_80396188((int)conn));
+                if (data->body != 0 && body != 0) {
+                    data->unk8 = 0;
+                }
+            }
+        }
+    }
+}
+
+static inline void nhttpInvokeCompleteCallback(int mutex, NHTTPConnectionStatus* conn) {
+    if (conn != 0) {
+        void (*callback)(int, void*, void*) = conn->completeCallback;
+        if (callback != 0) {
+            NHTTPThreadResponse* response = NHTTPi_Connection2Response(mutex, (int)conn);
+            if (response != 0) {
+                int error = NHTTPGetConnectionError((int)conn);
+                callback(error, response, fn_80396188((int)conn));
+            }
+        }
+    }
+}
+
+int NHTTPi_TemplateConnectionCallback(int id, int event, NHTTPCallbackData* data) {
+    int mutex = (int)NHTTPi_GetMutexInfoP(NHTTPi_GetSystemInfoP());
+    NHTTPConnectionStatus* conn = NHTTPi_GetConnection(mutex, id);
+    int result = 0;
+    switch (event) {
+    case 1:
+        result = nhttpInvokePostCallback(mutex, conn, data);
+        break;
+    case 2:
+        nhttpInvokeBufferCallback(mutex, conn, data);
+        result = 0;
+        break;
+    case 4:
+        nhttpInvokeCompleteCallback(mutex, conn);
+        result = 0;
+        break;
+    }
+    return result;
+}
+
+// NHTTPi_RecvProxyConnectHeader
+int fn_80393A04(NHTTPThreadState* thread) {
+    void* sys = NHTTPi_GetSystemInfoP();
+    NHTTPActiveRequest** active = NHTTPi_GetReqInfoP(sys);
+    u8* threadInfo = NHTTPi_GetThreadInfoP(sys);
+    NHTTPBgnEndInfo* bgn = NHTTPi_GetBgnEndInfoP(sys);
+    void* mutex = NHTTPi_GetMutexInfoP(sys);
+    u8* scratch = threadInfo + 0x360;
+    NHTTPThreadRequest* req = (*active)->request;
+    NHTTPThreadResponse* response = req->response;
+    int success = 0;
+    int length = 0;
+    char header[0x200];
+    for (;;) {
+        int count = NHTTPi_SocRecv(mutex, req, bgn->unk_7d0, header + length, 0x200 - length, 0);
+        char* p;
+        int i;
+        int ended;
+        length += count;
+        response->statusCode = NHTTPi_strToInt((u8*)(header + 9), 3);
+        if (fn_80392744((char*)header, "HTTP/", 5) == 0 && header[8] == ' ' && response->statusCode == 200) {
+            success = 1;
+        }
+        i = 0;
+        ended = 0;
+        for (p = header; i < length; p++, i++) {
+            if (i > 1 && p[-1] == '\r' && p[0] == '\r') {
+                ended = 1;
+            } else if (i > 1 && p[-1] == '\n' && p[0] == '\n') {
+                ended = 1;
+            } else if (i > 3 && p[-3] == '\r' && p[-2] == '\n' && p[-1] == '\r' && p[0] == '\n') {
+                ended = 1;
+            }
+        }
+        if (ended != 0) {
+            return success != 0;
+        }
+        if (count < 0) {
+            return 0;
+        }
+        if (length < 0x200) {
+            continue;
+        }
+        count = NHTTPi_SocRecv(mutex, req, bgn->unk_7d0, scratch, 1, 0);
+        if (count < 0) {
+            return 0;
+        }
+        if (count != 0) {
+            return 0;
+        }
+    }
+}
+
+// NHTTPi_SendProcPostDataAscii
+int fn_80394220(NHTTPThreadState* thread) {
+    void* sys = NHTTPi_GetSystemInfoP();
+    int mutex = (int)NHTTPi_GetMutexInfoP(sys);
+    NHTTPThreadRequest* req = (*(NHTTPActiveRequest**)NHTTPi_GetReqInfoP(sys))->request;
+    u8* threadInfo = NHTTPi_GetThreadInfoP(sys);
+    NHTTPBgnEndInfo* bgn = NHTTPi_GetBgnEndInfoP(sys);
+    int length = 0;
+    u8* scratch = threadInfo + 0x360;
+    NHTTPHdrNode* node = req->postData;
+    char buffer[12];
+    int digits;
+    int result;
+    while (node != 0) {
+        int encoded = fn_80392810(node->name);
+        length += encoded;
+        length++;
+        if (node->value == 0) {
+            if (fn_80393350(mutex, (s32*)req, (void*)node->name, &length, 2) == 0) {
+                return 3;
+            }
+        } else {
+            length += fn_80392810(node->value);
+        }
+        if (node == req->postData->next) {
+            break;
+        }
+        length++;
+        node = node->prev;
+    }
+    digits = NHTTPi_intToStr(buffer, length);
+    result = fn_803936B0((u8*)thread, "Content-Type: application/x-www-form-urlencoded\r\n", 0x31);
+    if (result != 0) {
+        return result;
+    }
+    result = fn_803936B0((u8*)thread, "Content-Length: ", 0x10);
+    if (result != 0) {
+        return result;
+    }
+    result = fn_803936B0((u8*)thread, buffer, digits);
+    if (result != 0) {
+        return result;
+    }
+    result = fn_803936B0((u8*)thread, "\r\n", 2);
+    if (result != 0) {
+        return result;
+    }
+    result = fn_803936B0((u8*)thread, "\r\n", 2);
+    if (result != 0) {
+        return result;
+    }
+    node = req->postData;
+    while (node != 0) {
+        int i;
+        for (i = 0; (s8)node->name[i] != 0; i++) {
+            digits = NHTTPi_encodeUrlChar((u8*)buffer, node->name[i]);
+            result = fn_803936B0((u8*)thread, buffer, digits);
+            if (result != 0) {
+                return result;
+            }
+        }
+        result = fn_803936B0((u8*)thread, "=", 1);
+        if (result != 0) {
+            return result;
+        }
+        if (node->value == 0) {
+            result = NHTTPi_SendPostData(mutex, (s32*)req, scratch, (void*)node->name, bgn->unk_7d0, &thread->sent, 2);
+            if (result != 0) {
+                return result;
+            }
+        } else {
+            for (i = 0; (s8)node->value[i] != 0; i++) {
+                digits = NHTTPi_encodeUrlChar((u8*)buffer, node->value[i]);
+                result = fn_803936B0((u8*)thread, buffer, digits);
+                if (result != 0) {
+                    return result;
+                }
+            }
+        }
+        if (node == req->postData->next) {
+            break;
+        }
+        result = fn_803936B0((u8*)thread, "&", 1);
+        if (result != 0) {
+            return result;
+        }
+        node = node->prev;
+    }
+    return 0;
+}
+
+static inline void nhttpWaitConnection(NHTTPConnectionStatus* conn) {
+    void* waitSys = NHTTPi_GetSystemInfoP();
+    void* waitThread = NHTTPi_GetThreadInfoP(waitSys);
+    NHTTPConnectionStatus* waiting = NHTTPi_GetConnection((int)NHTTPi_GetMutexInfoP(waitSys), (int)conn);
+    if (waiting != 0) {
+        NHTTPConnectionStatus* found = NHTTPi_GetConnection((int)NHTTPi_GetMutexInfoP(NHTTPi_GetSystemInfoP()), (int)conn);
+        int status;
+        if (found == 0) {
+            status = -1;
+        } else {
+            status = found->status;
+        }
+        fn_80390A64(waitThread, 1);
+        if (status != -1 && status != 0) {
+            int error;
+            found = NHTTPi_GetConnection((int)NHTTPi_GetMutexInfoP(NHTTPi_GetSystemInfoP()), (int)conn);
+            if (found != 0) {
+                error = found->error;
+            } else {
+                error = -1;
+            }
+            if (error == 15) {
+                fn_80396DE8((u8*)waiting);
+            }
+        }
+    }
+}
+
+// NHTTPDeleteConnection
+int fn_80395E04(int id) {
+    void* sys = NHTTPi_GetSystemInfoP();
+    int mutex = (int)NHTTPi_GetMutexInfoP(sys);
+    void* thread = NHTTPi_GetThreadInfoP(sys);
+    NHTTPConnectionStatus* conn = NHTTPi_GetConnection(mutex, id);
+    if (conn == 0) {
+        return -1;
+    }
+    fn_80390A64(thread, 1);
+    if (conn->requestId >= 0) {
+        NHTTP_CancelRequestAsync(sys, conn->requestId);
+        conn->requestId = -1;
+    }
+    if (conn->request != 0 && conn->request->state == 0) {
+        fn_80391784(sys, (int)conn->request);
+    }
+    if (conn->response != 0) {
+        if (conn->request == 0) {
+            fn_80391B8C((void*)mutex, (int)conn->response);
+        } else {
+            nhttpWaitConnection(conn);
+            fn_80391B8C((void*)mutex, (int)conn->response);
+        }
+    }
+    NHTTPi_OmitConnectionList(mutex, (int)conn);
+    NHTTPi_free(conn);
+    return 0;
+}
+
+int fn_803A8BA0(int, void*, unsigned int);
+int fn_80392238(void*, int, void*, unsigned int, int);
+
+int NHTTPi_SocRecv(int mutex, NHTTPThreadRequest* req, int socket, void* buffer, unsigned int length, int flags) {
+    int result;
+    if (req->sslHandle > 0) {
+        result = fn_803A8BA0(req->sslHandle, buffer, length);
+    } else {
+        void* conn = NHTTPi_Request2Connection(mutex, (int)req);
+        if (conn != 0) {
+            result = fn_80392238(conn, socket, buffer, length, flags);
+        } else {
+            return -1001;
+        }
+    }
+    if (result < 0) {
+        if (req->cancelled != 0) return -1002;
+        if (req->sslHandle > 0) {
+            if (result == -7 || result == -6) return 0;
+        } else if (result == -56) return 0;
+        return -1001;
+    }
+    return result;
+}
+
+int NHTTPi_PostSendCallback(int mutex, void* connection, void* body, int offset) {
+    void* postData;
+    int postLength;
+    int result = -1;
+    NHTTPConnectionStatus* conn = connection;
+    if (NHTTPi_ControlConnectionList(mutex, (int)conn, 0) != 0) {
+        NHTTPConnectionStatus* found = (void*)NHTTPi_ControlConnectionList(mutex, (int)conn, 0);
+        NHTTPThreadResponse* response = found != 0 ? found->response : 0;
+        if (response != 0 && conn->callback != 0) {
+            NHTTPCallbackData data;
+            data.body = body;
+            data.length = (int)conn->postData;
+            data.unk8 = conn->postLength;
+            data.offset = offset;
+            result = ((int (*)(void*, int, void*))conn->callback)(conn, 1, &data);
+            postLength = data.unk8;
+            postData = (void*)data.length;
+            found = (void*)NHTTPi_ControlConnectionList(mutex, (int)conn, 0);
+            if (found != 0) {
+                found->postData = postData;
+                found->postLength = postLength;
+            }
+        }
+    }
+    return result;
+}
+
+void NHTTPi_BufferFullCallback(int mutex, void* connection) {
+    void* body;
+    int length;
+    int received;
+    NHTTPConnectionStatus* conn = connection;
+    if (NHTTPi_ControlConnectionList(mutex, (int)conn, 0) != 0) {
+        NHTTPConnectionStatus* found = (void*)NHTTPi_ControlConnectionList(mutex, (int)conn, 0);
+        NHTTPThreadResponse* response = found != 0 ? found->response : 0;
+        if (response != 0 && conn->callback != 0) {
+            NHTTPCallbackData data;
+            data.body = response->body;
+            data.length = response->capacity;
+            data.unk8 = response->received;
+            ((int (*)(void*, int, void*))conn->callback)(conn, 2, &data);
+            received = data.unk8;
+            length = data.length;
+            body = data.body;
+            found = (void*)NHTTPi_ControlConnectionList(mutex, (int)conn, 0);
+            if (found != 0) {
+                found = (void*)NHTTPi_ControlConnectionList(mutex, (int)found, 0);
+                response = found != 0 ? found->response : 0;
+                if (response != 0) {
+                    response->body = body;
+                    response->capacity = length;
+                    response->received = received;
+                }
+            }
+        }
+    }
+}
+
+void fn_8039738C(int mutex, void* connection) {
+    void* body;
+    int length;
+    int received;
+    NHTTPConnectionStatus* conn = connection;
+    if (NHTTPi_ControlConnectionList(mutex, (int)conn, 0) != 0) {
+        NHTTPConnectionStatus* found = (void*)NHTTPi_ControlConnectionList(mutex, (int)conn, 0);
+        NHTTPThreadResponse* response = found != 0 ? found->response : 0;
+        if (response != 0 && conn->callback != 0) {
+            NHTTPCallbackData data;
+            data.body = response->body;
+            data.length = response->capacity;
+            data.unk8 = response->received;
+            ((int (*)(void*, int, void*))conn->callback)(conn, 3, &data);
+            received = data.unk8;
+            length = data.length;
+            body = data.body;
+            found = (void*)NHTTPi_ControlConnectionList(mutex, (int)conn, 0);
+            if (found != 0) {
+                found = (void*)NHTTPi_ControlConnectionList(mutex, (int)found, 0);
+                response = found != 0 ? found->response : 0;
+                if (response != 0) {
+                    response->body = body;
+                    response->capacity = length;
+                    response->received = received;
+                }
+            }
+        }
+    }
+}
+
+int NHTTPi_intToStr(char* out, u32 value) {
+    u32 powers[9] = {1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10};
+    u32* power = powers;
+    int i;
+    int started;
+    int count;
+    count = 0;
+    started = 0;
+    for (i = 0; i < 9; power++, i++) {
+        if (value >= *power) {
+            u32 digit = value / *power;
+            value %= *power;
+            started = 1;
+            out[count++] = digit + '0';
+        } else if (started != 0) {
+            out[count++] = '0';
+        }
+    }
+    out[count] = value + '0';
+    return count + 1;
+}
+
+int fn_80392EC4(char* out, const char* input) {
+    const char* table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    char* dest = out;
+    int length = strlen(input);
+    int i;
+    for (i = 0; i < length; i += 3) {
+        dest[0] = table[input[0] >> 2];
+        dest[1] = table[((input[0] & 3) << 4) + (input[1] >> 4)];
+        dest[2] = table[((input[1] & 15) << 2) + (input[2] >> 6)];
+        dest[3] = table[input[2] & 63];
+        input += 3;
+        dest += 4;
+    }
+    if (i == length + 1) dest[-1] = '=';
+    else if (i == length + 2) {
+        dest[-2] = '=';
+        dest[-1] = '=';
+    }
+    *dest = 0;
+    return strlen(out);
+}
+
+int fn_80394B44(NHTTPThreadState*);
+int fn_80394FE0(NHTTPThreadState*);
+int fn_803951CC(NHTTPThreadState*);
+int fn_803954C8(NHTTPThreadState*);
+void NHTTPi_CommThreadProcMain(void* arg) {
+    void* sys = NHTTPi_GetSystemInfoP();
+    NHTTPBgnEndInfo* bgn = NHTTPi_GetBgnEndInfoP(sys);
+    NHTTPActiveRequest** active = NHTTPi_GetReqInfoP(sys);
+    NHTTPThreadState thread;
+    thread.unk0 = -1;
+    NHTTPi_memclr(thread.host, 0x100);
+    NHTTPi_memclr(thread.unk104, 0x200);
+    thread.address = -1;
+    thread.previousAddress = -1;
+    thread.sent = 0;
+    thread.reuseConnection = 0;
+    thread.chunked = 0;
+    thread.unk334 = 0;
+    thread.contentLength = 0;
+    thread.error = 0;
+    while (!bgn->shutdown) {
+        if (thread.unk334 == 0) {
+            if (!fn_80394664((s32*)&thread)) continue;
+            if ((*active)->request->cancelled) {
+                fn_803944E4(&thread);
+                continue;
+            }
+            if (!fn_8039471C(&thread)) {
+                fn_803944E4(&thread);
+                continue;
+            }
+        }
+        if (thread.unk334 == 1) thread.unk334 = 0;
+        if (!fn_80394870(&thread)) {
+            fn_803944E4(&thread);
+            continue;
+        }
+        switch (fn_803949F0(&thread)) {
+        case 0:
+            break;
+        case 2:
+            thread.unk334 = 1;
+            continue;
+        case 1:
+            fn_803944E4(&thread);
+            continue;
+        }
+        switch (fn_80394B44(&thread)) {
+        case 0:
+            break;
+        case 2:
+            thread.unk334 = 1;
+            continue;
+        case 1:
+        case 3:
+            fn_803944E4(&thread);
+            continue;
+        }
+        if ((*active)->request->cancelled) {
+            fn_803944E4(&thread);
+            continue;
+        }
+        if (!fn_80394FE0(&thread)) {
+            fn_803944E4(&thread);
+            continue;
+        }
+        if (!fn_803951CC(&thread)) {
+            fn_803944E4(&thread);
+            continue;
+        }
+        fn_803954C8(&thread);
+        fn_803944E4(&thread);
+    }
+}

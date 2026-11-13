@@ -102,18 +102,24 @@ static struct
     u16 ingamesn[26];
     char gsbrcd[12];
     char svc[5];
+    // HYPOTHESIS: Brawl adds these fields: SendRequest base64-encodes
+    // _41C4/_41C8 (data, length) when _41CC is 1 and posts the _41D0 string.
+    const void* _41C4;
+    u32 _41C8;
+    s32 _41CC;
+    char _41D0[2];
     char read_buf[4096];
-    char header_buf[1024];
+    char header_buf[2048];
     s32 retry_num;
     BOOL is_nand_end;
     s32 nand_result;
     s32 request_id;
     s32 auth_kind;
     NANDCommandBlock nand_command_block;
+    u8 _5AA0[4];
     NANDFileInfo fileinfo;
     DWCAllocFunc auth_alloc;
     DWCFreeFunc auth_free;
-    u8 _5724[4];
     OSTime start_time;
 }* s_auth_work;
 

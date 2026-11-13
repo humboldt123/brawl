@@ -155,7 +155,11 @@ public:
         m_addrArr1(addrs1), m_addrArr2(addrs2), m_addrArr3(addrs3) { }
 #endif
 
+#ifdef WN_EM_SIMPLE_UNIT
+    virtual ~soAnimCmdAddressPackArraySeparate();
+#else
     virtual ~soAnimCmdAddressPackArraySeparate() { }
+#endif
 };
 static_assert(sizeof(soAnimCmdAddressPackArraySeparate) == 0x1C, "Class is the wrong size!");
 
@@ -218,7 +222,11 @@ public:
 #else
     virtual void setAddressPackList();
 #endif
+#ifdef WN_EM_SIMPLE_UNIT
+    virtual void unk44(s32, void*);
+#else
     virtual void unk44(); // HYPOTHESIS: unnamed slot; the article initialize reads the interpreter count one slot later (0x48)
+#endif
     virtual int getInterpreterNum();
 #ifdef FT_MODULE_BUILDER
     virtual ~soAnimCmdModule() { }

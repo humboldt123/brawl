@@ -281,8 +281,14 @@ class soEventPresenter {
 
     // HYPOTHESIS: the lookup that getObserverList inlines; a failed lookup also clears the cached list.
     soInstanceManagerFullProperty<T*>* findObserverList() {
+#ifdef FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
+        soEventManager* mgr;
+        s16 uid = m_unitID;
+        mgr = soEventSystem::getInstance()->getManager(m_manageID);
+#else
         s16 uid = m_unitID;
         soEventManager* mgr = soEventSystem::getInstance()->getManager(m_manageID);
+#endif
 
         if (mgr->getObserverCapacity(uid) == 0)
             return nullptr;
@@ -297,15 +303,26 @@ class soEventPresenter {
 #endif
     }
 
+#ifdef FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
+    bool updateObserverList(bool snapshotManageId) {
+#else
     bool updateObserverList() {
+#endif
+#ifdef SO_EVENT_PRESENTER_UPDATE_CHECK_MANAGE_ID
+        if (m_manageID <= -1 || !checkManageId())
+            return false;
+#else
         const s16 manageId = m_manageID;
-#ifdef FT_PRESENTER_RELOAD_MANAGE_ID
+#ifdef FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
+        if (manageId <= -1 || !(snapshotManageId ? checkManageId() : soEventSystem::getInstance()->getInstanceManager().isContain(m_manageID)))
+#elif defined(FT_PRESENTER_RELOAD_MANAGE_ID)
         // The contain test reloads the member. The earlier compare still uses manageId.
         if (manageId <= -1 || !soEventSystem::getInstance()->getInstanceManager().isContain(m_manageID))
 #else
         if (manageId <= -1 || !soEventSystem::getInstance()->getInstanceManager().isContain(manageId))
 #endif
             return false;
+#endif
         if (soEventSystem::getInstance()->getManager(m_manageID)->getObserverCapacity(m_unitID) == 0) {
             m_obsrvrList = nullptr;
             return false;
@@ -425,10 +442,18 @@ public:
     }
 #endif
 
+#ifdef FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
+    soInstanceManagerFullProperty<T*>* getObserverList(bool snapshotManageId = false) {
+#else
     soInstanceManagerFullProperty<T*>* getObserverList() {
+#endif
         if (m_manageID <= -1)
             return &g_nullObserverList;
+#ifdef FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
+        if (!(m_obsrvrList || updateObserverList(snapshotManageId)))
+#else
         if (!(m_obsrvrList || updateObserverList()))
+#endif
             return &g_nullObserverList;
         if (soEventSystem::getInstance()->
                            getManager(m_manageID)->

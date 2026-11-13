@@ -16,8 +16,15 @@ public:
     static bool checkCloudThroughOut(soModuleAccesser* moduleAccesser);
 };
 
+// motion kinds indexed by height variation
+struct DamageFlyMotionKinds {
+    int m_kinds[3];
+};
+static const DamageFlyMotionKinds sDamageFlyMotionKinds = { { 0xA6, 0xA5, 0xA4 } };
+
 // HYPOTHESIS: the original uses its own inline length helper (float FLT_MIN compare and
 // inline fabs) instead of Vec2f::length from the shared header.
+
 static inline float calcLength(float lengthSq) {
     float length;
     if ((float)__fabs(lengthSq) <= 1.17549435e-38f) {
@@ -57,22 +64,22 @@ void ftStatusUniqProcessDamageFly::initNormalDamageCommon(soModuleAccesser* modu
 
 void ftStatusUniqProcessDamageFly::initNormalDamage(soModuleAccesser* moduleAccesser) {
     soDamageLog* damageLog = moduleAccesser->getDamageModule().getDamageLog();
+    soMotionChangeParam param;
     int motionKind;
     if (damageLog->m_angle > soValueAccesser::getConstantFloat(moduleAccesser, 0x7df, 0)
         && damageLog->m_angle < soValueAccesser::getConstantFloat(moduleAccesser, 0x7e0, 0)) {
         motionKind = 0xa7;
     } else {
-        int motionKinds[3] = { 0xA6, 0xA5, 0xA4 };
+        DamageFlyMotionKinds motionKinds = sDamageFlyMotionKinds;
         int height = damageLog->m_height;
-        if (motionKinds[height] == moduleAccesser->getMotionModule().getKind()) {
-            height = randi(2) + height + 1;
+        if (motionKinds.m_kinds[height] == moduleAccesser->getMotionModule().getKind()) {
+            height += randi(2) + 1;
             if (height >= 3) {
                 height -= 3;
             }
         }
-        motionKind = motionKinds[height];
+        motionKind = motionKinds.m_kinds[height];
     }
-    soMotionChangeParam param;
     param.m_kind = motionKind;
     param.m_frame = 0.0f;
     param.m_rate = 1.0f;

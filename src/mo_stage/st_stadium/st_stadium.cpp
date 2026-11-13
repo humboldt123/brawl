@@ -1157,8 +1157,7 @@ void stStadium::updateVisionScreen() {
         float height = m_visionMax.m_y - m_visionMin.m_y;
         nw4r::g3d::ResMdl resMdl = getGround(0)->m_sceneModels[0]->m_resMdl;
         nw4r::g3d::ResMat resMat = resMdl.GetResMat("MoniterDummy1");
-        nw4r::g3d::ResTexObj texObj(reinterpret_cast<u8*>(resMat.ptr()) + 0x3C);
-        GXTexObj* screenTex = texObj.GetTexObj(GX_TEXMAP0);
+        GXTexObj* screenTex = nw4r::g3d::ResTexObj(reinterpret_cast<u8*>(resMat.ptr()) + 0x3C).GetTexObj(GX_TEXMAP0);
         if (gfCopyEFBMgr::getInstance()->isValid(0) == true) {
             *screenTex = *gfCopyEFBMgr::getInstance()->getCopyEFBTex(0);
         }

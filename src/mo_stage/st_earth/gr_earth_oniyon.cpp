@@ -420,10 +420,7 @@ void grEarthOniyon::makeItem() {
                 lot = 6;
                 break;
             }
-            ItemKind kind;
-            kind.m_kind = static_cast<itKind>(*reinterpret_cast<int*>(reinterpret_cast<u8*>(lbl_27_bss_5668) + 0x44));
-            kind.m_variation = 0;
-            items->lotCreateItem(reinterpret_cast<itGenSheetKind&>(kind), static_cast<itGenId>(lot), &pos, -1, -1, static_cast<itKind>(-1));
+            grEarthLotCreateStageItem(items, static_cast<itGenId>(lot), &pos);
             m_snd.playSE(static_cast<SndID>(0x1CCE), 0, 0, -1);
         }
     }

@@ -56,8 +56,8 @@ public:
         ~EntryRef() {
             if (m_entry) {
                 m_entry->destroy();
-                m_entry = NULL;
             }
+            m_entry = NULL;
         }
     };
 

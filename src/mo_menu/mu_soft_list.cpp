@@ -190,10 +190,11 @@ void muSoftListTask::processAnim() {
 
 // The titles whose new mark was shown are no longer new.
 muSoftListTask::~muSoftListTask() {
-    for (u32 i = 0; i < m_seenNum; i++) {
+    u32 i;
+    for (i = 0; i < m_seenNum; i++) {
         m_dataManager.resetNewFlag(m_seen[i].m_category, m_seen[i].m_index);
     }
-    for (u32 i = 0; i < 1 + LineCount; i++) {
+    for (i = 0; i < 1 + LineCount; i++) {
         if (m_expands[i] != NULL) {
             m_expands[i]->Destroy();
             m_expands[i] = NULL;

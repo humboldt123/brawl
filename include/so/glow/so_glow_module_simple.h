@@ -26,6 +26,25 @@ public:
     virtual void setGlowDefense(s32 defense);            // 0x28
     virtual void setGlowEffect(float eff, float min, float max); // 0x2C
 #endif
+#ifdef SO_GLOW_MODULE_POWER_API
+    virtual void unk30();
+    virtual void unk34();
+    virtual void unk38();
+    virtual void unk3c();
+    virtual void unk40();
+    virtual void unk44();
+    virtual void unk48();
+    virtual void unk4c();
+    virtual void unk50();
+    virtual void unk54();
+    virtual void unk58();
+    virtual void unk5c();
+    virtual void unk60();
+    virtual void unk64();
+    virtual void unk68();
+    virtual void unk6c();
+    virtual float modifyPower(float power, soCollisionAttackData* attackData, void* attackerGlowModule); // 0x70
+#endif
 #endif
 };
 

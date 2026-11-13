@@ -441,16 +441,16 @@ void grMadein::startEntity() {
     nw4r::g3d::ScnMdl* model = m_sceneModels[0];
     if (model != NULL) {
         model->SetScnObjOption(1, m_anmVals[0]);
-        if (m_isGr2) {
+        if (m_isUpdateG3dCalcWorld) {
             model->SetScnObjOption(2, m_anmVals[1]);
             model->SetScnObjOption(3, m_anmVals[2]);
             model->SetScnObjOption(4, m_anmVals[3]);
             model->SetScnObjOption(8, m_anmVals[7]);
-            model->SetScnObjOption(5, m_anmVals[4]);
-            model->SetScnObjOption(6, m_anmVals[5]);
-            model->SetScnObjOption(7, m_anmVals[6]);
-            model->SetScnObjOption(9, m_anmVals[8]);
         }
+        model->SetScnObjOption(5, m_anmVals[4]);
+        model->SetScnObjOption(6, m_anmVals[5]);
+        model->SetScnObjOption(7, m_anmVals[6]);
+        model->SetScnObjOption(9, m_anmVals[8]);
         nwSMSetVisibility(model, true);
     }
 }

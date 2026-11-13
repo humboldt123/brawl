@@ -1,11 +1,13 @@
 // The trainer's long animation-command override puts an extra Fighter virtual before getOwner.
 #define FT_FIGHTER_ANIMCMD_LONG
+#define FT_POKETRAINER_DISGUISE_PUSH_RANGE
 #define FT_POKETRAINER_ARTICLE_POOLS
 #define FT_ANIMCMD_ARRAY_NULL_INLINE_CTOR
 #define WN_WEAPON_ANIMCMD_LONG
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define SO_EVENT_PRESENTER_STORE_NULL_LIST
 #define FT_PRESENTER_RELOAD_MANAGE_ID
+#define FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
 #define FT_NULL_TAIL_MODULES
 #define FT_SOUND_GENERATOR_DTOR_INLINE
 #define FT_GIMMICK_POOL_INLINE_DTOR
@@ -23,6 +25,9 @@
 #include <ft/poke/ft_poke_trainer.h>
 // The original keeps the disguise list setup out of line.
 template void soAnimCmdControlUnitBuilderDisguise<soAnimCmdControlUnitBuildConfigDisguise<0, 1, 299, 299, 0, 1, 0, 8> >::setupDisguiseList(int, soAnimCmdDisguiseListEntry*);
+#pragma force_active on
+template void soAnimCmdControlUnitBuilderDisguise<soAnimCmdControlUnitBuildConfigDisguise<0, 1, 299, 299, 0, 1, 0, 8> >::pushRange(int, const acAnimCmdConv* const*, s32);
+#pragma force_active off
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_manager.h>
 #include <ft/ft_owner.h>
@@ -42,6 +47,7 @@ template void soAnimCmdControlUnitBuilderDisguise<soAnimCmdControlUnitBuildConfi
 #define FT_NOINLINE_SKIP_SHARED_DEFS
 #define FT_BC ftPokeTrainerBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
 
 template <u32 T1, u32 NumFloats, u32 T3, u32 NumInts>
 void ftExtendParamAccesserEx<T1, NumFloats, T3, NumInts>::setup(const u8*) { }
@@ -141,13 +147,12 @@ enum {
 
 void ftPokeTrainer::onActivate() {
     ftOwner* owner = getOwner();
-    soWorkManageModule* work;
     soModuleAccesser* acc = m_moduleAccesser;
     reinterpret_cast<soDebugModuleTrainerView*>(acc->m_enumerationStart->m_debugModule)->unk20(1);
     acc->getVisibilityModule().activate();
     acc->getVisibilityModule().setStatusDefault(0, -1, true);
-    work = &acc->getWorkManageModule();
-    work->setFloat(acc->getPostureModule().getLr(), 0x11000015);
+    soWorkManageModule& work = acc->getWorkManageModule();
+    work.setFloat(acc->getPostureModule().getLr(), 0x11000015);
     acc->getWorkManageModule().offFlag(Work_Flag_NoPartnerLeft);
     acc->getCameraModule().setPri(1, -1);
     reinterpret_cast<soJostleModuleTrainerView*>(acc->m_enumerationStart->m_jostleModule)->unk20(3);
@@ -202,7 +207,8 @@ public:
 
 void ftPokeTrainer::setVisibility(int visibility) {
     soModuleAccesser* acc = m_moduleAccesser;
-    if (reinterpret_cast<ftPokeTrainerVisibilityView&>(acc->getVisibilityModule()).getWhole() != visibility) {
+    unsigned int whole = reinterpret_cast<ftPokeTrainerVisibilityView&>(acc->getVisibilityModule()).getWhole();
+    if (whole != visibility) {
         reinterpret_cast<ftPokeTrainerVisibilityView&>(acc->getVisibilityModule()).setWhole(visibility);
         struct {
             Vec3f rotRange;
@@ -373,8 +379,11 @@ Fighter* ftPokeTrainer::getPartner() {
     return g_ftManager->getFighter(m_entryId, -1);
 }
 
+#pragma push
+#pragma opt_propagation off
 bool ftPokeTrainer::isInclude(float* rect, Vec3f* out) {
-    soGenerateArticleManageModule& articleModule = m_moduleAccesser->getGenerateArticleManageModule();
+    soModuleAccesser* acc = m_moduleAccesser;
+    soGenerateArticleManageModule& articleModule = acc->getGenerateArticleManageModule();
     soArticle* article = articleModule.getArticle(0);
     if (article != NULL) {
         int taskId = article->getTaskId();
@@ -386,6 +395,7 @@ bool ftPokeTrainer::isInclude(float* rect, Vec3f* out) {
     }
     return false;
 }
+#pragma pop
 
 void ftPokeTrainer::processUpdate() {
     soModuleAccesser* acc = m_moduleAccesser;
@@ -521,9 +531,13 @@ struct ftPokeTrainerLinkEvent : soLinkEventArgs {
     ftPokeTrainerLinkEvent(int kind) : soLinkEventArgs(kind) { }
 };
 
+#pragma push
+#pragma opt_propagation off
 bool ftPokeTrainer::isExistAdvFollowEffect() {
-    return m_moduleAccesser->getWorkManageModule().getInt(Work_Int_TrainerEffect) != 0;
+    soModuleAccesser* acc = m_moduleAccesser;
+    return acc->getWorkManageModule().getInt(Work_Int_TrainerEffect) != 0;
 }
+#pragma pop
 
 // Tells the Pokemon where they should stand: while the trainer is in the Final Smash throw (status 0x116) the positions come
 // from the Final Smash article, otherwise from the work slots that hold where the trainer wants the next Pokemon to appear.
@@ -930,8 +944,9 @@ void ftPokeTrainer::notifyEventBeat() {
         switch (acc->getStatusModule().getStatusKind()) {
         case 0x122:
             if (acc->getMotionModule().getKind() == 0x1EB) {
+                return;
             } else if (acc->getMotionModule().getKind() == 0x1E9) {
-            } else {
+                return;
             }
             break;
         case 0x119:

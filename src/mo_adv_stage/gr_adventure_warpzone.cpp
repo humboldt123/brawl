@@ -1,3 +1,4 @@
+#define ST_STAGE_OUT_EFFECT_INIT_FLAG
 #include <ef/ef_screen.h>
 #include <ft/ft_manager.h>
 #include <ft/ft_owner.h>
@@ -13,17 +14,6 @@
 extern "C" stAdventure2* lbl_40_bss_15C;
 extern "C" void fn_40_5CD8(stAdventure2* stage, int entryId);
 extern "C" void fn_40_5814(stAdventure2* stage, void* warpDest, u8 isSecondWarped);
-// MATCH-ONLY: Stage::setStageOutEffectInit takes a flag that the shared header does not declare; vtable slots 113/114.
-static inline void stageSetStageOutEffectInit(Stage* stage, int flag) {
-    typedef void (*Func)(Stage*, int);
-    Func** vtable = reinterpret_cast<Func**>(reinterpret_cast<u8*>(stage) + 0x3C);
-    (*vtable)[115](stage, flag);
-}
-static inline void stageSetStageInEffectInit(Stage* stage) {
-    typedef void (*Func)(Stage*);
-    Func** vtable = reinterpret_cast<Func**>(reinterpret_cast<u8*>(stage) + 0x3C);
-    (*vtable)[116](stage);
-}
 
 grAdventureWarpZone* grAdventureWarpZone::create(int mdlIndex, const char* taskName) {
     grAdventureWarpZone* ground = new (Heaps::StageInstance) grAdventureWarpZone(taskName);
@@ -67,7 +57,7 @@ void grAdventureWarpZone::processFixPosition() {
         GXColor black = { 0, 0, 0, 255 };
         g_efScreen->requestFill(60.0f, 7, 0, &black);
         if (g_Stage != NULL) {
-            stageSetStageOutEffectInit(g_Stage, 0);
+            g_Stage->setStageOutEffectInit(0);
         }
         break;
     }
@@ -78,7 +68,7 @@ void grAdventureWarpZone::processFixPosition() {
             m_state = 0;
             m_frameCount = 0.0f;
             if (g_Stage != NULL) {
-                stageSetStageInEffectInit(g_Stage);
+                g_Stage->setStageInEffectInit();
             }
         }
         break;

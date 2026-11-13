@@ -1279,8 +1279,10 @@ void BaseItem::throwAttack(float lr, Vec3f* velocity, float powerMulStatus) {
         if (v->workManage.isFlag(0x22000000) &&
             (v->intWork.at(8) & 0x4C00) == 0) {
             Vec2f arg;
-            arg.m_y = speed.m_y;
-            arg.m_x = speed.m_x;
+            float y = speed.m_y;
+            float x = speed.m_x;
+            arg.m_y = y;
+            arg.m_x = x;
             v->attack.setSpeed(&arg);
             v->attack.setSpeedPowerAdd(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD6F, 0));
             v->attack.setSpeedPowerMul(itValueAccesserGlobal.getFloat(&moduleAccesser, 0xD70, 0));
@@ -1603,8 +1605,8 @@ void BaseItem::updateNodeSRT() {
     scale.m_x = scale.m_y = scale.m_z = postureScale;
     Vec3f rot;
     Vec3f pos;
-    Vec3f facing;
-    pos = v->posture.getPos();
+    Vec3f posTemp = v->posture.getPos();
+    pos = posTemp;
     Vec3f rotTemp = v->posture.getRot(0);
     rot = rotTemp;
     int node = v->workManage.getInt(0x10000015);
@@ -1614,6 +1616,7 @@ void BaseItem::updateNodeSRT() {
     } else {
         v->model.setNodeTranslate(0, &pos);
         v->model.setNodeScale(0, &scale);
+        Vec3f facing;
         facing.m_y = v->posture.getRotYLr();
         facing.m_x = 0.0f;
         facing.m_z = 0.0f;

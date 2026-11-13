@@ -2,7 +2,13 @@
 
 #include <types.h>
 
-struct wnSimpleData;
+struct wnSimpleData
+#ifdef FT_KIRBY_ARTICLE_POOLS
+{
+    u8 unk0[0x38];
+}
+#endif
+;
 // HYPOTHESIS: source descriptor spelling. Both constructor consumers read a
 // kind/subkind pair through the first pointer and the heap module through the second.
 struct wnSimpleKindInfo {

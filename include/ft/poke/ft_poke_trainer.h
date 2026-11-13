@@ -62,7 +62,11 @@ class ftEntryEventPresenter : public soEventPresenter<ftEntryEventObserver> {
 public:
     virtual ~ftEntryEventPresenter() { }
     bool notifyEventPokemonRequestChange(Vec3f* pos, float* lr) {
+#ifdef FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
+        soInstanceManagerFullProperty<ftEntryEventObserver*>* list = getObserverList(true);
+#else
         soInstanceManagerFullProperty<ftEntryEventObserver*>* list = getObserverList();
+#endif
         for (int i = 0; i < (s32)list->size(); i++) {
             if (list->atIndex(i)->notifyEventPokemonRequestChange(pos, lr) == 1) {
                 return true;
