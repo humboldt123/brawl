@@ -46,9 +46,9 @@ void ftLogTransactor::notifyEventChangeStatus(int statusKind, int prevStatusKind
     int prevKind = prevData->getLogActionKind();
     int id = data->getLogActionId();
     if (kind == 2) {
+        u32 prevId = prevData->getLogActionId();
         bool restart = data->isLogActionRestart();
-        int prevId = prevData->getLogActionId();
-        if (id == 0x3d && (prevKind != 2 || prevId != 0x3d || restart == true)) {
+        if (id == 0x3d && (prevKind != 2 || (int)prevId != 0x3d || restart == true)) {
             owner->addLogInt(1, 0x15, 0);
         }
     } else if (kind == 6) {

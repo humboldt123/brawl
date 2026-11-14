@@ -632,6 +632,12 @@ void IfCoinShooter::destroy() {
 
 // HYPOTHESIS: draft of the constructor to pin the layout. The member initializers are in declaration order, as the
 // stores of fn at 0x80101C0C are.
+// HYPOTHESIS: the camera path is set through an inline helper; the address of the path is computed before the one of
+// the buffer, which an in-place `m_cameraPath[0] = '\0'; strcat(...)` does the other way round.
+static inline void setPath(char* dst, const char* path) {
+    dst[0] = '\0';
+    strcat(dst, path);
+}
 IfCoinShooter::IfCoinShooter()
     : utility::StandardMenu("IfCoinShooter", 0xF0, Heaps::MenuResource), m_decisionPad(gmGetMenuDecisionPad()),
       m_started(false), m_clearMsgTimer(0), m_objPriority(0), m_bonusTarget(0), m_unk1C4(false), m_figureTimer(-1),
@@ -639,8 +645,7 @@ IfCoinShooter::IfCoinShooter()
     g_gfApplication->m_114.add(this);
     unk2C_b1 = false;
     g_gfSceneRoot->setClearDepthBufferState(gfSceneRoot::Layer_Info, true);
-    m_cameraPath[0] = '\0';
-    strcat(m_cameraPath, "/menu/defaultcamera/FigureList");
+    setPath(m_cameraPath, "/menu/defaultcamera/FigureList");
     // HYPOTHESIS: unk44 is the root of the menu (Info layer) scene; its fogs are reset so that no stage fog stays.
     nw4r::g3d::ScnRoot* scnRoot = g_gfSceneRoot->unk44;
     for (int i = 0;; i++) {

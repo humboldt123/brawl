@@ -39,6 +39,11 @@ struct hkConstraintInstance : hkReferencedObject {
     // Out of line in the (unsplit) hkConstraintInstance unit: 0x802DE764 / 0x802DE7E0 / 0x802DE79C.
     hkConstraintInstance(ConstraintPriority priority);
     virtual ~hkConstraintInstance();
+    // calcStatistics                                          0x0C (inherited)
+    virtual void entityAddedCallback(hkEntity* entity);   // 0x10
+    virtual void entityRemovedCallback(hkEntity* entity); // 0x14 (detaches the constraint, see fireEntityRemoved)
+    virtual void entityDeletedCallback(hkEntity* entity); // 0x18
+    virtual InstanceType getType() const;                 // 0x1C (TYPE_CHAIN for hkConstraintChainInstance)
     void setPriority(ConstraintPriority priority);
 
     hkConstraintData* getData() const { return m_data; }

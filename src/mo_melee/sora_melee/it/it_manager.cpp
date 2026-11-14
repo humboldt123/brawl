@@ -1176,20 +1176,20 @@ int itManager::getRandBasicItemVariation(int kind) {
             }
         }
     }
-    if (param != NULL) {
-        u32 off = 0;
-        for (u32 remaining = param->m_numEntries; remaining > 0; remaining--) {
-            int entryKind = *(int*)((u8*)param->m_entries + off);
-            if (entryKind == -1) {
-                return 0;
-            }
-            if (entryKind == 0x7D1) {
-                entryKind = 0x40;
-            }
-            if (entryKind == kind) {
-                return *(int*)((u8*)param->m_entries + off + 4);
-            }
-            off += 0x10;
+    if (param == NULL) {
+        return 0;
+    }
+    for (u32 i = 0; i < param->m_numEntries; i++) {
+        itGenParam::Entry* entry = &param->m_entries[i];
+        int entryKind = entry->m_kind;
+        if (entryKind == -1) {
+            break;
+        }
+        if (entryKind == 0x7D1) {
+            entryKind = 0x40;
+        }
+        if (entryKind == kind) {
+            return entry->m_variation;
         }
     }
     return 0;

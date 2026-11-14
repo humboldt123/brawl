@@ -260,25 +260,6 @@ void hkSimpleConstraintContactMgr::processToi(const void* toiEvent, hkReal rotat
     }
 }
 
-// Event handed to the contact-added callbacks (0x2C bytes on the stack). HYPOTHESIS: layout beyond the stores; the
-// callbacks may change the projected velocity and set the status returned by addToi.
-struct hkSimpleContactPointAddedEvent {
-    const hkCdBody* m_bodyA;               // 0x00
-    const hkCdBody* m_bodyB;               // 0x04
-    void* unk08;                           // 0x08
-    void* unk0C;                           // 0x0C
-    hkProcessCollisionOutput* m_output;    // 0x10
-    hkContactPoint* m_contactPoint;        // 0x14
-    hkContactPointMaterial* m_material;    // 0x18
-    hkReal m_projectedVelocity;            // 0x1C
-    int m_status;                          // 0x20
-    hkContactMgr* m_contactMgr;            // 0x24
-    hkReal m_toi;                          // 0x28
-};
-
-// hkEntityCallbackUtil::fireContactPointAddedInternal (unnamed in the map). HYPOTHESIS: name.
-extern "C" void fn_802E3F48(hkEntity* entity, hkSimpleContactPointAddedEvent* event);
-
 // Square root as 1 / (refined reciprocal square root estimate) (0 for x <= 0). HYPOTHESIS: the inline's shape.
 static inline hkReal hkSimpleSqrt(hkReal x) {
     hkReal inv;
@@ -308,7 +289,7 @@ int hkSimpleConstraintContactMgr::addToi(const hkCdBody& a, const hkCdBody& b, c
     hkReal restitution = hkSimpleSqrt(entityA->m_material.m_restitution * entityB->m_material.m_restitution);
     materialOut.m_restitution = hkMath::hkFloatToInt(128.0f * restitution);
 
-    hkSimpleContactPointAddedEvent event;
+    hkContactPointAddedEvent event;
     event.m_bodyA = &a;
     event.m_bodyB = &b;
     event.unk08 = 0;
@@ -321,10 +302,10 @@ int hkSimpleConstraintContactMgr::addToi(const hkCdBody& a, const hkCdBody& b, c
     event.m_toi = toi;
     hkWorldCallbackUtil::fireContactPointAdded(m_world, (hkWorldCallbackUtil::ContactPointEvent*)&event);
     if (entityA->m_collisionListeners.m_size != 0) {
-        fn_802E3F48(entityA, &event);
+        hkEntityCallbackUtil::fireContactPointAddedInternal(entityA, &event);
     }
     if (entityB->m_collisionListeners.m_size != 0) {
-        fn_802E3F48(entityB, &event);
+        hkEntityCallbackUtil::fireContactPointAddedInternal(entityB, &event);
     }
     projectedVelocity = event.m_projectedVelocity;
     return event.m_status;

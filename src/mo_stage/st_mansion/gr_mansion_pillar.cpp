@@ -129,11 +129,13 @@ void grMansionPillar::updateShake(float deltaFrame) {
     }
     if (unk170 > 0.0f) {
         u32 frame = static_cast<u32>(unk170);
-        if (static_cast<float>(frame % 3) == 0.0f) {
+        float rem = frame % 3;
+        if (rem == 0.0f) {
             float sin;
             float cos;
+            float toRad;
             float deg = 90.0f;
-            float toRad = 0.017453292f;
+            toRad = 0.017453292f;
             mtSinCosf(toRad * deg, &sin, &cos);
             float amount = 0.5f + randf() * 0.8f;
             unk174 = amount * cos;

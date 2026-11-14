@@ -4,8 +4,16 @@
 #include <havok/hkArray.h>
 #include <havok/hkCollidable.h>
 #include <havok/hkMemory.h>
+#include <havok/hkMultiThreadLock.h>
 
 struct hkAabb;
+
+// Lock object created when a broad phase is shared between threads. It has no state on this platform: the broad
+// phase destructor frees one byte (allocator class 0x13).
+struct hkCriticalSection {
+    HK_DECLARE_SIZED_DELETE(0x13)
+    ~hkCriticalSection() {}
+};
 
 // Pair of typed broad-phase handles reported by the broad phase (8 bytes).
 // HYPOTHESIS: same layout as the pair used by hkPhantom.cpp (which keeps its own copy).
@@ -24,6 +32,9 @@ struct hkBroadPhaseHandlePair {
 struct hkBroadPhase : hkReferencedObject {
     HK_DECLARE_REF_ALLOCATOR(0x1f)
 
+    hkBroadPhase();
+    ~hkBroadPhase();
+
     virtual void addObject(hkBroadPhaseHandle* object, const hkAabb& aabb,
                            hkArray<hkBroadPhaseHandlePair>& pairsOut);                    // 0x10
     virtual void addObjectBatch();                                                         // 0x14 (signature unknown)
@@ -40,4 +51,11 @@ struct hkBroadPhase : hkReferencedObject {
     virtual void unk30();
     // HYPOTHESIS: the name (hkWorld::activateRegion collects the pairs overlapping a box with it)
     virtual void querySingleAabb(const hkAabb& aabb, hkArray<hkBroadPhaseHandlePair>& pairsOut) const; // 0x34
+
+    // HYPOTHESIS: the two empty out-of-line members after the destructor (no caller, no vtable slot).
+    void lockImplementation();
+    void unlockImplementation();
+
+    hkMultiThreadLock m_multiThreadLock;   // 0x08
+    hkCriticalSection* m_criticalSection; // 0x10
 };

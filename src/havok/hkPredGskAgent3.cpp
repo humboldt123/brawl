@@ -157,10 +157,11 @@ END:
 #pragma pop
 
 u32 hkGskManifold::getTotalSizeInBytes() const {
-    u8 a = m_countA;
-    u8 b = m_countB;
-    u8 c = m_countC;
-    return ((a + b) << 1) + (c << 3) + 4;
+    const u8* p = &m_countA;
+    int a = *p++;
+    int b = *p++;
+    int c = *p;
+    return (a + b) * 2 + c * 8 + 4;
 }
 
 

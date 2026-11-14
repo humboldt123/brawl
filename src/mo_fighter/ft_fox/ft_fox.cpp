@@ -515,12 +515,14 @@ bool ftFox::activeArticle1(wnFoxIllusion* weapon, soModuleAccesser* acc) {
 
 // The Landmaster of the Final Smash: it starts at the fighter and takes it along (link 6).
 bool ftFox::activeArticle2(wnFoxLandMaster* weapon, soModuleAccesser* acc) {
+    float lr;
+    float scale;
     soTeamModule& teamModule = acc->getTeamModule();
     soResourceModule& resources = acc->getResourceModule();
     soPostureModule& posture = acc->getPostureModule();
     int founderTaskId = acc->getStageObject().m_taskId;
-    float scale = soValueAccesser::getConstantFloat(acc, 0xdb2, 0);
-    float lr = posture.getLr();
+    scale = soValueAccesser::getConstantFloat(acc, 0xdb2, 0);
+    lr = posture.getLr();
     Vec3f pos = posture.getPos();
     int team = teamModule.getTeam()->getNo();
     int resourceId = dynamic_cast<ftResourceIdAccesserImpl&>(*resources.getResourceIdAccesser()).getFinalResId();

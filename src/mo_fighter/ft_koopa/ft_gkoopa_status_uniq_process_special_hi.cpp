@@ -21,6 +21,10 @@
 // HYPOTHESIS: the shared helpers of Giga Bowser's up special (emitted at the start of this unit, called only by its status
 // processes): the first clears the update flag (0x80) of the four kinetic energies, the second resets the work state
 // and, in the air, restarts the gravity and controller energies from the special hi parameters.
+static inline void setControllerVec(Vec2f& dst, const Vec2f& src) {
+    dst = src;
+}
+
 extern "C" void fn_102_156C0(soModuleAccesser* moduleAccesser) {
     moduleAccesser->getKineticModule().getEnergy(0)->disable();
     moduleAccesser->getKineticModule().getEnergy(1)->disable();
@@ -54,8 +58,8 @@ extern "C" void fn_102_15788(soModuleAccesser* moduleAccesser) {
         ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
         controller.resetEnergy(0, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
         controller.m_accelMul = param->m_airAccelMul;
-        controller.m_speedTarget = Vec2f(param->m_airSpeedX, controller.m_speedTarget.m_y);
-        controller.m_speedLimit = Vec2f(param->m_airSpeedX, controller.m_speedLimit.m_y);
+        setControllerVec(controller.m_speedTarget, Vec2f(param->m_airSpeedX, controller.m_speedTarget.m_y));
+        setControllerVec(controller.m_speedLimit, Vec2f(param->m_airSpeedX, controller.m_speedLimit.m_y));
         controller.enable();
     }
 }
@@ -93,8 +97,8 @@ void ftGKoopaStatusUniqProcessSpecialHiG::initStatus(soModuleAccesser* moduleAcc
         ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
         controller.resetEnergy(0, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
         controller.m_accelMul = param->m_groundAccelMul;
-        controller.m_speedTarget = Vec2f(param->m_groundSpeedX, controller.m_speedTarget.m_y);
-        controller.m_speedLimit = Vec2f(param->m_groundSpeedX, controller.m_speedLimit.m_y);
+        setControllerVec(controller.m_speedTarget, Vec2f(param->m_groundSpeedX, controller.m_speedTarget.m_y));
+        setControllerVec(controller.m_speedLimit, Vec2f(param->m_groundSpeedX, controller.m_speedLimit.m_y));
         controller.enable();
     } else {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
@@ -181,8 +185,8 @@ void ftGKoopaStatusUniqProcessSpecialHiA::initStatus(soModuleAccesser* moduleAcc
         ftKineticEnergyController& controller = dynamic_cast<ftKineticEnergyController&>(*moduleAccesser->getKineticModule().getEnergy(2));
         controller.resetEnergy(0, &Vec2f(speed.m_x, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
         controller.m_accelMul = param->m_airAccelMul;
-        controller.m_speedTarget = Vec2f(param->m_airSpeedX, controller.m_speedTarget.m_y);
-        controller.m_speedLimit = Vec2f(param->m_airSpeedX, controller.m_speedLimit.m_y);
+        setControllerVec(controller.m_speedTarget, Vec2f(param->m_airSpeedX, controller.m_speedTarget.m_y));
+        setControllerVec(controller.m_speedLimit, Vec2f(param->m_airSpeedX, controller.m_speedLimit.m_y));
         controller.enable();
     } else {
         moduleAccesser->getKineticModule().changeKinetic(0, moduleAccesser);

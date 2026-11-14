@@ -160,6 +160,7 @@ muButtonTask* muButtonTask::create(scButton* scene, Heaps::HeapType heap) {
 }
 
 muButtonTask::~muButtonTask() {
+    int i;
     if (m_work != NULL) {
         m_work->m_scene->removeAllObj();
         for (int i = 0; i < GroupNum; i++) {
@@ -171,7 +172,7 @@ muButtonTask::~muButtonTask() {
                 m_work->m_groups[i]->Destroy();
             }
         }
-        for (int i = 0; i < ObjNum; i++) {
+        for (i = 0; i < ObjNum; i++) {
             delete m_work->m_objs[i];
         }
         if (m_work->m_resButton.ptr() != NULL) {
@@ -188,7 +189,7 @@ muButtonTask::~muButtonTask() {
         }
         gfHeapManager::free(m_work);
         m_work = NULL;
-        for (int i = 0; i < 3; i++) {
+        for (i = 0; i < 3; i++) {
             m_handles[i].cancelRequest();
         }
     }
@@ -449,16 +450,21 @@ void muButtonTask::createModel(nw4r::g3d::ResFile* resFile) {
 
 // Makes the objects of a list of models; each one starts on its first animation ("<node>__0"), stopped.
 void muButtonTask::createObjResFile(const ObjData* data, int count, nw4r::g3d::ResFile* resFile) {
-    for (int i = 0; i < count; i++) {
-        int num = 1;
-        if (data[i].m_first < data[i].m_last) {
-            num = data[i].m_last - data[i].m_first;
+    int num;
+    int i;
+    int j;
+    const ObjData* model = data;
+    MuObject* obj;
+    for (i = 0; i < count; i++, model++) {
+        num = 1;
+        if (model->m_first < model->m_last) {
+            num = model->m_last - model->m_first;
         }
-        for (int j = 0; j < num; j++) {
-            MuObject* obj = MuObject::create(resFile, data[i].m_name, data[i].m_priority, NULL, Heaps::MenuInstance);
-            m_work->m_objs[data[i].m_first + j] = obj;
+        for (j = 0; j < num; j++) {
+            obj = MuObject::create(resFile, model->m_name, model->m_priority, NULL, Heaps::MenuInstance);
+            m_work->m_objs[model->m_first + j] = obj;
             char animName[64];
-            strcpy(animName, data[i].m_name);
+            strcpy(animName, model->m_name);
             strcat(animName, "__0");
             obj->changeAnimN(animName);
             if (obj->m_modelAnim != NULL) {
@@ -883,6 +889,15 @@ static inline nw4r::g3d::ResFile takeResFile(gfFileIOHandle* handle) {
     return resFile;
 }
 
+// Binds the scene file's camera animation to the button scene.
+static inline void bindCamAnm(muButtonTask* task) {
+    nw4r::g3d::ResFile* resScene = &task->m_work->m_resScene;
+    nw4r::g3d::ResAnmScn anmScn;
+    anmScn = resScene->GetResAnmScn(0);
+    anmScn.Bind(anmScn);
+    task->m_work->m_scene->setCamAnm(&anmScn);
+}
+
 void muButtonTask::mainStepLoading(muButtonTask* task) {
     for (int i = 0; i < 3; i++) {
         if (!task->m_handles[i].isReady()) {
@@ -895,10 +910,7 @@ void muButtonTask::mainStepLoading(muButtonTask* task) {
     task->m_work->m_resButton = takeResFile(&task->m_handles[0]);
     task->createModel(&task->m_work->m_resButton);
     task->m_work->m_resScene = takeResFile(&task->m_handles[1]);
-    nw4r::g3d::ResAnmScn anmScn;
-    anmScn = task->m_work->m_resScene.GetResAnmScn(0);
-    anmScn.Bind(anmScn);
-    task->m_work->m_scene->setCamAnm(&anmScn);
+    bindCamAnm(task);
     task->m_work->m_msgData = takeBuffer(&task->m_handles[2]);
     task->initMsg(task->m_work->m_msgData);
     const Step* step = &sSteps[1];

@@ -87,6 +87,22 @@ void hkBoxMotion::applyForce(hkReal timestep, const hkVector4& force, const hkVe
     applyPointImpulse(impulse, point);
 }
 
+// Inverse inertia in world space: R * diag(invInertia) * R^T, with the diagonal scaling folded into R's columns.
+void hkBoxMotion::getInertiaInvWorld(hkMatrix3& out) const {
+    hkVector4 a;
+    a.setAll(m_inertiaAndMassInv.x);
+    hkVector4 b;
+    b.setAll(m_inertiaAndMassInv.y);
+    hkVector4 c;
+    c.setAll(m_inertiaAndMassInv.z);
+    const hkRotation& r = getTransform().m_rotation;
+    hkMatrix3 m;
+    m.m_col0.setMul4(a, r.m_col0);
+    m.m_col1.setMul4(b, r.m_col1);
+    m.m_col2.setMul4(c, r.m_col2);
+    out.setMulInverse(m, r);
+}
+
 void hkBoxMotion::applyTorque(hkReal timestep, const hkVector4& torque) {
     hkVector4 impulse;
     impulse.setMul4(timestep, torque);
@@ -94,6 +110,5 @@ void hkBoxMotion::applyTorque(hkReal timestep, const hkVector4& torque) {
 }
 
 // Not yet decompiled in this unit:
-//   0x802E4A20   268  getInertiaInvWorld   [map: hkBoxMotion__getInertiaInvWorld]
 //   0x802E4BE0   804  applyPointImpulse   [map: hkBoxMotion__applyPointImpulse]
 //   0x802E4F04   420  applyAngularImpulse   [map: hkBoxMotion__applyAngularImpulse]

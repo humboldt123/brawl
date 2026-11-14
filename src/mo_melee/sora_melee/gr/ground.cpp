@@ -448,7 +448,7 @@ void Ground::setVisibilityByClipping(int visibility, u32 sceneModelIndex) {
 }
 
 void Ground::setVisibilityAttachedEffect(u32 visibility) {
-    for (int i = 0; i < getModelCount(); i++) {
+    for (u32 i = 0; i < getModelCount(); i++) {
         if (visibility == 1) {
             addSceneRoot(m_sceneModels[i], 0);
         } else {

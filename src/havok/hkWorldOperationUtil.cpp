@@ -12,6 +12,7 @@
 #include <havok/hkWorldConstraintUtil.h>
 #include <havok/hkSimulationIsland.h>
 #include <havok/hkEntity.h>
+#include <havok/hkAction.h>
 #include <havok/hkLocalArray.h>
 #include <havok/hkBroadPhase.h>
 #include <havok/hkPhantom.h>
@@ -162,6 +163,112 @@ static void removeIslandFromArray(hkArray<hkSimulationIsland*>& islands, hkSimul
     islands.m_size--;
 }
 
+void hkWorldOperationUtil::removeEntitySI(hkWorld* world, hkEntity* entity) {
+    entity->m_world = NULL;
+    hkSimulationIsland* island = entity->m_simulationIsland;
+    island->internalRemoveEntity(entity);
+    // an emptied dynamic island goes away
+    if ((!(bool)island->isFixed() && island->m_entities.getSize() == 0) && (bool)world->m_wantSimulationIslands) {
+        removeIsland(world, island);
+        delete island;
+    }
+}
+
+// Actions of the entity that sit on the fixed island are collected (with a reference) to move them to the
+// entity's new dynamic island.
+void hkWorldOperationUtil::removeAttachedActionsFromFixedIsland(hkWorld* world, hkEntity* entity,
+                                                                hkArray<hkAction*>& actionsToBeMoved) {
+    for (int i = 0; i < entity->m_actions.getSize(); i++) {
+        hkAction* action = entity->m_actions[i];
+        if (action->m_island == world->m_fixedIsland) {
+            actionsToBeMoved.pushBack(action);
+            action->addReference();
+            world->m_fixedIsland->removeAction(action);
+            world->m_fixedIsland->m_flags.m_stateB = 1; // the fixed island's action list needs a cleanup
+            hkSimulationIsland* island = world->m_fixedIsland;
+            if (island->m_dirtyListIndex == 0xFFFF) {
+                island->m_dirtyListIndex = world->m_unk40.m_size;
+                ((hkArray<hkSimulationIsland*>&)world->m_unk40).pushBack(island);
+            }
+        }
+    }
+}
+
+// Actions whose other entities are all fixed follow the entity to the fixed island: they are collected (with a
+// reference) and taken off the entity's dynamic island.
+void hkWorldOperationUtil::removeAttachedActionsFromDynamicIsland(hkWorld* world, hkEntity* entity,
+                                                                  hkArray<hkAction*>& actionsToBeMoved) {
+    hkSimulationIsland* island = entity->m_simulationIsland;
+    hkInplaceArray<hkEntity*, 16> actionEntities;
+    for (int i = 0; i < entity->m_actions.getSize(); i++) {
+        hkAction* action = entity->m_actions[i];
+        action->getEntities(actionEntities);
+
+        hkBool moveAction = true;
+        for (int j = 0; j < actionEntities.getSize(); j++) {
+            if (!(bool)actionEntities[j]->isFixed() && actionEntities[j] != entity) {
+                moveAction = false;
+                break;
+            }
+        }
+
+        if (moveAction) {
+            actionsToBeMoved.pushBack(action);
+            action->addReference();
+            island->removeAction(action);
+            island->m_flags.m_stateB = 1; // the island's action list needs a cleanup
+            if (island->m_dirtyListIndex == 0xFFFF) {
+                island->m_dirtyListIndex = world->m_unk40.m_size;
+                ((hkArray<hkSimulationIsland*>&)world->m_unk40).pushBack(island);
+            }
+        }
+    }
+}
+
+// Processes the islands queued on the world's dirty list (last first; callbacks may add more): removed actions
+// are compacted out of the action lists, and islands whose activity changed are moved between the active and
+// inactive island arrays.
+void hkWorldOperationUtil::cleanupDirtyIslands(hkWorld* world) {
+    hkArray<hkSimulationIsland*>& dirtyIslands = (hkArray<hkSimulationIsland*>&)world->m_unk40;
+    while (dirtyIslands.getSize()) {
+        hkSimulationIsland* island = dirtyIslands[dirtyIslands.getSize() - 1];
+        dirtyIslands.popBack();
+        if (island) {
+            island->m_dirtyListIndex = 0xFFFF;
+
+            if (island->m_flags.m_stateB) {
+                hkArray<hkAction*>& actions = island->m_actions;
+                int freeSlot = -1;
+                int a = 0;
+                for (; a < actions.getSize(); a++) {
+                    if (actions[a] == NULL) {
+                        freeSlot = a;
+                        a++;
+                        break;
+                    }
+                }
+                for (; a < actions.getSize(); a++) {
+                    if (actions[a] != NULL) {
+                        actions[freeSlot++] = actions[a];
+                    }
+                }
+                if (freeSlot != -1) {
+                    actions.setSize(freeSlot);
+                }
+                island->m_flags.m_stateB = 0;
+            }
+
+            if (island->m_flags27.m_active != island->m_flags.m_stateD) {
+                if (island->m_flags27.m_active) {
+                    internalActivateIsland(world, island);
+                } else {
+                    internalDeactivateIsland(world, island);
+                }
+            }
+        }
+    }
+}
+
 #pragma dont_inline on
 void hkWorldOperationUtil::removeIslandFromDirtyList(hkWorld* world, hkSimulationIsland* island) {
     // Dirty-list index of the island: u16 at 0x22 (not recovered in hkSimulationIsland.h).
@@ -174,6 +281,9 @@ void hkWorldOperationUtil::removeIslandFromDirtyList(hkWorld* world, hkSimulatio
 }
 #pragma dont_inline reset
 
+// BYTES: not an inline candidate (removeEntitySI calls it out of line).
+#pragma push
+#pragma auto_inline off
 void hkWorldOperationUtil::removeIsland(hkWorld* world, hkSimulationIsland* island) {
     if ((island->flags26() & 3) == 0) {
         removeIslandFromArray(*(hkArray<hkSimulationIsland*>*)&world->m_unk34, island);
@@ -182,6 +292,7 @@ void hkWorldOperationUtil::removeIsland(hkWorld* world, hkSimulationIsland* isla
     }
     removeIslandFromDirtyList(world, island);
 }
+#pragma pop
 
 hkConstraintInstance* hkWorldOperationUtil::addConstraintImmediately(hkWorld* world, hkConstraintInstance* constraint, bool fireCallback) {
     world->m_lockCount++;

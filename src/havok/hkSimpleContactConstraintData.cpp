@@ -7,8 +7,8 @@
 //   0x802DDAE4    16  getRuntimeInfo
 //   0x802DDAF4     8  getSolverResults
 //   0x802DDAFC  1372  (not written: per-point solver setup with a jump table, fn_802DF08C)
-//   0x802DE058   224  collisionResponseBeginCallback (not written: modifier callback signatures)
-//   0x802DE138   248  collisionResponseEndCallback (not written)
+//   0x802DE058   224  collisionResponseBeginCallback
+//   0x802DE138   248  collisionResponseEndCallback
 //   0x802DE230     8  isValid (weak)
 //   0x802DE238     8  getType (weak)
 //   0x802DE240    28  hkConstraintData::addInstance (weak)
@@ -190,6 +190,55 @@ void hkSimpleContactConstraintData::getRuntimeInfo(hkBool wantRuntime, hkConstra
 
 hkSolverResults* hkSimpleContactConstraintData::getSolverResults(hkConstraintRuntime* runtime) const {
     return 0;
+}
+
+// Lets the modifier atoms of the constraint adjust a TOI collision response before it is solved.
+void hkSimpleContactConstraintData::collisionResponseBeginCallback(const hkContactPoint& cp,
+                                                                   hkSimpleConstraintInfoInitInput& inA,
+                                                                   hkBodyVelocity& velA,
+                                                                   hkSimpleConstraintInfoInitInput& inB,
+                                                                   hkBodyVelocity& velB) {
+    hkModifierConstraintAtom* modifier = m_constraint->m_constraintModifiers;
+    if (modifier) {
+        while (modifier->getType() >= hkConstraintAtom::TYPE_MODIFIER_SOFT_CONTACT) {
+            switch (modifier->getType()) {
+            case hkConstraintAtom::TYPE_MODIFIER_MASS_CHANGER:
+                static_cast<hkMassChangerModifierConstraintAtom*>(modifier)->collisionResponseBeginCallback(cp, inA, velA, inB, velB);
+                break;
+            case hkConstraintAtom::TYPE_MODIFIER_SOFT_CONTACT:
+                static_cast<hkSoftContactModifierConstraintAtom*>(modifier)->collisionResponseBeginCallback(cp, inA, velA, inB, velB);
+                break;
+            case hkConstraintAtom::TYPE_MODIFIER_MOVING_SURFACE:
+                static_cast<hkMovingSurfaceModifierConstraintAtom*>(modifier)->collisionResponseBeginCallback(cp, inA, velA, inB, velB);
+                break;
+            }
+            modifier = static_cast<hkModifierConstraintAtom*>(modifier->m_child);
+        }
+    }
+}
+
+void hkSimpleContactConstraintData::collisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied,
+                                                                 hkSimpleConstraintInfoInitInput& inA,
+                                                                 hkBodyVelocity& velA,
+                                                                 hkSimpleConstraintInfoInitInput& inB,
+                                                                 hkBodyVelocity& velB) {
+    hkModifierConstraintAtom* modifier = m_constraint->m_constraintModifiers;
+    if (modifier) {
+        while (modifier->getType() >= hkConstraintAtom::TYPE_MODIFIER_SOFT_CONTACT) {
+            switch (modifier->getType()) {
+            case hkConstraintAtom::TYPE_MODIFIER_MASS_CHANGER:
+                static_cast<hkMassChangerModifierConstraintAtom*>(modifier)->collisionResponseEndCallback(cp, impulseApplied, inA, velA, inB, velB);
+                break;
+            case hkConstraintAtom::TYPE_MODIFIER_SOFT_CONTACT:
+                static_cast<hkSoftContactModifierConstraintAtom*>(modifier)->collisionResponseEndCallback(cp, impulseApplied, inA, velA, inB, velB);
+                break;
+            case hkConstraintAtom::TYPE_MODIFIER_MOVING_SURFACE:
+                static_cast<hkMovingSurfaceModifierConstraintAtom*>(modifier)->collisionResponseEndCallback(cp, impulseApplied, inA, velA, inB, velB);
+                break;
+            }
+            modifier = static_cast<hkModifierConstraintAtom*>(modifier->m_child);
+        }
+    }
 }
 
 void hkConstraintData::getConstraintInfoUtil(const hkConstraintAtom* atoms, int sizeOfAllAtoms, ConstraintInfo& infoOut) {

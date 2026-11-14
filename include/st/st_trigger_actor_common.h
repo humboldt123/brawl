@@ -67,14 +67,6 @@ struct stActTriggerFrameCBData {
     };
 };
 
-// HYPOTHESIS: unk8 is initialized by a non-virtual base, before the derived vtable store.
-class stActTriggerFrameCBZero {
-public:
-    u32 unk8;
-
-    stActTriggerFrameCBZero() : unk8(0) { }
-};
-
 class stActTriggerFrameCB : public stTriggerCB, public stActTriggerFrameCBZero {
 public:
     float unkC;

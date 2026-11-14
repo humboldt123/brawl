@@ -42,6 +42,7 @@ struct hkEntity : hkWorldObject {
     u32 m_uid;                              // 0x1E4
     u8 m_padE8[0x8];                        // 0x1E8
 
+    hkEntity(hkShape* shape);
     hkEntity(hkFinishLoadedObjectFlag flag);
     // Entities (and hkRigidBody) are freed as class 0x2B (the deleting destructors of both).
     HK_DECLARE_REF_ALLOCATOR(0x2B)
@@ -72,7 +73,7 @@ struct hkEntity : hkWorldObject {
     void setDeactivator(hkEntityDeactivator* deactivator);
     void addEntityListener(hkEntityListener* listener);
     void addCollisionListener(hkCollisionListener* listener);
-    u32 isActive() const;
+    hkBool isActive() const;
     void activate();
     void deactivate();
     int getNumConstraints() const;

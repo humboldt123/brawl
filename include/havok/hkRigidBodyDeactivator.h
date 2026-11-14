@@ -29,9 +29,6 @@ struct hkRigidBodyDeactivator : hkEntityDeactivator {
     // BYTES: inline; ~hkSpatialRigidBodyDeactivator has no call to it (weak copy kept in hkFakeRigidBodyDeactivator.o)
     virtual ~hkRigidBodyDeactivator() {} // 0x08
 
-    virtual int getRigidBodyDeactivatorType() const = 0;         // 0x0C
-    // The spatial deactivator reads the entity's motion state and stores new reference samples (not const).
-    // HYPOTHESIS: a non-const entity (the sample copies keep their load/store pairs, so the source may alias).
-    virtual hkBool shouldDeactivateHighFrequency(hkEntity* entity) = 0; // 0x10
-    virtual hkBool shouldDeactivateLowFrequency(hkEntity* entity) = 0;  // 0x14
+    // shouldDeactivateHighFrequency / LowFrequency                       0x10 / 0x14 (hkEntityDeactivator)
+    virtual int getRigidBodyDeactivatorType() const = 0;                // 0x18
 };

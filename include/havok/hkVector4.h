@@ -58,6 +58,12 @@ struct hkVector4 {
     // Inline helpers in the Havok style (HYPOTHESIS: semantics from the Havok names, not asm-verified yet).
     // Havok's FPU form: one chained assignment, which stores w first.
     void setZero4() { x = y = z = w = 0.0f; }
+    void setXYZ0(const hkVector4& a) {
+        x = a.x;
+        y = a.y;
+        z = a.z;
+        w = 0.0f;
+    }
     // Lane order x..w through the double fabs (fabs + frsp), like its weak copy in hkSimpleContactConstraintInfo.
     void setAbs4(const hkVector4& a) {
         x = (hkReal)fabs(a.x);

@@ -103,7 +103,7 @@ struct Ctx {
     Obj* self;
     float h;
 };
-extern "C" void fn_802E3F48(void*, Ctx*);
+// hkEntityCallbackUtil::fireContactPointAddedInternal
 
 // TODO: cleanup (shape from jj-link/brawl fn_802D7A54)
 extern "C" int fn_802D7A54(Obj* self, int a, int b, int, int d, int e, float* p, Out* out, float h) {
@@ -123,8 +123,8 @@ extern "C" int fn_802D7A54(Obj* self, int a, int b, int, int d, int e, float* p,
     x.g = 0;
     x.h = h;
     hkWorldCallbackUtil::fireContactPointAdded((hkWorld*)(self->a), (hkWorldCallbackUtil::ContactPointEvent*)(&x));
-    if (self->b->v != 0) fn_802E3F48(self->b, &x);
-    if (self->c->v != 0) fn_802E3F48(self->c, &x);
+    if (self->b->v != 0) hkEntityCallbackUtil::fireContactPointAddedInternal((hkEntity*)self->b, (hkContactPointAddedEvent*)&x);
+    if (self->c->v != 0) hkEntityCallbackUtil::fireContactPointAddedInternal((hkEntity*)self->c, (hkContactPointAddedEvent*)&x);
     *p = x.f;
     return x.g;
 }

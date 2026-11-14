@@ -42,11 +42,7 @@ void wnGameWatchPanel::activate(int founderTaskId, int resourceId, int team,
         u32 mdlResId = resourceModule.getResourceIdAccesser()->getMdlResId();
         nw4r::g3d::ResFile resource(resourceModule.getFile(mdlResId, (ARCNodeType)4, 0));
         soHeapModule& heapModule = m_moduleAccesser->getHeapModule();
-        nw4r::g3d::ResMdl modelResourceCopy =
-            m_moduleAccesser->getModelModule().getScnMdl()->m_resMdl;
-        nw4r::g3d::ResMdl modelResource = modelResourceCopy;
-        nw4r::g3d::ResFile resourceCopy = resource;
-        m_animObj.create(resourceCopy, modelResource,
+        m_animObj.create(nw4r::g3d::ResFile(resource), m_moduleAccesser->getModelModule().getScnMdl()->GetResMdl(),
                          heapModule.getNWMotionInstanceHeap(), 0);
         m_animObj.set(m_moduleAccesser->getModelModule().getScnMdl());
         m_animObj.setFrame(frame);

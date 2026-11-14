@@ -136,6 +136,6 @@ void hkMotion::getMotionStateAndVelocities(hkMotion* out) const {
 
 #pragma scheduling reset
 
-void hkMotion::setDeactivationClass(u16 deactivationClass) {
+void hkMotion::setDeactivationClass(int deactivationClass) {
     m_motionState.m_deactivationClass = deactivationClass;
 }

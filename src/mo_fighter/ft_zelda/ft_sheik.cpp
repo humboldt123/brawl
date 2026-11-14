@@ -286,13 +286,14 @@ void ftSheik::setupChangeSucceedWork(void* work) {
 // The chain starts from the fighter with its resource, team and facing, and is linked to the fighter (link 6).
 // HYPOTHESIS: the last argument tells the chain it was thrown from the air status 0x10c.
 bool ftSheik::activeArticle(wnSheikIronWire* weapon, soModuleAccesser* acc) {
+    int founderTaskId;
     bool fromAir = acc->getStatusModule().getStatusKind() == 0x10c;
     soTeamModule& teams = acc->getTeamModule();
     soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = acc->getStageObject().m_taskId;
+    founderTaskId = acc->getStageObject().m_taskId;
     float lr = acc->getPostureModule().getLr();
     int team = teams.getTeam()->getNo();
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlArchiveId(), team, lr, fromAir);
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), team, lr, fromAir);
     acc->getLinkModule().link(6, weapon->m_taskId);
     return true;
 }

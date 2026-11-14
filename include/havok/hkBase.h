@@ -29,8 +29,8 @@ struct hkEnum {
 
     operator ENUM() const { return (ENUM)m_storage; }
     void operator=(ENUM e) { m_storage = (STORAGE)e; }
-    bool operator==(ENUM e) const { return m_storage == (STORAGE)e; }
-    bool operator!=(ENUM e) const { return m_storage != (STORAGE)e; }
+    hkBool operator==(ENUM e) const { return m_storage == (STORAGE)e; }
+    hkBool operator!=(ENUM e) const { return m_storage != (STORAGE)e; }
 };
 
 // Passed to the load-time ("finish loaded object") constructors; read and written as a 32-bit word.

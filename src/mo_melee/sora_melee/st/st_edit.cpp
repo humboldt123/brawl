@@ -303,24 +303,29 @@ void stEdit::deleteStageBlocks() {
     m_seCount = 0;
 }
 
-stEdit::~stEdit() {
-    u32 count = m_blockCount;
+// The block and sound cleanup of the destructor (an inline copy, so its locals get their own registers).
+static inline void deleteEditBlocks(stEdit* st) {
+    u32 count = st->m_blockCount;
     stEditBlock* block;
     int i;
     if (count != 0) {
-        releaseFallBlocks();
-        releaseLinkData();
-        block = m_blocks;
+        st->releaseFallBlocks();
+        st->releaseLinkData();
+        block = st->m_blocks;
         for (i = 0; i < count; i++, block++) {
-            deleteBlock(block);
+            st->deleteBlock(block);
         }
-        m_blockCount = 0;
-        fn_27_232C18(m_triggerMng);
+        st->m_blockCount = 0;
+        fn_27_232C18(st->m_triggerMng);
         stEditAreaManager()->eraseAll();
     }
-    for (i = 0; i < m_seCount; i++) {
-        m_snd[i].stopSE(m_seHandle[i], 0);
+    for (i = 0; i < st->m_seCount; i++) {
+        st->m_snd[i].stopSE(st->m_seHandle[i], 0);
     }
+}
+
+stEdit::~stEdit() {
+    deleteEditBlocks(this);
     m_seCount = 0;
     releaseItemPos();
     releaseFallBlocks();
@@ -2015,10 +2020,9 @@ void stEdit::loadStageEditData() {
         m_height = sGridSize[m_size][1];
         createStageBlocks(save->m_blockCount, save->m_blocks);
         setItemPosition();
-        stEditSetStartPos(m_startPos[0], save->m_startPos[0][0], save->m_startPos[0][1]);
-        stEditSetStartPos(m_startPos[1], save->m_startPos[1][0], save->m_startPos[1][1]);
-        stEditSetStartPos(m_startPos[2], save->m_startPos[2][0], save->m_startPos[2][1]);
-        stEditSetStartPos(m_startPos[3], save->m_startPos[3][0], save->m_startPos[3][1]);
+        for (int i = 0; i < 4; i++) {
+            stEditSetStartPos(m_startPos[i], save->m_startPos[i][0], save->m_startPos[i][1]);
+        }
         bool pokeTrainer = isPokemonTrainer();
         if ((m_flags & 1) == 0) {
             static_cast<grMadein*>(getGround(0))->startEntityAutoLoop();

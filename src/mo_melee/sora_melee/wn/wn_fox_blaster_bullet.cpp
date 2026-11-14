@@ -134,7 +134,7 @@ void wnFoxBlasterBullet::processUpdate() {
     }
 
     Vec2f speed = m_moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
-    float speedMagnitude = speed.length();
+    float speedMagnitude = Vec2f(speed).length();
     float maximum = soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFA0, 0);
     float current = m_moduleAccesser->getWorkManageModule().getFloat(0x11000001);
     float next = current + speedMagnitude / soValueAccesser::getConstantFloat(m_moduleAccesser, 0xFA1, 0);

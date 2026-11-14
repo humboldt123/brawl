@@ -1543,16 +1543,21 @@ inline void muNameTask::createKeyModels(nw4r::g3d::ResFile* resFile, int priorit
 }
 
 void muNameTask::createObjResFile(const muNameModel* models, int count, nw4r::g3d::ResFile* resFile, bool suffix, int priority) {
-    for (int i = 0; i < count; i++, models++) {
-        int n = 1;
-        if (models->m_start < models->m_end) {
-            n = models->m_end - models->m_start;
+    int n;
+    int i;
+    int j;
+    const muNameModel* model = models;
+    MuObject* object;
+    for (i = 0; i < count; i++, model++) {
+        n = 1;
+        if (model->m_start < model->m_end) {
+            n = model->m_end - model->m_start;
         }
-        for (int j = 0; j < n; j++) {
-            MuObject* object = MuObject::create(resFile, models->m_name, models->m_priority + priority, NULL, Heaps::MenuInstance);
-            m_objects[models->m_start + j] = object;
+        for (j = 0; j < n; j++) {
+            object = MuObject::create(resFile, model->m_name, model->m_priority + priority, NULL, Heaps::MenuInstance);
+            m_objects[model->m_start + j] = object;
             char animName[0x40];
-            strcpy(animName, models->m_name);
+            strcpy(animName, model->m_name);
             if (suffix) {
                 strcat(animName, "__0");
             }
@@ -1638,9 +1643,10 @@ static int compareNameSlots(const void* a, const void* b) {
 // Makes the list of the names: the line of the new name and then a line for each name that was saved (a blank line is added when
 // the list needs to scroll).
 void muNameTask::makeNameList() {
-    m_slots[0].m_nameNo = -1;
+    muNameSlot* slot = m_slots;
+    slot->m_nameNo = -1;
     m_slotCount = 1;
-    muNameSlot* slot = &m_slots[1];
+    slot++;
     int count = g_GameGlobal->getNumName();
     for (int i = 0; i < count; i++, slot++) {
         slot->m_nameNo = i;
@@ -1657,9 +1663,9 @@ void muNameTask::makeNameList() {
 
 // Takes the line of the name with the number out of the list.
 bool muNameTask::deleteNameID(int nameNo) {
-    muNameSlot* slot = m_slots;
-    for (int i = 0; i < m_slotCount; i++, slot++) {
-        int id = static_cast<u16>(slot->m_nameNo + 2) > 1 ? static_cast<int>(slot->m_nameNo) : -1;
+    muNameSlot* slots = m_slots;
+    for (int i = 0; i < m_slotCount; i++) {
+        int id = static_cast<u16>(slots[i].m_nameNo + 2) > 1 ? static_cast<int>(slots[i].m_nameNo) : -1;
         if (nameNo == id) {
             deleteName(i);
             updateAll();

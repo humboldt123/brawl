@@ -17,7 +17,6 @@
 #include <st_village/gr_village_anim.h>
 
 // sora_melee's float (HYPOTHESIS: the length of a frame in the animation rate; unnamed)
-extern "C" float lbl_27_data_547E0;
 
 // MATCH-ONLY: the owner of a fighter as the stage calls it: its virtual part starts at +0xC, and the functions get the
 // object pointer itself (the slots are those of ftOwner).
@@ -98,7 +97,10 @@ grVillageGuest::~grVillageGuest() {
 }
 
 void grVillageGuest::processAnim() {
-    float rate = lbl_27_data_547E0 * m_motionRatio * g_GameGlobal->m_stageData->m_motionRatio * g_GameGlobal->m_stageData->m_motionSubRatio;
+    float rate = g_stGameFrame.m_frameDelta;
+    rate = m_motionRatio * rate;
+    rate *= g_GameGlobal->m_stageData->m_motionRatio;
+    rate *= g_GameGlobal->m_stageData->m_motionSubRatio;
     if (m_isPauseAnim == 1) {
         rate = 0.0f;
     }

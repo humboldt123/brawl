@@ -1987,12 +1987,7 @@ bool BaseItem::onReflect() {
         int owner = m_moduleAccesser->getReflectModule().getTaskId();
         v->team.setTeamOwnerId(owner);
         linkTeamOwner(this, owner);
-        float mirrorX = -1.0f;
-        float mirrorY = 1.0f;
-        Vec3f mirror;
-        mirror.m_y = mirrorY;
-        mirror.m_x = mirrorX;
-        mirror.m_z = mirrorY;
+        Vec3f mirror(-1.0f, 1.0f, 1.0f);
         m_moduleAccesser->getKineticModule().mulSpeed(&mirror, soKineticEnergy::AttributeFlag(1));
         m_moduleAccesser->getKineticModule().mulAccel(&mirror, soKineticEnergy::AttributeFlag(1));
         if ((v->intWork.at(8) & 0x4000) != 0 &&

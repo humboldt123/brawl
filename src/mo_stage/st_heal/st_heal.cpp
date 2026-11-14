@@ -176,7 +176,7 @@ void stHeal::update(float deltaFrame) {
                     if (m_mainGround->getNodeMatrix(&mtx, 0, m_heartNode[i])) {
                         BaseItem* item = itManager::getInstance()->createItem(Item_Heart, 1);
                         if (item != NULL) {
-                            Vec3f pos = mtx.getPosition();
+                            Vec3f pos = mtx.getTranslation();
                             pos.m_y += 10.0f;
                             item->warp(&pos);
                             item->setVanishMode(false);
@@ -192,7 +192,7 @@ void stHeal::update(float deltaFrame) {
                 sorted[i].m_index = i;
                 Matrix mtx(true);
                 if (m_mainGround->getNodeMatrix(&mtx, 0, m_figureNode[i])) {
-                    Vec3f pos = mtx.getPosition();
+                    Vec3f pos = mtx.getTranslation();
                     sorted[i].m_value = (int)(100.0f * pos.m_z);
                 } else {
                     sorted[i].m_value = -10000;
@@ -209,7 +209,7 @@ void stHeal::update(float deltaFrame) {
                     BaseItem* item = itManager::getInstance()->createItem(Item_Figure, figureId);
                     if (item != NULL) {
                         item->action(1, 1.0f);
-                        Vec3f pos = mtx.getPosition();
+                        Vec3f pos = mtx.getTranslation();
                         OSReport("PutCorpsFigure%02d:%02d -> %02d  Pos(%f,%f,%f)\n", i, corps->m_playersInitData[i].m_characterKind,
                                  (u16)stOperatorRule::exchangeGmCharacterKind2FigureId((gmCharacterKind)corps->m_playersInitData[i].m_characterKind),
                                  pos.m_x, pos.m_y, pos.m_z);
@@ -225,7 +225,7 @@ void stHeal::update(float deltaFrame) {
                 if (m_mainGround->getNodeMatrix(&mtx, 0, m_itemFigureNode)) {
                     BaseItem* item = itManager::getInstance()->createItem(Item_Figure, corps->m_extraFigureId);
                     if (item != NULL) {
-                        Vec3f pos = mtx.getPosition();
+                        Vec3f pos = mtx.getTranslation();
                         pos.m_y += 10.0f;
                         item->warp(&pos);
                         item->setVanishMode(false);
@@ -234,7 +234,7 @@ void stHeal::update(float deltaFrame) {
             }
             Matrix warpMtx(true);
             m_mainGround->getNodeMatrix(&warpMtx, 0, m_warpNode);
-            Vec3f warpPos = warpMtx.getPosition();
+            Vec3f warpPos = warpMtx.getTranslation();
             m_warpZone->setPos(&warpPos);
             goto checkWarp;
         }
@@ -251,13 +251,13 @@ void stHeal::update(float deltaFrame) {
                     }
                 }
             }
-            m_isWarped |= m_warpZone->m_playerChecks[0];
+            m_isWarped = m_warpZone->m_playerChecks[0] | m_isWarped;
             m_isWarped |= m_warpZone->m_playerChecks[1];
         checkWarp:
             if (!m_isWarped) {
                 goto notWarped;
             }
-            g_sndSystem->playSE(snd_se_AllStar_Heal_Warp, 0, 0x10000, 0, -1);
+            g_sndSystem->playSE(snd_se_AllStar_Heal_Warp, 0x10000, 0, 0, -1);
             GXColor black;
             black.b = 0;
             black.g = 0;

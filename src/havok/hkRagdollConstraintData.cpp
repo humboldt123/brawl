@@ -56,61 +56,15 @@ void hkRagdollConstraintData::getRuntimeInfo(void* unusedA, hkConstraintRuntimeI
     out->unk00 = 0x70;
 }
 
+#pragma scheduling off
 void hkRagdollConstraintData::getConstraintFrameA(hkMatrix3* out) const {
-    float t;
-    t = m_constraintFrameA.m_col0.x;
-    out->m_col0.x = t;
-    t = m_constraintFrameA.m_col0.y;
-    out->m_col0.y = t;
-    t = m_constraintFrameA.m_col0.z;
-    out->m_col0.z = t;
-    t = m_constraintFrameA.m_col0.w;
-    out->m_col0.w = t;
-    t = m_constraintFrameA.m_col1.x;
-    out->m_col1.x = t;
-    t = m_constraintFrameA.m_col1.y;
-    out->m_col1.y = t;
-    t = m_constraintFrameA.m_col1.z;
-    out->m_col1.z = t;
-    t = m_constraintFrameA.m_col1.w;
-    out->m_col1.w = t;
-    t = m_constraintFrameA.m_col2.x;
-    out->m_col2.x = t;
-    t = m_constraintFrameA.m_col2.y;
-    out->m_col2.y = t;
-    t = m_constraintFrameA.m_col2.z;
-    out->m_col2.z = t;
-    t = m_constraintFrameA.m_col2.w;
-    out->m_col2.w = t;
+    *out = m_constraintFrameA;
 }
 
 void hkRagdollConstraintData::getConstraintFrameB(hkMatrix3* out) const {
-    float t;
-    t = m_constraintFrameB.m_col0.x;
-    out->m_col0.x = t;
-    t = m_constraintFrameB.m_col0.y;
-    out->m_col0.y = t;
-    t = m_constraintFrameB.m_col0.z;
-    out->m_col0.z = t;
-    t = m_constraintFrameB.m_col0.w;
-    out->m_col0.w = t;
-    t = m_constraintFrameB.m_col1.x;
-    out->m_col1.x = t;
-    t = m_constraintFrameB.m_col1.y;
-    out->m_col1.y = t;
-    t = m_constraintFrameB.m_col1.z;
-    out->m_col1.z = t;
-    t = m_constraintFrameB.m_col1.w;
-    out->m_col1.w = t;
-    t = m_constraintFrameB.m_col2.x;
-    out->m_col2.x = t;
-    t = m_constraintFrameB.m_col2.y;
-    out->m_col2.y = t;
-    t = m_constraintFrameB.m_col2.z;
-    out->m_col2.z = t;
-    t = m_constraintFrameB.m_col2.w;
-    out->m_col2.w = t;
+    *out = m_constraintFrameB;
 }
+#pragma scheduling reset
 
 // HYPOTHESIS: validity chain. Each test runs only when the previous one passed; the tolerances are unknown.
 hkBool hkRagdollConstraintData::isValid() const {

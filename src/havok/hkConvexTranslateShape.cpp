@@ -125,11 +125,12 @@ void hkConvexTranslateShape::getFirstVertex(hkVector4& out) const {
     out.w += m_translation.w;
 }
 
+#pragma scheduling off
 void hkConvexTranslateShape::getCollisionSpheresInfo(hkCollisionSpheresInfo* out) const {
-    hkCollisionSpheresInfo* info = out;
-    static_cast<hkSphereRepShape*>(m_childShape.m_childShape)->getCollisionSpheresInfo(info);
-    info->m_flag = 1;
+    static_cast<hkSphereRepShape*>(m_childShape.m_childShape)->getCollisionSpheresInfo(out);
+    out->m_flag = 1;
 }
+#pragma scheduling reset
 
 hkVector4* hkConvexTranslateShape::getCollisionSpheres(hkVector4* out) const {
     hkVector4* spheres = static_cast<hkSphereRepShape*>(m_childShape.m_childShape)->getCollisionSpheres(out);

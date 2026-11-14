@@ -87,16 +87,21 @@ muWifiTimeResultTask::~muWifiTimeResultTask() {
 }
 
 void muWifiTimeResultTask::createObjResFile(const muWifiTimeResultModel* models, int count, nw4r::g3d::ResFile* resFile, int priority) {
-    for (int i = 0; i < count; i++, models++) {
-        int num = 1;
-        if (models->m_start < models->m_end) {
-            num = models->m_end - models->m_start;
+    int num;
+    int i;
+    int j;
+    const muWifiTimeResultModel* model = models;
+    MuObject* object;
+    for (i = 0; i < count; i++, model++) {
+        num = 1;
+        if (model->m_start < model->m_end) {
+            num = model->m_end - model->m_start;
         }
-        for (int j = 0; j < num; j++) {
-            MuObject* object = MuObject::create(resFile, models->m_name, models->m_priority + priority, NULL, Heaps::MenuResource);
-            (&m_object)[models->m_start + j] = object;
+        for (j = 0; j < num; j++) {
+            object = MuObject::create(resFile, model->m_name, model->m_priority + priority, NULL, Heaps::MenuResource);
+            (&m_object)[model->m_start + j] = object;
             char animName[0x40];
-            strcpy(animName, models->m_name);
+            strcpy(animName, model->m_name);
             strcat(animName, "__0");
             object->changeAnimN(animName);
             if (object->m_modelAnim != NULL) {

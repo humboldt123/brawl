@@ -11,20 +11,14 @@ public:
     virtual void exitStatus(soModuleAccesser* moduleAccesser, int);
 };
 
-// The native steering table is zero, minimum stick, maximum stick.
-static const float kRushStickTable[3] = { 0.0f, -1.0f, 1.0f };
-
-// BYTES: the native steering loop keeps one address for its clamp table.
-#pragma opt_propagation off
 void ftMetaknightStatusUniqProcessSpecialSRush::execStatus(soModuleAccesser* moduleAccesser) {
-    const float* table = &kRushStickTable[0];
-    if (moduleAccesser->getControllerModule().getStickY() != table[0]) {
+    if (moduleAccesser->getControllerModule().getStickY() != 0.0f) {
         float stick = moduleAccesser->getControllerModule().getStickY();
         float clamped = stick;
-        if (stick < table[1]) {
-            clamped = table[1];
-        } else if (stick > table[2]) {
-            clamped = table[2];
+        if (stick < -1.0f) {
+            clamped = -1.0f;
+        } else if (stick > 1.0f) {
+            clamped = 1.0f;
         }
         Vec3f rotation = moduleAccesser->getPostureModule().getRot(0);
         rotation.m_x += -clamped * soValueAccesser::getConstantFloat(moduleAccesser, 0xfb4, 0);
@@ -32,10 +26,9 @@ void ftMetaknightStatusUniqProcessSpecialSRush::execStatus(soModuleAccesser* mod
     }
 }
 
-#pragma opt_propagation reset
 void ftMetaknightStatusUniqProcessSpecialSRush::exitStatus(soModuleAccesser* moduleAccesser, int nextStatus) {
     if (nextStatus != 0x11a) {
-        Vec3f zero(kRushStickTable[0], kRushStickTable[0], kRushStickTable[0]);
+        Vec3f zero(0.0f, 0.0f, 0.0f);
         moduleAccesser->getPostureModule().setRot(&zero, 0);
         moduleAccesser->getPostureModule().updateRotYLr();
     } else if (moduleAccesser->getGroundModule().attachGround(0) == true) {

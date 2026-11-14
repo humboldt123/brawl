@@ -957,7 +957,8 @@ bool ftPopo::activeArticle2(wnPopoRubber* weapon, soModuleAccesser* acc) {
 bool ftPopo::activeArticle(wnPopoBlizzard* weapon, soModuleAccesser* acc) {
     Vec3f position = acc->getModelModule().getNodeGlobalPosition(0x27, false);
     float lr = acc->getPostureModule().getLr() < 0.0f ? -1 : 1;
-    position.m_x += soValueAccesser::getConstantFloat(acc, 0xfa4, 0) * lr;
+    float offsetX = soValueAccesser::getConstantFloat(acc, 0xfa4, 0);
+    position.m_x += offsetX * lr;
     position.m_y += soValueAccesser::getConstantFloat(acc, 0xfa5, 0);
     position.m_z = 0.0f;
     soTeamModule& teamModule = acc->getTeamModule();

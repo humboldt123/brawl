@@ -730,10 +730,12 @@ void aiAct::act_m_stroll(Vec2f* stick, ipPadButton* button) {
     if (m_stepFrame > 24 && aiMgr::getMadeinAiData(false) == NULL) {
         float dist;
         m_input->m_target.m_idx = m_input->get_near_target(&dist, 0);
-        // BYTES: the range in a local (compared in place, it is loaded after the distance).
-        float range = m_input->m_par.m_workF14[1];
-        if (m_input->m_target.m_idx != m_input->m_chrIdx.m_idx && dist < range) {
-            set_id(0);
+        if (m_input->m_target.m_idx != m_input->m_chrIdx.m_idx) {
+            // BYTES: the range is read inside the index check, before the distance is loaded.
+            float range = m_input->m_par.m_workF14[1];
+            if (dist < range) {
+                set_id(0);
+            }
         }
     }
 }

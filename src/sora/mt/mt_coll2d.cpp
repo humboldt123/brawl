@@ -19,10 +19,7 @@ static inline float vecDot(const Vec2f& a, const Vec2f& b) {
 
 // The normal of a segment (its direction turned 90 degrees to the left).
 static inline Vec2f segNormal(const clSegment2D& segment) {
-    Vec2f res;
-    res.m_x = -(segment.m_p1Pos - segment.m_p0Pos).m_y;
-    res.m_y = (segment.m_p1Pos - segment.m_p0Pos).m_x;
-    return res;
+    return Vec2f(-(segment.m_p1Pos - segment.m_p0Pos).m_y, (segment.m_p1Pos - segment.m_p0Pos).m_x);
 }
 
 // The vector pointing the other way.
