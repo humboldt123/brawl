@@ -1,4 +1,4 @@
-#define MT_VEC2F_ASSIGN_NOINLINE
+#define FT_KINETIC_MEDIATOR_POST_UPDATE // the mediator hands postUpdateEnergy to the transactor
 #define MT_VEC3F_CTOR_NOINLINE
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/captain/ft_captain.h>
@@ -89,9 +89,10 @@ void ftCaptainKineticTransactor::changeKineticSub1(bool*, void* pools, Vec2f* sp
     gravity.m_gravity = -soValueAccesser::getConstantFloat(acc, 0xfb2, 0);
 }
 
-// Gravity is not updated in mode 0x64.
+// The controller is not updated here in mode 0x64: postUpdateEnergy drives it once the total speed is known.
 template <>
-void ftCaptainKineticTransactor::updateEnergy<ftKineticEnergyGravity>(ftKineticEnergyGravity* energy, soModuleAccesser* acc) {
+void ftCaptainKineticTransactor::updateEnergy<ftKineticEnergyController>(ftKineticEnergyController* energy,
+                                                                         soModuleAccesser* acc) {
     switch (acc->getKineticModule().getKineticType()) {
     case 0x64:
         break;
@@ -101,10 +102,12 @@ void ftCaptainKineticTransactor::updateEnergy<ftKineticEnergyGravity>(ftKineticE
     }
 }
 
-// MATCH-ONLY: this copy of the total speed is inlined as float stores while the unit's other Vec2f assignments are calls.
-static inline void setVec2f(Vec2f& dst, const Vec2f& src) {
-    dst.m_x = src.m_x;
-    dst.m_y = src.m_y;
+// HYPOTHESIS: the pull-back test takes the magnitude through a small by-value helper (the same idiom as the task id
+// accessors of this fighter); with it the zero of the pull vector and the magnitude take the original's float
+// registers. The first test of the function reads fabs directly (the helper there changes its registers).
+static inline float absSpeed(float speed) {
+    float magnitude = (float)fabs(speed);
+    return magnitude;
 }
 
 // In mode 0x64 the controller stops accelerating once the total horizontal speed is past its limit; otherwise its
@@ -133,10 +136,10 @@ void ftCaptainKineticTransactor::postUpdateEnergy(void*, soModuleAccesser* acc) 
         controller.m_accelMul = accelMul;
         controller.updateEnergy(acc);
     }
-    setVec2f(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
+    speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
     Vec2f pull(0.0f, 0.0f);
-    if ((float)fabs(speed.m_x) > limit.m_x) {
+    if (absSpeed(speed.m_x) > limit.m_x) {
         pull.m_x = (speed.m_x > 0.0f ? limit.m_x : -limit.m_x) - speed.m_x;
     }
     stop.m_speed = pull;

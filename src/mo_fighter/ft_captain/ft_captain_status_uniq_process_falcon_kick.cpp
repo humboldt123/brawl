@@ -1,3 +1,4 @@
+#include <ft/captain/ft_captain.h>
 #include <ft/captain/ft_captain_status_uniq_process_falcon_kick.h>
 #include <ft/ft_kinetic_energy.h>
 #include <so/status/so_status_module_impl.h>
@@ -21,8 +22,6 @@ void ftCaptainStatusUniqProcessFalconKick::initStatus(soModuleAccesser* moduleAc
 void ftCaptainStatusUniqProcessFalconKick::execStatus(soModuleAccesser* moduleAccesser) {
 }
 
-// ftCaptain::getFalconKickParam (the map name); ft_captain.cpp calls it by this stand-in name.
-extern "C" float* fn_100_8C4C();
 
 void ftCaptainStatusUniqProcessFalconKick::setEventCollisionAttack(soModuleAccesser* moduleAccesser) {
     soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
@@ -34,7 +33,7 @@ void ftCaptainStatusUniqProcessFalconKick::setEventCollisionAttack(soModuleAcces
         if (variant == 0) {
             int frame = workManage.getInt(0x20000001);
             if (frame >= 1) {
-                float* param = fn_100_8C4C();
+                float* param = ftCaptain::getFalconKickParam();
                 float posture = workManage.getFloat(0x21000004);
                 float speed = posture * param[1];
                 ftKineticEnergyMotion& motion =
@@ -70,7 +69,16 @@ void ftCaptainStatusUniqProcessFalconKickEnd::initStatus(soModuleAccesser* modul
     }
 }
 
+// The end of the kick brakes with constant 0xfb7 (ground variant 0) or 0xfb8 (variant 2) while on the ground.
+// HYPOTHESIS: work int 0x20000000 is the kick variant set at the start (0 = ground start, 2 = air start).
 void ftCaptainStatusUniqProcessFalconKickEnd::execStatus(soModuleAccesser* moduleAccesser) {
+    int situation = moduleAccesser->getSituationModule().getKind();
+    int variant = moduleAccesser->getWorkManageModule().getInt(0x20000000);
+    if (variant == 0 && situation == 0) {
+        moduleAccesser->set_special_brake_coefficient(0xfb7, 0xbbc);
+    } else if (variant == 2 && situation == 0) {
+        moduleAccesser->set_special_brake_coefficient(0xfb8, 0xbbc);
+    }
 }
 
 void soModuleAccesser::set_special_brake_coefficient(u32 airId, u32 groundId) {

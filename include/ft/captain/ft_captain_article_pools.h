@@ -9,6 +9,39 @@
 #include <wn/weapon.h>
 #pragma dont_inline off // it/it_gen_archive.h (reached through weapon.h) leaves dont_inline on for everything parsed after it
 
+#ifdef FT_CAPTAIN_ARTICLE_POOLS
+// These observer lists call their shared sora_melee destructors (as in ft_pit_article_pools.h): the inside-event
+// builder teardown calls them out of line.
+template <> class soEventUnitWithWorkArea<soStatusEventObserver, 16> : public soEventUnitImpl<soStatusEventObserver> {
+    soInstanceManagerFullPropertyVector<soStatusEventObserver*, 16> m_observerList;
+public:
+    soEventUnitWithWorkArea(s16 managerId, s16 eventId) : soEventUnitImpl<soStatusEventObserver>(managerId, eventId) { }
+    virtual ~soEventUnitWithWorkArea();
+    virtual u32 getObserverNum() const { return m_observerList.size(); }
+};
+template <> class soEventUnitWithWorkArea<soAnimCmdEventObserver, 32> : public soEventUnitImpl<soAnimCmdEventObserver> {
+    soInstanceManagerFullPropertyVector<soAnimCmdEventObserver*, 32> m_observerList;
+public:
+    soEventUnitWithWorkArea(s16 managerId, s16 eventId) : soEventUnitImpl<soAnimCmdEventObserver>(managerId, eventId) { }
+    virtual ~soEventUnitWithWorkArea();
+    virtual u32 getObserverNum() const { return m_observerList.size(); }
+};
+template <> class soEventUnitWithWorkArea<soLinkEventObserver, 2> : public soEventUnitImpl<soLinkEventObserver> {
+    soInstanceManagerFullPropertyVector<soLinkEventObserver*, 2> m_observerList;
+public:
+    soEventUnitWithWorkArea(s16 managerId, s16 eventId) : soEventUnitImpl<soLinkEventObserver>(managerId, eventId) { }
+    virtual ~soEventUnitWithWorkArea();
+    virtual u32 getObserverNum() const { return m_observerList.size(); }
+};
+template <> class soEventUnitWithWorkArea<soArticleEventObserver, 2> : public soEventUnitImpl<soArticleEventObserver> {
+    soInstanceManagerFullPropertyVector<soArticleEventObserver*, 2> m_observerList;
+public:
+    soEventUnitWithWorkArea(s16 managerId, s16 eventId) : soEventUnitImpl<soArticleEventObserver>(managerId, eventId) { }
+    virtual ~soEventUnitWithWorkArea();
+    virtual u32 getObserverNum() const { return m_observerList.size(); }
+};
+#endif
+
 // Full article types let the fighter own their pools and teardown.
 #define WN_WEAPON_BUILDER
 #define WN_ARTICLE_NATIVE_BUILDERS

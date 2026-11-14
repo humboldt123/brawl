@@ -88,10 +88,8 @@ void ftCaptainStatusUniqProcessFinalStart::notifyEventCollisionAttackFighter(flo
         return;
     }
     soModuleAccesser* targetModuleAccesser = soExternalValueAccesser::getModuleAccesser(target);
-    if (targetModuleAccesser->getDamageModule().isDamageLock()) {
-        return;
-    }
-    if (targetModuleAccesser->getCollisionHitModule().getInvincibleFrameGlobal(0) >= 1) {
+    if (targetModuleAccesser->getDamageModule().isDamageLock() ||
+        targetModuleAccesser->getCollisionHitModule().getInvincibleFrameGlobal(0) >= 1) {
         return;
     }
     workManageModule->onFlag(0x22000010);
@@ -433,15 +431,22 @@ void ftCaptainStatusUniqProcessFinalEnd::exitStatus(soModuleAccesser* moduleAcce
 class ftCaptainStatusUniqProcessFinalMessageHandler : public soStatusUniqProcess {
 public:
     virtual ~ftCaptainStatusUniqProcessFinalMessageHandler() { }
-    static void linkMessageProcedure(soLinkEventArgs* message, soModuleAccesser* moduleAccesser, void* sender);
+    static void linkMessageProcedure(soLinkEventArgs* message, soModuleAccesser* moduleAccesser, StageObject* sender, int unk);
     static void update(soModuleAccesser* moduleAccesser);
 };
 
+// HYPOTHESIS: the sender's task id goes through a small by-value accessor (the same idiom as the article task id in
+// ft_captain.cpp's activeArticle); it keeps the module accesser in its own register across the read.
+static inline int getSenderTaskId(StageObject* sender) {
+    int taskId = sender->m_taskId;
+    return taskId;
+}
+
 void ftCaptainStatusUniqProcessFinalMessageHandler::linkMessageProcedure(soLinkEventArgs* message,
-                                                                         soModuleAccesser* moduleAccesser, void* sender) {
+                                                                         soModuleAccesser* moduleAccesser, StageObject* sender, int) {
     switch (message->m_eventKind) {
     case 0x3d:
-        ftCaptainFinalSubRoutine::invalidate_work(moduleAccesser, *reinterpret_cast<u32*>(static_cast<u8*>(sender) + 0x28));
+        ftCaptainFinalSubRoutine::invalidate_work(moduleAccesser, getSenderTaskId(sender));
         break;
     }
 }

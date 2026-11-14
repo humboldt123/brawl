@@ -219,6 +219,11 @@ public:
     s32 getConstantIntKirby(s32 id);
     void set_special_brake_coefficient(u32 airId, u32 groundId); // HYPOTHESIS: parameter meaning
     void set_visible(unsigned long id, bool visible); // HYPOTHESIS: parameter meaning
+#ifdef SO_MODULE_ACCESSER_FALCON_PUNCH_HELPERS
+    // Falcon Punch air helpers (map names soModuleAccesser::process_air / dir_decide); opt-in, default off.
+    void process_air();
+    void dir_decide();
+#endif
     StageObject* m_stageObject;
     soModuleEnumeration m_moduleEnumeration;
     const soModuleEnumeration* m_enumerationStart; // +0xD8

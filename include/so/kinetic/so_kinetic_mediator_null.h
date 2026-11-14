@@ -15,7 +15,11 @@ public:
     virtual void updateEnergy(soModuleAccesser*) { }
     virtual void updateEnergy1(soModuleAccesser*, soKineticAttributeMask) { }
     virtual void updateEnergy2(soArray<soKineticEnergy**>*, soModuleAccesser*) { }
+#ifdef FT_KINETIC_MEDIATOR_POST_UPDATE
+    virtual void postUpdateEnergy(soModuleAccesser*) { }
+#else
     virtual void postUpdateEnergy() { }
+#endif
     virtual void addSpeed(void*, soModuleAccesser*) { }
     virtual void addSpeedOutside(int, void*, soModuleAccesser*) { }
     virtual void notifyEventChangeStatus(void*, void*, void*, void*) { }

@@ -1,3 +1,4 @@
+#define IT_ITEM_VISIBILITY_CALLER_TYPES
 #define MT_VEC3F_ASSIGN_NOINLINE
 #define SO_COLLISION_ATTACK_DATA_DTOR
 #include <cm/cm_camera_controller.h>
@@ -149,17 +150,18 @@ bool ftCaptainFinalSubRoutine::is_target(u32 taskId, soModuleAccesser* moduleAcc
 // Event 0x44f goes to the fighters the Blue Falcon hit, any other one to the rest.
 void ftCaptainFinalSubRoutine::send_msg(soModuleAccesser* moduleAccesser, soLinkEventArgs* message) {
     soWorkManageModule* workManageModule = &moduleAccesser->getWorkManageModule();
+    soLinkModule* linkModule;
     int i;
     ftCaptainFinalTargetWork* work;
-    u32 toTarget;
+    bool toTarget;
     int count;
-    soLinkModule* linkModule;
     linkModule = &moduleAccesser->getLinkModule();
     toTarget = message->m_eventKind == 0x44f;
     count = workManageModule->getInt(0x20000000);
     work = s_targetWork;
     for (i = 0; i < count; i++, work++) {
-        if (work->m_isTarget == toTarget && work->m_taskId != -1) {
+        // BYTES: the bool flag is compared with the one-bit field as an unsigned word (cmplw, no clrlwi).
+        if (work->m_isTarget == (u32)toTarget && work->m_taskId != -1) {
             linkModule->sendEventParents(work->m_linkNo, *message);
         }
     }
@@ -233,18 +235,15 @@ void ftCaptainFinalSubRoutine::set_layer_disp_status(bool disp) {
         gfSceneRoot::Layer_Ground, gfSceneRoot::Layer_All, gfSceneRoot::Layer_Chara,
         gfSceneRoot::Layer_Special_Stage_Object,
     };
-    // MATCH-ONLY: the declaration order (and the copy of the flag) set the register order of the original.
     gfSceneRoot* sceneRoot;
     ecMgr* effectManager;
     u32 i;
-    bool isDisp;
-    isDisp = disp;
     sceneRoot = g_gfSceneRoot;
     for (i = 0; i < sizeof(layers) / sizeof(layers[0]); i++) {
-        sceneRoot->setLayerDispStatus(layers[i], isDisp);
+        sceneRoot->setLayerDispStatus(layers[i], disp);
     }
     effectManager = g_ecMgr;
-    if (isDisp) {
+    if (disp) {
         ecMgr::setVisibleGroup(reinterpret_cast<u32>(effectManager), true, 0x1000020, 0xff000020);
         effectManager->playEffectGroup(0x1000020, 0xff000020);
     } else {
@@ -267,8 +266,8 @@ static inline u64 removeMaskBit(u64 mask, int index) {
     return ((mask & (~low << 1)) >> 1) | (mask & low);
 }
 
-// HYPOTHESIS: the original's BaseItem visibility getter/setter (vtable 0x22c/0x224) take and return a full-width flag
-// (cmpwi, no clrlwi); the u8 of item.h leaves the two item routines just short of matching.
+// The BaseItem visibility getter/setter (vtable 0x22c/0x224) are used with their caller-side types here
+// (IT_ITEM_VISIBILITY_CALLER_TYPES in it/item.h).
 // The visible items are remembered and hidden; a held item is removed from the list (and from the mask).
 void ftCaptainFinalSubRoutine::invisible_item() {
     u64 mask;
@@ -297,7 +296,8 @@ void ftCaptainFinalSubRoutine::invisible_item() {
         BaseItem* item = itemManager2->getItemFromIndex(i2);
         if (item->isHaved()) {
             item->remove();
-            s_visibleItemMask = removeMaskBit(s_visibleItemMask, i2);
+            u64 visibleMask = s_visibleItemMask;
+            s_visibleItemMask = removeMaskBit(visibleMask, i2);
         }
     }
     itemManager3 = itManager::getInstance();

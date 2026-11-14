@@ -26,13 +26,7 @@ void ftCaptainStatusUniqProcessFalconKnuckle::execStatus(soModuleAccesser* modul
         if (moduleAccesser->getWorkManageModule().getInt(0x20000000) == 0) {
             ftKineticEnergyStop& energy = dynamic_cast<ftKineticEnergyStop&>(*moduleAccesser->getKineticModule().getEnergy(3));
             Vec2f speed = energy.getSpeed();
-            float scale = soValueAccesser::getConstantFloat(moduleAccesser, 0xfa5, 0);
-            Vec2f scaled;
-            scaled.m_x = speed.m_x * scale;
-            scaled.m_y = speed.m_y * scale;
-            Vec2f copy = scaled;
-            energy.m_speed.m_x = copy.m_x;
-            energy.m_speed.m_y = copy.m_y;
+            energy.m_speed = speed * soValueAccesser::getConstantFloat(moduleAccesser, 0xfa5, 0);
         }
         break;
     }

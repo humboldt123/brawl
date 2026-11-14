@@ -192,7 +192,13 @@ public:
     virtual void updateEnergy(soModuleAccesser* acc) = 0;
     virtual void updateEnergy1(soModuleAccesser* acc, soKineticAttributeMask flag) = 0;
     virtual void updateEnergy2(soArray<soKineticEnergy**>* energies, soModuleAccesser* acc) = 0;
+#ifdef FT_KINETIC_MEDIATOR_POST_UPDATE
+    // Captain Falcon's mediator forwards this slot to its transactor together with the module accesser it receives.
+    // HYPOTHESIS: every mediator takes the accesser here; the empty ones give no evidence and keep the old spelling.
+    virtual void postUpdateEnergy(soModuleAccesser* acc) = 0;
+#else
     virtual void postUpdateEnergy() = 0;
+#endif
     virtual void addSpeed(void* speed, soModuleAccesser* acc) = 0;
     virtual void addSpeedOutside(int type, void* speed, soModuleAccesser* acc) = 0;
     virtual void notifyEventChangeStatus(void* a, void* b, void* c, void* d) = 0;
@@ -525,7 +531,11 @@ public:
     }
 #endif
 
+#ifdef FT_KINETIC_MEDIATOR_POST_UPDATE
+    virtual void postUpdateEnergy(soModuleAccesser*) { }
+#else
     virtual void postUpdateEnergy() { }
+#endif
     virtual void addSpeed(void* speed, soModuleAccesser* acc) { ftKineticTransactor::addSpeed(speed, &m_pools, acc); }
     virtual void addSpeedOutside(int type, void* speed, soModuleAccesser* acc) { ftKineticTransactor::addSpeedOutside(type, speed, &m_pools, acc); }
     virtual void notifyEventChangeStatus(void* a, void* b, void* c, void* d) { ftKineticTransactor::notifyEventChangeStatus(a, b, c, d); }
@@ -575,7 +585,11 @@ public:
         }
     }
 
+#ifdef FT_KINETIC_MEDIATOR_POST_UPDATE
+    virtual void postUpdateEnergy(soModuleAccesser* acc) { Transactor::postUpdateEnergy(&m_pools, acc); }
+#else
     virtual void postUpdateEnergy() { }
+#endif
     virtual void addSpeed(void* speed, soModuleAccesser* acc) { UpdateTransactor::addSpeed(speed, &m_pools, acc); }
     virtual void addSpeedOutside(int type, void* speed, soModuleAccesser* acc) { UpdateTransactor::addSpeedOutside(type, speed, &m_pools, acc); }
     virtual void notifyEventChangeStatus(void* a, void* b, void* c, void* d) { UpdateTransactor::notifyEventChangeStatus(a, b, c, d); }

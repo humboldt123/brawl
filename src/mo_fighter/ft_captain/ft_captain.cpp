@@ -1,11 +1,45 @@
+#define FT_KINETIC_MEDIATOR_POST_UPDATE // the mediator hands postUpdateEnergy to the transactor
+#define SO_KINETIC_ROTATION_FIELDWISE_ZERO
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR
+#define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_CAPTAIN_ARTICLE_POOLS
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
-#define FT_PARAM_ACCESSER_TYPED_DTOR
+#define WN_PARAM_ACCESSER_INLINE_DTOR
 #define FT_TEAM_TYPED_INTERFACE
 #include <ft/builder/ft_dol_array_list.h>
+#include <wn/wn_extend_param_accesser.h>
+
+// BYTES: the map names an out-of-line wnExtendParamAccesser<3999,1,23999,0,0,0>::~ (0x37BC) that both
+// article destructors call; the generic template has no user-declared destructor, so this unit
+// spells out the specialization the Captain articles share (same members as the primary template).
+template <>
+class wnExtendParamAccesser<3999, 1, 23999, 0, 0, 0> : public soParamAccesser {
+    s32 m_kind;           // +0xC
+    s32 m_floatBase;      // +0x10
+    s32 m_intBase;        // +0x14
+    s32 m_indefiniteBase; // +0x18
+protected:
+    const float* m_floats[2]; // +0x1C
+    const s32* m_ints[1];
+    void* m_indefinites[1];
+public:
+    wnExtendParamAccesser(s32 kind) : m_kind(kind), m_floatBase(3999), m_intBase(23999), m_indefiniteBase(0) { }
+    virtual ~wnExtendParamAccesser() __attribute__((never_inline)) { }
+    virtual float getParamFloat(soModuleAccesser*, s32 id, s32 index) {
+        return m_floats[id - m_floatBase - 1][index];
+    }
+    virtual s32 getParamInt(soModuleAccesser*, s32 id, s32 index) {
+        return m_ints[id - m_intBase - 1][index];
+    }
+    virtual void* getParamIndefinite(soModuleAccesser*, s32 id, s32) {
+        return m_indefinites[id - m_indefiniteBase - 1];
+    }
+};
+
 #include <ft/ft_class_info_impl.h>
 #include <ft/captain/ft_captain.h>
 #include <ft/captain/ft_captain_extend_param_accesser.h>
@@ -14,10 +48,15 @@
 #include <ft/ft_resource_id_accesser_impl.h>
 #include <so/article/so_article_mediator.h>
 #include <so/so_value_accesser.h>
+#include <so/catch/so_catch_module.h>
+#include <ft/ft_owner.h>
 
 #undef WN_ARTICLE_NATIVE_BUILDERS
 #define FT_BC ftCaptainBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// The articles' sound builder teardown inlines this empty destructor (same form as ft_pit.cpp and ft_snake.cpp).
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
 
 // Status teardown destroys its owned change-request queue before observers.
 #pragma dont_inline on
@@ -26,6 +65,14 @@ template soArrayVector<s32, 8>::~soArrayVector();
 #endif
 #pragma dont_inline off
 soStatusModuleImpl::~soStatusModuleImpl() { }
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
+
+ftKineticEnergyController::~ftKineticEnergyController() { }
 
 ftCaptainExtendParamAccesser g_ftCaptainExtendParamAccesser;
 
@@ -99,6 +146,7 @@ public:
 };
 class ftCaptainStatusUniqProcessFinalMessageHandler : public soStatusUniqProcess {
 public:
+    static void linkMessageProcedure(soLinkEventArgs* message, soModuleAccesser* moduleAccesser, StageObject* sender, int unk);
     static void update(soModuleAccesser* moduleAccesser);
 };
 
@@ -147,6 +195,80 @@ bool ftCaptain::notifyEventCollisionAttackCheck(u32 flags) {
 }
 
 // The Falcon of the Final Smash starts at the position of the fighter (or at the origin in the statuses 0x11f / 0x120).
+// HYPOTHESIS: the catch module (soModuleEnumeration::m_catchModule) has virtual slots past the ones
+// declared in so_catch_module.h; these are the ones the link events below call, names unknown.
+class ftCaptainCatchModule : public soCatchModule {
+public:
+    virtual void unk30();
+    virtual void unk34();
+    virtual void unk38(int);
+    virtual bool unk3C(soModuleAccesser* moduleAccesser, void* data);
+    virtual void unk40(int);
+};
+
+static inline ftCaptainCatchModule* getCatchModule(soModuleAccesser* moduleAccesser) {
+    return static_cast<ftCaptainCatchModule*>(moduleAccesser->m_enumerationStart->m_catchModule);
+}
+
+// HYPOTHESIS: the arguments of the link events ftCaptain answers. Kind 8 asks to catch with the
+// request id at +0xC (0xCF is the Raptor Boost/Falcon Dive grab); kind 0xE releases the catch.
+struct ftCaptainLinkEventArgs : public soLinkEventArgs {
+    bool unk5;
+    int unk8;
+    int m_request; // +0xC
+    int unk10;
+    int unk14;
+    int unk18;
+    bool unk1C;
+};
+
+void ftCaptain::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) {
+    ftCaptainLinkEventArgs* event = static_cast<ftCaptainLinkEventArgs*>(eventInfo);
+    switch (eventInfo->m_eventKind) {
+    case 8:
+        if (event->m_request == 0xcf && m_moduleAccesser->getStatusModule().getStatusKind() == 0x114) {
+            m_moduleAccesser->getStatusModule().changeStatusRequest(0x119, m_moduleAccesser);
+            event->_0x4 = true;
+            event->unk1C = false;
+            getCatchModule(m_moduleAccesser)->setCatch(stageObj->m_taskId);
+            return;
+        }
+        break;
+    case 0xe:
+        switch (m_moduleAccesser->getStatusModule().getStatusKind()) {
+        case 0x119:
+        case 0x11a:
+            getCatchModule(m_moduleAccesser)->unk40(0);
+            getCatchModule(m_moduleAccesser)->unk38(0);
+            if (!event->unk5) {
+                m_moduleAccesser->getStatusModule().changeStatusRequest(0x3b, m_moduleAccesser);
+            }
+            return;
+        }
+        break;
+    case 0x3d:
+        switch (moduleAccesser->getStatusModule().getStatusKind()) {
+        case 0x116:
+        case 0x11d:
+        case 0x11e:
+        case 0x11f:
+        case 0x120:
+        case 0x121:
+            ftCaptainStatusUniqProcessFinalMessageHandler::linkMessageProcedure(eventInfo, moduleAccesser, stageObj, unk4);
+            break;
+        }
+        break;
+    }
+    Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4);
+}
+
+// HYPOTHESIS: the article's task id goes through a small by-value accessor before it is stored in the work area (the
+// original reads it ahead of the work module; a direct member read or gfTask::getTaskId() comes out after it).
+static inline int getArticleTaskId(Weapon* weapon) {
+    int taskId = weapon->m_taskId;
+    return taskId;
+}
+
 bool ftCaptain::activeArticle(wnCaptainBlueFalcon* weapon, soModuleAccesser* acc) {
     soPostureModule& posture = acc->getPostureModule();
     soStatusModule& status = acc->getStatusModule();
@@ -167,9 +289,9 @@ bool ftCaptain::activeArticle(wnCaptainBlueFalcon* weapon, soModuleAccesser* acc
         break;
     }
     int founderTaskId = acc->getStageObject().m_taskId;
-    int team = acc->getTeamModule().getTeam()->getNo();
-    weapon->activate(founderTaskId, ids.getFinalResId(), team, &pos, lr, scale, attached);
-    acc->getWorkManageModule().setInt(weapon->m_taskId, 0x20000001);
+    weapon->activate(founderTaskId, ids.getFinalResId(), acc->getTeamModule().getTeam()->getNo(), &pos, lr, attached, scale);
+    int articleTaskId = getArticleTaskId(weapon);
+    acc->getWorkManageModule().setInt(articleTaskId, 0x20000001);
     return true;
 }
 
@@ -180,6 +302,42 @@ bool ftCaptain::activeArticle1(wnCaptainFinalBg* weapon, soModuleAccesser* acc) 
     founderTaskId = acc->getStageObject().m_taskId;
     weapon->activate(founderTaskId, ids.getFinalResId(), acc->getTeamModule().getTeam()->getNo());
     return true;
+}
+
+// HYPOTHESIS: the glow module (soModuleEnumeration::m_glowModule) slot 0x50 takes a status kind and a
+// frame count (Sonic's analyzeSeal calls the same slot); the earlier slots are not called here.
+class ftCaptainGlowModule {
+public:
+    virtual void unk08();
+    virtual void unk0C();
+    virtual void unk10();
+    virtual void unk14();
+    virtual void unk18();
+    virtual void unk1C();
+    virtual void unk20();
+    virtual void unk24();
+    virtual void unk28();
+    virtual void unk2C();
+    virtual void unk30();
+    virtual void unk34();
+    virtual void unk38();
+    virtual void unk3C();
+    virtual void unk40();
+    virtual void unk44();
+    virtual void unk48();
+    virtual void unk4C();
+    virtual void setGlow(int statusKind, int frames);
+};
+
+// A sticker (seal) of kind 0x3E powers up the Falcon Punch (status 0x112) and the Raptor Boost (0x117).
+void ftCaptain::analyzeSeal(void* seal) {
+    ftOwnerSeal* record = static_cast<ftOwnerSeal*>(seal);
+    if (record->m_kind == 0x3e) {
+        int frames = (int)(record->m_value / 2.0f);
+        static_cast<ftCaptainGlowModule*>(m_moduleAccesser->m_enumerationStart->m_glowModule)->setGlow(0x112, frames);
+        frames = (int)(record->m_value / 2.0f);
+        static_cast<ftCaptainGlowModule*>(m_moduleAccesser->m_enumerationStart->m_glowModule)->setGlow(0x117, frames);
+    }
 }
 
 // ---- the article holders --------------------------------------------------------------------------------------------
@@ -197,11 +355,12 @@ struct ftCaptainArticleKind : wnArticleKindInfo {
         kind = 0;
         subKind = Fighter_Captain;
     }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling (the lookup reads the kind through a call, as in ft_snake.cpp)
 };
 
-// HYPOTHESIS: the descriptor keeps the address of its by-value kind argument (the copy lives in the frame of the caller).
+// The descriptor keeps the address of the kind temporary of the caller.
 struct ftCaptainArticleBuildInfo : wnArticleBuildInfo {
-    ftCaptainArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
+    ftCaptainArticleBuildInfo(const wnArticleKindInfo& kindArg, soHeapModule* heap) {
         kindInfo = &kindArg;
         heapModule = heap;
     }
@@ -209,22 +368,20 @@ struct ftCaptainArticleBuildInfo : wnArticleBuildInfo {
 
 
 template <class W> struct ftCaptainArticleTraits;
-#define FT_CAPTAIN_TRAITS(W, DATA, ID, GETTER) \
+#define FT_CAPTAIN_TRAITS(W, DATA, ID) \
     template <> struct ftCaptainArticleTraits<W> { \
         enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftCaptainArticleDataTag tag; \
-            return static_cast<const DATA*>(g_ftCommonDataAccesser.GETTER(Fighter_Captain, &tag.m_resourceGroup)); \
-        } \
+        typedef DATA Data; \
     };
 
-FT_CAPTAIN_TRAITS(wnCaptainBlueFalcon, wnCaptainBlueFalconData, 0, getWeaponData<wnCaptainBlueFalconData>)
-FT_CAPTAIN_TRAITS(wnCaptainFinalBg, wnCaptainFinalBgData, 1, getWeaponData<wnCaptainFinalBgData>)
+FT_CAPTAIN_TRAITS(wnCaptainBlueFalcon, wnCaptainBlueFalconData, 0)
+FT_CAPTAIN_TRAITS(wnCaptainFinalBg, wnCaptainFinalBgData, 1)
 
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
+// Every article of the fighter is built by this constructor from the data of the fighter kind; the data lookup is called
+// in the argument list after the descriptor, with a second kind temporary (the holders are spliced into the builder).
 template <class W>
 wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftCaptainArticleTraits<W>::ArticleId, ftCaptainArticleBuildInfo(ftCaptainArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftCaptainArticleTraits<W>::getData()) { }
+    m_instance(ftCaptainArticleTraits<W>::ArticleId, ftCaptainArticleBuildInfo(ftCaptainArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), g_ftCommonDataAccesser.getWeaponData<typename ftCaptainArticleTraits<W>::Data>(ftCaptainArticleKind().getSubKind(), &ftCaptainArticleDataTag().m_resourceGroup)) { }
 
 // ---- the articles and their mediator --------------------------------------------------------------------------------
 
@@ -343,37 +500,15 @@ bool ftCaptainArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) 
 }
 
 
-// FIXME: Test code present only to emit the shared builder functions; delete once ftCaptain is done
-void testBuilder() {
-    soInsideEventManageModuleBuilder<ftCaptainInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
-    soResourceIdAccesserImpl idAccImpl(0, 1, 2);
-}
-soInsideEventManageModuleBuilder<ftCaptainInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
-
-// Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
-extern "C" {
 
 // HYPOTHESIS: extend param group 3 (ftData + 0x88) holds the Falcon Kick parameters.
-void* fn_100_8C4C() { return g_ftCommonDataAccesser.getData(Fighter_Captain)->extendParam[3]; }
+float* ftCaptain::getFalconKickParam() { return static_cast<float*>(g_ftCommonDataAccesser.getData(Fighter_Captain)->extendParam[3]); }
 
-u8 fn_100_6C60(u8* p) { return *(u8*)(p + 0x4); }
-void fn_100_9670() {}
-void fn_100_9674() {}
-int fn_100_97E8(u8* p) { return *(int*)(p + 0x20); }
-int fn_100_98C4(u8* p) { return *(int*)(p + 0x18); }
-void fn_100_B7DC() {}
-void fn_100_BF74() {}
-void fn_100_C05C() {}
-void fn_100_C1F4() {}
-void fn_100_C2DC() {}
-void fn_100_C3C4() {}
-void fn_100_C4AC() {}
-void fn_100_C594() {}
 
-}
-
-// Leaf functions shared with other fighter modules (same module-map names and bodies).
-extern "C" {
-u8* fn_100_C1F8(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_100_C2E0(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-} // extern "C"
+#pragma dont_inline on
+soTeam::~soTeam() { }
+#pragma dont_inline off
+#pragma dont_inline on
+soResourceIdAccesser::~soResourceIdAccesser() { }
+#pragma dont_inline off
+soArticleMediator::~soArticleMediator() { }

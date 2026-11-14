@@ -15,6 +15,12 @@
 #include <so/so_module_accesser.h>
 #include <so/posture/so_posture_module_simple.h>
 
+// This article owns the out-of-line copy of the parameter accesser interface's empty teardown.
+#pragma push
+#pragma dont_inline on
+soParamAccesser::~soParamAccesser() { }
+#pragma pop
+
 wnCaptainBlueFalcon::wnCaptainBlueFalcon(s32 articleId, const wnArticleBuildInfo& info, const wnCaptainBlueFalconData* data) :
     wnWeaponBuilder<wnCaptainBlueFalconModuleAccesserBuildConfig>(
         "wnCaptainBlueFalcon", articleId, info,
@@ -25,8 +31,8 @@ wnCaptainBlueFalcon::wnCaptainBlueFalcon(s32 articleId, const wnArticleBuildInfo
     Weapon::deactivate(false);
 }
 
-void wnCaptainBlueFalcon::activate(int founderTaskId, int resourceId, int team, const Vec3f* position, float lr, float scale,
-                                   bool attached) {
+void wnCaptainBlueFalcon::activate(int founderTaskId, int resourceId, int team, const Vec3f* position, float lr, bool attached,
+                                   float scale) {
     float scaleCopy = scale;
     wnActivateDesc desc;
     desc.founderTaskId = founderTaskId;

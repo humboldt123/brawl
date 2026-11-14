@@ -352,9 +352,18 @@ public:
     virtual void deactivateArticle();
     virtual void changeMotion(int motionKind, bool);
     virtual void changeStatus(int statusKind);
+#ifdef IT_ITEM_VISIBILITY_CALLER_TYPES
+    // BYTES: Captain Falcon's Final Smash routine passes a 0/1 compare result without narrowing it and tests the returned
+    // word whole, so its original declaration had (bool) and an int-sized return here.
+    // HYPOTHESIS: these are the real types; the other callers and it_item.cpp still build with the u8 forms.
+    virtual void setVisibilityWhole(bool);
+    virtual void setVisibilityWholeForce(bool);
+    virtual int getVisibilityWhole();
+#else
     virtual void setVisibilityWhole(u8);
     virtual void setVisibilityWholeForce(u8);
     virtual u8 getVisibilityWhole();
+#endif
     virtual void setSituationKind(SituationKind);
     virtual bool isConstraint(bool);
     virtual void setConstraintTargetNode(int);

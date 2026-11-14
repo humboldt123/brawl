@@ -61,5 +61,5 @@ public:
     virtual ~wnCaptainBlueFalcon() { }
     virtual bool notifyEventCollisionAttackCheck(u32) { return false; }
     // HYPOTHESIS: the Blue Falcon is either attached to the founder (constrained to its task) or placed freely with a scale.
-    void activate(int founderTaskId, int resourceId, int team, const Vec3f* position, float lr, float scale, bool attached);
+    void activate(int founderTaskId, int resourceId, int team, const Vec3f* position, float lr, bool attached, float scale);
 };

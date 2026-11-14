@@ -32,8 +32,7 @@ typedef ftCaptainArticleManageModuleBuilder ftCaptainGenerateArticleManageModule
 typedef ftOpaqueGenerateArticleManageModuleBuilder<0x4118, Fighter_Captain> ftCaptainGenerateArticleManageModuleBuilder;
 #endif
 
-// Captain Falcon's own kinetic modes 0x64..0x6D (ft_captain_kinetic_transactor.cpp). The fighter unit still builds the
-// generic mediator; the original's mediator calls these (HYPOTHESIS: ftKineticMediatorImplT with postUpdateEnergy).
+// Captain Falcon's own kinetic modes 0x64..0x6D (ft_captain_kinetic_transactor.cpp), called by the fighter's mediator.
 class ftCaptainKineticTransactor : public ftKineticTransactor {
 public:
     static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
@@ -52,11 +51,14 @@ public:
     }
 };
 
+typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKineticMediatorImplT<ftCaptainKineticTransactor> > ftCaptainKineticModuleBuildConfig;
+
 class ftCaptainBuildConfig : public ftCommonBuildConfig {
 public:
     enum { UniqueStatusCount = 16 };
     typedef ftCaptainInsideEventManageModuleBuildConfig InsideEventManageModuleBuildConfig;
     typedef ftCaptainHeapModuleBuildConfig HeapModuleBuildConfig;
+    typedef ftCaptainKineticModuleBuildConfig KineticModuleBuildConfig;
     typedef ftCaptainParamCustomizeModuleBuildConfig ParamCustomizeModuleBuildConfig;
     typedef ftCaptainResourceModuleBuildConfig ResourceModuleBuildConfig;
     typedef ftCaptainAnimCmdModuleSubBuildConfig AnimCmdModuleSubBuildConfig;
@@ -72,7 +74,6 @@ class wnCaptainBlueFalcon;
 class wnCaptainFinalBg;
 
 class ftCaptain : public ftFighterBuilder<ftCaptainBuildConfig> {
-    u8 unkTail[0xC5B4 - sizeof(ftFighterBuilder<ftCaptainBuildConfig>)];
     soArrayContractibleTable<const soStatusData> m_statusDataTable;
     ftData* m_data;
 public:
@@ -81,12 +82,15 @@ public:
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
     virtual ~ftCaptain();
+    static float* getFalconKickParam();
     virtual void processUpdate();
     virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
     virtual void notifyEventCollisionAttack(float power, soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4);
     // The hooks the article mediator calls to start an article of the pool (HYPOTHESIS: names follow the module map).
     static bool activeArticle(wnCaptainBlueFalcon* weapon, soModuleAccesser* acc);
     static bool activeArticle1(wnCaptainFinalBg* weapon, soModuleAccesser* acc);
+    virtual void analyzeSeal(void* seal);
 };
 static_assert(sizeof(ftCaptain) == 0xC5C8, "Class is the wrong size!");
