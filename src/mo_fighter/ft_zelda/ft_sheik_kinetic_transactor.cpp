@@ -10,17 +10,12 @@
 // Sheik's kinetic modes 0x64..0x68; the lower modes go to the common transactor. Unlike most fighters, none of Sheik's own
 // modes enables the outside energies afterwards.
 // HYPOTHESIS: which statuses use these modes (the constants 0xfa7/0xfa8 and 0xfb4/0xfb5 are Sheik's fall parameters).
-// MATCH-ONLY: the accesser copy and the shared flag local order the argument setup (as in the other fighters' transactors).
-#pragma push
-#pragma opt_propagation off
 void ftSheikKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* acc) {
     if (mode <= 0x63) {
         ftKineticTransactor::changeKinetic(mode, pools, acc);
         return;
     }
-    soModuleAccesser* processAccesser = acc;
-    int process = 1;
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(acc, true, true);
     switch (mode) {
     case 0x64: {
         bool result = false;
@@ -47,7 +42,6 @@ void ftSheikKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
         break;
     }
 }
-#pragma pop
 
 // Gravity keeps the vertical speed of the entry, the motion energy (mode 4) the horizontal one.
 void ftSheikKineticTransactor::changeKineticSub(bool*, void*, Vec2f* speed, soModuleAccesser* acc) {

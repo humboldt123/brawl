@@ -362,17 +362,12 @@ inline void changeKineticSubImpl6(volatile bool*, void* pools, Vec2f* speed, soM
     ftKineticTransactor::changeKineticImpl(6, pools, speed, acc);
 }
 
-// BYTES: retain the shared preprocessing flag copy in the native dispatcher (as in the other fighters' transactors).
-#pragma push
-#pragma opt_propagation off
 void ftPokeZenigameKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* acc) {
     if (mode <= 0x63) {
         ftKineticTransactor::changeKinetic(mode, pools, acc);
         return;
     }
-    soModuleAccesser* processAccesser = acc;
-    bool process = true;
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(acc, true, true);
     switch (mode) {
     case 0x64: {
         // MATCH-ONLY: volatile keeps the result byte the inlined sub never reads (the other cases pass it to their sub).
@@ -422,7 +417,6 @@ void ftPokeZenigameKineticTransactor::changeKinetic(int mode, void* pools, soMod
     }
     ftKineticTransactor::enableOutsideEnergy(acc);
 }
-#pragma pop
 
 // The Stop energy keeps the summed speed of the entry, the horizontal part scaled.
 void ftPokeZenigameKineticTransactor::changeKineticSub(bool*, void* pools, Vec2f* prevSpeed, soModuleAccesser* acc) {

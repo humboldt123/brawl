@@ -16,17 +16,13 @@
 #include <math.h>
 
 // Toon Link's own kinetic modes: 0x64..0x66 set up the hookshot/dash energies, 0x67 and 0x68 have no handler.
-#pragma push
-#pragma opt_propagation off
 void ftToonLinkKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* moduleAccesser) {
     if (mode <= 0x63) {
         ftKineticTransactor::changeKinetic(mode, pools, moduleAccesser);
         return;
     }
 
-    soModuleAccesser* processAccesser = moduleAccesser;
-    bool process = true;
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(moduleAccesser, true, true);
     switch (mode) {
     case 0x64: {
         ftToonLinkKineticTransactor empty = {};
@@ -55,7 +51,6 @@ void ftToonLinkKineticTransactor::changeKinetic(int mode, void* pools, soModuleA
     }
     }
 }
-#pragma pop
 
 void ftToonLinkKineticTransactor::changeKineticSub(void* pools, Vec2f* prevSpeed, soModuleAccesser* moduleAccesser) {
     ftKineticTransactor::changeKineticImpl(0, pools, prevSpeed, moduleAccesser);

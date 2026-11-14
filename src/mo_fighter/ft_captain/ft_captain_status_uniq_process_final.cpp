@@ -4,6 +4,7 @@
 #define MT_VEC3F_SUB_ASCENDING
 #define SO_COLLISION_ATTACK_DATA_DTOR
 #define SO_COLLISION_ATTACK_DATA_PLAIN_BITFIELDS
+#define SO_ATTACK_PLAIN_OFFSET
 #include <ft/captain/ft_captain_final_sub_routine.h>
 #include <ft/fighter.h>
 #include <gf/gf_task_scheduler.h>
@@ -344,42 +345,10 @@ void ftCaptainStatusUniqProcessFinalEnd::initStatus(soModuleAccesser* moduleAcce
     workManageModule->setInt(0, 0x20000002);
 }
 
-// MATCH-ONLY: a plain image of soCollisionAttackData. The original copies the offset position word by word (a Vec3f
-// without the user assignment this unit's Vec3f has) and the other floats as floats.
-struct ftCaptainAttackDataWords {
-    u32 m_x;
-    u32 m_y;
-    u32 m_z;
-    ftCaptainAttackDataWords(const ftCaptainAttackDataWords& o) : m_x(o.m_x), m_y(o.m_y), m_z(o.m_z) { }
-    ftCaptainAttackDataWords& operator=(const ftCaptainAttackDataWords& o) {
-        m_x = o.m_x;
-        m_y = o.m_y;
-        m_z = o.m_z;
-        return *this;
-    }
-};
-struct ftCaptainAttackDataImage {
-    int m_power;
-    ftCaptainAttackDataWords m_offsetPos;
-    float m_size;
-    int m_vector;
-    int m_reactionEffect;
-    int m_reactionFix;
-    int m_reactionAdd;
-    float m_slipChance;
-    float m_hitStopFrame;
-    float m_hitStopDelay;
-    u32 m_flags0;
-    u32 m_flags1;
-    u32 m_flags2;
-    u32 m_flags3;
-};
-
 // HYPOTHESIS: an inline helper keeps the attack data of the end motion.
 static inline void keepAbsAttackData(soCollisionAttackModule* collisionAttackModule) {
     soCollisionAttackData attackData = *collisionAttackModule->getData(0, true);
-    *reinterpret_cast<ftCaptainAttackDataImage*>(&ftCaptainFinalSubRoutine::s_absAttackData) =
-        *reinterpret_cast<ftCaptainAttackDataImage*>(&attackData);
+    ftCaptainFinalSubRoutine::s_absAttackData = attackData;
 }
 
 // The attack data of the end motion is kept once; from the second frame on, each frame hits the next target.

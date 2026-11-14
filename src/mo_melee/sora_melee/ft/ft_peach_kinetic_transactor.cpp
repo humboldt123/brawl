@@ -31,10 +31,6 @@ static inline ftKineticEnergyStop* getEnergy(void* pools, const soIntToType<3>&)
     return static_cast<ftKineticPoolStopPool*>(static_cast<ftKineticPoolJostle*>(pools))->getSub().getInstanceAt(0);
 }
 
-// TODO(nonmatching): 99.5%, 214/215 instructions, same as the ft_peach module copy. The native code passes the shared
-// preprocessing flag as `li r4, 1; mr r5, r4` (the siblings get that from `#pragma opt_propagation off`); here it is
-// `li r4, 1; li r5, 1`. Under the pragma the inlined Vec2f multiplication of the float block loses its copies; an inline
-// helper taking the flag as a parameter changes the frame size. See the notes in the ft_peach copy for the other spellings.
 void ftPeachKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* acc) {
     // Leaving mode 0x6a (HYPOTHESIS: Peach's float) rescales the carried gravity and controller speeds by the mode's own
     // constants.
@@ -49,9 +45,7 @@ void ftPeachKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
         ftKineticTransactor::changeKinetic(mode, pools, acc);
         return;
     }
-    soModuleAccesser* processAccesser = acc;
-    bool process = true;
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(acc, true, true);
     switch (mode) {
     case 0x64:
         changeKineticSub(soIntToType<0x64>(), pools, &speed, acc);

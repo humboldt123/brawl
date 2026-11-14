@@ -525,9 +525,9 @@ void ftKineticTransactor::changeKineticSub26(bool*, void* pools, Vec2f* speed, s
     soKineticUtility::resetEnableEnergy(0, moduleAccesser, 2, speed, &Vec3f(0.0f, 0.0f, 0.0f));
 }
 
-Vec2f ftKineticTransactHelper::preHelpProcess(soModuleAccesser* moduleAccesser, int clearKind, int clearSpeed) {
+Vec2f ftKineticTransactHelper::preHelpProcess(soModuleAccesser* moduleAccesser, bool clearKind, bool clearSpeed) {
     Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
-    if ((u32)clearSpeed == 1) {
+    if (clearSpeed == true) {
         moduleAccesser->getKineticModule().unableEnergyAll();
     }
     moduleAccesser->getKineticModule().getEnergy(4)->enable();

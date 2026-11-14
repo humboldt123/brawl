@@ -13,18 +13,13 @@
 #undef MT_VEC3F_CTOR_NOINLINE
 
 
-// BYTES: retain the shared preprocessing flag copy in the native dispatcher.
-#pragma push
-#pragma opt_propagation off
 void ftLuigiKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* moduleAccesser) {
     if (mode <= 0x63) {
         ftKineticTransactor::changeKinetic(mode, pools, moduleAccesser);
         return;
     }
 
-    soModuleAccesser* processAccesser = moduleAccesser;
-    bool process = true;
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(moduleAccesser, true, true);
     switch (mode) {
     case 0x64: {
         bool result = false;
@@ -78,7 +73,6 @@ void ftLuigiKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
     ftKineticTransactor::enableOutsideEnergy(moduleAccesser);
 }
 
-#pragma pop
 
 void ftLuigiKineticTransactor::changeKineticSub(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
     ftKineticTransactor::changeKineticImpl(6, pools, speed, moduleAccesser);

@@ -37,8 +37,7 @@ void ftZeldaKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
         ftKineticTransactor::changeKinetic(mode, pools, acc);
         return;
     }
-    soModuleAccesser* processAccesser = acc;
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, 1, 1);
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(acc, true, true);
     switch (mode) {
     case 0x64: {
         resetGravityAndStopEnergy(acc, &speed);

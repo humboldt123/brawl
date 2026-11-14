@@ -188,7 +188,22 @@ struct soCollisionAttackData {
     };
 
     int m_power;
+#ifdef SO_ATTACK_PLAIN_OFFSET
+    // Opt-in (default off): the offset is a plain three-float record without a user assignment, so a copy of the
+    // attack data moves it as three words (Captain Falcon's Final Smash keeps a copy that way) while the unit's
+    // Vec3f assignment stays an out-of-line call.
+    // HYPOTHESIS: the record's name; its layout is Vec3f's.
+    // (The macro name is short on purpose: with SO_COLLISION_ATTACK_DATA_PLAIN_OFFSET here, MWCC GC/3.0a5.2 dies with
+    // an internal error in CTemplateTools.c while compiling sora_melee's ft_poke_trainer.cpp.)
+    struct OffsetPos {
+        float m_x;
+        float m_y;
+        float m_z;
+    };
+    OffsetPos m_offsetPos;
+#else
     Vec3f m_offsetPos;
+#endif
     float m_size;
     int m_vector;
     int m_reactionEffect;   // kbg
@@ -326,7 +341,13 @@ struct soCollisionAttackData {
                                  bool noTransaction, Region region, soCollision::ShapeType shapeType) {
         MEMINIT(this);
         m_power = power;
+#ifdef SO_ATTACK_PLAIN_OFFSET
+        m_offsetPos.m_x = offsetPos->m_x;
+        m_offsetPos.m_y = offsetPos->m_y;
+        m_offsetPos.m_z = offsetPos->m_z;
+#else
         m_offsetPos = *offsetPos;
+#endif
         m_size = size;
         m_vector = vector;
         m_reactionEffect = reactionEffect;

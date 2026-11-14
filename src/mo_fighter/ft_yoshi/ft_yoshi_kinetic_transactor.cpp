@@ -15,19 +15,13 @@
 #include <so/so_module_accesser.h>
 #include <ft/builder/ft_builder_kinetic.h>
 
-// MATCH-ONLY: retain the native accesser load followed by a shared flag copy,
-// rather than propagating the flag into two independent immediate loads.
-#pragma push
-#pragma opt_propagation off
 void ftYoshiKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* acc) {
     if (mode <= 0x63) {
         ftKineticTransactor::changeKinetic(mode, pools, acc);
         return;
     }
     // Preprocessing also runs for an unrecognized custom mode.
-    soModuleAccesser* processAccesser = acc;
-    bool process = true;
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(acc, true, true);
     switch (mode) {
     case 0x64: {
         bool result = false;
@@ -59,7 +53,6 @@ void ftYoshiKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
     }
     ftKineticTransactor::enableOutsideEnergy(acc);
 }
-#pragma pop
 
 // Ground Egg Roll retains the incoming velocity, then applies its own
 // acceleration, braking and speed bounds to Stop energy.

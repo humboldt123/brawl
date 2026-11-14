@@ -689,18 +689,12 @@ u8* fn_110_C614(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
 
 // Standard modes use the common fighter dispatcher. Every custom request runs
 // preprocessing; only the five recognized modes re-enable outside energy.
-// MATCH-ONLY: preserve the shared preprocessing flag and the native stores
-// left by the otherwise empty custom-mode handlers.
-#pragma push
-#pragma opt_propagation off
 void ftWarioKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* acc) {
     if (mode <= 0x63) {
         ftKineticTransactor::changeKinetic(mode, pools, acc);
         return;
     }
-    soModuleAccesser* processAccesser = acc;
-    bool process = true;
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(acc, true, true);
     switch (mode) {
     case 0x64: {
         bool result = false;
@@ -716,7 +710,6 @@ void ftWarioKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
     }
     ftKineticTransactor::enableOutsideEnergy(acc);
 }
-#pragma pop
 
 // Mode 0x64 preserves vertical velocity in Gravity and horizontal velocity in
 // Stop, enables Damage, and installs Wario's own gravity tuning. The gameplay

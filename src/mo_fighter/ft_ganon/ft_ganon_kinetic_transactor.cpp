@@ -11,17 +11,12 @@
 
 // Ganon's kinetic modes 0x64..0x68; the lower modes go to the common transactor.
 // HYPOTHESIS: which statuses use these modes.
-// MATCH-ONLY: the accesser copy and the shared flag local order the argument setup (as in the other fighters' transactors).
-#pragma push
-#pragma opt_propagation off
 void ftGanonKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* acc) {
     if (mode <= 0x63) {
         ftKineticTransactor::changeKinetic(mode, pools, acc);
         return;
     }
-    soModuleAccesser* processAccesser = acc;
-    int process = 1;
-    Vec2f speed = ftKineticTransactHelper::preHelpProcess(processAccesser, process, process);
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(acc, true, true);
     switch (mode) {
     case 0x64: {
         bool result = false;
@@ -47,7 +42,6 @@ void ftGanonKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcce
     }
     ftKineticTransactor::enableOutsideEnergy(acc);
 }
-#pragma pop
 
 // The motion energy (mode 4) restarts from rest and the controller keeps the horizontal speed of the entry.
 void ftGanonKineticTransactor::changeKineticSub(bool*, void*, Vec2f* speed, soModuleAccesser* acc) {

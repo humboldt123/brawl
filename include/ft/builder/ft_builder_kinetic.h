@@ -162,7 +162,9 @@ public:
 // The helper returns the two speed components before the kinetic mode changes.
 class ftKineticTransactHelper {
 public:
-    static Vec2f preHelpProcess(soModuleAccesser* acc, int clearKind, int clearSpeed);
+    // Both flags are bools: every fighter passes `true, true` and the callers copy the second from the first
+    // (li r4, 1; mr r5, r4), which two int arguments do not produce.
+    static Vec2f preHelpProcess(soModuleAccesser* acc, bool clearKind, bool clearSpeed);
 };
 
 class soKineticTransactHelper {
