@@ -122,10 +122,10 @@ ftWolf::ftWolf(s32 entryId,
     processes[13] = &g_ftFoxStatusUniqProcessFinal;
     m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 14);
 
-    // The reflector (the shine) is built from the record at +0x90 of the common data.
+    // The reflector (the shine) is built from the sixth extend-parameter record of the common data (+0x90).
     u8 reflectorShape[0x20];
     ftReflectorGroupDraft reflectorGroup;
-    void* reflectorRecord = *reinterpret_cast<void**>(reinterpret_cast<u8*>(m_commonData) + 0x90);
+    void* reflectorRecord = m_commonData->extendParam[5];
     FT_REFLECTOR_GROUP_CLEAR(reflectorGroup);
     ftUtil::convertReflectorData(reflectorRecord, reflectorShape, &reflectorGroup);
     m_moduleAccesser->getCollisionReflectorModule().add(reinterpret_cast<soCollisionReflectorGroupData*>(&reflectorGroup), 2);
@@ -291,6 +291,8 @@ struct ftWolfArticleKind : wnArticleKindInfo {
 
 // The data blocks of the articles come from the common data accessor of sora_melee (the numbers of its getters are their
 // order in the module; only declared here).
+// BYTES: the link map names these ftCommonDataAccesser::getWeaponData51/56/57, but sora_melee's
+// ft_common_data_accesser.cpp still defines them under these fn_27_ names; renaming must happen there first.
 extern "C" void* fn_27_1484BC(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_1486C8(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 extern "C" void* fn_27_14875C(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
@@ -526,38 +528,10 @@ bool ftWolf::activeArticle2(wnFoxLandMaster* weapon, soModuleAccesser* acc) {
 
 
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
-
-// Leaf functions shared with other fighter modules (same module-map names and bodies).
-extern "C" {
-void* fn_125_1EAC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_3720(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_45C8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_4608(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_6170(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_125_61B0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-int fn_125_B160() { return 0x1; }
-void fn_125_B168() {}
-int fn_125_B16C() { return 0x0; }
-void fn_125_B174() {}
-int fn_125_B178() { return 0x0; }
-void fn_125_B180() {}
-void fn_125_B184() {}
-void fn_125_B188() {}
-void fn_125_B18C() {}
-void fn_125_B190() {}
-void fn_125_DDAC() {}
-u8* fn_125_DE34(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_125_DF1C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_125_E004(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_125_E0EC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_125_E1D4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_125_E2BC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_125_E3A4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_125_E48C(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-} // extern "C"
+#pragma dont_inline on
+ftVirtualNodeMatrixPool::~ftVirtualNodeMatrixPool() { }
+soParamAccesser::~soParamAccesser() { }
+soResourceIdAccesser::~soResourceIdAccesser() { }
+#pragma dont_inline off
 
 soArticleMediator::~soArticleMediator() { }
