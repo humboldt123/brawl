@@ -517,11 +517,11 @@ bool ftWolf::activeArticle1(wnWolfIllusion* weapon, soModuleAccesser* acc) {
 
 // The Landmaster of the Final Smash: it starts at the fighter and takes it along (link 6).
 bool ftWolf::activeArticle2(wnFoxLandMaster* weapon, soModuleAccesser* acc) {
-    soPostureModule& posture = acc->getPostureModule();
+    soPostureModule* const posture = &acc->getPostureModule();
     soTeamModule& teamModule = acc->getTeamModule();
     soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = acc->getStageObject().m_taskId;
-    weapon->activate(founderTaskId, dynamic_cast<ftResourceIdAccesserImpl&>(*resources.getResourceIdAccesser()).getFinalResId(), teamModule.getTeam()->getNo(), &posture.getPos(), posture.getLr(), soValueAccesser::getConstantFloat(acc, 0xdb2, 0), 0x1f);
+    int founderTaskId = wnOwnerTaskId(&acc->getStageObject());
+    weapon->activate(founderTaskId, dynamic_cast<ftResourceIdAccesserImpl&>(*resources.getResourceIdAccesser()).getFinalResId(), teamModule.getTeam()->getNo(), &posture->getPos(), posture->getLr(), soValueAccesser::getConstantFloat(acc, 0xdb2, 0), 0x1f);
     acc->getLinkModule().link(6, weapon->m_taskId);
     return true;
 }
