@@ -50,13 +50,15 @@ typedef struct DWCMatchControl {
     u8 _1BB;
     u8 unk1BC;
     u8 unk1BD;
-    u8 _1BE[4];
+    u8 _1BE[3];
+    u8 unk1C1;
     u16 unk1C2;
     u8 _1C4[0x2C];
     u32 unk1F0; // HYPOTHESIS: cleared at init
     u8 _1F4[4];
     s64 unk1F8;
-    u8 _200[0x18];
+    u8 _200[0x10];
+    s64 unk210;
     u32 unk218;
     int unk21C;
     void* unk220;
@@ -76,7 +78,8 @@ typedef struct DWCMatchControl {
     u8 _3E9[0x97];
     int unk480;
     int unk484;
-    u8 _488[8];
+    void* unk488;
+    void* unk48C;
     u32 unk490; // HYPOTHESIS: cleared at init
     u32 unk494;
     u32 unk498;
@@ -89,7 +92,10 @@ typedef struct DWCMatchControl {
     u8 _4B1[7];
     s64 unk4B8; // HYPOTHESIS: cleared at init
     s64 unk4C0;
-    u8 _4C8[0x90];
+    void* unk4C8;
+    u8 unk4CC[4];
+    u8 _4D0[0x84];
+    void* unk554;
     u32 unk558;
 } DWCMatchControl;
 
@@ -631,6 +637,9 @@ int snprintf(char* buffer, u32 size, const char* format, ...);
 void DWC_SetCommonKeyValueString(const char* key, const char* value, char* buffer, int size);
 void DWC_AddCommonKeyValueString(const char* key, const char* value, char* buffer, int size);
 void DWCi_SetGPStatus(int status, const char* statusString, const char* locationString);
+void gt2CloseAllConnectionsHard(void* socket);
+void DWCi_SetError(int error, int errorCode);
+int DWCi_GetFriendListIndex(u32 pid);
 
 void DWCi_GPSetServerStatus(int status) {
     char value[12];
@@ -791,4 +800,134 @@ int fn_8033FE10(int a, int b) {
         return 0;
     }
     return __abs(a - b) <= 1;
+}
+
+void fn_80341220(int error, int errorCode) {
+    int isServer;
+    int isSelf;
+    DWCMatchControl* control;
+    if (lbl_805A0FA8[0] == 0 || error == 0) {
+        return;
+    }
+    lbl_805A0FA8[0]->unk1BC = 2;
+    gt2CloseAllConnectionsHard(*lbl_805A0FA8[0]->gt2Holder);
+    lbl_805A0FA8[0]->unk1BC = 0;
+    DWCi_SetError(error, errorCode);
+    DWCi_GPSetServerStatus(1);
+    control = lbl_805A0FA8[0];
+    isServer = (control->unk15 == 2);
+    isSelf = (control->unk224 == 0);
+    ((void (*)(int, int, int, int, int, int))control->unk480)(
+        error, 0, isSelf, isServer,
+        DWCi_GetFriendListIndex(control->unk224), control->unk484);
+    DWCi_CloseMatching();
+}
+
+void* ServerBrowserNewA(u32 a, u32 b, u32 c, int d, int e, int f, int g, void* cb, void* userdata);
+int fn_8034AA48(void);
+int fn_80349F28(int err);
+void* memcpy(void* dst, const void* src, u32 size);
+void fn_8034296C(u8 a, u8 b, int c, int d);
+int DWCi_QR2Startup(u32 profileID);
+
+int fn_8033DB6C(u32 a0, int a1, int a2, void* a3, void* a4, u8 a5, void* a6, const void* a7, void* a8) {
+    u8 buf[4];
+    DWCMatchControl* control = lbl_805A0FA8[0];
+    if (control->unkF8 == 0) {
+        u32 gamename = control->unk30C;
+        control->unkF8 = ServerBrowserNewA(gamename, gamename, control->unk310, 0, 0x14, 1, 0, (void*)fn_8034AA48, 0);
+    }
+    if (lbl_805A0FA8[0]->unkF8 == 0) {
+        if (fn_80349F28(5) != 0) {
+            return -1;
+        }
+    }
+    memcpy(buf, a7, 4);
+    fn_8034296C(3, 0, a1, a2);
+    lbl_805A0FA8[0]->unk4A0 = a0;
+    lbl_805A0FA8[0]->unk4A4 = 0;
+    lbl_805A0FA8[0]->unk4A5 = a5;
+    lbl_805A0FA8[0]->unk4C8 = a6;
+    memcpy(lbl_805A0FA8[0]->unk4CC, buf, 4);
+    lbl_805A0FA8[0]->unk554 = a8;
+    if (lbl_805A0FA8[0]->qr2Obj == 0) {
+        if (DWCi_QR2Startup(lbl_805A0FA8[0]->unk218) != 0) {
+            return 0;
+        }
+    }
+    {
+        DWCMatchControl* c = lbl_805A0FA8[0];
+        if (c->unk30 != 0 && c->unk2E != 0) {
+            if (!DWCi_StartMatching()) {
+                return 0;
+            }
+        } else {
+            c->unk1B4 = 0xE;
+            lbl_805A0FA8[0]->unk210 = OSGetTime();
+        }
+    }
+    lbl_805A0FA8[0]->unk480 = a1;
+    lbl_805A0FA8[0]->unk484 = a2;
+    lbl_805A0FA8[0]->unk488 = a3;
+    lbl_805A0FA8[0]->unk48C = a4;
+    lbl_805A0FA8[0]->unk15 = 3;
+    lbl_805A0FA8[0]->unk17 = 1;
+    qr2_send_statechanged(lbl_805A0FA8[0]->qr2Obj);
+    lbl_805A0FA8[0]->unk1C1 = 0;
+    lbl_805A0FA8[0]->unk210 = OSGetTime();
+    return 1;
+}
+
+int ServerBrowserCount(void* serverBrowser);
+void SBServerAddIntKeyValue(void* server, const char* key, int value);
+void ServerBrowserSortA(void* serverBrowser, int ascending, const char* key, int compareMode);
+int DWCi_GetMathRand32(int max);
+
+void fn_8034B67C(void) {
+    static const int weights[6] = { 3, 3, 2, 2, 1, 1 };
+    int probs[6];
+    int* pProb;
+    const int* pWeight;
+    int i;
+    int j;
+    u32 randVal;
+    int maxEval = 0;
+    int totalWeight = 0;
+    if (ServerBrowserCount(lbl_805A0FA8[0]->unkF8) <= 1) {
+        return;
+    }
+    pWeight = weights;
+    for (i = 0; i < ServerBrowserCount(lbl_805A0FA8[0]->unkF8); i++) {
+        int eval = SBServerGetIntValueA(ServerBrowserGetServer(lbl_805A0FA8[0]->unkF8, i), "dwc_eval", -1);
+        if (eval > maxEval) {
+            maxEval = eval;
+        }
+        totalWeight += *pWeight;
+        pWeight++;
+    }
+    randVal = DWCi_GetMathRand32(100);
+    pProb = probs;
+    pWeight = weights;
+    for (j = 0; j < ServerBrowserCount(lbl_805A0FA8[0]->unkF8); j++) {
+        if (j == ServerBrowserCount(lbl_805A0FA8[0]->unkF8) - 1) {
+            probs[j] = 100;
+            break;
+        }
+        {
+            int cur = (*pWeight * 100) / totalWeight;
+            int prev = (j > 0) ? pProb[-1] : 0;
+            *pProb = cur + prev;
+        }
+        if (randVal < (u32)*pProb) {
+            break;
+        }
+        pProb++;
+        pWeight++;
+    }
+    DWC_Printf(0x40, "Server[%d] is selected (%d/100: rand %d)\n", j, probs[j], randVal);
+    if (maxEval < 0x7FFFFFFF) {
+        maxEval++;
+    }
+    SBServerAddIntKeyValue(ServerBrowserGetServer(lbl_805A0FA8[0]->unkF8, j), "dwc_eval", maxEval);
+    ServerBrowserSortA(lbl_805A0FA8[0]->unkF8, 0, "dwc_eval", 0);
 }

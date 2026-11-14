@@ -19,6 +19,285 @@
 #include <so/turn/so_turn_module.h>
 #include <ft/ft_kinetic_energy.h>
 #include <so/event/so_log_event_presenter.h>
+#include <ft/ft_util.h>
+#include <ft/robot/ft_robot_unk8.h>
+#include <st/stage.h>
+#include <nw4r/ut/ut_Color.h>
+
+void Fighter::setAvailableFinal(bool isDiscretion) {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    moduleAccesser->getWorkManageModule().onFlag(0x12000006);
+    moduleAccesser->getWorkManageModule().onFlag(0x12000008);
+    moduleAccesser->getWorkManageModule().setFlag(isDiscretion, 0x1200001e);
+    if (!moduleAccesser->getWorkManageModule().isFlag(0x1200000a) || getOwner()->getCurry() == true) {
+        moduleAccesser->getEffectModule().removeAll(8);
+        moduleAccesser->getEffectModule().reqEmit(static_cast<EfID>(0x48), 8);
+    }
+    moduleAccesser->getVisibilityModule().setStatusDefault(0, 0, true);
+    Stage* stage = g_Stage;
+    if (stage != 0) {
+        u32 color = stage->getFinalTechniqColor(getFtKind());
+        int frames = soValueAccesser::getConstantInt(moduleAccesser, 0x5a19, 0);
+        moduleAccesser->getEffectModule().fillScreen(0, frames, &nw4r::ut::Color(color), 0, 0x80);
+    }
+    moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0x1f71), false, false, 0);
+    if (!isDiscretion) {
+        getOwner()->addLogInt(1, 0x1e, 0);
+    }
+}
+
+// HYPOTHESIS: the same shared item-header tags emitted in the fighter article units.
+extern ftRobotUnk8 lbl_27_bss_3138;
+extern ftRobotUnk8 lbl_27_bss_3140;
+
+extern "C" void fn_27_13F1D8() {
+    lbl_27_bss_3138.unk0 = 0xff;
+    lbl_27_bss_3138.unk4 = 0;
+    lbl_27_bss_3140.unk0 = 0xff;
+    lbl_27_bss_3140.unk4 = 1;
+}
+
+void Fighter::activate() {
+    StageObject::activate(&Vec3f(0.0f, 0.0f, 0.0f), 1.0f, 0.0f, false);
+    m_outsideEventPresenter.setManageId(g_ftManager->m_eventManageModule.getManageId());
+    m_moduleAccesser->getWorkManageModule().setInt(m_entryId, 0x10000000);
+    bool spycloak = getOwner()->getSpycloak();
+    if (spycloak == true) {
+        m_moduleAccesser->getMotionModule().setOnlyChr(true);
+    }
+    if (!m_moduleAccesser->getModelModule().getScnMdl()) {
+        attachInstance();
+    }
+    m_moduleAccesser->getMotionModule().cacheAnimChrForce(0);
+    m_moduleAccesser->getMotionModule().cacheAnimChrForce(0x20);
+    m_moduleAccesser->getMotionModule().cacheAnimChrForce(0x3f);
+    m_moduleAccesser->getMotionModule().cacheAnimChrForce(0x32);
+    m_moduleAccesser->getMotionModule().cacheAnimChrForce(0x31);
+    onActivate();
+    int motion = -1;
+    if (getOwner()->getFighterColor() == 0xc) {
+        motion = 0x1cc;
+    } else if (spycloak == true) {
+        motion = 0x1cd;
+        m_moduleAccesser->getShadowModule().setActive(false);
+    }
+    if (motion != -1) {
+        m_moduleAccesser->getMotionModule().addOtherAnim(0, motion, true, 0.0f, 1.0f);
+    }
+}
+
+void Fighter::notifyEjectItem(BaseItem* item, u32 index, bool silent) {
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    setItemHoldAnim(item, index, false);
+    switch (item->soGetSubKind()) {
+    case 0x45:
+        if (moduleAccesser->getStatusModule().getStatusKind() == 0xdc) {
+            moduleAccesser->getLinkModule().adjustModelConstraintPosture(1,
+                &Vec3f(0.0f, 0.0f, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f));
+            moduleAccesser->getLinkModule().unlink(3);
+            Vec3f pos = moduleAccesser->getPostureModule().getPos();
+            pos.m_z = 0.0f;
+            moduleAccesser->getPostureModule().setPos(&pos);
+            moduleAccesser->getStatusModule().changeStatusRequest(0xdd, moduleAccesser);
+            moduleAccesser->getControllerModule().setRumble(0xf, 0, false, -1);
+        }
+        break;
+    case 0x15:
+        if (moduleAccesser->getStatusModule().getStatusKind() == 0xde) {
+            moduleAccesser->getLinkModule().unlink(3);
+            moduleAccesser->getStatusModule().changeStatusRequest(0xe, moduleAccesser);
+        }
+        g_ftManager->removeDragoonAll(m_entryId);
+        break;
+    case 0x1b:
+    case 0x1d:
+        setHammer(false, 0);
+        break;
+    case 0:
+        moduleAccesser->getWorkManageModule().offFlag(0x1200002b);
+        break;
+    case 0xd:
+        moduleAccesser->getWorkManageModule().offFlag(0x1200002d);
+        break;
+    }
+}
+
+// HYPOTHESIS: the outside-event damage hook forwards the damage, reaction flag, owner and accesser.
+extern "C" void fn_27_156C00(ftOutsideEventPresenter*, soDamage*, bool, ftOwner*, soModuleAccesser*);
+
+void Fighter::notifyEventOnDamage(soDamage* damage, bool reaction, soModuleAccesser* moduleAccesser) {
+    fn_27_156C00(&m_outsideEventPresenter, damage, reaction, getOwner(), moduleAccesser);
+    dropItemCheck(damage, reaction);
+    if (reaction == true && damage->m_reaction > 0.0f) {
+        int count = moduleAccesser->getWorkManageModule().getInt(0x1000002c);
+        moduleAccesser->getWorkManageModule().setInt(count + 1, 0x1000002c);
+        float totalDamage = moduleAccesser->getWorkManageModule().getFloat(0x1100000d);
+        totalDamage += damage->m_damageAdd;
+        moduleAccesser->getWorkManageModule().setFloat(totalDamage, 0x1100000d);
+        m_outsideEventPresenter.notifyOutsideEventSucceedHit(count + 1, totalDamage);
+    }
+    if (moduleAccesser->getWorkManageModule().isFlag(0x12000012) == true) {
+        moduleAccesser->getWorkManageModule().subFloat(damage->m_damageAdd, 0x1100000c);
+    }
+    if (damage->m_damageAdd > 0.0f && unk139_0 == true) {
+        ftUtil::setDamageRumble(moduleAccesser, damage->m_damageAdd);
+    }
+    moduleAccesser->getCameraModule().setDamage(static_cast<unsigned short>(damage->m_damage), 0);
+    bool knockedOut;
+    if (static_cast<bool>(g_ftManager->m_isStamina) == true &&
+        getOwner()->getHitPoint() < 1.0f &&
+        m_moduleAccesser->getWorkManageModule().isFlag(0x12000018) == false) {
+        knockedOut = true;
+    } else {
+        knockedOut = false;
+    }
+    if (knockedOut == true) {
+        toKnockOut();
+    }
+}
+
+bool Fighter::notifyEventCollisionShieldCheck() {
+    if (unk120 > 0.0f) {
+        float shield = m_moduleAccesser->getWorkManageModule().getFloat(0x11000003);
+        if (unk11C > 0.0f) {
+            soModuleAccesser* moduleAccesser = m_moduleAccesser;
+            shield -= soValueAccesser::getConstantFloat(moduleAccesser, 0xca9, 0) +
+                unk11C * (1.0f - soValueAccesser::getConstantFloat(moduleAccesser, 0xcb0, 0)) *
+                soValueAccesser::getConstantFloat(moduleAccesser, 0xca8, 0);
+            float minimum = m_moduleAccesser->getWorkManageModule().getFloat(0x11000004);
+            if (shield < minimum) {
+                shield = minimum;
+            }
+        }
+        if (shield < 0.0f) {
+            m_moduleAccesser->getStatusModule().changeStatusRequest(0x56, m_moduleAccesser);
+        } else {
+            if (m_moduleAccesser->getSituationModule().getKind() != 0) {
+                return false;
+            }
+            m_moduleAccesser->getWorkManageModule().setFloat(shield, 0x11000003);
+            m_moduleAccesser->getWorkManageModule().setFloat(unk120, 0x21000008);
+            m_moduleAccesser->getWorkManageModule().setFloat(unk124, 0x21000009);
+            m_moduleAccesser->getStatusModule().changeStatusRequest(0x1d, m_moduleAccesser);
+        }
+        m_moduleAccesser->getStopModule().setHitStop((int)unk120, false);
+        return true;
+    }
+    return false;
+}
+
+void Fighter::notifyEventCollisionShield(soCollisionAttackModule* attackModule, float power,
+    soCollisionLog* collisionLog, int groupIndex, float posX, float posY, soModuleAccesser* moduleAccesser) {
+    moduleAccesser->getEffectModule().setShieldEffect(0x20);
+    switch (moduleAccesser->getStatusModule().getStatusKind()) {
+    case 0x1a:
+    case 0x1b:
+    case 0x1d:
+        break;
+    default:
+        return;
+    }
+    int collisionIndex = collisionLog->m_collsionIndex;
+    soCollisionAttackData* attackData = attackModule->getData(collisionIndex, collisionLog->m_isAbsolute);
+    if (power > unk120) {
+        unk120 = power;
+        unk124 = m_moduleAccesser->getDamageModule().getDamageLr(
+            posX, posY, attackModule, attackData, collisionIndex, collisionLog->m_isAbsolute);
+        moduleAccesser->getWorkManageModule().setFloat(attackData->m_hitStopDelay, 0x21000006);
+    }
+    if (moduleAccesser->getWorkManageModule().getInt(0x20000001) > 0) {
+        moduleAccesser->getEffectModule().setShieldEffect(0x7f);
+        moduleAccesser->getEffectModule().reqCommon(0x1b, 0.0f);
+    } else {
+        unk11C += power + attackData->m_subShield;
+    }
+}
+
+void Fighter::setZoom(bool enable, short kind, float frames) {
+    if (enable == true) {
+        if (unk138_7 == false) {
+            m_moduleAccesser->getCameraModule().zoomIn(kind, 0, Vec2f(0.0f, 0.0f), frames);
+            unk138_7 = true;
+        }
+    } else if (unk138_7 == true) {
+        unk138_7 = false;
+        m_moduleAccesser->getCameraModule().zoomOut();
+    }
+}
+
+template <>
+inline void soEventObserver<soCollisionReflectorEventObserver>::addObserverSub(s32 manageId, soCollisionReflectorEventObserver* observer, s8 priority) {
+    s32 previousManageId;
+    bool managerExists, unitExists, idsValid, registered;
+    unitExists = false;
+    managerExists = false;
+    registered = false;
+    idsValid = false;
+    s32 currentManageId = m_manageID;
+
+    if (m_manageID >= 0 && m_unitID >= 0)
+        idsValid = true;
+    if (idsValid && m_sendID > -1)
+        registered = true;
+    if (registered && soEventSystem::getInstance()->getInstanceManager().isContain(currentManageId) == true)
+        managerExists = true;
+    if (managerExists && soEventSystem::getInstance()->getManager(m_manageID)->getObserverCapacity(m_unitID) == 1)
+        unitExists = true;
+    if (unitExists == true) {
+        previousManageId = m_manageID;
+        removeObserver(previousManageId);
+    }
+    if (manageId <= -1 || m_unitID <= -1 ||
+        soEventSystem::getInstance()->getInstanceManager().isContain(manageId) == false)
+        return;
+    soEventManager* eventManager = soEventSystem::getInstance()->getManager(manageId);
+    if (eventManager->isNullUnit(m_unitID) != true) {
+        m_sendID = addObserverPrivate(manageId, observer, priority);
+        if (m_sendID > -1 && m_sendID > -1)
+            m_manageID = manageId;
+    }
+}
+
+void soCollisionReflectorEventObserver::addObserver(short manageId, s8 priority) {
+    addObserverSub(manageId, this, priority);
+}
+
+template <>
+inline void soEventObserver<soDamageEventObserver>::addObserverSub(s32 manageId, soDamageEventObserver* observer, s8 priority) {
+    s32 previousManageId;
+    bool managerExists, unitExists, idsValid, registered;
+    unitExists = false;
+    managerExists = false;
+    registered = false;
+    idsValid = false;
+    s32 currentManageId = m_manageID;
+
+    if (m_manageID >= 0 && m_unitID >= 0)
+        idsValid = true;
+    if (idsValid && m_sendID > -1)
+        registered = true;
+    if (registered && soEventSystem::getInstance()->getInstanceManager().isContain(currentManageId) == true)
+        managerExists = true;
+    if (managerExists && soEventSystem::getInstance()->getManager(m_manageID)->getObserverCapacity(m_unitID) == 1)
+        unitExists = true;
+    if (unitExists == true) {
+        previousManageId = m_manageID;
+        removeObserver(previousManageId);
+    }
+    if (manageId <= -1 || m_unitID <= -1 ||
+        soEventSystem::getInstance()->getInstanceManager().isContain(manageId) == false)
+        return;
+    soEventManager* eventManager = soEventSystem::getInstance()->getManager(manageId);
+    if (eventManager->isNullUnit(m_unitID) != true) {
+        m_sendID = addObserverPrivate(manageId, observer, priority);
+        if (m_sendID > -1 && m_sendID > -1)
+            m_manageID = manageId;
+    }
+}
+
+void soDamageEventObserver::addObserver(short manageId, s8 priority) {
+    addObserverSub(manageId, this, priority);
+}
 
 template <>
 inline void soEventObserver<soCollisionAbsorberEventObserver>::addObserverSub(s32 manageId, soCollisionAbsorberEventObserver* observer, s8 priority) {
@@ -259,6 +538,68 @@ void ftEntryEventObserver::notifyEventWarp() { }
 
 // Fighter::setFlower (the map name); src/mo_melee/sora_melee/ft/ft_damage_transactor_impl.cpp calls it by this stand-in name.
 extern "C" void fn_27_1392D4(Fighter* fighter, bool setStatus, float rate, float size, int unk4, bool unk5);
+
+// The Kinoko process owns these helpers; its class is declared in its source file.
+extern "C" float getFixScale__25ftStatusUniqProcessKinokoFP16soModuleAccesserii(soModuleAccesser*, int, int);
+extern "C" void fn_27_137EA4(Fighter*, int, int, int, int, float);
+
+void Fighter::setupEquipment() {
+    int status;
+    soModuleAccesser* moduleAccesser;
+    ftOwner* owner = getOwner();
+    moduleAccesser = m_moduleAccesser;
+    if (!owner->isSubOwner() && owner->getCurry() == true) {
+        setCurry(true, -1);
+    }
+    if (owner->getMetal() == true) {
+        setMetal(true, -1.0f, -1);
+    }
+    if (owner->getFlower() == true) {
+        float duration = soValueAccesser::getConstantFloat(moduleAccesser, 0xd88, 0);
+        float minimum = soValueAccesser::getConstantFloat(moduleAccesser, 0xd86, 0);
+        float rate = (soValueAccesser::getConstantFloat(moduleAccesser, 0xd89, 0) - minimum) / duration;
+        fn_27_1392D4(this, true, 0.0f, rate, 1, false);
+    }
+    if (owner->getRabbitCap() == true) {
+        moduleAccesser->getItemManageModule().attachItem((itKind)0x44, 0, true);
+    }
+    if (owner->getReflector() == true) {
+        moduleAccesser->getItemManageModule().attachItem((itKind)1, 0, true);
+    }
+    if (owner->getInfiniteScalingKind() != 0) {
+        status = owner->getInfiniteScalingSizeType() == 0 ? 3 : 5;
+        fn_27_137EA4(this, 1, owner->getInfiniteScalingKind(), status, -1,
+            getFixScale__25ftStatusUniqProcessKinokoFP16soModuleAccesserii(
+                moduleAccesser, status, owner->getInfiniteScalingKind()));
+    }
+}
+
+void Fighter::standby(int removeArticles) {
+    soModuleAccesser* accesser = m_moduleAccesser;
+    endFinal(true, false, false);
+    setMetal(false, -1.0f, -1);
+    fn_27_1392D4(this, false, 0.0f, 0.0f, 0, false);
+    setCurry(false, -1);
+    setHammer(false, 0);
+    setSuperStar(false, -1, false);
+    if (unk138_7 == true) {
+        unk138_7 = false;
+        m_moduleAccesser->getCameraModule().zoomOut();
+    }
+    setSlow(false, 1, 0, false);
+    soModuleAccesser* moduleAccesser = m_moduleAccesser;
+    if (moduleAccesser->getWorkManageModule().isFlag(0x12000028) == true) {
+        moduleAccesser->getEffectModule().removeScreen(8);
+        moduleAccesser->getEffectModule().reqScreen(9);
+        moduleAccesser->getWorkManageModule().offFlag(0x12000028);
+        moduleAccesser->getSlowModule().clearWhole();
+    }
+    accesser->getStatusModule().changeStatusForce(0x10b, accesser);
+    accesser->getItemManageModule().removeAll();
+    if ((u32)removeArticles == 1) {
+        accesser->getGenerateArticleManageModule().deactivate(true);
+    }
+}
 
 void Fighter::deactivate() {
     endFinal(true, false, false);

@@ -63,7 +63,7 @@ public:
     virtual bool isObserv(char unk1);
 #endif
 #if defined(SO_ANIM_CMD_EVENT_OBSERVER_PURE)
-#elif defined(WN_ARTICLE_ANIMCMD_INT)
+#elif defined(WN_ARTICLE_ANIMCMD_INT) || defined(SO_EVENT_PRESENTER_UPDATE_CHECK_MANAGE_ID)
     // The article tables share this callback with Weapon's int-index method.
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, int unk3);
 #else

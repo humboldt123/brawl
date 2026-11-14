@@ -38,7 +38,13 @@ public:
     struct LineData {
         short m_pointX;
         short m_pointY;
+#ifdef SO_GROUND_MODULE_IMPL_DEFAULT_FLAGS
+        char _spacer[8];
+        u16 m_flags; // HYPOTHESIS: default runtime line flags, copied by setGrCollisionFlagDefaultAll.
+        char unkE[2];
+#else
         char _spacer[12];
+#endif
     };
 
     u16 m_vtxLen;

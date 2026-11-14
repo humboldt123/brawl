@@ -1264,3 +1264,430 @@ int fn_8026B3D8(TMCC_UsrParam* usr, u8* outBuf, int unused, TMCC_InitParam* para
 
 
 
+
+void TMCC_JPEGENC_PutStream(TMCC_Bitstream* bs, int bits, int len) {
+    const u8* masks = sBitMasks;
+    int val = *bs->cur;
+    int rem = bs->unk8;
+    while (len > rem) {
+        val |= (bits >> (len - rem)) & masks[rem];
+        *bs->cur++ = val;
+        if (val == 0xFF) {
+            *bs->cur++ = 0;
+        }
+        len -= rem;
+        rem = 8;
+        val = 0;
+    }
+    if (len == rem) {
+        val |= bits & sBitMasks[len];
+        bs->unk8 = 8;
+        *bs->cur++ = val;
+        if (val == 0xFF) {
+            *bs->cur++ = 0;
+        }
+        *bs->cur = 0;
+    } else {
+        rem -= len;
+        val |= (bits & sBitMasks[len]) << rem;
+        *bs->cur = val;
+        bs->unk8 = rem;
+    }
+}
+
+int fn_8026A62C(TMCC_InitParam* param, TMCC_Encoder* enc) {
+    if (param->unk8 == 0) return -1;
+    if (param->unkA == 0) return -1;
+    enc->unk2 = param->unk8;
+    enc->unk4 = param->unkA;
+    enc->unk10 = param->unkE;
+    enc->u1C.unk1C = param->unk10;
+    switch (enc->u1C.unk1C) {
+    case 1:
+        if (param->unk14 == 0 || (u32)param->unk14 > 500) return -1;
+        enc->u20.unk20 = param->unk14;
+        break;
+    default:
+        return -1;
+    }
+    switch (param->unkC) {
+    case 0:
+        enc->format = 0;
+        enc->unkE = 2;
+        enc->unkF = 0;
+        enc->unk6 = (enc->unk2 + 3) / 4;
+        enc->unk8 = enc->unk4;
+        enc->unkA = (enc->unk2 + 3) / 4;
+        enc->unkC = enc->unk4;
+        break;
+    case 1:
+        enc->format = 1;
+        enc->unkE = 1;
+        enc->unkF = 0;
+        enc->unk6 = (enc->unk2 + 1) / 2;
+        enc->unk8 = enc->unk4;
+        enc->unkA = (enc->unk2 + 1) / 2;
+        enc->unkC = enc->unk4;
+        break;
+    case 2:
+        enc->format = 2;
+        enc->unkE = 1;
+        enc->unkF = 1;
+        enc->unk6 = (enc->unk2 + 1) / 2;
+        enc->unk8 = (enc->unk4 + 1) / 2;
+        enc->unkA = (enc->unk2 + 1) / 2;
+        enc->unkC = (enc->unk4 + 1) / 2;
+        break;
+    default:
+        return -1;
+    }
+    if (param->unk4 != 4 && param->unk4 != 6) return -4;
+    // BYTES: the input format is copied as an unsigned word after validation.
+    enc->img.usr->unk8 = *(u32*)&param->unk4;
+    return 0;
+}
+
+void TMCC_JPEGENC_PutStreamWithCheck(TMCC_Bitstream* bs, int bits, int len) {
+    const u8* masks = sBitMasks;
+    int val = *bs->cur;
+    int rem = bs->unk8;
+    while (len > rem) {
+        val |= (bits >> (len - rem)) & masks[rem];
+        *bs->cur++ = val;
+        if ((u32)(bs->cur - bs->start) >= (u32)bs->capacity) {
+            bs->overflow = 1;
+            bs->total += bs->cur - bs->start;
+            bs->cur = bs->start;
+        }
+        if (val == 0xFF) {
+            *bs->cur++ = 0;
+            if ((u32)(bs->cur - bs->start) >= (u32)bs->capacity) {
+                bs->overflow = 1;
+                bs->total += bs->cur - bs->start;
+                bs->cur = bs->start;
+            }
+        }
+        len -= rem;
+        rem = 8;
+        val = 0;
+    }
+    if (len == rem) {
+        val |= bits & sBitMasks[len];
+        bs->unk8 = 8;
+        *bs->cur++ = val;
+        if ((u32)(bs->cur - bs->start) >= (u32)bs->capacity) {
+            bs->overflow = 1;
+            bs->total += bs->cur - bs->start;
+            bs->cur = bs->start;
+        }
+        if (val == 0xFF) {
+            *bs->cur++ = 0;
+            if ((u32)(bs->cur - bs->start) >= (u32)bs->capacity) {
+                bs->overflow = 1;
+                bs->total += bs->cur - bs->start;
+                bs->cur = bs->start;
+            }
+        }
+        *bs->cur = 0;
+    } else {
+        rem -= len;
+        *bs->cur = val | ((bits & sBitMasks[len]) << rem);
+        bs->unk8 = rem;
+    }
+}
+
+int fn_8026C930(TMCC_UsrParam* usr, int count, u8* pixels, int limit) {
+    TMCC_Encoder* enc = usr->unk0;
+    TMCC_ImageInfo* img = &enc->img;
+    int x, y, w, h, total;
+    int skip = 0;
+    int done = 0;
+    int rst, ret;
+
+    usr->unk58 = pixels;
+    usr->unk64 = (u16*)pixels;
+    usr->unk5C = pixels + usr->unk48 * usr->unk4C;
+    usr->unk60 = pixels + usr->unk50 * usr->unk54;
+    if (img->unk9 != 0 || img->unk8 != 0) {
+        return fn_8026D53C(enc, usr, count, limit);
+    }
+    w = img->width;
+    h = img->height;
+    total = w * h;
+    x = usr->unkC;
+    y = usr->unkE;
+    rst = enc->unk14;
+    while (y < h && done < count) {
+        while (x < w && done < count) {
+            if (++skip >= limit) {
+                ret = enc->compFn(x, y, img);
+                if (ret < 0) return ret;
+                skip = 0;
+                fn_8026D514(&enc->outStream, &usr->unk10);
+            }
+            x++;
+            done++;
+            if (--rst == 0) {
+                TMCC_JPEGENC_PutRstMarkerRC(enc);
+                rst = enc->unk10;
+            }
+        }
+        if (x >= w) {
+            x = 0;
+            y++;
+        }
+    }
+    if (y == h && x == 0) {
+        TMCC_JPEGENC_CountMarker(enc);
+        if (enc->outStream.overflow == 1) {
+            fn_8026D514(&enc->outStream, &usr->unk10);
+            return -3;
+        }
+    }
+    img->unk4 = x;
+    usr->unkC = x;
+    img->unk6 = y;
+    usr->unkE = y;
+    fn_8026D514(&enc->outStream, &usr->unk10);
+    enc->unk14 = rst;
+    return total - x - y * w;
+}
+
+int fn_8026B544(TMCC_UsrParam* usr, int count, u8* pixels) {
+    TMCC_Encoder* enc = usr->unk0;
+    TMCC_ImageInfo* img = &enc->img;
+    int x, y, w, h, total;
+    int done = 0;
+    int rst, ret;
+
+    usr->unk58 = pixels;
+    usr->unk64 = (u16*)pixels;
+    usr->unk5C = pixels + usr->unk48 * usr->unk4C;
+    usr->unk60 = pixels + usr->unk50 * usr->unk54;
+    if (img->unk9 != 0 || img->unk8 != 0) {
+        return fn_80269C98(enc, usr, count);
+    }
+    w = img->width;
+    h = img->height;
+    total = w * h;
+    x = usr->unkC;
+    y = usr->unkE;
+    rst = enc->unk14;
+    while (y < h && done < count) {
+        while (x < w && done < count) {
+            ret = enc->compFn(x, y, img);
+            if (ret < 0) return ret;
+            x++;
+            done++;
+            if (--rst == 0) {
+                TMCC_JPEGENC_PutMaker(&enc->outStream, (enc->restartCount & 7) + 0xFFD0);
+                enc->restartCount++;
+                enc->img.compY.dcPred = 0;
+                enc->img.compCb.dcPred = 0;
+                enc->img.crDcPred = 0;
+                rst = enc->unk10;
+            }
+        }
+        if (x >= w) {
+            x = 0;
+            y++;
+        }
+    }
+    if (y == h && x == 0) {
+        fn_80269508(&enc->outStream);
+        if (enc->outStream.overflow == 1) {
+            TMCC_JPEGENC_Get_bitstream(&enc->outStream, &usr->unk10);
+            return -3;
+        }
+    }
+    img->unk4 = x;
+    usr->unkC = x;
+    img->unk6 = y;
+    usr->unkE = y;
+    TMCC_JPEGENC_Get_bitstream(&enc->outStream, &usr->unk10);
+    enc->unk14 = rst;
+    return total - x - y * w;
+}
+
+int fn_80269C98(TMCC_Encoder* enc, TMCC_UsrParam* usr, int count) {
+    TMCC_ImageInfo* img = &enc->img;
+    int x;
+    int y;
+    int w;
+    int h;
+    int total;
+    int done = 0;
+    int rst;
+    int ret;
+
+    w = img->width - 1;
+    rst = enc->unk14;
+    h = img->height - 1;
+    y = img->unk6;
+    total = img->width * img->height;
+    x = img->unk4;
+
+    while (y < h && done < count) {
+        while (x < w && done < count) {
+            ret = enc->compFn(x, y, img);
+            if (ret < 0) {
+                return ret;
+            }
+            done--;
+            x++;
+            if (--rst == 0) {
+                TMCC_JPEGENC_enc_restart_interval(enc);
+                rst = enc->unk10;
+            }
+        }
+        if (done < count) {
+            ret = enc->edgeFn(x, y, 0, img);
+            if (ret < 0) {
+                return ret;
+            }
+            x = 0;
+            done--;
+            y++;
+            if (--rst == 0) {
+                TMCC_JPEGENC_enc_restart_interval(enc);
+                rst = enc->unk10;
+            }
+        }
+    }
+    while (x < w && done < count) {
+        ret = enc->edgeFn(x, y, 1, img);
+        if (ret < 0) {
+            return ret;
+        }
+        done--;
+        x++;
+        if (--rst == 0) {
+            TMCC_JPEGENC_enc_restart_interval(enc);
+            rst = enc->unk10;
+        }
+    }
+    if (done < count) {
+        ret = enc->edgeFn(x, y, 2, img);
+        if (ret < 0) {
+            return ret;
+        }
+        x = 0;
+        y++;
+        if (--rst == 0) {
+            TMCC_JPEGENC_enc_restart_interval(enc);
+            rst = enc->unk10;
+        }
+        fn_80269508(&enc->outStream);
+        if (enc->outStream.overflow != 0) {
+            TMCC_JPEGENC_Get_bitstream(&enc->outStream, &usr->unk10);
+            return -3;
+        }
+    }
+    img->unk4 = x;
+    usr->unkC = x;
+    img->unk6 = y;
+    usr->unkE = y;
+    enc->unk14 = rst;
+    TMCC_JPEGENC_Get_bitstream(&enc->outStream, &usr->unk10);
+    return total - x - y * img->width;
+}
+
+int fn_8026D53C(TMCC_Encoder* enc, TMCC_UsrParam* usr, int count, int limit) {
+    TMCC_ImageInfo* img = &enc->img;
+    int x;
+    int y;
+    int w;
+    int h;
+    int total;
+    int done = 0;
+    int rst;
+    int skip = 0;
+    int ret;
+
+    w = img->width - 1;
+    rst = enc->unk14;
+    h = img->height - 1;
+    y = img->unk6;
+    total = img->width * img->height;
+    x = img->unk4;
+
+    while (y < h && done < count) {
+        while (x < w && done < count) {
+            if (++skip >= limit) {
+                ret = enc->compFn(x, y, img);
+                if (ret < 0) {
+                    return ret;
+                }
+                skip = 0;
+                fn_8026D514(&enc->outStream, &usr->unk10);
+            }
+            done--;
+            x++;
+            if (--rst == 0) {
+                TMCC_JPEGENC_PutRstMarkerRC(enc);
+                rst = enc->unk10;
+            }
+        }
+        if (done < count) {
+            if (++skip >= limit) {
+                ret = enc->edgeFn(x, y, 0, img);
+                if (ret < 0) {
+                    return ret;
+                }
+                skip = 0;
+                fn_8026D514(&enc->outStream, &usr->unk10);
+            }
+            x = 0;
+            done--;
+            y++;
+            if (--rst == 0) {
+                TMCC_JPEGENC_PutRstMarkerRC(enc);
+                rst = enc->unk10;
+            }
+        }
+    }
+    while (x < w && done < count) {
+        if (++skip >= limit) {
+            ret = enc->edgeFn(x, y, 1, img);
+            if (ret < 0) {
+                return ret;
+            }
+            skip = 0;
+            fn_8026D514(&enc->outStream, &usr->unk10);
+        }
+        done--;
+        x++;
+        if (--rst == 0) {
+            TMCC_JPEGENC_PutRstMarkerRC(enc);
+            rst = enc->unk10;
+        }
+    }
+    if (done < count) {
+        if (++skip >= limit) {
+            ret = enc->edgeFn(x, y, 2, img);
+            if (ret < 0) {
+                return ret;
+            }
+            skip = 0;
+            fn_8026D514(&enc->outStream, &usr->unk10);
+        }
+        x = 0;
+        y++;
+        if (--rst == 0) {
+            TMCC_JPEGENC_PutRstMarkerRC(enc);
+            rst = enc->unk10;
+        }
+        TMCC_JPEGENC_CountMarker(enc);
+        if (enc->outStream.overflow != 0) {
+            fn_8026D514(&enc->outStream, &usr->unk10);
+            return -3;
+        }
+    }
+    img->unk4 = x;
+    usr->unkC = x;
+    img->unk6 = y;
+    usr->unkE = y;
+    enc->unk14 = rst;
+    fn_8026D514(&enc->outStream, &usr->unk10);
+    return total - x - y * img->width;
+}

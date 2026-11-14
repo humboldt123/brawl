@@ -24,6 +24,9 @@ FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soAnimCmdControlUnit>, 11);
 FT_DOL_ARRAY_VECTOR(acAnimCmdConvPtr, 289);
 FT_DOL_ARRAY_VECTOR(acAnimCmdConvPtr, 288);
 FT_DOL_ARRAY_VECTOR(acCmdInterpreterStackData, 8);
+#ifdef FT_SZEROSUIT_ARTICLE_DTORS
+FT_DOL_ARRAY_VECTOR(acCmdInterpreterStackData, 1);
+#endif
 FT_DOL_ARRAY_VECTOR(acCmdInterpreterStackData, 10);
 
 // MATCH-ONLY: the constructor of this instance manager (and its vtable) are in sora_melee; only the destructor is

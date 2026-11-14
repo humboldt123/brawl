@@ -40,6 +40,9 @@
 
 #ifndef WN_MARIO_FIREBALL_UNIT
 FT_DOL_ARRAY_VECTOR(soModelNodeSetUp, 5);
+#ifdef FT_SZEROSUIT_ARTICLE_DTORS
+FT_DOL_ARRAY_VECTOR(soModelNodeSetUp, 1);
+#endif
 FT_DOL_ARRAY_VECTOR(soModelNodeSetUp, 2);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 4);
 FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 2);

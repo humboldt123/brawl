@@ -38,7 +38,11 @@ public:
     virtual void addCameraRangeZoom(float zoom, u32 index);
     virtual void unRegistCamera(u32 index);
     virtual void renderDebug();
+#ifdef FT_FIGHTER_FIELDS
+    virtual void zoomIn(short, u32 index, Vec2f, float);
+#else
     virtual void zoomIn(short, u32 index, Vec2f*, float);
+#endif
     virtual void zoomOut();
     virtual void setPri(u8 pri, int index);
     virtual u8 getPri(u32 index);

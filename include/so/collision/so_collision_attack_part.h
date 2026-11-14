@@ -266,7 +266,11 @@ struct soCollisionAttackData {
             u32 m_isShieldable : 1;
             u32 m_isReflectable : 1;
             u32 m_isAbsorbable : 1;
+#ifdef FT_FIGHTER_FIELDS
+            signed int m_subShield : 9; // Fighter's shield collision sign-extends the extra shield damage.
+#else
             unsigned int m_subShield : 9; // up to 0x1ff added shield damage
+#endif
             unsigned int field_0x34_9 : 10;     // ~up to 0x3ff
             unsigned int m_serialHitFrame : 16;    // up to 0xffff detectionRate
             u32 m_isDirect : 1;

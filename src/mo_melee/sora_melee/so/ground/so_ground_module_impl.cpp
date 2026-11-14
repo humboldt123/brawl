@@ -1,6 +1,6 @@
 #define SO_GROUND_MODULE_IMPL_CTOR // opt-in: this unit defines the soGroundModuleImpl constructor
+#define SO_GROUND_MODULE_IMPL_DEFAULT_FLAGS
 #define MT_VEC2F_IMPLICIT_ASSIGN
-#define MT_VEC2F_LENGTH_SQ_SPLIT // MATCH-ONLY: getTouchNormal swaps two float registers with the one-expression lengthSq.
 #include <so/ground/so_ground_module_impl.h>
 #include <gr/collision/gr_collision.h>
 #include <so/so_heap_module.h>
@@ -12,6 +12,7 @@
 #include <so/so_module_accesser.h>
 #include <gf/gf_task_scheduler.h>
 #include <st/stage.h>
+#include <st/st_utility.h>
 #include <st/st_collision_attr_param.h>
 #include <math.h>
 
@@ -71,7 +72,10 @@ float soGroundModuleImpl::getRotateYForGrCollisionMatrix() {
     return m_moduleAccesser->getPostureModule().getRotYLr();
 }
 void soGroundModuleImpl::pause(bool p0) { m_pause = p0; }
+#pragma push
+#pragma opt_propagation off
 soGroundShapeImpl::CorrectKind soGroundModuleImpl::getCorrect(u32 index) { return (soGroundShapeImpl::CorrectKind)m_groundShapeArray->at(index).m_correctKind; }
+#pragma pop
 void soGroundModuleImpl::setCalcLineMove(bool calcLineMove, u32 index) { m_groundShapeArray->at(index).setCalcLineMove(calcLineMove); }
 void soGroundModuleImpl::setTargetLineCategory(grCollisionLine::CategoryMask targetLineCategory, u32 index) { setTargetLineCategory__17soGroundShapeImplFUc(&m_groundShapeArray->at(index), targetLineCategory); }
 void soGroundModuleImpl::setExclusiveLineAttr(short exclusiveLineAttr, u32 index) { m_groundShapeArray->at(index).setExclusiveLineAttr(exclusiveLineAttr); }
@@ -283,8 +287,9 @@ void soGroundModuleImpl::setup(void* p0, int taskId, u8 p2) {
     int count = m_groundShapeArray->size();
     for (int i = 0; i < count; i++) {
         grCollStatusEventReceiver* receiver = this;
-        soGroundShapeImpl& shape = m_groundShapeArray->at(i);
-        shape.setup(taskId, ((soGroundShapeData**)((void**)p0)[0])[i], m_moduleAccesser->getHeapModule().getInstanceHeap(), p2, receiver);
+        soHeapModule* heap = &m_moduleAccesser->getHeapModule();
+        soGroundShapeImpl* shape = &m_groundShapeArray->at(i);
+        shape->setup(taskId, ((soGroundShapeData**)((void**)p0)[0])[i], heap->getInstanceHeap(), p2, receiver);
     }
 }
 
@@ -847,6 +852,21 @@ bool soGroundModuleImpl::rayCheckTarget(StageObject* stageObject, bool p1) {
     return soGroundUtil::rayCheck(m_moduleAccesser, &from, &dir, p1);
 }
 
+float soGroundModuleImpl::getDistanceFromUnderGrCol(float distance, Vec3f* pos, u8 through) {
+    if (distance <= 0.0f) return -1.0f;
+    Vec3f direction(0.0f, -fabs(distance), 0.0f);
+    Vec3f hit, normal;
+    if (!stRayCheck(pos, &direction, &hit, &normal, through, NULL, false, 1)) return -1.0f;
+    Vec3f delta = *pos - hit;
+    float xSq = delta.m_x * delta.m_x;
+    float ySq = delta.m_y * delta.m_y;
+    float zSq = delta.m_z * delta.m_z;
+    float squared = zSq + (xSq + ySq);
+    float magnitude = __fabs(squared);
+    if (magnitude <= 1.17549435e-38f) return 0.0f;
+    return squared * rsqrtf(squared);
+}
+
 // HYPOTHESIS: grCollision lines are 0x12-byte entries whose u16 at +0xE holds the flags.
 struct soGroundLineFlagEntry {
     char _spacer[0xE];
@@ -867,6 +887,20 @@ void soGroundModuleImpl::setGrCollisionFlagAll(u16 value, int mask) {
         if (mask == -1 || (mask & entry->m_flags) == 0) {
             entry->m_flags = value | (entry->m_flags & ~0xF);
         }
+    }
+}
+
+void soGroundModuleImpl::setGrCollisionFlagDefaultAll() {
+    if (m_collData == NULL || m_collData->m_lineDatas == NULL) return;
+    grCollision* collision = m_collision;
+    // MATCH-ONLY: preserve the native allocation of the collision pointer and loop counters.
+    const volatile grCollision* collision_v = collision;
+    if (collision == NULL) return;
+    u16 count = collision_v->m_lineLen;
+    soGroundLineFlagEntry* entries = (soGroundLineFlagEntry*)collision_v->m_lines;
+    if (count == 0 || entries == NULL) return;
+    for (int i = 0; i < count; i++) {
+        entries[i].m_flags = m_collData->m_lineDatas[i].m_flags | (entries[i].m_flags & ~0xF);
     }
 }
 

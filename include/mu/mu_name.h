@@ -79,7 +79,11 @@ public:
     bool m_verifying;               // 0xD8 the data that was written is read back
 
     muNameRemoteTask();
+#ifdef MU_NAME_CPP
+    static muNameRemoteTask* create() __attribute__((never_inline));
+#else
     static muNameRemoteTask* create();
+#endif
     virtual void processDefault();
     virtual ~muNameRemoteTask();
 

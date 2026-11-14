@@ -17,6 +17,10 @@ public:
 #endif
     soArraySelectHolder(s32 size, s32 unk) : m_array(size, unk) { }
     explicit soArraySelectHolder(s32 size) : m_array(size) { }
+#ifdef FT_SZEROSUIT_ARTICLE_DTORS
+    ~soArraySelectHolder();
+#else
     ~soArraySelectHolder() { }
+#endif
     V* get() { return &m_array; }
 };

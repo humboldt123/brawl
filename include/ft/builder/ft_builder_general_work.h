@@ -21,6 +21,9 @@ class soGeneralWorkBuilder {
     u32 m_flags[BC::FlagCap];
     typename BC::ModuleType m_module;
 public:
+#ifdef FT_SZEROSUIT_ARTICLE_DTORS
+    ~soGeneralWorkBuilder();
+#endif
     soGeneralWorkBuilder()
 #ifdef WN_SIMPLE_UNIT
         __attribute__((never_inline))

@@ -49,7 +49,12 @@ public:
     virtual void addCameraRangeRect(Rect2D* rect, u32 index) = 0;
     virtual void addCameraRangeZoom(float zoom, u32 index) = 0;
     virtual void unRegistCamera(u32 index) = 0;
+#ifdef FT_FIGHTER_FIELDS
+    // HYPOTHESIS: Fighter::setZoom copies the offset into the by-value argument.
+    virtual void zoomIn(short, u32 index, Vec2f, float) = 0;
+#else
     virtual void zoomIn(short, u32 index, Vec2f*, float) = 0;
+#endif
     virtual void zoomOut() = 0;
     virtual void renderDebug() = 0;
     virtual void setQuake(bool) = 0;
@@ -132,7 +137,11 @@ public:
     virtual void addCameraRangeRect(Rect2D* rect, u32 index) { }
     virtual void addCameraRangeZoom(float zoom, u32 index) { }
     virtual void unRegistCamera(u32 index) { }
+#ifdef FT_FIGHTER_FIELDS
+    virtual void zoomIn(short, u32 index, Vec2f, float) { }
+#else
     virtual void zoomIn(short, u32 index, Vec2f*, float) { }
+#endif
     virtual void zoomOut() { }
     virtual void getSubjectRange(Rect2D* outRange, u32 index) { }
     virtual Vec3f getSubjectPos(u32 index) { return Vec3f(0.0f, 0.0f, 0.0f); }

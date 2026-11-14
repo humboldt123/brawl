@@ -58,10 +58,11 @@ public:
               int msgIndex, MuMsg* msg, int posNo, bool allowEmpty);
     void open(const char* initial, char* buf, int maxLen);
     void getCandidacy(char* out, const char* letters, const char* current);
-    int main(gfPadStatus* pad, char* out, bool allowRandom, bool playSound);
 #ifdef MU_NAME_CPP
+    int main(gfPadStatus* pad, char* out, bool allowRandom, bool playSound) __attribute__((never_inline));
     void close() __attribute__((never_inline));
 #else
+    int main(gfPadStatus* pad, char* out, bool allowRandom, bool playSound);
     void close();
 #endif
     void cursorMain(gfPadStatus* pad);

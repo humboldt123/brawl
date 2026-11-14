@@ -305,11 +305,17 @@ class soEventPresenter {
 
 #ifdef FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
     bool updateObserverList(bool snapshotManageId) {
+#elif defined(SO_COLLISION_HIT_PRESENTER_LOOKUP)
+    bool updateObserverList(bool useAccessor) {
 #else
     bool updateObserverList() {
 #endif
 #ifdef SO_EVENT_PRESENTER_UPDATE_CHECK_MANAGE_ID
+#ifdef SO_COLLISION_HIT_PRESENTER_LOOKUP
+        if (m_manageID <= -1 || !checkManageId(useAccessor))
+#else
         if (m_manageID <= -1 || !checkManageId())
+#endif
             return false;
 #else
         const s16 manageId = m_manageID;
@@ -331,8 +337,16 @@ class soEventPresenter {
         return m_obsrvrList;
     }
 
+#ifdef SO_COLLISION_HIT_PRESENTER_LOOKUP
+    s16 getPresenterManageId() const { return m_manageID; }
+#endif
+#ifdef SO_COLLISION_HIT_PRESENTER_LOOKUP
+    bool checkManageId(bool useAccessor = false) const {
+        const s16 mId = useAccessor ? getPresenterManageId() : m_manageID;
+#else
     bool checkManageId() const {
         const s16 mId = m_manageID;
+#endif
         return soEventSystem::getInstance()->getInstanceManager().isContain(mId);
     }
 
@@ -444,6 +458,9 @@ public:
 
 #ifdef FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
     soInstanceManagerFullProperty<T*>* getObserverList(bool snapshotManageId = false) {
+#elif defined(SO_COLLISION_HIT_PRESENTER_LOOKUP)
+    // MATCH-ONLY: preserve the accessor boundary used by hit-status notifications.
+    soInstanceManagerFullProperty<T*>* getObserverList(bool useAccessor = false) {
 #else
     soInstanceManagerFullProperty<T*>* getObserverList() {
 #endif
@@ -451,6 +468,8 @@ public:
             return &g_nullObserverList;
 #ifdef FT_POKETRAINER_PRESENTER_CHECK_MANAGE_ID
         if (!(m_obsrvrList || updateObserverList(snapshotManageId)))
+#elif defined(SO_COLLISION_HIT_PRESENTER_LOOKUP)
+        if (!(m_obsrvrList || updateObserverList(useAccessor)))
 #else
         if (!(m_obsrvrList || updateObserverList()))
 #endif

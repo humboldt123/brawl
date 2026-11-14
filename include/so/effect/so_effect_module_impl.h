@@ -61,7 +61,12 @@ public:
     virtual void setVisible(int, bool);
     virtual void setWhole(bool);
     virtual void reqPause(bool);
+#ifdef FT_FIGHTER_FIELDS
+    // HYPOTHESIS: Fighter supplies a screen color, interpolation frames and blend flags.
+    virtual void fillScreen(int index, u32 frames, GXColor* color, int, int flags);
+#else
     virtual void fillScreen(int index, u32, int, int);
+#endif
     virtual void clearScreen(int index, u32);
     virtual float getDeadEffectRotZ(Vec3f*, bool* out);
     // HYPOTHESIS: formal order from native callers; index selects the common
@@ -174,7 +179,11 @@ public:
     virtual void setVisible(int, bool);
     virtual void setWhole(bool);
     virtual void reqPause(bool);
+#ifdef FT_FIGHTER_FIELDS
+    virtual void fillScreen(int index, u32 frames, GXColor* color, int, int flags);
+#else
     virtual void fillScreen(int index, u32, int, int);
+#endif
     virtual void clearScreen(int index, u32);
     virtual float getDeadEffectRotZ(Vec3f*, bool* out);
     // HYPOTHESIS: formal order from native callers; index selects the common

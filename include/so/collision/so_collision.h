@@ -132,6 +132,7 @@ public:
     newCollision* getCollision(u32 index, u32 groupIndex);
     static Situation getSituation(int situation);
 #ifdef SO_COLLISION_CTOR_DTOR
+    soCollision(int taskId, gfTask::Category taskCategory, int kind, int unk4, soArray<soCollisionGroup>* collisionGroupArray, bool unk6);
     ~soCollision();
 #endif
 };

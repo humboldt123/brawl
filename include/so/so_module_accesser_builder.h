@@ -186,6 +186,9 @@ class soModelModuleBuilder<soModelModuleBuildConfig<S, 0, T> > {
     NullNodesHolder m_virtualNodes;
     T m_modelModule;
 public:
+#ifdef FT_SZEROSUIT_ARTICLE_DTORS
+    ~soModelModuleBuilder();
+#endif
     static T* getModule(soModelModuleBuilder* b) {
         return &b->m_modelModule;
     }

@@ -1383,7 +1383,11 @@ public:
         struct {
 #ifdef FT_FIGHTER_FIELDS
             ftKind m_kind; // Fighter::attachItemHoldAnim reads the fighter kind here.
-            u8 unk114[0x24];
+            u8 unk114[8];
+            float unk11C; // HYPOTHESIS: accumulated shield damage from this frame's collisions.
+            float unk120; // HYPOTHESIS: greatest shield collision power this frame.
+            float unk124; // HYPOTHESIS: direction of the greatest shield collision.
+            u8 unk128[0x10];
 #else
             u8 unk110[0x28];
 #endif
@@ -1645,6 +1649,11 @@ public:
     void restoreScaling();
     void warp(Vec3f* pos, float lr, u32 showEffect);
     void setupEquipment();
+#ifdef FT_FIGHTER_FIELDS
+    void setAvailableFinal(bool isDiscretion);
+    // HYPOTHESIS: zoom kind and interpolation argument follow the camera module call.
+    void setZoom(bool enable, short kind, float frames);
+#endif
 };
 static_assert(sizeof(Fighter) == 404, "Class is wrong size!");
 

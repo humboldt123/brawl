@@ -387,7 +387,12 @@ public:
     virtual void endAppear();                                // TODO
     virtual IfSmashAppearTask* getAppearTask();              // TODO
     virtual void forceStopAppear();                          // TODO
+#ifdef FT_FIGHTER_FIELDS
+    // HYPOTHESIS: Fighter supplies its kind and consumes the packed RGBA word.
+    virtual u32 getFinalTechniqColor(int fighterKind);
+#else
     virtual GXColor getFinalTechniqColor();
+#endif
     virtual void setMotionRatio(float ratio, float frames);
     virtual void saveMotionRatio(MotionRatioBlend* save);
     virtual void restoreMotionRatio(MotionRatioBlend* save);
