@@ -29,7 +29,8 @@ typedef soStatusModuleBuildConfig<284, soGeneralWorkBuildConfig<19, 14, 2>, 274,
 class ftPikminKineticTransactor : public ftKineticTransactor {
 public:
     static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
-    static void changeKineticSub(bool* result, void* pools, Vec2f* speed, soModuleAccesser* acc);
+    // BYTES: the native changeKinetic calls this small mode function out of line.
+    static void changeKineticSub(const ftKineticModeTag& tag, void* pools, Vec2f* speed, soModuleAccesser* acc) __attribute__((never_inline));
     template <typename E>
     static void updateEnergy(E* energy, soModuleAccesser* acc) {
         if (energy->isEnable() != true) {

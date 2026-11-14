@@ -235,7 +235,9 @@ void ftGameWatchKineticTransactor::changeKineticSub6(bool*, void*, Vec2f* speed,
     stop.m_speedLimit = Vec2f(param->unk24, 0.0f);
 }
 
-// MATCH-ONLY: the fighter units are built without inlining of the nw4r FSelect helper.
+// Clamps value to [min, max] with two floating selects. The link map lists it as this file's own clampf.
+// HYPOTHESIS: written as an asm block. Tried and not equal: nw4r::math::FSelect twice (an asm inline that is not
+// expanded at the fighter units' -O2, also not under always_inline) and the __fsel intrinsic (adds two frsp).
 float clampf(register float value, register float min, register float max) {
     register float t;
     register float result;

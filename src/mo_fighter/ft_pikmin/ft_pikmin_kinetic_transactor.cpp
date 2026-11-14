@@ -16,8 +16,7 @@ void ftPikminKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcc
     Vec2f speed = ftKineticTransactHelper::preHelpProcess(moduleAccesser, true, true);
     switch (mode) {
     case 0x64: {
-        bool result = false;
-        ftPikminKineticTransactor::changeKineticSub(&result, pools, &speed, moduleAccesser);
+        ftPikminKineticTransactor::changeKineticSub(ftKineticModeTag(), pools, &speed, moduleAccesser);
         break;
     }
     default:
@@ -27,12 +26,13 @@ void ftPikminKineticTransactor::changeKinetic(int mode, void* pools, soModuleAcc
 }
 
 
-// BYTES: the native changeKinetic calls the mode function out of line.
-#pragma dont_inline on
-void ftPikminKineticTransactor::changeKineticSub(bool*, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
-    ftKineticTransactor::changeKineticImpl(0, pools, speed, moduleAccesser);
-    // MATCH-ONLY: the original keeps a dead flag in the frame.
-    volatile bool result = false;
+// HYPOTHESIS: the second step of mode 0x64 is an inlined tagged helper (its one-byte tag temporary is still zeroed in the
+// sub's frame); it writes constant 0xfac into the energy pool at +0x78.
+static inline void setModeConstant(const ftKineticModeTag&, void* pools, soModuleAccesser* moduleAccesser) {
     *reinterpret_cast<float*>(reinterpret_cast<u8*>(pools) + 0x78) = soValueAccesser::getConstantFloat(moduleAccesser, 0xfac, 0);
 }
-#pragma dont_inline reset
+
+void ftPikminKineticTransactor::changeKineticSub(const ftKineticModeTag&, void* pools, Vec2f* speed, soModuleAccesser* moduleAccesser) {
+    ftKineticTransactor::changeKineticImpl(0, pools, speed, moduleAccesser);
+    setModeConstant(ftKineticModeTag(), pools, moduleAccesser);
+}

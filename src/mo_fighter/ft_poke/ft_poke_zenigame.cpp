@@ -358,7 +358,7 @@ bool ftPokeZenigameArticleMediator::shoot(soModuleAccesser* acc, soArticle* arti
 // HYPOTHESIS: the sub names follow the numbering of the other fighters' transactors (the module map is not available here).
 
 // Mode 0x64 is the plain generic setup 6.
-inline void changeKineticSubImpl6(volatile bool*, void* pools, Vec2f* speed, soModuleAccesser* acc) {
+inline void changeKineticSubImpl6(const ftKineticModeTag&, void* pools, Vec2f* speed, soModuleAccesser* acc) {
     ftKineticTransactor::changeKineticImpl(6, pools, speed, acc);
 }
 
@@ -370,34 +370,27 @@ void ftPokeZenigameKineticTransactor::changeKinetic(int mode, void* pools, soMod
     Vec2f speed = ftKineticTransactHelper::preHelpProcess(acc, true, true);
     switch (mode) {
     case 0x64: {
-        // MATCH-ONLY: volatile keeps the result byte the inlined sub never reads (the other cases pass it to their sub).
-        volatile bool result = false;
-        changeKineticSubImpl6(&result, pools, &speed, acc);
+        changeKineticSubImpl6(ftKineticModeTag(), pools, &speed, acc);
         break;
     }
     case 0x65: {
-        bool result = false;
-        changeKineticSub(&result, pools, &speed, acc);
+        changeKineticSub(ftKineticModeTag(), pools, &speed, acc);
         break;
     }
     case 0x66: {
-        bool result = false;
-        changeKineticSub1(&result, pools, &speed, acc);
+        changeKineticSub1(ftKineticModeTag(), pools, &speed, acc);
         break;
     }
     case 0x67: {
-        bool result = false;
-        changeKineticSub2(&result, pools, &speed, acc);
+        changeKineticSub2(ftKineticModeTag(), pools, &speed, acc);
         break;
     }
     case 0x68: {
-        bool result = false;
-        changeKineticSub3(&result, pools, &speed, acc);
+        changeKineticSub3(ftKineticModeTag(), pools, &speed, acc);
         break;
     }
     case 0x69: {
-        bool result = false;
-        changeKineticSub4(&result, pools, &speed, acc);
+        changeKineticSub4(ftKineticModeTag(), pools, &speed, acc);
         break;
     }
     case 0x6a:
@@ -419,7 +412,7 @@ void ftPokeZenigameKineticTransactor::changeKinetic(int mode, void* pools, soMod
 }
 
 // The Stop energy keeps the summed speed of the entry, the horizontal part scaled.
-void ftPokeZenigameKineticTransactor::changeKineticSub(bool*, void* pools, Vec2f* prevSpeed, soModuleAccesser* acc) {
+void ftPokeZenigameKineticTransactor::changeKineticSub(const ftKineticModeTag&, void* pools, Vec2f* prevSpeed, soModuleAccesser* acc) {
     ftKineticTransactor::changeKineticImpl(10, pools, prevSpeed, acc);
     Vec2f speed = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
@@ -427,7 +420,7 @@ void ftPokeZenigameKineticTransactor::changeKineticSub(bool*, void* pools, Vec2f
     stop.m_speed = speed;
 }
 
-void ftPokeZenigameKineticTransactor::changeKineticSub1(bool*, void* pools, Vec2f* speed, soModuleAccesser* acc) {
+void ftPokeZenigameKineticTransactor::changeKineticSub1(const ftKineticModeTag&, void* pools, Vec2f* speed, soModuleAccesser* acc) {
     ftKineticTransactor::changeKineticImpl(6, pools, speed, acc);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
     if (!acc->getWorkManageModule().isFlag(0x22000010)) {
@@ -444,7 +437,7 @@ void ftPokeZenigameKineticTransactor::changeKineticSub1(bool*, void* pools, Vec2
     stop.m_brake = Vec2f(soValueAccesser::getConstantFloat(acc, 0xfad, 0), 0.0f);
 }
 
-void ftPokeZenigameKineticTransactor::changeKineticSub2(bool*, void* pools, Vec2f* speed, soModuleAccesser* acc) {
+void ftPokeZenigameKineticTransactor::changeKineticSub2(const ftKineticModeTag&, void* pools, Vec2f* speed, soModuleAccesser* acc) {
     ftKineticTransactor::changeKineticImpl(10, pools, speed, acc);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
     if (!acc->getWorkManageModule().isFlag(0x22000010)) {
@@ -460,7 +453,7 @@ void ftPokeZenigameKineticTransactor::changeKineticSub2(bool*, void* pools, Vec2
     }
 }
 
-void ftPokeZenigameKineticTransactor::changeKineticSub3(bool*, void* pools, Vec2f* speed, soModuleAccesser* acc) {
+void ftPokeZenigameKineticTransactor::changeKineticSub3(const ftKineticModeTag&, void* pools, Vec2f* speed, soModuleAccesser* acc) {
     ftKineticTransactor::changeKineticImpl(6, pools, speed, acc);
     if (!acc->getWorkManageModule().isFlag(0x22000010)) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
@@ -470,7 +463,7 @@ void ftPokeZenigameKineticTransactor::changeKineticSub3(bool*, void* pools, Vec2
     }
 }
 
-void ftPokeZenigameKineticTransactor::changeKineticSub4(bool*, void* pools, Vec2f* speed, soModuleAccesser* acc) {
+void ftPokeZenigameKineticTransactor::changeKineticSub4(const ftKineticModeTag&, void* pools, Vec2f* speed, soModuleAccesser* acc) {
     ftKineticTransactor::changeKineticImpl(10, pools, speed, acc);
     if (!acc->getWorkManageModule().isFlag(0x22000010)) {
         ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));

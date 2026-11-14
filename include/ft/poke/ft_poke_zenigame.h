@@ -34,11 +34,11 @@ typedef soAreaModuleBuildConfigInstances<10, ftAreaModuleImpl> ftPokeZenigameAre
 class ftPokeZenigameKineticTransactor : public ftKineticTransactor {
 public:
     static void changeKinetic(int mode, void* pools, soModuleAccesser* acc);
-    static void changeKineticSub(bool* result, void* pools, Vec2f* speed, soModuleAccesser* acc);
-    static void changeKineticSub1(bool* result, void* pools, Vec2f* speed, soModuleAccesser* acc);
-    static void changeKineticSub2(bool* result, void* pools, Vec2f* speed, soModuleAccesser* acc);
-    static void changeKineticSub3(bool* result, void* pools, Vec2f* speed, soModuleAccesser* acc);
-    static void changeKineticSub4(bool* result, void* pools, Vec2f* speed, soModuleAccesser* acc);
+    static void changeKineticSub(const ftKineticModeTag& tag, void* pools, Vec2f* speed, soModuleAccesser* acc);
+    static void changeKineticSub1(const ftKineticModeTag& tag, void* pools, Vec2f* speed, soModuleAccesser* acc);
+    static void changeKineticSub2(const ftKineticModeTag& tag, void* pools, Vec2f* speed, soModuleAccesser* acc);
+    static void changeKineticSub3(const ftKineticModeTag& tag, void* pools, Vec2f* speed, soModuleAccesser* acc);
+    static void changeKineticSub4(const ftKineticModeTag& tag, void* pools, Vec2f* speed, soModuleAccesser* acc);
     template <typename E>
     static void updateEnergy(E* energy, soModuleAccesser* acc) {
         if (energy->isEnable() != true) {

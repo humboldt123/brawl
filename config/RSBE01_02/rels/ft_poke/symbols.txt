@@ -888,11 +888,11 @@ create__36ftClassInfoImpl<30,14ftPokeZenigame>CFlQ25Heaps8HeapTypeQ25Heaps8HeapT
 @244@notifyEventPokemonTrainerUpdate__14ftPokeZenigameFv = .text:0x0001A5A8; // type:function size:0x8
 @244@notifyEventPokemonRequestChange__14ftPokeZenigameFP5Vec3fPf = .text:0x0001A5B0; // type:function size:0x8
 changeKinetic__31ftPokeZenigameKineticTransactorFiPvP16soModuleAccesser = .text:0x0001A5B8; // type:function size:0x188
-changeKineticSub__31ftPokeZenigameKineticTransactorFPbPvP5Vec2fP16soModuleAccesser = .text:0x0001A740; // type:function size:0xD0
-changeKineticSub1__31ftPokeZenigameKineticTransactorFPbPvP5Vec2fP16soModuleAccesser = .text:0x0001A810; // type:function size:0x17C
-changeKineticSub2__31ftPokeZenigameKineticTransactorFPbPvP5Vec2fP16soModuleAccesser = .text:0x0001A98C; // type:function size:0x150
-changeKineticSub3__31ftPokeZenigameKineticTransactorFPbPvP5Vec2fP16soModuleAccesser = .text:0x0001AADC; // type:function size:0xE8
-changeKineticSub4__31ftPokeZenigameKineticTransactorFPbPvP5Vec2fP16soModuleAccesser = .text:0x0001ABC4; // type:function size:0xE8
+changeKineticSub__31ftPokeZenigameKineticTransactorFRC16ftKineticModeTagPvP5Vec2fP16soModuleAccesser = .text:0x0001A740; // type:function size:0xD0
+changeKineticSub1__31ftPokeZenigameKineticTransactorFRC16ftKineticModeTagPvP5Vec2fP16soModuleAccesser = .text:0x0001A810; // type:function size:0x17C
+changeKineticSub2__31ftPokeZenigameKineticTransactorFRC16ftKineticModeTagPvP5Vec2fP16soModuleAccesser = .text:0x0001A98C; // type:function size:0x150
+changeKineticSub3__31ftPokeZenigameKineticTransactorFRC16ftKineticModeTagPvP5Vec2fP16soModuleAccesser = .text:0x0001AADC; // type:function size:0xE8
+changeKineticSub4__31ftPokeZenigameKineticTransactorFRC16ftKineticModeTagPvP5Vec2fP16soModuleAccesser = .text:0x0001ABC4; // type:function size:0xE8
 updateEnergy<19ftKineticEnergyStop>__31ftPokeZenigameKineticTransactorFP19ftKineticEnergyStopP16soModuleAccesser_v = .text:0x0001ACAC; // type:function size:0x324
 updateEnergy<22ftKineticEnergyGravity>__31ftPokeZenigameKineticTransactorFP22ftKineticEnergyGravityP16soModuleAccesser_v = .text:0x0001AFD0; // type:function size:0x10
 initStatus__39ftPokeZenigameStatusUniqProcessSpecialSFP16soModuleAccesser = .text:0x0001AFE0; // type:function size:0x1B8

@@ -1,7 +1,5 @@
 // BYTES: the native helpers call these vector operations out of line.
 // Set the policy before any builder header can include mt_vector.h.
-#define MT_VEC2F_CTOR_OUT_OF_LINE
-#define MT_VEC2F_CTOR_NOINLINE
 #define MT_VEC2F_ASSIGN_NOINLINE
 #define MT_VEC3F_CTOR_NOINLINE
 #include <ft/builder/ft_dol_array_list.h>
@@ -62,26 +60,15 @@ void ftYoshiKineticTransactor::changeKineticSub(bool*, void*, Vec2f* speed, soMo
         g_ftCommonDataAccesser.getData(Fighter_Yoshi)->extendParam[0]);
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(
         *acc->getKineticModule().getEnergy(3));
-    Vec2f acceleration;
-    acceleration.m_x = param->unk2C * acc->getPostureModule().getLr();
-    acceleration.m_y = 0.0f;
+    Vec2f acceleration(param->unk2C * acc->getPostureModule().getLr(), 0.0f);
     stop.m_accel = acceleration;
-    Vec2f brake;
-    brake.m_x = param->unk30;
-    brake.m_y = 0.0f;
+    Vec2f brake(param->unk30, 0.0f);
     stop.m_brake = brake;
-    Vec2f limit;
-    limit.m_x = param->unk38;
-    limit.m_y = 0.0f;
+    Vec2f limit(param->unk38, 0.0f);
     stop.m_speedLimit = limit;
-    Vec2f target;
-    target.m_x = param->minimumGroundSpeed;
-    target.m_y = 0.0f;
+    Vec2f target(param->minimumGroundSpeed, 0.0f);
     stop.m_speedTarget = target;
 }
-
-// MATCH-ONLY: this unit owns the weak constructor between the ground and air helpers.
-__declspec(weak) Vec2f::Vec2f(float x, float y) { m_x = x; m_y = y; }
 
 // Air Egg Roll separates the entry velocity into gravity and horizontal
 // control before applying the Egg Roll parameter record.

@@ -159,6 +159,11 @@ public:
     }
 };
 
+// HYPOTHESIS: the mode subs of a transactor take an empty tag object by reference (name is ours). The callers build a
+// one-byte temporary, zero it and pass its address; the subs never read it. With a `bool` local instead, the zeroing
+// store disappears wherever the sub is inlined, and the original keeps it there (Squirtle mode 0x64, Pikmin's sub).
+struct ftKineticModeTag { };
+
 // The helper returns the two speed components before the kinetic mode changes.
 class ftKineticTransactHelper {
 public:

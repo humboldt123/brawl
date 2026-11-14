@@ -1,8 +1,6 @@
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
-// MATCH-ONLY: the custom kinetic helper calls the shared vector constructor.
-#define MT_VEC3F_CTOR_NOINLINE
 #define FT_NOINLINE_SEARCH_BUILDER
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_WARIO_ARTICLE_POOLS
@@ -155,7 +153,8 @@ ftWario::ftWario(s32 entryId,
 
 // The common implementation keeps Waft charge, bike links and transformation
 // state consistent between normal Wario and Wario-Man.
-// MATCH-ONLY: the kinetic setup uses the shared getter call boundary.
+// BYTES: ftWarioKineticTransactor::changeKineticSub calls this getter out of line (`bl`) in the original; without the
+// pragma MWCC expands it there (98.11%).
 #pragma dont_inline on
 ftWarioExtendParam* ftWario::getExtendParam() {
     return reinterpret_cast<ftWarioExtendParam*>(&m_data->extendParam[0]);
