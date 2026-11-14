@@ -60,6 +60,9 @@ public:
     virtual void setSituationKind(SituationKind);
     virtual bool isConstraint(bool);
     virtual void deactivateDescendantForce();
+#ifdef FT_KIRBY_ARTICLE_POOLS
+    static bool checkActivate(soArticle& article) { return article.isActiveArticle(); }
+#endif
     virtual bool isActiveArticle() = 0;
     virtual void deactivateArticle() = 0;
     virtual int getOwnerDeactiveTreatType();

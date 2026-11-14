@@ -40,6 +40,9 @@ public:
     virtual ~wnKirbyNabe() { }
     // HYPOTHESIS: argument meanings.
     void activate(int founderTaskId, int resourceId, const Vec3f* position, float lr, float unk0, float unk1);
+#ifdef FT_KIRBY_ARTICLE_POOLS
+    void activate(int founderTaskId, int resourceId, const Vec3f* position, float lr, float unk0, float unk1, SituationKind kind);
+#endif
     virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* linkedObject, int unk4);
     virtual bool notifyEventCollisionAttackCheck(u32) { return false; }
 };

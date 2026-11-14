@@ -377,7 +377,10 @@ public:
 class soInstancePoolRoot {
 public:
     soInstancePoolRoot(soModuleAccesser* acc) { }
-#if !defined(FT_MARTH_RUNTIME_HELPERS) && !defined(FT_POOL_ROOT_NONPOLYMORPHIC)
+#if defined(FT_KIRBY_ARTICLE_POOLS)
+    // Kirby's map keeps this empty destructor. Not virtual: the first pool owns the vptr.
+    ~soInstancePoolRoot();
+#elif !defined(FT_MARTH_RUNTIME_HELPERS) && !defined(FT_POOL_ROOT_NONPOLYMORPHIC)
     virtual ~soInstancePoolRoot() { }
 #endif
     template <typename Helper>
@@ -435,6 +438,26 @@ public:
     }
 #endif
 };
+
+#if defined(FT_KIRBY_ARTICLE_POOLS)
+// A user-declared ~soInstancePoolRoot stops MWCC from flattening the hierarchy teardowns.
+// This level keeps that template argument and the vptr-then-sub layout without inheriting it.
+template <typename Info, typename Next, int Index>
+class soInstancePool<Info, soInstancePoolRoot, Next, Index> {
+public:
+    virtual ~soInstancePool() { }
+private:
+    soInstancePoolSub<Info, Next> m_sub;
+public:
+    soInstancePool(soModuleAccesser* acc) : m_sub(acc) { }
+    soInstancePoolSub<Info, Next>& getSub() { return m_sub; }
+    template <typename Helper>
+    int forEachHolderModuleAccesser(const Helper& helper, soModuleAccesser* acc) {
+        m_sub.forEachHolderModuleAccesser(helper, acc);
+        return 0;
+    }
+};
+#endif
 
 // ---- the energies of a fighter (index, attribute: the ids passed to soKineticModule::addEnergy) ---------------
 

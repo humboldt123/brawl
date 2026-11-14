@@ -66,5 +66,8 @@ private:
 public:
     wnKirbyStone(s32 articleId, const wnArticleBuildInfo& info, const wnKirbyStoneData* data);
     void activate(int founderTaskId, int resourceId, int team, int kind);
+#ifdef FT_KIRBY_ARTICLE_POOLS
+    void activate(int founderTaskId, int resourceId, int team, int kind, float lr);
+#endif
     virtual ~wnKirbyStone() { }
 };

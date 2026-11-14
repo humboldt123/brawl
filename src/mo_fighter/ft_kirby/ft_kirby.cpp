@@ -4,6 +4,7 @@
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_KIRBY_ARTICLE_POOLS
 #define MT_VEC3F_SCALE_FRESH_REGS
+#define FT_POOL_ROOT_NONPOLYMORPHIC
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_manager.h>
 #include <ft/ft_reflector_group.h>
@@ -42,6 +43,11 @@ template soArrayVector<s32, 8>::~soArrayVector();
 #endif
 #pragma dont_inline off
 soStatusModuleImpl::~soStatusModuleImpl() { }
+
+// The map keeps this empty destructor. The first pool level does not inherit it, so nothing else references it.
+#pragma force_active on
+soInstancePoolRoot::~soInstancePoolRoot() { }
+#pragma force_active reset
 
 ftKirbyExtendParamAccesser g_ftKirbyExtendParamAccesser;
 
@@ -1074,6 +1080,118 @@ bool ftKirby::activeArticle(wnKirbyFinalCutter* article, soModuleAccesser* acc) 
     return false;
 }
 
+bool ftKirby::activeArticle(wnKirbyStarmissile* article, soModuleAccesser* acc) {
+    float lr = acc->getPostureModule().getLr();
+    Vec3f pos;
+    Vec3f offset(0.0f, 0.0f, 0.0f);
+    float starScale = 1.0f;
+    s32 starParam = 0;
+    float scale = acc->getPostureModule().getScale();
+    if (acc->getWorkManageModule().getInt(0x1000004b) == 0) {
+        offset.m_x = soValueAccesser::getConstantFloat(acc, 0xfa5, 0);
+        offset.m_y = soValueAccesser::getConstantFloat(acc, 0xfa6, 0);
+    } else if (acc->getWorkManageModule().getInt(0x1000004b) == 1) {
+        offset.m_x = soValueAccesser::getConstantFloat(acc, 0xfa7, 0);
+        offset.m_y = soValueAccesser::getConstantFloat(acc, 0xfa8, 0);
+    } else {
+        offset.m_y = soValueAccesser::getConstantFloat(acc, 0xfa9, 0);
+    }
+    pos = acc->getModelModule().getNodeGlobalPosition(0, false);
+    pos.m_x += lr * (offset.m_x * scale);
+    pos.m_y += offset.m_y * scale;
+    pos.m_z = acc->getGroundModule().getZ();
+    if (acc->getWorkManageModule().getInt(0x1000004b) != 2) {
+        ftManager* manager = g_ftManager;
+        Fighter* target = manager->getFighter(manager->getEntryIdFromTaskId(acc->getLinkModule().getNodeTaskId(0), 0), -1);
+        ftParam param = *g_ftCommonDataAccesser.getParam(target->getFtKind());
+        starScale = param.unk1A4;
+        starParam = param.unk1A8;
+    }
+    soPostureModule& posture = acc->getPostureModule();
+    soTeamModule& team = acc->getTeamModule();
+    soResourceModule& resource = acc->getResourceModule();
+    int founderTaskId = acc->getStageObject().m_taskId;
+    article->activate(founderTaskId, resource.getResourceIdAccesser()->getEtcResId(),
+        team.getTeam()->getNo(), &pos, posture.getLr(), starScale, starParam,
+        acc->getWorkManageModule().getInt(0x1000004b));
+    int taskId = article->getTaskId();
+    acc->getWorkManageModule().setInt(taskId, 0x1000004a);
+    return false;
+}
+
+bool ftKirby::activeArticle(wnKirbyStone* article, soModuleAccesser* acc) {
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soWorkManageModule& work = acc->getWorkManageModule();
+    soResourceModule& resource = acc->getResourceModule();
+    int founderTaskId = acc->getStageObject().m_taskId;
+    article->activate(founderTaskId, resource.getResourceIdAccesser()->getEtcResId(),
+        fighter.getOwner()->getTeam(), work.getInt(0x10000047), acc->getPostureModule().getLr());
+    return true;
+}
+
+bool ftKirby::activeArticle(wnKirbyNabe* article, soModuleAccesser* acc) {
+    Vec3f pos = acc->getModelModule().getNodeGlobalPosition(0, false);
+    soPostureModule& posture = acc->getPostureModule();
+    soResourceModule& resource = acc->getResourceModule();
+    int founderTaskId = acc->getStageObject().m_taskId;
+    article->activate(founderTaskId,
+        dynamic_cast<ftResourceIdAccesserImpl&>(*resource.getResourceIdAccesser()).getFinalResId(),
+        &pos, posture.getLr(),
+        soValueAccesser::getConstantFloat(acc, 0xfc5, 0),
+        soValueAccesser::getConstantFloat(acc, 0xfc4, 0),
+        acc->getSituationModule().getKind());
+    acc->getLinkModule().link(6, article->getTaskId());
+    return true;
+}
+
+bool ftKirby::activeArticle(wnSimple* article, soModuleAccesser* acc) {
+    ftData* data = g_ftCommonDataAccesser.getData(Fighter_Kirby);
+    wnSimpleData** articleData = data->unk64;
+    s32 copyKind = acc->getWorkManageModule().getInt(0x10000048);
+    s32 index;
+    if (article->getArticleId() == 10) {
+        switch (copyKind) {
+        case 4:
+            index = 1;
+            break;
+        case 0x1f:
+            index = 2;
+            break;
+        default:
+            index = 0;
+            break;
+        }
+        soResourceModule& resource = acc->getResourceModule();
+        int founderTaskId = acc->getStageObject().m_taskId;
+        article->activate(founderTaskId,
+            dynamic_cast<ftResourceIdAccesserImpl&>(*resource.getResourceIdAccesser()).getKirbyResId(copyKind),
+            &articleData[0][index], false, true, Vec3f(0.0f, 0.0f, 0.0f),
+            0xffff, 0xffff, data->unk14C[copyKind], true, false, -1, 0, true, 2, 0, true);
+    } else {
+        switch (article->getArticleId()) {
+        case 6:
+            index = 5;
+            break;
+        case 7:
+            index = 6;
+            break;
+        case 8:
+            index = 7;
+            break;
+        default:
+            index = 8;
+            break;
+        }
+        soResourceModule& resource = acc->getResourceModule();
+        int founderTaskId = acc->getStageObject().m_taskId;
+        article->activate(founderTaskId,
+            dynamic_cast<ftResourceIdAccesserImpl&>(*resource.getResourceIdAccesser()).getFinalResId(),
+            &articleData[0][index], true, true, Vec3f(0.0f, 0.0f, 0.0f),
+            0xffff, 0xffff, 0, true, false, -1, 0, false, 2, 0, false);
+    }
+    return true;
+}
+
 // ---- the article mediator (slots 0..10: hammer, final cutter, starmissile, stone, nabe, cook hat, five simple articles) ----
 typedef soInstancePool<ftKirbyHammerInfo, ftKirbyArticlePool0Parent, ftKirbyArticleKindInfo, 0> ftKirbyHammerPool;
 typedef soInstancePool<ftKirbyFinalCutterInfo, ftKirbyArticlePool1Parent, ftKirbyArticleKindInfo, 1> ftKirbyFinalCutterPool;
@@ -1089,7 +1207,8 @@ typedef ftKirbySimple10Pool ftKirbySimple10PoolAlias;
 
 // HYPOTHESIS: the original is a functor over the predicate type that the simple articles' pools count with; its call
 // operator stays out of line there. Name as in include/em/em_article_mediator.h (not includable here).
-inline bool ftKirbyArticleIsActiveRef(soArticle& article) { return article.isActiveArticle(); }
+// HYPOTHESIS: the original is a functor over the predicate type that the simple articles' pools count with; its call
+// operator stays out of line there. Name as in include/em/em_article_mediator.h (not includable here).
 template <class Fn>
 struct soEachCounter {
     Fn* m_fn;
@@ -1109,7 +1228,7 @@ struct soEachCounter {
 
 template <int N, class Level, int S, int L>
 inline s32 ftKirbySlotActiveNumEach(Level& pool, const soIntToType<S>&, const soIntToType<L>&) {
-    soEachCounter<bool(soArticle&)> counter(ftKirbyArticleIsActiveRef);
+    soEachCounter<bool(soArticle&)> counter(soArticle::checkActivate);
     for (s32 i = 0; i < N; ++i) {
         soEachCounter<bool(soArticle&)>* c = &counter;
         if (!(*c)(pool.getSub().getInstanceAt(i))) {
@@ -1282,7 +1401,8 @@ bool soArticleMediatorImpl<PoolList, Founder>::shoot(soModuleAccesser* acc, soAr
         if (kirby == NULL) {
             return false;
         }
-        return reinterpret_cast<ftKirbyCopyAbilityShootView*>(kirby->getCopyAbility())->shootArticle(article, acc);
+        bool ok = reinterpret_cast<ftKirbyCopyAbilityShootView*>(kirby->getCopyAbility())->shootArticle(article, acc);
+        return ok;
     }
     WN_ARTICLE_UNUSED_SLOT(12, true) WN_ARTICLE_UNUSED_SLOT(13, true) WN_ARTICLE_UNUSED_SLOT(14, true)
     WN_ARTICLE_UNUSED_SLOT(15, true) WN_ARTICLE_UNUSED_SLOT(16, true)
