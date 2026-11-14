@@ -9,12 +9,30 @@
 
 // HYPOTHESIS: one slot per global player (owning AID, local player index, flags).
 struct muWifiPlayerArea {
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    union {
+        struct {
+            u8 m_aid;
+            u8 m_localPlayer;
+            union { u8 unk2[3]; struct { u8 unk2Data; u8 _pad3[2]; }; };
+            u8 unk5_b7 : 1;
+            u8 unk5_b0 : 7;
+            u8 unk6[2];
+        };
+        struct {
+            u32 _pad0;
+            s32 unk4_b24 : 8;
+            u32 _pad4_b0 : 24;
+        };
+    };
+#else
     u8 m_aid;
     u8 m_localPlayer;
     union { u8 unk2[3]; struct { u8 unk2Data; u8 _pad3[2]; }; };
     u8 unk5_b7 : 1;
     u8 unk5_b0 : 7;
     u8 unk6[2];
+#endif
 };
 static_assert(sizeof(muWifiPlayerArea) == 0x8, "Class is wrong size!");
 
@@ -31,12 +49,153 @@ struct muWifiAIDInfo {
         u8 unk5[5];
     };
 
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    union {
+        struct {
+            char unk0[0x3];
+            u8 unk3;
+            char unk4[0x4];
+        };
+        struct {
+            u8 unk0Data[3];
+            u8 _pad3;
+            u8 _pad4[2];
+            u16 unk6;
+        };
+    };
+#else
     char unk0[0x3];
     u8 unk3;
     char unk4[0x4];
+#endif
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    union {
+        struct {
+            s32 unk8;
+            char unkC[0x24];
+        };
+        struct {
+            s32 _pad8;
+            u32 _padC;
+            u64 unk10;
+            u64 unk18;
+            u64 unk20;
+        };
+    };
+#else
     s32 unk8;
     char unkC[0x24];
+#endif
     u64 unk30;
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    struct UnkPlayerSlot {
+        union {
+            struct {
+                u8 unk0;
+                u8 unk1;
+                u8 unk2;
+                u8 unk3;
+                u8 m_teamColor;
+                u8 unk5;
+                u16 unk6;
+            };
+            struct {
+                s32 unk0_b24 : 8;
+                u32 _pad0 : 24;
+            };
+        };
+    };
+    union {
+        struct {
+            char unk38[0x4];
+            LocalPlayer m_localPlayers[2];
+            union {
+                char unk4C[0xA];
+                struct {
+                    char _pad4C[9];
+                    u8 unk55;
+                };
+            };
+            union {
+                struct {
+                    u8 unk56_b7 : 1;
+                    u8 unk56_b6 : 1;
+                    u8 unk56_b3 : 3;
+                    u8 unk56_b2 : 1;
+                    u8 unk56_b0 : 2;
+                };
+                struct {
+                    u8 _pad56_b5 : 3;
+                    u8 unk56_b4 : 1;
+                    u8 _pad56_b0 : 4;
+                };
+                struct {
+                    u8 _bf56_b7 : 1;
+                    u8 _bf56_b6 : 1;
+                    u8 unk56_b5 : 1;
+                    u8 _bf56_b4 : 1;
+                    u8 unk56_b2_2 : 2;
+                    u8 _bf56_b0 : 2;
+                };
+                struct {
+                    u8 _bf56_b1_7 : 7;
+                    u8 unk56_b0_1 : 1;
+                };
+                u8 unk56Data;
+            };
+            union {
+                char unk57[0x21];
+                // HYPOTHESIS: status byte and four-byte rule packet share this region.
+                struct {
+                    u8 unk57Data;
+                    char _pad58[0xC];
+                    u8 unk64[4];
+                };
+                struct {
+                    char _pad57[2];
+                    u8 unk59_b4 : 4;
+                    u8 unk59_b0 : 4;
+                    union {
+                        char _pad5A[0xE];
+                        struct { u8 unk5A; char _pad5B[0xD]; };
+                    };
+                    u8 unk68[4];
+                };
+                struct {
+                    u8 unk57_b7 : 1;
+                    u8 unk57_b6 : 1;
+                    u8 unk57_b0 : 6;
+                    u8 unk58_b4 : 4;
+                    u8 unk58_b0 : 4;
+                };
+            };
+        };
+        struct {
+            UnkPlayerSlot unk38Slots[3];
+            u8 unk50;
+            u8 unk51;
+            u8 unk52;
+            u8 _pad53;
+            u8 unk54;
+            u8 _pad55;
+            u8 _pad56_ext;
+            u8 _pad57_ext;
+            u8 unk58Data;
+            u8 _pad59_ext[3];
+            s32 unk5C;
+            u8 unk60[3];
+            char _pad63_ext;
+            u8 unk64_b2 : 6;
+            u8 unk64_b0 : 2;
+            u8 unk65_b1 : 7;
+            u8 unk65_b0 : 1;
+            u8 unk66;
+            u8 unk67;
+            char _pad68_ext[4];
+            u8 unk6C[4][3];
+        };
+    };
+#else
     char unk38[0x4];
     LocalPlayer m_localPlayers[2];
     union {
@@ -76,12 +235,20 @@ struct muWifiAIDInfo {
             u8 unk58_b0 : 4;
         };
     };
+#endif
     union {
         // HYPOTHESIS: four-byte game-rule packet begins at offset 0x7D.
         struct {
             char _pad78Rule[5];
             u8 unk7DData[4];
         };
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+        struct {
+            char _pad78Rule_bf[5];
+            u8 unk7D_b2_6 : 6;
+            u8 _pad7D_b0 : 2;
+        };
+#endif
         struct {
             u8 unk78_b7 : 1;
             u8 unk78_b3 : 4;
@@ -91,10 +258,49 @@ struct muWifiAIDInfo {
             u8 unk7D_b4 : 4;
             u8 unk7D_b2 : 2;
             u8 unk7D_b0 : 2;
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+            union {
+                char unk7E[0x6];
+                struct {
+                    u8 unk7E_b1 : 7;
+                    u8 unk7E_b0 : 1;
+                    u8 unk7F;
+                    u8 unk80;
+                    u8 _pad81[3];
+                };
+            };
+            UnkPlayerSlot unk84[4][3];
+            u8 _padE4;
+            AssignedPlayer m_assignedPlayers[4];
+#else
             char unk7E[0x67];
             AssignedPlayer m_assignedPlayers[4];
+#endif
             char unk10D[0x2B];
         };
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+        struct {
+            u8 _pad78_b7 : 1;
+            u8 unk78_b6 : 2;
+            u8 unk78_b4 : 1;
+            u8 unk78_b3_lo : 1;
+            u8 _pad78_b0 : 3;
+        };
+        struct {
+            u8 _pad78_b7_2 : 1;
+            u8 unk78_b6_hi : 1;
+            u8 unk78_b5 : 1;
+            u8 _pad78_b0_2 : 5;
+        };
+        struct {
+            u32 _pad78_mode : 24;
+            s32 unk7B_8 : 8;
+        };
+        struct {
+            u32 _pad78_mode9 : 23;
+            s32 unk7B_9 : 9;
+        };
+#endif
         struct {
             char _pad78[0x6C];
             struct {
@@ -120,6 +326,31 @@ struct muWifiAIDInfo {
             char _pad134[4];
         };
     };
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    union {
+        struct {
+            char m_shortComment[0xA0];
+            // HYPOTHESIS: the AID name holds five wide characters as byte pairs.
+            union {
+                char unk1D8[0x39];
+                struct { char _pad1D8[8]; u8 unk1E0[0xA]; };
+                struct { char _pad1D8Names[0x12]; u8 unk1EA[3][10]; u8 unk208[3]; };
+                struct {
+                    char _pad1D8_210[0x38];
+                    u8 unk210_b7 : 1;
+                    u8 unk210_b6 : 1;
+                    u8 unk210_b0 : 6;
+                };
+            };
+            s8 m_friendAIDIndex;
+            char unk212[0x6];
+        };
+        struct {
+            char _pad138_ext[0xA0];
+            u32 unk1D8Data[2];
+        };
+    };
+#else
     char m_shortComment[0xA0];
     // HYPOTHESIS: the AID name holds five wide characters as byte pairs.
     union {
@@ -129,6 +360,7 @@ struct muWifiAIDInfo {
     };
     s8 m_friendAIDIndex;
     char unk212[0x6];
+#endif
 };
 static_assert(sizeof(muWifiAIDInfo) == 0x218, "Class is wrong size!");
 
@@ -144,26 +376,80 @@ static_assert(sizeof(muWifiErrorMsg) == 0x8, "Class is wrong size!");
 class muWifiInterfaceTask : public gfTask {
 public:
     s32 unk40;
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    union {
+        char unk44[0x8];
+        struct {
+            s32 unk44Data;
+            u8 unk48;
+            char _pad49[3];
+        };
+    };
+#else
     char unk44[0x8];
+#endif
     muWifiPlayerArea m_playerAreas[4];
     // HYPOTHESIS: game mode used when comparing the server status.
     union { char unk6C[0x4]; s32 unk6CData; };
     muWifiAIDInfo m_aidInfos[5];
     // HYPOTHESIS: bit 4 records the player-assignment receive state.
     union { char unkAE8[0x4E2]; struct { char _padAE8[0x4E1]; u8 unkFC9; }; };
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    union {
+        struct {
+            u8 unkFCA_b7 : 1;
+            u8 unkFCA_b6 : 1;
+            u8 unkFCA_b5 : 1;
+            u8 unkFCA_b4 : 1;           // cleared after the name entry of muWifiCnctWndTask has set the name
+            u8 unkFCA_b3 : 1;
+            u8 unkFCA_b2 : 1;
+            u8 unkFCA_b1 : 1;
+            u8 unkFCA_b0 : 1;
+        };
+        struct {
+            bool unkFCA_b7_bool : 1;
+            bool unkFCA_b6_bool : 1;
+            bool unkFCA_b5_bool : 1;
+        };
+    };
+#else
     u8 unkFCA_b7 : 1;
     u8 unkFCA_b6 : 1;
     u8 unkFCA_b5 : 1;
     u8 unkFCA_b4 : 1;           // cleared after the name entry of muWifiCnctWndTask has set the name
     u8 unkFCA_b0 : 4;
+#endif
     u8 unkFCB_b7 : 1;
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    u8 unkFCB_b6 : 1;
+    u8 unkFCB_b0 : 6;
+#else
     u8 unkFCB_b0 : 7;
+#endif
     s32 unkFCC_b24 : 8;
     u32 unkFCC_b0 : 24;
     // HYPOTHESIS: friend index used for the server game-mode comparison.
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    union {
+        char unkFD0[0xA];
+        struct { char _padFD0[8]; u8 unkFD8; u8 _padFD9; };
+        struct { char _padFD0_2[2]; u8 unkFD2; char _padFD3[2]; u8 unkFD5; char _padFD6[4]; };
+    };
+#else
     union { char unkFD0[0xA]; struct { char _padFD0[8]; u8 unkFD8; u8 _padFD9; }; };
+#endif
     u16 m_limitTime;
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    union {
+        char unkFDC[0x13];
+        struct {
+            char _padFDC[7];
+            u8 unkFE3[4][3];
+        };
+    };
+#else
     char unkFDC[0x13];
+#endif
     u8 m_playerLive[4];
     char unkFF3[0x1];
     u16 m_playerLiveTime[4];
@@ -212,7 +498,19 @@ public:
         };
     };
     s32 m_appNetworkError[2];
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    union {
+        char unk1050[0x8];
+        struct {
+            u16 unk1050Data;
+            u16 unk1052Data;
+        };
+    };
+
+    muWifiInterfaceTask();
+#else
     char unk1050[0x8];
+#endif
 
     virtual void processDefault();
     virtual ~muWifiInterfaceTask();

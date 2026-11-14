@@ -45,7 +45,11 @@ public:
     void resetWork();
     static void setErrorStatus(s32 error);
     bool requestSuspendMatching(bool suspend, bool wait);
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    int calcWinningPercentage();
+#else
     static int calcWinningPercentage();
+#endif
     bool startMatching(int mode, int rule, int players);
     // HYPOTHESIS: small accessors on the matching manager.
     u8 isShutdowned();
@@ -108,7 +112,19 @@ public:
             u8 unk33F6;
             u8 _pad33F7[0xD];
             u32 unk3404;
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+            union {
+                u32 unk3408;
+                struct {
+                    u32 _pad3408_b7 : 25;
+                    u32 unk3408_b6 : 1;
+                    u32 _pad3408_b0 : 6;
+                };
+            };
+            u8 _pad3408[0x24];
+#else
             u8 _pad3408[0x28];
+#endif
             int unk3430;
             int unk3434;
             u32 unk3438;

@@ -1,4 +1,5 @@
 #define MU_WIFI_NETCOND_OUTLINE
+#define MU_WIFI_INTERFACE_TASK_INTERNAL
 #include <types.h>
 
 #include <mu/wifi/mu_wifi_interface.h>
@@ -2346,4 +2347,311 @@ bool muWifiInterfaceTask::isCancelApprovalCalled(u8* aid, int* player) {
     self[0xFCD] = a;
     self[0xFCE] = b;
     return true;
+}
+
+extern const char lbl_80457954[];
+extern const char lbl_80457978[];
+
+extern "C" void fn_800CA498(muWifiInterfaceTask* self, int playerAreaNo, u8 charKind, int color) {
+    if (playerAreaNo < 0 || playerAreaNo >= 4) {
+        netReport(lbl_80457954, playerAreaNo);
+        return;
+    }
+    u8 myAid = Network::getMyAID();
+    if (myAid == 0xFF) {
+        myAid = 4;
+    }
+    muWifiPlayerArea* area = &self->m_playerAreas[playerAreaNo];
+    if (area->m_aid != myAid) {
+        myAid = Network::getMyAID();
+        if (myAid == 0xFF) {
+            myAid = 4;
+        }
+        netReport(lbl_80457978, myAid, playerAreaNo, area->m_aid);
+        return;
+    }
+    if (area->unk5_b7) {
+        return;
+    }
+    int local = area->m_localPlayer;
+    myAid = Network::getMyAID();
+    if (myAid == 0xFF) {
+        myAid = 4;
+    }
+    u8* infoPtr = reinterpret_cast<u8*>(&self->m_aidInfos[myAid]);
+    *(infoPtr + local * 8 + 0x3A) = charKind;
+    if (color >= 0) {
+        *(infoPtr + local * 8 + 0x3B) = color;
+    }
+    reinterpret_cast<u8*>(self)[0xFCA] |= 2;
+    myAid = Network::getMyAID();
+    if (myAid == 0xFF) {
+        myAid = 4;
+    }
+    reinterpret_cast<u8*>(&self->m_aidInfos[myAid])[0x56] |= 1;
+    fn_800D0AE0(self);
+    fn_80145B98(lbl_805A03A8, 0xFE);
+}
+
+extern "C" u64 fn_800D9190(muWifiInterfaceTask* self) {
+    char* base = lbl_80457158;
+    u64 mask2 = ~0ULL;
+    u64 mask1 = ~0ULL;
+    netReport(base + 0x27F0);
+    for (u8 aid = 0; aid < 4; aid++) {
+        bool live;
+        if (aid >= 4) {
+            live = false;
+        } else {
+            live = self->getSafeParentAIDInfo()->unk68[aid] == 1;
+        }
+        if (live) {
+            muWifiAIDInfo* info = &self->m_aidInfos[aid];
+            u64 a = *reinterpret_cast<u64*>(&info->unkC[0x1C]);
+            netReport(base + 0x2808, aid, a);
+            mask1 &= a;
+            mask2 &= info->unk30;
+        }
+    }
+    netReport(base + 0x2818, mask1);
+    u8 myAid = Network::getMyAID();
+    if (myAid == 0xFF) {
+        myAid = 4;
+    }
+    *reinterpret_cast<u64*>(reinterpret_cast<u8*>(&self->m_aidInfos[myAid]) + 0x118) = mask2;
+    return mask1;
+}
+
+extern const char lbl_8045803C[];
+
+extern "C" void fn_800CCCE8(muWifiInterfaceTask* self) {
+    if (!NtBase::isParent()) {
+        return;
+    }
+    muWifiAIDInfo* parent;
+    u8 parentAid = Network::getParentAID();
+    if (parentAid == 0xFF) {
+        parent = NULL;
+    } else {
+        parent = &self->m_aidInfos[parentAid];
+    }
+    parent->unk78_b4 = 1;
+    u8 myAid = Network::getMyAID();
+    if (myAid == 0xFF) {
+        myAid = 4;
+    }
+    reinterpret_cast<FlagByte*>(reinterpret_cast<u8*>(&self->m_aidInfos[myAid]) + 0x56)->unk0_b0 = 0;
+    fn_800D0AE0(self);
+    fn_80145B98(lbl_805A03A8, 0xFE);
+    union {
+        u8 u;
+        bool b;
+    } liveBitmap;
+    liveBitmap.u = self->getGlobalLiveAIDBitmap();
+    u8 pAid = Network::getParentAID();
+    netReport(lbl_8045803C, pAid, liveBitmap.u);
+    lbl_805A0434->requestSuspendMatching(true, liveBitmap.b);
+}
+
+extern s32 g_NtMatchingStatus;
+static inline s32 isNtMatchingConnecting() {
+    s32 ret = 1;
+    if (g_NtMatchingStatus != 7 && g_NtMatchingStatus > 8) {
+        ret = 0;
+    }
+    return ret;
+}
+extern const char lbl_80457FEC[];
+
+extern "C" int fn_800CCA9C(muWifiInterfaceTask* self, int* errorIndex, int* errorCode) {
+    if (errorCode != NULL) {
+        *errorCode = 0;
+    }
+    if (errorIndex != NULL) {
+        *errorIndex = 0;
+    }
+    if (gUnk805a03d8 == 0) {
+        return 0;
+    }
+    if (lbl_805A03F0 != 0) {
+        if (errorCode != NULL) {
+            *errorCode = lbl_805A03F0;
+        }
+        if (errorIndex != NULL) {
+            *errorIndex = self->exchangeDWCErrorCode(*errorCode);
+        }
+        return 3;
+    }
+    if (self->unkFCC_b24 == 6) {
+        NtBase* base = reinterpret_cast<NtBase*>(g_Network.disconnectAll(false));
+        self->m_appNetworkError[0] = 0;
+        self->m_appNetworkError[1] = 0;
+        base->clearAppErrorStatus();
+        return 7;
+    }
+    if (self->unkFCC_b24 == 7) {
+        NtBase* base = reinterpret_cast<NtBase*>(g_Network.disconnectAll(false));
+        self->m_appNetworkError[0] = 0;
+        self->m_appNetworkError[1] = 0;
+        base->clearAppErrorStatus();
+        return 6;
+    }
+    if (self->unkFCC_b24 == 5) {
+        NtBase* base = reinterpret_cast<NtBase*>(g_Network.disconnectAll(false));
+        self->m_appNetworkError[0] = 0;
+        self->m_appNetworkError[1] = 0;
+        base->clearAppErrorStatus();
+        return 6;
+    }
+    if (self->unkFCC_b24 != 4 && !self->isEqualServerGameMode()) {
+        netReport(lbl_80457FEC, self->unkFCC_b24);
+        NtBase* base = reinterpret_cast<NtBase*>(g_Network.disconnectAll(false));
+        self->m_appNetworkError[0] = 0;
+        self->m_appNetworkError[1] = 0;
+        base->clearAppErrorStatus();
+        return 6;
+    }
+    s32 connecting = isNtMatchingConnecting();
+    s32 res = 2;
+    if (connecting) {
+        res = 1;
+    }
+    return res;
+}
+
+static inline muWifiAIDInfo* getParentOrMyAIDInfo(muWifiInterfaceTask* self) {
+    muWifiAIDInfo* p;
+    u8 pAid = Network::getParentAID();
+    if (pAid == 0xFF) {
+        p = NULL;
+    } else {
+        p = &self->m_aidInfos[pAid];
+    }
+    if (p == NULL) {
+        u8 myAid = Network::getMyAID();
+        if (myAid == 0xFF) {
+            myAid = 4;
+        }
+        p = &self->m_aidInfos[myAid];
+    }
+    return p;
+}
+
+static inline u8 getGameMasterAID(muWifiInterfaceTask* self) {
+    muWifiAIDInfo* p = getParentOrMyAIDInfo(self);
+    u8 cand = p->unk79Data;
+    bool ok;
+    if (cand >= 4) {
+        ok = false;
+    } else {
+        ok = self->getSafeParentAIDInfo()->unk68[cand] == 1;
+    }
+    if (ok) {
+        return p->unk79Data;
+    }
+    return 0xFF;
+}
+
+static inline bool isMyGameMasterHelper(muWifiInterfaceTask* self) {
+    u8 master = getGameMasterAID(self);
+    u8 myAid = Network::getMyAID();
+    if (myAid == 0xFF) {
+        myAid = 4;
+    }
+    return master == myAid;
+}
+
+static inline bool isMyGameMaster(muWifiInterfaceTask* self) {
+    return self->unkFCA_b5_bool || isMyGameMasterHelper(self);
+}
+
+static inline bool isPlayerSlotLive(muWifiInterfaceTask* self, u8 aid, int localPlayer) {
+    muWifiAIDInfo* safeParent = self->getSafeParentAIDInfo();
+    if (safeParent->unk68[aid] != 1) {
+        return false;
+    }
+    return safeParent->unk84[aid][localPlayer].unk0_b24 == 1;
+}
+
+extern "C" u8 fn_800C9F14(muWifiInterfaceTask* self, int playerAreaNo) {
+    u8 aid = self->m_playerAreas[playerAreaNo].m_aid;
+    int localPlayer = self->m_playerAreas[playerAreaNo].m_localPlayer;
+    if (isMyGameMaster(self) && self->m_playerAreas[playerAreaNo].unk5_b7) {
+        return 0;
+    }
+    if (aid == 4) {
+        return 0;
+    }
+    if (aid > 4) {
+        return 0;
+    }
+    if (!isPlayerSlotLive(self, aid, localPlayer)) {
+        return 0;
+    }
+    return self->m_aidInfos[aid].unk55;
+}
+
+extern "C" void fn_800CF770(muWifiInterfaceTask* self, u8 aid) {
+    muWifiAIDInfo* info = &self->m_aidInfos[aid];
+    memset(info, 0, sizeof(muWifiAIDInfo));
+    info->unk5C = 0;
+    info->unk60[0] = 0xFF;
+    info->unk60[1] = 0;
+    info->unk60[2] = 0;
+    for (int i = 0; i < 4; i++) {
+        info->unk6C[i][0] = 0xFF;
+        info->unk6C[i][1] = 0;
+        info->unk6C[i][2] = 0;
+    }
+    info->unk0Data[0] = 0;
+    self->unkFD2 = 0;
+    info->unk1D8Data[1] = 0;
+    info->unk1D8Data[0] = 0;
+    memset(info->unk1E0, 0, 0xA);
+    memset(info->unk1EA, 0, 0x1E);
+    memset(info->unk208, 0x78, 3);
+    memset(info->m_shortComment, 0, 0xA0);
+    info->unk0Data[1] = 0;
+    info->unk10 = 0;
+    for (int i = 0; i < 3; i++) {
+        muWifiAIDInfo::UnkPlayerSlot* slot = &info->unk38Slots[i];
+        slot->unk0_b24 = 0;
+        slot->unk1 = 0;
+        slot->unk2 = 0x3E;
+        slot->unk3 = 0;
+        slot->m_teamColor = 0;
+        slot->unk6 = 0;
+    }
+    info->unk52 = 0xFF;
+    info->unk55 = 0;
+    info->unk56_b6 = 0;
+    info->unk56_b2_2 = 0;
+    info->unk56_b5 = 0;
+    info->unk57_b6 = 0;
+    info->unk58_b4 = 0;
+    info->unk58_b0 = 0;
+    info->unk59_b4 = 0;
+    info->unk5A = 0;
+    info->unk6 = 0;
+    info->unk56_b7 = 0;
+    info->unk54 = lbl_805A0434->calcWinningPercentage();
+    info->unk78_b7 = 0;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 3; j++) {
+            info->unk84[i][j].unk0_b24 = 0;
+            info->unk84[i][j].unk1 = 0;
+            info->unk84[i][j].unk2 = 0x3E;
+            info->unk84[i][j].unk3 = 0;
+            info->unk84[i][j].m_teamColor = 0;
+            info->unk84[i][j].unk6 = 0;
+        }
+    }
+    info->unk64_b2 = 0;
+    info->unk65_b1 = 0;
+    info->unk66 = 2;
+    info->unk67 = 1;
+    info->unk7D_b2_6 = 0;
+    info->unk7E_b1 = 0;
+    info->unk7F = 2;
+    info->unk80 = 1;
 }
