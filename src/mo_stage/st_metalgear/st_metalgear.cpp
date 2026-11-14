@@ -235,8 +235,8 @@ void stMetalgear::createObjEtc(int index) {
 
 void stMetalgear::createObjWall(int index) {
     grMetalgearWall* ground;
-    float* rotZ;
     u8* state;
+    float* rotZ;
     u8 type;
     switch (index) {
     case 3:
@@ -323,8 +323,8 @@ void stMetalgear::createObjAttack(int index) {
     Vec3f* pos;
     float* rotZ;
     u8* state;
-    stCollisionWork* collision;
     u8 type;
+    stCollisionWork* collision;
     switch (index) {
     case 9:
         ground = grMetalgearAttack::create(0x5A, "nodeIndex", "grMetalgearAttackLeft");
@@ -819,7 +819,7 @@ void stMetalgear::selectSnow() {
     stMetalgearData* data = static_cast<stMetalgearData*>(m_stageData);
     m_snow = 3;
     if (data != NULL) {
-        float total = data->unk0C + data->unk08 + data->unk00 + data->unk04;
+        float total = data->unk0C + (data->unk08 + (data->unk00 + data->unk04));
         float chance3 = data->unk0C / total;
         float chance2 = data->unk08 / total;
         float chance1 = data->unk04 / total;

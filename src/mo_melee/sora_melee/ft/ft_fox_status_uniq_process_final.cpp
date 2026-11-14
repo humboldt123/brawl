@@ -116,8 +116,7 @@ void ftFoxStatusUniqProcessFinal::execFixPos(soModuleAccesser* moduleAccesser) {
     int status = ftFoxFinalStatus(moduleAccesser, moduleAccesser->getStatusModule().getStatusKind());
     if (status == 0x11d) {
         CameraController* cameraController = CameraController::getInstance();
-        Vec3f pos = moduleAccesser->getPostureModule().getPos();
-        if (pos.m_y > *reinterpret_cast<float*>(reinterpret_cast<u8*>(cameraController) + 0x150)) {
+        if (moduleAccesser->getPostureModule().getPos().m_y > *reinterpret_cast<float*>(reinterpret_cast<u8*>(cameraController) + 0x150)) {
             int rideStatus;
             switch (moduleAccesser->getStageObject().soGetSubKind()) {
             case 0x6:
@@ -136,9 +135,9 @@ void ftFoxStatusUniqProcessFinal::execFixPos(soModuleAccesser* moduleAccesser) {
             moduleAccesser->getStatusModule().changeStatusRequest(rideStatus, moduleAccesser);
         }
     } else if (status == 0x11e) {
-        soLinkModule& link = moduleAccesser->getLinkModule();
         soPostureModule& posture = moduleAccesser->getPostureModule();
-        if (link.isLinked(6)) {
+        soLinkModule& link = moduleAccesser->getLinkModule();
+        if (link.isLink(6)) {
             Vec3f nodePos = link.getParentModelNodeGlobalPosition(6, static_cast<u32>(0), false);
             float lr = link.getParentLr(6);
             posture.setPos(&nodePos);

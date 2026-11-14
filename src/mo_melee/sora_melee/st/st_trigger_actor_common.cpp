@@ -3,7 +3,7 @@
 #include <st/stage.h>
 #include <types.h>
 
-stActTriggerFrameExcelCB::stActTriggerFrameExcelCB(grGimmickFrameTriggerData* data) : unk8(0), unkC(0.0f), unk10(true), m_data(data) {
+stActTriggerFrameExcelCB::stActTriggerFrameExcelCB(grGimmickFrameTriggerData* data) : unkC(0.0f), unk10(true), m_data(data) {
     m_trigger = g_stTriggerMng->createTrigger(Gimmick::Area_None, &data->unk10);
 }
 

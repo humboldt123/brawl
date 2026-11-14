@@ -12,6 +12,7 @@
 //   0x802D99B4   120  addModifierDataToConstraintInfo   [map: hkModifierConstraintAtom__addModifierDataToConstraintInfo]
 //   0x802D9A2C   104  addAllModifierDataToConstraintInfo   [map: hkModifierConstraintAtom__addAllModifierDataToConstraintInfo]
 //   0x802D9A94    68  __sinit_\hkConstraintAtom_cpp   [map: hkConstraintAtomcpp____sinit_]
+//   0x802D9AD8     4  hkBodyVelocity::hkBodyVelocity (weak)
 #include <havok/hkConstraintAtom.h>
 #include <havok/hkConstraintData.h>
 
@@ -28,55 +29,41 @@ void hkBridgeConstraintAtom::init(hkConstraintData* data) {
     m_buildJacobianFunc = hkBridgeConstraintAtom_callData;
 }
 
-void hkMassChangerModifierConstraintAtom::collisionResponseBeginCallback(void* contact, hkModifierMotion* motionA,
-                                                                         void* unused, hkModifierMotion* motionB) {
+void hkMassChangerModifierConstraintAtom::collisionResponseBeginCallback(const hkContactPoint& cp,
+                                                                         hkSimpleConstraintInfoInitInput& inA,
+                                                                         hkBodyVelocity& velA,
+                                                                         hkSimpleConstraintInfoInitInput& inB,
+                                                                         hkBodyVelocity& velB) {
     float factorA = m_factorA;
     float factorB = m_factorB;
-    motionA->m_massFactor = motionA->m_massFactor * factorA;
-    motionA->m_inverseInertia.mul(factorA);
-    motionB->m_massFactor = motionB->m_massFactor * factorB;
-    motionB->m_inverseInertia.mul(factorB);
+    inA.m_invMass = inA.m_invMass * factorA;
+    inA.m_invInertia.mul(factorA);
+    inB.m_invMass = inB.m_invMass * factorB;
+    inB.m_invInertia.mul(factorB);
 }
 
-void hkMassChangerModifierConstraintAtom::collisionResponseEndCallback() {
+void hkMassChangerModifierConstraintAtom::collisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied,
+                                                                       hkSimpleConstraintInfoInitInput& inA,
+                                                                       hkBodyVelocity& velA,
+                                                                       hkSimpleConstraintInfoInitInput& inB,
+                                                                       hkBodyVelocity& velB) {
 }
 
-// Saved vector blocks from the soft-contact begin callback. Each block is 0x20 bytes with a destructor
-// (constructed through __construct_array in the TU initialiser). HYPOTHESIS: the block name is unknown.
-struct hkSoftContactSavedBlock {
-    float m_values[8];
+// Body velocities saved by the soft-contact begin callback and blended back by its end callback (TOI events are
+// processed one after another).
+static hkBodyVelocity s_bodyVelocities[2];
+static hkBool s_bodyVelocitiesInitialized(false);
 
-    ~hkSoftContactSavedBlock();
-};
-
-static hkSoftContactSavedBlock s_softContactSaved[2];
-
-void hkSoftContactModifierConstraintAtom::collisionResponseBeginCallback(void* unusedA, void* unusedB, void* unusedC,
-                                                                         const hkVector4* srcA, void* unusedD,
-                                                                         const hkVector4* srcB) {
-    const float* a = (const float*)srcA;
-    const float* b = (const float*)srcB;
-    float* dstA = s_softContactSaved[0].m_values;
-    float* dstB = s_softContactSaved[1].m_values;
-    dstA[0] = a[0];
-    dstA[1] = a[1];
-    dstA[2] = a[2];
-    dstA[3] = a[3];
-    dstA[4] = a[4];
-    dstA[5] = a[5];
-    dstA[6] = a[6];
-    dstA[7] = a[7];
-    dstB[0] = b[0];
-    dstB[1] = b[1];
-    dstB[2] = b[2];
-    dstB[3] = b[3];
-    dstB[4] = b[4];
-    dstB[5] = b[5];
-    dstB[6] = b[6];
-    dstB[7] = b[7];
+void hkSoftContactModifierConstraintAtom::collisionResponseBeginCallback(const hkContactPoint& cp,
+                                                                         hkSimpleConstraintInfoInitInput& inA,
+                                                                         hkBodyVelocity& velA,
+                                                                         hkSimpleConstraintInfoInitInput& inB,
+                                                                         hkBodyVelocity& velB) {
+    s_bodyVelocities[0] = velA;
+    s_bodyVelocities[1] = velB;
 }
 
-// Blends one saved block back into the destination vectors: dst = u * saved + t * dst (t = tau).
+// dst = u * saved + t * dst (t = tau, u = 1 - t), per float.
 static inline void hkSoftContactBlend(float* dst, const float* saved, float t, float u) {
     dst[0] = u * saved[0] + t * dst[0];
     dst[1] = u * saved[1] + t * dst[1];
@@ -88,55 +75,46 @@ static inline void hkSoftContactBlend(float* dst, const float* saved, float t, f
     dst[7] = u * saved[7] + t * dst[7];
 }
 
-void hkSoftContactModifierConstraintAtom::collisionResponseEndCallback(void* unusedA, void* unusedB, void* unusedC,
-                                                                       hkVector4* dstA, void* unusedD,
-                                                                       hkVector4* dstB) {
-    float t = m_tau;
-    float u = 1.0f - t;
-    hkSoftContactBlend((float*)dstA, s_softContactSaved[0].m_values, t, u);
-    hkSoftContactBlend((float*)dstB, s_softContactSaved[1].m_values, t, u);
+void hkSoftContactModifierConstraintAtom::collisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied,
+                                                                       hkSimpleConstraintInfoInitInput& inA,
+                                                                       hkBodyVelocity& velA,
+                                                                       hkSimpleConstraintInfoInitInput& inB,
+                                                                       hkBodyVelocity& velB) {
+    hkReal usedImpulseFraction = m_tau;
+    hkBodyVelocity& oldA = s_bodyVelocities[0];
+    hkBodyVelocity& oldB = s_bodyVelocities[1];
+    velA.m_linear.setInterpolate4(oldA.m_linear, velA.m_linear, usedImpulseFraction);
+    velA.m_angular.setInterpolate4(oldA.m_angular, velA.m_angular, usedImpulseFraction);
+    velB.m_linear.setInterpolate4(oldB.m_linear, velB.m_linear, usedImpulseFraction);
+    velB.m_angular.setInterpolate4(oldB.m_angular, velB.m_angular, usedImpulseFraction);
 }
 
-void hkMovingSurfaceModifierConstraintAtom::collisionResponseBeginCallback(void* unusedA, hkModifierContact* contact,
-                                                                           void* unusedB, void* unusedC, void* unusedD,
-                                                                           hkVector4* out) {
-    const hkVector4& normal = contact->m_normal;
-    float dot = m_velocity.x * normal.x + m_velocity.y * normal.y + m_velocity.z * normal.z;
-    hkVector4 proj;
-    hkVector4 rel;
-    proj.x = dot * m_velocity.x;
-    proj.y = dot * m_velocity.y;
-    proj.z = dot * m_velocity.z;
-    proj.w = dot * m_velocity.w;
-    rel.x = m_velocity.x - proj.x;
-    rel.y = m_velocity.y - proj.y;
-    rel.z = m_velocity.z - proj.z;
-    rel.w = m_velocity.w - proj.w;
-    out->x += rel.x;
-    out->y += rel.y;
-    out->z += rel.z;
-    out->w += rel.w;
+void hkMovingSurfaceModifierConstraintAtom::collisionResponseBeginCallback(const hkContactPoint& cp,
+                                                                           hkSimpleConstraintInfoInitInput& inA,
+                                                                           hkBodyVelocity& velA,
+                                                                           hkSimpleConstraintInfoInitInput& inB,
+                                                                           hkBodyVelocity& velB) {
+    hkVector4 vel = m_velocity;
+    // Project the surface velocity into the contact plane, so the bodies do not sink in.
+    hkSimdReal dot = vel.dot3(cp.m_normal);
+    hkVector4 perp;
+    perp.setMul4(dot, vel);
+    vel.sub4(perp);
+    velB.m_linear.add4(vel);
 }
 
-void hkMovingSurfaceModifierConstraintAtom::collisionResponseEndCallback(void* unusedA, hkModifierContact* contact,
-                                                                         void* unusedB, void* unusedC, void* unusedD,
-                                                                         hkVector4* out) {
-    const hkVector4& normal = contact->m_normal;
-    float dot = m_velocity.x * normal.x + m_velocity.y * normal.y + m_velocity.z * normal.z;
-    hkVector4 proj;
-    hkVector4 rel;
-    proj.x = dot * m_velocity.x;
-    proj.y = dot * m_velocity.y;
-    proj.z = dot * m_velocity.z;
-    proj.w = dot * m_velocity.w;
-    rel.x = m_velocity.x - proj.x;
-    rel.y = m_velocity.y - proj.y;
-    rel.z = m_velocity.z - proj.z;
-    rel.w = m_velocity.w - proj.w;
-    out->x -= rel.x;
-    out->y -= rel.y;
-    out->z -= rel.z;
-    out->w -= rel.w;
+void hkMovingSurfaceModifierConstraintAtom::collisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied,
+                                                                         hkSimpleConstraintInfoInitInput& inA,
+                                                                         hkBodyVelocity& velA,
+                                                                         hkSimpleConstraintInfoInitInput& inB,
+                                                                         hkBodyVelocity& velB) {
+    hkVector4 vel = m_velocity;
+    // Project the surface velocity into the contact plane, so the bodies do not sink in.
+    hkSimdReal dot = vel.dot3(cp.m_normal);
+    hkVector4 perp;
+    perp.setMul4(dot, vel);
+    vel.sub4(perp);
+    velB.m_linear.sub4(vel);
 }
 
 #pragma dont_inline on
@@ -177,25 +155,3 @@ u32 hkModifierConstraintAtom::addAllModifierDataToConstraintInfo(hkConstraintInf
     }
     return flags;
 }
-
-// Unnamed static flag (lbl_805A0F18), initialised to false.
-static hkBool s_hkConstraintAtom_unk(false);
-
-// fn_802D9A94: body from https://github.com/jj-link/brawl src/havok/fn_802D9A94.cpp (namespaced; labels as in our symbols).
-#include <types.h>
-namespace jj_fn_802D9A94 {
-extern "C" {
-void __construct_array(void*, void (*)(void*), void (*)(void*), unsigned long, int);
-void fn_802D9AD8(void*);
-extern "C" float lbl_80532A10[16];
-extern "C" u8 lbl_805A0F18;
-}
-
-// TODO: cleanup (shape from jj-link/brawl fn_802D9A94)
-extern "C" void fn_802D9A94() {
-    __construct_array(lbl_80532A10, fn_802D9AD8, 0, 0x20, 2);
-    lbl_805A0F18 = 0;
-}
-
-__declspec(section ".ctors") extern void* const fn_802D9A94_ctor = (void*)fn_802D9A94;
-} // namespace jj_fn_802D9A94

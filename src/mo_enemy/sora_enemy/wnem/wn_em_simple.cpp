@@ -1291,12 +1291,12 @@ void wnemSimple::setupCollisionHitStatus() {
 // Runs the animation commands of the weapon (the sub groups 0x1d while it moves, 0x10 while it is stopped), keeps the
 // ground correction of its shape in line with its situation and then runs the proc function.
 void wnemSimple::processFixPositionPreAnimCmd() {
-    // TODO(nonmatching): ~97%, the original keeps the accesser in a saved register across the first branch's two calls and
-    // loads 1.0f before the address of the second branch's attribute (register allocation).
+    // TODO(nonmatching): the original loads 1.0f before the address of the second branch's attribute (scheduling).
     if (m_moduleAccesser->getStopModule().isStop() == false) {
         soAttributeFlag attr(0x1d);
         soModuleAccesser* acc = m_moduleAccesser;
-        acc->getAnimCmdModule().interpretCmd(acc, attr, acc->getSlowModule().getRate());
+        soSlowModule* slow = &acc->getSlowModule();
+        acc->getAnimCmdModule().interpretCmd(acc, attr, slow->getRate());
     } else {
         m_moduleAccesser->getAnimCmdModule().interpretCmd(m_moduleAccesser, soAttributeFlag(0x10), 1.0f);
     }

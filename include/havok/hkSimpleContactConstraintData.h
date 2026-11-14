@@ -5,6 +5,9 @@
 #include <havok/hkMemory.h>
 #include <havok/hkSimpleContactConstraintAtom.h>
 
+struct hkSimpleConstraintInfoInitInput;
+struct hkBodyVelocity;
+
 struct hkConstraintInstance;
 
 // hkSimpleContactConstraintAtomUtil::deallocateAtom (unsplit, 0x802DA2B4). HYPOTHESIS: name.
@@ -45,11 +48,12 @@ struct hkSimpleContactConstraintData : hkConstraintData {
     virtual void getRuntimeInfo(hkBool wantRuntime, hkConstraintRuntimeInfo& infoOut) const;
     virtual hkSolverResults* getSolverResults(hkConstraintRuntime* runtime) const;
     virtual void getConstraintInfo(ConstraintInfo& infoOut) const;           // slot 10
-    // HYPOTHESIS: the four opaque arguments (see hkDynamicsContactMgr's toi callbacks).
-    virtual void collisionResponseBeginCallback(const hkContactPoint& cp, void* inA, void* velA, void* inB,
-                                                void* velB);
-    virtual void collisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied, void* inA,
-                                              void* velA, void* inB, void* velB);
+    virtual void collisionResponseBeginCallback(const hkContactPoint& cp, hkSimpleConstraintInfoInitInput& inA,
+                                                   hkBodyVelocity& velA, hkSimpleConstraintInfoInitInput& inB,
+                                                hkBodyVelocity& velB);
+    virtual void collisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied, hkSimpleConstraintInfoInitInput& inA,
+                                              hkBodyVelocity& velA, hkSimpleConstraintInfoInitInput& inB,
+                                              hkBodyVelocity& velB);
 
     // Adds a contact point to the atom; returns its id and hands out the point and its properties.
     int allocateContactPoint(hkContactPoint*& cpOut, hkContactPointProperties*& cpPropsOut);

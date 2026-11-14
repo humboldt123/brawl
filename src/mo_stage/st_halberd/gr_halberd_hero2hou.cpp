@@ -216,7 +216,7 @@ void grHalberdHero2Hou::updateCallBack(float deltaFrame) {
             }
             if (m_mtxWork != NULL) {
                 calcWorldCallBack->m_nodeCallbackDatas[0].m_matrix = *m_mtxWork;
-                Vec3f pos(m_mtxWork->m[0][3], m_mtxWork->m[1][3], m_mtxWork->m[2][3]);
+                Vec3f pos = m_mtxWork->getTranslation();
                 m_snd.setPos(&pos);
             }
         }

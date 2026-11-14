@@ -10,5 +10,7 @@ struct hkSweptTransform {
     hkQuaternion m_rotation1;       // 0x30
     hkVector4 m_centerOfMassLocal;  // 0x40
 
-    void initSweptTransform();
+    // Both ends at the given pose; the w components (base time and inverse delta time) and the local center of
+    // mass are zeroed.
+    void initSweptTransform(const hkVector4& position, const hkQuaternion& rotation);
 };

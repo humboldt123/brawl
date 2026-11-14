@@ -4,6 +4,9 @@
 #include <havok/hkSimpleContactConstraintData.h>
 #include <havok/hkConstraintInstance.h>
 
+struct hkSimpleConstraintInfoInitInput;
+struct hkBodyVelocity;
+
 struct hkWorld;
 struct hkRigidBody;
 
@@ -44,12 +47,14 @@ struct hkSimpleConstraintContactMgr : hkDynamicsContactMgr {
     virtual int getType() const {
         return 0;
     }
-    virtual void toiCollisionResponseBeginCallback(const hkContactPoint& cp, void* inA, void* velA, void* inB,
-                                                   void* velB) {
+    virtual void toiCollisionResponseBeginCallback(const hkContactPoint& cp, hkSimpleConstraintInfoInitInput& inA,
+                                                   hkBodyVelocity& velA, hkSimpleConstraintInfoInitInput& inB,
+                                                   hkBodyVelocity& velB) {
         m_contactConstraintData.collisionResponseBeginCallback(cp, inA, velA, inB, velB);
     }
-    virtual void toiCollisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied, void* inA,
-                                                 void* velA, void* inB, void* velB) {
+    virtual void toiCollisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied, hkSimpleConstraintInfoInitInput& inA,
+                                                 hkBodyVelocity& velA, hkSimpleConstraintInfoInitInput& inB,
+                                                 hkBodyVelocity& velB) {
         m_contactConstraintData.collisionResponseEndCallback(cp, impulseApplied, inA, velA, inB, velB);
     }
     virtual hkConstraintInstance* getConstraintInstance() {

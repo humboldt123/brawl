@@ -250,6 +250,7 @@ void stDonkey::createObjJack(int index) {
 // The three bonus items, each with an "800" that pops up where it was taken.
 void stDonkey::createObjItem(int index) {
     grDonkeyItem* ground;
+    grDonkeyItemScore* score;
     int itemIndex;
     int posIndex;
     switch (index) {
@@ -279,7 +280,7 @@ void stDonkey::createObjItem(int index) {
         ground->setType(itemIndex);
         ground->setPosWork(&m_posGimmick[posIndex]);
         ground->setStateWork(&m_stateItem[itemIndex]);
-        grDonkeyItemScore* score = grDonkeyItemScore::create(10, "StgDonkey_Score_800", "grDonkeyItemScore");
+        score = grDonkeyItemScore::create(10, "StgDonkey_Score_800", "grDonkeyItemScore");
         if (score != NULL) {
             addGround(score);
             score->startup(m_fileData, 0, gfSceneRoot::Layer_Ground);

@@ -17,6 +17,8 @@
 
 #include <havok/hkSimulationIsland.h>
 #include <havok/hkEntity.h>
+#include <havok/hkEntityDeactivator.h>
+#include <havok/hkStepInfo.h>
 #include <havok/hkWorldOperationUtil.h>
 #include <havok/hkWorld.h>
 #include <havok/hkCollisionDispatcher.h>
@@ -24,8 +26,8 @@
 // The agent track takes its sizes from the world's collision dispatcher. HYPOTHESIS: the meaning of the scalar
 // fields (only their initial values are known).
 hkSimulationIsland::hkSimulationIsland(hkWorld* world)
-    : m_world(world), m_dirtyListIndex(0xFFFF), m_unk24(0), m_unk25(0),
-      m_unk30(0.0f), m_unk34(0.0f),
+    : m_world(world), m_dirtyListIndex(0xFFFF), m_highFrequencyDeactivationCounter(0), m_lowFrequencyDeactivationCounter(0),
+      m_timeSinceLastHighFrequencyCheck(0.0f), m_timeSinceLastLowFrequencyCheck(0.0f),
       m_agentTrack(world->m_collisionDispatcher->m_agentEntrySize, world->m_collisionDispatcher->m_agentSectorSize) {
     m_unk6C = -10.0f;
     m_flags.m_stateC = 0;
@@ -51,16 +53,13 @@ void hkSimulationIsland::internalAddEntity(hkEntity* entity) {
 
 // Removes an entity by moving the last entity into its slot.
 void hkSimulationIsland::internalRemoveEntity(hkEntity* entity) {
-    int last = m_entities.m_size - 1;
-    hkEntity* moved = m_entities[last];
-    m_entities[entity->m_storageIndex] = moved;
-    moved->m_storageIndex = entity->m_storageIndex;
-    m_entities.m_size = last;
+    m_entities[entity->m_storageIndex] = m_entities[m_entities.getSize() - 1];
+    m_entities[entity->m_storageIndex]->m_storageIndex = entity->m_storageIndex;
+    m_entities.popBack();
     entity->m_simulationIsland = 0;
     entity->m_storageIndex = 0xFFFF;
-    // HYPOTHESIS: bits 0xC0 of 0x26 hold the island's state; "entity removed" sets it to 1.
-    u8 state = 1;
-    flags26() = (flags26() & ~0xC0) | (state << 6);
+    // HYPOTHESIS: bits 0xC0 of 0x26 hold the island's state; "entity removed" sets it to 1 (a split check).
+    m_flags.m_stateA = 1;
 }
 
 void hkSimulationIsland::addAction(hkAction* action) {
@@ -91,6 +90,61 @@ void hkSimulationIsland::removeAction(hkAction* action) {
 
 // Forwards to the world operation with the world taken from the constraint's owner (world at +0x08 of the
 // owner pointer stored at +0x14). HYPOTHESIS: field meanings of the constraint record.
+// Every 5th consecutive interval in which all entities' deactivators agree, the island asks to be deactivated.
+hkBool hkSimulationIsland::shouldDeactivate(const hkStepInfo& stepInfo) {
+    hkReal deltaTime = stepInfo.m_deltaTime;
+    hkReal timeHigh = m_timeSinceLastHighFrequencyCheck + deltaTime;
+    hkReal timeLow = m_timeSinceLastLowFrequencyCheck + deltaTime;
+    m_timeSinceLastHighFrequencyCheck = timeHigh;
+    m_timeSinceLastLowFrequencyCheck = timeLow;
+
+    hkWorld* world = m_world;
+    hkReal highPeriod = world->m_highFrequencyDeactivationPeriod;
+    // MATCH-ONLY: an int flag narrowed in the test (as hkBool it is compared after the low-frequency check).
+    int highFreqCheck = timeHigh > highPeriod;
+    hkReal lowPeriod = world->m_lowFrequencyDeactivationPeriod;
+    const hkBool lowFreqCheck = timeLow > lowPeriod;
+
+    if ((signed char)highFreqCheck) {
+        m_timeSinceLastHighFrequencyCheck -= highPeriod;
+        hkBool deactivate = true;
+        for (int i = 0; i < m_entities.getSize(); ++i) {
+            hkEntity* entity = m_entities[i];
+            if (entity->m_deactivator == NULL || !(bool)entity->m_deactivator->shouldDeactivateHighFrequency(entity)) {
+                deactivate = false;
+                continue;
+            }
+        }
+        if (deactivate) {
+            if (++m_highFrequencyDeactivationCounter >= 5) {
+                m_highFrequencyDeactivationCounter = 0;
+                return true;
+            }
+        } else {
+            m_highFrequencyDeactivationCounter = 0;
+        }
+    } else if (lowFreqCheck) {
+        m_timeSinceLastLowFrequencyCheck -= lowPeriod;
+        hkBool deactivate = true;
+        for (int i = 0; i < m_entities.getSize(); ++i) {
+            hkEntity* entity = m_entities[i];
+            if (entity->m_deactivator == NULL || !(bool)entity->m_deactivator->shouldDeactivateLowFrequency(entity)) {
+                deactivate = false;
+                continue;
+            }
+        }
+        if (deactivate) {
+            if (++m_lowFrequencyDeactivationCounter >= 5) {
+                m_lowFrequencyDeactivationCounter = 0;
+                return true;
+            }
+        } else {
+            m_lowFrequencyDeactivationCounter = 0;
+        }
+    }
+    return false;
+}
+
 void hkSimulationIsland::addConstraintToCriticalLockedIsland(hkConstraintInstance* constraint) {
     hkWorld* world = *(hkWorld**)(*(u8**)((u8*)constraint + 0x14) + 0x08);
     hkWorldOperationUtil::addConstraintToCriticalLockedIsland(world, constraint);
@@ -105,15 +159,7 @@ void hkSimulationIsland::removeConstraintFromCriticalLockedIsland(hkConstraintIn
 // first words, then the larger of that and the other island's second word; the remaining three words are summed.
 // HYPOTHESIS: field meanings of hkConstraintInfo.
 void hkSimulationIsland::mergeConstraintInfo(const hkSimulationIsland* other) {
-    int* self = (int*)&m_constraintInfo;
-    const int* o = (const int*)&other->m_constraintInfo;
-    int m = (self[0] > o[0]) ? self[0] : o[0];
-    self[0] = m;
-    int n = (m > o[1]) ? m : o[1];
-    self[0] = n;
-    self[1] += o[1];
-    self[2] += o[2];
-    self[3] += o[3];
+    m_constraintInfo.add(other->m_constraintInfo);
 }
 
 // No-op in this build (the target function body is a bare return).

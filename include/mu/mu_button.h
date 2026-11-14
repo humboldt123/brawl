@@ -4,6 +4,7 @@
 #include <gf/gf_file_io_handle.h>
 #include <gf/gf_task.h>
 #include <memory.h>
+#include <mu/mu_file_io_handle.h>
 #include <mu/mu_menu_controller.h>
 #include <nw4r/g3d/g3d_resfile.h>
 #include <types.h>
@@ -135,7 +136,7 @@ public:
     };
 
     Work* m_work;                  // 0x40
-    gfFileIOHandle m_handles[3];   // 0x44 the models, the scene, the texts
+    muFileIOHandle m_handles[3];   // 0x44 the models, the scene, the texts
 
     static const u8 sDefaultButtons[PadKind_Num][ButtonMax];
     static const CursorNode sGcCursors[15];

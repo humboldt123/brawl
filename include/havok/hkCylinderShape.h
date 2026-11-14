@@ -14,13 +14,19 @@ struct hkCylinderShape : hkConvexShape {
     hkVector4 m_perpendicular1;            // 0x40
     hkVector4 m_perpendicular2;            // 0x50
 
-    hkCylinderShape(hkFinishLoadedObjectFlag flag); // finish-loading ctor (body not recovered yet)
+    hkCylinderShape(hkFinishLoadedObjectFlag flag);
     virtual ~hkCylinderShape();
     HK_DECLARE_REF_ALLOCATOR(0x25)
 
     static void finishLoadedObjecthkCylinderShape(void* p);
     static void cleanupLoadedObjecthkCylinderShape(void* p);
     static const void* getVtablehkCylinderShape();
+
+    // The smallest value of a 0.01 sweep that hkMath::hkFloatToInt rounds up to 1; the threshold is set from it
+    // the first time a cylinder is constructed (-1 until then).
+    static hkReal minValueRoundedUpTo1();
+    static void assertRoundUpThreshold(); // empty in this build
+    static hkReal s_intRoundUpThreshold;
 
     hkReal getCylinderRadius() const;
     // The two ends of the axis, vertexA and vertexB (map name hkCylinderShape__getVertex).

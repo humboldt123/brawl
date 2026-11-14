@@ -7,8 +7,6 @@
 #include <types.h>
 
 // Native effect tuning: zero, vertical offset, scale, zero.
-extern float lbl_101_rodata_90[];
-
 // PSI Magnet starts a following effect and looping sound when their handles are absent.
 // HYPOTHESIS: work int 0x20000003 holds an effect handle and 0x20000002 a sound handle; both are cleared on exit.
 class ftNessStatusUniqProcessSpecialLwHold : public soStatusUniqProcess {
@@ -21,14 +19,13 @@ public:
 ftNessStatusUniqProcessSpecialLwHold g_ftNessStatusUniqProcessSpecialLwHold;
 
 void ftNessStatusUniqProcessSpecialLwHold::initStatus(soModuleAccesser* moduleAccesser) {
-    float* constants = lbl_101_rodata_90;
     // HYPOTHESIS: these flags configure the absorber group for PSI Magnet.
     moduleAccesser->getCollisionAbsorberModule().setStatus(0, 1, 0);
     if (moduleAccesser->getWorkManageModule().getInt(0x20000003) < 0) {
         int effectId = moduleAccesser->getEffectModule().reqFollow(static_cast<EfID>(0xB000C), 4,
-            &Vec3f(constants[0], constants[1], constants[0]),
-            &Vec3f(constants[0], constants[0], constants[0]),
-            constants[2], false, 0, 0, -1);
+            &Vec3f(0.0f, 6.5f, 0.0f),
+            &Vec3f(0.0f, 0.0f, 0.0f),
+            0.9f, false, 0, 0, -1);
         moduleAccesser->getWorkManageModule().setInt(effectId, 0x20000003);
     }
     if (moduleAccesser->getWorkManageModule().getInt(0x20000002) < 0) {

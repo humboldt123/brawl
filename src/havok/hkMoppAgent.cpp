@@ -18,6 +18,7 @@
 #include <havok/hkMoppAgent.h>
 #include <havok/hkCollisionInput.h>
 #include <havok/hkSymmetricAgentFlipCollectors.h>
+#include <havok/hkMoppBvTreeShape.h>
 #include <havok/hkSymmetricAgentProcessCollision.h>
 #include <havok/hkCollisionDispatcher.h>
 
@@ -50,6 +51,19 @@ void hkMoppAgent::registerAgent(hkCollisionDispatcher* dispatcher) {
     cf.symmetricA = false;
     cf.symmetricB = true;
     dispatcher->registerCollisionAgent(&cf, 0x18, 0x18);
+}
+
+// The tree with the smaller MOPP code is walked as the shape side.
+hkCollisionAgent* hkMoppAgent::createBvBvAgent(const hkCdBody& bodyA, const hkCdBody& bodyB, hkCollisionInput& input,
+                                               hkContactMgr* contactMgr) {
+    const hkMoppBvTreeShape* treeA = static_cast<const hkMoppBvTreeShape*>(bodyA.getShape());
+    const hkMoppBvTreeShape* treeB = static_cast<const hkMoppBvTreeShape*>(bodyB.getShape());
+    int sizeA = treeA->getMoppCode()->m_data.getSize();
+    int sizeB = treeB->getMoppCode()->m_data.getSize();
+    if (sizeA < sizeB) {
+        return new hkMoppAgent(contactMgr);
+    }
+    return new hkSymmetricAgentLinearCast_11hkMoppAgent(contactMgr);
 }
 
 void hkSymmetricAgentLinearCast_11hkMoppAgent::getPenetrations(const hkCdBody& a, const hkCdBody& b, hkCollisionInput& c, void* target) {

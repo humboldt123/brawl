@@ -367,8 +367,7 @@ bool ftSamus::activeArticle6(wnSamusGun* weapon, soModuleAccesser* acc) {
     soResourceModule& resources = acc->getResourceModule();
     int founderTaskId = fighter.m_taskId;
     int team = fighter.getOwner()->getTeam();
-    int texResId = resources.getResourceIdAccesser()->getTexResId();
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlResId(), texResId, 1, 0, team);
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getMdlResId(), resources.getResourceIdAccesser()->getTexResId(), 1, 0, team);
     return true;
 }
 

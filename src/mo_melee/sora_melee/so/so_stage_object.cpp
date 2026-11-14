@@ -83,7 +83,9 @@ void StageObject::processCatch() {
     soModuleAccesser* acc = m_moduleAccesser;
     if (soSlow::getInstance()->isAdjust() == 1) {
         acc->getStatusModule().startWatchChange();
-        getCatchModule(acc).unk44() == 1;
+        if (getCatchModule(acc).unk44() == 1) {
+            return;
+        }
     }
 }
 

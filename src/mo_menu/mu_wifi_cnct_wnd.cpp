@@ -138,16 +138,21 @@ const muWifiCnctWndTask::Model muWifiCnctWndTask::sKeyModels[8] = {
 };
 
 void muWifiCnctWndTask::createObjResFile(const Model* models, int count, nw4r::g3d::ResFile* resFile, bool suffix, int priority) {
-    for (int i = 0; i < count; i++, models++) {
-        int n = 1;
-        if (models->m_start < models->m_end) {
-            n = models->m_end - models->m_start;
+    int n;
+    int i;
+    int j;
+    const Model* model = models;
+    MuObject* object;
+    for (i = 0; i < count; i++, model++) {
+        n = 1;
+        if (model->m_start < model->m_end) {
+            n = model->m_end - model->m_start;
         }
-        for (int j = 0; j < n; j++) {
-            MuObject* object = MuObject::create(resFile, models->m_name, models->m_priority + priority, NULL, Heaps::MenuInstance);
-            m_objects[models->m_start + j] = object;
+        for (j = 0; j < n; j++) {
+            object = MuObject::create(resFile, model->m_name, model->m_priority + priority, NULL, Heaps::MenuInstance);
+            m_objects[model->m_start + j] = object;
             char animName[0x40];
-            strcpy(animName, models->m_name);
+            strcpy(animName, model->m_name);
             if (suffix) {
                 strcat(animName, "__0");
             }

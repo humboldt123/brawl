@@ -44,6 +44,8 @@ struct hk3AxisSweep : hkBroadPhase {
     // Axis: a sorted array of endpoints (12 bytes, the hkArray header).
     struct hkBpAxis : hkArray<hkBpEndPoint> {
         hkBpAxis();
+        // BYTES: the axis destructor (run by __destroy_arr) has no deleting branch, as with an empty class delete.
+        static void operator delete(void*) {}
 
         // Lower bound: first endpoint in [begin, end) whose key is not below value.
         const hkBpEndPoint* find(const hkBpEndPoint* begin, const hkBpEndPoint* end, u16 value) const;
@@ -54,15 +56,13 @@ struct hk3AxisSweep : hkBroadPhase {
         void remove(int minIndex, int maxIndex);
     };
 
-    u8 unk08[0x38];     // 0x08
+    u8 unk14[0x2C];     // 0x14
     float m_offset[3];  // 0x40 HYPOTHESIS: per-axis offset subtracted after dequantization (x, y, z)
     float unk4C;        // 0x4C HYPOTHESIS: negated for the w components of the AABB
     u8 unk50[0x10];     // 0x50
     float m_scale[3];   // 0x60 HYPOTHESIS: quantization scale per axis, dequantization uses 1/scale
     u8 unk6C[4];        // 0x6C
-    hkBpNode* m_nodes;  // 0x70
-    int m_numNodes;     // 0x74 node count including the sentinel
-    u8 unk78[4];        // 0x78
+    hkArray<hkBpNode> m_nodes; // 0x70; the count includes the sentinel
     hkBpAxis m_axes[3]; // 0x7C (x, y, z)
     int m_numMarkers;   // 0xA0 (1 << m_markerBits) - 1, from the constructor
     int m_markerBits;   // 0xA4 bits selecting a check-marker interval from an X key
@@ -72,6 +72,7 @@ struct hk3AxisSweep : hkBroadPhase {
     // Map name hk3AxisSweep::hk3AxisSweep (not written yet). HYPOTHESIS: parameter names (the world extents and the
     // number of check markers).
     hk3AxisSweep(const hkVector4& worldMin, const hkVector4& worldMax, int numMarkers);
+    ~hk3AxisSweep();
 
     // Existing node indices shift when the new pair of endpoints is inserted or removed.
     void updateNodesAfterInsert(hkBpNode* nodes, int count, const hkBpNode& inserted);

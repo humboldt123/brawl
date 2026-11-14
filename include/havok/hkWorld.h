@@ -39,10 +39,12 @@ struct hkWorldDynamicsStepInfo {
     hkSolverInfo m_solverInfo; // 0x10
 };
 
+struct hkSimulationIsland;
 struct hkWorld : hkReferencedObject {
     hkSimulation* m_simulation;                     // 0x08 (hkWorld::stepDeltaTime calls its slot 0x10, stepDeltaTime)
     hkVector4 m_gravity;                            // 0x10
-    u8 m_unk20[0x08];                               // 0x20 .. 0x27 not recovered
+    hkSimulationIsland* m_fixedIsland;              // 0x20 holds the fixed entities (and actions on fixed entities only)
+    u8 m_unk24[0x04];                               // 0x24 not recovered
     hkArrayBase m_unk28;                            // 0x28 array of hkWorldMemoryEntry* (HYPOTHESIS: islands), see getMemUsageForIntegration
     hkArrayBase m_unk34;                            // 0x34 not recovered
     hkArrayBase m_unk40;                            // 0x40 not recovered
@@ -68,10 +70,16 @@ struct hkWorld : hkReferencedObject {
     int m_unk9C;                                    // 0x9C
     int m_unkA0;                                    // 0xA0
     int m_unkA4;                                    // 0xA4
-    u8 m_unkA8[0x0D];                               // 0xA8 .. 0xB4 not recovered
+    u8 m_unkA8[0x0C];                               // 0xA8 .. 0xB3 not recovered
+    hkBool m_wantSimulationIslands;                 // 0xB4 empty islands are removed only when set
     // hkDefaultWorldMaintenanceMgr::performMaintenance only looks for islands to deactivate when it is set
     hkBool m_unkB5;                                 // 0xB5 HYPOTHESIS: a deactivation switch
-    u8 m_unkB6[0x12];                               // 0xB6 .. 0xC7 not recovered
+    // HYPOTHESIS: an inactive body that is moved by hand gets activated when this is set (and it is not fixed)
+    hkBool m_unkB6;                                 // 0xB6
+    u8 m_unkB7;                                     // 0xB7
+    hkReal m_highFrequencyDeactivationPeriod;       // 0xB8
+    hkReal m_lowFrequencyDeactivationPeriod;        // 0xBC
+    u8 m_unkC0[0x08];                               // 0xC0 .. 0xC7 not recovered
     int m_unkC8;                                    // 0xC8 (initialised to -1)
     hkArray<hkPhantom*> m_phantoms;                 // 0xCC
     u8 m_unkD8[0x30];                               // 0xD8 .. 0x107 not recovered
@@ -115,9 +123,9 @@ struct hkWorld : hkReferencedObject {
     void updateCollisionFilterOnEntity(hkEntity* entity, u8 updateMode, u8 updateShapeCollections);
     void updateCollisionFilterOnPhantom(hkPhantom* phantom, u8 updateShapeCollections);
     void updateCollisionFilterOnWorld(u8 updateMode, u8 updateShapeCollections);
-    void addAction(hkAction* action);
+    hkAction* addAction(hkAction* action);
     hkConstraintInstance* addConstraint(hkConstraintInstance* constraint);
-    void removeConstraint(hkConstraintInstance* constraint);
+    hkBool removeConstraint(hkConstraintInstance* constraint);
     void addPhantomBatch(hkPhantom** phantoms, int count);
     void removePhantomBatch(hkPhantom** phantoms, int count);
     void addPhysicsSystem(hkPhysicsSystem* system);
@@ -131,6 +139,12 @@ struct hkWorld : hkReferencedObject {
     // drop one lock and, if that was the last one and something got queued meanwhile, run the queue
     // BYTES: the flag goes through hkBool's bool conversion before the negation (hkBool::operator! builds a second
     // hkBool); in the propagation-off hkContinuousSimulation::handleAllToisTill that gives extsb; neg; or; srwi.
+    bool areCriticalOperationsLocked() const {
+        return m_lockCount != 0;
+    }
+    void lockCriticalOperations() {
+        m_lockCount++;
+    }
     void unlockAndAttemptToExecutePendingOperations() {
         if (--m_lockCount == 0 && m_pendingOperationsCount != 0 && !(bool)m_unk84) {
             internal_executePendingOperations();

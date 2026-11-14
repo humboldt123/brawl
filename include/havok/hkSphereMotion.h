@@ -5,6 +5,9 @@
 // Sphere-inertia motion (type 2, 0x100 bytes). Adds no fields: the inverse inertia is isotropic and kept in
 // m_inertiaAndMassInv (x for the inertia, w for the inverse mass), see hkMotion.
 struct hkSphereMotion : hkMotion {
+    hkSphereMotion(const hkVector4& position, const hkQuaternion& rotation) : hkMotion(position, rotation) {
+        m_type = MOTION_SPHERE_INERTIA;
+    }
     hkSphereMotion(hkFinishLoadedObjectFlag f) : hkMotion(f) {}
     virtual ~hkSphereMotion() {} // 0x08
 

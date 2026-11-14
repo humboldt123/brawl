@@ -64,9 +64,8 @@ void hkPoweredChainData::getRuntimeInfo(void* unusedA, hkConstraintRuntimeInfo* 
     s32 n = m_chainLength;
     s32 a = n * 6;
     out->unk04 = a;
-    s32 n16 = n << 4;
-    s32 b = (n + 3) & ~3;
-    out->unk00 = n16 + (b + (a << 3));
+    s32 b = ((n + 3) & ~3) + a * 8;
+    out->unk00 = b + n * 16;
 }
 
 void* hkPoweredChainData::getConstraintFlags(void* base) const {

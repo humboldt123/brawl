@@ -618,13 +618,13 @@ int hkPointerMultiMap<Value>::getFreeIndex() {
 
 namespace {
 
+#pragma scheduling off
 int extractAndAdvanceInt(const char* base, int& offset) {
     int cur = offset;
-    int next = cur + 4;
-    int value = *(const int*)(base + cur);
-    offset = next;
-    return value;
+    offset = cur + 4;
+    return *(const int*)(base + cur);
 }
+#pragma scheduling reset
 
 const char* extractAndAdvanceString(const char* base, int& offset) {
     const char* s = base + offset;

@@ -3,6 +3,7 @@
 #include <havok/hkBase.h>
 #include <havok/hkTransform.h>
 #include <havok/hkVector4.h>
+#include <havok/hkContactPoint.h>
 
 struct hkConstraintData;
 struct hkConstraintInfo;
@@ -11,10 +12,20 @@ struct hkConstraintMotor;
 // Constraint atoms. Layouts and member names come from main.dol's reflection (hkConstraintAtomClasses.cpp;
 // tests/havok_layout checks them). Atoms are plain structs (no vtable); the type selects the atom behaviour.
 
-// Contact record passed to the modifier callbacks; the contact normal sits at 0x10.
-struct hkModifierContact {
-    u8 unk00[0x10];
-    hkVector4 m_normal; // 0x10
+// Per-body mass input of a simple collision response (0x50 bytes; the modifier callbacks scale the inverse inertia
+// at 0x10 and the inverse mass at 0x40).
+struct hkSimpleConstraintInfoInitInput {
+    hkVector4 m_massRelPos;  // 0x00
+    hkMatrix3 m_invInertia;  // 0x10
+    hkReal m_invMass;        // 0x40
+};
+
+// Linear and angular velocity of one body during a simple collision response (0x20 bytes).
+struct hkBodyVelocity {
+    hkVector4 m_linear;  // 0x00
+    hkVector4 m_angular; // 0x10
+
+    hkBodyVelocity() {}
 };
 
 // Atom header shared by all constraint atoms (0x02 bytes).
@@ -56,6 +67,10 @@ struct hkConstraintAtom {
     };
 
     u16 m_type; // 0x00 (AtomType)
+
+    AtomType getType() const {
+        return (AtomType)m_type;
+    }
 
     // HYPOTHESIS: name (getConstraintInfoUtil tests the type through an hkBool, cntlzw + extsb.).
     hkBool isContact() const {
@@ -238,14 +253,6 @@ struct hkModifierConstraintAtom : hkConstraintAtom {
     u32 addAllModifierDataToConstraintInfo(hkConstraintInfo* info);
 };
 
-// Motion fields touched by the modifier callbacks: inverse inertia at 0x10 and a scale at 0x40.
-// HYPOTHESIS: this is the hkMotion-side view used here; hkMotion itself is not declared in this tree.
-struct hkModifierMotion {
-    u8 unk00[0x10];
-    hkMatrix3 m_inverseInertia; // 0x10
-    float m_massFactor;         // 0x40
-};
-
 // Size 0x20: the reflected size needs 16-byte alignment (the members end at 0x14).
 struct hkMassChangerModifierConstraintAtom : hkModifierConstraintAtom {
     hkReal m_factorA; // 0x0C
@@ -253,8 +260,12 @@ struct hkMassChangerModifierConstraintAtom : hkModifierConstraintAtom {
 
     int numSolverResults() const;
 
-    void collisionResponseBeginCallback(void* contact, hkModifierMotion* motionA, void* unused, hkModifierMotion* motionB);
-    void collisionResponseEndCallback();
+    void collisionResponseBeginCallback(const hkContactPoint& cp, hkSimpleConstraintInfoInitInput& inA,
+                                        hkBodyVelocity& velA, hkSimpleConstraintInfoInitInput& inB,
+                                        hkBodyVelocity& velB);
+    void collisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied,
+                                      hkSimpleConstraintInfoInitInput& inA, hkBodyVelocity& velA,
+                                      hkSimpleConstraintInfoInitInput& inB, hkBodyVelocity& velB);
 } __attribute__((aligned(16)));
 
 // Size 0x20: the reflected size needs 16-byte alignment (the members end at 0x14).
@@ -264,10 +275,12 @@ struct hkSoftContactModifierConstraintAtom : hkModifierConstraintAtom {
 
     int numSolverResults() const;
 
-    void collisionResponseBeginCallback(void* unusedA, void* unusedB, void* unusedC, const hkVector4* srcA,
-                                        void* unusedD, const hkVector4* srcB);
-    void collisionResponseEndCallback(void* unusedA, void* unusedB, void* unusedC, hkVector4* dstA, void* unusedD,
-                                      hkVector4* dstB);
+    void collisionResponseBeginCallback(const hkContactPoint& cp, hkSimpleConstraintInfoInitInput& inA,
+                                        hkBodyVelocity& velA, hkSimpleConstraintInfoInitInput& inB,
+                                        hkBodyVelocity& velB);
+    void collisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied,
+                                      hkSimpleConstraintInfoInitInput& inA, hkBodyVelocity& velA,
+                                      hkSimpleConstraintInfoInitInput& inB, hkBodyVelocity& velB);
 } __attribute__((aligned(16)));
 
 // Size 0x10: no members of its own; the reflected size needs 16-byte alignment.
@@ -278,8 +291,10 @@ struct hkViscousSurfaceModifierConstraintAtom : hkModifierConstraintAtom {
 struct hkMovingSurfaceModifierConstraintAtom : hkModifierConstraintAtom {
     hkVector4 m_velocity; // 0x10
 
-    void collisionResponseBeginCallback(void* unusedA, hkModifierContact* contact, void* unusedB, void* unusedC,
-                                        void* unusedD, hkVector4* out);
-    void collisionResponseEndCallback(void* unusedA, hkModifierContact* contact, void* unusedB, void* unusedC,
-                                      void* unusedD, hkVector4* out);
+    void collisionResponseBeginCallback(const hkContactPoint& cp, hkSimpleConstraintInfoInitInput& inA,
+                                        hkBodyVelocity& velA, hkSimpleConstraintInfoInitInput& inB,
+                                        hkBodyVelocity& velB);
+    void collisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied,
+                                      hkSimpleConstraintInfoInitInput& inA, hkBodyVelocity& velA,
+                                      hkSimpleConstraintInfoInitInput& inB, hkBodyVelocity& velB);
 };

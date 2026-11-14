@@ -529,16 +529,21 @@ void muAdvNameTask::panelOnlyCtrl(int player, u32 buttons, gfPadStatus pad) {
 
 // Creates the models of the table; they are stored in the slots of the task and start with the animation "__0".
 void muAdvNameTask::createObjResFile(const muAdvNameModel* models, int count, nw4r::g3d::ResFile* resFile) {
-    for (int i = 0; i < count; i++, models++) {
-        int num = 1;
-        if (models->m_start < models->m_end) {
-            num = models->m_end - models->m_start + 1;
+    int num;
+    int i;
+    int j;
+    const muAdvNameModel* model = models;
+    MuObject* object;
+    for (i = 0; i < count; i++, model++) {
+        num = 1;
+        if (model->m_start < model->m_end) {
+            num = model->m_end - model->m_start + 1;
         }
-        for (int j = 0; j < num; j++) {
-            MuObject* object = MuObject::create(resFile, models->m_name, models->m_priority, NULL, Heaps::MenuInstance);
-            m_objects[models->m_start + j] = object;
+        for (j = 0; j < num; j++) {
+            object = MuObject::create(resFile, model->m_name, model->m_priority, NULL, Heaps::MenuInstance);
+            m_objects[model->m_start + j] = object;
             char animName[0x40];
-            strcpy(animName, models->m_name);
+            strcpy(animName, model->m_name);
             strcat(animName, "__0");
             object->changeAnimN(animName);
             if (object->m_modelAnim != NULL) {
@@ -552,15 +557,19 @@ void muAdvNameTask::createObjResFile(const muAdvNameModel* models, int count, nw
 // MATCH-ONLY: the game does not inline this function into the step that loads the menu.
 #pragma dont_inline on
 void muAdvNameTask::createExpMdl(const muAdvNameScnMdl* models, int count) {
+    int num;
+    int i;
+    int j;
+    const muAdvNameScnMdl* model = models;
     MEMAllocator* allocator = gfHeapManager::getMEMAllocator(Heaps::MenuInstance);
-    for (int i = 0; i < count; i++, models++) {
-        int num = 1;
-        if (models->m_start < models->m_end) {
-            num = models->m_end - models->m_start + 1;
+    for (i = 0; i < count; i++, model++) {
+        num = 1;
+        if (model->m_start < model->m_end) {
+            num = model->m_end - model->m_start + 1;
         }
-        for (int j = 0; j < num; j++) {
-            m_scnMdls[models->m_start + j] = Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(allocator, 0, models->m_capacity,
-                                                                                  m_objects[models->m_objectNo + j]->m_sceneModel);
+        for (j = 0; j < num; j++) {
+            m_scnMdls[model->m_start + j] = Construct__Q34nw4r3g3d12ScnMdlExpandFP12MEMAllocatorPUliPQ34nw4r3g3d6ScnMdl(allocator, 0, model->m_capacity,
+                                                                                  m_objects[model->m_objectNo + j]->m_sceneModel);
         }
     }
 }

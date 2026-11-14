@@ -65,8 +65,9 @@ void ftPikminStatusUniqProcessSpecialHi::execFixPos(soModuleAccesser* moduleAcce
             for (int i = 0; i < hold->size(); i++) {
                 hold->at(i)->changeStatus(0x2f);
             }
+            wnPikminPikminTroopsManager* troops = m_troops;
             int visible = 1;
-            m_troops->setVisibilityChain(visible, 1, visible);
+            troops->setVisibilityChain(visible, 1, visible);
         }
     } else if (moduleAccesser->getWorkManageModule().isFlag(0x22000014) == true) {
         moduleAccesser->getWorkManageModule().offFlag(0x22000014);

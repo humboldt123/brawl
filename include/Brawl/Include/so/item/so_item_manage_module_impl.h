@@ -72,7 +72,7 @@ public:
     virtual void updateHaveItemActionInfo(u32 index);
     virtual void setHaveItemScaleAnim(float, u32, u32 index);
     virtual void setHaveItemAction(u32, float, u32 index);
-    virtual void setHaveItemVisibility(u8, int index);
+    virtual void setHaveItemVisibility(bool, int index);
     virtual void setHaveItemHoldAnim(bool, u32 index);
     virtual void setHaveItemConstraintNode(u32, u32 index);
     virtual void resetHaveItemConstraintNode(u32 index);
@@ -80,7 +80,7 @@ public:
     virtual bool isAttachItem(itKind);
     virtual u32 getAttachItemCount();
     virtual void getAttachItemInfo(soItemInfo*, u32 index);
-    virtual void setAttachItemVisibility(u8, itParam::AttachGroup);
+    virtual void setAttachItemVisibility(bool, itParam::AttachGroup);
     virtual u8 getAttachItemVisibility();
     virtual void ejectHaveItem(u32 index, bool, bool);
     virtual void ejectAttachItem(u32 index, bool, bool);
@@ -147,7 +147,7 @@ public:
     virtual void updateHaveItemActionInfo(u32 index);
     virtual void setHaveItemScaleAnim(float, u32, u32 index);
     virtual void setHaveItemAction(u32, float, u32 index);
-    virtual void setHaveItemVisibility(u8, int index);
+    virtual void setHaveItemVisibility(bool, int index);
     virtual void setHaveItemHoldAnim(bool, u32 index);
     virtual void setHaveItemConstraintNode(u32, u32 index);
     virtual void resetHaveItemConstraintNode(u32 index);
@@ -155,7 +155,7 @@ public:
     virtual bool isAttachItem(itKind);
     virtual u32 getAttachItemCount();
     virtual void getAttachItemInfo(soItemInfo*, u32 index);
-    virtual void setAttachItemVisibility(u8, itParam::AttachGroup);
+    virtual void setAttachItemVisibility(bool, itParam::AttachGroup);
     virtual u8 getAttachItemVisibility();
     virtual void ejectHaveItem(u32 index, bool, bool);
     virtual void ejectAttachItem(u32 index, bool, bool);

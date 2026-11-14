@@ -780,18 +780,19 @@ void wnPikminPikmin::processFixPosition() {
     Weapon::processFixPosition();
     if (soSlow::getInstance()->isEstimate() == true) {
         if (m_moduleAccesser->getStopModule().isStop() == false) {
-            if (m_moduleAccesser->getStatusModule().getStatusKind() == 7) {
+            switch (m_moduleAccesser->getStatusModule().getStatusKind()) {
+            case 7:
                 Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
                 Vec2f current(pos.m_x, pos.m_y);
                 soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
-                Vec2f target(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY));
-                Vec2f diff = target - current;
+                Vec2f diff = Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)) - current;
                 float lr = m_moduleAccesser->getPostureModule().getLr();
                 float ownerLr = m_moduleAccesser->getWorkManageModule().getFloat(Work_Float_OwnerLrCurrent);
                 if (lr * diff.m_x < 0.0f && lr * ownerLr < 0.0f) {
                     m_moduleAccesser->getKineticModule().clearSpeedAll();
                     m_moduleAccesser->getStatusModule().changeStatusRequest(1, m_moduleAccesser);
                 }
+                break;
             }
         }
     }
@@ -1280,6 +1281,10 @@ static void scale(Vec2f* vec, float factor) {
 }
 #pragma dont_inline reset
 
+static inline void pkSetSpeed(soKineticEnergyNormal* normal, const Vec2f& speed) {
+    normal->m_speed = speed;
+}
+
 void wnPikminPikminKineticTransactor::addSpeed(float* speed, void* pools, soModuleAccesser* acc) {
     float speedX = speed[0] * acc->getPostureModule().getLr();
     float speedY = speed[1];
@@ -1288,10 +1293,10 @@ void wnPikminPikminKineticTransactor::addSpeed(float* speed, void* pools, soModu
     if (gravity->isEnable() == true) {
         gravity->m_speedY = speedY + gravity->getSpeed().m_y;
     } else if (normal->isEnable() == true) {
-        normal->m_speed = Vec2f(normal->getSpeed().m_x, speedY + normal->getSpeed().m_y);
+        pkSetSpeed(normal, Vec2f(normal->getSpeed().m_x, speedY + normal->getSpeed().m_y));
     }
     if (normal->isEnable() == true) {
-        normal->m_speed = Vec2f(speedX + normal->getSpeed().m_x, normal->getSpeed().m_y);
+        pkSetSpeed(normal, Vec2f(speedX + normal->getSpeed().m_x, normal->getSpeed().m_y));
     }
 }
 

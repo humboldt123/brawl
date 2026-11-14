@@ -22,6 +22,9 @@
 #include <havok/hkCylinderShape.h>
 #include <havok/hkRegistry.h>
 #include <havok/hkShapeType.h>
+#include <havok/hkMath.h>
+
+hkReal hkCylinderShape::s_intRoundUpThreshold = -1.0f;
 
 void hkCylinderShape::finishLoadedObjecthkCylinderShape(void* p) {
     hkFinishLoadedObjectFlag flag;
@@ -44,6 +47,32 @@ const void* hkCylinderShape::getVtablehkCylinderShape() {
     char buf[0x60] __attribute__((aligned(16)));
     ::new (buf) hkCylinderShape(flag);
     return *(const void**)buf;
+}
+#pragma pop
+
+// BYTES: not an inline candidate (the constructor calls it).
+#pragma push
+#pragma auto_inline off
+hkReal hkCylinderShape::minValueRoundedUpTo1() {
+    for (hkReal x = 0.0f; x < 1.1f; x += 0.01f) {
+        if (hkMath::hkFloatToInt(x)) {
+            return x;
+        }
+    }
+    return 1.0f;
+}
+#pragma pop
+
+void hkCylinderShape::assertRoundUpThreshold() {
+}
+
+// BYTES: called out of line by the loaded-object helpers above.
+#pragma push
+#pragma auto_inline off
+hkCylinderShape::hkCylinderShape(hkFinishLoadedObjectFlag flag) {
+    if (s_intRoundUpThreshold < 0.0f) {
+        s_intRoundUpThreshold = 1.0f - minValueRoundedUpTo1();
+    }
 }
 #pragma pop
 
@@ -99,33 +128,3 @@ void hkCylinderShape::calcStatistics(hkStatisticsCollector* collector) const {
 
 static hkStaticTypeInfo hkCylinderShapeTypeInfo("hkCylinderShape", hkCylinderShape::finishLoadedObjecthkCylinderShape, hkCylinderShape::cleanupLoadedObjecthkCylinderShape,
                                       hkCylinderShape::getVtablehkCylinderShape());
-
-// Weak inline copies emitted in this unit; extern "C" placeholders under their fn_ names until the
-// instantiating callers are written (shape from https://github.com/jj-link/brawl src/havok/fn_<addr>.cpp).
-// hkCylinderShape::assertRoundUpThreshold (empty)
-// TODO: cleanup (shape from jj-link/brawl fn_802D2798)
-extern "C" void fn_802D2798(void) {}
-
-// fn_802D2714: body from https://github.com/jj-link/brawl src/havok/fn_802D2714.cpp (namespaced; callee rebound to our C++ name).
-#include <types.h>
-#include <havok/hkMath.h>
-namespace jj_fn_802D2714 {
-extern "C" {
-extern const float lbl_805A40D8;
-extern const float lbl_805A40DC;
-extern const float lbl_805A40E0;
-extern const float lbl_805A40E4;
-}
-
-// TODO: cleanup (shape from jj-link/brawl fn_802D2714)
-extern "C" float fn_802D2714(void) {
-    float x = lbl_805A40D8;
-    while (x < lbl_805A40E0) {
-        if (hkMath::hkFloatToInt(x) != 0) {
-            return x;
-        }
-        x += lbl_805A40DC;
-    }
-    return lbl_805A40E4;
-}
-} // namespace jj_fn_802D2714

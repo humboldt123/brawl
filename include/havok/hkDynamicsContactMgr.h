@@ -3,6 +3,9 @@
 #include <havok/hkCollisionAgent.h>
 #include <havok/hkArray.h>
 
+struct hkSimpleConstraintInfoInitInput;
+struct hkBodyVelocity;
+
 struct hkContactPoint;
 struct hkContactPointProperties;
 struct hkConstraintInstance;
@@ -18,11 +21,12 @@ struct hkDynamicsContactMgr : hkContactMgr {
     virtual hkContactPoint* getContactPoint(hkContactPointId id);
     virtual void getAllContactPointIds(hkArray<hkContactPointId>& contactPointIds) const; // base: empty
     virtual int getType() const;
-    // HYPOTHESIS: the four opaque arguments are the solver init inputs and velocities of the two bodies (the simple
-    // manager forwards them unchanged to its contact constraint data).
-    virtual void toiCollisionResponseBeginCallback(const hkContactPoint& cp, void* inA, void* velA, void* inB,
-                                                   void* velB);
-    virtual void toiCollisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied, void* inA,
-                                                 void* velA, void* inB, void* velB);
+    // The simple manager forwards these unchanged to its contact constraint data.
+    virtual void toiCollisionResponseBeginCallback(const hkContactPoint& cp, hkSimpleConstraintInfoInitInput& inA,
+                                                   hkBodyVelocity& velA, hkSimpleConstraintInfoInitInput& inB,
+                                                   hkBodyVelocity& velB);
+    virtual void toiCollisionResponseEndCallback(const hkContactPoint& cp, hkReal impulseApplied, hkSimpleConstraintInfoInitInput& inA,
+                                                 hkBodyVelocity& velA, hkSimpleConstraintInfoInitInput& inB,
+                                                 hkBodyVelocity& velB);
     virtual hkConstraintInstance* getConstraintInstance(); // base returns 0
 };

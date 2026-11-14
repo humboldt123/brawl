@@ -12,7 +12,7 @@ struct hkMoppAgent : hkBvTreeAgent {
     virtual ~hkMoppAgent() {}
     static void registerAgent(hkCollisionDispatcher* dispatcher);
     static void staticLinearCast(const hkCdBody& a, const hkCdBody& b, hkLinearCastCollisionInput& c, void* target, void* d); // not written yet
-    // Factory for MOPP x MOPP pairs (map name hkMoppAgent::createBvBvAgent, not written yet).
+    // Factory for MOPP x MOPP pairs: the tree with the smaller code is the shape side.
     static hkCollisionAgent* createBvBvAgent(const hkCdBody& bodyA, const hkCdBody& bodyB, hkCollisionInput& input,
                                              hkContactMgr* contactMgr);
 };

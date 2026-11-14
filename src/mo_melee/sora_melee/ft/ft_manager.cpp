@@ -381,42 +381,18 @@ bool ftManager::isSubFighterActivate(int entryId) const {
 // The sub fighter counts as dead (gone) once it is in the "Unloaded" status (0x10B).
 bool ftManager::isSubFighterDead(int entryId) const {
     Fighter* fighter = getSubFighter(entryId);
-    bool result = false;
-    if (fighter != NULL) {
-        if (fighter->isActive()) {
-            if (soExternalValueAccesser::getStatusKind(fighter) == 0x10B) {
-                result = true;
-            }
-        }
-    }
-    return result;
+    return fighter != NULL && fighter->isActive() && soExternalValueAccesser::getStatusKind(fighter) == 0x10B;
 }
 
 // A fighter's position can be read as long as it is active and not outside the stage field.
 bool ftManager::isFighterPositionAccessable(int entryId, int instanceIndex) const {
     Fighter* fighter = getFighter(entryId, instanceIndex);
-    bool result = false;
-    if (fighter != NULL) {
-        if (fighter->isActive()) {
-            if (soExternalValueAccesser::getSituationKind(fighter) != Situation_Outfield) {
-                result = true;
-            }
-        }
-    }
-    return result;
+    return fighter != NULL && fighter->isActive() && soExternalValueAccesser::getSituationKind(fighter) != Situation_Outfield;
 }
 
 bool ftManager::isSubFighterPositionAccessable(int entryId) const {
     Fighter* fighter = getSubFighter(entryId);
-    bool result = false;
-    if (fighter != NULL) {
-        if (fighter->isActive()) {
-            if (soExternalValueAccesser::getSituationKind(fighter) != Situation_Outfield) {
-                result = true;
-            }
-        }
-    }
-    return result;
+    return fighter != NULL && fighter->isActive() && soExternalValueAccesser::getSituationKind(fighter) != Situation_Outfield;
 }
 
 bool ftManager::isFighterEnableWarp(int entryId) const {

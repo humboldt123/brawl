@@ -102,8 +102,7 @@ void wnKineticModuleImpl::initializeNormal(int kineticType, soModuleAccesser* ac
         Vec3f zero3(0.0f, 0.0f, 0.0f);
         main->resetEnergy(0, &speed, &zero3, acc);
         Vec3f zeroRot(0.0f, 0.0f, 0.0f);
-        Vec2f zero(0.0f, 0.0f);
-        sub->resetEnergy(-1, &zero, &zeroRot, acc);
+        sub->resetEnergy(-1, &Vec2f(0.0f, 0.0f), &zeroRot, acc);
     }
     main->enable();
     sub->enable();
@@ -118,8 +117,7 @@ void wnKineticModuleImpl::initializeStop(int kineticType, soModuleAccesser* acc)
         Vec3f zero3(0.0f, 0.0f, 0.0f);
         main->resetEnergy(1, &speed, &zero3, acc);
         Vec3f zeroRot(0.0f, 0.0f, 0.0f);
-        Vec2f zero(0.0f, 0.0f);
-        sub->resetEnergy(-1, &zero, &zeroRot, acc);
+        sub->resetEnergy(-1, &Vec2f(0.0f, 0.0f), &zeroRot, acc);
     }
     main->enable();
     sub->enable();

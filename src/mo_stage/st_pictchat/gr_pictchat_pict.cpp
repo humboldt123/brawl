@@ -134,7 +134,7 @@ void grPictchatPict::updateJoint(float deltaFrame) {
                                     u32 nodeIndex;
                                     strcpy(name, "");
                                     if (m_pictID == 0x14) {
-                                        sprintf(name, "%s%s%.2d", m_nodeHeader, "collision", static_cast<int>(0.5 * n) + 1);
+                                        sprintf(name, "%s%s%.2d", m_nodeHeader, "collision", static_cast<int>(0.5f * n) + 1);
                                     } else {
                                         sprintf(name, "%s%s%.2d", m_nodeHeader, "collision", n + 1);
                                     }
@@ -233,7 +233,13 @@ void grPictchatPict::updatePictLoop(float deltaFrame) {
         g_sndSystem->playSE(static_cast<SndID>(0x1D1F), 0, 0, 0, -1);
         clearAttackAll();
         setEnableCollisionStatus(false);
-        clearJoints();
+        if (m_joints != NULL) {
+            u8 count = m_jointNum;
+            for (u32 i = 0; i != count; i++) {
+                grCollisionJoint* joint = m_joints[i];
+                joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
+            }
+        }
         (*m_pictCountWork)--;
         m_state = 4;
     } else {
@@ -273,13 +279,12 @@ void grPictchatPict::updateCollision(float deltaFrame) {
             if ((ctrl = reinterpret_cast<grPictchatCollCtrl*>(m_collCtrlTbl->getData(0))) != NULL) {
                 u32 index = m_jointIndex;
                 u8 count = m_jointNum;
-                float* frame = reinterpret_cast<float*>(ctrl) + index;
+                float* frame = reinterpret_cast<float*>(ctrl);
                 while (index != count) {
-                    if (!(frame[1] < getMotionFrame(0))) {
+                    if (!(frame[index + 1] < getMotionFrame(0))) {
                         break;
                     }
                     grCollisionJoint* joint = m_joints[index];
-                    frame++;
                     index++;
                     joint->m_0x54_6 = joint->m_0x54_4 = true;
                     m_jointIndex++;
@@ -450,16 +455,36 @@ void grPictchatPict007::updatePictLoopDetails(float deltaFrame) {
         Vec2f max;
         Vec2f min;
         getNodePosition(&pos, 0, "P007damage02");
-        min.m_y = pos.m_y + 45.0f;
-        max.m_y = pos.m_y - 45.0f;
-        min.m_x = pos.m_x - 40.0f;
-        max.m_x = pos.m_x + 40.0f;
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+            top = pos.m_y + 45.0f;
+            bottom = pos.m_y - 45.0f;
+            left = pos.m_x - 40.0f;
+            right = pos.m_x + 40.0f;
+            min.m_y = top;
+            min.m_x = left;
+            max.m_x = right;
+            max.m_y = bottom;
+        }
         m_dangerZone0 = g_aiMgr->setDangerZone(&min, &max, m_dangerZone0, false, false);
         getNodePosition(&pos, 0, "P007damage05");
-        min.m_y = pos.m_y + 45.0f;
-        max.m_y = pos.m_y - 45.0f;
-        min.m_x = pos.m_x - 40.0f;
-        max.m_x = pos.m_x + 40.0f;
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+            top = pos.m_y + 45.0f;
+            bottom = pos.m_y - 45.0f;
+            left = pos.m_x - 40.0f;
+            right = pos.m_x + 40.0f;
+            min.m_y = top;
+            min.m_x = left;
+            max.m_x = right;
+            max.m_y = bottom;
+        }
         m_dangerZone1 = g_aiMgr->setDangerZone(&min, &max, m_dangerZone1, false, false);
     }
 }
@@ -515,44 +540,44 @@ void grPictchatPict007::setAttack1(int index) {
             switch (index) {
             case 0:
                 vector = 0;
-                offset.m_y = 0.0f;
                 offset.m_x = -20.0f;
+                offset.m_y = 0.0f;
                 offset.m_z = 0.0f;
                 break;
             case 1:
                 vector = 0;
-                offset.m_y = 0.0f;
                 offset.m_x = -20.0f;
+                offset.m_y = 0.0f;
                 offset.m_z = 0.0f;
                 break;
             case 2:
                 vector = 0;
-                offset.m_y = 0.0f;
                 offset.m_x = -20.0f;
+                offset.m_y = 0.0f;
                 offset.m_z = 0.0f;
                 break;
             case 3:
                 vector = 180;
-                offset.m_y = 0.0f;
                 offset.m_x = 20.0f;
+                offset.m_y = 0.0f;
                 offset.m_z = 0.0f;
                 break;
             case 4:
                 vector = 180;
-                offset.m_y = 0.0f;
                 offset.m_x = 20.0f;
+                offset.m_y = 0.0f;
                 offset.m_z = 0.0f;
                 break;
             case 5:
                 vector = 180;
-                offset.m_y = 0.0f;
                 offset.m_x = 20.0f;
+                offset.m_y = 0.0f;
                 offset.m_z = 0.0f;
                 break;
             default:
                 vector = 0;
-                offset.m_y = 0.0f;
                 offset.m_x = 0.0f;
+                offset.m_y = 0.0f;
                 offset.m_z = 0.0f;
                 break;
             }
@@ -619,24 +644,27 @@ void grPictchatPict008::updatePictDraw(float deltaFrame) {
 
 // The spring goes down and up on the stage state (0 start the push, 1 wait, 2 on, 3 up again).
 void grPictchatPict008::updatePictLoop(float deltaFrame) {
-    u8 state = *m_stateWork;
-    if (state != 2) {
-        if (state < 2) {
-            if (state == 0) {
-                setMotion(1, false, false, &m_frameCount);
-                *m_stateWork = 1;
-            } else if (!(getMotionFrame(0) < m_frameCount - 5.0f)) {
-                setEnableCollisionStatus(false);
-                m_snd.playSE(static_cast<SndID>(0x1D20), 0, 0, -1);
-                m_snd.setPos(m_posSpringWork);
-                *m_stateWork = 2;
-            }
-        } else if (state < 4 && !(getMotionFrame(0) < m_frameCount)) {
+    switch (*m_stateWork) {
+    case 0:
+        setMotion(1, false, false, &m_frameCount);
+        *m_stateWork = 1;
+        break;
+    case 1:
+        if (getMotionFrame(0) >= m_frameCount - 5.0f) {
+            setEnableCollisionStatus(false);
+            m_snd.playSE(static_cast<SndID>(0x1D20), 0, 0, -1);
+            m_snd.setPos(m_posSpringWork);
+            *m_stateWork = 2;
+        }
+        break;
+    case 3:
+        if (getMotionFrame(0) >= m_frameCount) {
             setMotion(0, false, true, &m_frameCount);
             setMotionFrame(m_frameCount, 0);
             setEnableCollisionStatus(true);
             *m_stateWork = 5;
         }
+        break;
     }
     if (*m_pictIDWork == 0x1D && *m_stateWork == 5) {
         setMotion(2, false, true, &m_frameCount);
@@ -678,7 +706,7 @@ void grPictchatPict009::updatePictDraw(float deltaFrame) {
 
 // The clock stops when its animation is over: the picture is erased, without waiting for the end.
 void grPictchatPict009::updatePictLoop(float deltaFrame) {
-    if (m_frameCount > getMotionFrame(0)) {
+    if (getMotionFrame(0) < m_frameCount) {
         return;
     }
     *m_pictIDWork = 0x1D;
@@ -689,7 +717,13 @@ void grPictchatPict009::updatePictLoop(float deltaFrame) {
         m_seHandle = -1;
     }
     g_sndSystem->playSE(static_cast<SndID>(0x1D1F), 0, 0, 0, -1);
-    clearJoints();
+    if (m_joints != NULL) {
+        u8 count = m_jointNum;
+        for (u32 i = 0; i != count; i++) {
+            grCollisionJoint* joint = m_joints[i];
+            joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
+        }
+    }
     (*m_pictCountWork)--;
     m_state = 4;
 }
@@ -901,17 +935,19 @@ void grPictchatPict013::updateYakumono(float deltaFrame) {
 void grPictchatPict013::updatePictWait(float deltaFrame) {
     if (*m_pictIDWork == m_pictID) {
         *m_pictCountWork = m_pictCount;
-        u8 type = m_type;
-        if (type == 3) {
-            m_posBombWork->m_x = -75.0f - randf() * 25.0f;
-            m_posBombWork->m_y = randf() * 15.0f + 40.0f;
-            m_rot.m_y = 180.0f;
-            m_speedX = randf() * 0.15f + 0.1f;
-        } else if (type < 3 && type > 1) {
+        switch (m_type) {
+        case 2:
             m_posBombWork->m_x = randf() * 25.0f + 75.0f;
             m_posBombWork->m_y = randf() * 20.0f + 10.0f;
             m_rot.m_y = 0.0f;
             m_speedX = -0.1f - randf() * 0.15f;
+            break;
+        case 3:
+            m_posBombWork->m_x = -75.0f - randf() * 25.0f;
+            m_posBombWork->m_y = randf() * 15.0f + 40.0f;
+            m_rot.m_y = 180.0f;
+            m_speedX = randf() * 0.15f + 0.1f;
+            break;
         }
         setMotion(0, false, true, &m_frameCount);
         setVisibility(1);
@@ -960,10 +996,12 @@ void grPictchatPict013::updatePictLoopDetails(float deltaFrame) {
     Vec2f max;
     Vec2f min;
     getNodePosition(&pos, 0, "P013damage01");
-    min.m_y = pos.m_y + 40.0f;
-    max.m_y = pos.m_y - 40.0f;
+    float top = pos.m_y + 40.0f;
+    float bottom = pos.m_y - 40.0f;
+    min.m_y = top;
     min.m_x = pos.m_x - 30.0f;
     max.m_x = pos.m_x + 60.0f;
+    max.m_y = bottom;
     m_dangerZone = g_aiMgr->setDangerZone(&min, &max, m_dangerZone, false, false);
 }
 
@@ -1008,8 +1046,8 @@ void grPictchatPict013::setAttack() {
         sprintf(name, "%sdamage01", m_nodeHeader);
         if (getNodeIndex(&nodeIndex, 0, name)) {
             Vec3f offset;
-            offset.m_y = 0.0f;
             offset.m_x = 20.0f;
+            offset.m_y = 0.0f;
             offset.m_z = 0.0f;
             PICTCHAT_ATTACK(attack, 15.0f, 25, 361, 100, 75, 70, nodeIndex, soCollisionAttackData::Attribute_Fire,
                             soCollisionAttackData::Sound_Level_Large, soCollisionAttackData::Sound_Attribute_Fire,
@@ -1276,16 +1314,36 @@ void grPictchatPict025::updatePictLoopDetails(float deltaFrame) {
             Vec2f max;
             Vec2f min;
             getNodePosition(&pos, 0, "P025damage01");
-            min.m_y = pos.m_y + 35.0f;
-            min.m_x = pos.m_x - 35.0f;
-            max.m_y = pos.m_y - 35.0f;
-            max.m_x = pos.m_x + 35.0f;
+            {
+                float left;
+                float top;
+                float right;
+                float bottom;
+                top = pos.m_y + 35.0f;
+                left = pos.m_x - 35.0f;
+                bottom = pos.m_y - 35.0f;
+                right = pos.m_x + 35.0f;
+                min.m_x = left;
+                min.m_y = top;
+                max.m_x = right;
+                max.m_y = bottom;
+            }
             m_dangerZone0 = g_aiMgr->setDangerZone(&min, &max, m_dangerZone0, false, false);
             getNodePosition(&pos, 0, "P025damage02");
-            min.m_y = pos.m_y + 35.0f;
-            min.m_x = pos.m_x - 35.0f;
-            max.m_y = pos.m_y - 35.0f;
-            max.m_x = pos.m_x + 35.0f;
+            {
+                float left;
+                float top;
+                float right;
+                float bottom;
+                top = pos.m_y + 35.0f;
+                left = pos.m_x - 35.0f;
+                bottom = pos.m_y - 35.0f;
+                right = pos.m_x + 35.0f;
+                min.m_x = left;
+                min.m_y = top;
+                max.m_x = right;
+                max.m_y = bottom;
+            }
             m_dangerZone1 = g_aiMgr->setDangerZone(&min, &max, m_dangerZone1, false, false);
         }
         break;
@@ -1383,28 +1441,68 @@ void grPictchatPict027::updatePictLoopDetails(float deltaFrame) {
         Vec2f max;
         Vec2f min;
         getNodePosition(&pos, 0, "P027damage01");
-        min.m_y = pos.m_y + 20.0f;
-        min.m_x = pos.m_x - 20.0f;
-        max.m_y = pos.m_y - 20.0f;
-        max.m_x = pos.m_x + 20.0f;
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+            top = pos.m_y + 20.0f;
+            left = pos.m_x - 20.0f;
+            bottom = pos.m_y - 20.0f;
+            right = pos.m_x + 20.0f;
+            min.m_x = left;
+            min.m_y = top;
+            max.m_x = right;
+            max.m_y = bottom;
+        }
         m_dangerZone[0] = g_aiMgr->setDangerZone(&min, &max, m_dangerZone[0], false, false);
         getNodePosition(&pos, 0, "P027damage02");
-        min.m_y = pos.m_y + 20.0f;
-        min.m_x = pos.m_x - 20.0f;
-        max.m_y = pos.m_y - 20.0f;
-        max.m_x = pos.m_x + 20.0f;
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+            top = pos.m_y + 20.0f;
+            left = pos.m_x - 20.0f;
+            bottom = pos.m_y - 20.0f;
+            right = pos.m_x + 20.0f;
+            min.m_x = left;
+            min.m_y = top;
+            max.m_x = right;
+            max.m_y = bottom;
+        }
         m_dangerZone[1] = g_aiMgr->setDangerZone(&min, &max, m_dangerZone[1], false, false);
         getNodePosition(&pos, 0, "P027damage03");
-        min.m_y = pos.m_y + 20.0f;
-        min.m_x = pos.m_x - 20.0f;
-        max.m_y = pos.m_y - 20.0f;
-        max.m_x = pos.m_x + 20.0f;
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+            top = pos.m_y + 20.0f;
+            left = pos.m_x - 20.0f;
+            bottom = pos.m_y - 20.0f;
+            right = pos.m_x + 20.0f;
+            min.m_x = left;
+            min.m_y = top;
+            max.m_x = right;
+            max.m_y = bottom;
+        }
         m_dangerZone[2] = g_aiMgr->setDangerZone(&min, &max, m_dangerZone[2], false, false);
         getNodePosition(&pos, 0, "P027damage04");
-        min.m_y = pos.m_y + 20.0f;
-        min.m_x = pos.m_x - 20.0f;
-        max.m_y = pos.m_y - 20.0f;
-        max.m_x = pos.m_x + 20.0f;
+        {
+            float left;
+            float top;
+            float right;
+            float bottom;
+            top = pos.m_y + 20.0f;
+            left = pos.m_x - 20.0f;
+            bottom = pos.m_y - 20.0f;
+            right = pos.m_x + 20.0f;
+            min.m_x = left;
+            min.m_y = top;
+            max.m_x = right;
+            max.m_y = bottom;
+        }
         m_dangerZone[3] = g_aiMgr->setDangerZone(&min, &max, m_dangerZone[3], false, false);
     }
 }

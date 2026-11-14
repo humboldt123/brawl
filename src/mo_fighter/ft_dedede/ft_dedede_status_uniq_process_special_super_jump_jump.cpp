@@ -61,16 +61,24 @@ void ftDededeStatusUniqProcessSpecialSuperJumpJump::initStatus(soModuleAccesser*
     moduleAccesser->getWorkManageModule().offFlag(0x22000015);
 }
 
+// Faces the node backwards (Y rotation 180) keeping its X and Z rotation; returned by value, so the caller's copy is
+// a temporary.
+static inline Vec3f flipRotate(const Vec3f& original) {
+    float z = original.m_z;
+    Vec3f rotate;
+    rotate.m_x = original.m_x;
+    rotate.m_y = 180.0f;
+    rotate.m_z = z;
+    return rotate;
+}
+
 void ftDededeStatusUniqProcessSpecialSuperJumpJump::execStatus(soModuleAccesser* moduleAccesser) {
     if (moduleAccesser->getWorkManageModule().isFlag(0x22000011)) {
         moduleAccesser->getWorkManageModule().addInt(1, 0x20000001);
         if (moduleAccesser->getWorkManageModule().getInt(0x20000001) > soValueAccesser::getConstantInt(moduleAccesser, 0x5dc4, 0)) {
             Vec2f sumSpeed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
             ftKineticEnergyGravity& vertical = dynamic_cast<ftKineticEnergyGravity&>(*moduleAccesser->getKineticModule().getEnergy(1));
-            Vec2f speed;
-            speed.m_x = 0.0f;
-            speed.m_y = sumSpeed.m_y;
-            vertical.resetEnergy(0, &speed, &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
+            vertical.resetEnergy(0, &Vec2f(0.0f, sumSpeed.m_y), &Vec3f(0.0f, 0.0f, 0.0f), moduleAccesser);
             vertical.enable();
             moduleAccesser->getWorkManageModule().offFlag(0x22000011);
             moduleAccesser->getWorkManageModule().onFlag(0x22000015);
@@ -78,13 +86,7 @@ void ftDededeStatusUniqProcessSpecialSuperJumpJump::execStatus(soModuleAccesser*
     }
     if (moduleAccesser->getPostureModule().getLr() == -1.0f) {
         Vec3f original = moduleAccesser->getModelModule().getNodeRotate(7);
-        // MATCH-ONLY: retain the returned Z load before assembling the native rotation copy.
-        float z = original.m_z;
-        Vec3f rotate;
-        rotate.m_x = original.m_x;
-        rotate.m_y = 180.0f;
-        rotate.m_z = z;
-        moduleAccesser->getModelModule().setNodeRotate(7, &rotate);
+        moduleAccesser->getModelModule().setNodeRotate(7, &flipRotate(original));
     }
 }
 

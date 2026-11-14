@@ -842,9 +842,17 @@ void soModelModuleImpl::setNodeSRT(u32 nodeId, Vec3f* scale, Vec3f* rot, Vec3f* 
         nodeSetUp->m_scale.m_z == newScale.m_z) {
         return;
     }
-    nodeSetUp->m_scale = newScale;
-    nodeSetUp->m_rotate = *rot;
-    nodeSetUp->m_translate = *xlate;
+    // HYPOTHESIS: copied member by member here; the record's operator= reads x and y before writing, which this
+    // function does not.
+    nodeSetUp->m_scale.m_x = newScale.m_x;
+    nodeSetUp->m_scale.m_y = newScale.m_y;
+    nodeSetUp->m_scale.m_z = newScale.m_z;
+    nodeSetUp->m_rotate.m_x = rot->m_x;
+    nodeSetUp->m_rotate.m_y = rot->m_y;
+    nodeSetUp->m_rotate.m_z = rot->m_z;
+    nodeSetUp->m_translate.m_x = xlate->m_x;
+    nodeSetUp->m_translate.m_y = xlate->m_y;
+    nodeSetUp->m_translate.m_z = xlate->m_z;
     nodeSetUp->m_flag = soModelNodeSetUp::Flag_All;
     clearSetUpMtx();
 }

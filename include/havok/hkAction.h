@@ -16,6 +16,9 @@ struct hkStepInfo;
 struct hkAction : hkReferencedObject {
     virtual void applyAction(const hkStepInfo& stepInfo) = 0;      // 0x10
     virtual void getEntities(hkArray<hkEntity*>& entitiesOut) = 0; // 0x14
+    virtual void unk18();                                          // 0x18
+    // HYPOTHESIS: the name (hkEntityCallbackUtil::fireEntityRemoved calls it until the entity has no actions).
+    virtual void entityRemovedCallback(hkEntity* entity);           // 0x1C
 
     hkWorld* m_world;              // 0x08 HYPOTHESIS: type (the reflection only says pointer)
     hkSimulationIsland* m_island;  // 0x0C HYPOTHESIS: type; the island sets it in addAction
