@@ -15,6 +15,18 @@
 #define FT_GENERAL_WORK_ABSTRACT_DTOR_INLINE
 #define FT_TEAM_INLINE_DTOR
 #define FT_MODULE_BUILDER
+#define FT_POKETRAINER_NULL_SHAKE
+#define FT_POKETRAINER_AREA_CONFIG
+#define FT_POKETRAINER_MOTION
+#define FT_POKETRAINER_HIT_CATEGORY
+#define FT_POKETRAINER_ARRAY_NULL_INLINE
+#define FT_POKETRAINER_MOTION_DTOR
+#define FT_POKETRAINER_ATTACK_SEVEN
+#define SO_OTHER_ANIM_CTOR
+#define SO_INSTANCE_UNIT_EXTERNAL_FULL_PROPERTY_DTOR
+// The Final Smash attack array stores soCollisionGroup 4-aligned (header 0xC, elements at +0x408).
+#define SO_COLLISION_GROUP_ALIGNED
+#define WN_WEAPON_BUILDER
 #define SO_NULLABLE_INLINE_CTOR
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define FT_EXTEND_PARAM_EX_SETUP_OUT_OF_LINE
@@ -1202,3 +1214,15 @@ bool soArticleMediatorImpl<PoolList, Founder>::shoot(soModuleAccesser* acc, soAr
 }
 
 template bool soArticleMediatorImpl<ftPokeTrainerArticleList, ftPokeTrainer>::shoot(soModuleAccesser*, soArticle*);
+
+// One other-animation slot, the shared null cache, and one transition group (soIntToType<4>).
+template <u32 DataNum, typename T, typename TransitionConfig>
+soMotionModuleBuilder<soMotionModuleBuildConfig<DataNum, T, 0, 1, TransitionConfig, soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > >::~soMotionModuleBuilder() { }
+
+typedef soMotionModuleBuildConfig<3, soMotionModuleImpl, 0, 1, soTransitionModuleBuildConfig<wnMotionTransitionTypeList>, soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > ftPokeTrainerMBallMotionConfig;
+typedef soMotionModuleBuildConfig<19, soMotionModuleImpl, 0, 1, soTransitionModuleBuildConfig<wnMotionTransitionTypeList>, soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> > ftPokeTrainerFinalMotionConfig;
+template soMotionModuleBuilder<ftPokeTrainerMBallMotionConfig>::~soMotionModuleBuilder();
+// HYPOTHESIS: the Final Smash motion list is the same shape with 19 entries. The map truncates its transition argument.
+template soMotionModuleBuilder<ftPokeTrainerFinalMotionConfig>::~soMotionModuleBuilder();
+
+soCollisionAttackModuleBuilder<soCollisionAttackModuleBuildConfig<soCollision::Category_Fighter, 7, 0, soCollisionAttackModuleImpl, 1, false, true> >::~soCollisionAttackModuleBuilder() { }

@@ -116,7 +116,11 @@ public:
     typedef soKineticModuleBuildConfig<soKineticModuleGenericImpl> KineticModuleBuildConfig;
     typedef soGeneralWorkBuildConfig<77, 32, 3> GeneralWorkBuildConfig;
     typedef soComboModuleBuildConfig<ftComboModuleImpl> ComboModuleBuildConfig;
+#ifdef FT_POKETRAINER_AREA_CONFIG
+    typedef soAreaModuleBuildConfig<1, 4, soAreaEnviromentElementCheckerImpl, soAreaModuleImpl> AreaModuleBuildConfig;
+#else
     typedef soAreaModuleBuildConfig<ftAreaModuleImpl> AreaModuleBuildConfig;
+#endif
     typedef soColorBlendModuleBuildConfig<10, 1, soColorBlendModuleImpl> ColorBlendModuleBuildConfig;
     typedef soJostleModuleBuildConfig<0, 8, soJostleModuleImpl> JostleModuleBuildConfig;
     typedef soAbnormalModuleBuildConfig<ftAbnormalModuleImpl> AbnormalModuleBuildConfig;
@@ -232,8 +236,14 @@ public:
             (soGroundModule*)m_groundModuleBuilder.getModule(),
             (soSituationModule*)m_situationModuleBuilder.getModule(),
             (soTeamModule*)m_teamBuilder.getModule(),
+#ifdef FT_POKETRAINER_HIT_CATEGORY
+            // Null attack and hit builders have no ftBuilderModule specialization; they return the shared instances.
+            (soCollisionAttackModule*)m_attackModuleBuilder.getModule(),
+            (soCollisionHitModule*)m_hitModuleBuilder.getModule(),
+#else
             (soCollisionAttackModule*)ftBuilderModule<__typeof__(m_attackModuleBuilder)>::get(&m_attackModuleBuilder),
             (soCollisionHitModule*)ftBuilderModule<__typeof__(m_hitModuleBuilder)>::get(&m_hitModuleBuilder),
+#endif
             (soCollisionShieldModule*)m_shieldModuleBuilder.getModule(),
             (soCollisionShieldModule*)m_reflectorModuleBuilder.getModule(),
             m_absorberBuilder.getModule(),

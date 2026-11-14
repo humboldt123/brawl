@@ -102,8 +102,15 @@ template soResourceModuleBuilder<FT_BC::ResourceModuleBuildConfig>::soResourceMo
 template soModelModuleBuilder<FT_BC::ModelModuleBuildConfig>::soModelModuleBuilder(soModuleAccesser*, float, void*, soEventObserverRegistrationDesc*);
 template soPostureModuleBuilder<FT_BC::PostureModuleBuildConfig>::soPostureModuleBuilder(soModuleAccesser*, soEventObserverRegistrationDesc*);
 template soGroundModuleBuilder<FT_BC::GroundModuleBuildConfig>::soGroundModuleBuilder(soModuleAccesser*, soGroundConditionChecker*);
+#ifndef FT_POKETRAINER_HIT_CATEGORY
+// Explicit instantiation of the null attack specialization crashes MWCC (CTemplateTools.c).
 template soCollisionAttackModuleBuilder<FT_BC::CollisionAttackModuleBuildConfig>::soCollisionAttackModuleBuilder(soModuleAccesser*, int, u8, soEventObserverRegistrationDesc*);
+#endif
+#ifdef FT_POKETRAINER_HIT_CATEGORY
+template soCollisionHitModuleBuilder<FT_BC::CollisionHitModuleBuildConfig>::soCollisionHitModuleBuilder(soModuleAccesser*, int, gfTask::Category, soEventObserverRegistrationDesc*);
+#else
 template soCollisionHitModuleBuilder<FT_BC::CollisionHitModuleBuildConfig>::soCollisionHitModuleBuilder(soModuleAccesser*, int, u8, soEventObserverRegistrationDesc*);
+#endif
 template soCollisionShieldModuleBuilder<FT_BC::CollisionShieldModuleBuildConfig>::soCollisionShieldModuleBuilder(soModuleAccesser*, int, gfTask::Category);
 #ifndef FT_NO_REFLECTOR_INSTANTIATION // the builder with the folded in absorber instantiates its builders itself
 template soCollisionReflectorModuleBuilder<FT_BC::CollisionReflectorModuleBuildConfig>::soCollisionReflectorModuleBuilder(soModuleAccesser*, int, gfTask::Category);

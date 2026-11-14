@@ -735,14 +735,23 @@ class soMotionModuleBuilder<soMotionModuleBuildConfig<DataNum, T, 0, 1, Transiti
     soArraySelectHolder<1, soArrayVector<soOtherAnim, 1>, soSingletonHolder<soArrayNull<soOtherAnim> > > m_otherAnims;
     soSingletonHolder<soArrayNull<soTransitionTermPack> > m_termPacks;
     soSingletonHolder<soArrayNull<u32> > m_u32s;
+#ifdef FT_POKETRAINER_MOTION_DTOR
+    // The weapon teardown never destroys this table. A real soArrayContractibleTable would emit that call.
+    u32 m_motionDataPad[4];
+#else
     soArrayContractibleTable<soMotionDataConst> m_motionData;
+#endif
     soMotionAnimObjCacheModuleBuildConfig<0, soMotionAnimObjCacheModuleNull> m_cache;
     T m_module;
 public:
     soMotionModuleBuilder(soModuleAccesser* acc, void* motionData) :
         m_transitionBuilder(), m_otherAnims(1, 0),
+#ifdef FT_POKETRAINER_MOTION_DTOR
+        m_module(acc, (soArrayContractibleTable<soMotionDataConst>*)m_motionDataPad, m_transitionBuilder.getModule(),
+#else
         m_motionData((const soMotionData*)motionData, DataNum),
         m_module(acc, &m_motionData, m_transitionBuilder.getModule(),
+#endif
                  soSingletonHolder<soArrayNull<soPartialAnim> >::getInstance(), m_otherAnims.get(),
                  (soArray<soTransitionTermPack>*)lbl_27_bss_9BC,
                  soSingletonHolder<soArrayNull<u32> >::getInstance(),
@@ -750,7 +759,12 @@ public:
                  (soMotionAnimObjCacheModule*)lbl_27_bss_DBC) {
         acc->getModelModule().isNull();
     }
+#ifdef FT_POKETRAINER_MOTION_DTOR
+    // The Poke Ball and Final Smash each own an out-of-line copy of this teardown.
+    ~soMotionModuleBuilder() __attribute__((never_inline));
+#else
     ~soMotionModuleBuilder() { }
+#endif
     soMotionModule* getModule() { return &m_module; }
 };
 
@@ -819,6 +833,27 @@ public:
 #endif
     soCollisionAttackModule* getModule() { return &m_attackModule; }
 };
+
+#ifdef FT_POKETRAINER_ATTACK_SEVEN
+// The Final Smash names one group and then stores one group per part. The zero-absolute slot is four bytes and is not torn down.
+template <>
+class soCollisionAttackModuleBuilder<soCollisionAttackModuleBuildConfig<soCollision::Category_Fighter, 7, 0, soCollisionAttackModuleImpl, 1, false, true> > {
+    soArrayVector<soCollisionAttackPart, 7> m_attackPartArrayVector;
+    soArrayVector<soCollisionGroup, 7> m_collisionGroupArrayVector;
+    u32 m_attackAbsolutePad;
+    soCollisionAttackModuleImpl m_attackModule;
+public:
+    soCollisionAttackModuleBuilder(soModuleAccesser* moduleAccesser, int taskId, u8 taskCategory,
+                                   soEventObserverRegistrationDesc* registrationDesc) :
+        m_attackPartArrayVector(7, soCollisionAttackPart(soCollision::Category_Fighter, false), 0),
+        m_collisionGroupArrayVector(7, 0),
+        m_attackAbsolutePad(0),
+        m_attackModule(moduleAccesser, taskId, (gfTask::Category)taskCategory, &m_attackPartArrayVector, &m_collisionGroupArrayVector,
+                       (soArray<soCollisionAttackAbsolute>*)0, registrationDesc, true) { }
+    ~soCollisionAttackModuleBuilder() __attribute__((never_inline));
+    soCollisionAttackModule* getModule() { return &m_attackModule; }
+};
+#endif
 
 // Damage of an article: null effector and transactor singletons.
 // HYPOTHESIS: the source config is soDamageModuleBuildConfig<Module, 1, soSingletonHolder<Transactor>, ...> (map name); that
@@ -1146,6 +1181,41 @@ public:
 
 typedef soTypeList<soIntToType<4>, soTypeListNullType> wnMotionTransitionTypeList;
 typedef soTypeList<soIntToType<6>, soTypeListNullType> wnStatusTransitionTypeList;
+
+#ifdef FT_POKETRAINER_MOTION_DTOR
+// The type list still says soIntToType<4>. The Poke Ball and Final Smash store one term, and the module tail is not torn down.
+template <>
+class soArrayPool<soIntToType<4>, soArrayPoolRoot<soInstanceUnitFullProperty<soTransitionTerm> > > :
+    public soArrayPoolRoot<soInstanceUnitFullProperty<soTransitionTerm> > {
+    soArrayVector<soInstanceUnitFullProperty<soTransitionTerm>, 1> m_array;
+public:
+    enum { Depth = 1 };
+    soArrayPool() : m_array(0) { }
+    soArray<soInstanceUnitFullProperty<soTransitionTerm> >* getArray(int index, int total) {
+        if (index == total - Depth) {
+            return &m_array;
+        }
+        return soArrayPoolRoot<soInstanceUnitFullProperty<soTransitionTerm> >::getArray(index, total);
+    }
+};
+
+template <>
+class soTransitionModuleBuilder<soTransitionModuleBuildConfig<wnMotionTransitionTypeList> > {
+    soArrayVector<soTransitionTermGroup, 1> m_groups;
+    soJagArray<soInstanceUnitFullProperty<soTransitionTerm>, wnMotionTransitionTypeList> m_termArrays;
+    u8 m_moduleBytes[0x18];
+public:
+    soTransitionModuleBuilder() : m_groups(0) {
+        for (int i = 0; i < 1; i++) {
+            soTransitionTermGroup group(m_termArrays.getArrayAt(i));
+            soArray<soTransitionTermGroup>* groups = &m_groups;
+            groups->push(group);
+        }
+    }
+    ~soTransitionModuleBuilder() { }
+    soTransitionModule* getModule() { return (soTransitionModule*)m_moduleBytes; }
+};
+#endif
 
 class wnCommonBuildConfig {
 public:

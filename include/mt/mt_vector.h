@@ -148,7 +148,12 @@ public:
         ; // BYTES: the owning unit calls the weak copy another unit of the REL carries.
 #else
     {
+#ifdef MT_VEC2F_LENGTH_INLINE_SQ
+        // BYTES: this unit's length expands the squares in place; lengthSq stays a call for the other users.
+        float lengthSquared = m_x * m_x + m_y * m_y;
+#else
         float lengthSquared = this->lengthSq();
+#endif
         // MATCH-ONLY: retain the original fabs double temporary and frsp at
         // conversion. The ordered <= comparison also preserves NaN behavior.
         double absolute = __fabs(lengthSquared);

@@ -309,8 +309,10 @@ public:
     T* getModule() { return &m_catchModule; }
 };
 
-// Thread 0 of the article keeps two command tables (the second behind a holder with one more word).
-class wnPikminAnimCmdThread0Builder {
+// Thread 0 is soAnimCmdControlUnitBuildConfig<0, 1, 52, 52, 0, 0, 0, 8>, but it keeps two command tables
+// (the second behind a holder with one more word). HYPOTHESIS: the shared builder's single table is not this thread.
+template <>
+class soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<0, 1, 52, 52, 0, 0, 0, 8> > {
     typedef soArrayContractibleTable<const acAnimCmdConv*> TableT;
     typedef soArrayVector<acCmdInterpreterStackData, 8> StackT;
     soAnimCmdFirstMember<TableT> m_table;                                                                 // +0
@@ -320,7 +322,7 @@ class wnPikminAnimCmdThread0Builder {
     soAnimCmdAddressPackArraySeparate m_pack;                                                             // +0xD0
     soAnimCmdInterpreter m_interpreter;                                                                   // +0xEC
 public:
-    wnPikminAnimCmdThread0Builder(soModuleAccesser* acc, void* data0, void* data1, void* data2) :
+    soAnimCmdControlUnitBuilder(soModuleAccesser* acc, void* data0, void* data1, void* data2) :
         m_table((const acAnimCmdConv**)data0, 0x34), m_table2((const acAnimCmdConv**)data1, 0x34), m_stack(),
         m_pack(&m_table.m_member, &m_table2, (soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull),
         m_interpreter(ftGetManageId(acc), &m_stack.m_array, 0, 0, 1.0f, ftAddressOf((u8)0)) {
@@ -328,40 +330,47 @@ public:
         soAnimCmdControlUnit unit = { &m_interpreter, &m_pack };
         acc->getAnimCmdModule().registInterpreter(unit, attr);
     }
-    ~wnPikminAnimCmdThread0Builder() { }
+    // Out of line: the module destructor calls this instantiation by name.
+    ~soAnimCmdControlUnitBuilder() __attribute__((never_inline)) { }
 };
 
-// Threads 1 to 3 of the article have no command table: their data is queried and dropped.
-template <int Id>
-class wnPikminAnimCmdNoTableBuilder {
-    typedef soArrayVector<acCmdInterpreterStackData, 8> StackT;
-    u32 unk0;                                                                                             // +0
-    soArraySelectHolder<1, StackT, soSingletonHolder<soArrayNull<acCmdInterpreterStackData> > > m_stack; // +4
-    soAnimCmdAddressPackArraySeparate m_pack;                                                             // +0xB0
-    soAnimCmdInterpreter m_interpreter;                                                                   // +0xCC
-public:
-    wnPikminAnimCmdNoTableBuilder(soModuleAccesser* acc, void* data0, void* data1, void* data2) :
-        m_stack(),
-        m_pack((soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull,
-               (soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull,
-               (soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull),
-        m_interpreter(ftGetManageId(acc), &m_stack.m_array, Id, 1, 1.0f, ftAddressOf((u8)0)) {
-        soAttributeFlag attr(2);
-        soAnimCmdControlUnit unit = { &m_interpreter, &m_pack };
-        acc->getAnimCmdModule().registInterpreter(unit, attr);
-    }
-    ~wnPikminAnimCmdNoTableBuilder() { }
-};
+// Threads 1 to 3 have no command table (capacity 0). The first word is unused and the data arguments are dropped.
+// HYPOTHESIS: same registration as the shared builder's empty-table threads.
+#define WN_PIKMIN_ANIMCMD_NOTABLE(Id)                                                                                      \
+    template <>                                                                                                            \
+    class soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<Id, 2, 0, 0, 0, 1, 0, 8> > {                        \
+        typedef soArrayVector<acCmdInterpreterStackData, 8> StackT;                                                       \
+        u32 unk0;                                                                                                          \
+        soArraySelectHolder<1, StackT, soSingletonHolder<soArrayNull<acCmdInterpreterStackData> > > m_stack;              \
+        soAnimCmdAddressPackArraySeparate m_pack;                                                                          \
+        soAnimCmdInterpreter m_interpreter;                                                                                \
+    public:                                                                                                                \
+        soAnimCmdControlUnitBuilder(soModuleAccesser* acc, void*, void*, void*) :                                         \
+            m_stack(),                                                                                                     \
+            m_pack((soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull,                                         \
+                   (soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull,                                         \
+                   (soArrayFixed<const acAnimCmdConv*>*)g_soAnimCmdAddrArrayNull),                                        \
+            m_interpreter(ftGetManageId(acc), &m_stack.m_array, Id, 1, 1.0f, ftAddressOf((u8)0)) {                        \
+            soAttributeFlag attr(2);                                                                                      \
+            soAnimCmdControlUnit unit = { &m_interpreter, &m_pack };                                                      \
+            acc->getAnimCmdModule().registInterpreter(unit, attr);                                                        \
+        }                                                                                                                  \
+        ~soAnimCmdControlUnitBuilder() __attribute__((never_inline)) { }                                                  \
+    };
+WN_PIKMIN_ANIMCMD_NOTABLE(1)
+WN_PIKMIN_ANIMCMD_NOTABLE(2)
+WN_PIKMIN_ANIMCMD_NOTABLE(3)
+#undef WN_PIKMIN_ANIMCMD_NOTABLE
 
 // The sixth animation command thread of the article is real (16 entries), unlike the shared builder's.
 typedef wnAnimCmdModuleSubBuildConfigDefault<1, 52, 52, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0> wnPikminAnimCmdModuleSubBuildConfig;
 template <>
 class wnAnimCmdModuleSubBuilder<wnPikminAnimCmdModuleSubBuildConfig> {
     typedef wnPikminAnimCmdModuleSubBuildConfig BC;
-    wnPikminAnimCmdThread0Builder m_unit0;
-    wnPikminAnimCmdNoTableBuilder<1> m_unit1;
-    wnPikminAnimCmdNoTableBuilder<2> m_unit2;
-    wnPikminAnimCmdNoTableBuilder<3> m_unit3;
+    soAnimCmdControlUnitBuilder<BC::Unit0Config> m_unit0;
+    soAnimCmdControlUnitBuilder<BC::Unit1Config> m_unit1;
+    soAnimCmdControlUnitBuilder<BC::Unit2Config> m_unit2;
+    soAnimCmdControlUnitBuilder<BC::Unit3Config> m_unit3;
     soAnimCmdControlUnitBuilderUniq<BC::Unit4Config> m_unit4;
     soAnimCmdControlUnitBuilder<soAnimCmdControlUnitBuildConfig<5, 16, 1, 0, 0, 1, 0, 8> > m_unit5;
 public:

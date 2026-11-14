@@ -186,6 +186,18 @@ public:
     typename BC::ModuleType* getModule() { return &m_shakeModule; }
 };
 
+#ifdef FT_POKETRAINER_NULL_SHAKE
+// The trainer passes the shared null shake module (lbl_27_bss_434). Opt-in: only that TU defines the macro.
+extern char lbl_27_bss_434[];
+struct soShakeModuleBuildConfigNull { };
+template <>
+class soShakeModuleBuilder<soShakeModuleBuildConfigNull> {
+public:
+    soShakeModuleBuilder(soModuleAccesser*, void*) { }
+    void* getModule() { return lbl_27_bss_434; }
+};
+#endif
+
 ////////////////////////////////////////
 // soControllerModuleBuilder
 ////////////////////////////////////////

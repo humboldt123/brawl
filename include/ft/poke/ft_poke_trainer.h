@@ -18,13 +18,24 @@ typedef soParamCustomizeModuleBuildConfig<ftParamCustomizeModuleImpl> ftPokeTrai
 typedef soResourceModuleBuildConfigDynamic<0, ftResourceIdAccesserImpl, soResourceModuleImpl> ftPokeTrainerResourceModuleBuildConfig;
 typedef soModelModuleBuildConfig<3, 0, soModelModuleImpl> ftPokeTrainerModelModuleBuildConfig;
 typedef ftAnimCmdModuleSubBuildConfig<299, 515> ftPokeTrainerAnimCmdModuleSubBuildConfig;
-typedef soMotionModuleBuildConfig<515, soMotionModuleImpl, 0, 1, soTransitionModuleBuildConfig<ftMotionTransitionTypeList>, soMotionAnimObjCacheModuleBuildConfig<5, soMotionAnimObjCacheModuleImpl> > ftPokeTrainerMotionModuleBuildConfig;
-typedef soStatusModuleBuildConfig<299, soGeneralWorkBuildConfig<18, 14, 2>, 274, 13, soTransitionModuleBuildConfig<ftStatusTransitionTypeList> > ftPokeTrainerStatusModuleBuildConfig;
+// One group of two transition terms (the shared fighter list of eight is a different module).
+typedef soTypeList<soIntToType<2>, soTypeListNullType> ftPokeTrainerMotionTransitionTypeList;
+// Two status groups: eight terms, then one. The shared twenty-group list belongs to the other fighters.
+typedef soTypeList<soIntToType<8>, soTypeList<soIntToType<1>, soTypeListNullType> > ftPokeTrainerStatusTransitionTypeList;
+typedef soMotionModuleBuildConfig<515, soMotionModuleImpl, 0, 1, soTransitionModuleBuildConfig<ftPokeTrainerMotionTransitionTypeList>, soMotionAnimObjCacheModuleBuildConfig<5, soMotionAnimObjCacheModuleImpl> > ftPokeTrainerMotionModuleBuildConfig;
+typedef soStatusModuleBuildConfig<299, soGeneralWorkBuildConfig<18, 14, 2>, 274, 13, soTransitionModuleBuildConfig<ftPokeTrainerStatusTransitionTypeList> > ftPokeTrainerStatusModuleBuildConfig;
 typedef soGeneralWorkBuildConfig<76, 35, 3> ftPokeTrainerGeneralWorkBuildConfig;
 
-// HYPOTHESIS: the real builder is 0x3A68 bytes (ftPokeTrainerArticleManageModuleBuilder); the fighter keeps this stand-in because
-// the module sizes of the other builders are not exact yet and the fighter's own layout would no longer fit.
-typedef ftOpaqueGenerateArticleManageModuleBuilder<0x168, Fighter_PokeTrainer> ftPokeTrainerGenerateArticleManageModuleBuilder;
+#ifdef WN_WEAPON_BUILDER
+#include <wn/wn_module_accesser_builder.h>
+#pragma dont_inline off
+#include <so/controller/so_controller_module_link_ref.h>
+#endif
+
+class ftPokeTrainer;
+#ifdef FT_POKETRAINER_ARTICLE_POOLS
+#include <ft/poke/ft_poke_trainer_article_pools.h>
+#endif
 
 class ftPokeTrainerBuildConfig : public ftCommonBuildConfig {
 public:
@@ -37,10 +48,26 @@ public:
     typedef ftPokeTrainerMotionModuleBuildConfig MotionModuleBuildConfig;
     typedef ftPokeTrainerStatusModuleBuildConfig StatusModuleBuildConfig;
     typedef ftPokeTrainerGeneralWorkBuildConfig GeneralWorkBuildConfig;
-    // HYPOTHESIS: article storage is 0x168. The null builder occupies 4 bytes, and 0x164 is the gap
-    // between this fighter's cancel module and the original. The ctor and dtor stay in the original
-    // and are not defined here.
-    typedef ftPokeTrainerGenerateArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
+    // The trainer does not attack: those modules are the shared null instances.
+    typedef soCollisionAttackModuleBuildConfigNull CollisionAttackModuleBuildConfig;
+    typedef soCollisionHitModuleBuildConfigNull CollisionHitModuleBuildConfig;
+    typedef soCollisionShieldModuleBuildConfigNull CollisionShieldModuleBuildConfig;
+    typedef soCollisionReflectorModuleBuildConfigNull CollisionReflectorModuleBuildConfig;
+    typedef soCollisionCatchModuleBuildConfigNull CollisionCatchModuleBuildConfig;
+    typedef soDamageModuleBuildConfigNull DamageModuleBuildConfig;
+    typedef soCatchModuleBuildConfigNull CatchModuleBuildConfig;
+    typedef soCaptureModuleBuildConfigNull CaptureModuleBuildConfig;
+    typedef soTurnModuleBuildConfigNull TurnModuleBuildConfig;
+    typedef soShakeModuleBuildConfigNull ShakeModuleBuildConfig;
+    typedef wnControllerModuleBuildConfig<soControllerModuleLinkRef, 0, 0> ControllerModuleBuildConfig;
+    typedef soComboModuleBuildConfigNull ComboModuleBuildConfig;
+    typedef soPhysicsModuleBuildConfigNull PhysicsModuleBuildConfig;
+    typedef soItemManageModuleBuildConfigNull ItemManageModuleBuildConfig;
+    typedef soAbnormalModuleBuildConfigNull AbnormalModuleBuildConfig;
+    typedef soGlowModuleBuildConfigNull GlowModuleBuildConfig;
+    // The trainer's slow module is the simple one (the shared fighter typedef is the full impl).
+    typedef soSlowModuleBuildConfig<soSlowModuleSimple> SlowModuleBuildConfig;
+    typedef ftPokeTrainerArticleManageModuleBuilder GenerateArticleManageModuleBuilder;
 };
 
 class ftPokeTrainer;

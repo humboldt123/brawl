@@ -26,9 +26,13 @@ class AnmObjChrRes;
 typedef soMotionAnimObjCacheUnit<nw4r::g3d::AnmObjChrRes> ftMotionAnimObjCacheUnitChrRes;
 typedef const soMotionData soMotionDataConst;
 #ifndef WN_MARIO_FIREBALL_UNIT
+#ifndef FT_POKETRAINER_MOTION_DTOR
 FT_DOL_ARRAY_VECTOR(soTransitionTermGroup, 1);
+#endif
 FT_DOL_ARRAY_VECTOR(soPartialAnim, 2);
+#ifndef FT_POKETRAINER_MOTION_DTOR
 FT_DOL_ARRAY_VECTOR(soOtherAnim, 1);
+#endif
 FT_DOL_ARRAY_VECTOR(soOtherAnim, 2);
 FT_DOL_ARRAY_VECTOR(soTransitionTermPack, 1);
 FT_DOL_ARRAY_VECTOR(u32, 5);
@@ -84,7 +88,12 @@ class soMotionModuleBuilder {
     soArraySelectHolder<1, PartialAnimsT, soSingletonHolder<soArrayNull<soPartialAnim> > > m_partialAnims;                         // +0xC4
     soArraySelectHolder<1, OtherAnimsT, soSingletonHolder<soArrayNull<soOtherAnim> > > m_otherAnims;                               // +0x160
     soSelectInstanceHolder<TermPacksT, soSingletonHolder<soArrayNull<soTransitionTermPack> > > m_termPacks;                        // +0x198
+#ifdef FT_POKETRAINER_MOTION
+    // The trainer's motion module passes the shared null u32 array instead of five owned slots.
+    soSingletonHolder<soArrayNull<u32> > m_u32s;
+#else
     soArraySelectHolder<1, U32sT, soSingletonHolder<soArrayNull<u32> > > m_u32s;                                                   // +0x1B8
+#endif
     soArrayContractibleTable<soMotionDataConst> m_motionData;                                                                      // +0x1D8
     soMotionAnimObjCacheModuleBuilder<typename BC::CacheBuildConfig> m_cacheBuilder;                                               // +0x1E8
     typename BC::ModuleType m_module;                                                                                              // +0x224
@@ -94,11 +103,19 @@ public:
         m_partialAnims(BC::PartialAnimNum, 0),
         m_otherAnims(BC::OtherAnimNum, 0),
         m_termPacks(),
+#ifdef FT_POKETRAINER_MOTION
+        m_u32s(),
+#else
         m_u32s(5, 0),
+#endif
         m_motionData((const soMotionData*)motionData, BC::MotionDataNum),
         m_cacheBuilder(),
         m_module(acc, &m_motionData, m_transitionBuilder.getModule(), m_partialAnims.get(), m_otherAnims.get(),
+#ifdef FT_POKETRAINER_MOTION
+                 m_termPacks.get(), soSingletonHolder<soArrayNull<u32> >::getInstance(), static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(), true, (soMotionAnimObjCacheModule*)&m_cacheBuilder.m_module) {
+#else
                  m_termPacks.get(), m_u32s.get(), static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(), true, (soMotionAnimObjCacheModule*)&m_cacheBuilder.m_module) {
+#endif
         acc->getModelModule().isNull();
     }
     ~soMotionModuleBuilder() { }

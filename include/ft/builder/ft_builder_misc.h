@@ -47,11 +47,22 @@ public:
 #include <so/area/so_area_module_impl.h>
 #include <ft/builder/ft_dol_holders.h>
 
+#ifdef FT_POKETRAINER_AREA_CONFIG
+// Map name soAreaModuleBuildConfig<1, 4, soAreaEnviromentElementCheckerImpl, soAreaModuleImpl>.
+// Opt-in: the one-argument template stays for every other fighter.
+template <s32 NumInstances, s32 NumLogs, typename Checker, typename T>
+class soAreaModuleBuildConfig {
+public:
+    typedef T ModuleType;
+    typedef Checker CheckerType;
+};
+#else
 template <typename T>
 class soAreaModuleBuildConfig {
 public:
     typedef T ModuleType;
 };
+#endif
 
 template <typename BC>
 class soAreaModuleBuilder : public soArraySelectHolder<1, soArrayVector<soAreaWind, 1>, soArrayNull<soAreaWind> > {
@@ -67,6 +78,23 @@ public:
         m_checker(), m_contactLogs(0), m_instances(0) { }
     void* getModule() { return &m_module; }
 };
+
+#ifdef FT_POKETRAINER_AREA_CONFIG
+// One instance and four contact logs. The module sits at +4, as the trainer constructor passes it.
+template <s32 NumInstances, s32 NumLogs, typename Checker, typename T>
+class soAreaModuleBuilder<soAreaModuleBuildConfig<NumInstances, NumLogs, Checker, T> > {
+    u32 m_unk0;
+    T m_module;
+    Checker m_checker;
+    soArrayVector<soAreaContactLog, NumLogs> m_contactLogs;
+    soArrayVector<soAreaInstance, NumInstances> m_instances;
+public:
+    soAreaModuleBuilder(soModuleAccesser* acc, u8 areaCategory, soEventObserverRegistrationDesc* regDesc) :
+        m_module(acc, areaCategory, &m_instances, &m_contactLogs, &m_checker, &getNullArray<soAreaWind>(), regDesc, -1),
+        m_checker(), m_contactLogs(0), m_instances() { }
+    void* getModule() { return &m_module; }
+};
+#endif
 
 // Area module builder with another number of area instances (same code as soAreaModuleBuilder).
 template <s32 NumInstances, typename T>

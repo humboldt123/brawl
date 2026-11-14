@@ -9,7 +9,7 @@ class soTeam : public soNullable {
 public:
     soTeam() { }
     soTeam(bool isNull) : soNullable(isNull) { }
-#if defined(FT_TEAM_TYPED_INTERFACE) || defined(WN_WEAPON_BUILDER)
+#if (defined(FT_TEAM_TYPED_INTERFACE) || defined(WN_WEAPON_BUILDER)) && !defined(FT_TEAM_INLINE_DTOR)
     virtual ~soTeam();
 #elif defined(SO_TEAM_DTOR_OUT_OF_LINE)
     // Opt-in per unit (the Enemy): soTeamImpl's destructor calls this one, a 0x40-byte weak copy of the unit.

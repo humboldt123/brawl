@@ -69,7 +69,9 @@ FT_DOL_ARRAY_VECTOR(soEffectTime, 1);
 FT_DOL_ARRAY_VECTOR(efScreenHandle, 1);
 FT_DOL_ARRAY_VECTOR(efScreenHandle, 2);
 FT_DOL_ARRAY_VECTOR(u32, 1);
+#ifndef FT_POKETRAINER_MOTION_DTOR
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 1);
+#endif
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 2);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 3);
 FT_DOL_ARRAY_VECTOR(soInstanceUnitFullProperty<soTransitionTerm>, 6);

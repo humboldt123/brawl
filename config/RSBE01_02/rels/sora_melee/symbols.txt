@@ -25373,7 +25373,7 @@ __dt__81wnInstanceHolder<18wnPokeTrainerFinal,23soKindInfoGeneric<0,28>,14soIntT
 __dt__18wnPokeTrainerFinalFv = .text:0x0037A2D0; // type:function size:0x2CC
 fn_27_37A59C = .text:0x0037A59C; // type:function size:0x138
 __dt__111soCollisionAttackModuleBuilder<77soCollisionAttackModuleBuildConfig<0,7,0,27soCollisionAttackModuleImpl,1,0,1>>Fv = .text:0x0037A6D4; // type:function size:0x9C
-fn_27_37A770 = .text:0x0037A770; // type:function size:0xD4
+__dt__241soMotionModuleBuilder<215soMotionModuleBuildConfig<19,18soMotionModuleImpl,0,1,82soTransitionModuleBuildConfig<49soTypeList<14soIntToType<4>,18soTypeListNullType>>,73soMotionAnimObjCacheModuleBuildConfig<0,30soMotionAnimObjCacheModuleNull>>>Fv = .text:0x0037A770; // type:function size:0xD4
 fn_27_37A844 = .text:0x0037A844; // type:function size:0x424
 __dt__57soGeneralWorkBuilder<33soGeneralWorkBuildConfig<18,14,2>>Fv = .text:0x0037AC68; // type:function size:0x40
 __dt__82soKineticModuleBuilder<56soKineticModuleBuildConfig<26soKineticModuleGenericImpl>>Fv = .text:0x0037ACA8; // type:function size:0x168

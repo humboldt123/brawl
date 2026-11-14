@@ -255,7 +255,7 @@ public:
     virtual bool isFull() const;
     virtual void set(s32 startingIndex, const T& element, s32 numIndicesToSet);
 
-#if defined(WN_WEAPON_BUILDER) && !defined(WN_MARIO_FIREBALL_UNIT)
+#if defined(WN_WEAPON_BUILDER) && !defined(WN_MARIO_FIREBALL_UNIT) && !defined(FT_POKETRAINER_ARRAY_NULL_INLINE)
     soArrayNull();
 #else
     soArrayNull() { }

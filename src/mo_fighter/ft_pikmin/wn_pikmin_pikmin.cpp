@@ -17,6 +17,7 @@
 #define MT_VEC2F_CTOR_OUT_OF_LINE
 #define WN_KINETIC_GRAVITY_INLINE_DTOR
 #define MT_VEC2F_SUB_NOINLINE
+#define MT_VEC2F_LENGTH_INLINE_SQ
 #define MT_VEC3F_FROM_VEC2_CTOR_NOINLINE
 #define SO_SLOW_GET_INSTANCE_OUT_OF_LINE
 #include <so/so_array.h>
@@ -1832,7 +1833,8 @@ void wnPikminPikminKineticTransactor::changeKineticSub17(void* pools, soModuleAc
     Vec2f current = acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     acc->getKineticModule().unableEnergyAll();
     soParamAccesser* params = PK_PARAMS(acc);
-    soKineticEnergyNormal* normal = PK_NORMAL(pools);
+    // The one-byte soIntToType tag is stored before the pool lookup; a bare offset has no tag.
+    soKineticEnergyNormal* normal = pkGetEnergy(pools, soIntToType<0>());
     PK_RESET_NORMAL(normal);
     normal->m_speed = current;
     normal->m_speedTarget = PK_V2(0.0f, 0.0f);
