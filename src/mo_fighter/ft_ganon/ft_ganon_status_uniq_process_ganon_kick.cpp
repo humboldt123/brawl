@@ -1,5 +1,6 @@
 // BYTES: the Vec3f constructor stays out of line in this unit.
 #define MT_VEC3F_CTOR_NOINLINE
+#include <ft/ganon/ft_ganon.h>
 #include <ft/ft_kinetic_energy.h>
 #include <ft/ganon/ft_ganon_status_uniq_process_ganon_kick.h>
 #include <so/so_module_accesser.h>
@@ -11,8 +12,6 @@
 // HYPOTHESIS: this translation unit holds Ganondorf's Wizard's Foot status processes. Only Kick::onHit is
 // reconstructed; the KickEnd bodies are not (their work and parameter ids are listed in the notes).
 
-// Group 4 of the fighter's extend parameters (ftData + 0x88); defined in ft_ganon.cpp.
-extern "C" void* fn_109_862C();
 
 static void setEndBrake(soModuleAccesser* moduleAccesser, int groundParamId, int commonParamId);
 
@@ -93,7 +92,7 @@ void ftGanonStatusUniqProcessGanonKick::onHit(soModuleAccesser* moduleAccesser) 
             int hitsLeft = work.getInt(0x20000001);
             if (hitsLeft >= 1) {
                 // HYPOTHESIS: the first float of group 4 is the speed multiplier applied per hit.
-                float* param = static_cast<float*>(fn_109_862C());
+                float* param = ftGanon::getGanonKickParam();
                 // Scale the animation-driven velocity for the kick.
                 float current = work.getFloat(0x21000004);
                 float speedMul = current * param[0];

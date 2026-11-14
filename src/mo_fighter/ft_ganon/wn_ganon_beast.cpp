@@ -24,31 +24,38 @@ FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 4);
 #include <types.h>
 #include <wn/ganon/wn_ganon_beast.h>
 
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-} // extern "C"
-
-extern wnGanonBeastStatusUniqProcessStart g_wnGanonBeastStatusUniqProcessStart;  // HYPOTHESIS: the statuses' processes
-extern wnGanonBeastStatusUniqProcessAttack g_wnGanonBeastStatusUniqProcessAttack;
+// This article owns the out-of-line copy of the parameter accesser interface's empty teardown.
+#pragma push
+#pragma dont_inline on
+soParamAccesser::~soParamAccesser() { }
+#pragma pop
 
 inline soDamageEventObserver::~soDamageEventObserver() { }
 inline void soDamageEventObserver::notifyEventOnDamage(soDamage*, bool, soModuleAccesser*) { }
 inline void soDamageEventObserver::notifyEventAddDamage(soDamage*, soModuleAccesser*) { }
+
+// Hit-stop constants passed to soStopModuleImpl::calcHitStopFrame (same values and layout as in wn_pit_ikarus.cpp and
+// wn_snake_nikita_missile.cpp): MWCC keeps these external-linkage objects at the start of .rodata, ahead of the
+// builder constructor's pooled literals.
+// HYPOTHESIS: names and the exact original declaration (likely an extern declared in a shared weapon header).
+extern const float g_wnHitStopFrameMul = 0.3846154f;
+extern const float g_wnHitStopFrameAdd = 5.0f;
+extern const float g_wnHitStopFrameMax = 30.0f;
 
 wnGanonBeast::wnGanonBeast(s32 articleId, const wnArticleBuildInfo& info, const wnGanonBeastData* data) :
     wnWeaponBuilder<wnGanonBeastModuleAccesserBuildConfig>(
         "GanonBeast", articleId, info,
         wnModuleAccesserBuildData(0x80, data, info.getHeapModule()->getInstanceHeap(), Heaps::FighterTechqniq,
                                   info.getHeapModule()->getNWMotionInstanceHeap(), data->m_resGroupNo, -1, &m_paramAccesser,
-                                  reinterpret_cast<s32>(data->unk38), 0, 0, 0, 0, 0, 0)),
+                                  reinterpret_cast<s32>(&data->m_attackDataSet), 0, 0, 0, 0, 0, 0)),
     soDamageEventObserver(static_cast<soEventManager&>(getModuleAccesser()->getEventManageModule()).getManageId(), -1),
     m_param(data->m_param), m_paramAccesser(data->m_param) {
+    soModuleAccesser* accesser = getModuleAccesser();
     soStatusUniqProcess* uniqProcs[2] = {};
     uniqProcs[0] = &g_wnGanonBeastStatusUniqProcessStart;
     uniqProcs[1] = &g_wnGanonBeastStatusUniqProcessAttack;
-    getModuleAccesser()->getStatusModule().addRangeUniqProc(uniqProcs, 2);
-    getModuleAccesser()->getCollisionHitModule().add(reinterpret_cast<soSet<soCollisionHitData>*>(const_cast<u8*>(data->unk40)), 0);
+    accesser->getStatusModule().addRangeUniqProc(uniqProcs, 2);
+    accesser->getCollisionHitModule().add(const_cast<soSet<soCollisionHitData>*>(&data->m_hitDataSet), 0);
     Weapon::deactivate(false);
 }
 
@@ -73,7 +80,7 @@ void wnGanonBeast::activate(s32 founderTaskId, s32 resourceId, s32 team, const V
     desc.flagsLow = 0;
     desc.unk4DHigh = 0;
     Weapon::activate(&desc);
-    soVisibilityData* visData = *reinterpret_cast<soVisibilityData**>(static_cast<u8*>(g_ftCommonDataAccesser.getGanonBeastData()) + 0x24);
+    soVisibilityData* visData = static_cast<wnGanonBeastData*>(g_ftCommonDataAccesser.getGanonBeastData())->m_visibilityData;
     accesser->getStatusModule().changeStatusForce(0, accesser);
     soVisibilityModuleImpl& visibility = dynamic_cast<soVisibilityModuleImpl&>(accesser->getVisibilityModule());
     visibility.setData(visData);
@@ -81,31 +88,4 @@ void wnGanonBeast::activate(s32 founderTaskId, s32 resourceId, s32 team, const V
         visibility.setStatusDefault(0, 0, false);
     }
     visibility.setDefaultAll();
-}
-
-wnGanonBeastStatusUniqProcessStart::wnGanonBeastStatusUniqProcessStart() { }
-
-wnGanonBeastStatusUniqProcessStart::~wnGanonBeastStatusUniqProcessStart() { }
-
-wnGanonBeastStatusUniqProcessAttack::~wnGanonBeastStatusUniqProcessAttack() { }
-
-void wnGanonBeastStatusUniqProcessStart::initStatus(soModuleAccesser* moduleAccesser) {
-    soCameraModule* camera = moduleAccesser->m_enumerationStart->m_cameraModule;
-    float lr = moduleAccesser->m_enumerationStart->m_postureModule->getLr();
-    Vec3f offset;
-    offset.m_x = lr * soValueAccesser::getConstantFloat(moduleAccesser, 4000, 0);
-    offset.m_y = soValueAccesser::getConstantFloat(moduleAccesser, 4001, 0);
-    offset.m_z = 0.0f;
-    camera->addCameraRangeOffset(&offset, 0);
-}
-
-void wnGanonBeastStatusUniqProcessAttack::execStatus(soModuleAccesser* moduleAccesser) {
-    soPostureModule* posture = moduleAccesser->m_enumerationStart->m_postureModule;
-    Vec3f current = posture->getPos();
-    Vec3f pos;
-    pos = current;
-    float lr = posture->getLr();
-    float speed = soValueAccesser::getConstantFloat(moduleAccesser, 4002, 0);
-    pos.m_x += speed * lr;
-    posture->setPos(&pos);
 }

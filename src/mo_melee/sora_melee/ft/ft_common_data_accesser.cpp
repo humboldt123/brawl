@@ -1176,9 +1176,10 @@ extern "C" void* fn_27_1494BC(const ftCommonDataAccesser*, s32, bool*)
     return lbl_27_bss_3210[Fighter_Wario].data->extendParam[5];
 }
 
-extern "C" void* fn_27_149978(const ftCommonDataAccesser*, s32, bool*)
+template <>
+const wnGanonBeastData* ftCommonDataAccesser::getWeaponData<wnGanonBeastData>(int kind, bool* resourceGroup) const
 {
-    return lbl_27_bss_3210[Fighter_Ganon].data->extendParam[4];
+    return static_cast<const wnGanonBeastData*>(lbl_27_bss_3210[Fighter_Ganon].data->extendParam[4]);
 }
 
 extern "C" void* fn_27_149AF4(const ftCommonDataAccesser*, s32, bool*)

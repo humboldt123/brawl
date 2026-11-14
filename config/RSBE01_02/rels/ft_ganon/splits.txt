@@ -47,7 +47,10 @@ mo_fighter/ft_ganon/ft_ganon_kinetic_transactor.cpp:
 	.text       start:0x0000E200 end:0x0000E60C
 
 mo_fighter/ft_ganon/wn_ganon_beast.cpp:
-	.text       start:0x0000E60C end:0x00011F6C
+	.text       start:0x0000E60C end:0x00011CE8
+
+mo_fighter/ft_ganon/wn_ganon_beast_status_uniq_process.cpp:
+	.text       start:0x00011CE8 end:0x00011F6C
 	.ctors      start:0x00000018 end:0x0000001C
 
 mo_fighter/mo_fighter.cpp:

@@ -1,17 +1,37 @@
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
 #define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
+#define FT_SOUND_GENERATOR_DTOR_NOINLINE
+#define SO_ARRAY_SPLIT_VECTOR_CTOR
+#define FT_GANON_ARTICLE_POOLS
+#define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
+#define WN_PARAM_ACCESSER_INLINE_DTOR
+#define FT_TEAM_TYPED_INTERFACE
+#define SO_CATCH_MODULE_CLING_SLOTS
+#define WN_KINETIC_MEDIATOR_INLINE_DTOR
 #include <ft/builder/ft_dol_array_list.h>
+// The beast's attack-part vector: its teardown is sora_melee's copy.
+FT_DOL_ARRAY_VECTOR(soCollisionAttackPart, 4);
 #include <ft/ft_class_info_impl.h>
 #include <ft/ganon/ft_ganon.h>
 #include <ft/ganon/ft_ganon_extend_param_accesser.h>
 #include <ft/ganon/ft_ganon_status_uniq_process_ganon_kick.h>
 #include <ft/ft_common_data_accesser.h>
-#include <wn/wn_article_pool.h>
-#include <wn/wn_simple.h>
+#include <ft/ft_owner.h>
+#include <ft/ft_resource_id_accesser_impl.h>
+#include <so/article/so_article_mediator.h>
+#include <so/catch/so_catch_module.h>
+#include <so/so_value_accesser.h>
 
+#undef WN_ARTICLE_NATIVE_BUILDERS
 #define FT_BC ftGanonBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
+
+// The beast teardown expands the observer teardown here and calls soEventObserver<soDamageEventObserver>'s
+// directly (as Pit's and Nikita's units do).
+inline soDamageEventObserver::~soDamageEventObserver() { }
+// The articles' sound builder teardown inlines this empty destructor (same form as ft_pit.cpp and ft_snake.cpp).
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
 
 // Status teardown destroys its owned change-request queue before observers.
 #pragma dont_inline on
@@ -20,6 +40,14 @@ template soArrayVector<s32, 8>::~soArrayVector();
 #endif
 #pragma dont_inline off
 soStatusModuleImpl::~soStatusModuleImpl() { }
+
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off
+
+ftKineticEnergyController::~ftKineticEnergyController() { }
 
 ftGanonExtendParamAccesser g_ftGanonExtendParamAccesser;
 
@@ -71,6 +99,8 @@ ftGanon::ftGanon(s32 entryId,
     m_moduleAccesser->getStatusModule().addRangeUniqProc(processes, 16);
 }
 
+ftGanon::~ftGanon() { }
+
 void ftGanon::notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser) {
     switch (moduleAccesser->getStatusModule().getStatusKind()) {
     case 0x115:
@@ -79,292 +109,255 @@ void ftGanon::notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, so
     }
 }
 
-// FIXME: Test code present only to emit the shared builder functions; delete once ftGanon is done
-void testBuilder() {
-    soInsideEventManageModuleBuilder<ftGanonInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
-    soResourceIdAccesserImpl idAccImpl(0, 1, 2);
-}
-soInsideEventManageModuleBuilder<ftGanonInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
-
-// Placeholder translation-unit functions (names come from the module map; bodies match the target assembly).
-extern "C" {
-
-// Virtual-slot view used only to emit virtual tail calls; the slots are never defined in this unit.
-struct ftGanonVirtualSlots {
-    virtual void slot0();
-    virtual void slot1();
-    virtual void slot2();
-    virtual void slot3();
-    virtual void slot4();
-    virtual void slot5();
-    virtual void slot6();
-    virtual void slot7();
-    virtual void slot8();
-    virtual void slot9();
-    virtual void slot10();
-    virtual void slot11();
-    virtual void slot12();
-    virtual void slot13();
-    virtual void slot14();
-    virtual void slot15();
-    virtual void slot16();
-    virtual void slot17();
-    virtual void slot18();
-    virtual void slot19();
-    virtual void slot20();
-    virtual void slot21();
-    virtual void slot22();
+// The Final Smash status process (ft_ganon_status_uniq_process_final.cpp) ends the transformation on this event; only
+// its static hook is needed here.
+class ftGanonStatusUniqProcessFinalAttack {
+public:
+    static void check_final_end(soLinkEventArgs* event, soModuleAccesser* moduleAccesser, StageObject* sender, int unk);
 };
 
-// Global read (g_soValueVariation is defined elsewhere in the module).
-extern void* g_soValueVariation;
-void* fn_109_964C() { return g_soValueVariation; }
+// HYPOTHESIS: the catch request (event 8) of a fighter Ganondorf grabs with the Flame Choke (statuses 0x113/0x114): the
+// receiver marks it done and, for requests 0xe7/0xe8, answers with the node it is held by.
+struct ftGanonLinkEventCatch : soLinkEventArgs {
+    int m_nodeId;    // +0x8
+    int m_request;   // +0xC
+    int unk10;
+    int unk14;
+    int unk18;
+    bool unk1C;
+};
+
+// HYPOTHESIS: the cut event (0xe) of the cling; unk5 set means the victim was released without an end status.
+struct ftGanonLinkEventCut : soLinkEventArgs {
+    bool unk5;
+};
+
+void ftGanon::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4) {
+    int status = moduleAccesser->getStatusModule().getStatusKind();
+    switch (eventInfo->m_eventKind) {
+    case 4:
+        ftGanonStatusUniqProcessFinalAttack::check_final_end(eventInfo, moduleAccesser, stageObj, unk4);
+        break;
+    case 8: {
+        ftGanonLinkEventCatch* event = static_cast<ftGanonLinkEventCatch*>(eventInfo);
+        if (event->m_request == 0xe6 && status == 0x114) {
+            moduleAccesser->getStatusModule().changeStatusRequest(0x11c, moduleAccesser);
+            event->_0x4 = true;
+            event->unk1C = false;
+            static_cast<soCatchModule*>(moduleAccesser->m_enumerationStart->m_catchModule)->setCatch(stageObj->m_taskId);
+            return;
+        }
+        if (status == 0x113 && event->m_request == 0xe7) {
+            moduleAccesser->getStatusModule().changeStatusRequest(0x118, moduleAccesser);
+            event->_0x4 = true;
+            event->m_nodeId = moduleAccesser->getModelModule().getCorrectNodeId(0x12c);
+            return;
+        }
+        if (status == 0x113 && event->m_request == 0xe8) {
+            moduleAccesser->getStatusModule().changeStatusRequest(0x119, moduleAccesser);
+            event->_0x4 = true;
+            event->m_nodeId = moduleAccesser->getModelModule().getCorrectNodeId(0x12c);
+            return;
+        }
+        break;
+    }
+    case 0xe:
+        switch (status) {
+        case 0x11c:
+        case 0x11d: {
+            soCatchModule* catchModule = static_cast<soCatchModule*>(m_moduleAccesser->m_enumerationStart->m_catchModule);
+            catchModule->setSendCutEvent(false);
+            static_cast<soCatchModule*>(m_moduleAccesser->m_enumerationStart->m_catchModule)->clingCut(false);
+            if (!static_cast<ftGanonLinkEventCut*>(eventInfo)->unk5) {
+                m_moduleAccesser->getStatusModule().changeStatusRequest(0x3b, m_moduleAccesser);
+            }
+            return;
+        }
+        }
+        break;
+    }
+    Fighter::notifyEventLink(eventInfo, moduleAccesser, stageObj, unk4);
+}
+
+// The beast of the Final Smash starts where the fighter stands, facing its way, on the team of its owner.
+bool ftGanon::activeArticle(wnGanonBeast* weapon, soModuleAccesser* acc) {
+    soPostureModule& posture = acc->getPostureModule();
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resources = acc->getResourceModule();
+    int founderTaskId = acc->getStageObject().getTaskId();
+    float lr = posture.getLr();
+    Vec3f pos = posture.getPos();
+    weapon->activate(founderTaskId, dynamic_cast<ftResourceIdAccesserImpl&>(*resources.getResourceIdAccesser()).getFinalResId(),
+        fighter.getOwner()->getTeam(), &pos, lr);
+    acc->getWorkManageModule().setInt(weapon->getTaskId(), 0x20000000);
+    return true;
+}
+
+// ---- the article holders --------------------------------------------------------------------------------------------
+// What the constructor of one of the articles is given: the kind record of the owner (kind 0, sub kind Ganon, copied into the
+// descriptor), the heap module and the data block of the fighter kind.
+// HYPOTHESIS: the original builds these in the holder constructor itself.
+struct ftGanonArticleDataTag {
+    bool m_unused;
+    bool m_resourceGroup;
+    ftGanonArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
+};
+
+struct ftGanonArticleKind : wnArticleKindInfo {
+    ftGanonArticleKind() {
+        kind = 0;
+        subKind = Fighter_Ganon;
+    }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling (the lookup reads the kind through a call, as in ft_captain.cpp)
+};
+
+// The descriptor keeps the address of the kind temporary of the caller.
+struct ftGanonArticleBuildInfo : wnArticleBuildInfo {
+    ftGanonArticleBuildInfo(const wnArticleKindInfo& kindArg, soHeapModule* heap) {
+        kindInfo = &kindArg;
+        heapModule = heap;
+    }
+};
+
+// The beast is built from the data of the fighter kind.
+template <>
+inline wnArticleHolder<wnGanonBeast>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
+    m_instance(0, ftGanonArticleBuildInfo(ftGanonArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)),
+               g_ftCommonDataAccesser.getWeaponData<wnGanonBeastData>(ftGanonArticleKind().getSubKind(), &ftGanonArticleDataTag().m_resourceGroup)) { }
+
+// The simple article (the shared generic article) is built from the simple data of the fighter kind.
+struct ftGanonSimpleKind : wnSimpleKindInfo {
+    ftGanonSimpleKind() : wnSimpleKindInfo(Fighter_Ganon) { }
+    s32 getSubKind() const { return subKind; } // HYPOTHESIS: accessor spelling, as the article kind's
+};
+template <>
+inline wnArticleHolder<wnSimple>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
+    m_instance(1, wnSimpleConstructionInfo(wnSimpleKindInfo(Fighter_Ganon), acc->m_enumerationStart->m_heapModule),
+               g_ftCommonDataAccesser.getSimpleData(static_cast<ftKind>(ftGanonSimpleKind().getSubKind()),
+                                                    &ftGanonArticleDataTag().m_resourceGroup), false) { }
+
+// ---- the articles and their mediator --------------------------------------------------------------------------------
+
+// The native ownership chain calls these destructors out of line.
+#pragma dont_inline on
+template <class W>
+wnArticleHolder<W>::~wnArticleHolder() { }
+template <class W, int N>
+wnArticleSubPool<W, N>::~wnArticleSubPool() { }
+template wnArticleHolder<wnGanonBeast>::~wnArticleHolder();
+template wnArticleHolder<wnSimple>::~wnArticleHolder();
+
+template <class Mediator>
+wnSelectedArticleMediator<Mediator>::~wnSelectedArticleMediator() { }
+template <class Mediator, int N>
+wnArticleManageModuleBuilder<Mediator, N>::~wnArticleManageModuleBuilder() { }
+template <class Mediator, int N>
+wnArticleManageModuleBuilder<Mediator, N>::wnArticleManageModuleBuilder(soModuleAccesser* acc) :
+    m_articles(0), m_observers(N, 0), m_mediator(acc), m_module(acc, &m_articles, m_mediator.getMediator(), &m_observers) { }
+template wnSelectedArticleMediator<ftGanonArticleMediator>::~wnSelectedArticleMediator();
+template wnArticleManageModuleBuilder<ftGanonArticleMediator, 5>::~wnArticleManageModuleBuilder();
+template wnArticleManageModuleBuilder<ftGanonArticleMediator, 5>::wnArticleManageModuleBuilder(soModuleAccesser*);
+ftGanonArticleMediator::~ftGanonArticleMediator() { }
+#pragma dont_inline off
+
+s32 ftGanonArticleMediator::getMediateNum() { return 2; }
+void ftGanonArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
+
+// ---- the article mediator -------------------------------------------------------------------------------------------
+// Slots: 0 Beast, 1 Simple (the rest are unused).
+#define FT_GANON_POOL_BEAST_BASE static_cast<wnArticlePool<wnGanonBeast, 1, ftGanonSimplePool>&>(m_pools)
+#define FT_GANON_POOL_BEAST FT_GANON_POOL_BEAST_BASE.getSub()
+#define FT_GANON_POOL_SIMPLE_BASE static_cast<wnArticlePool<wnSimple, 1, soInstancePoolRoot>&>(m_pools)
+#define FT_GANON_POOL_SIMPLE FT_GANON_POOL_SIMPLE_BASE.getSub()
+#define FT_GANON_UNUSED_SLOTS(value) \
+    WN_ARTICLE_UNUSED_SLOT(2, value) WN_ARTICLE_UNUSED_SLOT(3, value) WN_ARTICLE_UNUSED_SLOT(4, value) \
+    WN_ARTICLE_UNUSED_SLOT(5, value) WN_ARTICLE_UNUSED_SLOT(6, value) WN_ARTICLE_UNUSED_SLOT(7, value) \
+    WN_ARTICLE_UNUSED_SLOT(8, value) WN_ARTICLE_UNUSED_SLOT(9, value) WN_ARTICLE_UNUSED_SLOT(10, value) \
+    WN_ARTICLE_UNUSED_SLOT(11, value) WN_ARTICLE_UNUSED_SLOT(12, value) WN_ARTICLE_UNUSED_SLOT(13, value) \
+    WN_ARTICLE_UNUSED_SLOT(14, value) WN_ARTICLE_UNUSED_SLOT(15, value) WN_ARTICLE_UNUSED_SLOT(16, value)
+
+void ftGanonArticleMediator::deactivate() {
+    for (s32 i = 0; i < 1; ++i) {
+        wnGanonBeast* weapon = FT_GANON_POOL_BEAST.getInstanceAt(i);
+        if (!static_cast<soArticle&>(*weapon).setDeactivateDescendant()) {
+            return;
+        }
+    }
+    for (s32 i = 0; i < 1; ++i) {
+        wnSimple* weapon = FT_GANON_POOL_SIMPLE.getInstanceAt(i);
+        if (!static_cast<soArticle&>(*weapon).setDeactivateDescendant()) {
+            return;
+        }
+    }
+}
+
+s32 ftGanonArticleMediator::getGenerateMaxNum(s32 articleId) {
+    switch (articleId) {
+    case 0: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerateMaxNum(1, WN_ARTICLE_SLOT_TAGS);
+    FT_GANON_UNUSED_SLOTS(0)
+    default: return 0;
+    }
+}
+
+// The counter is a plain aggregate here; the original counts with a functor whose methods MWCC inlines.
+struct ftGanonActiveCounter {
+    bool (*m_isActive)(soArticle*);
+    s32 m_activeNum;
+    s32 m_inactiveNum;
+};
+
+s32 ftGanonArticleMediator::getActiveNum(soModuleAccesser*, s32 articleId) {
+    switch (articleId) {
+    case 0: return wnArticleSlotActiveNum<wnArticlePool<wnGanonBeast, 1, ftGanonSimplePool>, ftGanonActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotActiveNum<wnArticlePool<wnSimple, 1, soInstancePoolRoot>, ftGanonActiveCounter>(this, WN_ARTICLE_SLOT_TAGS);
+    FT_GANON_UNUSED_SLOTS(0)
+    default: return 0;
+    }
+}
+
+bool ftGanonArticleMediator::isGeneratable(soModuleAccesser*, s32 articleId) {
+    switch (articleId) {
+    case 0: return wnArticleSlotIsGeneratable<wnArticlePool<wnGanonBeast, 1, ftGanonSimplePool> >(this, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotIsGeneratable<wnArticlePool<wnSimple, 1, soInstancePoolRoot> >(this, WN_ARTICLE_SLOT_TAGS);
+    FT_GANON_UNUSED_SLOTS(false)
+    default: return false;
+    }
+}
+
+template <class W> struct ftGanonArticleActivator {
+    static bool activate(W* weapon, soModuleAccesser* acc) { return ftGanon::activeArticle(weapon, acc); }
+};
+
+soArticle* ftGanonArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
+    switch (articleId) {
+    case 0: return wnArticleSlotGenerate<ftGanonArticleActivator<wnGanonBeast> >(static_cast<wnArticlePool<wnGanonBeast, 1, ftGanonSimplePool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotGenerate<ftGanonArticleActivator<wnSimple> >(static_cast<wnArticlePool<wnSimple, 1, soInstancePoolRoot>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    FT_GANON_UNUSED_SLOTS(wnGetNullArticle())
+    default: return wnGetNullArticle();
+    }
+}
+
+bool ftGanonArticleMediator::shoot(soModuleAccesser* acc, soArticle* article) {
+    switch (article->getArticleId()) {
+    case 0: return wnArticleSlotShoot<wnGanonBeast>(article, WN_ARTICLE_SLOT_TAGS);
+    case 1: return wnArticleSlotShoot<wnSimple>(article, WN_ARTICLE_SLOT_TAGS);
+    FT_GANON_UNUSED_SLOTS(true)
+    default: return false;
+    }
+}
+
 
 // HYPOTHESIS: extend param group 3 (ftData + 0x88) holds the Wizard's Foot parameters.
-void* fn_109_862C() { return g_ftCommonDataAccesser.getData(Fighter_Ganon)->extendParam[3]; }
+float* ftGanon::getGanonKickParam() { return static_cast<float*>(g_ftCommonDataAccesser.getData(Fighter_Ganon)->extendParam[3]); }
 
-// Empty virtual overrides and default observers.
-void fn_109_8578() {}
-void fn_109_8DF0() {}
-void fn_109_8DFC() {}
-void fn_109_8E3C() {}
-void fn_109_8E40() {}
-void fn_109_8ED0() {}
-void fn_109_8EFC() {}
-void fn_109_8F04() {}
-void fn_109_8F08() {}
-void fn_109_8F0C() {}
-void fn_109_8F10() {}
-void fn_109_8F14() {}
-void fn_109_8F18() {}
-void fn_109_8F1C() {}
-void fn_109_8F20() {}
-void fn_109_8F24() {}
-void fn_109_8F28() {}
-void fn_109_8F2C() {}
-void fn_109_8F30() {}
-void fn_109_8F34() {}
-void fn_109_8F40() {}
-void fn_109_8F44() {}
-void fn_109_8F48() {}
-void fn_109_8F4C() {}
-void fn_109_8F78() {}
-void fn_109_8F7C() {}
-void fn_109_8F80() {}
-void fn_109_8F84() {}
-void fn_109_8F88() {}
-void fn_109_8FAC() {}
-void fn_109_8FB0() {}
-void fn_109_8FB4() {}
-void fn_109_8FC8() {}
-void fn_109_8FCC() {}
-void fn_109_8FD0() {}
-void fn_109_8FD4() {}
-void fn_109_8FD8() {}
-void fn_109_8FDC() {}
-void fn_109_B144() {}
-void fn_109_B850() {}
-void fn_109_B8D4() {}
-void fn_109_B9BC() {}
-void fn_109_BB54() {}
-void fn_109_BC3C() {}
-void fn_109_BD24() {}
-void fn_109_BE0C() {}
-void fn_109_BEF4() {}
-
-// Constant returns.
-int fn_109_8F38() { return 0; }
-int fn_109_8FA4() { return 0; }
-int fn_109_8FB8() { return 0; }
-int fn_109_8FC0() { return 0; }
-int fn_109_9384() { return 0; }
-int fn_109_B980() { return 0; }
-int fn_109_BA68() { return 0; }
-int fn_109_BB18() { return 0; }
-int fn_109_BC00() { return 0; }
-int fn_109_BCE8() { return 0; }
-int fn_109_BDD0() { return 0; }
-int fn_109_BEB8() { return 0; }
-int fn_109_BFA0() { return 0; }
-int fn_109_A338() { return 2; }
-int fn_109_B88C() { return 8; }
-
-// Field accessors and element pointers.
-u8 fn_109_6868(u8* p) { return *(u8*)(p + 0x4); }
-u8 fn_109_8DF4(u8* p) { return *(u8*)(p + 0x44); }
-int fn_109_8F8C(u8* p) { return *(int*)(p + 0x110); }
-int fn_109_9150(u8* p) { return *(int*)(p + 0x20); }
-int fn_109_922C(u8* p) { return *(int*)(p + 0x18); }
-int fn_109_8A5C(u8* p) { return *(int*)(p + 0x28); }
-int fn_109_92C4(u8* p) { return *(int*)(p + 0x10); }
-u8* fn_109_90A0(u8* p) { return p + 0x458; }
-u8* fn_109_90A8(u8* p) { return p + 0x3C8; }
-u8* fn_109_90B0(u8* p) { return p + 0x8; }
-u8* fn_109_8FE0(u8* p, u32 idx) { return p + 4 + (idx << 3); }
-u8* fn_109_A348(u8* p) { return p + 0xC3F8; }
-u8* fn_109_A368(u8* p) { return p + 0xC434; }
-u8* fn_109_A374(u8* p) { return p + 0xC8EC; }
-u8* fn_109_A3C4(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-u8* fn_109_A3DC(u8* p, int x) { return x == 0 ? p + 0xC : 0; }
-void fn_109_B22C(u8* p) { *(u8*)(p + 0x31) = 0; }
-void fn_109_B238(u8* p) { *(u8*)(p + 0x31) = 1; }
-void fn_109_A340(u8* p, u8 v) { *(u8*)(p + 0x4574) = v; }
-void fn_109_B894(s16* dst, s16* src) { *dst = *src; }
-
-// Bit flags in the u32 array at +0x1C.
-bool fn_109_91CC(u8* p, u32 mask, u32 idx) { u32* a = *(u32**)(p + 0x1C); return (a[idx] & mask) != 0; }
-void fn_109_91E8(u8* p, u32 mask, u32 idx) { u32* a = *(u32**)(p + 0x1C); a[idx] &= ~mask; }
-void fn_109_9200(u8* p, u32 idx) { u32* a = *(u32**)(p + 0x1C); a[idx] = 0; }
-void fn_109_9214(u8* p, u32 mask, u32 idx) { u32* a = *(u32**)(p + 0x1C); a[idx] |= mask; }
-
-// Float array at +0x14.
-void fn_109_9234(u8* p, u32 idx, float d) {
-    if (d == 0.0f) {
-        return;
-    }
-    float* a = *(float**)(p + 0x14);
-    a[idx] /= d;
-}
-void fn_109_925C(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] *= v; }
-void fn_109_9274(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] -= v; }
-void fn_109_928C(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] += v; }
-void fn_109_92A4(u8* p, u32 idx, float v) { float* a = *(float**)(p + 0x14); a[idx] = v; }
-float fn_109_92B4(u8* p, u32 idx) { float* a = *(float**)(p + 0x14); return a[idx]; }
-
-// Int array at +0x0C.
-void fn_109_92CC(u8* p, u32 idx) { int* a = *(int**)(p + 0xC); a[idx]--; }
-void fn_109_92E4(u8* p, u32 idx) { int* a = *(int**)(p + 0xC); a[idx]++; }
-void fn_109_92FC(u8* p, int d, u32 idx) {
-    if (d == 0) {
-        return;
-    }
-    int* a = *(int**)(p + 0xC);
-    a[idx] /= d;
-}
-void fn_109_931C(u8* p, int d, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] *= d; }
-void fn_109_9334(u8* p, int d, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] -= d; }
-void fn_109_934C(u8* p, int d, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] += d; }
-void fn_109_9364(u8* p, int v, u32 idx) { int* a = *(int**)(p + 0xC); a[idx] = v; }
-
-// Virtual tail calls: slot1 when byte 5 bit 7 is set and byte 6 is clear.
-struct ftGanonFlagByte {
-    u8 flag : 1;
-    u8 rest : 7;
-};
-void fn_109_B8A0(void* p) {
-    u8* b = (u8*)p;
-    ftGanonFlagByte* flags = (ftGanonFlagByte*)(b + 5);
-    bool active = flags->flag;
-    if (active == true) {
-        if (b[6] == 0) {
-            return ((ftGanonVirtualSlots*)p)->slot1();
-        }
-    }
-}
-void fn_109_B988(void* p) {
-    u8* b = (u8*)p;
-    ftGanonFlagByte* flags = (ftGanonFlagByte*)(b + 5);
-    if (flags->flag == true && b[6] == 0) {
-        return ((ftGanonVirtualSlots*)p)->slot1();
-    }
-}
-void fn_109_BB20(void* p) {
-    u8* b = (u8*)p;
-    ftGanonFlagByte* flags = (ftGanonFlagByte*)(b + 5);
-    if (flags->flag == true && b[6] == 0) {
-        return ((ftGanonVirtualSlots*)p)->slot1();
-    }
-}
-void fn_109_BC08(void* p) {
-    u8* b = (u8*)p;
-    ftGanonFlagByte* flags = (ftGanonFlagByte*)(b + 5);
-    if (flags->flag == true && b[6] == 0) {
-        return ((ftGanonVirtualSlots*)p)->slot1();
-    }
-}
-void fn_109_BCF0(void* p) {
-    u8* b = (u8*)p;
-    ftGanonFlagByte* flags = (ftGanonFlagByte*)(b + 5);
-    if (flags->flag == true && b[6] == 0) {
-        return ((ftGanonVirtualSlots*)p)->slot1();
-    }
-}
-void fn_109_BDD8(void* p) {
-    u8* b = (u8*)p;
-    ftGanonFlagByte* flags = (ftGanonFlagByte*)(b + 5);
-    if (flags->flag == true && b[6] == 0) {
-        return ((ftGanonVirtualSlots*)p)->slot1();
-    }
-}
-void fn_109_BEC0(void* p) {
-    u8* b = (u8*)p;
-    ftGanonFlagByte* flags = (ftGanonFlagByte*)(b + 5);
-    if (flags->flag == true && b[6] == 0) {
-        return ((ftGanonVirtualSlots*)p)->slot1();
-    }
-}
-void fn_109_A3B4(void* p) { return ((ftGanonVirtualSlots*)p)->slot20(); }
-
-// Virtual destructors that first destroy one subobject with the given flag.
-// Callers are emitted before their callees so the callees are not inlined.
-void* fn_109_3BAC(void* p, s16 flags);
-void* fn_109_41F0(void* p, s16 flags);
-void* fn_109_3B50(void* p, s16 flags);
-void* fn_109_3AF0(void* p, s16 flags) {
-    if (p != 0) {
-        fn_109_3B50((u8*)p + 0x38, -1);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
 #pragma dont_inline on
-void* fn_109_3B50(void* p, s16 flags) {
-    if (p != 0) {
-        fn_109_3BAC(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-#pragma dont_inline reset
-void* fn_109_6074(void* p, s16 flags) {
-    if (p != 0) {
-        fn_109_41F0(p, 0);
-        if (flags > 0) {
-            ::operator delete(p);
-        }
-    }
-    return p;
-}
-#pragma dont_inline on
-void* fn_109_41F0(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-#pragma dont_inline reset
-#pragma dont_inline on
-void* fn_109_3BAC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-#pragma dont_inline reset
-
-// Virtual destructors: delete the object when the flag is positive, then return it.
-void* fn_109_1DF4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_109_3BEC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_109_3E98(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_109_44C8(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_109_4508(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_109_4A24(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_109_4A64(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_109_4AA4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_109_5AF4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-
-}
-
-// The holders and sub pools of the article pools (soKindInfoGeneric<0, 20>); the mediator destroys them out of line.
-#pragma dont_inline on
-template wnInstanceHolder<wnSimple, soKindInfoGeneric<0, 20>, soIntToType<1> >::~wnInstanceHolder();
-template class soInstancePoolSub<soInstancePoolInfo<wnSimple, 1, wnInstanceHolder, soIntToType<1> >, soKindInfoGeneric<0, 20> >;
-template class soInstancePool<soInstancePoolInfo<wnSimple, 1, wnInstanceHolder, soIntToType<1> >, soInstancePoolRoot, soKindInfoGeneric<0, 20>, 1>;
+soTeam::~soTeam() { }
 #pragma dont_inline off
+#pragma dont_inline on
+soResourceIdAccesser::~soResourceIdAccesser() { }
+#pragma dont_inline off
+soArticleMediator::~soArticleMediator() { }
 
 bool ftGanon::activeArticle(wnSimple* weapon, soModuleAccesser* acc) {
     int founderTaskId;
@@ -375,3 +368,6 @@ bool ftGanon::activeArticle(wnSimple* weapon, soModuleAccesser* acc) {
         true, false, Vec3f(0.0f, 0.0f, 0.0f), 0xffff, 0xffff, 0, true, false, -1, 0, false, 2, 0, false);
     return true;
 }
+
+// The simple article's teardown is a copy in each fighter that pools one (as in ft_purin.cpp and ft_snake.cpp).
+wnSimple::~wnSimple() { }

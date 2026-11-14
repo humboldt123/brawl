@@ -43,8 +43,14 @@ public:
 };
 typedef soKineticModuleBuildConfigMediator<soKineticModuleGenericImpl, ftKineticMediatorImplT<ftGanonKineticTransactor> > ftGanonKineticModuleBuildConfig;
 
-// HYPOTHESIS: soGenerateArticleManageModuleBuilder (weapon pools), not reconstructed yet
+// HYPOTHESIS: soGenerateArticleManageModuleBuilder (wnGanonBeast / wnSimple pools). Only the fighter unit builds the real
+// pools; the other units of the REL see an opaque block of the same size.
+#ifdef FT_GANON_ARTICLE_POOLS
+#include <ft/ganon/ft_ganon_article_pools.h>
+typedef ftGanonArticleManageModuleBuilder ftGanonGenerateArticleManageModuleBuilder;
+#else
 typedef ftOpaqueGenerateArticleManageModuleBuilder<0x4630, Fighter_Ganon> ftGanonGenerateArticleManageModuleBuilder;
+#endif
 
 class ftGanonBuildConfig : public ftCommonBuildConfig {
 public:
@@ -63,17 +69,22 @@ public:
 };
 
 class wnSimple;
+class wnGanonBeast;
 
 class ftGanon : public ftFighterBuilder<ftGanonBuildConfig> {
-    u8 unkTail[0xC994 - sizeof(ftFighterBuilder<ftGanonBuildConfig>)];
     soArrayContractibleTable<const soStatusData> m_statusDataTable;
     ftData* m_data;
 public:
+    // The hooks the article mediator calls to start an article of the pool.
+    static bool activeArticle(wnGanonBeast* weapon, soModuleAccesser* acc);
     static bool activeArticle(wnSimple* weapon, soModuleAccesser* acc);
     ftGanon(s32 entryId,
             Heaps::HeapType instHeap,
             Heaps::HeapType nwModelInstHeap,
             Heaps::HeapType nwMotionInstHeap);
+    virtual ~ftGanon();
+    static float* getGanonKickParam();
     virtual void notifyEventCollisionAttackFighter(soCollisionLog* collisionLog, soModuleAccesser* moduleAccesser);
+    virtual void notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* stageObj, int unk4);
 };
 static_assert(sizeof(ftGanon) == 0xC9A8, "Class is the wrong size!");

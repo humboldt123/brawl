@@ -12357,7 +12357,7 @@ getWeaponData<22wnGameWatchOctopusData>__20ftCommonDataAccesserCFiPb_PC22wnGameW
 getGameWatchNormalWeaponData__20ftCommonDataAccesserCFv = .text:0x0014993C; // type:function size:0x14
 getWeaponData<27wnGameWatchNormalWeaponData>__20ftCommonDataAccesserCFiPb_PC27wnGameWatchNormalWeaponData = .text:0x00149950; // type:function size:0x14
 getGanonBeastData__20ftCommonDataAccesserCFv = .text:0x00149964; // type:function size:0x14
-fn_27_149978 = .text:0x00149978; // type:function size:0x14
+getWeaponData<16wnGanonBeastData>__20ftCommonDataAccesserCFiPb_PC16wnGanonBeastData = .text:0x00149978; // type:function size:0x14
 getToonLinkBowParam__20ftCommonDataAccesserCFi = .text:0x0014998C; // type:function size:0x48
 getWeaponData<17wnToonLinkBowData>__20ftCommonDataAccesserCFiPb_PC17wnToonLinkBowData = .text:0x001499D4; // type:function size:0x90
 getWeaponData<22wnToonLinkBowArrowData>__20ftCommonDataAccesserCFiPb_PC22wnToonLinkBowArrowData = .text:0x00149A64; // type:function size:0x90

@@ -4,18 +4,24 @@
 
 class soModuleAccesser;
 
+// The beast's two status processes live in their own file (wn_ganon_beast_status_uniq_process.cpp).
 class wnGanonBeastStatusUniqProcessStart : public soStatusUniqProcess {
 public:
-    wnGanonBeastStatusUniqProcessStart();
-    virtual ~wnGanonBeastStatusUniqProcessStart();
+    wnGanonBeastStatusUniqProcessStart() { }
+    virtual ~wnGanonBeastStatusUniqProcessStart() { }
     virtual void initStatus(soModuleAccesser* moduleAccesser);
+    virtual void execStatus(soModuleAccesser* moduleAccesser);
 };
 
 class wnGanonBeastStatusUniqProcessAttack : public soStatusUniqProcess {
 public:
-    virtual ~wnGanonBeastStatusUniqProcessAttack();
+    wnGanonBeastStatusUniqProcessAttack() { }
+    virtual ~wnGanonBeastStatusUniqProcessAttack() { }
     virtual void execStatus(soModuleAccesser* moduleAccesser);
 };
+
+extern wnGanonBeastStatusUniqProcessStart g_wnGanonBeastStatusUniqProcessStart;
+extern wnGanonBeastStatusUniqProcessAttack g_wnGanonBeastStatusUniqProcessAttack;
 
 // ---- the beast article (article kind 0x1F): Ganondorf's Beast Ganon final smash weapon ----------------------------------
 // HYPOTHESIS: all names and layouts below are read off the original object's builder names and constructor.
@@ -25,6 +31,10 @@ public:
 #include <wn/wn_weapon_builder.h>
 
 struct wnArticleBuildInfo;
+struct soVisibilityData;
+class soCollisionAttackData;
+class soCollisionHitData;
+#include <so/so_array.h>
 class soDamage;
 
 struct wnGanonBeastParam {
@@ -35,10 +45,12 @@ struct wnGanonBeastParam {
 
 struct wnGanonBeastData {
     s32 m_resGroupNo;
-    u8 unk4[0x30];
-    const wnGanonBeastParam* m_param; // +0x34
-    u8 unk38[8];                      // the collision hit data set
-    u8 unk40[1];                      // the collision attack data set
+    u8 unk4[0x20];
+    soVisibilityData* m_visibilityData; // +0x24
+    u8 unk28[0xC];
+    const wnGanonBeastParam* m_param;   // +0x34
+    soSet<soCollisionAttackData> m_attackDataSet; // +0x38: the builder receives this set's address (HYPOTHESIS: element type)
+    soSet<soCollisionHitData> m_hitDataSet;       // +0x40
 };
 
 class wnGanonBeastParamAccesser : public wnExtendParamAccesser<3999, 3, 23999, 0, 0, 0> {
