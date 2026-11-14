@@ -6,18 +6,12 @@
 #include <gf/gf_task.h>
 #include <memory.h>
 #include <mu/menu.h>
+#include <mu/mu_file_io_handle.h>
 #include <mu/mu_object.h>
 #include <nw4r/g3d/g3d_obj.h>
 #include <nw4r/g3d/g3d_resfile.h>
 #include <nw4r/g3d/g3d_scngroup.h>
 #include <types.h>
-
-// A file handle of the intro (the module has its own copy of the constructor and the destructor).
-class muFileIOHandle : public gfFileIOHandle {
-public:
-    muFileIOHandle() { }
-    ~muFileIOHandle() { }
-};
 
 // The camera task of the menu that draws the models: it keeps the group of the scene that the models are inserted into.
 // HYPOTHESIS: the field names follow how the scene group is reached from the intro.

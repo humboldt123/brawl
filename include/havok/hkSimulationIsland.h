@@ -58,13 +58,13 @@ struct hkSimulationIsland : hkConstraintOwner {
     u16 m_storageIndex;              // 0x20 index in the world's island list; 0xFFFF for the fixed island
                                      // HYPOTHESIS: name (hkWorldAgentUtil::addAgent never puts agents there)
     u16 m_dirtyListIndex;            // 0x22 HYPOTHESIS: name (0xFFFF from the constructor)
-    u8 m_unk24;                      // 0x24
-    u8 m_unk25;                      // 0x25
+    u8 m_highFrequencyDeactivationCounter; // 0x24
+    u8 m_lowFrequencyDeactivationCounter;  // 0x25
     hkSimulationIslandFlags m_flags;     // 0x26 bit fields, see above
     hkSimulationIslandFlags27 m_flags27; // 0x27
     hkMultiThreadLock m_multithreadLock; // 0x28
-    float m_unk30;                   // 0x30
-    float m_unk34;                   // 0x34
+    float m_timeSinceLastHighFrequencyCheck; // 0x30
+    float m_timeSinceLastLowFrequencyCheck;  // 0x34
     hkInplaceArray<hkEntity*, 1> m_entities; // 0x38 (inline storage at 0x44)
     hkAgentNnTrack m_agentTrack;     // 0x48 the island's agent entries (hkSimulation::collideInternal processes it)
     hkArray<hkAction*> m_actions;    // 0x60

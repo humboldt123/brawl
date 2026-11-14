@@ -698,8 +698,8 @@ void grEarthChappy::receiveCollMsg_Landing(grCollStatus* collStatus, grCollision
 // The area of the mouth: a square (45 x 10) next to the node of the head, watched by a trigger of the kind 0x2F.
 void grEarthChappy::creatEatArea() {
     gfMemFill(&m_ykData, 0, 0xC);
-    m_areaData.m_group = static_cast<gfArea::Group>(0x15);
     m_areaData.m_shapeType = static_cast<soAreaInstance::ShapeType>(0);
+    m_areaData.m_group = static_cast<gfArea::Group>(0x15);
     m_areaData.m_0x4 = 0;
     m_areaData.m_0x8 = 0;
     m_areaData.m_shapeFlag.m_mask = 1;
@@ -743,11 +743,12 @@ void grEarthChappy::makeItem() {
     if (g_GameGlobal->m_modeMelee != NULL && melee->m_itemFrequency != 0 && fn_8005136C(0x40) != 0) {
         itManager* items = itManager::getInstance();
         if (items != NULL) {
+            BaseItem* item;
             int variations = items->getItemVariationNum(0x40);
             if (variations < 0) {
                 variations = 0;
             }
-            BaseItem* item = items->createItem(static_cast<itKind>(0x40), static_cast<int>(static_cast<float>(variations) * randf()), -1, NULL, 0, 0xFFFF, 0, 0xFFFF);
+            item = items->createItem(static_cast<itKind>(0x40), static_cast<int>(static_cast<float>(variations) * randf()), -1, NULL, 0, 0xFFFF, 0, 0xFFFF);
             if (item != NULL) {
                 Vec3f pos;
                 getNodePosition(&pos, 0, "locator15");
@@ -768,10 +769,7 @@ void grEarthChappy::makeItemInMouth() {
         pos.m_y += 10.0f;
         itManager* items = itManager::getInstance();
         if (items != NULL) {
-            ItemKind kind;
-            kind.m_kind = static_cast<itKind>(*reinterpret_cast<int*>(reinterpret_cast<u8*>(lbl_27_bss_5668) + 0x44));
-            kind.m_variation = 0;
-            items->lotCreateItem(reinterpret_cast<itGenSheetKind&>(kind), static_cast<itGenId>(2), &pos, -1, -1, static_cast<itKind>(-1));
+            grEarthLotCreateStageItem(items, static_cast<itGenId>(2), &pos);
         }
     }
 }

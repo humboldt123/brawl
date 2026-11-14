@@ -193,8 +193,7 @@ void ftKineticTransactor::changeKineticSub39(bool*, void*, Vec2f* speed, soModul
 void ftKineticTransactor::changeKineticSub41(bool*, void*, Vec2f* speed, soModuleAccesser* moduleAccesser) {
     soKineticUtility::resetEnableEnergy(2, moduleAccesser, 8, speed, &Vec3f(0.0f, 0.0f, 0.0f));
     Vec2f zero(0.0f, 0.0f);
-    Vec3f rot(0.0f, 0.0f, 0.0f);
-    soKineticUtility::resetEnableEnergy(0, moduleAccesser, 2, &zero, &rot);
+    soKineticUtility::resetEnableEnergy(0, moduleAccesser, 2, &zero, &Vec3f(0.0f, 0.0f, 0.0f));
 }
 
 void ftKineticTransactor::changeKineticSub57(bool*, void*, Vec2f* speed, soModuleAccesser* moduleAccesser) {

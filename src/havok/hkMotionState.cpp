@@ -4,7 +4,7 @@
 #include <havok/hkMotionState.h>
 
 void hkMotionState::initMotionState(const hkVector4& position, const hkQuaternion& rotation) {
-    m_sweptTransform.initSweptTransform();
+    m_sweptTransform.initSweptTransform(position, rotation);
     m_transform.m_rotation.set(rotation);
     m_transform.m_translation = position;
     m_deltaAngle.setZero4();

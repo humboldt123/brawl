@@ -68,7 +68,7 @@ void grGimmickWarpZone::startup(gfArchive* archive, u32 unk1, gfSceneRoot::Layer
     grGimmickMotionPathInfo motionPathInfo = { archive, &m_warpData->m_motionPathData, false, true, NULL, NULL, NULL, NULL, NULL, NULL };
     createAttachMotionPath(&motionPathInfo, NULL, "path_locator");
     stTrigger* trigger;
-    if (!m_isNotAuto) {
+    if (m_isNotAuto == false) {
         // HYPOTHESIS: 0x2b is the automatic warp area (the header calls it Area_Block).
         trigger = g_stTriggerMng->createTrigger(Gimmick::Area_Block, -1);
     } else {

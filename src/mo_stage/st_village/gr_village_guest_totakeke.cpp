@@ -35,6 +35,7 @@ void grVillageGuestTotakeke::updateActive(float deltaFrame) {
         }
         break;
     case 6:
+    case 7:
         break;
     }
 }

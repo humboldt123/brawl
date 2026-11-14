@@ -276,6 +276,10 @@ void stGW::createObjAlarm(int index) {
         ground = grGWAlarm::create(0xB, "_CHIF_ALARM", "grGWAlarmChef");
         sceneId = 1;
         break;
+    case 0x21:
+        ground = grGWAlarm::create(0x15, "_FIRE_ALARM", "grGWAlarmFire");
+        sceneId = 0;
+        break;
     case 0x18:
         ground = grGWAlarm::create(0x29, "_LION_ALARM", "grGWAlarmLion");
         sceneId = 2;
@@ -283,10 +287,6 @@ void stGW::createObjAlarm(int index) {
     case 0x1C:
         ground = grGWAlarm::create(0x33, "_OIL_ALARM", "grGWAlarmOil");
         sceneId = 3;
-        break;
-    case 0x21:
-        ground = grGWAlarm::create(0x15, "_FIRE_ALARM", "grGWAlarmFire");
-        sceneId = 0;
         break;
     default:
         ground = NULL;
@@ -690,8 +690,8 @@ void stGW::createObjLion() {
 
 void stGW::createObjLionKeeper(int index) {
     grGWLionKeeper* ground;
-    Vec3f* pos;
     u8 type;
+    Vec3f* pos;
     switch (index) {
     case 0x19:
         ground = grGWLionKeeper::create(0x2A, "_LION_KEEPER_LEFT", "grGWLionKeeperL");
@@ -745,8 +745,8 @@ void stGW::createObjOil() {
 
 void stGW::createObjOilGuest(int index) {
     grGWOilGuest* ground;
-    grGWGuestData* data;
     u8 type;
+    grGWGuestData* data;
     switch (index) {
     case 0x1D:
         ground = grGWOilGuest::create(0x34, "_OIL_MAN", "grGWOilMan");

@@ -310,7 +310,8 @@ void stOrpheon::eventTrapFloor1(float deltaFrame) {
                 m_trap1PathT = 0.505f;
                 m_eventTrap1.setPhase(m_eventTrap1.getPhase() + 1);
                 m_eventTrap1.m_manualFramesLeft = 0.0f;
-                m_trap1Wait = 120.0f + __fabsf(180.0f - 360.0f * randf());
+                float r = __fabsf(180.0f - 360.0f * randf());
+                m_trap1Wait = 120.0f + r;
             }
             break;
         case 2:

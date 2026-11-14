@@ -22,6 +22,17 @@ struct hkConstraintInfo {
     int m_sizeOfJacobians;    // 0x04
     int m_sizeOfSchemas;      // 0x08
     int m_numSolverResults;   // 0x0C
+
+    // Adds another summary: the largest Jacobian block also covers the other's total size.
+    void add(const hkConstraintInfo& delta) {
+        m_maxSizeOfJacobians =
+            m_maxSizeOfJacobians > delta.m_maxSizeOfJacobians ? m_maxSizeOfJacobians : delta.m_maxSizeOfJacobians;
+        m_maxSizeOfJacobians =
+            m_maxSizeOfJacobians > delta.m_sizeOfJacobians ? m_maxSizeOfJacobians : delta.m_sizeOfJacobians;
+        m_sizeOfJacobians += delta.m_sizeOfJacobians;
+        m_sizeOfSchemas += delta.m_sizeOfSchemas;
+        m_numSolverResults += delta.m_numSolverResults;
+    }
 };
 
 // getConstraintInfo fills two more words after the reflected summary: the first atom of the constraint and the

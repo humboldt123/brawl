@@ -65,7 +65,11 @@ public:
     virtual void setPlayerNo(u8 playerNo, int index) = 0;
     virtual u8 getPlayerNo(u32 index) = 0;
     virtual void setDemoDistScaleMul(float, u32 index) = 0;
+#ifdef FT_FIGHTER_FIELDS
+    virtual void setDamage(unsigned short damage, u32 index) = 0;
+#else
     virtual void setDamage(short damage, u32 index) = 0;
+#endif
     virtual void setDamageFly(u32 index) = 0;
     virtual void exitDamageFly(u32 index) = 0;
     virtual void setRun(u32 index) = 0;
@@ -138,7 +142,11 @@ public:
     virtual u8 getAdvPri(u32 index) { return 0; }
     virtual void setPlayerNo(u8 playerNo, int index) { }
     virtual u8 getPlayerNo(u32 index) { return 0; }
+#ifdef FT_FIGHTER_FIELDS
+    virtual void setDamage(unsigned short damage, u32 index) { }
+#else
     virtual void setDamage(short damage, u32 index) { }
+#endif
     virtual void setDamageFly(u32 index) { }
     virtual void exitDamageFly(u32 index) { }
     virtual void setRun(u32 index) { }

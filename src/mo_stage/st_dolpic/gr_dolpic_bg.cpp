@@ -60,7 +60,7 @@ void grDolpicMainBg::update(float deltaFrame) {
     } else {
         Matrix mtx(true);
         getNodeMatrix(&mtx, 0, "StgDolpic_kamomePosition");
-        Vec3f pos = mtx.getPosition();
+        Vec3f pos = mtx.getTranslation();
         Vec3f rot;
         mtx.getRotate(&rot);
         Vec3f scl;

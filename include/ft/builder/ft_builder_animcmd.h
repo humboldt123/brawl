@@ -314,7 +314,7 @@ public:
         unit.m_animCmdAddressPackArraySeparate = (soAnimCmdAddressPackArraySeparate*)g_soAnimCmdAddressPackArrayNull;
         acc->getAnimCmdModule().registInterpreter(unit, attr);
     }
-#ifdef FT_ANIMCMD_UNIT_DTOR_OUTLINE
+#if defined(FT_ANIMCMD_UNIT_DTOR_OUTLINE) || defined(FT_ANIMCMD_UNIQ_DTOR_OUTLINE)
     ~soAnimCmdControlUnitBuilderUniq();
 #endif
 };
@@ -342,6 +342,9 @@ class soAnimCmdControlUnitBuilderDisguise {
     soAnimCmdAddressPackArraySeparate m_pack;                                                                // +0x9D0
     soAnimCmdInterpreter m_interpreter;                                                                      // +0x9EC
 public:
+#ifdef FT_POKETRAINER_DISGUISE_PUSH_RANGE
+    void pushRange(int index, const acAnimCmdConv* const* commands, s32 count);
+#endif
     soArray<const acAnimCmdConv*>* getEntryList(int index) {
         switch (index) {
         case 0:
@@ -387,6 +390,18 @@ public:
 ////////////////////////////////////////
 // ftAnimCmdModuleSubBuilder
 ////////////////////////////////////////
+
+#ifdef FT_POKETRAINER_DISGUISE_PUSH_RANGE
+template <class BC>
+void soAnimCmdControlUnitBuilderDisguise<BC>::pushRange(int index, const acAnimCmdConv* const* commands, s32 count) {
+    soArray<const acAnimCmdConv*>* entries = getEntryList(index);
+    if (commands != NULL && count > 0) {
+        for (s32 i = 0; i < count; ++commands, ++i) {
+            entries->push(*commands);
+        }
+    }
+}
+#endif
 
 template <u32 NodeNum, u32 CmdNum>
 class ftAnimCmdModuleSubBuildConfig {

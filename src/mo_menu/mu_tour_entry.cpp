@@ -219,13 +219,13 @@ void muTourEntryTask::setCtrlFrame(MuObject* object, const gfPadStatus* pad, u32
     object->setFrameTex((float)(padNo & 3));
     if (pad->m_error >= 0) {
         switch (pad->m_controllerType) {
-        case gfPadType::WII_CLASSIC:
-            object->setFrameVisible(1.0f);
-            m_msg->printIndex(msgIndex, 8);
-            break;
         case gfPadType::GCC:
             object->setFrameVisible(2.0f);
             m_msg->printIndex(msgIndex, 9);
+            break;
+        case gfPadType::WII_CLASSIC:
+            object->setFrameVisible(1.0f);
+            m_msg->printIndex(msgIndex, 8);
             break;
         case gfPadType::WIIMOTE:
             object->setFrameVisible(3.0f);

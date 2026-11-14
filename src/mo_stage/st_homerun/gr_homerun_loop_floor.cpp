@@ -111,10 +111,10 @@ void grHomerunLoopFloor::fixposCallBack() {
                 scnMdl->m_nodeIndex = calcWorldCallBack->m_nodeCallbackDatas[0].m_nodeIndex;
             }
             Vec3f* floor = &m_posFloorWork[m_index];
-            grNodeCallbackData* data = calcWorldCallBack->m_nodeCallbackDatas;
-            data[0].m_pos.m_x = floor->m_x;
-            data[0].m_pos.m_y = floor->m_y;
-            data[0].m_pos.m_z = floor->m_z;
+            Vec3f* pos = &calcWorldCallBack->m_nodeCallbackDatas[0].m_pos;
+            pos->m_x = floor->m_x;
+            pos->m_y = floor->m_y;
+            pos->m_z = floor->m_z;
         }
     }
 }

@@ -1381,7 +1381,12 @@ public:
     union {
         char _272[44];
         struct {
+#ifdef FT_FIGHTER_FIELDS
+            ftKind m_kind; // Fighter::attachItemHoldAnim reads the fighter kind here.
+            u8 unk114[0x24];
+#else
             u8 unk110[0x28];
+#endif
             u8 : 1;
             u8 unk138_1 : 1; // HYPOTHESIS: set by the reflector search/collision events
             u8 unk138_2 : 1; // HYPOTHESIS: set by the reflector collision event
@@ -1390,7 +1395,13 @@ public:
             u8 unk138_cursor : 1; // HYPOTHESIS: setCursor
             u8 unk138_nameCursor : 1; // HYPOTHESIS: setNameCursor
             u8 unk138_7 : 1;
+#ifdef FT_FIGHTER_FIELDS
+            u8 unk139_0 : 1; // HYPOTHESIS: enables the damage rumble notification.
+            u8 : 7;
+            u8 unk13A[2];
+#else
             u8 unk139[3];
+#endif
         };
     };
     ftOutsideEventPresenter m_outsideEventPresenter;

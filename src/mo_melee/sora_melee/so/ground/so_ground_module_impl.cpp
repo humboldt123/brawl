@@ -15,6 +15,11 @@
 #include <st/st_collision_attr_param.h>
 #include <math.h>
 
+// BYTES: these calls forward word-sized indices/masks to APIs whose shared
+// declarations narrow them. Keep the native symbols and the full input registers.
+extern "C" grCollisionJoint* getJoint__11grCollisionFUs(grCollision*, u32);
+extern "C" void setTargetLineCategory__17soGroundShapeImplFUc(soGroundShapeImpl*, u32);
+
 soGroundModuleImpl::soGroundModuleImpl(soModuleAccesser* acc, soArray<soGroundShapeImpl>* shapes, soGroundConditionChecker* checker, soEventObserverRegistrationDesc* regDesc) :
     soStatusEventObserver(static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(), -1),
     soAnimCmdEventObserver(5, static_cast<soEventManager&>(acc->getEventManageModule()).getManageId()) {
@@ -68,7 +73,7 @@ float soGroundModuleImpl::getRotateYForGrCollisionMatrix() {
 void soGroundModuleImpl::pause(bool p0) { m_pause = p0; }
 soGroundShapeImpl::CorrectKind soGroundModuleImpl::getCorrect(u32 index) { return (soGroundShapeImpl::CorrectKind)m_groundShapeArray->at(index).m_correctKind; }
 void soGroundModuleImpl::setCalcLineMove(bool calcLineMove, u32 index) { m_groundShapeArray->at(index).setCalcLineMove(calcLineMove); }
-void soGroundModuleImpl::setTargetLineCategory(grCollisionLine::CategoryMask targetLineCategory, u32 index) { m_groundShapeArray->at(index).setTargetLineCategory(targetLineCategory); }
+void soGroundModuleImpl::setTargetLineCategory(grCollisionLine::CategoryMask targetLineCategory, u32 index) { setTargetLineCategory__17soGroundShapeImplFUc(&m_groundShapeArray->at(index), targetLineCategory); }
 void soGroundModuleImpl::setExclusiveLineAttr(short exclusiveLineAttr, u32 index) { m_groundShapeArray->at(index).setExclusiveLineAttr(exclusiveLineAttr); }
 void soGroundModuleImpl::setPassableCheck(bool passableCheck, u32 index) { m_groundShapeArray->at(index).setPassableCheck(passableCheck); }
 bool soGroundModuleImpl::isPassableCheck(u32 index) { return m_groundShapeArray->at(index).isPassableCheck(); }
@@ -79,10 +84,16 @@ bool soGroundModuleImpl::isCloudThrough(u32 index) {
 }
 bool soGroundModuleImpl::isCloudThroughOut(Vec2f* out, u32 index) { return m_groundShapeArray->at(index).isCloudThroughOut(out); }
 void soGroundModuleImpl::setCorrectIgnoreSlope(bool correctIgnoreSlope, u32 index) { m_groundShapeArray->at(index).setCorrectIgnoreSlope(correctIgnoreSlope); }
-void soGroundModuleImpl::setCliffCheck(soGroundShapeImpl::CliffCheckKind cliffCheck, u32 index) { m_groundShapeArray->at(index).m_cliffCheck = cliffCheck; }
+void soGroundModuleImpl::setCliffCheck(soGroundShapeImpl::CliffCheckKind cliffCheck, u32 index) {
+    soGroundShapeImpl& shape = m_groundShapeArray->at(index);
+    shape.m_cliffCheck = cliffCheck;
+}
 void soGroundModuleImpl::setCliffHangData(void* p0) { m_cliffHangData = p0; }
 void soGroundModuleImpl::setCliffBackRangeXMul(float cliffBackRangeXMul) { m_cliffBackRangeXMul = cliffBackRangeXMul; }
-void soGroundModuleImpl::setCliffTeam(u8 cliffTeam, u32 index) { m_groundShapeArray->at(index).m_collStatus->m_cliffTeam = cliffTeam; }
+void soGroundModuleImpl::setCliffTeam(u8 cliffTeam, u32 index) {
+    grCollStatus* status = m_groundShapeArray->at(index).m_collStatus;
+    status->m_cliffTeam = cliffTeam;
+}
 void soGroundModuleImpl::entryCliff(u32 index) { m_groundShapeArray->at(index).m_collStatus->entryCliffHang(); }
 void soGroundModuleImpl::leaveCliff(u32 index) { m_groundShapeArray->at(index).m_collStatus->leaveCliffHang(); }
 void soGroundModuleImpl::setStGroundForce(u32 index) { m_groundShapeArray->at(index).m_collStatus->setStGround(); }
@@ -103,7 +114,12 @@ bool soGroundModuleImpl::isOttotto(float p0, u32 index) {
     return status->isOttotto(p0, status->m_unkB);
 }
 bool soGroundModuleImpl::isNearCliff(float p0, float p1, u32 index) {
-    return m_groundShapeArray->at(index).m_collStatus->isOttotto(p1, p0 == 1.0f ? 1 : 0);
+    // HYPOTHESIS: direction is an enum with left = 0 and right = 1.
+    enum Direction { Left, Right };
+    Direction dir;
+    if (p0 == 1.0f) dir = Right;
+    else dir = Left;
+    return m_groundShapeArray->at(index).m_collStatus->isOttotto(p1, dir);
 }
 bool soGroundModuleImpl::isMissStepR(u32 index) { return m_groundShapeArray->at(index).m_collStatus->m_missStepR; }
 bool soGroundModuleImpl::isMissStepL(u32 index) { return m_groundShapeArray->at(index).m_collStatus->m_missStepL; }
@@ -172,7 +188,7 @@ void soGroundModuleImpl::getRhombus(clRhombus2D* outPrevCollShape, clRhombus2D* 
     m_groundShapeArray->at(index).m_collStatus->getShapePrev(outPrevCollShape);
     m_groundShapeArray->at(index).m_collStatus->getShape(outCurrentCollShape);
 }
-void soGroundModuleImpl::calcRhombusModify(float* out1, float* out2, float* out3, float* out4, u32 index) { m_groundShapeArray->at(index).calcRhombusModify(m_moduleAccesser, out1, out2, out3, out4); }
+void soGroundModuleImpl::calcRhombusModify(float* out1, float* out2, float* out3, float* out4, u32 index) { m_groundShapeArray->at(index).calcRhombusModify(m_moduleAccesser, out3, out2, out4, out1); }
 void soGroundModuleImpl::setOffsetX(float offsetX, u32 index) { m_groundShapeArray->at(index).m_offset.m_x = offsetX; }
 void soGroundModuleImpl::setOffsetY(float offsetY, u32 index) { m_groundShapeArray->at(index).m_offset.m_y = offsetY; }
 void soGroundModuleImpl::setShapeFlag(soGroundShapeImpl::ShapeFlagId flag, bool setFlag, u32 index) { m_groundShapeArray->at(index).setFlag(flag, setFlag); }
@@ -396,8 +412,8 @@ Vec2f soGroundModuleImpl::getTouchPos(int touchMask, u32 index) {
 
 void soGroundModuleImpl::ignoreTouchLine(grCollStatus::TouchMask p0, u32 index) {
     if (isTouch(p0, 0)) {
-        u32 bit = 1;
-        for (u32 i = 0; bit <= 0xFF; bit <<= 1, i++) {
+        u32 i = 0;
+        for (u32 bit = 1; bit <= 0xFF; bit <<= 1, i++) {
             if (p0 & bit) {
                 if (m_groundShapeArray->at(index).m_collStatus->isTouch((grCollStatus::TouchId)i)) {
                     u32 lineId = m_groundShapeArray->at(index).m_collStatus->getTouchLineId((grCollStatus::TouchId)i);
@@ -416,6 +432,37 @@ float soGroundModuleImpl::getDownFriction(u32 index) {
         friction = 1.0f;
     }
     return friction;
+}
+
+void soGroundModuleImpl::updateGrCollisionMatrix() {
+    if (m_collData == NULL || m_collision == NULL) return;
+    if (m_56_0) return;
+    Matrix rotation(true);
+    if (m_56_1) rotation.setRotateY(-(0.017453292f * getRotateYForGrCollisionMatrix()));
+    soModelModule& model = m_moduleAccesser->getModelModule();
+    m_moduleAccesser->getStageObject().updateNodeSRT();
+    u32 count = m_collision->m_jointLen;
+    for (u32 i = 0; i < count; i++) {
+        grCollisionJoint* joint = getJoint__11grCollisionFUs(m_collision, i);
+        if (joint != NULL) {
+            Matrix* matrix = &reinterpret_cast<Matrix*>(m_matrixData)[i];
+            model.getNodeGlobalMtx(joint->m_nodeIndex, matrix, false);
+            if (m_56_1) {
+                if (m_56_2) matrix->mul(&rotation, matrix);
+                else {
+                    Vec3f translation = matrix->getTranslation();
+                    Vec3f zero(0.0f, 0.0f, 0.0f);
+                    matrix->m[0][3] = zero.m_x;
+                    matrix->m[1][3] = zero.m_y;
+                    matrix->m[2][3] = zero.m_z;
+                    rotation.mul(matrix, matrix);
+                    matrix->m[0][3] = translation.m_x;
+                    matrix->m[1][3] = translation.m_y;
+                    matrix->m[2][3] = translation.m_z;
+                }
+            }
+        }
+    }
 }
 
 float soGroundModuleImpl::getCliffDir(u32 index) {
@@ -537,9 +584,33 @@ u32 soGroundModuleImpl::getCliffId(u32 index) {
     return work.getLineId();
 }
 
+bool soGroundModuleImpl::isSameJoint(int* __restrict first, int* second) {
+    grCollisionLineWork firstWork;
+    grCollisionLineWork secondWork;
+    u32 firstId = *first;
+    bool found = false;
+    if (grCollision::getLineWork(&firstId, &firstWork) == true) {
+        u32 secondId = *second;
+        if (grCollision::getLineWork(&secondId, &secondWork) == true) {
+            found = true;
+        }
+    }
+    if (found) {
+        bool firstValid = false;
+        if (firstWork.m_collisionLine && firstWork.m_collisionJoint && firstWork.m_collision) firstValid = true;
+        if (firstValid) {
+            bool secondValid = false;
+            if (secondWork.m_collisionLine && secondWork.m_collisionJoint && secondWork.m_collision) secondValid = true;
+            if (secondValid) return firstWork.m_collisionJoint == secondWork.m_collisionJoint;
+        }
+    }
+    return false;
+}
+
 Vec2f soGroundModuleImpl::getDownMovementSpeed(u32 index) {
+    soArray<soGroundShapeImpl>* shapes = m_groundShapeArray;
     Vec2f result(0.0f, 0.0f);
-    if (m_groundShapeArray->at(index).m_collStatus->isTouch(grCollStatus::Touch_Down)) {
+    if (shapes->at(index).m_collStatus->isTouch(grCollStatus::Touch_Down)) {
         grCollision::calcLineVector(m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Down), getDownPos(index), &result);
     }
     return result;
@@ -550,9 +621,9 @@ Vec2f soGroundModuleImpl::getTouchSpeed(grCollStatus::TouchMask p0, u32 index) {
     for (u32 i = 0, bit = 1; bit <= 0xFF; bit <<= 1, i++) {
         if (p0 & bit) {
             if (m_groundShapeArray->at(index).m_collStatus->isTouch((grCollStatus::TouchId)i)) {
-                u32 lineId = m_groundShapeArray->at(index).m_collStatus->getTouchLineId((grCollStatus::TouchId)i);
-                Vec2f pos = getTouchPos(bit, 0);
+                int lineId = m_groundShapeArray->at(index).m_collStatus->getTouchLineId((grCollStatus::TouchId)i);
                 Vec2f speed;
+                Vec2f pos = getTouchPos(bit, 0);
                 grCollision::calcLineVector(lineId, pos, &speed);
                 total.m_x = total.m_x + speed.m_x;
                 total.m_y = total.m_y + speed.m_y;
@@ -563,8 +634,9 @@ Vec2f soGroundModuleImpl::getTouchSpeed(grCollStatus::TouchMask p0, u32 index) {
 }
 
 Vec2f soGroundModuleImpl::getAttachMovementSpeed(u32 index) {
+    soArray<soGroundShapeImpl>* shapes = m_groundShapeArray;
     Vec2f result(0.0f, 0.0f);
-    u8 attachKind = m_groundShapeArray->at(index).m_collStatus->m_unk6D;
+    u8 attachKind = shapes->at(index).m_collStatus->m_unk6D;
     if (attachKind & grCollStatus::TOUCH_MASK_DOWN) {
         grCollision::calcLineVector(m_groundShapeArray->at(index).m_collStatus->getTouchLineId(grCollStatus::Touch_Down), getDownPos(index), &result);
     } else if (attachKind & grCollStatus::TOUCH_MASK_UP) {
@@ -974,4 +1046,46 @@ bool soGroundModuleImpl::getTouchAttackData(soCollisionAttackData* outAttackData
         }
     }
     return false;
+}
+
+// A line can accept attachment only while its joint and collision are enabled.
+static inline bool isGroundLineAttachable(u32 touchLineId) {
+    if (touchLineId != 0xFFFF) {
+        u32 lineId = touchLineId;
+        grCollisionLineWork work;
+        int enabled = grCollision::getLineWork(&lineId, &work) == true;
+        if (enabled) {
+            bool valid = work.m_collisionLine != NULL && work.m_collisionJoint != NULL && work.m_collision != NULL;
+            int active;
+            if (valid && work.m_collisionJoint->m_0x54_4 && work.m_collision->m_isEnabled) active = 1;
+            else active = 0;
+            enabled = active == true;
+        }
+        // BYTES: invert the single-bit flag without an additional boolean normalization.
+        if (enabled) enabled = work.m_collisionLine->m_noAttach ^ true;
+        if (enabled) return true;
+    }
+    return false;
+}
+
+static inline bool isGroundShapeAttachable(soGroundShapeImpl* shape, u8 mask, grCollStatus::TouchId touch) {
+    bool touching = (mask & (1 << touch)) != 0;
+    if (touching) touching = shape->m_collStatus->isTouch(touch);
+    if (touching) touching = isGroundLineAttachable(shape->m_collStatus->getTouchLineId(touch));
+    return touching;
+}
+
+void soGroundModuleImpl::attach(u8 touchMask, u32 index) {
+    soGroundShapeImpl& shape = m_groundShapeArray->at(index);
+    u8 attachMask = 0;
+    if (isGroundShapeAttachable(&shape, touchMask, grCollStatus::Touch_Up)) {
+        attachMask = grCollStatus::TOUCH_MASK_UP;
+    } else if (isGroundShapeAttachable(&shape, touchMask, grCollStatus::Touch_Down)) {
+        attachMask = grCollStatus::TOUCH_MASK_DOWN;
+    } else if (isGroundShapeAttachable(&shape, touchMask, grCollStatus::Touch_Left)) {
+        attachMask = grCollStatus::TOUCH_MASK_LEFT;
+    } else if (isGroundShapeAttachable(&shape, touchMask, grCollStatus::Touch_Right)) {
+        attachMask = grCollStatus::TOUCH_MASK_RIGHT;
+    }
+    if (attachMask != 0) shape.attach(attachMask);
 }

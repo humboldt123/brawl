@@ -416,7 +416,12 @@ public:
     // (Link's kinetic transactor).
     friend void Vec3fScale(register Vec3f* pOut, register const Vec3f* v, register float c) {
 #ifdef MT_VEC3F_SCALE_FRESH_REGS
+#ifdef FT_KIRBY_ARTICLE_POOLS
+        // BYTES: ft_kirby FinalCutter allocates frZ, frXY, frB, frA in this order.
+        register f32 frZ, frXY, frB, frA;
+#else
         register f32 frXY, frZ, frA, frB;
+#endif
 
         // clang-format off
         asm {

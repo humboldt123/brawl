@@ -18,6 +18,11 @@ class muSelCharCoin;
 class muSelCharHand;
 class muRuleTask;
 class muNoticeWndTask;
+#ifdef MU_SELCHAR_UNIT_DECLS
+class gfArchive;
+class muSelcharPanelCtrlTask;
+struct gfPadStatus;
+#endif
 // HYPOTHESIS: the two characters of a pair high score, as getOnlinePairHighScore writes them.
 struct muSelCharScorePair;
 
@@ -69,9 +74,9 @@ public:
     };
     muSelCharPlayerArea* m_selCharPlayerAreas[num_player_areas];   // 0x44
 #ifdef MU_SELCHAR_UNIT_DECLS
-    char _0x54[0x10];
+    nw4r::g3d::G3dObj* unk54[4];                // 0x54
     nw4r::g3d::ResFile* m_texResFile;           // 0x64 HYPOTHESIS: the file of the textures of the characters
-    char _0x68[4];
+    gfTask* unk68;                              // 0x68
 #else
     char _0x54[0x18];
 #endif
@@ -97,11 +102,24 @@ public:
     // HYPOTHESIS: where the array ends.
     MuObject* m_objs[Obj_Num];                  // 0x13C
     // HYPOTHESIS: from index 2, the places of the cursors on the pictures of the characters (one per line of m_charList).
+#ifdef MU_SELCHAR_UNIT_DECLS
+    union {
+        struct {
+            nw4r::g3d::ScnMdlExpand* m_expands[52];     // 0x42C
+            char _0x4fc[0x4];
+            nw4r::g3d::ScnMdlExpand* m_diffExpand;      // 0x500 the level of the computers and its arrows
+            nw4r::g3d::ScnMdlExpand* m_stockExpand;     // 0x504 the number of stocks and its arrows
+            nw4r::g3d::ScnMdlExpand* m_highScoreExpand; // 0x508 the high score and the pictures of the characters of a pair
+        };
+        nw4r::g3d::G3dObj* m_allExpands[56];
+    };
+#else
     nw4r::g3d::ScnMdlExpand* m_expands[52];     // 0x42C
     char _0x4fc[0x4];
     nw4r::g3d::ScnMdlExpand* m_diffExpand;      // 0x500 the level of the computers and its arrows
     nw4r::g3d::ScnMdlExpand* m_stockExpand;     // 0x504 the number of stocks and its arrows
     nw4r::g3d::ScnMdlExpand* m_highScoreExpand; // 0x508 the high score and the pictures of the characters of a pair
+#endif
     muSelCharCBCalcWorld m_calcWorldCBs[15];    // 0x50C
     char _0x5c0[4];
     MuMsg* m_highScoreMsg;                      // 0x5C4 the text of the high scores
@@ -110,10 +128,18 @@ public:
     char _0x5ca[0x2];
     int m_handiMode;                            // 0x5CC HYPOTHESIS: the handicap setting of the rules of the screen
     union {
+#ifdef MU_SELCHAR_UNIT_DECLS
+        struct {
+            bool m_unk5D0;                              // 0x5D0 HYPOTHESIS: the handicap is shown as a number
+            bool unk5D1;
+            char _0x5d2[0xA];
+        };
+#else
         struct {
             bool m_unk5D0;                              // 0x5D0 HYPOTHESIS: the handicap is shown as a number
             char _0x5d1[0xB];
         };
+#endif
         struct {
             char unk5D0[4];
             int unk5D4;
@@ -141,13 +167,26 @@ public:
     union {
         char _0x608[0x18];
         struct {
+#ifdef MU_SELCHAR_UNIT_DECLS
+            nw4r::g3d::ResFile* unk608;
+            muNoticeWndTask* unk60C;
+            void* unk610;
+            gfTask* unk614;
+            char unk618[0x8];
+#else
             char unk608[4];
             muNoticeWndTask* unk60C;
             char unk610[0x10];
+#endif
         };
     };
     int m_queueMeleeDropRule;                   // 0x620
+#ifdef MU_SELCHAR_UNIT_DECLS
+    gfArchive* m_ruleArchive;                   // 0x624
+    muSelcharPanelCtrlTask* m_panelCtrl;        // 0x628
+#else
     char _0x624[0x8];
+#endif
     muRuleTask* m_ruleTask;                     // 0x62C the rules screen that opens over the select screen
     int m_ruleTaskState;                        // 0x630
     union {
@@ -186,7 +225,11 @@ public:
         char _0x64c[0x8];
         struct {
             int unk64C;
+#ifdef MU_SELCHAR_UNIT_DECLS
+            int unk650;
+#else
             char unk650[4];
+#endif
         };
     };
 
@@ -247,17 +290,22 @@ public:
     int getQueueMeleeDropRule();
     int getDifficulty();
     u8 isEntried2P();
-    muSelCharCoin* getCoin(int areaIdx);
 #ifdef MU_SELCHAR_UNIT_DECLS
+    muSelCharCoin* getCoin(int areaIdx) __attribute__((never_inline));
     muSelCharHand* getHand(int areaIdx) __attribute__((never_inline));
 #else
+    muSelCharCoin* getCoin(int areaIdx);
     muSelCharHand* getHand(int areaIdx);
 #endif
     int getRuleTaskState();
     void setDifficulty(int difficulty);
     u8 isTeamBattleTouch();
     int getMaxDiff();
-    void setReadyButtonDecided();
+    void setReadyButtonDecided()
+#ifdef MU_SELCHAR_UNIT_DECLS
+        __attribute__((never_inline))
+#endif
+        ;
     void clickHomerunRule();
     void clickKumiteRule();
     void eraseAllHighScore();
@@ -271,7 +319,11 @@ public:
     int getCharListIdx(int charKind);
     bool getFacePos(Vec2f* pos, int charKind);
     bool getFaceRect(Rect2D* rect, int charKind);
-    void setCursor(int charKind, MuObject* cursor);
+    void setCursor(int charKind, MuObject* cursor)
+#ifdef MU_SELCHAR_UNIT_DECLS
+        __attribute__((never_inline))
+#endif
+        ;
     void dispCanceled();
     void setReadyButtonPointed(u8 pointed);
     void setVisibleDiff(bool visible);
@@ -296,7 +348,11 @@ public:
     void dispHighScorePairChar(int pairIdx, int charKind, int color);
     int getOnlinePairHighScore(int* style, int* level, muSelCharScorePair* pair);
     int isCharHighScoreCleared(int charKind);
+#ifdef MU_SELCHAR_UNIT_DECLS
+    int getCharHighScore(int charKind, int difficulty, int* style, int* level);
+#else
     int getCharHighScore(int charKind, int difficulty, int a, int b);
+#endif
     int dispTargetTotalHighScore();
     int getPairHighScore(int difficulty, int* style, int* level, muSelCharScorePair* pair);
     void dispOnlinePairHighScore();
@@ -304,8 +360,16 @@ public:
     int getRuleDispType();
     // An integer: a bool return normalizes the 0/1 result a second time.
     int isWifiGameMaster() __attribute__((never_inline));
+#ifdef MU_SELCHAR_UNIT_DECLS
+    void setRuleNumToGlobal() __attribute__((never_inline));
+#else
     void setRuleNumToGlobal();
-    void setReferFlag(int selchKind);
+#endif
+    void setReferFlag(int selchKind)
+#ifdef MU_SELCHAR_UNIT_DECLS
+        __attribute__((never_inline))
+#endif
+        ;
     void bindCalcWorldFlag();
     int getCollKindPlayerArea(Vec2f* pos, int* areaIdx, int* arg, float* rect);
     void setRuleNumHoldCursorVisible(bool visible);
@@ -316,7 +380,11 @@ public:
         ;
     int findFreeWiiControllerNo();
     void dispWifiPrompt(u32 message);
-    int getCollCharKind(Vec2f* pos);
+    int getCollCharKind(Vec2f* pos)
+#ifdef MU_SELCHAR_UNIT_DECLS
+        __attribute__((never_inline))
+#endif
+        ;
     // Out of line on the pair high-score screens. The body still inlines getSelCharType.
     void dispHighScoreDiffLevel(int level) __attribute__((never_inline));
     int isPushedUnusedControllerStartButton();
@@ -332,6 +400,24 @@ public:
     void setVisibleAllPlayersHandi(bool visible);
     void dispVersusHighScore();
     void decideCharKind(int areaIdx, int charKind);
+    int getFaceSize();
+    void updateCharHighScore(int line, int selchKind, int difficulty);
+    void setStockCharKind(int charKind, int color);
+    void appearKumiteRule();
+    bool canTeamBattle();
+    void changeDuplicateCharColor();
+    bool isSameChar(int charKind1, int charKind2);
+    void changeToRule(int mode);
+    void dispRuleNum(int num);
+    void buttonProcInFaceArea(int areaIdx, gfPadStatus* pad);
+    void openWifiEntryConfirmDlg(const wchar_t* name);
+    void setPlayerKind(int areaIdx, int playerKind);
+    int readyProc();
+    void wifiProc(int areaIdx);
+    void incRuleNum();
+    void decRuleNum();
+    void getDefaultRuleFromGlobal();
+    void moveCoin(int areaIdx);
 #endif
     // HYPOTHESIS: range classification shared by the character select menus.
     static inline bool isSelCharTypeIn(int type, int first, int end) {

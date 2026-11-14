@@ -307,9 +307,9 @@ void grDonkeyKong::setAttack() {
     soCollisionAttackData attack(1.0f);
     Vec3f offset;
     getNodePosition(&offset, 0, m_nodeIndex);
-    offset.m_z = -offset.m_z;
     offset.m_x = 0.0f;
     offset.m_y = 20.0f;
+    offset.m_z = -offset.m_z;
 
     setAttackGimmickDetails(&attack, 20.0f, 1.0f, 1.0f, 1.0f,
         20, &offset, 361, 50, 0, 78, m_nodeIndex,

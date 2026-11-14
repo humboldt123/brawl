@@ -537,8 +537,9 @@ void muProcDiagram4p::setArrowVisible(bool visible) {
 
 // The name tags before and after the one shown.
 void muProcDiagram4p::setNextPrevCharNameVisible(bool visible) {
-    GameGlobal* global = g_GameGlobal;
+    GameGlobal* global;
     int no = m_no;
+    global = g_GameGlobal;
     char name[0x14];
     if (visible && no < m_nameNum - 1) {
         global->getName(no + 1, name);

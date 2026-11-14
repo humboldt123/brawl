@@ -114,11 +114,11 @@ void ftStatusUniqProcessShoot::initShoot_Common(soModuleAccesser* moduleAccesser
         bool keepFrame = false;
         if (isShootGroundStatus(moduleAccesser, prevStatus)) {
             frame = moduleAccesser->getWorkManageModule().getFloat(0x21000006);
-            if (-1.0f == frame) {
-                frame = 0.0f;
-            } else {
+            if (!(-1.0f == frame)) {
                 rate = moduleAccesser->getWorkManageModule().getFloat(0x21000007);
                 keepFrame = true;
+            } else {
+                frame = 0.0f;
             }
         }
         moduleAccesser->getMotionModule().compRemovePartialAnimChr(1);

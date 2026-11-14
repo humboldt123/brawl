@@ -131,5 +131,8 @@ public:
     // HYPOTHESIS: primitive pointer and situation conversion follow the reset calls.
     newCollision* getCollision(u32 index, u32 groupIndex);
     static Situation getSituation(int situation);
+#ifdef SO_COLLISION_CTOR_DTOR
+    ~soCollision();
+#endif
 };
 static_assert(sizeof(soCollision) == 24, "Class is wrong size!");

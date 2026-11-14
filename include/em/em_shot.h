@@ -71,7 +71,11 @@ struct wnemSimple_Data {
     float m_accelX;
     float m_accelY;
     void* m_constantParam; // 0x28, Botron: an indefinite constant of the shot
+#ifdef WN_EM_SIMPLE_UNIT
+    u8 unk2C[0x4];
+#else
     u8 unk2C[0x8];
+#endif
     // The inline constructor the unit's static initializer runs (the module map's wnemSimple_Data::__ct, weak, at
     // 0x47FAC): it only sets the description pointer. wnemSimple's constructors build their m_shotWork member with the
     // default constructor (fn_41_2D9B4), which clears the description pointer.

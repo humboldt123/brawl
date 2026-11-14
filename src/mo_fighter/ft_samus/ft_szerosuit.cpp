@@ -1,8 +1,20 @@
+#define FT_PARAM_CUSTOMIZE_BUILDER_DTOR_NOINLINE
+#define FT_SZEROSUIT_ARMOR_SHOOT_FLOAT_FIRST
+#define SO_INSTANCE_MANAGER_FULL_PROPERTY_DTOR_OUT_OF_LINE
+#define SO_TEAM_DTOR_OUT_OF_LINE
+#define WN_ARTICLE_BUILDER_DTORS
+#define FT_ARTICLE_BUILDER_DTOR_OUTLINE
+#define FT_ANIMCMD_UNIQ_DTOR_OUTLINE
+#define FT_SZEROSUIT_TRANSACTOR_3ARG
+#define FT_STATUS_NO_TAIL_FOR_WN
+#define FT_POOL_ROOT_NONPOLYMORPHIC
+#define FT_NOINLINE_SKIP_SHARED_DEFS
 #define FT_SZEROSUIT_ARTICLE_POOLS
 #define WN_ARTICLE_MANAGE_BUILDER_OUT_OF_LINE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_PARAM_ACCESSER_TYPED_DTOR
 #include <ft/builder/ft_dol_array_list.h>
+#include <ft/builder/ft_builder_article.h>
 #include <ft/ft_manager.h>
 #include <ft/ft_class_info_impl.h>
 #include <ft/szerosuit/ft_szerosuit.h>
@@ -16,6 +28,7 @@
 #include <ft/samus/ft_samus_change_succeed.h>
 #include <ft/samus/ft_samus_status_uniq_process.h>
 
+#undef WN_ARTICLE_NATIVE_BUILDERS
 #define FT_BC ftSZerosuitBuildConfig
 #include <ft/builder/ft_builder_noinline.h>
 
@@ -59,57 +72,21 @@ ftSZerosuit::ftSZerosuit(s32 entryId,
 }
 
 // ---- the article holders --------------------------------------------------------------------------------------------
-// HYPOTHESIS: the original builds the descriptors in the holder constructor itself (see ft_samus.cpp).
-struct ftSZerosuitArticleDataTag {
-    bool m_unused;
-    bool m_resourceGroup;
-    ftSZerosuitArticleDataTag() : m_unused(false), m_resourceGroup(false) { }
-};
-
 struct ftSZerosuitArticleKind : wnArticleKindInfo {
+    ftKind getSubKind() const { return static_cast<ftKind>(subKind); }
     ftSZerosuitArticleKind() {
         kind = 0;
         subKind = Fighter_SZeroSuit;
     }
 };
 
-struct ftSZerosuitArticleBuildInfo : wnArticleBuildInfo {
-    ftSZerosuitArticleBuildInfo(wnArticleKindInfo kindArg, soHeapModule* heap) {
-        kindInfo = &kindArg;
-        heapModule = heap;
-    }
-};
-
 // The data blocks of the articles come from the common data accessor of sora_melee (only declared here).
 extern "C" void* fn_27_148BD0(const ftCommonDataAccesser* accesser, s32 subKind, bool* resourceGroup);
 
-template <class W> struct ftSZerosuitArticleTraits;
-#define FT_SZEROSUIT_TRAITS(W, DATA, ID, GETTER) \
-    template <> struct ftSZerosuitArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftSZerosuitArticleDataTag tag; \
-            return static_cast<const DATA*>(GETTER(&g_ftCommonDataAccesser, Fighter_SZeroSuit, &tag.m_resourceGroup)); \
-        } \
-    };
-#define FT_SZEROSUIT_TRAITS_MEMBER(W, DATA, ID, GETTER) \
-    template <> struct ftSZerosuitArticleTraits<W> { \
-        enum { ArticleId = ID }; \
-        static const DATA* getData() { \
-            ftSZerosuitArticleDataTag tag; \
-            return static_cast<const DATA*>(g_ftCommonDataAccesser.GETTER(Fighter_SZeroSuit, &tag.m_resourceGroup)); \
-        } \
-    };
-
-FT_SZEROSUIT_TRAITS_MEMBER(wnSZerosuitParalyzer, wnSZerosuitParalyzerData, 0, getWeaponData<wnSZerosuitParalyzerData>)
-FT_SZEROSUIT_TRAITS(wnSZerosuitParalyzerBullet, wnSZerosuitParalyzerBulletData, 1, fn_27_148BD0)
-FT_SZEROSUIT_TRAITS_MEMBER(wnSZerosuitWhip, wnSZerosuitWhipData, 2, getWeaponData<wnSZerosuitWhipData>)
-FT_SZEROSUIT_TRAITS_MEMBER(wnSZerosuitArmor, wnSZerosuitArmorData, 3, getWeaponData<wnSZerosuitArmorData>)
-
-// Every article of the fighter is built by this constructor from the data of the fighter kind.
-template <class W>
-wnArticleHolder<W>::wnArticleHolder(soModuleAccesser* acc) : soInstancePoolRoot(acc),
-    m_instance(ftSZerosuitArticleTraits<W>::ArticleId, ftSZerosuitArticleBuildInfo(ftSZerosuitArticleKind(), static_cast<soHeapModule*>(acc->m_enumerationStart->m_heapModule)), ftSZerosuitArticleTraits<W>::getData()) { }
+FT_DEFINE_ARTICLE_HOLDER_MEMBER(inline, wnSZerosuitParalyzer, const wnSZerosuitParalyzerData, 0, ftSZerosuitArticleKind, getWeaponData<wnSZerosuitParalyzerData>)
+FT_DEFINE_ARTICLE_HOLDER(, wnSZerosuitParalyzerBullet, wnSZerosuitParalyzerBulletData, 1, ftSZerosuitArticleKind, fn_27_148BD0)
+FT_DEFINE_ARTICLE_HOLDER_MEMBER(inline, wnSZerosuitWhip, const wnSZerosuitWhipData, 2, ftSZerosuitArticleKind, getWeaponData<wnSZerosuitWhipData>)
+FT_DEFINE_ARTICLE_HOLDER_MEMBER(, wnSZerosuitArmor, const wnSZerosuitArmorData, 3, ftSZerosuitArticleKind, getWeaponData<wnSZerosuitArmorData>)
 
 // ---- the articles and their mediator --------------------------------------------------------------------------------
 
@@ -123,8 +100,6 @@ template wnArticleHolder<wnSZerosuitParalyzer>::~wnArticleHolder();
 template wnArticleHolder<wnSZerosuitParalyzerBullet>::~wnArticleHolder();
 template wnArticleHolder<wnSZerosuitWhip>::~wnArticleHolder();
 template wnArticleHolder<wnSZerosuitArmor>::~wnArticleHolder();
-template wnArticleHolder<wnSZerosuitParalyzerBullet>::wnArticleHolder(soModuleAccesser*);
-template wnArticleHolder<wnSZerosuitArmor>::wnArticleHolder(soModuleAccesser*);
 template <class Mediator>
 wnSelectedArticleMediator<Mediator>::~wnSelectedArticleMediator() { }
 template <class Mediator, int N>
@@ -136,9 +111,59 @@ template wnSelectedArticleMediator<ftSZerosuitArticleMediator>::~wnSelectedArtic
 template wnArticleManageModuleBuilder<ftSZerosuitArticleMediator, 10>::~wnArticleManageModuleBuilder();
 template wnArticleManageModuleBuilder<ftSZerosuitArticleMediator, 10>::wnArticleManageModuleBuilder(soModuleAccesser*);
 ftSZerosuitArticleMediator::~ftSZerosuitArticleMediator() { }
+
+// The article destructors call these builder teardowns out of line.
+soParamAccesser::~soParamAccesser() { }
+template <class BC>
+soAnimCmdControlUnitBuilderUniq<BC>::~soAnimCmdControlUnitBuilderUniq() { }
+template soAnimCmdControlUnitBuilderUniq<soAnimCmdControlUnitBuildConfigUniq<4, 2> >::~soAnimCmdControlUnitBuilderUniq();
+template <class BC>
+soStopModuleBuilder<BC>::~soStopModuleBuilder() { }
+template soStopModuleBuilder<soStopModuleBuildConfig<soStopModuleImpl> >::~soStopModuleBuilder();
+template <s32 Kind, typename T>
+soReflectModuleBuilder<soReflectModuleBuildConfig<Kind, T> >::~soReflectModuleBuilder() { }
+template soReflectModuleBuilder<soReflectModuleBuildConfig<0, soReflectModuleImpl> >::~soReflectModuleBuilder();
+template <class T>
+soEffectModuleBuilder<wnEffectModuleBuildConfig<1, 1, 0, 1, -1, T> >::~soEffectModuleBuilder() { }
+template soEffectModuleBuilder<wnEffectModuleBuildConfig<1, 1, 0, 1, -1, soEffectModuleImpl> >::~soEffectModuleBuilder();
+soSlowModuleBuilder<soSlowModuleBuildConfig<soSlowModuleSimple> >::~soSlowModuleBuilder() { }
+soGlowModuleBuilder<soGlowModuleBuildConfig<soGlowModuleSimple> >::~soGlowModuleBuilder() { }
+
+#pragma auto_inline off
+template <class T> void ftBuilderDtorUse(T* p) { p->~T(); }
+#pragma auto_inline on
+typedef soGeneralWorkBuilder<soGeneralWorkBuildConfig<2, 2, 1> > ftSZerosuitArticleWork221Builder;
+template void ftBuilderDtorUse<ftSZerosuitArticleWork221Builder>(ftSZerosuitArticleWork221Builder*);
+typedef soGeneralWorkBuilder<soGeneralWorkBuildConfig<7, 6, 1> > ftSZerosuitArticleWork761Builder;
+template void ftBuilderDtorUse<ftSZerosuitArticleWork761Builder>(ftSZerosuitArticleWork761Builder*);
+typedef soAnimCmdModuleBuilder<soAnimCmdModuleBuildConfig<6, soAnimCmdModuleImpl> > ftSZerosuitArticleAnimCmdBuilder;
+template void ftBuilderDtorUse<ftSZerosuitArticleAnimCmdBuilder>(ftSZerosuitArticleAnimCmdBuilder*);
+typedef soLinkModuleBuilder<soLinkModuleBuildConfigCap<5, soLinkModuleImpl> > ftSZerosuitArticleLinkBuilder;
+template void ftBuilderDtorUse<ftSZerosuitArticleLinkBuilder>(ftSZerosuitArticleLinkBuilder*);
+typedef soShakeModuleBuilder<soShakeModuleBuildConfig<0, soShakeModuleSimple> > ftSZerosuitArticleShakeBuilder;
+template void ftBuilderDtorUse<ftSZerosuitArticleShakeBuilder>(ftSZerosuitArticleShakeBuilder*);
+typedef soTeamModuleBuilder<soTeamModuleBuildConfig<soTeamImpl, soTeamModuleImpl> > ftSZerosuitArticleTeamBuilder;
+template void ftBuilderDtorUse<ftSZerosuitArticleTeamBuilder>(ftSZerosuitArticleTeamBuilder*);
+typedef soModelModuleBuilder<soModelModuleBuildConfig<5, 0, soModelModuleImpl> > ftSZerosuitArticleModel5Builder;
+template void ftBuilderDtorUse<ftSZerosuitArticleModel5Builder>(ftSZerosuitArticleModel5Builder*);
+typedef soModelModuleBuilder<soModelModuleBuildConfig<1, 0, soModelModuleImpl> > ftSZerosuitArticleModel1Builder;
+template void ftBuilderDtorUse<ftSZerosuitArticleModel1Builder>(ftSZerosuitArticleModel1Builder*);
+typedef soResourceModuleBuilder<soResourceModuleBuildConfig<0, soResourceIdAccesserImpl, soResourceModuleImpl> > ftSZerosuitArticleResourceBuilder;
+template void ftBuilderDtorUse<ftSZerosuitArticleResourceBuilder>(ftSZerosuitArticleResourceBuilder*);
+typedef soVisibilityModuleBuilder<soVisibilityModuleBuildConfig<soVisibilityModuleSimple, 1> > ftSZerosuitArticleVisibilityBuilder;
+template void ftBuilderDtorUse<ftSZerosuitArticleVisibilityBuilder>(ftSZerosuitArticleVisibilityBuilder*);
+typedef soTransitionModuleBuilder<soTransitionModuleBuildConfig<soTypeList<soIntToType<2>, soTypeListNullType> > > ftSZerosuitWhipTransitionBuilder;
+template void ftBuilderDtorUse<ftSZerosuitWhipTransitionBuilder>(ftSZerosuitWhipTransitionBuilder*);
+template void ftBuilderDtorUse<wnKineticModuleImpl>(wnKineticModuleImpl*);
+typedef soArraySelectHolder<1, soArrayVector<acCmdInterpreterStackData, 1>, soSingletonHolder<soArrayNull<acCmdInterpreterStackData> > > ftSZerosuitArticleStackHolder1;
+template void ftBuilderDtorUse<ftSZerosuitArticleStackHolder1>(ftSZerosuitArticleStackHolder1*);
 #pragma dont_inline off
 
-s32 ftSZerosuitArticleMediator::getMediateNum() { return 4; }
+inline soSound3dGeneratorAccesserImpl::~soSound3dGeneratorAccesserImpl() { }
+typedef soSoundModuleBuilder<wnSoundModuleBuildConfig<0, soSound3dGeneratorAccesserImpl, soSoundModuleImpl> > ftSZerosuitArticleSoundBuilder;
+template void ftBuilderDtorUse<ftSZerosuitArticleSoundBuilder>(ftSZerosuitArticleSoundBuilder*);
+
+__declspec(weak) s32 ftSZerosuitArticleMediator::getMediateNum() { return 4; }
 void ftSZerosuitArticleMediator::setAutoRecycle(bool enabled) { m_autoRecycle = enabled; }
 
 // ---- the article mediator -------------------------------------------------------------------------------------------
@@ -229,7 +254,10 @@ bool ftSZerosuitArticleMediator::isGeneratable(soModuleAccesser* acc, s32 articl
 
 template <class W> struct ftSZerosuitArticleActivator;
 template <> struct ftSZerosuitArticleActivator<wnSZerosuitParalyzer> {
-    static bool activate(wnSZerosuitParalyzer* weapon, soModuleAccesser* acc) { return soSingletonHolder<ftSZerosuitTransactor>::getInstance()->activeArticle1(weapon, acc); }
+    static bool activate(wnSZerosuitParalyzer* weapon, soModuleAccesser* acc) {
+        return soSingletonHolder<ftSZerosuitTransactor>::getInstance()->activeArticle1(
+            weapon, acc, acc->getResourceModule().getResourceIdAccesser()->getMdlResId());
+    }
 };
 template <> struct ftSZerosuitArticleActivator<wnSZerosuitParalyzerBullet> {
     static bool activate(wnSZerosuitParalyzerBullet* weapon, soModuleAccesser* acc) { return soSingletonHolder<ftSZerosuitTransactor>::getInstance()->activeArticle2(weapon, acc); }
@@ -241,7 +269,7 @@ template <> struct ftSZerosuitArticleActivator<wnSZerosuitArmor> {
     static bool activate(wnSZerosuitArmor* weapon, soModuleAccesser* acc) { return ftSZerosuit::activeArticle1(weapon, acc); }
 };
 
-soArticle* ftSZerosuitArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
+__declspec(weak) soArticle* ftSZerosuitArticleMediator::generate(s32 articleId, soModuleAccesser* acc) {
     switch (articleId) {
     case 0: return wnArticleSlotGenerate<ftSZerosuitArticleActivator<wnSZerosuitParalyzer> >(static_cast<wnArticlePool<wnSZerosuitParalyzer, 1, ftSZerosuitBulletPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
     case 1: return wnArticleSlotGenerate<ftSZerosuitArticleActivator<wnSZerosuitParalyzerBullet> >(static_cast<wnArticlePool<wnSZerosuitParalyzerBullet, 2, ftSZerosuitWhipPool>&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
@@ -461,15 +489,18 @@ void ftSZerosuit::change(void* work, int mode) {
 // The whip starts at the hip node with the facing direction, the attack state and a fresh collision log group.
 // HYPOTHESIS: status kinds 0x113 and 0x114 are the first whip attacks, and 0x34/0x36/0x38 the tilts that link the whip to the model.
 bool ftSZerosuit::activeArticle(wnSZerosuitWhip* weapon, soModuleAccesser* acc) {
+    int isTilt;
+    int isSpecial;
+    int founderTaskId;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
     Vec3f pos = acc->getModelModule().getNodeGlobalPosition(0x36, false);
     float lr = acc->getPostureModule().getLr();
     int statusKind = acc->getStatusModule().getStatusKind();
-    int isSpecial = 1;
+    isSpecial = 1;
     if (statusKind != 0x113 && statusKind != 0x114) {
         isSpecial = 0;
     }
-    int isTilt = 0;
+    isTilt = 0;
     if (static_cast<u32>(statusKind - 0x34) <= 4 && ((1 << (statusKind - 0x34)) & 0x15)) {
         isTilt = 1;
     }
@@ -479,9 +510,8 @@ bool ftSZerosuit::activeArticle(wnSZerosuitWhip* weapon, soModuleAccesser* acc) 
         acc->getCollisionAttackModule().refLogGroup(0, logGroup);
     }
     soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = fighter.m_taskId;
-    int team = fighter.getOwner()->getTeam();
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), team, lr, &pos, isSpecial, isTilt, logGroup);
+    founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), fighter.getOwner()->getTeam(), lr, &pos, isSpecial, isTilt, logGroup);
     soLinkModule& link = acc->getLinkModule();
     if (isTilt) {
         if (link.link(3, weapon->getTaskId())) {
@@ -497,17 +527,19 @@ bool ftSZerosuit::activeArticle(wnSZerosuitWhip* weapon, soModuleAccesser* acc) 
 
 // One of the armor pieces flies off: the work counter picks the piece and its parameters.
 bool ftSZerosuit::activeArticle1(wnSZerosuitArmor* weapon, soModuleAccesser* acc) {
+    int founderTaskId;
+    int index;
+    u32* entry;
+    ftData* data;
     Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
-    ftData* data = g_ftCommonDataAccesser.getData(Fighter_SZeroSuit);
+    data = g_ftCommonDataAccesser.getData(Fighter_SZeroSuit);
     Vec3f pos = acc->getModelModule().getNodeGlobalPosition(0x36, false);
     acc->getPostureModule().getLr();
-    int index = acc->getWorkManageModule().getInt(0x10000040);
-    u32* entry = reinterpret_cast<u32*>(*reinterpret_cast<u8**>(reinterpret_cast<u8*>(data) + 0xa4) + index * 16);
+    index = acc->getWorkManageModule().getInt(0x10000040);
+    entry = reinterpret_cast<u32*>(*reinterpret_cast<u8**>(reinterpret_cast<u8*>(data) + 0xa4) + index * 16);
     soResourceModule& resources = acc->getResourceModule();
-    int founderTaskId = fighter.m_taskId;
-    int team = fighter.getOwner()->getTeam();
-    int mdlResIndex = resources.getResourceIdAccesser()->getMdlResIndex();
-    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), index, mdlResIndex, entry[0], entry[1], team);
+    founderTaskId = fighter.m_taskId;
+    weapon->activate(founderTaskId, resources.getResourceIdAccesser()->getEtcResId(), index, resources.getResourceIdAccesser()->getTexResId(), entry[0], entry[1], fighter.getOwner()->getTeam());
     return true;
 }
 
@@ -518,8 +550,7 @@ bool ftSZerosuit::shootArticle(wnSZerosuitArmor* weapon, soModuleAccesser* acc) 
     u8* entry = *reinterpret_cast<u8**>(reinterpret_cast<u8*>(data) + 0xa4) + index * 16;
     const float* range = static_cast<const float*>(data->extendParam[3]);
     float lr = acc->getPostureModule().getLr();
-    float speed = range[0] + (range[1] - range[0]) * randf();
-    weapon->shoot(*reinterpret_cast<int*>(entry + 4), speed, *reinterpret_cast<float*>(entry + 8), lr);
+    weapon->shoot(range[0] + (range[1] - range[0]) * randf(), *reinterpret_cast<float*>(entry + 8), lr, *reinterpret_cast<int*>(entry + 4));
     acc->getWorkManageModule().setInt(index + 1, 0x10000040);
     return false;
 }

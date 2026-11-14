@@ -33,6 +33,17 @@ static inline void applyDriftInput(soModuleAccesser* moduleAccesser, soDamageLog
     moduleAccesser->getPostureModule().setPos(&pos);
 }
 
+// motion kinds indexed [damage level][height variation]
+struct DamageMotionKinds {
+    int m_kinds[4][3];
+};
+static const DamageMotionKinds sDamageMotionKinds = { {
+    { 0x9E, 0x9B, 0x98 },
+    { 0x9F, 0x9C, 0x99 },
+    { 0xA0, 0x9D, 0x9A },
+    { 0, 0, 0 },
+} };
+
 ftStatusUniqProcessDamage::ftStatusUniqProcessDamage() { }
 
 ftStatusUniqProcessDamage g_ftStatusUniqProcessDamage;
@@ -70,21 +81,15 @@ void ftStatusUniqProcessDamage::initNormalDamageCommon(soModuleAccesser* moduleA
 
 void ftStatusUniqProcessDamage::initNormalDamage(soModuleAccesser* moduleAccesser) {
     soDamageLog* damageLog = moduleAccesser->getDamageModule().getDamageLog();
-    // motion kinds indexed [damage level][height variation]
-    int motionKinds[4][3] = {
-        { 0x9E, 0x9B, 0x98 },
-        { 0x9F, 0x9C, 0x99 },
-        { 0xA0, 0x9D, 0x9A },
-        { 0, 0, 0 },
-    };
+    DamageMotionKinds motionKinds = sDamageMotionKinds;
     int level = damageLog->m_level;
     int height = damageLog->m_height;
     if (level >= 3) {
         level = 2;
     }
-    int* row = motionKinds[level];
+    int* row = motionKinds.m_kinds[level];
     if (row[height] == moduleAccesser->getMotionModule().getKind()) {
-        height = randi(2) + height + 1;
+        height += randi(2) + 1;
         if (height >= 3) {
             height -= 3;
         }

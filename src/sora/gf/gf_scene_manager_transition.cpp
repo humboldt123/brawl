@@ -2,8 +2,7 @@
 #include <gf/gf_scene.h>
 
 static inline gfScene* findScene(gfSceneManager* manager, const char* name) {
-    const s32 count = manager->m_sceneCount;
-    for (s32 i = 0; i < count; i++) {
+    for (s32 i = 0; i < manager->m_sceneCount; i++) {
         if (std::strcmp(manager->m_scenes[i]->m_sceneName, name) == 0) {
             return manager->m_scenes[i];
         }
@@ -12,8 +11,7 @@ static inline gfScene* findScene(gfSceneManager* manager, const char* name) {
 }
 
 static inline gfSequence* findSequence(gfSceneManager* manager, const char* name) {
-    const s32 count = manager->m_sequenceCount;
-    for (s32 i = 0; i < count; i++) {
+    for (s32 i = 0; i < manager->m_sequenceCount; i++) {
         if (std::strcmp(manager->m_sequences[i]->m_sequenceName, name) == 0) {
             return manager->m_sequences[i];
         }

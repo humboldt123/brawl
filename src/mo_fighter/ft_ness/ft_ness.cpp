@@ -752,7 +752,7 @@ void ftNess::notifyEventCollisionAbsorber(soCollisionAttackModule* attackModule,
         work.setFloat(posY, 0x11000014);
         Vec3f node = moduleAccesser->getModelModule().getNodeGlobalOffsetFromTop(0x25);
         if (posY != posture.getLr()) {
-            node.m_x = node.m_x * -1.0f;
+            node.m_x *= -1.0f;
         }
         Vec3fAdd(&pos, &pos, &node);
         Vec3f delta;

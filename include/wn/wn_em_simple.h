@@ -162,6 +162,12 @@ class wnemSimple : public utWeaponObjectBase, public wnWeaponBuilder<wnemSimple_
 public:
     // The shot work block the activation (fn_41_3091C) copies from the firing enemy.
     wnemSimple_Data m_shotWork; // 0x2184
+#ifdef WN_EM_SIMPLE_UNIT
+    bool unk21B4;
+    bool unk21B5;
+    bool unk21B6;
+    bool unk21B7;
+#endif
     bool unk21B8;
     bool unk21B9;
     u8 unk21BA[0x1];
@@ -239,6 +245,8 @@ public:
     void setupCollisionHitStatus();
 #ifdef WN_EM_SIMPLE_UNIT
     bool setupParam(struct emShotParam* param, struct emWeaponParamWork* work, float lr);
+    void SetDefault();
+    void setupCollisionHitData(float posX, float scale, SituationKind situation, float lr);
 #endif
     void setupGroundData();
     void setupGlowModule();

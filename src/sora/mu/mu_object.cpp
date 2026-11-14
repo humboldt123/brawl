@@ -192,6 +192,11 @@ static inline gfModelAnimation* newModelAnimIdx(void* mem, nw4r::g3d::ResMdl mdl
     return __ct__16gfModelAnimationFd(mem, &file, &mdl, true, index, heap);
 }
 
+static inline gfModelAnimation* newModelAnimIdxCopy(void* mem, nw4r::g3d::ResMdl mdl, const nw4r::g3d::ResFile* filep, int index, Heaps::HeapType heap) {
+    nw4r::g3d::ResFile file = *filep;
+    return __ct__16gfModelAnimationFd(mem, &file, &mdl, true, index, heap);
+}
+
 static inline gfModelAnimation* newModelAnimName(void* mem, nw4r::g3d::ResMdl mdl, nw4r::g3d::ResFile file, const char* name, Heaps::HeapType heap) {
     return __ct1__16gfModelAnimationFd(mem, &file, &mdl, true, name, heap);
 }
@@ -432,7 +437,7 @@ void MuObject::initFromObject(MuObject* src, int drawPriority, int node, Heaps::
     }
     gfModelAnimation* anim = (gfModelAnimation*)operator new(0x20, heapType);
     if (anim != NULL) {
-        anim = newModelAnimIdx(anim, m_resMdl, src->m_resFile, node, heapType);
+        anim = newModelAnimIdxCopy(anim, m_resMdl, &src->m_resFile, node, heapType);
     }
     gfModelAnimation::bind(scnMdl, anim);
     m_scnMdl = scnMdl;

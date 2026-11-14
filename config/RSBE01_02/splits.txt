@@ -3688,11 +3688,8 @@ havok/hkPropertyClass.cpp:
 	.sdata2     start:0x805A41E8 end:0x805A4200
 
 havok/hkConstraintAtom.cpp:
-	.text       start:0x802D95D0 end:0x802D9AD8
+	.text       start:0x802D95D0 end:0x802D9ADC
 	.ctors      start:0x804066B4 end:0x804066B8
-
-havok/hk_weak_802D9AD8.cpp:
-	.text       start:0x802D9AD8 end:0x802D9ADC
 
 havok/hkConstraintAtomClasses.cpp:
 	.text       start:0x802D9ADC end:0x802DA104
@@ -3845,11 +3842,8 @@ havok/hkSpatialRigidBodyDeactivatorClass.cpp:
 	.rodata     start:0x80412DC8 end:0x80412F78
 	.bss        start:0x80533068 end:0x805330B0
 
-havok/hk_entity_callback_util_part0.cpp:
-	.text       start:0x802E3CD4 end:0x802E4044
-
-havok/hk_entity_callback_util.cpp:
-	.text       start:0x802E4044 end:0x802E4338
+havok/hkEntityCallbackUtil.cpp:
+	.text       start:0x802E3CD4 end:0x802E4338
 
 havok/hkMotion.cpp:
 	.text       start:0x802E4338 end:0x802E46B0
@@ -4037,7 +4031,7 @@ havok/hk3AxisSweep.cpp:
 	.text       start:0x8030880C end:0x80312F7C
 	.ctors      start:0x80406750 end:0x80406754
 
-havok/hk_weak_80312F7C.cpp:
+havok/hkBroadPhase.cpp:
 	extab       start:0x80008B18 end:0x80008B3C
 	extabindex  start:0x8000B9F8 end:0x8000BA10
 	.text       start:0x80312F7C end:0x80313088
@@ -4051,15 +4045,10 @@ havok/hkBroadPhaseHandleClass.cpp:
 	.bss        start:0x805332C8 end:0x805332F0
 	.sdata2     start:0x805A4648 end:0x805A4650
 
-havok/hkBroadPhase.cpp:
-	extab       start:0x80008B44 end:0x80008B4C
-	extabindex  start:0x8000BA1C end:0x8000BA28
-	.text       start:0x803130EC end:0x80313514
-
 havok/hkContinuousGsk.cpp:
-	extab       start:0x80008B4C end:0x80008B94
-	extabindex  start:0x8000BA28 end:0x8000BA94
-	.text       start:0x80313514 end:0x80315780
+	extab       start:0x80008B44 end:0x80008B94
+	extabindex  start:0x8000BA1C end:0x8000BA94
+	.text       start:0x803130EC end:0x80315780
 
 havok/hkGskManifoldUtil.cpp:
 	extab       start:0x80008B94 end:0x80008BEC

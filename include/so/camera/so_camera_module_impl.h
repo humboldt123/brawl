@@ -47,7 +47,12 @@ public:
     virtual void setPlayerNo(u8 playerNo, int index);
     virtual u8 getPlayerNo(u32 index);
     virtual void setDemoDistScaleMul(float, u32 index);
+#ifdef FT_FIGHTER_FIELDS
+    // BYTES: Fighter's damage notification passes an unsigned 16-bit value.
+    virtual void setDamage(unsigned short damage, u32 index);
+#else
     virtual void setDamage(short damage, u32 index);
+#endif
     virtual void setDamageFly(u32 index);
     virtual void exitDamageFly(u32 index);
     virtual void setRun(u32 index);

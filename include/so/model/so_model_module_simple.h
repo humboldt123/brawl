@@ -26,7 +26,7 @@ public:
     virtual void setUpMtxFinal() = 0;
     virtual void setUpSkinningMtx() = 0;
     virtual void clearSetUpMtx() = 0;
-#ifdef EM_ENEMY_BUILDER
+#if defined(EM_ENEMY_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
     // The Enemy unit passes the resource file as a plain pointer (0), the fourth argument as a 32-bit value (a u8/s8/int parameter shares the bool's li) and mdlResId as
     // 0xFFFF. HYPOTHESIS: these are the original parameter types; the other units keep the shared declaration.
     virtual void constructInstance(gfSceneRoot::LayerType, u32 flags, bool, u32, void* resFile, const char*, const char*, u32 mdlResId, void*, u8 loupeNo,
@@ -128,7 +128,7 @@ public:
     virtual void setUpMtxFinal();
     virtual void setUpSkinningMtx();
     virtual void clearSetUpMtx();
-#ifdef EM_ENEMY_BUILDER
+#if defined(EM_ENEMY_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
     // The Enemy unit passes the resource file as a plain pointer (0), the fourth argument as a 32-bit value (a u8/s8/int parameter shares the bool's li) and mdlResId as
     // 0xFFFF. HYPOTHESIS: these are the original parameter types; the other units keep the shared declaration.
     virtual void constructInstance(gfSceneRoot::LayerType, u32 flags, bool, u32, void* resFile, const char*, const char*, u32 mdlResId, void*, u8 loupeNo,

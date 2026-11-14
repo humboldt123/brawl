@@ -3,6 +3,7 @@
 #define FT_TEAM_TYPED_INTERFACE
 #define SO_ARRAY_SPLIT_VECTOR_CTOR
 #define FT_KIRBY_ARTICLE_POOLS
+#define MT_VEC3F_SCALE_FRESH_REGS
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/ft_manager.h>
 #include <ft/ft_reflector_group.h>
@@ -295,7 +296,6 @@ __declspec(weak) void testBuilder() {
     soInsideEventManageModuleBuilder<ftKirbyInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> insideBuilder;
     soResourceIdAccesserImpl idAccImpl(0, 1, 2);
 }
-soInsideEventManageModuleBuilder<ftKirbyInsideEventManageModuleBuildConfig, ftInsideEventManageModuleTypes> g_insideBuilder;
 
 // Trivial functions of this translation unit (empty virtuals, constant returns, field accessors) under their placeholder names.
 extern "C" {
@@ -304,8 +304,6 @@ extern "C" {
 __declspec(weak) u8 fn_96_28D0(u8* p) { return *(u8*)(p + 0x4); }
 __declspec(weak) int fn_96_BC6C(u8* p) { return *(int*)(p + 0x28); }
 int fn_96_C17C(u8* p) { return *(int*)(p + 0xc0); }
-int fn_96_F3AC(u8* p) { return *(int*)(p + 0x20); }
-int fn_96_F488(u8* p) { return *(int*)(p + 0x18); }
 int fn_96_115E8() { return 12; }
 void fn_96_12530() {}
 __declspec(weak) void fn_96_12C28() {}
@@ -591,8 +589,7 @@ void ftKirby::copySetup(soModuleAccesser* moduleAccesser, int slotNo, int copyKi
         }
         int entryId = m_entryId;
         ftManager* manager = g_ftManager;
-        bool spycloak = getOwner()->getSpycloak();
-        m_copyAbility.changeCopyAbility(copyKind, manager->getPlayerNo(entryId), spycloak, 0);
+        m_copyAbility.changeCopyAbility(copyKind, manager->getPlayerNo(entryId), getOwner()->getSpycloak(), 0);
         m_outsideEventPresenter.notifyEventKirbyCopySetup(copyKind);
         if (effect) {
             moduleAccesser->getSoundModule().playSE(static_cast<SndID>(0xc2e), false, false, 0);
@@ -609,9 +606,7 @@ void ftKirby::copyCancel(soModuleAccesser* moduleAccesser, bool effect) {
     moduleAccesser->getWorkManageModule().offFlag(0x1200001f);
     int entryId = m_entryId;
     ftManager* manager = g_ftManager;
-    bool copyStatus = isCopyStatus();
-    bool spycloak = getOwner()->getSpycloak();
-    m_copyAbility.changeCopyAbility(-1, manager->getPlayerNo(entryId), spycloak, copyStatus);
+    m_copyAbility.changeCopyAbility(-1, manager->getPlayerNo(entryId), getOwner()->getSpycloak(), isCopyStatus());
     if (effect) {
         moduleAccesser->getWorkManageModule().setInt(2, 0x1000004b);
         soGenerateArticleManageModule* generator = &moduleAccesser->getGenerateArticleManageModule();
@@ -1028,6 +1023,57 @@ bool ftKirby::activeArticle(wnKirbyHammer* article, soModuleAccesser* acc) {
     return true;
 }
 
+inline bool ftKirbyIsAir(soModuleAccesser* acc) {
+    return acc->getSituationModule().getKind() == Situation_Air;
+}
+
+bool ftKirby::activeArticle(wnKirbyCookHat* article, soModuleAccesser* acc) {
+    bool isAir = ftKirbyIsAir(acc);
+    soResourceModule& resource = acc->getResourceModule();
+    int founderTaskId = acc->getStageObject().m_taskId;
+    float lr = acc->getPostureModule().getLr();
+    int resId = dynamic_cast<ftResourceIdAccesserImpl&>(*resource.getResourceIdAccesser()).getFinalResId();
+    article->activate(founderTaskId, resId, lr, isAir);
+    return true;
+}
+
+bool ftKirby::activeArticle(wnKirbyFinalCutter* article, soModuleAccesser* acc) {
+    g_ftCommonDataAccesser.getData(Fighter_Kirby);
+    soGroundModule& ground = acc->getGroundModule();
+    soPostureModule& posture = acc->getPostureModule();
+    float angle;
+    float lr = posture.getLr();
+    angle = 0.0f;
+    Vec3f offset;
+    offset.m_x = 0.0f;
+    offset.m_y = soValueAccesser::getConstantFloat(acc, 0xfb0, 0);
+    offset.m_z = soValueAccesser::getConstantFloat(acc, 0xfaf, 0);
+    Matrix nodeMtx(true);
+    if (ground.isTouch(8, 0)) {
+        Vec2f normal;
+        normal = ground.getTouchNormal(8, 0);
+        float ny = normal.m_y;
+        float nx = normal.m_x;
+        angle = lr * (float)atan2(nx, ny);
+        Matrix rot(true);
+        rot.setRotateX(angle);
+        rot.mulVec(&offset, &offset);
+    }
+    Vec3fScale(&offset, &offset, posture.getScale());
+    acc->getModelModule().getNodeGlobalMtx(400, &nodeMtx, false);
+    Vec3f pos;
+    nodeMtx.mulPos(&offset, &pos);
+    pos.m_z = acc->getGroundModule().getZ();
+    Fighter& fighter = dynamic_cast<Fighter&>(acc->getStageObject());
+    soResourceModule& resource = acc->getResourceModule();
+    int team;
+    int founderTaskId = acc->getStageObject().m_taskId;
+    team = fighter.getOwner()->getTeam();
+    int resId = resource.getResourceIdAccesser()->getEtcResId();
+    article->activate(founderTaskId, resId, team, &pos, lr, angle);
+    return false;
+}
+
 // ---- the article mediator (slots 0..10: hammer, final cutter, starmissile, stone, nabe, cook hat, five simple articles) ----
 typedef soInstancePool<ftKirbyHammerInfo, ftKirbyArticlePool0Parent, ftKirbyArticleKindInfo, 0> ftKirbyHammerPool;
 typedef soInstancePool<ftKirbyFinalCutterInfo, ftKirbyArticlePool1Parent, ftKirbyArticleKindInfo, 1> ftKirbyFinalCutterPool;
@@ -1244,8 +1290,76 @@ bool soArticleMediatorImpl<PoolList, Founder>::shoot(soModuleAccesser* acc, soAr
     }
 }
 
+template <class W, class Level, class Predicate, int Tag>
+inline W* ftKirbyFindInPool(Level& pool, Predicate& checker, const soIntToType<Tag>&) {
+    return pool.getSub().find(checker);
+}
+
+template <class Activator, class W, class Level, int S, int L>
+inline soArticle* ftKirbySlotGenerate(Level& pool, soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    soArticleDeactivateChecker checker;
+    W* weapon = ftKirbyFindInPool<W>(pool, checker, soIntToType<0>());
+    if (weapon == NULL) {
+        weapon = static_cast<W*>(checker.getCandidate());
+        if (weapon == NULL) {
+            return wnGetNullArticle();
+        }
+        weapon->deactivateArticle();
+    }
+    if (Activator::activeArticle(weapon, acc) == true) {
+        return &static_cast<soArticle&>(*weapon);
+    }
+    return wnGetNullArticle();
+}
+
+template <int S, int L>
+inline soArticle* ftKirbySlotGenerateCopy(soModuleAccesser* acc, const soIntToType<S>&, const soIntToType<L>&) {
+    if (acc->getGenerateArticleManageModule().getNum(11) >= 2) {
+        return wnGetNullArticle();
+    }
+    int ownerTaskId = acc->getStageObject().m_taskId;
+    BaseItem* item = soArticleMediatorHelper::createItem(0x59, 11, ownerTaskId);
+    if (item == NULL) {
+        return wnGetNullArticle();
+    }
+    return soArticleMediatorHelper::castArticle(item);
+}
+
+template <class PoolList, class Founder>
+soArticle* soArticleMediatorImpl<PoolList, Founder>::generate(s32 articleId, soModuleAccesser* acc) {
+    switch (articleId) {
+    case 0: return ftKirbySlotGenerate<Founder, wnKirbyHammer>(static_cast<ftKirbyHammerPool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 1: return ftKirbySlotGenerate<Founder, wnKirbyFinalCutter>(static_cast<ftKirbyFinalCutterPool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 2: return ftKirbySlotGenerate<Founder, wnKirbyStarmissile>(static_cast<ftKirbyStarmissilePool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 3: return ftKirbySlotGenerate<Founder, wnKirbyStone>(static_cast<ftKirbyStonePool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 4: return ftKirbySlotGenerate<Founder, wnKirbyNabe>(static_cast<ftKirbyNabePool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 5: return ftKirbySlotGenerate<Founder, wnKirbyCookHat>(static_cast<ftKirbyCookHatPool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 6: return ftKirbySlotGenerate<Founder, wnSimple>(static_cast<ftKirbySimple6Pool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 7: return ftKirbySlotGenerate<Founder, wnSimple>(static_cast<ftKirbySimple7Pool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 8: return ftKirbySlotGenerate<Founder, wnSimple>(static_cast<ftKirbySimple8Pool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 9: return ftKirbySlotGenerate<Founder, wnSimple>(static_cast<ftKirbySimple9Pool&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    case 10: return ftKirbySlotGenerate<Founder, wnSimple>(static_cast<ftKirbySimple10PoolAlias&>(m_pools), acc, WN_ARTICLE_SLOT_TAGS);
+    // HYPOTHESIS: copy ability item uses article kind 0x59 when fewer than two exist.
+    case 11: return ftKirbySlotGenerateCopy(acc, WN_ARTICLE_SLOT_TAGS);
+    WN_ARTICLE_UNUSED_SLOT(12, wnGetNullArticle())
+    WN_ARTICLE_UNUSED_SLOT(13, wnGetNullArticle())
+    WN_ARTICLE_UNUSED_SLOT(14, wnGetNullArticle())
+    WN_ARTICLE_UNUSED_SLOT(15, wnGetNullArticle())
+    WN_ARTICLE_UNUSED_SLOT(16, wnGetNullArticle())
+    default: return wnGetNullArticle();
+    }
+}
+
+template soArticle* soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::generate(s32, soModuleAccesser*);
 template void soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::deactivate();
 template s32 soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::getGenerateMaxNum(s32);
 template s32 soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::getActiveNum(soModuleAccesser*, s32);
 template bool soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::isGeneratable(soModuleAccesser*, s32);
 template bool soArticleMediatorImpl<ftKirbyArticleList, ftKirby>::shoot(soModuleAccesser*, soArticle*);
+
+ftKineticEnergyController::~ftKineticEnergyController() { }
+// ftManager::setParamPattern selects the shared parameter-table variation.
+extern int g_soValueVariation;
+#pragma dont_inline on
+int soValueAccesser::getValueVariation() { return g_soValueVariation; }
+#pragma dont_inline off

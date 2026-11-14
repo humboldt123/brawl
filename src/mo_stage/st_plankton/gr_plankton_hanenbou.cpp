@@ -360,7 +360,7 @@ void grPlanktonHanenbou::playSELeaf(float* pos, u8 leafIndex) {
     if (90.0f < (float)fabs(angleBase)) {
         angleBase = 180.0f - (float)fabs(angleBase);
         if (negative) {
-            angleBase = angleBase * -1.0f;
+            angleBase *= -1.0f;
         }
     }
     float diff = (float)fabs(incoming - angleBase);

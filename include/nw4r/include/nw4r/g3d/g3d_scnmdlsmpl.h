@@ -52,6 +52,8 @@ namespace nw4r {
             short m_nodeIndex;
             char _spacer4[20];
 
+            ResMdl GetResMdl() const { return m_resMdl; }
+
             void EnableScnMdlCallbackTiming(u32 flags);
             void UpdateFrame();
             bool GetScnMtxPos(math::MTX34* pMtx, ScnObjMtxType type, u32 idx) const;

@@ -59,7 +59,11 @@ public:
     void open(const char* initial, char* buf, int maxLen);
     void getCandidacy(char* out, const char* letters, const char* current);
     int main(gfPadStatus* pad, char* out, bool allowRandom, bool playSound);
+#ifdef MU_NAME_CPP
+    void close() __attribute__((never_inline));
+#else
     void close();
+#endif
     void cursorMain(gfPadStatus* pad);
     int abButtonMain(gfPadStatus* pad, bool allowRandom);
     static bool changeLetter(char* out, const char* current);

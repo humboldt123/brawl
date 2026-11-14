@@ -27,6 +27,18 @@
 #include <havok/hkRigidBody.h>
 #include <havok/hkRegistry.h>
 #include <havok/hkWorldOperationUtil.h>
+#include <havok/hkFixedRigidMotion.h>
+#include <havok/hkStabilizedBoxMotion.h>
+#include <havok/hkThinBoxMotion.h>
+#include <havok/hkBoxMotion.h>
+#include <havok/hkStabilizedSphereMotion.h>
+#include <havok/hkSphereMotion.h>
+#include <havok/hkAabb.h>
+#include <havok/hkEntityCallbackUtil.h>
+#include <havok/hkRigidBodyDeactivator.h>
+#include <havok/hkWorldOperationQueue.h>
+#include <havok/hkWorldCallbackUtil.h>
+#include <havok/hkSimulation.h>
 
 void hkRigidBody::finishLoadedObjecthkRigidBody(void* p) {
     hkFinishLoadedObjectFlag flag;
@@ -59,6 +71,34 @@ void hkRigidBody::setDeactivator(hkEntityDeactivator* deactivator) {
     hkEntity::setDeactivator(deactivator);
 }
 #pragma pop
+
+// After a teleport: the body's agents are reset and it is put through the broad phase again; an inactive body
+// either wakes up or tells the world listeners that it moved.
+void hkRigidBody::updateBroadphaseAndResetCollisionInformationOfWarpedBody() {
+    hkWorld* world = m_world;
+    if (world) {
+        if (world->areCriticalOperationsLocked()) {
+            hkWorldOperationRecord op;
+            op.m_type = hkWorldOperation::UPDATE_MOVED_BODY_INFO;
+            op.m_object = this;
+            world->queueOperation(&op);
+            return;
+        }
+        world->lockCriticalOperations();
+        hkEntity* entity = this;
+        world->m_simulation->resetCollisionInformationForEntities(&entity, 1, world, false);
+        if (m_collidable.m_shape) {
+            hkSimulation::collideEntitiesBroadPhaseDiscrete(&entity, 1, world);
+        }
+        if (!(bool)isActive()) {
+            if ((bool)world->m_unkB6 && !(bool)isFixed()) {
+                activate();
+            }
+            hkWorldCallbackUtil::fireInactiveEntityMoved(world, this);
+        }
+        world->unlockAndAttemptToExecutePendingOperations();
+    }
+}
 
 void hkRigidBody::setPosition(const hkVector4& position) {
     getMotion()->setPosition(position);
@@ -112,8 +152,11 @@ static hkStaticTypeInfo hkRigidBodyTypeInfo("hkRigidBody", hkRigidBody::finishLo
 
 // Shape from https://github.com/jj-link/brawl src/havok/fn_802E2378.cpp.
 // hkCollidable::estimateAllowedPenetrationDepth (inline copy): 0.2 * the smallest extent below 0.5, else 0.1.
+// HYPOTHESIS: the unused float argument is the current depth (both callers pass it in f1).
 // TODO: cleanup (shape from jj-link/brawl fn_802E2378)
-extern "C" void fn_802E2378(char* collidable, const float* extents) {
+#pragma push
+#pragma auto_inline off
+extern "C" void fn_802E2378(char* collidable, hkReal currentDepth, const float* extents) {
     float a = extents[1];
     float c = extents[2];
     float b = extents[0];
@@ -124,6 +167,242 @@ extern "C" void fn_802E2378(char* collidable, const float* extents) {
         return;
     }
     *(float*)(collidable + 0x20) = 0.1f;
+}
+#pragma pop
+
+
+// BYTES: the square root estimate goes through a double here (the hkVector4::length3 form gives other registers).
+static inline hkReal hkRigidBody_length3(const hkVector4& v) {
+    hkReal x = v.lengthSquared3();
+    hkReal inv;
+    if (x <= 0.0f) {
+        u32 bits = 0x7f800000;
+        inv = *(hkReal*)&bits;
+    } else {
+        double estimate = __frsqrte(x);
+        hkReal r = (hkReal)estimate;
+        inv = (0.5f * r) * -(r * (x * r) - 3.0f);
+    }
+    return 1.0f / inv;
+}
+
+// Caches the shape's extent and the body's bounding radius around the center of mass.
+// BYTES: not an inline candidate (its three callers call it).
+#pragma push
+#pragma auto_inline off
+void hkRigidBody::updateCachedShapeInfo(hkShape* shape, hkVector4* extentOut) {
+    hkAabb aabb;
+    shape->getAabb(hkTransform::getIdentity(), 0.0f, aabb);
+    extentOut->setSub4(aabb.m_max, aabb.m_min);
+    hkReal radius = 0.5f * hkRigidBody_length3(*extentOut);
+
+    hkVector4 centerShapeSpace;
+    centerShapeSpace.setAdd4(aabb.m_min, aabb.m_max);
+    centerShapeSpace.mul4(0.5f);
+    hkVector4 massCenterToAabbCenter;
+    massCenterToAabbCenter.setSub4(centerShapeSpace, m_motion.m_motionState.m_sweptTransform.m_centerOfMassLocal);
+    radius += hkRigidBody_length3(massCenterToAabbCenter);
+    m_motion.m_motionState.m_objectRadius = radius;
+}
+#pragma pop
+
+void hkRigidBody::createDynamicRigidMotion(hkMotion::MotionType motionType, const hkVector4& position,
+                                           const hkQuaternion& rotation, hkReal mass, hkReal maxLinearVelocity,
+                                           hkReal maxAngularVelocity, const hkMatrix3& inertiaLocal,
+                                           const hkVector4& centerOfMassLocal, hkMotion* motionBuffer) {
+    hkMotion* motion = motionBuffer;
+    switch (motionType) {
+    case hkMotion::MOTION_SPHERE_INERTIA:
+        motion = new (motion) hkSphereMotion(position, rotation);
+        break;
+    case hkMotion::MOTION_BOX_INERTIA:
+        motion = new (motion) hkBoxMotion(position, rotation);
+        break;
+    case hkMotion::MOTION_THIN_BOX_INERTIA:
+        motion = new (motion) hkThinBoxMotion(position, rotation);
+        break;
+    case hkMotion::MOTION_STABILIZED_SPHERE_INERTIA:
+        motion = new (motion) hkStabilizedSphereMotion(position, rotation);
+        break;
+    case hkMotion::MOTION_STABILIZED_BOX_INERTIA:
+        motion = new (motion) hkStabilizedBoxMotion(position, rotation);
+        break;
+    case hkMotion::MOTION_DYNAMIC: {
+        // Nearly isotropic inertia gives a sphere, a moderate spread a box, a large one a thin box.
+        hkReal i0 = inertiaLocal.m_col0.x;
+        hkReal i1 = inertiaLocal.m_col1.y;
+        hkReal i2 = inertiaLocal.m_col2.z;
+        hkReal maxI = i1 > i2 ? i1 : i2;
+        maxI = i0 > maxI ? i0 : maxI;
+        hkReal minI = i1 < i2 ? i1 : i2;
+        minI = i0 < minI ? i0 : minI;
+        if (minI > 0.8f * maxI) {
+            motion = new (motion) hkSphereMotion(position, rotation);
+        } else if (minI > 0.1f * maxI) {
+            motion = new (motion) hkBoxMotion(position, rotation);
+        } else {
+            motion = new (motion) hkThinBoxMotion(position, rotation);
+        }
+        break;
+    }
+    case hkMotion::MOTION_KEYFRAMED:
+        maxLinearVelocity = 1000000.0f;
+        maxAngularVelocity = 1000000.0f;
+        motion = new (motion) hkKeyframedRigidMotion(position, rotation);
+        break;
+    default:
+        motion = new (motion) hkFixedRigidMotion(position, rotation);
+        break;
+    }
+
+    if (motionType != hkMotion::MOTION_KEYFRAMED) {
+        motion->setInertiaLocal(inertiaLocal);
+        motion->setCenterOfMassInLocal(centerOfMassLocal);
+        motion->setMass(mass);
+    }
+    motion->m_motionState.m_maxLinearVelocity = maxLinearVelocity;
+    motion->m_motionState.m_deactivationCounter = 20;
+    motion->m_motionState.m_maxAngularVelocity = maxAngularVelocity;
+}
+
+hkRigidBody::hkRigidBody(const hkRigidBodyCinfo& info) : hkEntity(info.m_shape) {
+    m_material.setResponseType(info.m_collisionResponse);
+    m_processContactCallbackDelay = info.m_processContactCallbackDelay;
+    m_collidable.m_broadPhaseHandle.m_collisionFilterInfo = info.m_collisionFilterInfo;
+
+    if (info.m_motionType == hkMotion::MOTION_FIXED) {
+        hkMotion* motion = new (&m_motion) hkFixedRigidMotion(info.m_position, info.m_rotation);
+        motion->m_motionState.m_maxLinearVelocity = info.m_maxLinearVelocity;
+        motion->m_motionState.m_maxAngularVelocity = info.m_maxAngularVelocity;
+        motion->setDeactivationClass(1);
+        m_collidable.m_motion = (hkMotion*)&m_motion.m_motionState;
+        if (info.m_allowedPenetrationDepth <= 0.0f) {
+            m_collidable.m_allowedPenetrationDepth = 3.40282e38f;
+        } else {
+            m_collidable.m_allowedPenetrationDepth = info.m_allowedPenetrationDepth;
+        }
+    } else {
+        createDynamicRigidMotion(info.m_motionType, info.m_position, info.m_rotation, info.m_mass, info.m_maxLinearVelocity,
+                    info.m_maxAngularVelocity, info.m_inertiaTensor, info.m_centerOfMass, &m_motion);
+        m_motion.setDeactivationClass(info.m_solverDeactivation);
+        setLinearVelocity(info.m_linearVelocity);
+        setAngularVelocity(info.m_angularVelocity);
+        m_collidable.m_motion = (hkMotion*)&m_motion.m_motionState;
+        setDeactivator(info.m_rigidBodyDeactivatorType);
+        m_collidable.m_allowedPenetrationDepth = info.m_allowedPenetrationDepth;
+    }
+
+    hkReal linearDamping, angularDamping;
+    linearDamping = info.m_linearDamping;
+    angularDamping = info.m_angularDamping;
+    m_motion.m_motionState.m_linearDamping = linearDamping;
+    m_motion.m_motionState.m_angularDamping = angularDamping;
+
+    if (m_collidable.m_shape) {
+        hkVector4 extents;
+        updateCachedShapeInfo(m_collidable.m_shape, &extents);
+        if (m_collidable.m_allowedPenetrationDepth <= 0.0f) {
+            fn_802E2378((char*)&m_collidable, m_collidable.m_allowedPenetrationDepth, &extents.x);
+        }
+    }
+
+    if (info.m_qualityType != hkRigidBodyCinfo::QUALITY_INVALID) {
+        m_collidable.m_broadPhaseHandle.m_objectQualityType = info.m_qualityType;
+    } else if (isFixed()) {
+        m_collidable.m_broadPhaseHandle.m_objectQualityType = 1;
+    } else if (info.m_motionType == hkMotion::MOTION_KEYFRAMED) {
+        m_collidable.m_broadPhaseHandle.m_objectQualityType = 2;
+    } else {
+        m_collidable.m_broadPhaseHandle.m_objectQualityType = 3;
+    }
+
+    m_autoRemoveLevel = info.m_autoRemoveLevel;
+    hkReal friction, restitution;
+    friction = info.m_friction;
+    restitution = info.m_restitution;
+    m_material.m_friction = friction;
+    m_material.m_restitution = restitution;
+}
+
+// MATCH-ONLY: the original keeps each field's load next to its store (scheduling off reproduces that, apart from
+// the prologue order).
+#pragma push
+#pragma scheduling off
+void hkRigidBody::getCinfo(hkRigidBodyCinfo& info) const {
+    info.m_autoRemoveLevel = m_autoRemoveLevel;
+    info.m_processContactCallbackDelay = m_processContactCallbackDelay;
+    info.m_rigidBodyDeactivatorType = m_deactivator
+                                          ? ((hkRigidBodyDeactivator*)m_deactivator)->getRigidBodyDeactivatorType()
+                                          : hkRigidBodyDeactivator::DEACTIVATOR_NEVER;
+    info.m_friction = m_material.m_friction;
+    info.m_collisionResponse = (hkMaterial::ResponseType)m_material.m_responseType;
+    info.m_restitution = m_material.m_restitution;
+    info.m_linearDamping = m_motion.m_motionState.m_linearDamping;
+    info.m_angularDamping = m_motion.m_motionState.m_angularDamping;
+    info.m_linearVelocity = m_motion.m_linearVelocity;
+    info.m_angularVelocity = m_motion.m_angularVelocity;
+    info.m_mass = m_motion.getMass();
+    m_motion.getInertiaLocal(info.m_inertiaTensor);
+    info.m_motionType = (hkMotion::MotionType)m_motion.m_type;
+    info.m_solverDeactivation = (hkRigidBodyCinfo::SolverDeactivation)m_motion.m_motionState.m_deactivationClass;
+    info.m_maxLinearVelocity = m_motion.m_motionState.m_maxLinearVelocity;
+    info.m_maxAngularVelocity = m_motion.m_motionState.m_maxAngularVelocity;
+    info.m_position = m_motion.m_motionState.m_transform.m_translation;
+    info.m_rotation = m_motion.m_motionState.m_sweptTransform.m_rotation1;
+    info.m_centerOfMass = m_motion.m_motionState.m_sweptTransform.m_centerOfMassLocal;
+    info.m_shape = m_collidable.m_shape;
+    info.m_collisionFilterInfo = m_collidable.m_broadPhaseHandle.m_collisionFilterInfo;
+    info.m_allowedPenetrationDepth = m_collidable.m_allowedPenetrationDepth;
+    info.m_qualityType = (hkRigidBodyCinfo::QualityType)m_collidable.m_broadPhaseHandle.m_objectQualityType;
+}
+#pragma pop
+
+bool hkRigidBody::setShape(hkShape* shape) {
+    if (m_world && m_world->areCriticalOperationsLocked()) {
+        struct {
+            u8 m_type;            // 0x00 HYPOTHESIS: the record of the queued shape change
+            hkRigidBody* m_body;  // 0x04
+            hkShape* m_shape;     // 0x08
+        } op;
+        op.m_type = hkWorldOperation::WORLD_OBJECT_SET_SHAPE;
+        op.m_body = this;
+        op.m_shape = shape;
+        m_world->queueOperation(&op);
+        return false;
+    }
+
+    if (m_world) {
+        m_world->lockCriticalOperations();
+        hkWorldOperationUtil::removeEntityBP(m_world, this);
+    }
+
+    hkBool hadShape = m_collidable.m_shape != NULL;
+    if (m_collidable.m_shape) {
+        m_collidable.m_shape->removeReference();
+    }
+    m_collidable.m_shape = shape;
+    shape->addReference();
+
+    hkVector4 extents;
+    updateCachedShapeInfo(shape, &extents);
+    // an estimated penetration depth is estimated again for the new shape
+    if (hadShape && m_collidable.m_allowedPenetrationDepth != 3.40282e38f) {
+        m_collidable.m_allowedPenetrationDepth = -1.0f;
+    }
+    if (m_collidable.m_allowedPenetrationDepth <= 0.0f) {
+        fn_802E2378((char*)&m_collidable, m_collidable.m_allowedPenetrationDepth, &extents.x);
+    }
+
+    if (m_world) {
+        hkWorldCallbackUtil::fireEntityShapeSet(m_world, this);
+    }
+    hkEntityCallbackUtil::fireEntityShapeSet(this);
+
+    if (m_world) {
+        hkWorldOperationUtil::addEntityBP(m_world, this);
+        m_world->unlockAndAttemptToExecutePendingOperations();
+    }
+    return true;
 }
 
 // TODO: cleanup (shape from jj-link/brawl fn_802E3284)

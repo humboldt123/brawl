@@ -134,10 +134,9 @@ void muSnapShotTask::onPreCheckFinished() { }
 
 void muSnapShotTask::getMineLabel(muCollectionMsgBuf* buf) {
     void* data = m_work->m_msgFile[0].m_handle.getBuffer();
-    u32 size;
-    char* text;
-    getPrintIndexData__7MessageFPvUlPPcPUl(data, 3, &text, &size);
-    buf->append(text, size);
+    muSnapShotLabel label;
+    getPrintIndexData__7MessageFPvUlPPcPUl(data, 3, &label.m_text, &label.m_size);
+    buf->append(label.m_text, label.m_size);
 }
 
 void muSnapShotTask::addObjCore(void* obj) {
@@ -165,9 +164,9 @@ void muSnapShotTask::setPanelStateCore(int state, int unk) {
     static const char* sPanelNameA = "MenSnap_TopN__0";
     static const char* sPanelNameB = "MenSnap_TopN__0";
     static muCollectionViewer::PanelMotionTable sTable(sPanelNameA, sPanelNameB);
-    m_work->m_objs[1]->setAnimName(&sTable.m_anim[sTable.m_index[state]], false);
+    m_work->m_objs[1]->setAnimName(&sTable.m_anim[0][sTable.m_index[state]], false);
     if (unk != 0) {
-        m_work->m_objs[23]->setAnimName(&sTable.m_anim[sTable.m_index[state]] + 11, false);
+        m_work->m_objs[23]->setAnimName(&sTable.m_anim[1][sTable.m_index[state]], false);
     }
     m_work->m_panelState = state;
 }

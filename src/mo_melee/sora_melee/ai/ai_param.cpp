@@ -3,55 +3,6 @@
 #include <ai/ai_param.h>
 #include <mt/mt_prng.h>
 
-// aiIpBuf: a 16-frame history of the stick and buttons a CPU character pressed.
-
-aiIpBuf::aiIpBuf() {
-    for (int i = 0; i < 16; i++) {
-        m_stick[i] = Vec2f(0.0f, 0.0f);
-        m_button[i] = 0;
-    }
-    m_index = 0;
-}
-
-void aiIpBuf::update(Vec2f* stick, u32* button) {
-    m_index++;
-    if (m_index >= 16) {
-        m_index = 0;
-    }
-    m_stick[m_index] = *stick;
-    m_button[m_index] = *button;
-}
-
-void aiIpBuf::getData(int framesBack, Vec2f* stick, u32* button) {
-    if (framesBack < 0) {
-        framesBack = 0;
-    } else if (framesBack >= 16) {
-        framesBack = 15;
-    }
-    framesBack = m_index - framesBack;
-    if (framesBack < 0) {
-        framesBack += 16;
-    }
-    if (stick != NULL) {
-        *stick = m_stick[framesBack];
-    }
-    if (button != NULL) {
-        *button = m_button[framesBack];
-    }
-}
-
-Vec2f aiIpBuf::getStick(int framesBack) {
-    Vec2f stick;
-    getData(framesBack, &stick, NULL);
-    return stick;
-}
-
-u32 aiIpBuf::getButton(int framesBack) {
-    u32 button;
-    getData(framesBack, NULL, &button);
-    return button;
-}
-
 // aiParam: reads the per-character AI tuning (sizes, jump reach, attack flags).
 
 static inline int aiClampRank(int rank) {
@@ -552,4 +503,53 @@ int get_motnum_chr(ftKind kind) {
     default:
         return -1;
     }
+}
+
+// aiIpBuf: a 16-frame history of the stick and buttons a CPU character pressed.
+
+aiIpBuf::aiIpBuf() {
+    for (int i = 0; i < 16; i++) {
+        m_stick[i] = Vec2f(0.0f, 0.0f);
+        m_button[i] = 0;
+    }
+    m_index = 0;
+}
+
+void aiIpBuf::update(Vec2f* stick, u32* button) {
+    m_index++;
+    if (m_index >= 16) {
+        m_index = 0;
+    }
+    m_stick[m_index] = *stick;
+    m_button[m_index] = *button;
+}
+
+void aiIpBuf::getData(int framesBack, Vec2f* stick, u32* button) {
+    if (framesBack < 0) {
+        framesBack = 0;
+    } else if (framesBack >= 16) {
+        framesBack = 15;
+    }
+    framesBack = m_index - framesBack;
+    if (framesBack < 0) {
+        framesBack += 16;
+    }
+    if (stick != NULL) {
+        *stick = m_stick[framesBack];
+    }
+    if (button != NULL) {
+        *button = m_button[framesBack];
+    }
+}
+
+Vec2f aiIpBuf::getStick(int framesBack) {
+    Vec2f stick;
+    getData(framesBack, &stick, NULL);
+    return stick;
+}
+
+u32 aiIpBuf::getButton(int framesBack) {
+    u32 button;
+    getData(framesBack, NULL, &button);
+    return button;
 }

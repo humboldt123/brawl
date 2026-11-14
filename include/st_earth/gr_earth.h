@@ -34,6 +34,14 @@ extern "C" bool isCollisionStatusOwnerTask__6GroundFP12grCollStatusPi(Ground* gr
 
 #include <st_earth/st_earth.h>
 
+// Drops a random item from the stage's item table (the kind is the stage kind, variation 0).
+static inline void grEarthLotCreateStageItem(itManager* items, itGenId genId, Vec3f* pos) {
+    ItemKind kind;
+    kind.m_kind = static_cast<itKind>(g_Stage->m_stageKind);
+    kind.m_variation = 0;
+    items->lotCreateItem(reinterpret_cast<itGenSheetKind&>(kind), genId, pos, -1, -1, static_cast<itKind>(-1));
+}
+
 // The length of a vector (the originals have it inline: the sum of the squares is turned into the length with the reciprocal
 // square root, and zero for a vector of nothing).
 static inline float grEarthVecLength(Vec3f* v) {

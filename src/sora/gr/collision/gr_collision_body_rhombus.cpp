@@ -396,20 +396,23 @@ void grCollisionTestRhombus::ajustShape() {
     float height = m_cornerOffsetUp.m_y - m_cornerOffsetDown.m_y;
     float curWidth = m_unk2bc->getWidth();
     float curHeight = m_unk2bc->getHeight();
-    if (m_unk2E4.m_x <= m_shape1.m_rhombus.m_leftPos.m_x) {
-        m_unk2E4.m_x = m_shape1.m_rhombus.m_leftPos.m_x + 0.1f;
-    } else if (m_shape1.m_rhombus.m_rightPos.m_x <= m_unk2E4.m_x) {
-        m_unk2E4.m_x = m_shape1.m_rhombus.m_rightPos.m_x - 0.1f;
+    float leftX = m_shape1.m_rhombus.m_leftPos.m_x;
+    float rightX = m_shape1.m_rhombus.m_rightPos.m_x;
+    float upY = m_shape1.m_rhombus.m_upPos.m_y;
+    float downY = m_shape1.m_rhombus.m_downPos.m_y;
+    if (m_unk2E4.m_x <= leftX) {
+        m_unk2E4.m_x = leftX + 0.1f;
+    } else if (rightX <= m_unk2E4.m_x) {
+        m_unk2E4.m_x = rightX - 0.1f;
     }
-    if (m_unk2E4.m_y <= m_shape1.m_rhombus.m_downPos.m_y) {
-        m_unk2E4.m_y = m_shape1.m_rhombus.m_downPos.m_y + 0.1f;
-    } else if (m_shape1.m_rhombus.m_upPos.m_y <= m_unk2E4.m_y) {
-        m_unk2E4.m_y = m_shape1.m_rhombus.m_upPos.m_y - 0.1f;
+    if (m_unk2E4.m_y <= downY) {
+        m_unk2E4.m_y = downY + 0.1f;
+    } else if (upY <= m_unk2E4.m_y) {
+        m_unk2E4.m_y = upY - 0.1f;
     }
     clRhombus2D* rhombus = &m_shape1.m_rhombus;
-    Vec2f center = m_unk2bc->getCenterPos();
     Vec2f space;
-    calcSpace(&center, &space);
+    calcSpace(&m_unk2bc->getCenterPos(), &space);
     // BUG: both branches of this comparison are identical in the original (one branch alone does not match).
     if (curWidth < width) {
         if (width <= space.m_x - 0.02f) {
@@ -429,24 +432,30 @@ void grCollisionTestRhombus::ajustShape() {
     if (curHeight < height) {
         if (height <= space.m_y - 0.02f) {
             if (m_collStatus->m_setting == grCollStatus::Setting_Ground) {
-                float y = rhombus->m_downPos.m_y - m_cornerOffsetDown.m_y;
+                float downOffset = m_cornerOffsetDown.m_y;
+                float y = rhombus->m_downPos.m_y - downOffset;
+                float upOffset = m_cornerOffsetUp.m_y;
                 rhombus->m_centerPos.m_y = y;
                 rhombus->m_rightPos.m_y = y;
-                rhombus->m_upPos.m_y = y + m_cornerOffsetUp.m_y;
+                rhombus->m_upPos.m_y = y + upOffset;
                 rhombus->m_leftPos.m_y = y;
             } else {
                 float y = rhombus->m_centerPos.m_y;
+                float upOffset = m_cornerOffsetUp.m_y;
+                float downOffset = m_cornerOffsetDown.m_y;
                 rhombus->m_rightPos.m_y = y;
                 rhombus->m_leftPos.m_y = y;
-                rhombus->m_downPos.m_y = y + m_cornerOffsetDown.m_y;
-                rhombus->m_upPos.m_y = y + m_cornerOffsetUp.m_y;
+                rhombus->m_downPos.m_y = y + downOffset;
+                rhombus->m_upPos.m_y = y + upOffset;
             }
         }
     } else {
-        float y = rhombus->m_downPos.m_y - m_cornerOffsetDown.m_y;
+        float downOffset = m_cornerOffsetDown.m_y;
+        float y = rhombus->m_downPos.m_y - downOffset;
+        float upOffset = m_cornerOffsetUp.m_y;
         rhombus->m_centerPos.m_y = y;
         rhombus->m_rightPos.m_y = y;
-        rhombus->m_upPos.m_y = y + m_cornerOffsetUp.m_y;
+        rhombus->m_upPos.m_y = y + upOffset;
         rhombus->m_leftPos.m_y = y;
     }
 }
@@ -1463,11 +1472,6 @@ static inline bool isActiveGiven(grCollisionLineWork* lw, bool valid) {
     return active;
 }
 
-// Bytes 16 and 17 of a line (the m_noAttach.. flags and the material) as one halfword; masked with m_exclusiveLineAttr.
-static inline u16 getLineAttr(grCollisionLine* line) {
-    return *(u16*)((u8*)line + 0x10);
-}
-
 // Does the rhombus' upper corner, moving from m_shape1 to m_shape2, hit the line (a floor-less line seen from below)?
 // rate = in/out: the lowest rate of a hit so far. The corner itself is swept against the line; then the neighbour lines
 // that continue to the left / right are tested with the point where the line ends above the corner.
@@ -1673,7 +1677,7 @@ int grCollisionTestRhombus::testLeft(grCollisionLineWork* lineWork, float* rate)
         grCollisionLineWork next;
         Vec2f onLine;
         lineWork->getNext(&next);
-        if (isEnabledLineWork(&next) && lineIsUnder(&next) && (getLineAttr(next.m_collisionLine) & m_exclusiveLineAttr) == 0 &&
+        if (isEnabledLineWork(&next) && lineIsUnder(&next) && (*(u16*)((u8*)next.m_collisionLine + 0x10) & m_exclusiveLineAttr) == 0 &&
             !fn_80137114(m_collStatus, &next)) {
             from = cur->m_downPos;
             to = m_shape2.m_rhombus.m_downPos;
@@ -1773,7 +1777,7 @@ int grCollisionTestRhombus::testRight(grCollisionLineWork* lineWork, float* rate
         grCollisionLineWork prev;
         Vec2f onLine;
         lineWork->getPrev(&prev);
-        if (isEnabledLineWork(&prev) && lineIsUnder(&prev) && (getLineAttr(prev.m_collisionLine) & m_exclusiveLineAttr) == 0 &&
+        if (isEnabledLineWork(&prev) && lineIsUnder(&prev) && (*(u16*)((u8*)prev.m_collisionLine + 0x10) & m_exclusiveLineAttr) == 0 &&
             !fn_80137114(m_collStatus, &prev)) {
             from = cur->m_downPos;
             to = m_shape2.m_rhombus.m_downPos;
@@ -1815,20 +1819,20 @@ int grCollisionTestRhombus::testRight(grCollisionLineWork* lineWork, float* rate
 // Snaps each corner of m_shape2 onto the one of m_shape1 when it moves less than 1e-5 (rounding noise of the interpolation),
 // then records which corners of m_shape1 and m_shape2 are identical in m_unmovedMask.
 void grCollisionTestRhombus::testCollisionSetup() {
-    Vec2f upMove = m_shape2.m_rhombus.m_upPos - m_shape1.m_rhombus.m_upPos;
-    if (upMove.length() < 0.00001f) {
+    Vec2f move = m_shape2.m_rhombus.m_upPos - m_shape1.m_rhombus.m_upPos;
+    if (move.length() < 0.00001f) {
         m_shape2.m_rhombus.m_upPos = m_shape1.m_rhombus.m_upPos;
     }
-    Vec2f downMove = m_shape2.m_rhombus.m_downPos - m_shape1.m_rhombus.m_downPos;
-    if (downMove.length() < 0.00001f) {
+    move = m_shape2.m_rhombus.m_downPos - m_shape1.m_rhombus.m_downPos;
+    if (move.length() < 0.00001f) {
         m_shape2.m_rhombus.m_downPos = m_shape1.m_rhombus.m_downPos;
     }
-    Vec2f leftMove = m_shape2.m_rhombus.m_leftPos - m_shape1.m_rhombus.m_leftPos;
-    if (leftMove.length() < 0.00001f) {
+    move = m_shape2.m_rhombus.m_leftPos - m_shape1.m_rhombus.m_leftPos;
+    if (move.length() < 0.00001f) {
         m_shape2.m_rhombus.m_leftPos = m_shape1.m_rhombus.m_leftPos;
     }
-    Vec2f rightMove = m_shape2.m_rhombus.m_rightPos - m_shape1.m_rhombus.m_rightPos;
-    if (rightMove.length() < 0.00001f) {
+    move = m_shape2.m_rhombus.m_rightPos - m_shape1.m_rhombus.m_rightPos;
+    if (move.length() < 0.00001f) {
         m_shape2.m_rhombus.m_rightPos = m_shape1.m_rhombus.m_rightPos;
     }
     m_unmovedMask = 0;
@@ -2148,7 +2152,7 @@ int grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXLeft(grCollisionLin
 
 // 0x8012D39C: sweeps the down/right corner pair; the neighbour line is next.
 void grCollisionTestRhombus::testCollisionMoveSlatingLineMoveXRightDown(grCollisionLineWork* lineWork, float* rate) {
-    bool hit = false;
+    int hit = false;
     clRhombus2D* rhombus2 = &m_shape2.m_rhombus;
     clQuad2D quad;
     grCollSegmentEx seg;

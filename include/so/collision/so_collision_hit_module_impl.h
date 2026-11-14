@@ -81,6 +81,20 @@ class soCollisionHitModuleImpl : public soCollisionHitModule, public soStatusEve
 
 public:
     soModuleAccesser* m_moduleAccesser;
+#ifdef SO_COLLISION_HIT_MODULE_IMPL_FIELDS
+    soArray<soCollisionHitPart>* m_collisionHitPartArray;
+    u32 m_hitPartCount;
+    soCollision m_collision;
+    char _80[8];
+    soArray<soCollisionHitGroup>* m_collisionHitGroupArray;
+    int m_5c;
+    int m_prevTotalStatus;
+    short m_reactionFrame;
+    u16 unk66_0 : 1;
+    u16 m_isSleep : 1;
+    u16 unk66_2 : 1;
+    u16 unk66_3 : 13;
+#else
     char _48[8];
     soCollision m_collision;
     char _80[8];
@@ -88,6 +102,7 @@ public:
     char _92[8];
     short m_reactionFrame;
     char _102[2];
+#endif
 
     virtual ~soCollisionHitModuleImpl();
     virtual void activate(float, float, float, u32 collisionIndex, u32 collisionHitGroupIndex);

@@ -224,12 +224,16 @@ void stKart::update(float deltaFrame) {
 // The area the camera shows (the karts are put out of the picture when they leave it).
 void stKart::updateLimit(float deltaFrame) {
     CameraController* camera = CameraController::getInstance();
+    float left;
     float top = camera->unk160;
-    m_limit[0].m_x = camera->unk158;
+    left = camera->unk158;
+    m_limit[0].m_x = left;
     m_limit[0].m_y = top;
     m_limit[0].m_z = 0.0f;
+    float bottom;
     float right = camera->unk164;
-    m_limit[1].m_x = camera->unk15C;
+    bottom = camera->unk15C;
+    m_limit[1].m_x = bottom;
     m_limit[1].m_y = right;
     m_limit[1].m_z = 0.0f;
 }

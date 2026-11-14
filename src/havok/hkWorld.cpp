@@ -62,14 +62,9 @@
 #include <havok/hkMonitorStream.h>
 #include <havok/hkEntity.h>
 #include <havok/hkBroadPhase.h>
-
-// Operation record queued while the world is locked (8 bytes). HYPOTHESIS: field names; the
-// type byte selects the deferred operation, the object pointer is its argument.
-struct hkWorldOperationRecord {
-    u8 m_type;      // 0x00
-    void* m_object; // 0x04
-};
-
+#include <havok/hkConstraintChainInstance.h>
+#include <havok/hkAction.h>
+#include <havok/hkSimulationIsland.h>
 
 void hkWorld::lock() {}
 
@@ -101,6 +96,77 @@ void hkWorld::removeWorldDeletionListener(hkWorldDeletionListener* listener) {
 
 
 // returns NULL when the add got queued because the world was locked
+// hkConstraintInstance::pointNullsToFixedRigidBody (unsplit hkConstraintInstance code). HYPOTHESIS: name.
+extern "C" void fn_802DE8BC(hkConstraintInstance* constraint);
+
+hkConstraintInstance* hkWorld::addConstraint(hkConstraintInstance* constraint) {
+    if (areCriticalOperationsLocked()) {
+        hkWorldOperationRecord op;
+        op.m_type = hkWorldOperation::CONSTRAINT_ADD;
+        op.m_object = constraint;
+        queueOperation(&op);
+        return NULL;
+    }
+
+    // Older assets leave the child sizes of a breakable constraint at 0: fill them on the first add.
+    if (constraint->getData()->getType() == 12) {
+        hkBreakableConstraintData* data = static_cast<hkBreakableConstraintData*>(constraint->getData());
+        if (data->m_childRuntimeSize == 0) {
+            hkConstraintRuntimeInfo info;
+            data->m_constraintData->getRuntimeInfo(true, info);
+            data->m_childRuntimeSize = info.unk00;
+            data->m_childNumSolverResults = info.unk04;
+        }
+    }
+
+    hkConstraintInstance* result;
+    m_unk84 = true;
+    {
+        fn_802DE8BC(constraint);
+        result = hkWorldOperationUtil::addConstraintImmediately(this, constraint, true);
+        if (constraint->getType() == hkConstraintInstance::TYPE_CHAIN) {
+            hkConstraintChainInstance* chain = static_cast<hkConstraintChainInstance*>(constraint);
+            if (chain->m_action->m_world == NULL) {
+                addAction(chain->m_action);
+            }
+            if (chain->m_chainedEntities.getSize() - 1 < chain->getData()->getNumConstraintInfos()) {
+                // (a warning in debug builds)
+            }
+        }
+    }
+    m_unk84 = false;
+    if (m_lockCount == 0 && m_pendingOperationsCount != 0 && !(bool)m_unk84) {
+        internal_executePendingOperations();
+    }
+    return result;
+}
+
+// BYTES: not an inline candidate (removePhysicsSystem calls it out of line).
+#pragma push
+#pragma auto_inline off
+hkBool hkWorld::removeConstraint(hkConstraintInstance* constraint) {
+    if (areCriticalOperationsLocked()) {
+        hkWorldOperationRecord op;
+        op.m_type = hkWorldOperation::CONSTRAINT_REMOVE;
+        op.m_object = constraint;
+        queueOperation(&op);
+        return false;
+    }
+
+    lockCriticalOperations();
+    if (constraint->getType() == hkConstraintInstance::TYPE_CHAIN) {
+        // the chain's action goes with it
+        hkAction* action = static_cast<hkConstraintChainInstance*>(constraint)->m_action;
+        if (action->m_world == this) {
+            removeActionImmediately(action);
+        }
+    }
+    hkWorldOperationUtil::removeConstraintImmediately(this, constraint, true);
+    unlockAndAttemptToExecutePendingOperations();
+    return true;
+}
+#pragma pop
+
 hkPhantom* hkWorld::addPhantom(hkPhantom* phantom) {
     if (m_lockCount + m_unk80 != 0) {
         hkWorldOperationRecord op;
@@ -221,6 +287,76 @@ int hkWorld::stepDeltaTime(hkReal physicsDeltaTime) {
         }
     }
     return result;
+}
+
+hkAction* hkWorld::addAction(hkAction* action) {
+    if (areCriticalOperationsLocked()) {
+        hkWorldOperationRecord op;
+        op.m_type = hkWorldOperation::ACTION_ADD;
+        op.m_object = action;
+        queueOperation(&op);
+        return NULL;
+    }
+
+    action->addReference();
+    lockCriticalOperations();
+
+    hkInplaceArray<hkEntity*, 4> entities;
+    action->getEntities(entities);
+    action->m_world = this;
+
+    hkEntity* firstMovableEntity = NULL;
+    for (int i = 0; i < entities.getSize(); ++i) {
+        entities[i]->m_actions.pushBack(action);
+        hkSimulationIsland* island = entities[i]->m_simulationIsland;
+        if (!(bool)island->isFixed()) {
+            if (firstMovableEntity == NULL) {
+                firstMovableEntity = entities[i];
+                island->addAction(action);
+            } else if (firstMovableEntity->m_simulationIsland != entities[i]->m_simulationIsland) {
+                // the action joins the islands of its entities
+                hkWorldOperationUtil::mergeIslands(this, firstMovableEntity, entities[i]);
+            }
+        }
+    }
+
+    // When all entities are fixed, the action goes to the fixed island.
+    if (firstMovableEntity == NULL) {
+        entities[0]->m_simulationIsland->addAction(action);
+    }
+
+    unlockAndAttemptToExecutePendingOperations();
+    hkWorldCallbackUtil::fireActionAdded(this, action);
+    return action;
+}
+
+void hkWorld::removeActionImmediately(hkAction* action) {
+    // temporary reference while the callbacks run
+    action->addReference();
+    lockCriticalOperations();
+    hkWorldCallbackUtil::fireActionRemoved(this, action);
+    {
+        hkInplaceArray<hkEntity*, 4> entities;
+        action->getEntities(entities);
+        for (int i = 0; i < entities.getSize(); ++i) {
+            int idx = entities[i]->m_actions.indexOf(action);
+            entities[i]->m_actions.removeAt(idx);
+        }
+
+        hkSimulationIsland* island = action->m_island;
+        island->removeAction(action);
+        action->m_world = NULL;
+        action->removeReference();
+
+        // put the island on the world's dirty island list (an array at 0x40) for the end-of-step bookkeeping
+        hkWorld* world = island->m_world;
+        if (island->m_dirtyListIndex == 0xFFFF) {
+            island->m_dirtyListIndex = world->m_unk40.m_size;
+            ((hkArray<hkSimulationIsland*>&)world->m_unk40).pushBack(island);
+        }
+    }
+    unlockAndAttemptToExecutePendingOperations();
+    action->removeReference();
 }
 
 #pragma dont_inline on

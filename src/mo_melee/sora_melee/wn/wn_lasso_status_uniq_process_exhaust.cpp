@@ -16,19 +16,23 @@ public:
 
 wnLassoStatusUniqProcessExhaust g_wnLassoStatusUniqProcessExhaust;
 
+static inline void wnLassoChangeMotionExhaust(soModuleAccesser* moduleAccesser) {
+    soMotionChangeParam motionParam;
+    motionParam.m_kind = -1;
+    motionParam.m_frame = 0.0f;
+    motionParam.m_rate = 1.0f;
+    motionParam._12 = 0;
+    motionParam._13 = 0;
+    motionParam._14 = 0;
+    motionParam._15 = 0;
+    moduleAccesser->getMotionModule().changeMotionRequest(&motionParam);
+}
+
 void wnLassoStatusUniqProcessExhaust::initStatus(soModuleAccesser* moduleAccesser) {
     if (moduleAccesser->getWorkManageModule().isFlag(0x12000003)) {
         moduleAccesser->getWorkManageModule().offFlag(0x12000003);
         // HYPOTHESIS: motion kind -1 with the frame and rate constants from lbl_27_rodata_2B50 / 2B54 (values unverified).
-        soMotionChangeParam motionParam;
-        motionParam.m_kind = -1;
-        motionParam.m_frame = 0.0f;
-        motionParam.m_rate = 1.0f;
-        motionParam._12 = 0;
-        motionParam._13 = 0;
-        motionParam._14 = 0;
-        motionParam._15 = 0;
-        moduleAccesser->getMotionModule().changeMotionRequest(&motionParam);
+        wnLassoChangeMotionExhaust(moduleAccesser);
         moduleAccesser->getWorkManageModule().onFlag(0x22000000);
         int count = moduleAccesser->getWorkManageModule().getInt(0x10000005);
         Vec3f linkPos = wnLassoGetLink(moduleAccesser)->unk174VecOut();

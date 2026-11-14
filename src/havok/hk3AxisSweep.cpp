@@ -101,6 +101,14 @@ hk3AxisSweep::hkBpAxis::hkBpAxis() {
     m_capacityAndFlags = DONT_DEALLOCATE_FLAG;
 }
 
+// The axes and the node array are destroyed as members after the body.
+hk3AxisSweep::~hk3AxisSweep() {
+    for (int i = 0; i < m_numMarkers; i++) {
+        m_markers[i].~hkBpCheckMarker();
+    }
+    hkMemory::getInstance().deallocate(m_markers);
+}
+
 const hk3AxisSweep::hkBpEndPoint* hk3AxisSweep::hkBpAxis::find(const hkBpEndPoint* begin, const hkBpEndPoint* end, u16 value) const {
     const hkBpEndPoint* lo = begin;
     const hkBpEndPoint* hi = end;
@@ -145,25 +153,25 @@ void hk3AxisSweep::hkBpAxis::insert(hkBpNode* node, int id, u16 minKey, u16 maxK
 }
 
 int hk3AxisSweep::getNumObjects() const {
-    return m_numNodes - 1;
+    return m_nodes.m_size - 1;
 }
 
 void hk3AxisSweep::getAabb(const hkBroadPhaseHandle* handle, hkAabb& aabb) const {
-    getAabbFromNode(&m_nodes[handle->m_id], aabb);
+    getAabbFromNode(&m_nodes.begin()[handle->m_id], aabb);
 }
 
 int hk3AxisSweep::getAabbCacheSize() const {
-    return (m_numNodes - m_numMarkers) * 2 * sizeof(hkBpAxis) + 0x24;
+    return (m_nodes.m_size - m_numMarkers) * 2 * sizeof(hkBpAxis) + 0x24;
 }
 
 void hk3AxisSweep::getAllAabbs(hkArray<hkAabb>& aabbs) const {
-    if (aabbs.getCapacity() < m_numNodes - m_numMarkers) {
-        hkArrayUtil::_reserve(&aabbs, m_numNodes - m_numMarkers, sizeof(hkAabb));
+    if (aabbs.getCapacity() < m_nodes.m_size - m_numMarkers) {
+        hkArrayUtil::_reserve(&aabbs, m_nodes.m_size - m_numMarkers, sizeof(hkAabb));
     }
-    aabbs.m_size = m_numNodes - m_numMarkers;
+    aabbs.m_size = m_nodes.m_size - m_numMarkers;
     int out = 0;
-    for (int i = 0; i < m_numNodes; i++) {
-        const hkBpNode* node = &m_nodes[i];
+    for (int i = 0; i < m_nodes.m_size; i++) {
+        const hkBpNode* node = &m_nodes.begin()[i];
         if (((u32)node->m_handle & 1) == 0) {
             getAabbFromNode(node, aabbs.begin()[out]);
             out++;
@@ -267,7 +275,7 @@ void hk3AxisSweep::setBitsBasedOnXInterval(int count, int minKey, const hkBpNode
             int otherId = *entry;
             if (otherId != id) bits[otherId >> 5] ^= 1u << (otherId & 31);
         }
-        const hkBpNode& markerNode = m_nodes[marker.m_nodeId];
+        const hkBpNode& markerNode = m_nodes.begin()[marker.m_nodeId];
         cursor = m_axes[0].begin() + (markerNode.m_index[4] + 1);
         const hkBpEndPoint* end = m_axes[0].begin() + markerNode.m_index[5];
         for (; cursor < end; ++cursor) {
@@ -299,16 +307,16 @@ void hk3AxisSweep::reQuerySingleObject(const hkBroadPhaseHandle* handle,
     const u32* word;
     const hkBpNode* query;
     const hkBpNode* block;
-    int count = m_numNodes;
+    int count = m_nodes.m_size;
     bits = (u32*)hkThreadMemory::s_instance->allocateStack(((count >> 5) + 8) * sizeof(u32));
     word = bits;
-    query = &m_nodes[handle->m_id];
+    query = &m_nodes.begin()[handle->m_id];
     setBitsBasedOnXInterval(count, m_axes[0][query->m_index[4]].m_value,
                            *query, (u16)handle->m_id, bits);
     hkBroadPhaseHandlePair pair;
     pair.m_a = (hkTypedBroadPhaseHandle*)handle;
-    const u32* end = bits + (m_numNodes >> 5) + 1;
-    block = m_nodes;
+    const u32* end = bits + (m_nodes.m_size >> 5) + 1;
+    block = m_nodes.begin();
     for (; word < end; block += 32, ++word) {
         const hkBpNode* candidate = block;
         u32 candidates = *word;

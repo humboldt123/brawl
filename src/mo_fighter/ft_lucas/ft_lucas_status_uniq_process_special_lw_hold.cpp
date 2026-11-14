@@ -6,17 +6,14 @@
 #include <so/sound/so_sound_module_impl.h>
 #include <so/work/so_work_manage_module_impl.h>
 
-extern float lbl_114_rodata_B0[];
-
 void ftLucasStatusUniqProcessSpecialLwHold::initStatus(soModuleAccesser* moduleAccesser) {
-    float* constants = lbl_114_rodata_B0;
     // HYPOTHESIS: these flags configure the absorber group for PSI Magnet.
     moduleAccesser->getCollisionAbsorberModule().setStatus(0, 1, 0);
     if (moduleAccesser->getWorkManageModule().getInt(0x20000003) < 0) {
         int effectId = moduleAccesser->getEffectModule().reqFollow(static_cast<EfID>(0x1B000F), 2,
-            &Vec3f(constants[0], constants[1], constants[2]),
-            &Vec3f(constants[0], constants[0], constants[0]),
-            constants[3], false, 0, 0, -1);
+            &Vec3f(0.0f, 6.5f, 10.0f),
+            &Vec3f(0.0f, 0.0f, 0.0f),
+            0.9f, false, 0, 0, -1);
         moduleAccesser->getWorkManageModule().setInt(effectId, 0x20000003);
     }
     if (moduleAccesser->getWorkManageModule().getInt(0x20000002) < 0) {

@@ -102,6 +102,11 @@ static inline void addMaxCheck(u32* dst, u32 add, u32 max) {
     *dst = result;
 }
 
+// The same saturated sum, returned instead of stored.
+static inline u32 addMax(u32 total, u32 add, u32 max) {
+    return (add > max || total > max - add) ? max : total + add;
+}
+
 // HYPOTHESIS: the largest value of a play count in the record.
 #define GM_COUNT_MAX 99999999
 
@@ -546,18 +551,18 @@ u32 gmGetVsMeleeTotalCount() {
 
 u32 gmGetOfflineVsMeleeTotalCount() {
     u32 total = 0;
-    addMaxCheck(&total, *g_GameGlobal->getGlobalRecordVsTimeMeleeCountDatap(), GM_COUNT_MAX);
-    addMaxCheck(&total, *g_GameGlobal->getGlobalRecordVsStockMeleeCountDatap(), GM_COUNT_MAX);
-    addMaxCheck(&total, *g_GameGlobal->getGlobalRecordVsCoinMeleeCountDatap(), GM_COUNT_MAX);
-    addMaxCheck(&total, *g_GameGlobal->getGlobalRecordVsHpMeleeCountDatap(), GM_COUNT_MAX);
+    total = addMax(total, *g_GameGlobal->getGlobalRecordVsTimeMeleeCountDatap(), GM_COUNT_MAX);
+    total = addMax(total, *g_GameGlobal->getGlobalRecordVsStockMeleeCountDatap(), GM_COUNT_MAX);
+    total = addMax(total, *g_GameGlobal->getGlobalRecordVsCoinMeleeCountDatap(), GM_COUNT_MAX);
+    total = addMax(total, *g_GameGlobal->getGlobalRecordVsHpMeleeCountDatap(), GM_COUNT_MAX);
     return total;
 }
 
 u32 gmGetOnlineVsMeleeTotalCount() {
     u32 total = 0;
-    addMaxCheck(&total, *g_GameGlobal->getGlobalRecordOnlineVsTimeMeleeCountDatap(), GM_COUNT_MAX);
-    addMaxCheck(&total, *g_GameGlobal->getGlobalRecordOnlineVsStockMeleeCountDatap(), GM_COUNT_MAX);
-    addMaxCheck(&total, *g_GameGlobal->getGlobalRecordOnlineVsCoinMeleeCountDatap(), GM_COUNT_MAX);
+    total = addMax(total, *g_GameGlobal->getGlobalRecordOnlineVsTimeMeleeCountDatap(), GM_COUNT_MAX);
+    total = addMax(total, *g_GameGlobal->getGlobalRecordOnlineVsStockMeleeCountDatap(), GM_COUNT_MAX);
+    total = addMax(total, *g_GameGlobal->getGlobalRecordOnlineVsCoinMeleeCountDatap(), GM_COUNT_MAX);
     return total;
 }
 

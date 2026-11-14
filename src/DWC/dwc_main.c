@@ -35,15 +35,16 @@ typedef struct DWCMatchControlView
     u8 qr2ShutdownFlag;
     u8 _019[0xCB];
     ServerBrowser sbObj;
-    u8 _0E8[0x10];
+    u8 _0E8[0xC];
     int sbPidList[32];
-    u8 _178[0x2C];
+    u8 _174[0x2C];
     DWCMatchState state;
-    u8 _1A8[0x138];
+    u8 _1A4[0x130];
     u8 aidList[DWC_MAX_CONNECTIONS];
     u32 validAidBitmap;
-    // HYPOTHESIS: Brawl's match control is 0xC8 bytes larger.
-    u8 _318[0x248];
+    // HYPOTHESIS: Brawl's match control is 0xC8 bytes larger; its sbPidList
+    // sits 4 bytes and its aidList 0xC bytes lower than the SDK layout.
+    u8 _30C[0x254];
 } DWCMatchControlView;
 
 typedef struct DWCstControl

@@ -11,6 +11,7 @@ struct hkQuaternion {
     // Out of line (hkSimulation.o): rotation by angle around axis.
     hkQuaternion(const hkVector4& axis, hkReal angle);
 
+    void setIdentity() { m_vec.set(0.0f, 0.0f, 0.0f, 1.0f); }
     void setAxisAngle(const hkVector4& axis, hkReal angle);
     // Builds the quaternion from a rotation matrix (calls hkQuadReal::quaternionFromRotatation).
     void set(const hkRotation& r);

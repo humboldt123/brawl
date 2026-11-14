@@ -970,7 +970,8 @@ void stDxZebes::grZebesWaterInit() {
     if ((u32)random >= (u32)range) {
         random = range;
     }
-    m_acidTimer = sAcidLevels[m_acidStep].m_wait + random;
+    s16 wait = sAcidLevels[m_acidStep].m_wait;
+    m_acidTimer = wait + random;
     m_acidState = 1;
     m_acidRate = 0.0f;
     m_acidSpeed = 0.0f;
@@ -980,9 +981,7 @@ void stDxZebes::grZebesWaterInit() {
         level++;
         last++;
     }
-    float height = (float)sAcidLevels[last].m_height + (7.0f - 14.0f * randf());
-    m_acidTarget = height;
-    m_acidHeight = height;
+    m_acidTarget = m_acidHeight = (float)sAcidLevels[last].m_height + (7.0f - 14.0f * randf());
 }
 
 // The acid: waits, then rises or falls to the next level of the table, shaking the camera while it does.

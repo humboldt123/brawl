@@ -81,7 +81,7 @@ public:
     // The names of the animations of a panel (11 for the left panel and 11 for the right one) and for each state of the
     // panel the one to play. HYPOTHESIS: the sizes follow from how the snapshot menu uses the table.
     struct PanelMotionTable {
-        MuAnimNameData m_anim[22];
+        MuAnimNameData m_anim[2][11]; // [panel][animation]
         u8 m_index[12];             // 0x1B8
 
         PanelMotionTable(const char* nameLeft, const char* nameRight);

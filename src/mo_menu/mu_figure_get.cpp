@@ -158,14 +158,18 @@ void muFigureGetTask::processDefault() {
 
 // Creates the models of the table; they are stored in the slots of the task and start with the animation "__0".
 void muFigureGetTask::createObjResFile(const muFigureGetModel* models, int count, nw4r::g3d::ResFile* resFile) {
-    for (int i = 0; i < count; i++) {
-        const muFigureGetModel* model = &models[i];
-        int num = 1;
+    int num;
+    int i;
+    int j;
+    const muFigureGetModel* model = models;
+    MuObject* object;
+    for (i = 0; i < count; i++, model++) {
+        num = 1;
         if (model->m_start < model->m_end) {
             num = model->m_end - model->m_start;
         }
-        for (int j = 0; j < num; j++) {
-            MuObject* object = MuObject::create(resFile, model->m_name, model->m_priority, NULL, Heaps::MenuInstance);
+        for (j = 0; j < num; j++) {
+            object = MuObject::create(resFile, model->m_name, model->m_priority, NULL, Heaps::MenuInstance);
             m_objects[model->m_start + j] = object;
             char animName[0x40];
             strcpy(animName, model->m_name);
@@ -207,11 +211,10 @@ void muFigureGetTask::mainStepRequestInit(muFigureGetTask* task) {
     sprintf(path, "/toy/fig/%s.brres", task->m_figMng->getFigDataId(task->m_figId)->name);
     task->m_handles[400].readRequest(path, Heaps::MenuResource, 0, 0);
     task->m_handles[200].readRequest("/toy/fig/Stand.brres", Heaps::MenuResource, 0, 0);
-    // HYPOTHESIS: the high bit of the byte at 0x28 of the menu data says that the screen is wide
-    if ((reinterpret_cast<u8*>(g_GameGlobal->getGlobalRecordMenuDatap())[0x28] >> 7) != 0) {
-        task->m_handles[500].readRequest("/menu/defaultcamera/FigureGetWide_0.brres", Heaps::MenuResource, 0, 0);
-    } else {
+    if (!g_GameGlobal->getGlobalRecordMenuDatap()->m_isWidescreen) {
         task->m_handles[500].readRequest("/menu/defaultcamera/FigureGet_0.brres", Heaps::MenuResource, 0, 0);
+    } else {
+        task->m_handles[500].readRequest("/menu/defaultcamera/FigureGetWide_0.brres", Heaps::MenuResource, 0, 0);
     }
     task->m_archive = new (Heaps::MenuInstance) gfArchive();
     fn_800151FC(task->m_archive, "toy/figdisp/figdisp.pac", Heaps::MenuResource, 0, 0, 0xFF);

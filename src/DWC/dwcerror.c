@@ -12,11 +12,11 @@ s32 DWC_GetLastErrorEx(s32* code, s32* type) {
     if (code != NULL) *code = lbl_805A0F4C;
     if (type != NULL) {
         switch (lbl_805A0F48) {
-        case 1: case 9: *type = 7; break;
         case 2: case 3: case 4: case 5: case 8: *type = 6; break;
         case 6: *type = 3; break;
         case 7: *type = 4; break;
         case 10: case 11: case 12: case 13: *type = 1; break;
+        case 1: case 9: *type = 7; break;
         case 14: *type = 5; break;
         case 15: case 17: case 20: *type = 6; break;
         case 16: case 18: case 21: *type = 2; break;

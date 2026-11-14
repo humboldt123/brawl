@@ -63,7 +63,11 @@ public:
     ftSZerosuitTransactor();
     virtual ~ftSZerosuitTransactor();
     bool activeArticle(wnSZerosuitWhip* weapon, soModuleAccesser* acc);
+#ifdef FT_SZEROSUIT_TRANSACTOR_3ARG
+    bool activeArticle1(wnSZerosuitParalyzer* weapon, soModuleAccesser* acc, u32 etcResId);
+#else
     bool activeArticle1(wnSZerosuitParalyzer* weapon, soModuleAccesser* acc);
+#endif
     bool activeArticle2(wnSZerosuitParalyzerBullet* weapon, soModuleAccesser* acc);
 };
 

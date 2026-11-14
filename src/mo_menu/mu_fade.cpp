@@ -15,14 +15,18 @@ CFadeColor::~CFadeColor() { }
 
 CLinearColor::~CLinearColor() { }
 
+static inline void clearFadeColors(CLinearColor* lc) {
+    lc->m_start = CFadeColor();
+    lc->m_end = CFadeColor();
+    lc->m_current = CFadeColor();
+}
+
 void CLinearColor::initialize(CFadeColor color) {
     m_enabled = true;
     m_running = false;
     m_frame = 0.0f;
     m_duration = 0.0f;
-    m_start = CFadeColor();
-    m_end = CFadeColor();
-    m_current = CFadeColor();
+    clearFadeColors(this);
     m_current = color;
 }
 

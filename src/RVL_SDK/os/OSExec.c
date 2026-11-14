@@ -221,19 +221,17 @@ static BOOL fn_801D900C(char *addr, int argc, char **argv) {
     return TRUE;
 }
 
-// jumps to the entry point of whatever was just loaded (a real call in the original, not inlined)
-#pragma push
-#pragma auto_inline off
-static void fn_801D91D8(register void (*entry)(void)) {
-    ICFlashInvalidate();
-    asm {
-        sync
-        isync
-        mtctr entry
-        bctr
-    }
+// jumps to the entry point of whatever was just loaded
+static asm void fn_801D91D8(register void (*entry)(void)) {
+    fralloc
+    bl ICFlashInvalidate
+    sync
+    isync
+    mtctr entry
+    bctr
+    frfree
+    blr
 }
-#pragma pop
 
 static void fn_801D9214(void) {
     ResetDone = 1;

@@ -87,9 +87,16 @@ public:
     void updateEnd() { }
 };
 
-class stActTriggerFrameExcelCB : public stTriggerCB {
+// HYPOTHESIS: unk8 is initialized by a non-virtual base, before the derived vtable store.
+class stActTriggerFrameCBZero {
 public:
     u32 unk8;
+
+    stActTriggerFrameCBZero() : unk8(0) { }
+};
+
+class stActTriggerFrameExcelCB : public stTriggerCB, public stActTriggerFrameCBZero {
+public:
     float unkC;
     bool unk10;
     char _spacer11[3];

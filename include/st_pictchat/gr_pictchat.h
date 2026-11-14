@@ -142,18 +142,6 @@ public:
     virtual void setNodeHeader(const char* nodeHeader);
     virtual void setTblCollCtrlAcc(stDataContainer* tblCollCtrl);
 
-    // The joints of the picture are made soft again (the bits of the hard floor are cleared).
-    void clearJoints() {
-        if (m_joints != NULL) {
-            u32 i = 0;
-            u8 count = m_jointNum;
-            for (; i != count; i++) {
-                grCollisionJoint* joint = m_joints[i];
-                joint->m_0x54_6 = joint->m_0x54_4 = joint->m_0x54_7 = false;
-            }
-        }
-    }
-
     static grPictchatPict* create(int mdlIndex, const char* tgtNodeName, const char* taskName);
 };
 static_assert(sizeof(grPictchatPict) == 0x294, "Class is wrong size!");

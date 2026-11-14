@@ -50,7 +50,7 @@ extern "C" void fn_6_1ECC(muCollectionViewer* viewer);
 extern "C" void fn_6_1CC0(muCollectionViewer* viewer, const u8* table, int count);
 extern "C" int fn_6_308C(muCollectionViewer* viewer, int* cursor);
 // muCollectionViewer::createNoticeWindow(text), controlLoadStart() and controlLoading()
-extern "C" void fn_6_535C(muCollectionViewer* viewer, void* text);
+extern "C" void fn_6_535C(muCollectionViewer* viewer, const char* text, int size);
 extern "C" void fn_6_5F24(muCollectionViewer* viewer);
 extern "C" void fn_6_5F9C(muCollectionViewer* viewer);
 // the summary of a file of the collection
@@ -206,10 +206,9 @@ void muReplayTask::initMsg() {
 
 void muReplayTask::getMineLabel(muCollectionMsgBuf* buf) {
     void* data = m_work->m_msgFile[0].m_handle.getBuffer();
-    u32 size;
-    char* text;
-    getPrintIndexData__7MessageFPvUlPPcPUl(data, 0xB, &text, &size);
-    buf->append(text, size);
+    muReplayLabel label;
+    getPrintIndexData__7MessageFPvUlPPcPUl(data, 0xB, &label.m_text, &label.m_size);
+    buf->append(label.m_text, label.m_size);
 }
 
 void muReplayTask::addObjCore(void* obj) {
@@ -237,9 +236,9 @@ void muReplayTask::setPanelStateCore(int state, int unk) {
     static const char* sPanelName = "MenReplayPanel_TopN__0";
     static const char* sCursorName = "MenReplayCursor_TopN__0";
     static muCollectionViewer::PanelMotionTable sTable(sPanelName, sCursorName);
-    m_work->m_objs[1]->setAnimName(&sTable.m_anim[sTable.m_index[state]], false);
+    m_work->m_objs[1]->setAnimName(&sTable.m_anim[0][sTable.m_index[state]], false);
     if (unk != 0) {
-        m_work->m_objs[23]->setAnimName(&sTable.m_anim[sTable.m_index[state]] + 11, false);
+        m_work->m_objs[23]->setAnimName(&sTable.m_anim[1][sTable.m_index[state]], false);
     }
     m_work->m_panelState = state;
 }
@@ -257,7 +256,7 @@ void muReplayTask::onDecided() {
             void* data = m_work->m_msgFile[2].m_handle.getBuffer();
             getPrintIndexData__7MessageFPvUlPPcPUl(data, 0x3A, &label.m_text, &label.m_size);
             notice.append(label.m_text, label.m_size);
-            fn_6_535C(this, &notice);
+            fn_6_535C(this, notice.m_data, notice.m_size);
         } else {
             m_work->m_state = 4;
             MuObject* object = m_work->m_objs[24];

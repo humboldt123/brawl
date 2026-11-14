@@ -313,6 +313,58 @@ struct gmGlobalRecord {
         gmDiagramResult m_diagram;  // 0x48 the per-character records of the Chronicle diagrams
         u16 unk98;
         char _9A[0x2];
+#ifdef MU_SELCHAR_UNIT_DECLS
+        union SelCharView {
+            struct {
+                union {
+                    struct {
+                        u16 : 1;
+                        u16 unk9C_14 : 1;
+                        u16 unk9C_13 : 1;
+                        u16 unk9C_12 : 1;
+                        u16 unk9C_11 : 1;
+                        u16 : 11;
+                    };
+                    struct {
+                        u16 : 8;
+                        u16 unk9C_7 : 3;
+                        u16 : 5;
+                    };
+                    struct {
+                        u16 : 5;
+                        u16 unk9C_b10 : 3;
+                        u16 : 8;
+                    };
+                    struct {
+                        u16 unk9C_15 : 1;
+                        u16 : 10;
+                        u16 unk9C_4 : 3;
+                        u16 : 2;
+                    };
+                };
+                u8 _pad[0x30 - 2];
+                struct {
+                    u32 : 1;
+                    u32 unk0_30 : 1;
+                    u32 unk0_low : 30;
+                } unkCC[5];
+            };
+            struct {
+                u8 _pad0[4];
+                u32 unk4;
+                u32 unk8;
+                u32 unkC;
+                u32 unk10;
+                u32 unk14;
+                u32 unk18;
+                u32 unk1C;
+                u32 unk20;
+                u32 unk24;
+                u32 unk28;
+                u16 unk2C;
+            };
+        };
+#endif
         union {
             u8 unk9C[0x44];
             // HYPOTHESIS: All-Star clear difficulty and score share this record.
@@ -353,6 +405,9 @@ struct gmGlobalRecord {
                 char _9E[0xA];
                 u32 unkA8;
             };
+#ifdef MU_SELCHAR_UNIT_DECLS
+            SelCharView m_selCharView;
+#endif
         };
     };
     static_assert(sizeof(CharaNumData) == 0xE0, "Class is wrong size!");
@@ -479,7 +534,41 @@ struct gmGlobalRecord {
             u8 unk352B;
         };
     };
+#ifdef MU_SELCHAR_UNIT_DECLS
+    union {
+        u8 unk3548[0x44];
+        struct {
+            union {
+                struct {
+                    u16 : 1;
+                    u16 unk0_14 : 1;
+                    u16 unk0_13 : 1;
+                    u16 unk0_12 : 1;
+                    u16 unk0_11 : 1;
+                    u16 unk0_8 : 3;
+                    u16 unk0_7 : 1;
+                    u16 unk0_6 : 1;
+                    u16 unk0_5 : 1;
+                    u16 unk0_4 : 1;
+                    u16 unk0_3 : 1;
+                    u16 unk0_2 : 1;
+                    u16 unk0_1 : 1;
+                    u16 unk0_0 : 1;
+                };
+            } flags;
+            u8 _pad354A[2];
+            u32 scores[8];
+            struct {
+                u8 char0;
+                u8 color0;
+                u8 char1;
+                u8 color1;
+            } pairs[8];
+        } m_onlinePairRecord;
+    };
+#else
     u8 unk3548[0x44];
+#endif
     char _358C[0x764];
 };
 static_assert(offsetof(gmGlobalRecord, m_infoAppFlagData) == 0x1C, "Class is wrong size!");

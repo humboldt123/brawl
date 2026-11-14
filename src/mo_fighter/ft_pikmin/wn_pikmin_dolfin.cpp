@@ -178,7 +178,7 @@ void wnPikminDolfin::updateNodeSRT() {
     if (m_moduleAccesser->getStatusModule().getStatusKind() == 1 || m_moduleAccesser->getStatusModule().getStatusKind() == 2) {
         Vec2f dir = m_moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(-1));
         float angle = m_moduleAccesser->getWorkManageModule().getFloat(0x21000000);
-        float target = (float)atan2(dir.m_x, dir.m_y) * 57.29578f * -1.0f;
+        float target = atan2f(dir.m_x, dir.m_y) * 57.29578f * -1.0f;
         angle += (target - angle) * 0.025f;
         m_moduleAccesser->getWorkManageModule().setFloat(angle, 0x21000000);
         m_moduleAccesser->getModelModule().setNodeRotateZ(1, angle);

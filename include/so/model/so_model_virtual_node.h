@@ -39,10 +39,15 @@ public:
         float m_y;
         float m_z;
 
+        // BYTES: x and y are read before x is written and z after it (setNodeRotate / setNodeTranslate); three plain
+        // member assignments keep every load after the previous store.
         Vec& operator=(const Vec3f& v) {
-            m_x = v.m_x;
-            m_y = v.m_y;
-            m_z = v.m_z;
+            float x = v.m_x;
+            float y = v.m_y;
+            m_x = x;
+            float z = v.m_z;
+            m_y = y;
+            m_z = z;
             return *this;
         }
     };

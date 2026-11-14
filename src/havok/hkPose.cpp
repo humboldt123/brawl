@@ -128,6 +128,9 @@ hkArray<hkQsTransform>& hkPose::accessPoseModelSpace() {
     return writeAccessPoseModelSpace();
 }
 
+// BYTES: not an inline candidate (accessPoseModelSpace calls it out of line).
+#pragma push
+#pragma auto_inline off
 hkArray<hkQsTransform>& hkPose::writeAccessPoseModelSpace() {
     int n = m_skeleton->m_numBones;
     for (int i = 0; i < n; i++) {
@@ -137,6 +140,7 @@ hkArray<hkQsTransform>& hkPose::writeAccessPoseModelSpace() {
     m_modelPoseValid = true;
     return m_modelPose;
 }
+#pragma pop
 
 void hkPose::setToReferencePose() {
     hkSkeleton* skel = m_skeleton;

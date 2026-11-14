@@ -22,6 +22,7 @@ struct hkKeyframedRigidMotion : hkMotion {
     int m_savedQualityTypeIndex;    // 0x104
 
     hkKeyframedRigidMotion(const hkVector4& position, const hkQuaternion& rotation);
+    hkKeyframedRigidMotion() : m_savedMotion(0) {}
     hkKeyframedRigidMotion(hkFinishLoadedObjectFlag f) : hkMotion(f) {}
     virtual ~hkKeyframedRigidMotion(); // 0x08 (out of line in src/havok/hkKeyframedRigidMotion.cpp)
 
@@ -55,5 +56,6 @@ struct hkKeyframedRigidMotion : hkMotion {
 
 // Keyframed motion with the largest storage size (same layout and dtor as hkKeyframedRigidMotion).
 struct hkMaxSizeMotion : hkKeyframedRigidMotion {
+    hkMaxSizeMotion() {}
     hkMaxSizeMotion(hkFinishLoadedObjectFlag f) : hkKeyframedRigidMotion(f) {}
 };

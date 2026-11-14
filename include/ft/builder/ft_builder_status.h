@@ -70,3 +70,29 @@ public:
                  m_transitionBuilder.getModule(), &m_changeRequests, preCheckData, BC::StatusKindCap, 1) { }
     soStatusModule* getModule() { return &m_module; }
 };
+
+#ifdef FT_STATUS_NO_TAIL_FOR_WN
+template <s32 StatusKinds, typename GeneralWorkConfig, s32 StatusDataCount, typename TransitionConfig>
+class wnStatusModuleBuildConfig;
+
+template <s32 StatusKinds, typename GeneralWorkConfig, s32 StatusDataCount, typename TransitionConfig>
+class soStatusModuleBuilder<wnStatusModuleBuildConfig<StatusKinds, GeneralWorkConfig, StatusDataCount, TransitionConfig> > {
+    typedef wnStatusModuleBuildConfig<StatusKinds, GeneralWorkConfig, StatusDataCount, TransitionConfig> BC;
+    soArrayContractibleTable<const soStatusData> m_statusTable;
+    soGeneralWorkBuilder<typename BC::GeneralWorkBuildConfig> m_generalWorkBuilder;
+    soTransitionModuleBuilder<typename BC::TransitionBuildConfig> m_transitionBuilder;
+    soArraySelectHolder<1, soArrayVector<soStatusUniqProcess*, BC::StatusKindCap>, soArrayNull<soStatusUniqProcess*> > m_uniqProcs;
+    soArrayQueueImpl<soArrayVector<s32, 1> > m_changeRequests;
+    soStatusModuleImpl m_module;
+public:
+    soStatusModuleBuilder(soModuleAccesser* acc, const soStatusData* statusData, void* preCheckData) :
+        m_statusTable(statusData, BC::DataCount),
+        m_generalWorkBuilder(),
+        m_transitionBuilder(),
+        m_uniqProcs(),
+        m_changeRequests(-1),
+        m_module(acc, &m_statusTable, (soArray<soStatusUniqProcess*>*)m_uniqProcs.get(), m_generalWorkBuilder.getModule(),
+                 m_transitionBuilder.getModule(), &m_changeRequests, preCheckData, BC::StatusKindCap, 1) { }
+    soStatusModule* getModule() { return &m_module; }
+};
+#endif

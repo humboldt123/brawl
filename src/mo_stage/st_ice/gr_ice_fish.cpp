@@ -303,8 +303,8 @@ void grIceFish::setMotion(u32 animId, bool loop, bool force, float* frameCount) 
 // The area of the mouth: a square (20 x 20) next to the node of the head, watched by a trigger of the kind 0x2F.
 void grIceFish::createEatArea() {
     gfMemFill(&m_ykData, 0, 0xC);
-    m_areaData.m_group = static_cast<gfArea::Group>(0x15);
     m_areaData.m_shapeType = static_cast<soAreaInstance::ShapeType>(0);
+    m_areaData.m_group = static_cast<gfArea::Group>(0x15);
     m_areaData.m_0x4 = 0;
     m_areaData.m_0x8 = 0;
     m_areaData.m_shapeFlag.m_mask = 1;
@@ -313,7 +313,7 @@ void grIceFish::createEatArea() {
     m_areaData.m_offsetPos.m_y = 0.0f;
     m_areaData.m_range.m_x = 20.0f;
     m_areaData.m_range.m_y = 20.0f;
-    setAreaGimmick(&m_areaData, &m_areaDataSet, &m_ykData, true);
+    grYakumono::setAreaGimmick(&m_areaData, &m_areaDataSet, &m_ykData, true);
     m_trigger = g_stTriggerMng->createTrigger(Gimmick::Area_Peripheral_Lock, -1);
     m_trigger->setObserveYakumono(m_yakumono);
 }

@@ -360,6 +360,8 @@ void ftPikmin::processUpdate() {
 }
 
 // While the status 0x119 holds the flag 0x12000001, falling into the dead area clears it.
+#pragma push
+#pragma opt_propagation off
 void ftPikmin::processFixCamera() {
     Fighter::processFixCamera();
     if (soSlow::getInstance()->isAdjust() != 0) {
@@ -372,6 +374,7 @@ void ftPikmin::processFixCamera() {
         }
     }
 }
+#pragma pop
 
 // A Pikmin article (slot 0) that leaves the pool leaves the line too.
 void ftPikmin::notifyArticleEventEject(int unk1, int unk2, int* unk3) {
@@ -530,9 +533,7 @@ void ftPikmin::notifyEventChangeStatus(int statusKind, int prevStatusKind, soSta
         stage->getKirifudaPos(&center, 2);
         m_moduleAccesser->getCameraModule().setWhole(true);
         Vec3f focus = center;
-        Vec3f focusRest = center;
-        Vec3f focusAgain = center;
-        m_moduleAccesser->getCameraModule().updateForce(0, &focusAgain, &focusRest);
+        m_moduleAccesser->getCameraModule().updateForce(0, &Vec3f(focus), &Vec3f(focus));
         m_moduleAccesser->getCameraModule().setEnableUpdatePos(false, -1);
         break;
     }

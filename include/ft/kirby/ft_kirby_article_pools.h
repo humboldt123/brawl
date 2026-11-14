@@ -164,3 +164,12 @@ typedef soGenerateArticleManageModuleBuilder<ftKirbyArticleMediator, 12> ftKirby
 static_assert(sizeof(soArrayVector<soArticle*, 12>) == 0x3C, "Kirby article pointer array is the wrong size");
 static_assert(sizeof(soArrayVector<soArticleEventObserver, 12>) == 0xCC, "Kirby article observer array is the wrong size");
 static_assert(sizeof(ftKirbyArticleManageModuleBuilder) == 0x12970, "Kirby article manage builder layout is wrong");
+
+#ifdef FT_KIRBY_ARTICLE_POOLS
+class BaseItem;
+class soArticleMediatorHelper {
+public:
+    static BaseItem* createItem(int itemKind, int articleId, int ownerTaskId);
+    static soArticle* castArticle(BaseItem* item);
+};
+#endif
