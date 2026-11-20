@@ -1,7 +1,9 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #define MT_VEC3F_MUL_INLINE
 #define MT_VEC3F_SCALE_FRESH_REGS
-#define MT_VEC3F_ADD_FRESH_REGS
+#define MT_VEC3F_ADD_OPERAND_ORDER_REGS
+#define MT_VEC3F_SUB_FRESH_REGS_RESULT_FIRST
+#define MT_VEC3F_OPERATOR_SUB_FRESH_REGS
 #include <gf/gf_task.h>
 #include <mt/mt_common.h>
 #include <mt/mt_vector.h>

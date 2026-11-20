@@ -360,6 +360,12 @@ public:
                      register const Vec3f* rhs) {
 #if defined(MT_VEC3F_SUB_COMPACT)
         register f32 fr1, fr0, fr2;
+#elif defined(MT_VEC3F_SUB_FRESH_REGS_RESULT_FIRST)
+        // BYTES: the fresh-register subtract with the two differences declared first and the loads in reverse. With
+        // every value in its own register variable the scheduler keeps both z loads ahead of the first ps_sub, so all
+        // four loads conflict and take f0-f3 in load order (the lasso reach status: `dir = target - start` through a
+        // direct call, in both initStatus and execFixPos; a reused variable let the right z load share f1).
+        register f32 frZ, frXY, frRhsZ, frLhsZ, frRhsXY, frLhsXY;
 #elif defined(MT_VEC3F_SUB_FRESH_REGS)
         register f32 frLhsXY, frRhsXY, frLhsZ, frRhsZ, frXY, frZ;
 #elif defined(MT_VEC3F_SUB_ASCENDING)
@@ -387,7 +393,7 @@ public:
             ps_sub fr2, fr2, fr0
             psq_st fr1, Vec3f.m_x(pOut), 0, 0
             psq_st fr2, Vec3f.m_z(pOut), 1, 0
-#elif defined(MT_VEC3F_SUB_FRESH_REGS)
+#elif defined(MT_VEC3F_SUB_FRESH_REGS) || defined(MT_VEC3F_SUB_FRESH_REGS_RESULT_FIRST)
             // MATCH-ONLY: each load and each difference in its own register variable, declared in this order (the
             // order selects the physical registers); the units that define MT_VEC3F_SUB_FRESH_REGS are built this way.
             psq_l  frLhsXY, Vec3f.m_x(lhs), 0, 0
@@ -421,6 +427,27 @@ public:
         }
         // clang-format on
     }
+#ifdef MT_VEC3F_OPERATOR_SUB_FRESH_REGS
+    // BYTES: operator-'s own paired-single subtract, for a unit whose operator- and direct Vec3fSub calls colour their
+    // registers differently (the lasso reach status: the distance `from - to` wants this declaration order while the
+    // direct call wants MT_VEC3F_SUB_FRESH_REGS_RESULT_FIRST; no single order of the six variables gives both, all
+    // 720 were compiled). The text is the MT_VEC3F_SUB_FRESH_REGS form.
+    friend void Vec3fSubOperator(register Vec3f* pOut, register const Vec3f* lhs, register const Vec3f* rhs) {
+        register f32 frLhsXY, frRhsXY, frLhsZ, frRhsZ, frXY, frZ;
+        // clang-format off
+        asm {
+            psq_l  frLhsXY, Vec3f.m_x(lhs), 0, 0
+            psq_l  frRhsXY, Vec3f.m_x(rhs), 0, 0
+            psq_l  frLhsZ, Vec3f.m_z(lhs), 1, 0
+            psq_l  frRhsZ, Vec3f.m_z(rhs), 1, 0
+            ps_sub frXY, frLhsXY, frRhsXY
+            ps_sub frZ, frLhsZ, frRhsZ
+            psq_st frXY, Vec3f.m_x(pOut), 0, 0
+            psq_st frZ, Vec3f.m_z(pOut), 1, 0
+        }
+        // clang-format on
+    }
+#endif
     // out = from * (1 - t) + to * t in paired singles (the blend of Lucario's Final Smash entry).
     // HYPOTHESIS: the name and parameter order; the instruction sequence is the native one.
     friend void Vec3fBlend(register Vec3f* pOut, register const Vec3f* from, register const Vec3f* to, register float t) {
@@ -630,7 +657,11 @@ inline Vec3f Vec3f::operator-(const Vec3f& v)
 #endif
 {
     Vec3f result;
+#if defined(MATCHING) && defined(MT_VEC3F_OPERATOR_SUB_FRESH_REGS)
+    Vec3fSubOperator(&result, this, &v);
+#else
     Vec3fSub(&result, this, &v);
+#endif
     return result;
 }
 
