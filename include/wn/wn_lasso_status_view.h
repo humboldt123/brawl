@@ -5,6 +5,8 @@
 #include <mt/mt_vector.h>
 #include <so/so_module_accesser.h>
 
+class soLinkModule;
+
 // Lasso article module views. The lasso article's status processes read some modules through objects whose
 // vtable layout differs from the header classes: the status-like module at soModuleEnumeration +0x9C and the
 // model-like module at +0x4 have their vptr 8 bytes in, so they derive from a padding struct. The link module
@@ -246,6 +248,9 @@ public:
     virtual void slot18C();
     virtual void slot190();
     virtual void unk194Int(int, int, bool);
+
+    // The same object through the header class, for the virtuals it does declare (sendEventParents and so on).
+    soLinkModule* getLinkModule() { return (soLinkModule*)this; }
 };
 
 inline wnLassoAltStatusView* wnLassoGetAltStatus(const soModuleAccesser* moduleAccesser) {

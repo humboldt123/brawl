@@ -5,6 +5,7 @@
 #include <so/link/so_link_module_impl.h>
 #include <so/posture/so_posture_module_simple.h>
 #include <so/so_module_accesser.h>
+#include <so/stageobject.h>
 #include <so/status/so_status_module_impl.h>
 #include <so/work/so_work_manage_module_impl.h>
 #include <wn/wn_lasso_status_view.h>
@@ -54,10 +55,9 @@ void wnLassoStatusUniqProcessHang::initStatus(soModuleAccesser* moduleAccesser) 
     alt->unkA4Int(2);
     alt->unk30Int(1);
     wnLassoHangValueEvent endEvent(0x83b, alt->unkC8Int(count));
-    moduleAccesser->getLinkModule().sendEventParents(1, endEvent);
+    link->getLinkModule()->sendEventParents(1, endEvent);
     // HYPOTHESIS: the stage object's +0x28 field is the task id of the fighter that owns the lasso.
-    u32 taskId = *(u32*)((char*)moduleAccesser->m_stageObject + 0x28);
-    gfTaskScheduler::getInstance()->changeTaskPriorityRequest(taskId, 5);
+    gfTaskScheduler::getInstance()->changeTaskPriorityRequest(moduleAccesser->getStageObject().m_taskId, 5);
     workManage.onFlag(0x12000002);
 }
 

@@ -51,11 +51,14 @@ void wnPokeFushigisouVine::activate(int founderTaskId, int resourceId, int unkC,
                                     float lr, bool attach) {
     wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, *position, lr, team, 0, 2,
                         0x80, 0, 0x35f, 0);
-    desc.flagsHighPair = 3;
+    // The two top bits of each flag byte are separate one-bit flags: the original writes them one at a time.
+    desc.flagBit7 = 1;
+    desc.flagBit6 = 1;
     desc.flagsMidPair = 0;
     desc.flagsBit3 = 1;
     desc.flagsLow = 0;
-    desc.unk4DHigh = 0;
+    desc.flag4DBit7 = 0;
+    desc.flag4DBit6 = 0;
     desc.unkC = unkC;
     desc.unk10 = unk10;
     desc.unk14 = unk14;

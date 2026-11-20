@@ -62,26 +62,27 @@ void wnPikminChainStatusUniqProcessShoot::execFixPos(soModuleAccesser* moduleAcc
 }
 
 #pragma pool_data off
-// TODO(match): 99.5%. Float register numbering differs: the original keeps speed in f31, the angle in f30 and the
-// scale in f29 (sharing the counter's register) and multiplies getConstantFloat(0xfa2) * counter with the call result
-// first; this form allocates speed f30, scale f31, angle f29. Tried: counter * constant, folding the counter into
-// speed, assigning scale inside the multiply.
+// HYPOTHESIS: the chain grows by this length for each Pikmin in it.
+static inline float wnPikminChainLengthPerPikmin() {
+    return 10.0f;
+}
+
 Vec3f wnPikminChainStatusUniqProcessShoot::getSpeedVec(soModuleAccesser* moduleAccesser) {
     Vec3f result;
-    float counter = (float)moduleAccesser->getWorkManageModule().getInt(0x20000000);
-    float speed = soValueAccesser::getConstantFloat(moduleAccesser, 0xfa2, 0) * counter;
+    float speed = soValueAccesser::getConstantFloat(moduleAccesser, 0xfa2, 0) *
+                  (float)moduleAccesser->getWorkManageModule().getInt(0x20000000);
     float scale = moduleAccesser->getPostureModule().getScale();
     speed = speed * scale;
     float angle = soValueAccesser::getConstantFloat(moduleAccesser, 0xfa1, 0);
-    float y = speed * (float)sin(0.017453292f * angle);
-    result.m_x = speed * (float)cos(0.017453292f * angle);
+    float y = speed * sinf(0.017453292f * angle);
+    result.m_x = speed * cosf(0.017453292f * angle);
     result.m_y = y;
     result.m_z = 0.0f;
     // The chain is shot towards the facing of the parent link.
     float lr = wnLassoGetLink(moduleAccesser)->unkA8Float(3);
     int sign = (lr < 0.0f) ? -1 : 1;
     result.m_x *= (float)sign;
-    float limit = scale * (10.0f * (float)moduleAccesser->getWorkManageModule().getInt(0x10000007));
+    float limit = scale * ((float)moduleAccesser->getWorkManageModule().getInt(0x10000007) * wnPikminChainLengthPerPikmin());
     if (speed >= limit) {
         if (speed > limit) {
             result.normalize();
