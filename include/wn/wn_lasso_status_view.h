@@ -78,7 +78,7 @@ public:
     virtual void slotC4();
     virtual int unkC8Int(int);
     virtual void unkCCVec(int, Vec3f* pos);
-    virtual void slotD0();
+    virtual void unkD0Int(int);
     virtual int unkD4Int();
     virtual void slotD8();
     virtual void unkDCFloat(float);
