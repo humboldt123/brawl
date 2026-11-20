@@ -94,10 +94,8 @@ void wnPokeFushigisouLeafCutter::updateNodeSRT() {
     rotation = m_moduleAccesser->getPostureModule().getRot(0);
     rotation.m_y += m_moduleAccesser->getPostureModule().getRotYLr();
     leafRotation.m_x = 0.0f;
-    soWorkManageModule* work = &m_moduleAccesser->getWorkManageModule();
-    float spin = work->getFloat(Work_Float_SpinAngle);
-    float heading = work->getFloat(Work_Float_Heading);
-    leafRotation.m_y = heading + spin;
+    leafRotation.m_y = getModuleAccesser()->getWorkManageModule().getFloat(Work_Float_Heading) +
+                       getModuleAccesser()->getWorkManageModule().getFloat(Work_Float_SpinAngle);
     leafRotation.m_z = 90.0f;
     m_moduleAccesser->getModelModule().setNodeRotate(1, &leafRotation);
     m_moduleAccesser->getModelModule().setNodeSRT(0, &scale, &rotation, &position);

@@ -784,8 +784,9 @@ void wnPikminPikmin::processFixPosition() {
             case 7:
                 Vec3f pos = m_moduleAccesser->getPostureModule().getPos();
                 Vec2f current(pos.m_x, pos.m_y);
-                soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
-                Vec2f diff = Vec2f(work.getFloat(Work_Float_TargetPosX), work.getFloat(Work_Float_TargetPosY)) - current;
+                Vec2f diff = Vec2f(getModuleAccesser()->getWorkManageModule().getFloat(Work_Float_TargetPosX),
+                                   getModuleAccesser()->getWorkManageModule().getFloat(Work_Float_TargetPosY)) -
+                             current;
                 float lr = m_moduleAccesser->getPostureModule().getLr();
                 float ownerLr = m_moduleAccesser->getWorkManageModule().getFloat(Work_Float_OwnerLrCurrent);
                 if (lr * diff.m_x < 0.0f && lr * ownerLr < 0.0f) {

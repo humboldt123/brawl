@@ -295,6 +295,6 @@ bool ftPikminUtility::activeArticle2(wnPikminChain* article, soModuleAccesser* m
     float lr = posture.getLr();
     int team = pikmin.getOwner()->getTeam();
     int resourceId = resources.getResourceIdAccesser()->getEtcResId();
-    article->activate(lr, founderTaskId, resourceId, team, onGround, holdNum);
+    article->activate(founderTaskId, resourceId, team, lr, onGround, holdNum);
     return true;
 }

@@ -29,7 +29,7 @@ class wnPikminChain : public Weapon {
 public:
     wnPikminChain(s32 articleId, const wnArticleBuildInfo& info, const wnPikminChainData* data);
     virtual ~wnPikminChain();
-    void activate(float lr, int founderTaskId, int kind, int team, bool unk, int pikminNum);
+    void activate(int founderTaskId, int kind, int team, float lr, bool unk, int pikminNum);
 };
 static_assert(sizeof(wnPikminChain) == 0x1F40, "wnPikminChain layout is wrong!");
 #else
@@ -66,7 +66,7 @@ class wnPikminChain : public Weapon {
 public:
     wnPikminChain(s32 articleId, const wnArticleBuildInfo& info, const wnPikminChainData* data);
     virtual ~wnPikminChain();
-    void activate(float lr, int founderTaskId, int kind, int team, bool unk, int pikminNum);
+    void activate(int founderTaskId, int kind, int team, float lr, bool unk, int pikminNum);
 };
 static_assert(sizeof(wnPikminChain) == 0x1F40, "wnPikminChain layout is wrong!");
 

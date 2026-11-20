@@ -366,21 +366,19 @@ void ftPikmin::processUpdate() {
 }
 
 // While the status 0x119 holds the flag 0x12000001, falling into the dead area clears it.
-#pragma push
-#pragma opt_propagation off
 void ftPikmin::processFixCamera() {
     Fighter::processFixCamera();
     if (soSlow::getInstance()->isAdjust() != 0) {
         if (m_moduleAccesser->getStatusModule().getStatusKind() == 0x119 &&
             m_moduleAccesser->getWorkManageModule().isFlag(0x12000001) == true) {
-            Vec3f pos = m_moduleAccesser->getModelModule().getNodeGlobalPosition(m_moduleAccesser->getModelModule().getCorrectNodeId(0x12d), false);
+            Vec3f pos = getModuleAccesser()->getModelModule().getNodeGlobalPosition(
+                getModuleAccesser()->getModelModule().getCorrectNodeId(0x12d), false);
             if (soGroundUtil::checkDeadArea(&pos, 0.0f, 0.0f) == -1) {
                 m_moduleAccesser->getWorkManageModule().offFlag(0x12000001);
             }
         }
     }
 }
-#pragma pop
 
 // A Pikmin article (slot 0) that leaves the pool leaves the line too.
 void ftPikmin::notifyArticleEventEject(int unk1, int unk2, int* unk3) {

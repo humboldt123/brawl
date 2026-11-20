@@ -73,7 +73,7 @@ public:
 
     wnPikminChain(s32 articleId, const wnArticleBuildInfo& info, const wnPikminChainData* data);
     virtual ~wnPikminChain() { }
-    void activate(float lr, int founderTaskId, int kind, int team, bool unk, int pikminNum);
+    void activate(int founderTaskId, int kind, int team, float lr, bool unk, int pikminNum);
     virtual void onDeactivate();
     virtual void updateNodeSRT();
     virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);

@@ -1300,7 +1300,7 @@ __dt__111soCollisionAttackModuleBuilder<77soCollisionAttackModuleBuildConfig<0,1
 __dt__240soMotionModuleBuilder<214soMotionModuleBuildConfig<1,18soMotionModuleImpl,0,0,82soTransitionModuleBuildConfig<49soTypeList<14soIntToType<4>,18soTypeListNullType>>,73soMotionAnimObjCacheModuleBuildConfig<0,30soMotionAnimObjCacheModuleNull>>>Fv = .text:0x0002CDF0; // type:function size:0x78
 __dt__73soModelModuleBuilder<49soModelModuleBuildConfig<2,0,17soModelModuleImpl>>Fv = .text:0x0002CE68; // type:function size:0x6C
 __dt__96soParamCustomizeModuleBuilder<63soParamCustomizeModuleBuildConfig<26soParamCustomizeModuleImpl>>Fv = .text:0x0002CED4; // type:function size:0x60
-activate__13wnPikminChainFfiiibi = .text:0x0002CF34; // type:function size:0x2CC
+activate__13wnPikminChainFiiifbi = .text:0x0002CF34; // type:function size:0x2CC
 onDeactivate__13wnPikminChainFv = .text:0x0002D200; // type:function size:0x60
 updateNodeSRT__13wnPikminChainFv = .text:0x0002D260; // type:function size:0x114
 __as__5Vec3fFRC5Vec3f = .text:0x0002D374; // type:function size:0x1C scope:weak

@@ -49,14 +49,17 @@ wnPikminChain::wnPikminChain(s32 articleId, const wnArticleBuildInfo& info, cons
     Weapon::deactivate(false);
 }
 
-void wnPikminChain::activate(float lr, int founderTaskId, int kind, int team, bool unk, int pikminNum) {
+void wnPikminChain::activate(int founderTaskId, int kind, int team, float lr, bool unk, int pikminNum) {
     Vec3f zero(0.0f, 0.0f, 0.0f);
     wnActivateDesc desc(founderTaskId, kind, kind, kind, -1, -1, 0, 0, zero, lr, team, 0, 2, 0x80, 0, 0x35f, 0);
-    desc.flagsHighPair = 3;
+    // The two top bits of each flag byte are separate one-bit flags: the original writes them one at a time.
+    desc.flagBit7 = 1;
+    desc.flagBit6 = 1;
     desc.flagsMidPair = 0;
     desc.flagsBit3 = 1;
     desc.flagsLow = 0;
-    desc.unk4DHigh = 0;
+    desc.flag4DBit7 = 0;
+    desc.flag4DBit6 = 0;
     Weapon::activate(&desc);
     wnLassoGetLink(m_moduleAccesser)->unk148Int(2);
     wnLassoGetLink(m_moduleAccesser)->unk194Int(3, 8, false);
@@ -101,8 +104,8 @@ void wnPikminChain::notifyEventChangeStatus(int statusKind, int prevStatusKind, 
     Weapon::notifyEventChangeStatus(statusKind, prevStatusKind, statusData, moduleAccesser);
     if (statusKind == 7) {
         // Reaching the end of the chain: remember how many Pikmin it carried.
-        soWorkManageModule& work = m_moduleAccesser->getWorkManageModule();
-        work.setInt(work.getInt(0x10000007), 0x20000002);
+        getModuleAccesser()->getWorkManageModule().setInt(getModuleAccesser()->getWorkManageModule().getInt(0x10000007),
+                                                          0x20000002);
     }
 }
 
