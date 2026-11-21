@@ -97,27 +97,31 @@ void ftStatusUniqProcessSquatWalk::initStatus(soModuleAccesser* moduleAccesser) 
     double rateWide = fabs(limit / (travel.m_z / endFrame));
     moduleAccesser->getWorkManageModule().setFloat(rateWide, 0x21000005);
 }
+// MSL's float fabs overload: the double fabs inlined into a float result (the frsp after each fabs).
+static inline double fabsDouble(double x) { return __fabs(x); }
+static inline float fabsFloat(float x) { return fabsDouble(x); }
 // HYPOTHESIS: steps the walk rate (work float 0x21000004, in units of the per-fighter limit) towards the stick rate with the
 // accelerations in constants 0xbb9/0xbba/0xbbc, then sets the motion rate from the result (work float 0x21000005).
 void ftStatusUniqProcessSquatWalk::execStatus(soModuleAccesser* moduleAccesser) {
     ftParamEtc* etc = g_ftCommonDataAccesser.getParamEtc((ftKind)moduleAccesser->m_stageObject->soGetSubKind());
+    float remain;
     float limit = etc->unk3C[0];
     float current = moduleAccesser->getWorkManageModule().getFloat(0x21000004);
     float target = soModuleAccesser__SquatWalk_GetStickXRate(moduleAccesser);
+    float step;
     float accel = soValueAccesser::getConstantFloat(moduleAccesser, 0xbb9, 0) / limit;
     float bias = soValueAccesser::getConstantFloat(moduleAccesser, 0xbba, 0) / limit;
-    float step = target * accel;
+    step = target * accel;
     bias = (target > 0.0f) ? bias : -bias;
     float ratio = current / target;
     step += bias;
     if (ratio > 0.0f && ratio < 1.0f) {
-        float remain = 1.0f - ratio;
+        remain = 1.0f - ratio;
         step *= remain * soValueAccesser::getConstantFloat(moduleAccesser, 0xc2e, 0);
     }
     float brake = soValueAccesser::getConstantFloat(moduleAccesser, 0xbbc, 0) / limit;
     if (target == 0.0f) {
-        float currentAbs = (float)__fabs(current);
-        if ((float)__fabs(brake) > currentAbs) {
+        if (fabsFloat(brake) > fabsFloat(current)) {
             step = -current;
         } else {
             if (current > 0.0f) {
@@ -139,6 +143,6 @@ void ftStatusUniqProcessSquatWalk::execStatus(soModuleAccesser* moduleAccesser) 
         }
     }
     moduleAccesser->getWorkManageModule().setFloat(current + step, 0x21000004);
-    float walk = (float)__fabs(moduleAccesser->getWorkManageModule().getFloat(0x21000004));
+    float walk = fabsFloat(moduleAccesser->getWorkManageModule().getFloat(0x21000004));
     moduleAccesser->m_enumerationStart->m_motionModule->setRate(walk * moduleAccesser->getWorkManageModule().getFloat(0x21000005));
 }
