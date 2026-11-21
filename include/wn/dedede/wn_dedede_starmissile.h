@@ -23,6 +23,19 @@ struct wnDededeStarmissileData {
     const wnDededeStarmissileParam* m_param; // +0x34
 };
 
+// Units that only start the article (ftDededeTransactor) define WN_DEDEDE_STARMISSILE_ACTIVATE_ONLY and see this shell.
+#ifdef WN_DEDEDE_STARMISSILE_ACTIVATE_ONLY
+struct wnArticleBuildInfo;
+class wnDededeStarmissile : public Weapon {
+    u8 m_unreconstructed[0x1FB4 - sizeof(Weapon)];
+    const wnDededeStarmissileParam* m_param; // +0x1FB4
+public:
+    wnDededeStarmissile(s32 articleId, const wnArticleBuildInfo& info, const wnDededeStarmissileData* data);
+    virtual ~wnDededeStarmissile();
+    // HYPOTHESIS: parameter names beyond the position and facing. A nonzero mode keeps the previous speed.
+    void activate(int founderTaskId, int resourceId, int team, const Vec3f* position, float lr, float unk, int unk2, int mode);
+};
+#else
 class wnDededeStarmissileModuleAccesserBuildConfig : public wnCommonBuildConfig {
 public:
     typedef soInsideEventManageModuleBuildConfig<16, 32, 4, 2, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 1, 1, 0, 0, 0, wnInsideEventManageModuleTypes>
@@ -53,4 +66,5 @@ public:
     // HYPOTHESIS: parameter names beyond the position and facing. A nonzero mode keeps the previous speed.
     void activate(int founderTaskId, int resourceId, int team, const Vec3f* position, float lr, float unk, int unk2, int mode);
 };
+#endif
 static_assert(sizeof(wnDededeStarmissile) == 0x1FB8, "Dedede star missile article extent");

@@ -1,18 +1,19 @@
+#define WN_DEDEDE_STARMISSILE_ACTIVATE_ONLY
 #include <StaticAssert.h>
 #include <ft/dedede/ft_dedede_transactor.h>
+#include <ft/ft_common_data_accesser.h>
 #include <ft/ft_entry.h>
+#include <ft/ft_manager.h>
 #include <ft/ft_resource_id_accesser_impl.h>
 #include <ft/kirby/ft_kirby_copy_ability_id_converter.h>
 #include <so/link/so_link_event_presenter.h>
 #include <so/so_module_accesser.h>
 #include <so/stageobject.h>
 #include <so/status/so_status_module_impl.h>
-#include <wn/wn_weapon_builder.h>
+#include <wn/dedede/wn_dedede_starmissile.h>
 
-// The star missile article (its header needs the weapon builder chain): only its type is used here.
-class wnDededeStarmissile : public Weapon { };
 
-// TODO: notifyEventCollisionSearch (the inhale search) and the star missile start.
+// TODO: notifyEventCollisionSearch (the inhale search).
 
 ftDededeTransactor::ftDededeTransactor() { }
 ftDededeTransactor::~ftDededeTransactor() { }
@@ -48,6 +49,35 @@ bool ftDededeTransactor::activeArticle(soArticle* article, soModuleAccesser* acc
         ftResourceIdAccesserImpl& resources = dynamic_cast<ftResourceIdAccesserImpl&>(*acc->getResourceModule().getResourceIdAccesser());
         return activeArticle(missile, acc, resources.getKirbyResId(Fighter_Dedede));
     }
+    return false;
+}
+
+// The fighter linked as the node parent.
+static inline Fighter* getLinkOwnerFighter(soModuleAccesser* acc) {
+    ftManager* manager = g_ftManager;
+    return manager->getFighter(manager->getEntryIdFromTaskId(acc->getLinkModule().getNodeTaskId(0), 0), -1);
+}
+
+// The star missile starts in front of the mouth node; its scale and kind come from the attribute block of the fighter
+// linked as the node parent (the copy owner when Kirby spits it). Its task id is kept in work 0x20000004.
+bool ftDededeTransactor::activeArticle(wnDededeStarmissile* weapon, soModuleAccesser* acc, u32 etcResId) {
+    float lr = acc->getPostureModule().getLr();
+    Vec3f pos;
+    Vec3f offset(0.0f, 0.0f, 0.0f);
+    float scale = acc->getPostureModule().getScale();
+    offset.m_x = scale * acc->getConstantFloatKirby(0xfa5);
+    offset.m_y = scale * acc->getConstantFloatKirby(0xfa6);
+    pos = acc->getModelModule().getNodeGlobalPosition(0, false);
+    pos.m_x += offset.m_x * lr;
+    pos.m_y += offset.m_y;
+    pos.m_z = acc->getGroundModule().getZ();
+    ftParam param = *g_ftCommonDataAccesser.getParam(getLinkOwnerFighter(acc)->getFtKind());
+    float starScale = param.unk1A4;
+    s32 starParam = param.unk1A8;
+    weapon->activate(acc->getStageObject().getTaskId(), etcResId, acc->getTeamModule().getTeam()->getNo(), &pos,
+        acc->getPostureModule().getLr(), starScale, starParam, 0);
+    int taskId = weapon->getTaskId();
+    acc->getWorkManageModule().setInt(taskId, 0x20000004);
     return false;
 }
 

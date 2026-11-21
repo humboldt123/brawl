@@ -80,18 +80,12 @@ struct ftData {
 struct ftParam {
     u8 unk0[0xB4]; // HYPOTHESIS: possibly the walk, dash, run, jump, air-drift and gravity attributes plus weight at 0xB0
     float modelScale;
-#ifdef FT_KIRBY_ARTICLE_POOLS
-    u8 unkB8[0xEC];
-    float unk1A4;
+    u8 unkB8[0xEC]; // HYPOTHESIS: possibly shield size at 0xC4, edge jump speed at 0xF8/0xFC, item throw strength at 0x118, landing lag at 0x13C..0x150, wall jump speed at 0x164/0x168
+    float unk1A4; // read by the Kirby and Dedede star missile activators (star scale)
     s32 unk1A8;
     u8 unk1AC[0xEC];
-#else
-    u8 unkB8[0x1E0]; // HYPOTHESIS: possibly shield size at 0xC4, edge jump speed at 0xF8/0xFC, item throw strength at 0x118, landing lag at 0x13C..0x150, wall jump speed at 0x164/0x168
-#endif
     float slopeAngleLimit;
-#ifdef FT_KIRBY_ARTICLE_POOLS
-    u8 unk29C[0x48]; // tail of the 0x2E4-byte fighter attribute block copied onto the stack in Starmissile
-#endif
+    u8 unk29C[0x48]; // tail of the 0x2E4-byte fighter attribute block (the star missile activators copy it whole)
 };
 
 // HYPOTHESIS: per-fighter extra parameters; unk3C points at floats used by the squat walk (status 0x13 / 0x14 speed limits).
