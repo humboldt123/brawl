@@ -1039,6 +1039,13 @@ static inline u32 getPurinRollEffectNode(const soModuleAccesser* acc) {
     u32 node = acc->getStageObject().soGetSubKind() == 5 ? 0x199 : 6;
     return node;
 }
+
+// The effect module through a named pointer inside an inline getter: the allocator then colours it before the
+// work-module temporaries of the caller (it reuses the trail node register).
+static inline soEffectModule& getPurinRollEffectModule(const soModuleAccesser* acc) {
+    soEffectModule* const effect = &acc->getEffectModule();
+    return *effect;
+}
 // HYPOTHESIS: repeated Rollout model pitch update boundary/name.
 static inline void setPurinRollNodeAngle(const soModuleAccesser* acc, int node, float angle) {
     Vec3f rotation = acc->getModelModule().getNodeRotate(node);
@@ -1135,7 +1142,11 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execFixPosCounter(soModuleAccesser
         }
         acc->getWorkManageModule().addInt(1, 0x2000000c);
         if (acc->getWorkManageModule().getInt(0x2000000c) >= 4) {
-            requestPurinRollNodeEffect(acc, node);
+            float lr = acc->getPostureModule().getLr();
+            getPurinRollEffectModule(acc).req(static_cast<EfID>(0x1d),
+                &acc->getModelModule().getNodeGlobalPosition(node, false),
+                &Vec3f(0.0f, lr == 1.0f ? 1.5707964f : -1.5707964f, 0.0f),
+                1.0f, 0, -1);
             acc->getWorkManageModule().setInt(0, 0x2000000c);
         }
         if (!acc->getWorkManageModule().isFlag(0x22000013)) {
