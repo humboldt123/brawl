@@ -70,11 +70,18 @@ class wnGameWatchSausage : public wnWeaponBuilder<wnGameWatchSausageModuleAccess
     const wnGameWatchSausageParam* m_param;          // +0x2148
     wnGameWatchSausageParamAccesser m_paramAccesser; // +0x214C
     soAnimObj m_animObj;                             // +0x2180
+public:
+    const wnGameWatchSausageParam* getParam() const { return m_param; }
 #else
 // Call-side view keeps the native extent without instantiating the builder.
 struct wnGameWatchSausageData;
 class wnGameWatchSausage : public Weapon {
-    u8 m_storage[0x21A8 - sizeof(Weapon)];
+    u8 m_storage[0x2148 - sizeof(Weapon)];
+public:
+    const wnGameWatchSausageParam* m_param; // +0x2148
+    const wnGameWatchSausageParam* getParam() const { return m_param; }
+private:
+    u8 m_storage214C[0x21A8 - 0x214C];
 #endif
 public:
     wnGameWatchSausage(s32 articleId, const wnArticleBuildInfo& info, const wnGameWatchSausageData* data);

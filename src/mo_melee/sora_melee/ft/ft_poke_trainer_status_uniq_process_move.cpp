@@ -18,31 +18,25 @@ public:
 
 ftPokeTrainerStatusUniqProcessMove g_ftPokeTrainerStatusUniqProcessMove;
 
-// Motion-blend constants from module rodata (lbl_27_rodata_7C58).
-static const float kMoveTable[3] = { -1.0f, 1.0f, 0.0f };
-
 void ftPokeTrainerStatusUniqProcessMove::initStatus(soModuleAccesser* moduleAccesser) {
-    const float* table = kMoveTable;
-    soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
-    float threshold = soValueAccesser::getConstantFloat(moduleAccesser, 0xfa5, 0);
-    float a = workManage.getFloat(0x1100001e);
     float choice;
-    if (a < threshold) {
-        float x = workManage.getFloat(0x1100001f);
-        choice = (table[0] == x) ? table[0] : table[1];
+    if (moduleAccesser->getWorkManageModule().getFloat(0x1100001e) <
+        soValueAccesser::getConstantFloat(moduleAccesser, 0xfa5, 0)) {
+        float x = moduleAccesser->getWorkManageModule().getFloat(0x1100001f);
+        choice = (-1.0f == x) ? -1.0f : 1.0f;
     } else {
-        float x = workManage.getFloat(0x1100001f);
-        if (table[0] == x) {
-            choice = (randi(3) >= 2) ? table[1] : table[0];
+        float x = moduleAccesser->getWorkManageModule().getFloat(0x1100001f);
+        if (-1.0f == x) {
+            choice = (randi(3) < 2) ? -1.0f : 1.0f;
         } else {
-            choice = (randi(3) >= 2) ? table[0] : table[1];
+            choice = (randi(3) < 2) ? 1.0f : -1.0f;
         }
     }
-    if (choice == table[1]) {
+    if (choice == 1.0f) {
         soMotionChangeParam param;
         param.m_kind = 0x1d4;
-        param.m_frame = table[2];
-        param.m_rate = table[1];
+        param.m_frame = 0.0f;
+        param.m_rate = 1.0f;
         param._12 = 0;
         param._13 = 0;
         param._14 = 0;
@@ -51,8 +45,8 @@ void ftPokeTrainerStatusUniqProcessMove::initStatus(soModuleAccesser* moduleAcce
     } else {
         soMotionChangeParam param;
         param.m_kind = 0x1d5;
-        param.m_frame = table[2];
-        param.m_rate = table[1];
+        param.m_frame = 0.0f;
+        param.m_rate = 1.0f;
         param._12 = 0;
         param._13 = 0;
         param._14 = 0;
