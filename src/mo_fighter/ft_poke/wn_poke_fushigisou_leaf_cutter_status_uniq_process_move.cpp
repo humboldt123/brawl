@@ -26,9 +26,6 @@ void wnPokeFushigisouLeafCutterStatusUniqProcessMove::initStatus(soModuleAccesse
 // is picked at random within +-constant 0xfa3 of the current one (work float 0x11000003); the speed keeps its length
 // and is turned to the angle, mirrored by the facing.
 // HYPOTHESIS: the meaning of work floats 0x11000001/0x11000002 (an accumulator and its step).
-// TODO(match): 99.7%. Only the float register numbering differs: the original keeps the angle in f28, the squared
-// length (and later y) in f29 and the length in f30; this form gives the angle f29, the squared length and the length
-// f30 and y f28. Tried: named sin/cos locals, a named copy of the speed before length().
 void wnPokeFushigisouLeafCutterStatusUniqProcessMove::execStatus(soModuleAccesser* moduleAccesser) {
     int count = moduleAccesser->getWorkManageModule().getInt(0x10000005);
     count++;
@@ -49,8 +46,7 @@ void wnPokeFushigisouLeafCutterStatusUniqProcessMove::execStatus(soModuleAccesse
     wnKineticEnergyNormal& energy = dynamic_cast<wnKineticEnergyNormal&>(*moduleAccesser->getKineticModule().getEnergy(0));
     float length = energy.getSpeed().length();
     float lr = moduleAccesser->getPostureModule().getLr();
-    float y = length * (float)sin(0.017453292f * angle);
-    Vec2f speed(lr * (length * (float)cos(0.017453292f * angle)), y);
+    Vec2f speed(lr * (length * (float)cos(0.017453292f * angle)), length * (float)sin(0.017453292f * angle));
     energy.m_speed = speed;
     energy.enable();
 }
