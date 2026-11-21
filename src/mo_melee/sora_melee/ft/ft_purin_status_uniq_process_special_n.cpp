@@ -625,7 +625,16 @@ static inline void updatePurinRollAir(soModuleAccesser* acc) {
     acc->getWorkManageModule().setFloat(__fabsf(horizontal), 0x21000007);
 }
 
-void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
+static inline void setPurinRollFacing(soModuleAccesser* acc) {
+    u32 node = acc->getStageObject().soGetSubKind() == 5 ? 0x197 : 4;
+    Vec3f facing = acc->getModelModule().getNodeRotate(node);
+    if (acc->getPostureModule().getLr() == -1.0f) {
+        facing.m_y = 180.0f;
+    } else {
+        facing.m_y = 0.0f;
+    }
+    acc->getModelModule().setNodeRotate(node, &facing);
+}void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
     float stickMagnitude;
     SituationKind situation = acc->getSituationModule().getKind();
     int previous = acc->getWorkManageModule().getInt(0x20000008);
@@ -719,14 +728,7 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
     Vec3f rotation = acc->getModelModule().getNodeRotate(node);
     rotation.m_x = angle * 57.29578f;
     acc->getModelModule().setNodeRotate(node, &rotation);
-    node = acc->getStageObject().soGetSubKind() == 5 ? 0x197 : 4;
-    Vec3f facing = acc->getModelModule().getNodeRotate(node);
-    if (acc->getPostureModule().getLr() == -1.0f) {
-        facing.m_y = 180.0f;
-    } else {
-        facing.m_y = 0.0f;
-    }
-    acc->getModelModule().setNodeRotate(node, &facing);
+    setPurinRollFacing(acc);
     acc->getWorkManageModule().setInt(situation, 0x20000008);
 }
 
@@ -1022,14 +1024,7 @@ static inline void updatePurinRollAirAt(soModuleAccesser* acc) {
         Vec3f rotation = acc->getModelModule().getNodeRotate(node);
         rotation.m_x = angle * 57.29578f;
         acc->getModelModule().setNodeRotate(node, &rotation);
-        node = acc->getStageObject().soGetSubKind() == 5 ? 0x197 : 4;
-        Vec3f facing = acc->getModelModule().getNodeRotate(node);
-        if (acc->getPostureModule().getLr() == -1.0f) {
-            facing.m_y = 180.0f;
-        } else {
-            facing.m_y = 0.0f;
-        }
-        acc->getModelModule().setNodeRotate(node, &facing);
+        setPurinRollFacing(acc);
     }
     acc->getWorkManageModule().setInt(situation, 0x20000008);
 }
