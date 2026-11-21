@@ -1,12 +1,11 @@
 #pragma once
 
-// The unit includes this header first: MWCC writes RTTI and vtables to .data in reverse class-definition order, and the
-// original places the kinetic-energy RTTI chain (dynamic_cast in the Clash statuses) before these classes' vtables.
-// HYPOTHESIS: in the original, soStatusUniqProcess also came from a header without soNullable/soEnable, which still
-// precede these vtables here (so_status_module_impl.h needs soNullable for soStatusModule).
-#include <so/status/so_status_module_impl.h>
-
+// The unit includes this header first: MWCC writes RTTI and vtables to .data in reverse class-definition order. Only the
+// status process interface comes in here, so soNullable and soEnable are defined later with the kinetic-energy chain
+// (dynamic_cast in the Clash status), as the original's .data order shows. soModuleAccesser is declared for that header.
 class soModuleAccesser;
+#include <so/status/so_status_uniq_process.h>
+
 struct soLinkEventArgs;
 
 class ftStatusUniqProcessCaptainFinalTarget : public soStatusUniqProcess {

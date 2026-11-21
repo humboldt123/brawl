@@ -32,14 +32,14 @@ struct ftLinkEventCaptainFinalMessage : soLinkEventArgs {
 
 // HYPOTHESIS: Captain Falcon's extend parameter group 6 (ftData extendParam[5]), read by the target statuses.
 struct ftCaptainFinalTargetParam {
-    float unk0;
-    float unk4;
-    float unk8;
-    float unkC;
-    float unk10;
-    float unk14;
-    float unk18;
-    float unk1C;
+    float m_scatterRadius;
+    float m_startHeight;
+    float m_fallSpeed;
+    float m_fallAccel;
+    float m_clashSpeedX;
+    float m_clashSpeedY;
+    float m_clashBrakeX;
+    float m_clashGravity;
 };
 
 ftStatusUniqProcessCaptainFinalTarget g_ftStatusUniqProcessCaptainFinalTarget;
@@ -60,7 +60,7 @@ static inline void set_scatter_pos(soModuleAccesser* moduleAccesser) {
     soPostureModule& posture = moduleAccesser->getPostureModule();
     ftData* data = g_ftCommonDataAccesser.getData(Fighter_Captain);
     Vec3f pos(0.0f, 0.0f, 0.0f);
-    float radius = static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->unk0;
+    float radius = static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->m_scatterRadius;
     do {
         pos.m_x = radius * (2.0f * randf() - 1.0f);
         pos.m_z = radius * (2.0f * randf() - 1.0f);
@@ -76,16 +76,16 @@ static inline void set_scatter_pos(soModuleAccesser* moduleAccesser) {
     moduleAccesser->m_stageObject->updateNodeSRT();
 }
 
-// Drops the fighter to the parameter's start height and stores the parameter's float in work 0x21000004.
+// Drops the fighter to the parameter's start height and stores the starting fall speed in work 0x21000004.
 static inline void set_start_height(soModuleAccesser* moduleAccesser) {
     soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
     soPostureModule& posture = moduleAccesser->getPostureModule();
     ftData* data = g_ftCommonDataAccesser.getData(Fighter_Captain);
     Vec3f pos;
     pos = posture.getPos();
-    pos.m_y = static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->unk4;
+    pos.m_y = static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->m_startHeight;
     posture.setPos(&pos);
-    workManage.setFloat(static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->unk8, 0x21000004);
+    workManage.setFloat(static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->m_fallSpeed, 0x21000004);
 }
 
 // Re-activates the fighter's sound at its position and restores the SE pitch saved in work 0x21000007.
@@ -283,7 +283,7 @@ void ftStatusUniqProcessCaptainFinalFuraFura::execStatus(soModuleAccesser* modul
 static bool fall(soModuleAccesser* moduleAccesser) {
     soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
     soPostureModule& posture = moduleAccesser->getPostureModule();
-    float accel = static_cast<ftCaptainFinalTargetParam*>(g_ftCommonDataAccesser.getData(Fighter_Captain)->extendParam[5])->unkC;
+    float accel = static_cast<ftCaptainFinalTargetParam*>(g_ftCommonDataAccesser.getData(Fighter_Captain)->extendParam[5])->m_fallAccel;
     bool landed = false;
     float speed = workManage.getFloat(0x21000004);
     speed += accel;
@@ -339,10 +339,10 @@ static void set_clash_flying(soModuleAccesser* moduleAccesser) {
     ftKineticEnergyDamage& damage = dynamic_cast<ftKineticEnergyDamage&>(*kinetic.getEnergy(4));
     ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*kinetic.getEnergy(1));
     ftCaptainFinalTargetParam* param = static_cast<ftCaptainFinalTargetParam*>(g_ftCommonDataAccesser.getData(Fighter_Captain)->extendParam[5]);
-    float speedX = param->unk10;
-    float speedY = param->unk14;
-    float brakeX = param->unk18;
-    float gravityAccel = param->unk1C;
+    float speedX = param->m_clashSpeedX;
+    float speedY = param->m_clashSpeedY;
+    float brakeX = param->m_clashBrakeX;
+    float gravityAccel = param->m_clashGravity;
     kinetic.changeKinetic(0x1F, moduleAccesser);
     soKineticUtility::resetEnableEnergy(1, moduleAccesser, 0, &Vec2f(0.0f, speedY), &Vec3f(0.0f, 0.0f, 0.0f));
     soKineticUtility::resetEnableEnergy(4, moduleAccesser, 2, &Vec2f(speedX, 0.0f), &Vec3f(0.0f, 0.0f, 0.0f));
