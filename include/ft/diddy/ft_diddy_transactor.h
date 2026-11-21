@@ -5,13 +5,15 @@
 
 class soArticle;
 class soModuleAccesser;
+class soStatusData;
 class wnDiddyGun;
 
-// Diddy Kong's per-fighter helper (the code is in sora_melee): starts the popgun article.
+// Diddy Kong's per-fighter helper (the code is in sora_melee): starts the popgun article and removes it on status changes.
 class ftDiddyTransactor : public ftTransactor {
 public:
     ftDiddyTransactor();
     virtual ~ftDiddyTransactor();
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
     virtual bool activeArticle(soArticle* article, soModuleAccesser* acc);
     // HYPOTHESIS: the id is the effect resource of the fighter.
     bool activeArticle(wnDiddyGun* weapon, soModuleAccesser* acc, u32 etcResId);

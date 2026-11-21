@@ -1,11 +1,13 @@
 #include <StaticAssert.h>
 #include <ft/diddy/ft_diddy_transactor.h>
-#include <ft/diddy/ft_diddy_article_pools.h>
+#include <wn/diddy/wn_diddy_gun.h>
 #include <ft/ft_entry.h>
 #include <ft/ft_resource_id_accesser_impl.h>
+#include <ft/kirby/ft_kirby_copy_ability_id_converter.h>
+#include <so/article/so_generate_article_manage_module.h>
+#include <so/link/so_link_event_presenter.h>
+#include <so/stageobject.h>
 #include <so/so_module_accesser.h>
-
-// TODO: the article activators and the other hooks (fn_27_ symbols of this range).
 
 ftDiddyTransactor::ftDiddyTransactor() { }
 ftDiddyTransactor::~ftDiddyTransactor() { }
@@ -23,60 +25,63 @@ bool ftDiddyTransactor::activeArticle(soArticle* article, soModuleAccesser* acc)
     return false;
 }
 
-// TODO: clean up, give variables real names
-namespace jj_364150 {
-struct Msg { int id; unsigned char flag; };
-struct Module {
-    virtual void v0(); virtual void v1(); virtual void v2(); virtual void v3();
-    virtual void v4(); virtual void v5(); virtual void v6(); virtual void v7();
-    virtual void v8(); virtual void v9(); virtual void v10(); virtual void v11();
-    virtual void v12(); virtual void v13(); virtual void v14(); virtual void v15();
-    virtual void call(int, Msg*, int);
+// Link event sent to the held popgun (soLinkEventArgs keeps its constructor protected).
+class ftDiddyGunLinkEvent : public soLinkEventArgs {
+public:
+    ftDiddyGunLinkEvent(int eventKind) : soLinkEventArgs(eventKind) {}
 };
-struct Other {
-    virtual void v0(); virtual void v1(); virtual void v2(); virtual void v3();
-    virtual void v4(); virtual void v5(); virtual void v6(); virtual void v7();
-    virtual void v8(); virtual void v9(); virtual void v10(); virtual void v11();
-    virtual void v12(); virtual void v13(); virtual void v14(); virtual void v15();
-    virtual void call(int, int);
-};
-struct Modules {
-    char pad[0x54];
-    Module* status;
-    char pad58[0x2c];
-    Other* other;
-};
-struct Accesser {
-    char pad[0xd8];
-    Modules* modules;
-};
-extern "C" unsigned char g_ftKirbyCopyAbilityIdConverter[];
-extern "C" int convCorrectToOrigId__29ftKirbyCopyAbilityIdConverterFiiP16soModuleAccesserb(void*, unsigned int, int, void*, unsigned int);
-extern "C" void fn_27_364150(void*, int status, void*, void*, Accesser* accesser) {
-    switch (convCorrectToOrigId__29ftKirbyCopyAbilityIdConverterFiiP16soModuleAccesserb(g_ftKirbyCopyAbilityIdConverter, 0, status, accesser, 1)) {
+
+// Leaving the popgun: the charge statuses keep the gun; the two shoot statuses tell it to fire (link events 0x838 /
+// 0x839), any other status removes it.
+void ftDiddyTransactor::notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser) {
+    switch (g_ftKirbyCopyAbilityIdConverter.convCorrectToOrigId(0, statusKind, moduleAccesser, true)) {
     case 0x10c:
     case 0x112:
     case 0x117:
     case 0x118:
         return;
     case 0x119: {
-        Msg msg;
-        msg.id = 0x838;
-        msg.flag = 0;
-        accesser->modules->status->call(1, &msg, 0);
+        ftDiddyGunLinkEvent event(0x838);
+        moduleAccesser->getLinkModule().sendEventNodes(1, event, 0);
         break;
     }
     case 0x11a: {
-        Msg msg;
-        msg.id = 0x839;
-        msg.flag = 0;
-        accesser->modules->status->call(1, &msg, 0);
+        ftDiddyGunLinkEvent event(0x839);
+        moduleAccesser->getLinkModule().sendEventNodes(1, event, 0);
         break;
     }
     default:
-        accesser->modules->other->call(13, 0);
+        moduleAccesser->getGenerateArticleManageModule().removeExist(0xd, 0);
         break;
     }
 }
-}
 
+// Started from the popgun statuses the gun is held in the hand the draw animation flagged (left or right hand
+// node); otherwise it is free.
+bool ftDiddyTransactor::activeArticle(wnDiddyGun* weapon, soModuleAccesser* acc, u32 etcResId) {
+    int status = g_ftKirbyCopyAbilityIdConverter.convCorrectToOrigId(0, acc->getStatusModule().getStatusKind(), acc, true);
+    if (status == 0x116) {
+        int node;
+        if (acc->getWorkManageModule().isFlag(0x22000010)) {
+            node = acc->getModelModule().getNodeId("LHaveN");
+            acc->getWorkManageModule().offFlag(0x22000010);
+        } else if (acc->getWorkManageModule().isFlag(0x22000011)) {
+            node = acc->getModelModule().getNodeId("RHaveN");
+            acc->getWorkManageModule().offFlag(0x22000011);
+        }
+        weapon->activate(acc->getStageObject().m_taskId, etcResId, true, node);
+    } else if (status == 0x10f) {
+        int node;
+        if (acc->getWorkManageModule().isFlag(0x22000010)) {
+            node = acc->getModelModule().getNodeId("LHaveN");
+            acc->getWorkManageModule().offFlag(0x22000010);
+        } else if (acc->getWorkManageModule().isFlag(0x22000011)) {
+            node = acc->getModelModule().getNodeId("RHaveN");
+            acc->getWorkManageModule().offFlag(0x22000011);
+        }
+        weapon->activate(acc->getStageObject().m_taskId, etcResId, true, node);
+    } else {
+        weapon->activate(acc->getStageObject().m_taskId, etcResId, false, -1);
+    }
+    return true;
+}

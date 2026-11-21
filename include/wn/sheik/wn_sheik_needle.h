@@ -80,6 +80,9 @@ public:
     virtual ~wnSheikNeedle() { }
     virtual void updateNodeSRT();
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    // HYPOTHESIS: parameter meanings from ftSheikTransactor::activeArticle1 (flag = work flag 0x22000012,
+    // situation = the fighter's situation kind, lr = the fighter's facing).
+    void activate(int founderTaskId, int resourceId, int team, const Vec3f* pos, bool flag, int situation, float lr);
 };
 #else
 // Extent known from the class info createArray allocation (0x1BD0); the internal layout and the builder
@@ -94,6 +97,9 @@ public:
     virtual ~wnSheikNeedle();
     virtual void updateNodeSRT();
     virtual bool notifyEventCollisionAttackCheck(u32 flags);
+    // HYPOTHESIS: parameter meanings from ftSheikTransactor::activeArticle1 (flag = work flag 0x22000012,
+    // situation = the fighter's situation kind, lr = the fighter's facing).
+    void activate(int founderTaskId, int resourceId, int team, const Vec3f* pos, bool flag, int situation, float lr);
 };
 #endif
 static_assert(sizeof(wnSheikNeedle) == 0x1BD0, "Sheik needle article extent");
