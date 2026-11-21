@@ -116,6 +116,9 @@ mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_start.cpp:
 mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_move.cpp:
 	.text       start:0x0001F13C end:0x0001F9C4
 	.ctors      start:0x0000003C end:0x00000040
+	.rodata     start:0x00000158 end:0x00000180
+	.data       start:0x0000C448 end:0x0000C4C8
+	.bss        start:0x00000518 end:0x00000528
 
 mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_end.cpp:
 	.text       start:0x0001F9C4 end:0x0001FD94
