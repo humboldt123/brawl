@@ -46,11 +46,8 @@ wnPikachuVortex::wnPikachuVortex(s32 articleId, const wnArticleBuildInfo& info, 
 soParamAccesser::~soParamAccesser() { }
 #pragma pop
 
-// TODO(nonmatching): activate (98.93%): only the callee-saved numbering differs. The original keeps `this` in r27 and gives the
-//   module accesser r29, the work manage reference r28 and the kinetic reference r27; ours coalesces the accesser into the
-//   register of `this` (r27) and gives the work manage reference r29. Tried: the flag byte pair as two separate bit writes
-//   (applied), the kinetic and the last work manage reference taken together (applied, 97.99% -> 98.93%), the accesser declared
-//   before the descriptor, a reused work manage pointer, inline float locals, and the reverse kinetic/work manage order.
+// The module accesser is read through the inline getModuleAccesser() (a temporary, not a named copy of the member), so it
+// gets a saved register of its own instead of coalescing into the one of `this`.
 // The vortex is activated at the position of Pikachu with the Final Smash power; both looks of the effect start disabled.
 void wnPikachuVortex::activate(int founderTaskId, int unused, int team, const Vec3f* position) {
     wnActivateDesc desc;
@@ -78,7 +75,7 @@ void wnPikachuVortex::activate(int founderTaskId, int unused, int team, const Ve
     desc.flag4DBit7 = 0;
     desc.flag4DBit6 = 0;
     Weapon::activate(&desc);
-    soModuleAccesser* accesser = m_moduleAccesser;
+    soModuleAccesser* accesser = getModuleAccesser();
     soWorkManageModule& workManage = accesser->getWorkManageModule();
     workManage.setInt(0, 0x10000005);
     workManage.setInt(0, 0x10000006);
