@@ -11419,8 +11419,20 @@ mo_melee/sora_melee/so/so_array_vector_thunks_15soLogAttackInfo_10.cpp:
 mo_melee/sora_melee/wn/wn_weapon.cpp:
 	.text       start:0x001D7EF0 end:0x001DBA64
 
+mo_melee/sora_melee/wn/wn_kinetic_energy_normal.cpp:
+	.text       start:0x001DBA64 end:0x001DBE08
+	.rodata     start:0x000027A0 end:0x000027B8
+	.data       start:0x00045730 end:0x000457C8
+
 mo_melee/sora_melee/wn/wn_kinetic_module_impl.cpp:
-	.text       start:0x001DBA64 end:0x001DC5E8
+	.text       start:0x001DBE08 end:0x001DC32C
+	.rodata     start:0x000027B8 end:0x000027E0
+	.data       start:0x000457C8 end:0x000458C0
+
+mo_melee/sora_melee/wn/wn_kinetic_energy_gravity.cpp:
+	.text       start:0x001DC32C end:0x001DC5E8
+	.rodata     start:0x000027E0 end:0x000027E8
+	.data       start:0x000458C0 end:0x00045948
 
 mo_melee/sora_melee/wn/wn_module_accesser_build_data.cpp:
 	.text       start:0x001DC5E8 end:0x001DC8D8
