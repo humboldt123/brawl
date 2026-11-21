@@ -52,11 +52,14 @@ wnNessYoyo::wnNessYoyo(s32 articleId, const wnArticleBuildInfo& info, const wnNe
 void wnNessYoyo::activate(int founderTaskId, int kind, int team, bool flag) {
     Vec3f zero(0.0f, 0.0f, 0.0f);
     wnActivateDesc desc(founderTaskId, kind, kind, kind, -1, -1, 0, 0, zero, 0.0f, team, 0, 2, 0x80, 0, 0x35f, 0);
-    desc.flagsHighPair = 3;
+    // The two top bits of each flag byte are separate one-bit flags: the original writes them one at a time.
+    desc.flagBit7 = 1;
+    desc.flagBit6 = 1;
     desc.flagsMidPair = 0;
     desc.flagsBit3 = 1;
     desc.flagsLow = 0;
-    desc.unk4DHigh = 0;
+    desc.flag4DBit7 = 0;
+    desc.flag4DBit6 = 0;
     Weapon::activate(&desc);
     wnLassoAltStatusView* alt = wnLassoGetAltStatus(m_moduleAccesser);
     u32 nodeId = lbl_101_data_B5D0;
@@ -64,7 +67,8 @@ void wnNessYoyo::activate(int founderTaskId, int kind, int team, bool flag) {
     alt->unk18Attach(m_moduleAccesser->getResourceModule().getResourceIdAccesser()->getBinResId(), noValue, nodeId, 0, nodeId, 0, noValue, -1);
     alt->unkDCFloat(m_moduleAccesser->getPostureModule().getScale());
     alt->unk60Int(2);
-    m_moduleAccesser->getPostureModule().setLr(m_moduleAccesser->getLinkModule().getParentLr(3));
+    float lr = m_moduleAccesser->getLinkModule().getParentLr(3);
+    m_moduleAccesser->getPostureModule().setLr(lr);
     m_moduleAccesser->getWorkManageModule().setFlag(flag, 0x22000000);
 }
 

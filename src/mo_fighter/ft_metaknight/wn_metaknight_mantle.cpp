@@ -50,11 +50,14 @@ void wnMetaknightMantle::activate(int founderTaskId, int resourceId, int unkC, i
     desc.unk40 = 0;
     desc.unk44 = 0x35F;
     desc.unk48 = 0;
-    desc.flagsHighPair = 3;
+    // The two top bits of each flag byte are separate one-bit flags: the original writes them one at a time.
+    desc.flagBit7 = 1;
+    desc.flagBit6 = 1;
     desc.flagsMidPair = 0;
     desc.flagsBit3 = 1;
     desc.flagsLow = 0;
-    desc.unk4DHigh = 0;
+    desc.flag4DBit7 = 0;
+    desc.flag4DBit6 = 0;
     desc.unkC = unkC;
     desc.unk14 = 0;
     desc.unk10 = 1;

@@ -43,11 +43,14 @@ wnPopoRubber::wnPopoRubber(s32 articleId, const wnArticleBuildInfo& info, const 
 void wnPopoRubber::activate(int founderTaskId, u32 resourceId, int team, int parentTaskId) {
     Vec3f zero(0.0f, 0.0f, 0.0f);
     wnActivateDesc desc(founderTaskId, resourceId, resourceId, resourceId, -1, -1, 0, 0, zero, 0.0f, team, 0, 2, 0x80, 0, 0x35f, 0);
-    desc.flagsHighPair = 3;
+    // The two top bits of each flag byte are separate one-bit flags: the original writes them one at a time.
+    desc.flagBit7 = 1;
+    desc.flagBit6 = 1;
     desc.flagsMidPair = 0;
     desc.flagsBit3 = 1;
     desc.flagsLow = 0;
-    desc.unk4DHigh = 0;
+    desc.flag4DBit7 = 0;
+    desc.flag4DBit6 = 0;
     Weapon::activate(&desc);
     soResourceModule& resource = m_moduleAccesser->getResourceModule();
     wnLassoAltStatusView* alt = wnLassoGetAltStatus(m_moduleAccesser);
