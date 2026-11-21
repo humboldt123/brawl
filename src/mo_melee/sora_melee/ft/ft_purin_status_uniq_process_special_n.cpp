@@ -570,11 +570,7 @@ void ftPurinStatusUniqProcessSpecialNRoll::initStatus(soModuleAccesser* acc) {
 static inline float getPurinRollSpeed(soModuleAccesser* acc) {
     soWorkManageModule& work = acc->getWorkManageModule();
     float minimum = acc->getConstantFloatKirby(0xfbd);
-    float charge = work.getFloat(0x21000005) - minimum;
-    const float multiplier = acc->getConstantFloatKirby(0xfbf);
-    const float speed = multiplier * charge;
-    const float direction = work.getFloat(0x2100000a);
-    return direction * speed;
+    return work.getFloat(0x2100000a) * (acc->getConstantFloatKirby(0xfbf) * (work.getFloat(0x21000005) - minimum));
 }
 
 // HYPOTHESIS: shared rolling speed update helper boundary/name.
@@ -607,7 +603,8 @@ static inline void updatePurinRollGround(soModuleAccesser* acc) {
             horizontal = acc->getConstantFloatKirby(0xfa5);
         }
     }
-    acc->getWorkManageModule().setFloat(__fabsf(horizontal), 0x21000007);
+    float magnitude = __fabsf(horizontal);
+    acc->getWorkManageModule().setFloat(magnitude, 0x21000007);
     stop.m_speed = Vec2f(horizontal, 0.0f);
 }
 
@@ -632,6 +629,7 @@ static inline void updatePurinRollAir(soModuleAccesser* acc) {
 }
 
 void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
+    float stickMagnitude;
     SituationKind situation = acc->getSituationModule().getKind();
     int previous = acc->getWorkManageModule().getInt(0x20000008);
     acc->getWorkManageModule().setFloat(0.0f, 0x21000009);
@@ -651,13 +649,15 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
     acc->getModelModule().setNodeScale(scaleKind == 5 ? 0x196 : 3, &scale);
     float oldAngle = acc->getWorkManageModule().getFloat(0x21000006);
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
-    float increment = (acc->getConstantFloatKirby(0xfb6) * 0.2f) * direction;
+    float rate = acc->getConstantFloatKirby(0xfb6) * 0.2f;
+    float increment = rate * direction;
     if (acc->getSituationModule().getKind() == Situation_Ground) {
         increment *= acc->getWorkManageModule().getFloat(0x21000005) * 0.017453292f;
     } else {
         soWorkManageModule& work = acc->getWorkManageModule();
         float airFactor = acc->getConstantFloatKirby(0xfbe);
-        increment *= (work.getFloat(0x21000005) * 0.017453292f) * airFactor;
+        float charge = work.getFloat(0x21000005) * 0.017453292f;
+        increment *= charge * airFactor;
     }
     float newAngle = oldAngle + increment;
     while (newAngle < 0.0f) {
@@ -684,7 +684,7 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
         }
     }
     float stick = acc->getControllerModule().getStickX();
-    float stickMagnitude = __fabsf(stick);
+    stickMagnitude = __fabsf(stick);
     if (stickMagnitude > acc->getConstantFloatKirby(0xfab)) {
         float desiredDirection = stick > 0.0f ? 1.0f : -1.0f;
         if (desiredDirection != acc->getWorkManageModule().getFloat(0x2100000a)) {
@@ -904,7 +904,15 @@ void ftPurinStatusUniqProcessSpecialNRollAir::initStatus(soModuleAccesser* acc) 
     ftKineticEnergyDisableAndClear(0, acc);
 }
 
-void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) {
+static inline void resetPurinRollGroundAt(soModuleAccesser* acc, Vec3f& resetRotation) {
+    resetPurinRollGround(acc, resetRotation);
+}static inline void updatePurinRollGroundAt(soModuleAccesser* acc) {
+    updatePurinRollGround(acc);
+}
+static inline void updatePurinRollAirAt(soModuleAccesser* acc) {
+    updatePurinRollAir(acc);
+}void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) {
+    float stickMagnitude;
     SituationKind situation = acc->getSituationModule().getKind();
     int previous = acc->getWorkManageModule().getInt(0x20000008);
     bool keepRotating = true;
@@ -925,13 +933,15 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
     acc->getModelModule().setNodeScale(scaleKind == 5 ? 0x196 : 3, &scale);
     float oldAngle = acc->getWorkManageModule().getFloat(0x21000006);
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
-    float increment = (acc->getConstantFloatKirby(0xfb6) * 0.2f) * direction;
+    float rate = acc->getConstantFloatKirby(0xfb6) * 0.2f;
+    float increment = rate * direction;
     if (acc->getSituationModule().getKind() == Situation_Ground) {
         increment *= acc->getWorkManageModule().getFloat(0x21000005) * 0.017453292f;
     } else {
         soWorkManageModule& work = acc->getWorkManageModule();
         float airFactor = acc->getConstantFloatKirby(0xfbe);
-        increment *= (work.getFloat(0x21000005) * 0.017453292f) * airFactor;
+        float charge = work.getFloat(0x21000005) * 0.017453292f;
+        increment *= charge * airFactor;
     }
     float newAngle = oldAngle + increment;
     while (newAngle < 0.0f) {
@@ -970,7 +980,7 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
         }
     }
     float stick = acc->getControllerModule().getStickX();
-    float stickMagnitude = __fabsf(stick);
+    stickMagnitude = __fabsf(stick);
     if (stickMagnitude > acc->getConstantFloatKirby(0xfab)) {
         float desiredDirection = stick > 0.0f ? 1.0f : -1.0f;
         if (desiredDirection != acc->getWorkManageModule().getFloat(0x2100000a)) {
@@ -987,58 +997,14 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
     if (situation == Situation_Ground) {
         if (situation != previous) {
             Vec3f resetRotation;
-            resetPurinRollGround(acc, resetRotation);
+            resetPurinRollGroundAt(acc, resetRotation);
         }
-        ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-        float horizontal = getPurinRollSpeed(acc);
-        Vec2f normal;
-        Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0));
-        float slopeSpeed = __fabsf(normal.m_x * horizontal);
-        float slopeFactor = acc->getConstantFloatKirby(0xfc1);
-        float slopeCorrection = slopeSpeed * slopeFactor;
-        if (normal.m_x > 0.0f) {
-            horizontal += slopeCorrection;
-        } else {
-            horizontal -= slopeCorrection;
-        }
-        float magnitudeBeforeFirstLimit = __fabsf(horizontal);
-        if (magnitudeBeforeFirstLimit > acc->getConstantFloatKirby(0xfa4)) {
-            if (horizontal < 0.0f) {
-                horizontal = -acc->getConstantFloatKirby(0xfa4);
-            } else {
-                horizontal = acc->getConstantFloatKirby(0xfa4);
-            }
-        }
-        float magnitudeBeforeSecondLimit = __fabsf(horizontal);
-        if (magnitudeBeforeSecondLimit > acc->getConstantFloatKirby(0xfa5)) {
-            if (horizontal < 0.0f) {
-                horizontal = -acc->getConstantFloatKirby(0xfa5);
-            } else {
-                horizontal = acc->getConstantFloatKirby(0xfa5);
-            }
-        }
-        acc->getWorkManageModule().setFloat(__fabsf(horizontal), 0x21000007);
-        stop.m_speed = Vec2f(horizontal, 0.0f);
+        updatePurinRollGroundAt(acc);
     } else {
         if (situation != previous) {
             g_ftPurinStatusUniqProcessSpecialNRoll.setKineticRollAir(acc);
         }
-        ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-        float horizontal = getPurinRollSpeed(acc);
-        float brake;
-        if (horizontal > 0.0f) {
-            brake = acc->getConstantFloatKirby(0xfa7);
-        } else {
-            brake = -acc->getConstantFloatKirby(0xfa7);
-        }
-        horizontal -= brake;
-        float horizontalMagnitude = __fabsf(horizontal);
-        if (horizontalMagnitude < acc->getConstantFloatKirby(0xfa8)) {
-            float direction = horizontal < 0.0f ? -1.0f : 1.0f;
-            horizontal = direction * acc->getConstantFloatKirby(0xfa8);
-        }
-        stop.m_speed = Vec2f(horizontal, 0.0f);
-        acc->getWorkManageModule().setFloat(__fabsf(horizontal), 0x21000007);
+        updatePurinRollAirAt(acc);
     }
     soWorkManageModule& work = acc->getWorkManageModule();
     work.subFloat(acc->getConstantFloatKirby(0xfbc), 0x21000005);
