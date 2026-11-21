@@ -3229,7 +3229,7 @@ config.libs = [
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_falco_blaster.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/wn/wn_falco_blaster_bullet.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_wario_status_uniq_process_special_nopen.cpp"),
-            Object(NonMatching, "mo_melee/sora_melee/ft/ft_wario_status_uniq_process_special_nbite.cpp"),
+            Object(Matching, "mo_melee/sora_melee/ft/ft_wario_status_uniq_process_special_nbite.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_wario_status_uniq_process_special_nbite_end.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_wario_status_uniq_process_special_neat.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_wario_status_uniq_process_special_neat_start.cpp"),
