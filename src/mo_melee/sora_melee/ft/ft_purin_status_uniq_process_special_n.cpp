@@ -20,9 +20,9 @@ static inline double fabsInline(double value) {
     return __fabs(value);
 }
 
-// Shared native deformation tables. Their enclosing source owner is unresolved.
-extern float lbl_27_data_A2010[4];
-extern float lbl_27_data_A2020[4];
+// Squash and stretch of the first four Rollout frames (model scale Y and Z per frame).
+float g_ftPurinSpecialNRollStartScaleY[4] = { 0.65f, 0.7f, 0.8f, 1.0f };
+float g_ftPurinSpecialNRollStartScaleZ[4] = { 1.1f, 1.35f, 1.3f, 1.2f };
 
 // Keep the reset rotation in caller-owned storage while snapshotting horizontal speed.
 // HYPOTHESIS: original shared ground-turn kinetic-reset helper boundary/name.
@@ -647,8 +647,8 @@ void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
     int frame = acc->getWorkManageModule().getInt(0x20000002);
     if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
-        scale.m_y *= lbl_27_data_A2010[frame];
-        scale.m_z *= lbl_27_data_A2020[frame];
+        scale.m_y *= g_ftPurinSpecialNRollStartScaleY[frame];
+        scale.m_z *= g_ftPurinSpecialNRollStartScaleZ[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
     } else {
         scale.m_x = 1.0f;
@@ -928,8 +928,8 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) 
     int frame = acc->getWorkManageModule().getInt(0x20000002);
     if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
-        scale.m_y *= lbl_27_data_A2010[frame];
-        scale.m_z *= lbl_27_data_A2020[frame];
+        scale.m_y *= g_ftPurinSpecialNRollStartScaleY[frame];
+        scale.m_z *= g_ftPurinSpecialNRollStartScaleZ[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
     } else {
         scale.m_x = 1.0f;
@@ -1224,8 +1224,8 @@ void ftPurinStatusUniqProcessSpecialNTurn::execStatus(soModuleAccesser* acc) {
     int frame = acc->getWorkManageModule().getInt(0x20000002);
     if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
-        scale.m_y *= lbl_27_data_A2010[frame];
-        scale.m_z *= lbl_27_data_A2020[frame];
+        scale.m_y *= g_ftPurinSpecialNRollStartScaleY[frame];
+        scale.m_z *= g_ftPurinSpecialNRollStartScaleZ[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
     } else {
         scale.m_x = 1.0f;
@@ -1466,8 +1466,8 @@ void ftPurinStatusUniqProcessSpecialNEnd::execStatus(soModuleAccesser* acc) {
     int frame = acc->getWorkManageModule().getInt(0x20000002);
     if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
-        scale.m_y *= lbl_27_data_A2010[frame];
-        scale.m_z *= lbl_27_data_A2020[frame];
+        scale.m_y *= g_ftPurinSpecialNRollStartScaleY[frame];
+        scale.m_z *= g_ftPurinSpecialNRollStartScaleZ[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
     } else {
         scale.m_x = 1.0f;
@@ -1524,8 +1524,8 @@ void ftPurinStatusUniqProcessSpecialNHitEnd::execStatus(soModuleAccesser* acc) {
     int frame = acc->getWorkManageModule().getInt(0x20000002);
     if (frame >= 0 && frame < 4) {
         scale.m_x = 1.0f;
-        scale.m_y *= lbl_27_data_A2010[frame];
-        scale.m_z *= lbl_27_data_A2020[frame];
+        scale.m_y *= g_ftPurinSpecialNRollStartScaleY[frame];
+        scale.m_z *= g_ftPurinSpecialNRollStartScaleZ[frame];
         acc->getWorkManageModule().addInt(1, 0x20000002);
     } else {
         scale.m_x = 1.0f;
