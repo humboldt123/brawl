@@ -782,8 +782,8 @@ void ftPurinStatusUniqProcessSpecialNRoll::execFixPosCounter(soModuleAccesser* a
             acc->getPostureModule().updateRotYLr();
         }
         if (!acc->getGroundModule().isTouch(grCollStatus::TOUCH_MASK_DOWN, 0)) {
-            soWorkManageModule& work = acc->getWorkManageModule();
-            work.setFloat(acc->getConstantFloatKirby(0xfa6), 0x21000008);
+            soWorkManageModule* const work = &acc->getWorkManageModule();
+            work->setFloat(acc->getConstantFloatKirby(0xfa6), 0x21000008);
         }
         double horizontalMagnitude = fabsInline(speed.m_x);
         float effectThreshold = acc->getConstantFloatKirby(0xfc2);
