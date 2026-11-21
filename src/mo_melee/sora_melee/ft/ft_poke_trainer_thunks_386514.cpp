@@ -9,4 +9,6 @@
 #endif
 #ifdef FT_POKETRAINER_ICE_DODGE_386514_2
 #endif
+#ifdef FT_POKETRAINER_ICE_DODGE_386514_3
+#endif
 #include "../src/mo_melee/sora_melee/ft/ft_poke_trainer.cpp"

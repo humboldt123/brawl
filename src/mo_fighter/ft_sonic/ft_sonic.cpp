@@ -1,3 +1,5 @@
+#define FT_PARAM_ACCESSER_TYPED_DTOR
+#define SO_SOUND_3D_GENERATOR_ACCESSER_INLINE_DTOR // BYTES: the Super Sonic sound builder destructor (0x41F8) expands the empty generator teardown
 // TODO: clean up - raw offset accesses into fighter/module structs; add named fields to the fighter class (or a local struct) instead of *(T*)(p + 0x..)
 #define FT_POOL_ROOT_NONPOLYMORPHIC
 #define SO_GENERAL_WORK_BOUNDED_CLEAR
@@ -699,7 +701,6 @@ extern "C" {
 void* fn_123_1D70(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_123_1E0C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_123_396C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
-void* fn_123_39AC(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_123_3C98(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_123_4028(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_123_4424(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
@@ -708,6 +709,9 @@ void* fn_123_474C(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator de
 void* fn_123_50D4(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 void* fn_123_5114(void* p, s16 flags) { if (p != 0 && flags > 0) { ::operator delete(p); } return p; }
 } // extern "C"
+#pragma dont_inline on
+soParamAccesser::~soParamAccesser() { }
+#pragma dont_inline off
 
 #include <so/so_array.h>
 #include <so/so_module_accesser.h>
@@ -769,24 +773,6 @@ extern "C" void fn_123_C914(void*,
 }
 
 void operator delete(void*);
-// TODO: clean up, give variables real names
-namespace jj_41F8 {
-
-extern "C" void* __dt__17soSoundModuleImplFv(void*, short);
-
-extern "C" void* fn_123_41F8(void* object, short deleting) {
-    if (object != 0) {
-        unsigned char* members = static_cast<unsigned char*>(object);
-        short memberDeleting = -1;
-        __dt__17soSoundModuleImplFv(members + 0xC, memberDeleting);
-        if (deleting > 0) {
-            operator delete(object);
-        }
-    }
-    return object;
-}
-}
-
 // TODO: clean up, give variables real names
 namespace jj_B974 {
 

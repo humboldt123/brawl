@@ -59,7 +59,10 @@ class soSound3dGeneratorAccesserImpl : public soSound3dGeneratorAccesser {
 
 public:
     soSound3dGeneratorAccesserImpl();
-#ifdef SO_BUILDER_HELPERS_WEAK
+#ifdef SO_SOUND_3D_GENERATOR_ACCESSER_INLINE_DTOR
+    // BYTES: Sonic's fighter unit expands this empty teardown into the Super Sonic sound builder destructor (0x41F8).
+    virtual ~soSound3dGeneratorAccesserImpl() { }
+#elif defined(SO_BUILDER_HELPERS_WEAK)
     virtual ~soSound3dGeneratorAccesserImpl() __attribute__((never_inline)) { } // BYTES: a weak copy of the Enemy unit
 #elif defined(SO_SOUND_3D_GENERATOR_ACCESSER_DTOR_NOINLINE)
     // BYTES: article teardown calls this body, while its empty base still inlines.
