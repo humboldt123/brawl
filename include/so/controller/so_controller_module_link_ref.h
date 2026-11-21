@@ -19,7 +19,11 @@ public:
     soControllerModuleLinkRef(soModuleAccesser* acc, s16 manageID, soArray<soControllerImpl>* controllers, soArray<soControllerClatter>* clatters) :
         soControllerModuleImpl(manageID, (int)controllers, clatters), m_moAccessor(acc), m_lkController(0) { }
 #endif
+#ifdef SO_CONTROLLER_LINK_REF_INLINE_DTOR
+    virtual ~soControllerModuleLinkRef() { }
+#else
     virtual ~soControllerModuleLinkRef();
+#endif
     virtual void resetButton();
     virtual void resetTrigger();
     virtual void resetMainStickX();

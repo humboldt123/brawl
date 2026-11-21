@@ -1,4 +1,11 @@
 #define WN_KINETIC_GRAVITY_INLINE_DTOR
+#define SO_CONTROLLER_LINK_REF_INLINE_DTOR // BYTES: the controller builder destructor leaves a weak copy of the module destructor here
+#define WN_KINETIC_NO_FIGHTER_ENERGIES // BYTES: link order, the normal energy destructor follows the mediator constructor
+#define WN_KINETIC_MEDIATOR_OUT_OF_CLASS // BYTES: link order, the mediator and its pools are instantiated at the end of the unit
+#define WN_KINETIC_MEDIATOR_LATE // BYTES: link order, the mediator template is declared after the accesser and builder templates
+#define SO_LINE_INVERT_HIERARCHY_IMPLICIT_DTOR // BYTES: the upper pool levels have no destructor of their own
+#define SO_LINE_INVERT_HIERARCHY_CLEAR_SPEED // BYTES: link order, every pool level forwards clearSpeed itself
+#define WN_KINETIC_POOL_SUB_LOOPS // BYTES: link order, the per-energy update loop belongs to the sub-pool
 #define WN_SONIC_SUPER_SONIC_GENERIC_BUILDER // the unit builds the generic weapon builder template (see the header)
 #define WN_WEAPON_BUILDER_CTOR_NO_FLAG
 #define WN_ANIMCMD_UNIT5_SELECT
@@ -146,74 +153,3 @@ void wnSonicSuperSonic::notifyEventChangeStatus(int kind, int prevKind, soStatus
     default: break;
     }
 }
-
-// TODO: clean up, give variables real names
-namespace jj_145B8 {
-extern "C" u32 fn_123_145B8(void* self) {
-    return *reinterpret_cast<u32*>(reinterpret_cast<u8*>(self) + 0x4);
-}
-}
-
-// TODO: clean up, give variables real names
-namespace jj_14CE8 {
-extern "C" {
-void __dl__FPv(void*);
-void* __dt__22soControllerModuleImplFv(void*, short);
-}
-
-extern "C" {
-void* fn_123_14CE8(void* p1, short p2) {
-    if (p1 != 0) {
-        __dt__22soControllerModuleImplFv(p1, static_cast<short>(0));
-        if (p2 > 0) {
-            __dl__FPv(p1);
-        }
-    }
-    return p1;
-}
-}
-}
-
-// TODO: clean up, give variables real names
-namespace jj_1798C {
-extern "C" void* getInstanceAt__21ftPurinArticleSubPoolFl(void* object, int index) {
-    if (index == 0) {
-        return static_cast<char*>(object) + 0x0c;
-    }
-    return 0;
-}
-}
-
-// TODO: clean up, give variables real names
-namespace jj_17A34 {
-extern "C" s32 fn_123_17A34(void) {
-    return 0x0;
-}
-}
-
-// TODO: clean up, give variables real names
-namespace jj_17AE4 {
-extern "C" s32 fn_123_17AE4(void) {
-    return 0x0;
-}
-}
-
-void operator delete(void*);
-// TODO: clean up, give variables real names
-namespace jj_14FC4 {
-extern "C" void* __dt__15soKineticEnergyFv(void*, short);
-
-extern "C" void* fn_123_14FC4(void* object, short deleting) {
-    if (object != 0) {
-        if (object != 0) {
-            short baseDeleting = 0;
-            __dt__15soKineticEnergyFv(object, baseDeleting);
-        }
-        if (deleting > 0) {
-            operator delete(object);
-        }
-    }
-    return object;
-}
-}
-

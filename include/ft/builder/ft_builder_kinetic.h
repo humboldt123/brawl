@@ -10,7 +10,14 @@
 #include <ft/builder/ft_dol_array_list.h>
 #include <ft/builder/ft_builder_transition.h>
 #include <ft/builder/ft_dol_types.h>
+// WN_KINETIC_NO_FIGHTER_ENERGIES (opt-in): an article unit whose mediator only holds the plain normal energy does not
+// see the fighter energies. BYTES: link order, their inline destructors would claim the normal energy destructor in
+// the weak vtable pass, ahead of the mediator constructor chain where the original emits it (Super Sonic).
+#ifdef WN_KINETIC_NO_FIGHTER_ENERGIES
+#include <so/so_kinetic_energy_normal.h>
+#else
 #include <ft/ft_kinetic_energy.h>
+#endif
 #include <so/kinetic/so_kinetic_module_impl.h>
 #include <so/so_module_accesser.h>
 #include <so/status/so_status_event_presenter.h>

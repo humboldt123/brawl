@@ -50,6 +50,9 @@ mo_fighter/ft_sonic/wn_sonic_gimmick_jump.cpp:
 
 mo_fighter/ft_sonic/wn_sonic_super_sonic.cpp:
 	.text       start:0x00014430 end:0x00017B48
+	.rodata     start:0x00000080 end:0x00000098
+	.data       start:0x00007280 end:0x000081B0
+	.bss        start:0x000003F8 end:0x00000468
 
 mo_fighter/ft_sonic/wn_sonic_super_sonic_kinetic_transactor.cpp:
 	.text       start:0x00017B48 end:0x000185A0
