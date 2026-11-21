@@ -1080,6 +1080,8 @@ static inline void setPurinRollNodeAngle(const soModuleAccesser* acc, int node, 
 
 void ftPurinStatusUniqProcessSpecialNRollAir::execFixPosCounter(soModuleAccesser* acc) {
     Vec2f speed;
+    float verticalMagnitude;
+    double stickMagnitude;
     bool hitWall = false;
     Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
@@ -1116,7 +1118,7 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execFixPosCounter(soModuleAccesser
         acc->getPostureModule().updateRotYLr();
     }
     if (acc->getSituationModule().getKind() == Situation_Ground) {
-        float verticalMagnitude = __fabsf(speed.m_y);
+        verticalMagnitude = __fabsf(speed.m_y);
         float bounceY = verticalMagnitude * acc->getConstantFloatKirby(0xfae);
         float bounceThreshold = acc->getConstantFloatKirby(0xfaf);
         if (bounceY < bounceThreshold) {
@@ -1126,13 +1128,14 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execFixPosCounter(soModuleAccesser
             ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
             gravity.m_speedY = bounceY;
             float stick = acc->getControllerModule().getStickX();
-            double stickMagnitude = __fabsf(stick);
+            stickMagnitude = __fabsf(stick);
             float deadZone = acc->getConstantFloatKirby(0xfab);
             if (stickMagnitude > deadZone) {
                 acc->getWorkManageModule().setFloat(stick > 0.0f ? 1.0f : -1.0f, 0x2100000a);
                 soWorkManageModule& work = acc->getWorkManageModule();
                 float direction = work.getFloat(0x2100000a);
-                stop.m_speed = Vec2f(work.getFloat(0x21000007) * direction, 0.0f);
+                float horizontal = work.getFloat(0x21000007);
+                stop.m_speed = Vec2f(horizontal * direction, 0.0f);
             }
             float angle = acc->getWorkManageModule().getFloat(0x21000006);
             int node = acc->getStageObject().soGetSubKind() == 5 ? 0x197 : 4;
