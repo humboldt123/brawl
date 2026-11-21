@@ -28,6 +28,11 @@ wnYoshiFireBreath::wnYoshiFireBreath(s32 articleId, const wnArticleBuildInfo& in
 
 // The breath is activated at the position with the given facing; its speed is the direction of the angle (degrees) scaled by
 // the first parameter, its deceleration the same direction scaled by the second one. HYPOTHESIS: meaning of the parameters.
+// The braking vector of the breath's energy: the size of its deceleration on each axis.
+static inline void setBrake(wnKineticEnergyNormal& normal, const Vec2f& brake) {
+    normal.m_brake = brake;
+}
+
 void wnYoshiFireBreath::activate(int founderTaskId, int team, const Vec3f* position, float lr, float angle) {
     wnActivateDesc desc;
     desc.founderTaskId = founderTaskId;
@@ -70,13 +75,8 @@ void wnYoshiFireBreath::activate(int founderTaskId, int team, const Vec3f* posit
     accel.m_y *= -1.0f;
     normal.m_speed = speed;
     normal.m_accel = accel;
-    // TODO(nonmatching): activate (99.96%): only the stack slots differ. In the original the braking vector lives in the
-    //   lowest slot (below the two return temporaries of the Vec2f multiplications); as a named local it sits above them, as a
-    //   by-value temporary (`normal.m_brake = Vec2f(...)`) the slots match but one `mr r4,r3` replaces a re-materialised address
-    //   (99.56%); an address-taken temporary (inline assignment helper, `*&Vec2f(...)`) or a block-scoped/reference local is back at the
-    //   higher slot.
-    Vec2f brake(ftyoshi::ABS(accel.m_x), ftyoshi::ABS(accel.m_y));
-    normal.m_brake = brake;
+    // The braking vector is a temporary bound to the reference parameter of the inline setter (lowest stack slot).
+    setBrake(normal, Vec2f(ftyoshi::ABS(accel.m_x), ftyoshi::ABS(accel.m_y)));
     normal.m_speedTarget = speed;
     normal.m_speedLimit = speed;
     normal.enable();
