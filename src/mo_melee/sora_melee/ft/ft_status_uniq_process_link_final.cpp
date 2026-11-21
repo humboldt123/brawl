@@ -5,7 +5,7 @@
 #include <ft/fighter.h>
 #undef FT_MODULE_BUILDER
 #include <ft/ft_status_uniq_process_link_final.h>
-#include <ft/ft_status_uniq_process_views.h>
+#include <so/capture/so_capture_module.h>
 #include <mt/mt_prng.h>
 #include <so/ground/so_ground_module_impl.h>
 #include <so/kinetic/so_kinetic_module_impl.h>
@@ -24,18 +24,6 @@
 
 ftStatusUniqProcessLinkFinal g_ftStatusUniqProcessLinkFinal;
 
-// Local view of the stop (hit-stop) module; no header in this tree. Slot 0x20 takes a frame count.
-class ftStopModuleFrameView {
-public:
-    virtual ~ftStopModuleFrameView() { }
-    virtual void pad3();
-    virtual void pad4();
-    virtual void pad5();
-    virtual void pad6();
-    virtual void pad7();
-    virtual void slot20(int frames);
-};
-
 // HYPOTHESIS: the eight motion kinds the captured fighter is thrown into (picked at random).
 static const int sThrownMotionKinds[8] = { 0x99, 0x9A, 0x9C, 0x9D, 0x9F, 0xA0, 0xA2, 0xA3 };
 
@@ -46,7 +34,7 @@ void ftStatusUniqProcessLinkFinal::linkMessageProcedure(ftLinkFinalMessage* mess
     work->setInt(message->m_message, 0x20000000);
     switch (message->m_message) {
     case 1:
-        reinterpret_cast<ftStopModuleFrameView*>(moduleAccesser->m_enumerationStart->m_stopModule)->slot20(message->m_value);
+        moduleAccesser->getStopModule().setOtherStop(message->m_value);
         break;
     case 2: {
         soMotionModule* motion = &moduleAccesser->getMotionModule();
@@ -108,8 +96,8 @@ void ftStatusUniqProcessLinkFinal::execFixPos(soModuleAccesser* moduleAccesser) 
     if (moduleAccesser->getLinkModule().isLink(0)) {
         moduleAccesser->getLinkModule().setAttribute(0, (soLinkConnection::Attribute)0, false);
     }
-    soPostureModule* posture = &moduleAccesser->getPostureModule();
     soModelModule* model = &moduleAccesser->getModelModule();
+    soPostureModule* posture = &moduleAccesser->getPostureModule();
     int node = model->getCorrectNodeId(0);
     Vec3f pos = model->getNodeGlobalPosition(node, false);
     posture->setPos(&pos);
@@ -120,7 +108,7 @@ void ftStatusUniqProcessLinkFinal::execFixPos(soModuleAccesser* moduleAccesser) 
     kinetic->clearSpeedAll();
     kinetic->unableEnergyAll();
     if (moduleAccesser->getWorkManageModule().isFlag(0x22000012) || !ftLinkFinalIsCaptured(moduleAccesser)) {
-        int status = (moduleAccesser->getSituationModule().getKind() != 0) ? 0xE : 0x17;
+        int status = (moduleAccesser->getSituationModule().getKind() == 0) ? 0x17 : 0xE;
         moduleAccesser->getStatusModule().changeStatusRequest(status, moduleAccesser);
     }
 }
@@ -140,14 +128,15 @@ void ftStatusUniqProcessLinkFinal::exitStatus(soModuleAccesser* moduleAccesser, 
     case 0x42:
         break;
     default:
-        reinterpret_cast<ftLinkModuleSlotView*>(moduleAccesser->m_enumerationStart->m_linkModule)->unlinkSlot164(true);
-        reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot54(0);
-        reinterpret_cast<ftCaptureModuleSlotView*>(moduleAccesser->m_enumerationStart->m_captureModule)->slot30(0, 0);
+        moduleAccesser->getLinkModule().removeModelConstraint(true);
+        static_cast<soCaptureModule*>(moduleAccesser->m_enumerationStart->m_captureModule)->unk54(0);
+        static_cast<soCaptureModule*>(moduleAccesser->m_enumerationStart->m_captureModule)->captureCut(false, false);
         break;
     }
 }
 
-// Whether Link (or Toon Link) holds the fighter in one of the final smash capture statuses.
+// Whether Link (or Toon Link) holds the fighter in one of the final smash capture statuses. Called out of line by
+// execFixPos: with the inner `default: break;` arms the function is past the auto-inline size.
 bool ftLinkFinalIsCaptured(soModuleAccesser* moduleAccesser) {
     StageObject* parent = moduleAccesser->getLinkModule().getParent(0);
     if (parent == NULL) {
@@ -165,6 +154,8 @@ bool ftLinkFinalIsCaptured(soModuleAccesser* moduleAccesser) {
         case 0x11A:
         case 0x11B:
             return true;
+        default:
+            break;
         }
         break;
     case 0x29:
@@ -173,6 +164,8 @@ bool ftLinkFinalIsCaptured(soModuleAccesser* moduleAccesser) {
         case 0x11A:
         case 0x11B:
             return true;
+        default:
+            break;
         }
         break;
     }
