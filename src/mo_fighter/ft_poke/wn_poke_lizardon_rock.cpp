@@ -153,24 +153,28 @@ void wnPokeLizardonRock::notifyEventChangeStatus(int statusKind, int prevStatusK
 }
 
 bool wnPokeLizardonRock::activeArticle(wnPokeLizardonRockStone* stone, soModuleAccesser* acc) {
-    int taskId;
     wnPokeLizardonRock& rock = dynamic_cast<wnPokeLizardonRock&>(acc->getStageObject());
     const wnPokeLizardonRockParam* param = rock.m_param;
+    // Declared up front in this order (and the modules read from the enumeration): the saved registers follow it.
+    soPostureModule* posture;
+    soResourceModule* resource;
+    int taskId;
+    int team;
     acc->getWorkManageModule().getInt(0x20000000);
     float baseAngle = acc->getWorkManageModule().getFloat(0x11000002);
     float angle = baseAngle + (180.0f * randf() - 90.0f);
     acc->getWorkManageModule().setFloat(angle, 0x21000000);
-    int team = acc->getWorkManageModule().getInt(0x10000005);
+    team = acc->getWorkManageModule().getInt(0x10000005);
     Vec3f pos;
     if (acc->getStatusModule().getStatusKind() == 1) {
         pos = acc->getModelModule().getNodeGlobalPosition(1, false);
     } else {
         pos = acc->getModelModule().getNodeGlobalPosition(0, false);
     }
-    soPostureModule& posture = acc->getPostureModule();
-    soResourceModule& resource = acc->getResourceModule();
+    posture = acc->m_enumerationStart->m_postureModule;
+    resource = acc->m_enumerationStart->m_resourceModule;
     taskId = acc->getStageObject().m_taskId;
-    stone->activate(taskId, resource.getResourceIdAccesser()->getAnmResId(), team, &pos, posture.getLr(), angle, param->unk14,
+    stone->activate(taskId, resource->getResourceIdAccesser()->getAnmResId(), team, &pos, posture->getLr(), angle, param->unk14,
                     param->unk18, randi(2));
     return false;
 }
