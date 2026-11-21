@@ -82,7 +82,9 @@ class wnLucasPKFlash : public wnWeaponBuilder<wnLucasPKFlashModuleAccesserBuildC
 // HYPOTHESIS: the article data type the class info fetches for kind 77; only passed as a pointer here.
 struct wnLucasPKFlashData;
 class wnLucasPKFlash : public Weapon {
-    u8 m_storage[0x2054 - sizeof(Weapon)];
+    u8 m_storage[0x1FE4 - sizeof(Weapon)];
+    const wnLucasPKFlashParam* m_param; // +0x1FE4
+    u8 m_rest[0x2054 - 0x1FE8];
 #endif
 public:
     wnLucasPKFlash(s32 articleId, const wnArticleBuildInfo& info, const wnLucasPKFlashData* data);
@@ -95,5 +97,6 @@ public:
     void activate(int founderTaskId, int team, const Vec3f* pos, float lr);
     virtual void onDeactivate();
     void shoot();
+    const wnLucasPKFlashParam* getParam() const { return m_param; }
 };
 static_assert(sizeof(wnLucasPKFlash) == 0x2054, "Lucas PK Flash article extent");
