@@ -1,4 +1,6 @@
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
+#define MT_VEC3F_LENGTH_SQ_PLAIN
+#include <ft/ft_status_uniq_process_captain_final_target.h>
 #include <ft/ft_common_data_accesser.h>
 #include <ft/ft_kinetic_energy.h>
 #include <mt/mt_prng.h>
@@ -40,41 +42,6 @@ struct ftCaptainFinalTargetParam {
     float unk1C;
 };
 
-class ftStatusUniqProcessCaptainFinalTarget : public soStatusUniqProcess {
-public:
-    virtual ~ftStatusUniqProcessCaptainFinalTarget() { }
-    static void linkMessageProcedure(soLinkEventArgs* args, soModuleAccesser* moduleAccesser);
-};
-
-class ftStatusUniqProcessCaptainFinalStart : public soStatusUniqProcess {
-public:
-    virtual ~ftStatusUniqProcessCaptainFinalStart() { }
-    virtual void initStatus(soModuleAccesser* moduleAccesser);
-    virtual void execStatus(soModuleAccesser* moduleAccesser);
-};
-
-class ftStatusUniqProcessCaptainFinalFuraFura : public soStatusUniqProcess {
-public:
-    virtual ~ftStatusUniqProcessCaptainFinalFuraFura() { }
-    virtual void initStatus(soModuleAccesser* moduleAccesser);
-    virtual void execStatus(soModuleAccesser* moduleAccesser);
-    virtual bool checkDamage(soModuleAccesser* moduleAccesser, void*);
-};
-
-class ftStatusUniqProcessCaptainFinalClash : public soStatusUniqProcess {
-public:
-    virtual ~ftStatusUniqProcessCaptainFinalClash() { }
-    virtual void initStatus(soModuleAccesser* moduleAccesser);
-    virtual void execStatus(soModuleAccesser* moduleAccesser);
-};
-
-class ftStatusUniqProcessCaptainFinalEnd : public soStatusUniqProcess {
-public:
-    virtual ~ftStatusUniqProcessCaptainFinalEnd() { }
-    virtual void initStatus(soModuleAccesser* moduleAccesser);
-    virtual void execStatus(soModuleAccesser* moduleAccesser);
-};
-
 ftStatusUniqProcessCaptainFinalTarget g_ftStatusUniqProcessCaptainFinalTarget;
 ftStatusUniqProcessCaptainFinalStart g_ftStatusUniqProcessCaptainFinalStart;
 ftStatusUniqProcessCaptainFinalFuraFura g_ftStatusUniqProcessCaptainFinalFuraFura;
@@ -84,6 +51,53 @@ ftStatusUniqProcessCaptainFinalEnd g_ftStatusUniqProcessCaptainFinalEnd;
 // BYTES: the original keeps the one-caller fall step out of line.
 static bool fall(soModuleAccesser* moduleAccesser) __attribute__((never_inline));
 static void set_clash_flying(soModuleAccesser* moduleAccesser);
+
+// HYPOTHESIS: the three helpers below are inlined into linkMessageProcedure (names invented); their locals take the
+// lowest stack slots of the frame in the original, which block-scope code in the caller does not reproduce.
+
+// Places the caught fighter at a random spot high above the stage, facing left.
+static inline void set_scatter_pos(soModuleAccesser* moduleAccesser) {
+    soPostureModule& posture = moduleAccesser->getPostureModule();
+    ftData* data = g_ftCommonDataAccesser.getData(Fighter_Captain);
+    Vec3f pos(0.0f, 0.0f, 0.0f);
+    float radius = static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->unk0;
+    do {
+        pos.m_x = radius * (2.0f * randf() - 1.0f);
+        pos.m_z = radius * (2.0f * randf() - 1.0f);
+    } while (pos.lengthSq() >= radius * radius);
+    pos.m_x += radius;
+    pos.m_y += 3000.0f;
+    // BYTES: a random facing angle in degrees is drawn but never used; only the randf call survives, and the
+    // dead 360.0f product still leaves its constant in the pool between 3000 and -1 (as in the original).
+    float angle = 360.0f * randf();
+    posture.setPos(&pos);
+    posture.setLr(-1.0f);
+    posture.setRot(&Vec3f(0.0f, 0.0f, 0.0f), 0);
+    moduleAccesser->m_stageObject->updateNodeSRT();
+}
+
+// Drops the fighter to the parameter's start height and stores the parameter's float in work 0x21000004.
+static inline void set_start_height(soModuleAccesser* moduleAccesser) {
+    soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
+    soPostureModule& posture = moduleAccesser->getPostureModule();
+    ftData* data = g_ftCommonDataAccesser.getData(Fighter_Captain);
+    Vec3f pos;
+    pos = posture.getPos();
+    pos.m_y = static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->unk4;
+    posture.setPos(&pos);
+    workManage.setFloat(static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->unk8, 0x21000004);
+}
+
+// Re-activates the fighter's sound at its position and restores the SE pitch saved in work 0x21000007.
+static inline void restore_sound(soModuleAccesser* moduleAccesser) {
+    soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
+    soSoundModule& sound = moduleAccesser->getSoundModule();
+    sound.activate(&moduleAccesser->getPostureModule().getPos());
+    float pitch = workManage.getFloat(0x21000007);
+    if (pitch != 1.0f) {
+        sound.setSEPitch(pitch);
+    }
+}
 
 // HYPOTHESIS: messages 0 (mark caught), 1 (start), 2 (scatter above the stage and drop in), 3 (clash), 4/7 (restore the
 // sound), 5 (hit), 6 (place for the end), 7 also returns the fighter to status 0xFB.
@@ -95,6 +109,9 @@ void ftStatusUniqProcessCaptainFinalTarget::linkMessageProcedure(soLinkEventArgs
     soPostureModule& posture = moduleAccesser->getPostureModule();
     soKineticModule& kinetic = moduleAccesser->getKineticModule();
     soGroundModule& ground = moduleAccesser->getGroundModule();
+    Vec3f pos;
+    Vec3f rot;
+    Vec3f safePos;
     switch (message->m_message) {
     case 0:
         workManage.onFlag(0x12000001);
@@ -102,31 +119,14 @@ void ftStatusUniqProcessCaptainFinalTarget::linkMessageProcedure(soLinkEventArgs
     case 1:
         status.changeStatusRequest(0xFC, moduleAccesser);
         break;
-    case 2: {
+    case 2:
         status.changeStatusRequest(0xFD, moduleAccesser);
         workManage.setInt(0, 0x20000000);
         workManage.setInt(0, 0x20000001);
         workManage.setInt(0, 0x20000002);
         workManage.offFlag(0x12000019);
         workManage.offFlag(0x1200001B);
-        {
-            soPostureModule& posture = moduleAccesser->getPostureModule();
-            ftData* data = g_ftCommonDataAccesser.getData(Fighter_Captain);
-            Vec3f pos(0.0f, 0.0f, 0.0f);
-            float radius = static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->unk0;
-            float radiusSq = radius * radius;
-            do {
-                pos.m_x = radius * (2.0f * randf() - 1.0f);
-                pos.m_z = radius * (2.0f * randf() - 1.0f);
-            } while (pos.m_x * pos.m_x + pos.m_y * pos.m_y + pos.m_z * pos.m_z >= radiusSq);
-            pos.m_x += radius;
-            pos.m_y += 3000.0f;
-            randf();
-            posture.setPos(&pos);
-            posture.setLr(-1.0f);
-            posture.setRot(&Vec3f(0.0f, 0.0f, 0.0f), 0);
-            moduleAccesser->m_stageObject->updateNodeSRT();
-        }
+        set_scatter_pos(moduleAccesser);
         soMotionChangeParam param;
         param.m_kind = 0x29;
         param.m_frame = 0.0f;
@@ -136,33 +136,17 @@ void ftStatusUniqProcessCaptainFinalTarget::linkMessageProcedure(soLinkEventArgs
         param._14 = 0;
         param._15 = 0;
         motion.changeMotionRequest(&param);
-        {
-            soWorkManageModule& workManage = moduleAccesser->getWorkManageModule();
-            soPostureModule& posture = moduleAccesser->getPostureModule();
-            ftData* data = g_ftCommonDataAccesser.getData(Fighter_Captain);
-            Vec3f pos;
-            pos = posture.getPos();
-            pos.m_y = static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->unk4;
-            posture.setPos(&pos);
-            workManage.setFloat(static_cast<ftCaptainFinalTargetParam*>(data->extendParam[5])->unk8, 0x21000004);
-        }
+        set_start_height(moduleAccesser);
         break;
-    }
     case 3:
         status.changeStatusRequest(0xFD, moduleAccesser);
         workManage.setInt(1, 0x20000000);
         workManage.setInt(0, 0x20000001);
         workManage.setInt(0, 0x20000002);
         break;
-    case 4: {
-        soSoundModule& sound = moduleAccesser->getSoundModule();
-        sound.activate(&posture.getPos());
-        float pitch = workManage.getFloat(0x21000007);
-        if (pitch != 1.0f) {
-            sound.setSEPitch(pitch);
-        }
+    case 4:
+        restore_sound(moduleAccesser);
         break;
-    }
     case 5:
         status.changeStatusRequest(0xFF, moduleAccesser);
         workManage.onFlag(0x12000019);
@@ -172,19 +156,17 @@ void ftStatusUniqProcessCaptainFinalTarget::linkMessageProcedure(soLinkEventArgs
         break;
     case 6:
         if (message->unk20 && ground.isNull() != true) {
-            Vec3f safePos(message->unk24.m_x, message->unk24.m_y, message->unk24.m_z);
+            safePos.set(message->unk24.m_x, message->unk24.m_y, message->unk24.m_z);
             posture.setPos(&safePos);
-            ground.setShapeSafePos(&Vec2f(safePos.m_x, safePos.m_y), 0);
+            ground.setShapeSafePos(&Vec2f(safePos), 0);
             ground.setCorrect(soGroundShapeImpl::CorrectKind(5), 0);
         }
-        Vec3f pos;
         pos = message->unkC;
         posture.setPos(&pos);
         posture.setLr(message->unk18);
         if (message->unk20 && ground.isNull() != true) {
             ground.setCorrect(soGroundShapeImpl::CorrectKind(0), 0);
         }
-        Vec3f rot;
         rot.m_x = 0.0f;
         rot.m_y = message->unk1C;
         rot.m_z = 0.0f;
@@ -194,12 +176,7 @@ void ftStatusUniqProcessCaptainFinalTarget::linkMessageProcedure(soLinkEventArgs
         kinetic.mulSpeed(&Vec3f(0.0f, 0.0f, 0.0f), soKineticEnergy::AttributeFlag(soKineticEnergy::ATTRIBUTE_MASK_ALL));
         break;
     case 7: {
-        soSoundModule& sound = moduleAccesser->getSoundModule();
-        sound.activate(&posture.getPos());
-        float pitch = workManage.getFloat(0x21000007);
-        if (pitch != 1.0f) {
-            sound.setSEPitch(pitch);
-        }
+        restore_sound(moduleAccesser);
         moduleAccesser->getKineticModule().clearSpeedAll();
         status.changeStatusRequest(0xFB, moduleAccesser);
         workManage.offFlag(0x22000010);
