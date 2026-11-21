@@ -254,13 +254,16 @@ float clampf(register float value, register float min, register float max) {
 
 // Air drift from the stick: the entry speed is kept by a factor and capped, the vertical speed depends on work flag
 // 0x22000006, then gravity and controller take the parameters of the air modes.
+// Float-in, float-out fabs: its argument and result are inline temporaries, which gives the native register order.
+static inline float absFloat(float value) { return fabs(value); }
+
 void ftGameWatchKineticTransactor::changeKineticSub7(bool*, void*, Vec2f* speed, soModuleAccesser* acc) {
     Vec2f entry = *speed;
     ftGameWatchKineticParam* param = getKineticParam();
     float gain = param->unk34;
     entry.m_x = entry.m_x * param->unk3C + gain * acc->getControllerModule().getStickX();
     float max = param->unk40;
-    if ((float)fabs(entry.m_x) > max) {
+    if (absFloat(entry.m_x) > max) {
         if (entry.m_x < 0.0f) {
             max = -max;
         }
