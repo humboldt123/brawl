@@ -2410,7 +2410,7 @@ config.libs = [
             Object(Matching, "mo_fighter/ft_sonic/ft_sonic_status_uniq_process_special_lw_hold.cpp"),
             Object(Matching, "mo_fighter/ft_sonic/ft_sonic_status_uniq_process_final_end.cpp"),
             Object(NonMatching, "mo_fighter/ft_sonic/wn_sonic_gimmick_jump.cpp"),
-            Object(NonMatching, "mo_fighter/ft_sonic/wn_sonic_super_sonic.cpp"),
+            Object(Matching, "mo_fighter/ft_sonic/wn_sonic_super_sonic.cpp"),
             Object(NonMatching, "mo_fighter/ft_sonic/wn_sonic_super_sonic_kinetic_transactor.cpp", extra_cflags=["-UFT_MODULE_BUILDER"]),
             Object(Matching, "mo_fighter/ft_sonic/ft_sonic_status_uniq_process_special_s_wall_end.cpp"),
         ],

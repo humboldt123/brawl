@@ -1,3 +1,4 @@
+#define WN_CONTROLLER_NULL_ARRAYS_FN // BYTES: .bss order, the clatter singleton precedes the controller one
 #define WN_KINETIC_GRAVITY_INLINE_DTOR
 #define SO_CONTROLLER_LINK_REF_INLINE_DTOR // BYTES: the controller builder destructor leaves a weak copy of the module destructor here
 #define WN_KINETIC_NO_FIGHTER_ENERGIES // BYTES: link order, the normal energy destructor follows the mediator constructor

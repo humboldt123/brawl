@@ -512,8 +512,14 @@ class soControllerModuleBuilder<wnControllerModuleBuildConfig<T, 0, 0> > {
     T m_controllerModule;
 public:
     soControllerModuleBuilder(soModuleAccesser* acc, s16 manageId) :
+#ifdef WN_CONTROLLER_NULL_ARRAYS_FN
+        // Fetched through the function template: its getInstance copies are instantiated after the constructor, last
+        // one first, so the clatter singleton takes its .bss place before the controller one (Super Sonic).
+        m_controllerModule(acc, manageId, soGetArrayNull<soControllerImpl>(), soGetArrayNull<soControllerClatter>()) { }
+#else
         m_controllerModule(acc, manageId, soSingletonHolder<soArrayNull<soControllerImpl> >::getInstance(),
                            soSingletonHolder<soArrayNull<soControllerClatter> >::getInstance()) { }
+#endif
     T* getModule() { return &m_controllerModule; }
 };
 template <>
