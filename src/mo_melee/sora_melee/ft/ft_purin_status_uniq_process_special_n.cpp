@@ -566,17 +566,12 @@ void ftPurinStatusUniqProcessSpecialNRoll::initStatus(soModuleAccesser* acc) {
     ftKineticEnergyDisableAndClear(0, acc);
 }
 
-// HYPOTHESIS: common charge-derived rolling speed helper boundary/name.
-static inline float getPurinRollSpeed(soModuleAccesser* acc) {
-    soWorkManageModule& work = acc->getWorkManageModule();
-    float minimum = acc->getConstantFloatKirby(0xfbd);
-    return work.getFloat(0x2100000a) * (acc->getConstantFloatKirby(0xfbf) * (work.getFloat(0x21000005) - minimum));
-}
-
 // HYPOTHESIS: shared rolling speed update helper boundary/name.
 static inline void updatePurinRollGround(soModuleAccesser* acc) {
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-    float horizontal = getPurinRollSpeed(acc);
+    soWorkManageModule& work = acc->getWorkManageModule();
+    float minimum = acc->getConstantFloatKirby(0xfbd);
+    float horizontal = work.getFloat(0x2100000a) * (acc->getConstantFloatKirby(0xfbf) * (work.getFloat(0x21000005) - minimum));
     Vec2f normal;
     Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_DOWN, 0));
     float slopeSpeed = __fabsf(normal.m_x * horizontal);
@@ -611,7 +606,9 @@ static inline void updatePurinRollGround(soModuleAccesser* acc) {
 // HYPOTHESIS: shared rolling speed update helper boundary/name.
 static inline void updatePurinRollAir(soModuleAccesser* acc) {
     ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-    float horizontal = getPurinRollSpeed(acc);
+    soWorkManageModule& work = acc->getWorkManageModule();
+    float minimum = acc->getConstantFloatKirby(0xfbd);
+    float horizontal = work.getFloat(0x2100000a) * (acc->getConstantFloatKirby(0xfbf) * (work.getFloat(0x21000005) - minimum));
     float brake;
     if (horizontal > 0.0f) {
         brake = acc->getConstantFloatKirby(0xfa7);
