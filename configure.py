@@ -2969,7 +2969,7 @@ config.libs = [
             Object(Matching, "mo_melee/sora_melee/ft/ft_status_uniq_process_item_shoot_scope.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_status_uniq_process_item_shoot_lgun.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_status_uniq_process_item_shoot_fflower.cpp"),
-            Object(NonMatching, "mo_melee/sora_melee/ft/ft_status_uniq_process_item_shoot_clauncher.cpp"),
+            Object(Matching, "mo_melee/sora_melee/ft/ft_status_uniq_process_item_shoot_clauncher.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_status_uniq_process_item_swing.cpp"),
             Object(Matching, "mo_melee/sora_melee/ft/ft_status_uniq_process_test_motion.cpp"),
             Object(NonMatching, "mo_melee/sora_melee/ft/ft_status_uniq_process_bury.cpp"),

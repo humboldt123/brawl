@@ -157,7 +157,8 @@ void ftStatusUniqProcessItemShoot::execFixPos_CLauncher(soModuleAccesser* module
     switch (moduleAccesser->getWorkManageModule().getInt(0x2000000C)) {
     case 0: {
         int nextStatus;
-        if (moduleAccesser->getControllerModule().getTrigger() & soController::getButtonMask(soController::Pad_Button_Attack)) {
+        soControllerModule* const controller = &moduleAccesser->getControllerModule();
+        if (controller->getTrigger() & soController::getButtonMask(soController::Pad_Button_Attack)) {
             moduleAccesser->getWorkManageModule().setInt(1, 0x2000000C);
             nextStatus = moduleAccesser->getSituationModule().getKind() == 0 ? 0xA4 : 0xAD;
             struct EffectVectors {
@@ -202,12 +203,12 @@ void ftStatusUniqProcessItemShoot::execFixPos_CLauncher(soModuleAccesser* module
         }
         if (moduleAccesser->getSituationModule().getKind() == 0) {
             if (moduleAccesser->getGroundModule().isPassableGround(0) == true) {
-                soControllerModule& controller = moduleAccesser->getControllerModule();
+                soControllerModule* const stickController = &moduleAccesser->getControllerModule();
                 float threshold = soValueAccesser::getConstantFloat(moduleAccesser, 0xC73, 0);
-                if (controller.getStickY() <= threshold) {
-                    soControllerModule& flickController = moduleAccesser->getControllerModule();
+                if (stickController->getStickY() <= threshold) {
+                    soControllerModule* const flickController = &moduleAccesser->getControllerModule();
                     int flickFrames = soValueAccesser::getConstantInt(moduleAccesser, 0x5A65, 0);
-                    if ((u8)flickController.getFlickY() < flickFrames) {
+                    if ((u8)flickController->getFlickY() < flickFrames) {
                         moduleAccesser->getWorkManageModule().onFlag(0x22000011);
                     }
                 }
