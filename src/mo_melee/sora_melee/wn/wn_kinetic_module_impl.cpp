@@ -1,61 +1,14 @@
 #define WN_ARTICLE_NATIVE_BUILDERS
 #define SO_KINETIC_MODULE_IMPL_CTOR_2
+#define WN_ARTICLE_ANIMCMD_INT
 #include <mt/mt_vector.h>
 #include <so/so_kinetic_utility.h>
 #include <so/so_module_accesser.h>
-#include <wn/wn_kinetic_energy_gravity.h>
 #include <so/event/so_event_system.h>
 #include <wn/wn_kinetic_module_impl.h>
-#include <wn/wn_kinetic_energy_normal.h>
 #include <types.h>
 
-// Kinetic classes of the generic article (Weapon): the planar energy the shots fly with, the vertical-only energy of
-// the falling articles, and the module that owns the two energies and switches between their modes.
-
-wnKineticEnergyNormal::wnKineticEnergyNormal() : unk34(-1) {
-}
-
-wnKineticEnergyNormal::~wnKineticEnergyNormal() {
-}
-
-void wnKineticEnergyNormal::resetEnergy(int mode, const Vec2f& speed, const Vec3f&, soModuleAccesser*) {
-    m_accel = Vec2f(0.0f, 0.0f);
-    m_speedTarget = Vec2f(-1.0f, -1.0f);
-    m_brake = Vec2f(0.0f, 0.0f);
-    m_speedLimit = Vec2f(-1.0f, -1.0f);
-    m_speed = speed;
-    unk34 = mode;
-    switch (mode) {
-    case 0:
-        break;
-    case 1:
-        m_speedTarget = Vec2f(0.0f, 0.0f);
-        break;
-    }
-}
-
-void wnKineticEnergyNormal::updateEnergy(soModuleAccesser* acc) {
-    switch (unk34) {
-    case 0:
-        break;
-    case 1: {
-        float speedLen = getSpeed().length();
-        if (speedLen <= 0.00001f) {
-            m_accel = Vec2f(0.0f, 0.0f);
-        } else if (speedLen > 0.00001f) {
-            float rest = speedLen - m_brake.length();
-            if (rest < 0.0f) {
-                m_accel = Vec2f(0.0f, 0.0f);
-            } else {
-                Vec2f accel = getSpeed() * (rest / speedLen - 1.0f);
-                m_accel = accel;
-            }
-        }
-        break;
-    }
-    }
-    soKineticEnergyNormal::updateEnergy(acc);
-}
+// The kinetic module of the generic article (Weapon): it owns the two energies and switches between their modes.
 
 wnKineticModuleImpl::wnKineticModuleImpl(soModuleAccesser* acc, soInstanceManagerFullProperty<soKineticEnergy*>* energies, soKineticMediator* mediator) :
     soKineticModuleImpl(acc, energies),
@@ -150,64 +103,4 @@ void wnKineticModuleImpl::addSpeedOutside(soKineticEnergy::OutsideType type, Vec
 }
 
 void wnKineticModuleImpl::addSpeed(Vec3f*, soModuleAccesser*) {
-}
-
-void wnKineticEnergyGravity::resetEnergy(int, const Vec2f& speed, const Vec3f&, soModuleAccesser*) {
-    m_speedY = speed.m_y;
-}
-
-void wnKineticEnergyGravity::updateEnergy(soModuleAccesser*) {
-    m_speedY += m_gravity;
-    if (m_speedY < 0.0f && m_speedLimit > 0.0f) {
-        double limitAbs = __fabs(m_speedLimit);
-        double speedAbs = __fabs(m_speedY);
-        if ((float)speedAbs > (float)limitAbs) {
-            m_speedY = soKineticUtility::limitSpeed(m_speedY, m_speedLimit);
-        }
-    }
-}
-
-// Reflects v about the normal n (out = v - 2 n (n . v)).
-static inline void reflectVec(Vec2f& out, const Vec2f& v, const Vec2f& n) {
-    out = v - n * 2.0f * (n.m_x * v.m_x + n.m_y * v.m_y);
-}
-
-void wnKineticEnergyGravity::reflectSpeed(const Vec3f& normal) {
-    Vec2f v(0.0f, m_speedY);
-    Vec2f n(normal);
-    reflectVec(v, v, n);
-    m_speedY = v.m_y;
-}
-
-void wnKineticEnergyGravity::reflectAccel(const Vec3f& normal) {
-    Vec2f v(0.0f, m_gravity);
-    Vec2f n(normal);
-    reflectVec(v, v, n);
-    m_gravity = v.m_y;
-}
-
-void wnKineticEnergyGravity::mulAccel(Vec3f* mul) {
-    m_gravity *= mul->m_y;
-}
-
-void wnKineticEnergyGravity::mulSpeed(Vec3f* mul) {
-    m_speedY *= mul->m_y;
-}
-
-void wnKineticEnergyGravity::clearRotSpeed() {
-}
-
-void wnKineticEnergyGravity::clearSpeed() {
-    m_speedY = 0.0f;
-}
-
-Vec3f wnKineticEnergyGravity::getRotation() const {
-    return Vec3f(0.0f, 0.0f, 0.0f);
-}
-
-Vec2f wnKineticEnergyGravity::getSpeed() const {
-    return Vec2f(0.0f, m_speedY);
-}
-
-wnKineticEnergyGravity::~wnKineticEnergyGravity() {
 }
