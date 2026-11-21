@@ -46,6 +46,11 @@ static inline void setWarpEffect(grGimmick* gimmick, u32 index, int effectId, Ve
     gimmick->m_effects[index].m_scale = scale;
 }
 
+// HYPOTHESIS: the second sound slot goes through one more inline level (its offset copy gets the last stack slot).
+static inline void setWarpSoundEffectAt(grGimmick* gimmick, u32 index, SndID soundId, Vec2f offset) {
+    setWarpSoundEffect(gimmick, index, soundId, offset);
+}
+
 void grGimmickWarpZone::startup(gfArchive* archive, u32 unk1, gfSceneRoot::LayerType layerType) {
     grYakumono::startup(archive, unk1, layerType);
     m_warpData = static_cast<grGimmickWarpData*>(m_gimmickData);
@@ -82,7 +87,7 @@ void grGimmickWarpZone::startup(gfArchive* archive, u32 unk1, gfSceneRoot::Layer
     createIsValidTrigger(&m_warpData->m_isValidTriggerData);
     createSoundWork(2, 1);
     setWarpSoundEffect(this, 0, m_warpData->m_sndIDs[0], Vec2f(0.0f, 0.0f));
-    setWarpSoundEffect(this, 1, m_warpData->m_sndIDs[1], Vec2f(0.0f, 0.0f));
+    setWarpSoundEffectAt(this, 1, m_warpData->m_sndIDs[1], Vec2f(0.0f, 0.0f));
     createEffectWork(1);
     setWarpEffect(this, 0, 0x103000C, Vec2f(0.0f, 0.0f), 1.0f);
 }

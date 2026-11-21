@@ -67,12 +67,12 @@ public:
 };
 
 void grAdventureMoveAttackGround::startup(gfArchive* data, u32 unk1, gfSceneRoot::LayerType layerType) {
-    grYakumono::startup(data, unk1, layerType);
+    grAdventureMoveGround::startup(data, unk1, layerType);
     m_moveAttackData = m_gimmickData;
     reinterpret_cast<ykData*>(unk15C)->m_dataGroupNum = 0;
     reinterpret_cast<ykData*>(unk15C)->m_dataGroups = NULL;
 
-    ykInitInfo info = { 0, 0, 0x10, 0, 0 };
+    ykInitInfo info = { 0, 0, 0x11, 0, 0 };
     info.m_ground = this;
     info.m_node = ykDynamicCastScnMdl(m_sceneModels[0]);
     Vec3f pos = getPos();

@@ -35,6 +35,7 @@ public:
     static grAdventureMoveGround* create(int mdlIndex, const char* taskName);
     grAdventureMoveGround(const char* taskName);
     virtual ~grAdventureMoveGround();
+    virtual void startup(gfArchive* data, u32 unk1, gfSceneRoot::LayerType layerType);
     virtual void update(float deltaFrame);
     virtual void createMoveGroundMotionPath();
     virtual void setInitializeFlag();
