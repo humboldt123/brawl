@@ -190,15 +190,22 @@ void ftPurinStatusUniqProcessSpecialNHold::initStatus(soModuleAccesser* acc) {
     }
 }
 
-void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
+static inline ftKineticEnergyStop& getPurinStopEnergy(soModuleAccesser* acc) {
+    return dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
+}
+static inline ftKineticEnergyGravity& getPurinGravityEnergy(soModuleAccesser* acc) {
+    return dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
+}void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
     SituationKind situation = acc->getSituationModule().getKind();
     int previous = acc->getWorkManageModule().getInt(0x20000008);
     acc->getWorkManageModule().setFloat(0.0f, 0x21000009);
-    acc->getWorkManageModule().addFloat(acc->getConstantFloatKirby(0xfb9), 0x21000005);
-    soWorkManageModule& work = acc->getWorkManageModule();
+    soWorkManageModule* const chargeWork = &acc->getWorkManageModule();
+    chargeWork->addFloat(acc->getConstantFloatKirby(0xfb9), 0x21000005);
+    soWorkManageModule* const work = &acc->getWorkManageModule();
     float maximum = acc->getConstantFloatKirby(0xfb8);
-    if (work.getFloat(0x21000005) >= maximum) {
-        acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfb8), 0x21000005);
+    if (work->getFloat(0x21000005) >= maximum) {
+        soWorkManageModule* const maxWork = &acc->getWorkManageModule();
+        maxWork->setFloat(acc->getConstantFloatKirby(0xfb8), 0x21000005);
         acc->getWorkManageModule().onFlag(0x22000010);
         if (acc->getStageObject().soGetSubKind() == 5) {
             acc->getStatusModule().changeStatusRequest(0x186, acc);
@@ -237,7 +244,7 @@ void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
     acc->getModelModule().setNodeRotate(node, &facing);
     if (situation != previous) {
         if (situation == Situation_Ground) {
-            ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
+            ftKineticEnergyStop& stop = getPurinStopEnergy(acc);
             float seed = acc->getWorkManageModule().getFloat(0x21000011) * 0.0001f;
             Vec3f groundResetRotation(0.0f, 0.0f, 0.0f);
             Vec2f initialSpeed = Vec2f(seed, 0.0f);
@@ -246,11 +253,12 @@ void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
             stop.m_speedTarget = targetSpeed;
             stop.onConsiderGroundFriction();
             stop.enable();
-            acc->getWorkManageModule().setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
+            soWorkManageModule* const groundWork = &acc->getWorkManageModule();
+            groundWork->setFloat(acc->getConstantFloatKirby(0xfa2), 0x21000008);
             ftKineticEnergyDisableAndClear(1, acc);
         } else {
-            ftKineticEnergyStop& stop = dynamic_cast<ftKineticEnergyStop&>(*acc->getKineticModule().getEnergy(3));
-            ftKineticEnergyGravity& gravity = dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
+            ftKineticEnergyStop& stop = getPurinStopEnergy(acc);
+            ftKineticEnergyGravity& gravity = getPurinGravityEnergy(acc);
             Vec2f speed;
             Vec2f::copy(speed, acc->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1)));
             Vec3f airResetRotation(0.0f, 0.0f, 0.0f);
