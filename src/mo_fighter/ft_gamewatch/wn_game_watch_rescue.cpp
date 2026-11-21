@@ -5,6 +5,19 @@
 #define WN_ARTICLE_ANIMCMD_INT
 #define FT_REL_LINK_EXTERN
 #define MT_VEC3F_CTOR_NOINLINE
+// BYTES: link order. MWCC emits the weak vtables (and with them the batches of their inline virtual functions) in reverse
+// order of the class definitions, and the overriders of one class in reverse declaration order. These headers come
+// first, in the order the original defines the classes (same as wn_peach_kassar.cpp, the first article of its module).
+#define SO_PARAM_CUSTOMIZE_IMPL_LATE
+#define SO_KINETIC_MEDIATOR_NULL_UPDATE_REVERSED
+#define SO_ARTICLE_LOG_HELPER_LATE
+#include <ip/ip_null.h>
+#include <so/team/so_team.h>
+#include <so/resource/so_resource_id_accesser.h>
+#include <so/team/so_team_impl.h>
+#include <so/kinetic/so_kinetic_mediator_null.h>
+#include <so/article/so_article_mediator_null.h>
+#include <so/param/so_param_customize_module_impl.h>
 #include <so/anim/so_anim_obj.h>
 #include <wn/wn_module_accesser_builder.h>
 #include <wn/gamewatch/wn_game_watch_rescue.h>

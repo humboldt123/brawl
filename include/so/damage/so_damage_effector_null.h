@@ -7,7 +7,11 @@
 
 class soDamageEffectorNull : public soDamageEffector {
 public:
+// SO_DAMAGE_EFFECTOR_NULL_IMPLICIT_DTOR (opt-in): no destructor of its own; the implicit one is emitted after
+// soDamageEffector's, the native order of the weak copies in the article units that own them.
+#ifndef SO_DAMAGE_EFFECTOR_NULL_IMPLICIT_DTOR
     virtual ~soDamageEffectorNull() { }
+#endif
     #ifdef WN_NULL_DAMAGE_OUT_OF_LINE
     virtual void reqShake(soModuleAccesser*, int, Vec2f*, soCollisionAttackData*, int);
     #else

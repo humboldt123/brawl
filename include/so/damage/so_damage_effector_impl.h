@@ -39,21 +39,21 @@ public:
 #else
     virtual ~soDamageEffector() { }
 #endif
-    virtual void reqShake(soModuleAccesser* moduleAccesser, int situation, Vec2f* normal, soCollisionAttackData* attackData, int hitStopFrame);
+    virtual void reqShake(soModuleAccesser* moduleAccesser, int situation, Vec2f* normal, soCollisionAttackData* attackData, int hitStopFrame) = 0;
 #ifdef SO_DAMAGE_EFFECTOR_ACCESSER_FIRST
-    virtual void reqCommonEffect(soModuleAccesser* moduleAccesser, float power, float reaction, float lr, soCollisionAttackData* attackData, soCollisionLog* collisionLog);
+    virtual void reqCommonEffect(soModuleAccesser* moduleAccesser, float power, float reaction, float lr, soCollisionAttackData* attackData, soCollisionLog* collisionLog) = 0;
 #else
-    virtual void reqCommonEffect(float power, float reaction, float lr, soModuleAccesser* moduleAccesser, soCollisionAttackData* attackData, soCollisionLog* collisionLog);
+    virtual void reqCommonEffect(float power, float reaction, float lr, soModuleAccesser* moduleAccesser, soCollisionAttackData* attackData, soCollisionLog* collisionLog) = 0;
 #endif
-    virtual void reqUniqEffect(soModuleAccesser* moduleAccesser, int level, soCollisionAttackData* attackData);
-    virtual void reqInvincibleEffect(soModuleAccesser* moduleAccesser, soCollisionLog* collisionLog);
-    virtual void reqDamageEffectParam(float damageAdd, float reaction, soModuleAccesser* moduleAccesser, soCollisionAttackData* attackData);
-    virtual void reqDamageGroundBeatDownEffect(soModuleAccesser* moduleAccesser, Vec2f* normal);
+    virtual void reqUniqEffect(soModuleAccesser* moduleAccesser, int level, soCollisionAttackData* attackData) = 0;
+    virtual void reqInvincibleEffect(soModuleAccesser* moduleAccesser, soCollisionLog* collisionLog) = 0;
+    virtual void reqDamageEffectParam(float damageAdd, float reaction, soModuleAccesser* moduleAccesser, soCollisionAttackData* attackData) = 0;
+    virtual void reqDamageGroundBeatDownEffect(soModuleAccesser* moduleAccesser, Vec2f* normal) = 0;
 #ifdef SO_DAMAGE_EFFECTOR_ACCESSER_FIRST
-    virtual void reqQuake(soModuleAccesser* moduleAccesser, float frameReaction, int level);
+    virtual void reqQuake(soModuleAccesser* moduleAccesser, float frameReaction, int level) = 0;
 #else
-    virtual void reqQuake(float frameReaction, soModuleAccesser* moduleAccesser, int level);
+    virtual void reqQuake(float frameReaction, soModuleAccesser* moduleAccesser, int level) = 0;
 #endif
-    virtual void reqStop();
-    virtual void reqTipEffect(soModuleAccesser* moduleAccesser, soCollisionLog* collisionLog);
+    virtual void reqStop() = 0;
+    virtual void reqTipEffect(soModuleAccesser* moduleAccesser, soCollisionLog* collisionLog) = 0;
 };

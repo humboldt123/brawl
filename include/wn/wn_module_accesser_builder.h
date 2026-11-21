@@ -1427,6 +1427,20 @@ public:
 
 #include <wn/wn_article_build_info.h>
 
+// WN_DAMAGE_TRANSACTOR_NULL_ACCESSOR (opt-in, the articles that build a damage module): the null transactor the article
+// damage modules share.
+// BYTES: link order. Every such article unit emits the weak destructor of soDamageTransactorNull before the effector's
+// two, although its damage builder sets the effector singleton up first, and the destructor record of this singleton
+// is the first one in the unit's .bss, ahead of the null article mediator's below: the transactor holder is already
+// used by an inline function at this point (MWCC emits weak functions and static records in the order their users
+// were compiled).
+// HYPOTHESIS: the original accessor's name is unknown.
+#ifdef WN_DAMAGE_TRANSACTOR_NULL_ACCESSOR
+inline soDamageTransactor* wnDamageTransactorNull() {
+    return soSingletonHolder<soDamageTransactorNull>::getInstance();
+}
+#endif
+
 // The descendants of an article are the articles its own article module generated (none for most articles).
 inline void wnDeactivateArticleDescendants(ftNullGenerateArticleManageModuleBuilder&) {
     soSingletonHolder<soArticleMediatorNull>::getInstance()->deactivate();
@@ -1502,11 +1516,7 @@ public:
 #if defined(WN_MARIO_FIREBALL_UNIT) && !defined(WN_ARTICLE_BUILDER_DTOR_IN_CLASS)
 #pragma pop
 #endif
-#ifdef WN_OCTOPUS_ARRAYS
-    virtual void deactivateDescendantForce();
-#else
     virtual void deactivateDescendantForce() {
         wnDeactivateArticleDescendants(this->m_modules.m_generateArticleBuilder);
     }
-#endif
 };
