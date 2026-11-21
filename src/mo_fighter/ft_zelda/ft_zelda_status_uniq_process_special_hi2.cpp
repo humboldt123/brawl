@@ -25,6 +25,12 @@ public:
 };
 
 // Farore's Wind uses Zelda's third extend-parameter record (ftData + 0x84).
+// Farore's Wind parameters (ftData::extendParam[2]); initStatus reads the leading floats by index.
+struct ftZeldaSpecialHiParam {
+    float m_floats[10];
+    s32 m_extraLandAngle; // 0x28: degrees added to 90 for the landing-angle check in execFixPosCounter
+};
+
 void ftZeldaStatusUniqProcessSpecialHi2::initStatus(soModuleAccesser* moduleAccesser) {
     bool useInputDirection = false;
     soControllerModule& controller = moduleAccesser->getControllerModule();
@@ -66,10 +72,6 @@ void ftZeldaStatusUniqProcessSpecialHi2::initStatus(soModuleAccesser* moduleAcce
 
     // HYPOTHESIS: a grounded stick into a solid floor slides along it (no vertical speed); otherwise it launches toward
     // the stick (straight up when the stick is near neutral).
-    // TODO(nonmatching): initStatus differs only in the operand order of the two `speed * cosine` products (the original
-    // emits fmuls f0,<speed>,<cosine>; a named cosine local always lands first). cosine is declared ahead of angle
-    // because the original gives angle f29 and cosine f30. Tried: swapping the factors, parenthesising, a facing local.
-    float cosine;
     float angle;
     if (useInputDirection) {
         if (magnitude > params[6]) {
@@ -78,15 +80,13 @@ void ftZeldaStatusUniqProcessSpecialHi2::initStatus(soModuleAccesser* moduleAcce
             angle = 1.57079637f;
             magnitude = 1.0f;
         }
-        cosine = cos(angle);
-        launchSpeed.m_x = (params[8] + params[7] * magnitude) * cosine * posture.getLr();
+        launchSpeed.m_x = (params[8] + params[7] * magnitude) * cosf(angle) * posture.getLr();
         launchSpeed.m_y = (params[8] + params[7] * magnitude) * (float)sin(angle);
         situation.setKind(static_cast<SituationKind>(2), false);
         ground.setCorrect(static_cast<soGroundShapeImpl::CorrectKind>(5), 0);
     } else {
         angle = atan2f(stick.m_y, stick.m_x * posture.getLr());
-        cosine = cos(angle);
-        launchSpeed.m_x = (params[8] + params[7] * magnitude) * cosine * posture.getLr();
+        launchSpeed.m_x = (params[8] + params[7] * magnitude) * cosf(angle) * posture.getLr();
         launchSpeed.m_y = 0.0f;
     }
 
@@ -102,7 +102,7 @@ void ftZeldaStatusUniqProcessSpecialHi2::execFixPosCounter(soModuleAccesser* mod
     soSituationModule& situation = moduleAccesser->getSituationModule();
     soGroundModule& ground = moduleAccesser->getGroundModule();
     const ftData* data = g_ftCommonDataAccesser.getData(Fighter_Zelda);
-    const u8* params = static_cast<const u8*>(data->extendParam[2]);
+    const ftZeldaSpecialHiParam* params = static_cast<const ftZeldaSpecialHiParam*>(data->extendParam[2]);
     if (situation.getKind() == 0) {
         return;
     }
@@ -124,7 +124,7 @@ void ftZeldaStatusUniqProcessSpecialHi2::execFixPosCounter(soModuleAccesser* mod
     Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(-1));
     Vec2f normal = ground.getTouchNormal(touchMask, 0);
     float angle = speed.angle(&normal);
-    s32 extraAngle = *reinterpret_cast<const s32*>(params + 0x28);
+    s32 extraAngle = params->m_extraLandAngle;
     float maxAngle = ((float)extraAngle + 90.0f) * 0.0174532924f;
     if (angle > maxAngle) {
         work.onFlag(0x22000012);
