@@ -1,4 +1,3 @@
-#define MT_VEC2F_MEMBER_COPY // MATCH-ONLY: see mt_vector.h.
 #define SO_STATUS_UNIQ_PROCESS_OUT_OF_LINE
 #define MT_VEC2F_LENGTH_SQ_OUT_OF_LINE
 #define MT_VEC2F_ASSIGN_NOINLINE
@@ -109,15 +108,21 @@ float Vec2f::mtVecAngle(Vec2f& other) {
     }
 
     float dot = m_x * other.m_x + m_y * other.m_y;
-    register float cosine = dot * rsqrtf(product);
-    register float upper = 1.0f;
-    register float lower = -1.0f;
-    register float fromLower = cosine - lower;
+    // BYTES: nw4r::math::FSelect is never expanded at the fighter units' optimization level (-O2,s) and the __fsel
+    // intrinsic adds frsp, so the clamp of the cosine to [-1, 1] is written with the instruction (as in Samus' final).
+    register float lower;
+    register float upper;
+    register float fromLower;
     register float lowerBounded;
-    // MATCH-ONLY: preserve the native branchless clamp and float register order.
-    asm { fsel lowerBounded, fromLower, cosine, lower }
-    register float fromUpper = lowerBounded - upper;
+    register float fromUpper;
     register float clamped;
+    register float cosine;
+    cosine = dot * rsqrtf(product);
+    upper = 1.0f;
+    lower = -1.0f;
+    fromLower = cosine - lower;
+    asm { fsel lowerBounded, fromLower, cosine, lower }
+    fromUpper = lowerBounded - upper;
     asm { fsel clamped, fromUpper, upper, lowerBounded }
     return (float)acos(clamped);
 }

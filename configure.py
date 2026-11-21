@@ -2552,7 +2552,7 @@ config.libs = [
             Object(Matching, "mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_s_start.cpp"),
             Object(Matching, "mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_s_loop.cpp"),
             Object(Matching, "mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_start.cpp"),
-            Object(NonMatching, "mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_move.cpp"),
+            Object(Matching, "mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_move.cpp"),
             Object(Matching, "mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_hi_end.cpp"),
             Object(Matching, "mo_fighter/ft_zelda/ft_sheik_status_uniq_process_special_lw.cpp"),
             Object(NonMatching, "mo_fighter/ft_zelda/ft_zelda.cpp"),
