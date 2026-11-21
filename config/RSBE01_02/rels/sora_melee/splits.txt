@@ -5794,6 +5794,9 @@ mo_melee/sora_melee/ft/ft_status_uniq_process_squat.cpp:
 mo_melee/sora_melee/ft/ft_status_uniq_process_squat_walk.cpp:
 	.text       start:0x00168E78 end:0x00169554
 	.ctors      start:0x000000CC end:0x000000D0
+	.rodata     start:0x000020C0 end:0x000020D8
+	.data       start:0x0002ED10 end:0x0002ED88
+	.bss        start:0x00004948 end:0x00004958
 
 mo_melee/sora_melee/ft/ft_status_uniq_process_smash_attack.cpp:
 	.text       start:0x00169554 end:0x00169900
@@ -5914,6 +5917,9 @@ mo_melee/sora_melee/ft/ft_status_uniq_process_cliff.cpp:
 mo_melee/sora_melee/ft/ft_status_uniq_process_cliff_catch_move.cpp:
 	.text       start:0x001707AC end:0x00170DC4
 	.ctors      start:0x0000011C end:0x00000120
+	.rodata     start:0x00002230 end:0x00002248
+	.data       start:0x0002F710 end:0x0002F788
+	.bss        start:0x00004AA0 end:0x00004AB0
 
 mo_melee/sora_melee/ft/ft_status_uniq_process_tread.cpp:
 	.text       start:0x00170DC4 end:0x00171414
