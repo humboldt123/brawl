@@ -759,16 +759,14 @@ void ftPurinStatusUniqProcessSpecialNRoll::execFixPosCounter(soModuleAccesser* a
         float direction = acc->getWorkManageModule().getFloat(0x2100000a);
         if (direction == 1.0f) {
             if (acc->getGroundModule().isTouch(grCollStatus::TOUCH_MASK_RIGHT, 0)) {
-                Vec2f normal;
-                Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_RIGHT, 0));
-                ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(1.0f, acc, &normal);
+                Vec2f normal = acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_RIGHT, 0);
+                ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(1.0f, acc, normal);
                 hitWall = true;
             }
         } else {
             if (acc->getGroundModule().isTouch(grCollStatus::TOUCH_MASK_LEFT, 0)) {
-                Vec2f normal;
-                Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_LEFT, 0));
-                ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(-1.0f, acc, &normal);
+                Vec2f normal = acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_LEFT, 0);
+                ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(-1.0f, acc, normal);
                 hitWall = true;
             }
         }
@@ -1057,16 +1055,14 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execFixPosCounter(soModuleAccesser
     float direction = acc->getWorkManageModule().getFloat(0x2100000a);
     if (direction == 1.0f) {
         if (acc->getGroundModule().isTouch(grCollStatus::TOUCH_MASK_RIGHT, 0)) {
-            Vec2f normal;
-            Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_RIGHT, 0));
-            ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(1.0f, acc, &normal);
+            Vec2f normal = acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_RIGHT, 0);
+            ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(1.0f, acc, normal);
             hitWall = true;
         }
     } else {
         if (acc->getGroundModule().isTouch(grCollStatus::TOUCH_MASK_LEFT, 0)) {
-            Vec2f normal;
-            Vec2f::copy(normal, acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_LEFT, 0));
-            ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(-1.0f, acc, &normal);
+            Vec2f normal = acc->getGroundModule().getTouchNormal(grCollStatus::TOUCH_MASK_LEFT, 0);
+            ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(-1.0f, acc, normal);
             hitWall = true;
         }
     }
@@ -1631,8 +1627,8 @@ bool ftPurinStatusUniqProcessSpecialNUtility::ftProcHitSpecialNPurin(soModuleAcc
     }
 }
 
-void ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(float direction, soModuleAccesser* acc, Vec2f* normal) {
-    float wallAngle = atan2f(-normal->m_x, normal->m_y);
+void ftPurinStatusUniqProcessSpecialNUtility::ftProcHitWallSpecialNPurin(float direction, soModuleAccesser* acc, const Vec2f& normal) {
+    float wallAngle = atan2f(-normal.m_x, normal.m_y);
     Vec3f position = acc->getPostureModule().getPos();
     float up, down, width;
     acc->getGroundModule().getRhombus(&up, &down, &width, 0);
