@@ -1,3 +1,6 @@
+#define WN_KINETIC_GRAVITY_INLINE_DTOR
+#define WN_SONIC_SUPER_SONIC_GENERIC_BUILDER // the unit builds the generic weapon builder template (see the header)
+#define WN_WEAPON_BUILDER_CTOR_NO_FLAG
 #define WN_ANIMCMD_UNIT5_SELECT
 #define MT_VEC3F_CTOR_NOINLINE
 #define WN_WEAPON_NO_COMMON_ENERGIES
@@ -10,6 +13,9 @@
 #define WN_KINETIC_NORMAL_HOLDER_DEFAULT
 #define WN_KINETIC_NORMAL_EXTERN
 #include <wn/wn_module_accesser_builder.h>
+// The status unique-process vector is built by its sora_melee constructor.
+WN_STATUS_PROC_VECTOR_ARG_CTOR(4);
+#define WN_STATUS_PROC_VECTOR_4_DECLARED
 #include <wn/sonic/wn_sonic_super_sonic.h>
 #include <wn/wn_activate_desc.h>
 #include <so/so_module_accesser.h>
@@ -19,7 +25,7 @@
 #pragma dont_inline on
 wnSonicSuperSonic::wnSonicSuperSonic(s32 articleId, const wnArticleBuildInfo& info, const wnSonicSuperSonicData* data) :
     wnWeaponBuilder<wnSonicSuperSonicModuleAccesserBuildConfig>(
-        "SuperSonic", articleId, info,
+        "SonicSuperSonic", articleId, info,
         wnModuleAccesserBuildData(0x7C, data, info.getHeapModule()->getInstanceHeap(), static_cast<Heaps::HeapType>(0x1F),
                                   info.getHeapModule()->getNWMotionInstanceHeap(), static_cast<u8>(data->m_resGroupNo), -1,
                                   &m_paramAccesser, reinterpret_cast<s32>(data->unk40), 0, 0, 0, 0, data->unk48, data->unk4C)),

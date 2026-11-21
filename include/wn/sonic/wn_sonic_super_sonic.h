@@ -133,6 +133,9 @@ struct wnSonicSuperSonicModuleAccesserBuildConfig : public wnCommonBuildConfig {
     typedef soGlowModuleBuildConfigNull GlowModuleBuildConfig;
 };
 
+// WN_SONIC_SUPER_SONIC_GENERIC_BUILDER (opt-in, the article unit): BYTES, the generic wnWeaponBuilder<BC> template
+// (WN_WEAPON_NO_COMMON_ENERGIES, WN_WEAPON_BUILDER_CTOR_NO_FLAG); this explicit specialization hoists a .bss anchor.
+#ifndef WN_SONIC_SUPER_SONIC_GENERIC_BUILDER
 // The native builder constructor is out of line (the article constructor calls it).
 template <>
 class wnWeaponBuilder<wnSonicSuperSonicModuleAccesserBuildConfig> : public Weapon {
@@ -154,6 +157,7 @@ public:
         soSingletonHolder<soArticleMediatorNull>::getInstance()->deactivate();
     }
 };
+#endif
 static_assert(sizeof(wnWeaponBuilder<wnSonicSuperSonicModuleAccesserBuildConfig>) == 0x2CD4, "Sonic weapon builder size");
 
 #else
