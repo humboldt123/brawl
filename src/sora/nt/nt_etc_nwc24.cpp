@@ -435,20 +435,33 @@ int nteWiiConnect24::_openLibrary(int kind) {
     // The game makes one open attempt, then sleeps on transient errors before reporting failure.
     int result = NWC24_ERR_FATAL;
     if (work) {
-        result = NWC24OpenLib(lbl_805A0450);
-        if (kind) {
-            switch (result) {
-            case NWC24_ERR_MUTEX:
-            case NWC24_ERR_BUSY:
-            case NWC24_ERR_INPROGRESS:
-                OSSleepTicks(OS_MSEC_TO_TICKS(1000LL));
+        // BYTES: the original retains a ten-attempt budget and clears it in non-waiting mode.
+        int attemptsLeft = 10;
+        while (attemptsLeft > 0) {
+            result = NWC24OpenLib(lbl_805A0450);
+            if (kind) {
+                switch (result) {
+                case NWC24_OK:
+                    goto openComplete;
+                case NWC24_ERR_MUTEX:
+                case NWC24_ERR_BUSY:
+                case NWC24_ERR_INPROGRESS:
+                    OSSleepTicks(OS_MSEC_TO_TICKS(1000LL));
+                    break;
+                default:
+                    goto openComplete;
+                }
+                // BUG: this exits the loop after one transient failure; it does not retry.
                 break;
+            } else {
+                attemptsLeft = 0;
             }
         }
-    }
-    if (result != 0 && lbl_805A0450) {
-        gfHeapManager::free(lbl_805A0450);
-        lbl_805A0450 = 0;
+    openComplete:
+        if (result != 0 && lbl_805A0450) {
+            gfHeapManager::free(lbl_805A0450);
+            lbl_805A0450 = 0;
+        }
     }
     switch (result) {
     case 0:
