@@ -1029,6 +1029,10 @@ static inline void updatePurinRollAirAt(soModuleAccesser* acc) {
     acc->getWorkManageModule().setInt(situation, 0x20000008);
 }
 
+static inline u32 getPurinRollEffectNode(const soModuleAccesser* acc) {
+    u32 node = acc->getStageObject().soGetSubKind() == 5 ? 0x199 : 6;
+    return node;
+}
 // HYPOTHESIS: repeated Rollout model pitch update boundary/name.
 static inline void setPurinRollNodeAngle(const soModuleAccesser* acc, int node, float angle) {
     Vec3f rotation = acc->getModelModule().getNodeRotate(node);
@@ -1116,7 +1120,7 @@ void ftPurinStatusUniqProcessSpecialNRollAir::execFixPosCounter(soModuleAccesser
                 1.0f, 0, -1);
             acc->getWorkManageModule().setInt(0, 0x2000000a);
         }
-        int node = acc->getStageObject().soGetSubKind() == 5 ? 0x199 : 6;
+        u32 node = getPurinRollEffectNode(acc);
         acc->getWorkManageModule().addInt(1, 0x2000000b);
         if (acc->getWorkManageModule().getInt(0x2000000b) >= 8) {
             EfID effect = static_cast<EfID>(acc->getStageObject().soGetSubKind() == 5 ? 0x1260001 : 0x260002);
