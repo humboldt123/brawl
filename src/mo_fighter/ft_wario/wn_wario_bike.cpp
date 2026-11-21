@@ -548,7 +548,8 @@ void wnWarioBike::activate(int founderTaskId, int riderTaskId, int resourceId,
     m_moduleAccesser->getWorkManageModule().setInt(*static_cast<const int*>(m_data) + 1, 0x10000005);
     m_moduleAccesser->getKineticModule().unableEnergyAll();
 
-    ftWarioBikeTaskEvent event(0x45C, m_taskId);
+    int taskId = m_taskId;
+    ftWarioBikeTaskEvent event(0x45C, taskId);
     link.link(5, riderTaskId);
     link.sendEventParents(5, event);
     m_moduleAccesser->getDamageModule().setNoReactionModePerfect(true);
