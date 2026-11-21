@@ -5,4 +5,8 @@
 // keep it compiling. Change them if the ICE returns.
 #ifdef FT_POKETRAINER_ICE_DODGE_386514_0
 #endif
+#ifdef FT_POKETRAINER_ICE_DODGE_386514_1
+#endif
+#ifdef FT_POKETRAINER_ICE_DODGE_386514_2
+#endif
 #include "../src/mo_melee/sora_melee/ft/ft_poke_trainer.cpp"
