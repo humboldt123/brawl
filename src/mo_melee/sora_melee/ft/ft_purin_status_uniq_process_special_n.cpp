@@ -195,7 +195,9 @@ static inline ftKineticEnergyStop& getPurinStopEnergy(soModuleAccesser* acc) {
 }
 static inline ftKineticEnergyGravity& getPurinGravityEnergy(soModuleAccesser* acc) {
     return dynamic_cast<ftKineticEnergyGravity&>(*acc->getKineticModule().getEnergy(1));
-}void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
+}
+
+void ftPurinStatusUniqProcessSpecialNHold::execStatus(soModuleAccesser* acc) {
     SituationKind situation = acc->getSituationModule().getKind();
     int previous = acc->getWorkManageModule().getInt(0x20000008);
     acc->getWorkManageModule().setFloat(0.0f, 0x21000009);
@@ -634,7 +636,9 @@ static inline void setPurinRollFacing(soModuleAccesser* acc) {
         facing.m_y = 0.0f;
     }
     acc->getModelModule().setNodeRotate(node, &facing);
-}void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
+}
+
+void ftPurinStatusUniqProcessSpecialNRoll::execStatus(soModuleAccesser* acc) {
     float stickMagnitude;
     SituationKind situation = acc->getSituationModule().getKind();
     int previous = acc->getWorkManageModule().getInt(0x20000008);
@@ -905,12 +909,16 @@ void ftPurinStatusUniqProcessSpecialNRollAir::initStatus(soModuleAccesser* acc) 
 
 static inline void resetPurinRollGroundAt(soModuleAccesser* acc, Vec3f& resetRotation) {
     resetPurinRollGround(acc, resetRotation);
-}static inline void updatePurinRollGroundAt(soModuleAccesser* acc) {
+}
+
+static inline void updatePurinRollGroundAt(soModuleAccesser* acc) {
     updatePurinRollGround(acc);
 }
 static inline void updatePurinRollAirAt(soModuleAccesser* acc) {
     updatePurinRollAir(acc);
-}void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) {
+}
+
+void ftPurinStatusUniqProcessSpecialNRollAir::execStatus(soModuleAccesser* acc) {
     float stickMagnitude;
     SituationKind situation = acc->getSituationModule().getKind();
     int previous = acc->getWorkManageModule().getInt(0x20000008);
