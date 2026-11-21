@@ -21,17 +21,6 @@
 
 ftStatusUniqProcessCliffCatchMove g_ftStatusUniqProcessCliffCatchMove;
 
-// HYPOTHESIS: the original uses its own inline length helper (float FLT_MIN compare and inline fabs); same as the glide statuses.
-static inline float cliffCatchMoveLength(float lengthSq) {
-    float length;
-    if ((float)__fabs(lengthSq) <= 1.17549435e-38f) {
-        length = 0.0f;
-    } else {
-        length = lengthSq * rsqrtf(lengthSq);
-    }
-    return length;
-}
-
 // HYPOTHESIS: the fighter is placed at the hip node of the ledge-catch pose, facing the ledge, with the shape flag 9 set
 // around the repositioning, then hooked on the cliff.
 void ftStatusUniqProcessCliffCatchMove::initStatus(soModuleAccesser* moduleAccesser) {
@@ -71,6 +60,10 @@ void ftStatusUniqProcessCliffCatchMove::execStatus(soModuleAccesser* moduleAcces
     moduleAccesser->getWorkManageModule().decInt(0x20000000);
 }
 
+// MSL's float fabs overload: the double fabs inlined into a float result (the frsp after each fabs).
+static inline double fabsDouble(double x) { return __fabs(x); }
+static inline float fabsFloat(float x) { return fabsDouble(x); }
+
 // HYPOTHESIS: while the catch plays, the fighter is tilted (rotation X, in degrees) so the pose lines up with the direction
 // from the fighter to the cliff position, using the motion's translation as the reference direction.
 void ftStatusUniqProcessCliffCatchMove::execFixPos(soModuleAccesser* moduleAccesser) {
@@ -80,22 +73,19 @@ void ftStatusUniqProcessCliffCatchMove::execFixPos(soModuleAccesser* moduleAcces
         Vec2f diff;
         diff.m_x = cliffPos.m_x - pos.m_x;
         diff.m_y = cliffPos.m_y - pos.m_y;
-        float lengthSq = diff.m_x * diff.m_x + diff.m_y * diff.m_y;
-        float length = cliffCatchMoveLength(lengthSq);
+        float length = diff.length();
         if (length >= 1e-5f) {
             Vec3f trans = moduleAccesser->getMotionModule().getTransNTranslate();
-            double wideX = __fabs(diff.m_x);
-            double wideZ = __fabs(trans.m_z);
+            float absDiffX = fabsFloat(diff.m_x);
+            float absTransZ = fabsFloat(trans.m_z);
             Vec3f rot(0.0f, 0.0f, 0.0f);
-            float absDiffX = wideX;
-            float absTransZ = wideZ;
             if (absTransZ < absDiffX) {
                 float lr = reinterpret_cast<soPostureModuleSimple&>(moduleAccesser->getPostureModule()).getLr();
                 Vec2f aim;
                 aim.m_x = -trans.m_z * lr;
                 aim.m_y = -trans.m_y;
-                float target = atan2(diff.m_y, diff.m_x);
-                float current = atan2(aim.m_y, aim.m_x);
+                float target = atan2f(diff.m_y, diff.m_x);
+                float current = atan2f(aim.m_y, aim.m_x);
                 rot.m_x = -lr * (57.29578f * (target - current));
             }
             moduleAccesser->getPostureModule().setRot(&rot, 0);
