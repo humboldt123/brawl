@@ -17,6 +17,11 @@ public:
     static bool isFinalTarget(int entryId, soModuleAccesser* moduleAccesser);
 };
 
+// The entry id is read again for the call: the check takes it by reference.
+static inline bool isFinalTargetEntry(const int& entryId, soModuleAccesser* moduleAccesser) {
+    return ftMetaknightStatusUniqProcessFinalHitWait::isFinalTarget(entryId, moduleAccesser);
+}
+
 void ftMetaknightStatusUniqProcessFinalHitWait::initStatus(soModuleAccesser* moduleAccesser) {
     for (int id = 0x20000003; id < 0x2000000a; id++) {
         moduleAccesser->getWorkManageModule().setInt(-1, id);
@@ -26,7 +31,7 @@ void ftMetaknightStatusUniqProcessFinalHitWait::initStatus(soModuleAccesser* mod
     int entryCount = g_ftManager->enumEntryId(reinterpret_cast<int>(entryIds));
     int ownEntryId = moduleAccesser->getWorkManageModule().getInt(0x10000000);
     for (int i = 0; i < entryCount; i++) {
-        if (ownEntryId != entryIds[i] && isFinalTarget(entryIds[i], moduleAccesser) != true) {
+        if (ownEntryId != entryIds[i] && isFinalTargetEntry(entryIds[i], moduleAccesser) != true) {
             int workId = getFreeAttackGalleryStatusWorkId(moduleAccesser);
             if (workId < 0) {
                 break;

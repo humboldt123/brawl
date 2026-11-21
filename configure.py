@@ -2177,7 +2177,7 @@ config.libs = [
             Object(NonMatching, "mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_special_s_end.cpp"),
             Object(NonMatching, "mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_final_attack_gallery.cpp"),
             Object(NonMatching, "mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_final_end.cpp"),
-            Object(NonMatching, "mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_final_hit_wait.cpp"),
+            Object(Matching, "mo_fighter/ft_metaknight/ft_metaknight_status_uniq_process_final_hit_wait.cpp"),
             Object(NonMatching, "mo_fighter/ft_metaknight/ft_metaknight.cpp"),
         ],
     },
