@@ -46,23 +46,19 @@ bool ftFoxTransactor::activeArticle2(wnFoxBlasterBullet* weapon, soModuleAccesse
         Vec3f nodePos = acc->getModelModule().getNodeGlobalPosition(nodeId, false);
         Vec3f pos = acc->getModelModule().getNodeGlobalPosition(nodeId, &offset, false, false);
         pos.m_z = 0.0f;
-        float lr = acc->getPostureModule().getLr();
-        float dx = pos.m_x - nodePos.m_x;
+        float dx = (pos.m_x - nodePos.m_x) * acc->getPostureModule().getLr();
         float dy = pos.m_y - nodePos.m_y;
-        float angle = atan2(dy, dx * lr);
+        float angle = atan2(dy, dx);
         soPostureModule& posture = acc->getPostureModule();
         soTeamModule& team = acc->getTeamModule();
-        int founderTaskId = acc->getStageObject().m_taskId;
-        weapon->activate(founderTaskId, etcResId, team.getTeam()->getNo(), &pos, 1,
+        weapon->activate(acc->getStageObject().getTaskId(), etcResId, team.getTeam()->getNo(), &pos, 1,
                          static_cast<EfID>(effectId), posture.getLr(), acc->getConstantFloatKirby(0xfa5), angle);
     } else if (acc->getSituationModule().getKind() == 2) {
         float offsetZ = acc->getConstantFloatKirby(0xfa2);
         Vec3f offset(0.0f, acc->getConstantFloatKirby(0xfa3), offsetZ);
         Vec3f pos = acc->getModelModule().getNodeGlobalPosition(nodeId, &offset, false, false);
         pos.m_z = 0.0f;
-        soTeamModule& team = acc->getTeamModule();
-        int founderTaskId = acc->getStageObject().m_taskId;
-        weapon->activate(founderTaskId, etcResId, team.getTeam()->getNo(), &pos, 0,
+        weapon->activate(acc->getStageObject().getTaskId(), etcResId, acc->getTeamModule().getTeam()->getNo(), &pos, 0,
                          static_cast<EfID>(effectId), acc->getPostureModule().getLr(), acc->getConstantFloatKirby(0xfa5),
                          acc->getConstantFloatKirby(0xfa4));
     } else {
@@ -70,9 +66,7 @@ bool ftFoxTransactor::activeArticle2(wnFoxBlasterBullet* weapon, soModuleAccesse
         Vec3f offset(0.0f, acc->getConstantFloatKirby(0xfa1), offsetZ);
         Vec3f pos = acc->getModelModule().getNodeGlobalPosition(nodeId, &offset, false, false);
         pos.m_z = 0.0f;
-        soTeamModule& team = acc->getTeamModule();
-        int founderTaskId = acc->getStageObject().m_taskId;
-        weapon->activate(founderTaskId, etcResId, team.getTeam()->getNo(), &pos, 0,
+        weapon->activate(acc->getStageObject().getTaskId(), etcResId, acc->getTeamModule().getTeam()->getNo(), &pos, 0,
                          static_cast<EfID>(effectId), acc->getPostureModule().getLr(), acc->getConstantFloatKirby(0xfa5),
                          acc->getConstantFloatKirby(0xfa4));
     }
