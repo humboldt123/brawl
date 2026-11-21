@@ -88,11 +88,6 @@ bool emBosspackun::activeArticle(wnemSimple* article, soModuleAccesser* moduleAc
 
 // ---- events ---------------------------------------------------------------------------------------------------------
 
-// MATCH-ONLY: copy propagation off for this function. With it on, the saved work flag is coloured after the work flag
-// id and the reference-cast flag (the arguments then shift to r26-r30, or with a widening copy of the flag the locals
-// still come out in the wrong order). The original probably had it off for a reason this source does not show yet.
-#pragma push
-#pragma opt_propagation off
 void emBosspackun::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser* moduleAccesser, StageObject* sender, int unk4) {
     emBosspackunLinkEventArgs* args = static_cast<emBosspackunLinkEventArgs*>(eventInfo);
     switch (eventInfo->m_eventKind) {
@@ -101,8 +96,11 @@ void emBosspackun::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser*
     case LinkEvent_ArmDead: {
         wnemSimple& article = dynamic_cast<wnemSimple&>(*sender);
         if (article.unk2217 == true) {
-            bool wasFlagged = m_moduleAccesser->getWorkManageModule().isFlag(WorkFlag_TransitionCheck);
-            m_moduleAccesser->getWorkManageModule().onFlag(WorkFlag_TransitionCheck);
+            // The module accesser is read through the inline getter here: its result temporaries are numbered below the
+            // shared dynamic_cast flag, which then leaves the register graph in the first pass and is coloured after the
+            // saved work flag and the work flag id, as in the original.
+            bool wasFlagged = getModuleAccesser()->getWorkManageModule().isFlag(WorkFlag_TransitionCheck);
+            getModuleAccesser()->getWorkManageModule().onFlag(WorkFlag_TransitionCheck);
             bool changed;
             // The AI module is declared once and taken in each branch (one reference hoisted above the if schedules
             // its address before the branch).
@@ -110,7 +108,7 @@ void emBosspackun::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser*
             if (args->m_armId == 0) {
                 ai = &m_aiModule;
                 ai->setFlag(1, 6);
-                emStatusModuleImpl& status = dynamic_cast<emStatusModuleImpl&>(m_moduleAccesser->getStatusModule());
+                emStatusModuleImpl& status = dynamic_cast<emStatusModuleImpl&>(getModuleAccesser()->getStatusModule());
                 status.setAIUpdatePri(-198, -198);
                 changed = status.checkTransition(m_moduleAccesser);
                 status.initAIUpdatePri();
@@ -118,16 +116,16 @@ void emBosspackun::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser*
             } else {
                 ai = &m_aiModule;
                 ai->setFlag(1, 7);
-                emStatusModuleImpl& status = dynamic_cast<emStatusModuleImpl&>(m_moduleAccesser->getStatusModule());
+                emStatusModuleImpl& status = dynamic_cast<emStatusModuleImpl&>(getModuleAccesser()->getStatusModule());
                 status.setAIUpdatePri(-197, -197);
                 changed = status.checkTransition(m_moduleAccesser);
                 status.initAIUpdatePri();
                 ai->setFlag(0, 7);
             }
             if (wasFlagged == true) {
-                m_moduleAccesser->getWorkManageModule().onFlag(WorkFlag_TransitionCheck);
+                getModuleAccesser()->getWorkManageModule().onFlag(WorkFlag_TransitionCheck);
             } else {
-                m_moduleAccesser->getWorkManageModule().offFlag(WorkFlag_TransitionCheck);
+                getModuleAccesser()->getWorkManageModule().offFlag(WorkFlag_TransitionCheck);
             }
             eventInfo->_0x4 = changed;
             if (changed == true) {
@@ -188,4 +186,3 @@ void emBosspackun::notifyEventLink(soLinkEventArgs* eventInfo, soModuleAccesser*
     }
     Enemy::notifyEventLink(eventInfo, moduleAccesser, sender, unk4);
 }
-#pragma pop
