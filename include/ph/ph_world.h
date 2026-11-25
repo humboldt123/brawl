@@ -9,7 +9,11 @@ struct hkWorld;
 struct phWorld {
     phWorld();                     // HYPOTHESIS: no arguments in the target
     virtual ~phWorld();            // slot 0x00
+#ifdef SORA_MINIGAME_PH_WORLD_NONVIRTUAL_STEPTIME
+    void stepTime(hkReal dt);
+#else
     virtual void stepTime(hkReal dt); // HYPOTHESIS: forwards dt to hkWorld::stepDeltaTime
+#endif
 
     hkWorld* m_hkWorld; // 0x04
 };
