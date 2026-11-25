@@ -121,10 +121,24 @@ static inline void clearTouchRecords(grCollisionTest* test) {
 }
 
 // HYPOTHESIS: the fsel based clamp helper (the same shape as the glide / mansion ones).
-static inline float clampFloat(float value, float lo, float hi) {
-    value = nw4r::math::FSelect(value - lo, value, lo);
-    return nw4r::math::FSelect(value - hi, hi, value);
+// MATCH-ONLY: inline fsel keeping value in place (nw4r::math::FSelect allocates f1 for the intermediate).
+static inline float clampFloat(register float value, register float lo, register float hi) {
+    register float diff, result;
+    diff = value - lo;
+    // clang-format off
+    asm { fsel value, diff, value, lo }
+    // clang-format on
+    diff = value - hi;
+    // clang-format off
+    asm { fsel result, diff, hi, value }
+    // clang-format on
+    return result;
 }
+
+static inline bool lineIsUnder(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isUnder; }
+static inline bool lineIsUpper(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isUpper; }
+static inline bool lineIsLeft(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isLeft; }
+static inline bool lineIsRight(const grCollisionLineWork* lw) { return lw->m_collisionLine->m_isRight; }
 
 // The box swept by the shape between its current and its target position, 1 unit larger on every side. The current box is first
 // widened to cover the extents of both shapes around the movement of their centres (and made at least as wide / high as the
@@ -134,37 +148,34 @@ void grCollisionTest::getAABBox(clAABBox2D* out) {
     m_unk2bc->getAABBox(curBox);
     clAABBox2D tgtBox;
     m_unk2c4->getAABBox(tgtBox);
-    Vec2f curCenter = m_unk2bc->getCenterPos();
-    Vec2f tgtCenter = m_unk2c4->getCenterPos();
+    float curCenterX = m_unk2bc->getCenterPos().m_x;
+    float tgtCenterX = m_unk2c4->getCenterPos().m_x;
     float tgtHeight = tgtBox.m_unk4 - tgtBox.m_unk2;
-    float limit = curBox.m_unk4 - tgtHeight;
-    if (curBox.m_unk2 > limit) {
-        curBox.m_unk2 = limit;
+    if (curBox.m_unk2 > curBox.m_unk4 - tgtHeight) {
+        curBox.m_unk2 = curBox.m_unk4 - tgtHeight;
     }
-    limit = curBox.m_unk2 + tgtHeight;
-    if (curBox.m_unk4 < limit) {
-        curBox.m_unk4 = limit;
+    if (curBox.m_unk4 < curBox.m_unk2 + tgtHeight) {
+        curBox.m_unk4 = curBox.m_unk2 + tgtHeight;
     }
-    float curRight = curBox.m_unk3 - curCenter.m_x;
-    float tgtRight = tgtBox.m_unk3 - tgtCenter.m_x;
-    float curWidth = curBox.m_unk3 - curBox.m_unk1;
+    float curRight = curBox.m_unk3 - curCenterX;
+    float tgtRight = tgtBox.m_unk3 - tgtCenterX;
     float tgtWidth = tgtBox.m_unk3 - tgtBox.m_unk1;
-    float curLeft = curBox.m_unk1 - curCenter.m_x;
-    float tgtLeft = tgtBox.m_unk1 - tgtCenter.m_x;
+    float curWidth = curBox.m_unk3 - curBox.m_unk1;
+    float maxCenterX = psMax(curCenterX, tgtCenterX);
+    float minCenterX = psMin(curCenterX, tgtCenterX);
     float maxRight = psMax(curRight, tgtRight);
     float maxWidth = psMax(curWidth, tgtWidth);
-    float maxCenterX = psMax(curCenter.m_x, tgtCenter.m_x);
-    float minCenterX = psMin(curCenter.m_x, tgtCenter.m_x);
+    float curLeft = curBox.m_unk1 - curCenterX;
+    float tgtLeft = tgtBox.m_unk1 - tgtCenterX;
     float minLeft = psMin(curLeft, tgtLeft);
-    float right = psMax(maxRight + maxCenterX, curBox.m_unk1 + maxWidth);
-    float left = psMin(minLeft + minCenterX, right - maxWidth);
-    curBox.m_unk1 = left;
-    curBox.m_unk3 = right;
+    curBox.m_unk3 = psMax(maxRight + maxCenterX, curBox.m_unk1 + maxWidth);
+    curBox.m_unk1 = psMin(minLeft + minCenterX, curBox.m_unk3 - maxWidth);
     curBox.logicalOR(tgtBox, *out);
-    out->m_unk3 = out->m_unk3 + 1.0f;
-    out->m_unk4 = out->m_unk4 + 1.0f;
-    out->m_unk1 = out->m_unk1 - 1.0f;
-    out->m_unk2 = out->m_unk2 - 1.0f;
+    float margin = 1.0f;
+    out->m_unk3 += margin;
+    out->m_unk4 += margin;
+    out->m_unk1 -= margin;
+    out->m_unk2 -= margin;
 }
 
 // Starts a test pass: nothing touched yet, the move direction cleared, the corner normals back to the diagonals.
@@ -259,17 +270,26 @@ int grCollisionTest::getNextGroundLine(grCollisionLineWork* cur, grCollisionLine
         if (!out->m_collisionLine->m_isUnder) {
             result = 0;
         } else {
-            u8 sharedTarget = 0;
+            union {
+                u8 raw;
+                struct {
+                    u8 : 5;
+                    bool item : 1;
+                    bool other : 1;
+                    bool fighter : 1;
+                } bits;
+            } sharedTarget;
+            sharedTarget.raw = 0;
             if (cur->m_collisionLine->m_isTargetFighter && out->m_collisionLine->m_isTargetFighter) {
-                sharedTarget = sharedTarget | 1;
+                sharedTarget.bits.fighter = true;
             }
             if (cur->m_collisionLine->m_isTargetOther && out->m_collisionLine->m_isTargetOther) {
-                sharedTarget = sharedTarget | 2;
+                sharedTarget.bits.other = true;
             }
             if (cur->m_collisionLine->m_isTargetItem && out->m_collisionLine->m_isTargetItem) {
-                sharedTarget = sharedTarget | 4;
+                sharedTarget.bits.item = true;
             }
-            if (sharedTarget == 0) {
+            if (sharedTarget.raw == 0) {
                 result = 0;
             } else if ((float)__fabs(segment.m_segment.m_p1Pos.m_x - segment.m_segment.m_p0Pos.m_x) < 0.1f) {
                 result = 0;
@@ -493,8 +513,7 @@ void grCollisionTest::calcNewShapeOnRight(grCollisionLineWork* lineWork) {
     float move = right.m_y - curRight.m_y;
     absMove = __fabs(move);
     if (absMove > 0.01f) {
-        float rate = clampFloat((newRight.m_y - curRight.m_y) / move, 0.0f, 1.0f);
-        updateTarget(rate);
+        updateTarget(clampFloat((newRight.m_y - curRight.m_y) / move, 0.0f, 1.0f));
     }
     m_unk2c0->setRightPos(newRight);
 }
@@ -541,8 +560,7 @@ void grCollisionTest::calcNewShapeOnLeft(grCollisionLineWork* lineWork) {
     float move = left.m_y - curLeft.m_y;
     absMove = __fabs(move);
     if (absMove > 0.01f) {
-        float rate = clampFloat((newLeft.m_y - curLeft.m_y) / move, 0.0f, 1.0f);
-        updateTarget(rate);
+        updateTarget(clampFloat((newLeft.m_y - curLeft.m_y) / move, 0.0f, 1.0f));
     }
     m_unk2c0->setLeftPos(newLeft);
 }
@@ -668,10 +686,10 @@ int grCollisionTest::initPos() {
     resetWork();
     clAABBox2D box;
     m_unk2bc->getAABBox(box);
-    box.m_unk1 = box.m_unk1 - 10.0f;
-    box.m_unk2 = box.m_unk2 - 5.0f;
-    box.m_unk3 = box.m_unk3 + 10.0f;
-    box.m_unk4 = box.m_unk4 + 5.0f;
+    box.m_unk1 -= 10.0f;
+    box.m_unk2 -= 5.0f;
+    box.m_unk3 += 10.0f;
+    box.m_unk4 += 5.0f;
     __memcpy(&collection.m_aabb, &box, sizeof(clAABBox2D));
     m_collection = &collection;
     collection.m_unk12 = m_collStatus->m_targetLineCategory;
@@ -679,14 +697,17 @@ int grCollisionTest::initPos() {
     collection.m_unk13 = m_collStatus->m_testDynamicCollision;
     collection.collect(m_exclusiveLineAttr, 0);
 
+    grCollisionLineWork* lineWork;
     grCollisionLineWork* floor = NULL;
     bool onGround = true;
     int result = 1;
-    Vec2f floorPos(3.4028235e+38f, 3.4028235e+38f);
+    Vec2f floorPos;
+    floorPos.m_y = 3.4028235e+38f;
+    floorPos.m_x = 3.4028235e+38f;
     m_unk8 = 1.0f;
     Vec2f down = m_unk2bc->getDownPos();
     for (u32 i = 0; i < m_collection->m_lineWorks.m_num; i++) {
-        grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
+        lineWork = &m_collection->m_lineWorks.m_works[i];
         if (isActiveLineWork(lineWork) && lineWork->m_collisionLine->m_isUnder
             && (lineWork->m_collisionLine->m_targetCategory & (u8)m_collStatus->m_targetLineCategory) != 0) {
             grCollSegmentEx segment;
@@ -696,7 +717,7 @@ int grCollisionTest::initPos() {
                 Vec2f point = segment.m_segment.m_p0Pos + (segment.m_segment.m_p1Pos - segment.m_segment.m_p0Pos) * rate;
                 float dx = (float)__fabs(down.m_x - point.m_x);
                 float dy = (float)__fabs(down.m_y - point.m_y);
-                if (dx <= 10.0f && dy <= 10.0f && dy < (float)__fabs(down.m_y - floorPos.m_y)) {
+                if (!(dx > 10.0f) && !(dy > 10.0f) && dy < (float)__fabs(down.m_y - floorPos.m_y)) {
                     floor = lineWork;
                     floorPos = point;
                 }
@@ -710,10 +731,10 @@ int grCollisionTest::initPos() {
     grCollisionLineWork* ceilingBelow = NULL;
     if (onGround) {
         float floorY = floorPos.m_y;
-        float aboveY = 3.4028235e+38f;
         float belowY = -3.4028235e+38f;
+        float aboveY = 3.4028235e+38f;
         for (u32 i = 0; i < m_collection->m_lineWorks.m_num; i++) {
-            grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
+            lineWork = &m_collection->m_lineWorks.m_works[i];
             if (isActiveLineWork(lineWork) && lineWork->m_collisionLine->m_isUpper
                 && (lineWork->m_collisionLine->m_targetCategory & (u8)m_collStatus->m_targetLineCategory) != 0) {
                 grCollSegmentEx segment;
@@ -721,11 +742,9 @@ int grCollisionTest::initPos() {
                 if (segment.m_segment.m_p1Pos.m_x <= down.m_x && down.m_x <= segment.m_segment.m_p0Pos.m_x) {
                     float rate = (down.m_x - segment.m_segment.m_p1Pos.m_x) / (segment.m_segment.m_p0Pos.m_x - segment.m_segment.m_p1Pos.m_x);
                     Vec2f point = segment.m_segment.m_p1Pos + (segment.m_segment.m_p0Pos - segment.m_segment.m_p1Pos) * rate;
-                    if (point.m_y <= floorY) {
-                        if (belowY < point.m_y) {
-                            belowY = point.m_y;
-                            ceilingBelow = lineWork;
-                        }
+                    if (point.m_y <= floorY && belowY < point.m_y) {
+                        belowY = point.m_y;
+                        ceilingBelow = lineWork;
                     } else if (floorY < point.m_y && point.m_y < aboveY) {
                         aboveY = point.m_y;
                         ceilingAbove = lineWork;
@@ -736,7 +755,7 @@ int grCollisionTest::initPos() {
         m_unk2bc->setDownPos(floorPos);
         if (ceilingAbove != NULL) {
             Vec2f ceilingPos(floorPos.m_x, aboveY);
-            float gap = (float)__fabs(aboveY - floorPos.m_y);
+            float gap = (float)__fabs(ceilingPos.m_y - floorPos.m_y);
             if (gap < m_unk2bc->getHeight()) {
                 Vec2f center(floorPos.m_x, (ceilingPos.m_y + floorPos.m_y) * 0.5f);
                 m_unk2bc->setUD(center, ceilingPos, floorPos);
@@ -756,11 +775,11 @@ int grCollisionTest::initPos() {
         }
         m_collStatus->m_currentCollShape->set(*m_unk2bc);
         m_collStatus->setStGround();
-        m_collStatus->m_collLineWorkArray[grCollStatus::Touch_Down] = *floor;
-        m_collStatus->m_touchDown = true;
+        grCollStatus* status = m_collStatus;
+        status->m_collLineWorkArray[grCollStatus::Touch_Down] = *floor;
+        status->m_touchDown = true;
+        m_collStatus->m_unk1C = m_unk2bc->getDownPos();
         result = 1;
-        Vec2f groundPos = m_unk2bc->getDownPos();
-        m_collStatus->m_unk1C = groundPos;
     } else {
         m_collStatus->setStAir();
     }
@@ -771,14 +790,14 @@ int grCollisionTest::initPos() {
     float rightDx = 10.0f;
     float leftDx = -10.0f;
     for (u32 i = 0; i < m_collection->m_lineWorks.m_num; i++) {
-        grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
+        lineWork = &m_collection->m_lineWorks.m_works[i];
         grCollisionLine* line = lineWork->m_collisionLine;
         if ((line->m_isLeft || line->m_isRight) && (line->m_targetCategory & (u8)m_collStatus->m_targetLineCategory) != 0) {
             grCollSegmentEx segment;
+            Vec2f projected;
             lineWork->m_collision->getSegment(&segment, lineWork->m_collisionLine, 0);
             if (lineWork->m_collisionLine->m_isLeft) {
                 if (segment.m_segment.m_p0Pos.m_y >= center.m_y && center.m_y >= segment.m_segment.m_p1Pos.m_y) {
-                    Vec2f projected;
                     if (segment.m_segment.projectionY(center, projected)) {
                         float dx = projected.m_x - center.m_x;
                         if ((float)__fabs(dx) < (float)__fabs(leftDx)) {
@@ -789,7 +808,6 @@ int grCollisionTest::initPos() {
                 }
             } else {
                 if (segment.m_segment.m_p0Pos.m_y <= center.m_y && center.m_y <= segment.m_segment.m_p1Pos.m_y) {
-                    Vec2f projected;
                     if (segment.m_segment.projectionY(center, projected)) {
                         float dx = projected.m_x - center.m_x;
                         if ((float)__fabs(dx) < (float)__fabs(rightDx)) {
@@ -1057,27 +1075,31 @@ int grCollisionTest::notifyEventBreakObject(const u8* eventFlags, u32 touchMask)
     const grCollBreakObjectFlags* flags = (const grCollBreakObjectFlags*)eventFlags;
     int result = 0;
     bool matched = false;
-    u8 matchedMask = 0;
+    union {
+        u8 raw;
+        grCollBreakObjectFlags bits;
+    } matchedMask;
+    matchedMask.raw = 0;
     if (flags->m_up && (touchMask & 1)) {
         matched = true;
-        matchedMask |= 0x80;
+        matchedMask.bits.m_up = true;
     }
     if (flags->m_down && (touchMask & 8)) {
         matched = true;
-        matchedMask |= 0x40;
+        matchedMask.bits.m_down = true;
     }
     if (flags->m_left && (touchMask & 2)) {
         matched = true;
-        matchedMask |= 0x20;
+        matchedMask.bits.m_left = true;
     }
     if (flags->m_right && (touchMask & 4)) {
         matched = true;
-        matchedMask |= 0x10;
+        matchedMask.bits.m_right = true;
     }
     if (matched) {
         grCollisionJoint* joint = m_hit.m_lineWork.m_collisionJoint;
         if (joint && joint->m_0x55_4) {
-            *(u8*)((u8*)m_collStatus + 0x70) = matchedMask; // the status' attack-point-break bits (high nibble)
+            *(u8*)((u8*)m_collStatus + 0x70) = matchedMask.raw; // the status' attack-point-break bits (high nibble)
             Ground* ground = joint->m_ground;
             if (ground) {
                 ground->receiveCollMsg(5, m_collStatus, joint);
@@ -2576,7 +2598,8 @@ void grCollisionTest::updateCliffInfo(grCollCliffInfo* info, grCollisionLineWork
     if (info->m_valid == 0) {
         info->m_valid = 1;
         info->m_side = side;
-        info->m_pos = *pos;
+        info->m_pos.m_x = pos->m_x;
+        info->m_pos.m_y = pos->m_y;
         info->m_lineWork = lineWork;
     } else {
         grCollStatus* status = m_collStatus;
@@ -2586,11 +2609,13 @@ void grCollisionTest::updateCliffInfo(grCollCliffInfo* info, grCollisionLineWork
         float oldDist = oldDiff.lengthSq();
         if (side == 1 && newDist < oldDist) {
             info->m_side = side;
-            info->m_pos = *pos;
+            info->m_pos.m_x = pos->m_x;
+            info->m_pos.m_y = pos->m_y;
             info->m_lineWork = lineWork;
         } else if (side == 0 && newDist < oldDist) {
             info->m_side = side;
-            info->m_pos = *pos;
+            info->m_pos.m_x = pos->m_x;
+            info->m_pos.m_y = pos->m_y;
             info->m_lineWork = lineWork;
         }
     }
@@ -3082,8 +3107,9 @@ int grCollisionTest::initialCorrectionLR() {
     u16 mask = createCheckMaskStatic();
     grCollisionLineWork neighbor;
     grCollisionLine* groundLine = m_touch[3].m_lineWork.m_collisionLine;
+    grCollisionLineWork* lineWork;
     for (u32 i = 0; i < num; i++) {
-        grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
+        lineWork = &m_collection->m_lineWorks.m_works[i];
         grCollisionLine* line = lineWork->m_collisionLine;
         if (line->m_unkE & mask) {
             if (line->m_isLeft || line->m_isRight) {
@@ -3261,8 +3287,9 @@ int grCollisionTest::lastCorrectionLR() {
     u16 mask = createCheckMaskStatic();
     grCollisionLineWork neighbor;
     grCollisionLine* groundLine = m_touch[3].m_lineWork.m_collisionLine;
+    grCollisionLineWork* lineWork;
     for (u32 i = 0; i < num; i++) {
-        grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
+        lineWork = &m_collection->m_lineWorks.m_works[i];
         grCollisionLine* line = lineWork->m_collisionLine;
         if (line->m_unkE & mask) {
             if (line->m_isLeft || line->m_isRight) {
@@ -3316,16 +3343,17 @@ void grCollisionTest::ajustShapeDown() {
     u16 num = m_collection->m_lineWorks.m_num;
     Vec2f top = m_unk2bc->getTopPos();
     Vec2f down = m_unk2bc->getDownPos();
-    grCollisionLineWork* best = NULL;
     float x = down.m_x;
     float y = down.m_y;
     float limit = top.m_y - 0.2f;
     grCollisionLineWork current;
+    grCollisionLineWork* best = NULL;
+    grCollisionLineWork* lineWork;
     for (u32 i = 0; i < num; i++) {
-        grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
+        lineWork = &m_collection->m_lineWorks.m_works[i];
         current = *lineWork;
         if (isActiveLineWork(current) && (current.m_collisionLine->m_unkE & mask) && current.m_unkC == 0 &&
-            fn_80137114(m_collStatus, &current) == 0 && current.m_collisionLine->m_isUnder) {
+            fn_80137114(m_collStatus, &current) == 0 && lineIsUnder(&current)) {
             clSegment2D segment;
             current.m_collision->getSegment(&segment, current.m_collisionLine);
             if (segment.m_p0Pos.m_x <= x && x <= segment.m_p1Pos.m_x) {
@@ -3369,12 +3397,12 @@ void grCollisionTest::ajustShapeUp() {
     float height = m_unk2c4->getTopPos().m_y - m_unk2c4->getDownPos().m_y;
     Vec2f down = m_unk2bc->getDownPos();
     Vec2f top = down + Vec2f(0.0f, height);
-    m_unk2bc->getCenterPos();
+    Vec2f center = m_unk2bc->getCenterPos();
     float x = top.m_x;
     float y = top.m_y;
     float limit = 0.2f + down.m_y;
-    grCollisionLineWork* best = NULL;
     grCollisionLineWork current;
+    grCollisionLineWork* best = NULL;
     clSegment2D segment;
     Vec2f hit;
     bool hasGround = false;
@@ -3389,7 +3417,7 @@ void grCollisionTest::ajustShapeUp() {
         grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
         current = *lineWork;
         if (isActiveLineWork(current) && (current.m_collisionLine->m_unkE & mask) && current.m_unkC == 0 &&
-            current.m_collisionLine->m_isUpper) {
+            lineIsUpper(&current)) {
             current.m_collision->getSegment(&segment, current.m_collisionLine);
             if (segment.m_p1Pos.m_x <= x && x <= segment.m_p0Pos.m_x) {
                 if (segment.projectionX(top, hit)) {
@@ -3455,16 +3483,17 @@ void grCollisionTest::ajustShapeLeft() {
     u16 num = m_collection->m_lineWorks.m_num;
     Vec2f left = m_unk2bc->getLeftPos();
     Vec2f right = m_unk2bc->getRightPos();
-    grCollisionLineWork* best = NULL;
     float x = left.m_x;
     float y = left.m_y;
     float limit = right.m_x - 0.2f;
     grCollisionLineWork current;
+    grCollisionLineWork* best = NULL;
+    grCollisionLineWork* lineWork;
     for (u32 i = 0; i < num; i++) {
-        grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
+        lineWork = &m_collection->m_lineWorks.m_works[i];
         current = *lineWork;
         if (isActiveLineWork(current) && (current.m_collisionLine->m_unkE & mask) && current.m_unkC == 0 &&
-            current.m_collisionLine->m_isLeft) {
+            lineIsLeft(&current)) {
             clSegment2D segment;
             current.m_collision->getSegment(&segment, current.m_collisionLine);
             if (segment.m_p0Pos.m_y >= y && y >= segment.m_p1Pos.m_y) {
@@ -3509,16 +3538,17 @@ void grCollisionTest::ajustShapeRight() {
     u16 num = m_collection->m_lineWorks.m_num;
     Vec2f left = m_unk2bc->getLeftPos();
     Vec2f right = m_unk2bc->getRightPos();
-    grCollisionLineWork* best = NULL;
     float limit = 0.2f + left.m_x;
     float x = right.m_x;
     float y = right.m_y;
     grCollisionLineWork current;
+    grCollisionLineWork* best = NULL;
+    grCollisionLineWork* lineWork;
     for (u32 i = 0; i < num; i++) {
-        grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
+        lineWork = &m_collection->m_lineWorks.m_works[i];
         current = *lineWork;
         if (isActiveLineWork(current) && (current.m_collisionLine->m_unkE & mask) && current.m_unkC == 0 &&
-            current.m_collisionLine->m_isRight) {
+            lineIsRight(&current)) {
             clSegment2D segment;
             current.m_collision->getSegment(&segment, current.m_collisionLine);
             if (segment.m_p1Pos.m_y >= y && y >= segment.m_p0Pos.m_y) {
@@ -3686,7 +3716,7 @@ int grCollisionTest::testCollisionMainAirSub() {
         mask |= 8;
     }
     for (u32 i = 0; i < m_collection->m_lineWorks.m_num; i++) {
-        grCollisionLineWork* lineWork = &m_collection->m_lineWorks.m_works[i];
+        grCollisionLineWork* lineWork = m_collection->m_lineWorks.m_works + i;
         if (isActiveLineWork(*lineWork) && (lineWork->m_collisionLine->m_unkE & mask)) {
             if (lineWork->m_collisionLine->m_isThroughable) {
                 bool same = false;
@@ -3761,13 +3791,13 @@ int grCollisionTest::testCollisionMain() {
 // neighbors continue the ground line the shape stands on (m_unk224) is not tested, and the line work flag (m_unkC) records
 // why it was skipped (bit 0 up-left corner, bit 1 up-right corner, bit 2 ceiling next to the ground line).
 int grCollisionTest::testCollisionMainGround() {
+    u16 mask = 0;
     int count = 0;
     m_unk8 = 1.0f;
     grCollisionLineWork lineD;
     grCollisionLineWork lineC;
     grCollisionLineWork lineB;
     grCollisionLineWork lineA;
-    u16 mask = 0;
     u8 sides = m_unkF;
     if (sides & grCollStatus::TOUCH_MASK_UP) {
         mask |= 2;
@@ -3837,7 +3867,7 @@ int grCollisionTest::testCollisionMainGround() {
                 if ((dir & DIR_RIGHT) && lineWork->m_collisionLine->m_isRight) {
                     lineWork->getUpRightLine(&lineA);
                     lineA.getNext(&lineD);
-                    if (isActiveLineWorkIf(lineD) && lineD.m_collisionLine->m_isUnder) {
+                    if (isActiveLineWorkIf(lineD) && lineIsUnder(&lineD)) {
                         bool same = false;
                         if (lineA.m_collisionLine == m_unk224.m_collisionLine) {
                             same = true;
@@ -3850,7 +3880,7 @@ int grCollisionTest::testCollisionMainGround() {
                 } else if ((dir & DIR_LEFT) && lineWork->m_collisionLine->m_isLeft) {
                     lineWork->getUpLeftLine(&lineA);
                     lineA.getPrev(&lineD);
-                    if (isActiveLineWorkIf(lineD) && lineD.m_collisionLine->m_isUnder) {
+                    if (isActiveLineWorkIf(lineD) && lineIsUnder(&lineD)) {
                         bool same = false;
                         if (lineA.m_collisionLine == m_unk224.m_collisionLine) {
                             same = true;
@@ -3861,7 +3891,7 @@ int grCollisionTest::testCollisionMainGround() {
                         }
                     }
                 } else if (lineWork->m_collisionLine->m_isUpper) {
-                    if (lineWork->getPrevNoVLink(&lineB) && lineB.m_collisionLine->m_isUnder) {
+                    if (lineWork->getPrevNoVLink(&lineB) && lineIsUnder(&lineB)) {
                         bool same = false;
                         if (lineB.m_collisionLine == m_unk224.m_collisionLine) {
                             same = true;
@@ -3871,7 +3901,7 @@ int grCollisionTest::testCollisionMainGround() {
                             continue;
                         }
                     }
-                    if (lineWork->getNextNoVLink(&lineB) && lineB.m_collisionLine->m_isUnder) {
+                    if (lineWork->getNextNoVLink(&lineB) && lineIsUnder(&lineB)) {
                         bool same = false;
                         if (lineB.m_collisionLine == m_unk224.m_collisionLine) {
                             same = true;
@@ -3883,7 +3913,7 @@ int grCollisionTest::testCollisionMainGround() {
                     }
                     lineWork->getPrev(&lineD);
                     m_unk224.getPrev(&lineB);
-                    if (isActiveLineWork(lineD) && lineD.m_collisionLine->m_isUnder && isActiveLineWork(lineB)) {
+                    if (isActiveLineWork(lineD) && lineIsUnder(&lineD) && isActiveLineWork(lineB)) {
                         bool same = false;
                         if (lineD.m_collisionLine == lineB.m_collisionLine) {
                             same = true;
@@ -3895,7 +3925,7 @@ int grCollisionTest::testCollisionMainGround() {
                     }
                     lineWork->getNext(&lineD);
                     m_unk224.getPrev(&lineB);
-                    if (isActiveLineWork(lineD) && lineD.m_collisionLine->m_isUnder && isActiveLineWork(lineB)) {
+                    if (isActiveLineWork(lineD) && lineIsUnder(&lineD) && isActiveLineWork(lineB)) {
                         bool same = false;
                         if (lineD.m_collisionLine == lineB.m_collisionLine) {
                             same = true;
@@ -3931,12 +3961,10 @@ void grCollisionTest::pushbackPreIgnoreLine(grCollisionLineWork* lineWork) {
     if (m_preIgnoreNum >= PRE_IGNORE_MAX) {
         return;
     }
-    if (m_preIgnoreNum >= PRE_IGNORE_MAX) {
-        return;
+    if (m_preIgnoreNum < PRE_IGNORE_MAX) {
+        m_preIgnoreLines[m_preIgnoreNum] = *lineWork;
+        m_preIgnoreNum++;
     }
-    grCollisionLineWork* dst = &m_preIgnoreLines[m_preIgnoreNum];
-    *dst = *lineWork;
-    m_preIgnoreNum++;
 }
 
 

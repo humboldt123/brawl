@@ -531,6 +531,26 @@ public:
 #endif
 
     soArrayListUnit<T, IndexTy>* getUnits() { return m_units; }
+#ifdef SO_ARRAY_LIST_UNIQ_HELPERS
+    T& atArrayIndex(s32 idx) {
+        if (this->isEmpty() != true && idx >= 0)
+            static_cast<void>(capacity());
+        return m_units[idx].m_element;
+    }
+    const T& atArrayIndex(s32 idx) const {
+        if (this->isEmpty() != true && idx >= 0)
+            static_cast<void>(capacity());
+        return m_units[idx].m_element;
+    }
+    s32 getTopIndex() const { return m_topIndex; }
+    bool isInUse(s32 idx) const {
+        if (idx < 0 || idx >= capacity())
+            return false;
+        return m_units[idx].m_inUse != 0;
+    }
+    s32 insertSubPublic(s32 prevPos, s32 where = End) { return insertSub(prevPos, where); }
+    void eraseSubPublic(s32 idx) { eraseSub(idx); }
+#endif
 };
 
 // Individual definitions permit explicit list member instantiations.
