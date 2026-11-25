@@ -39,6 +39,9 @@ public:
     // HYPOTHESIS: the derived interpreter reads these fields and the skip-mode bit.
     friend class soAnimCmdInterpreter;
     friend class soEffectScreenManager;
+#ifdef SO_ANIM_CMD_MODULE_IMPL_UNIT
+    friend class soAnimCmdModuleImpl;
+#endif
 
     acCmdInterpreter(soArrayVector<acCmdInterpreterStackData, 8>* stk,
         s32 mode, acAnimCmdConv* initCmd, const u8* resetMode, float fixedTimeStep);

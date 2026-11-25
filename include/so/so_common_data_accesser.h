@@ -8,7 +8,12 @@
 
 // TODO: Define these classes and decide which headers they should belong to
 
-struct soMotionData { };
+struct soMotionData {
+#ifdef SO_MOTION_MODULE_IMPL_UNIT
+    u32 unk0;
+    char* m_name;
+#endif
+};
 struct ftMotionData : public soMotionData { };
 struct wnMotionData : public soMotionData { };
 

@@ -13,7 +13,9 @@
 #include <so/so_array.h>
 #include <so/anim/so_anim_cmd.h>
 #include <so/anim/so_anim_cmd_event_presenter.h>
+#ifndef SO_COLOR_BLEND_MODULE_IMPL_UNIT
 #include <so/color/so_color_blend.h>
+#endif
 #include <so/collision/so_collision_attack_part.h>
 #include <so/slope/so_slope_module_impl.h>
 #include <so/controller/so_controller_impl.h>

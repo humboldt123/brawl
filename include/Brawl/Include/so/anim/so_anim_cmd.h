@@ -48,6 +48,11 @@ struct soAnimCmdAddressPack {
     u32 unk4;
     u32 unk8;
 
+#ifdef SO_MOTION_MODULE_IMPL_PART3_UNIT
+    soAnimCmdAddressPack();
+    ~soAnimCmdAddressPack();
+#endif
+
     soAnimCmdAddressPack& operator=(const soAnimCmdAddressPack& orig) {
         if (this != &orig) {
             u32 addr3 = orig.unk8;

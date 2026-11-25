@@ -9,7 +9,7 @@
 #include <so/anim/so_anim_cmd_event_presenter.h>
 #include <so/status/so_status_event_presenter.h>
 #include <so/so_instance_manager.h>
-#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT)
+#if defined(FT_MODULE_BUILDER) || defined(WN_EM_SIMPLE_UNIT) || defined(SO_ANIM_CMD_MODULE_IMPL_UNIT)
 #include <ac/ac_cmd_interpreter.h>
 #endif
 
@@ -29,7 +29,7 @@ struct soAnimCmdAddressPackConv;
  *
  * I'm leaving it like this for now, since it is still somewhat useful/usable.
  */
-#if !defined(FT_MODULE_BUILDER) && !defined(WN_EM_SIMPLE_UNIT)
+#if !defined(FT_MODULE_BUILDER) && !defined(WN_EM_SIMPLE_UNIT) && !defined(SO_ANIM_CMD_MODULE_IMPL_UNIT)
 class soAnimCmdInterpreter /*: soEventPresenter<soAnimCmdEventObserver> */ {
 public:
     char _inheritance_data[8]; // 0x0; not sure what this is.
@@ -87,6 +87,11 @@ struct soAnimCmdAddressPackConv {
     const acAnimCmdConv* addr1;
     const acAnimCmdConv* addr2;
     const acAnimCmdConv* addr3;
+#ifdef SO_ANIM_CMD_MODULE_IMPL_UNIT
+    soAnimCmdAddressPackConv() : addr1(nullptr), addr2(nullptr), addr3(nullptr) { }
+    soAnimCmdAddressPackConv(const acAnimCmdConv* a1, const acAnimCmdConv* a2, const acAnimCmdConv* a3) :
+        addr1(a1), addr2(a2), addr3(a3) { }
+#endif
 };
 
 // This class zips together three fixed-size arrays of acAnimCmdConv pointers,
@@ -102,8 +107,12 @@ class soAnimCmdAddressPackArraySeparate : public soArrayFixed<soAnimCmdAddressPa
 public:
     soAnimCmdAddressPackConv atSub(s32 index) const {
         if (index < 0) {
+#ifdef SO_ANIM_CMD_MODULE_IMPL_UNIT
+            return soAnimCmdAddressPackConv();
+#else
             soAnimCmdAddressPackConv pack = { nullptr, nullptr, nullptr };
             return pack;
+#endif
         }
 
         const acAnimCmdConv* addr1 = nullptr;
@@ -118,8 +127,12 @@ public:
         if (index < m_addrArr2->size())
             addr3 = m_addrArr2->at(index);
 
+#ifdef SO_ANIM_CMD_MODULE_IMPL_UNIT
+        return soAnimCmdAddressPackConv(addr1, addr2, addr3);
+#else
         soAnimCmdAddressPackConv pack = { addr1, addr2, addr3 };
         return pack;
+#endif
     }
 
     virtual soAnimCmdAddressPackConv& at(s32 index) {
@@ -172,11 +185,34 @@ public:
     // BYTES: item.cpp emits the two-pointer constructor out of line.
     soAnimCmdControlUnit(soAnimCmdInterpreter* interpreter, soAnimCmdAddressPackArraySeparate* pack);
 #endif
+#ifdef SO_ANIM_CMD_MODULE_IMPL_UNIT
+    soAnimCmdAddressPackConv getAddressPack(s32 index) __attribute__((never_inline));
+#endif
 };
 static_assert(sizeof(soAnimCmdControlUnit) == 0x8, "Class is the wrong size!");
 
 class soAnimCmdModule: public soNullable {
 public:
+#ifdef SO_ANIM_CMD_MODULE_IMPL_UNIT
+    virtual s32 registInterpreter(soAnimCmdControlUnit& unit, const soAttributeFlag& attr); // 0x0C
+    virtual void interpretCmd(soModuleAccesser* moduleAccesser, const soAttributeFlag& attr, float frame); // 0x10
+    virtual void interpretCmdAdjust(soModuleAccesser* moduleAccesser, const soAttributeFlag& attr, float frame, float endFrame); // 0x14
+    virtual void interpretCmd(s32 id, soModuleAccesser* moduleAccesser, float frame); // 0x18
+    virtual void resetInterpreter(const soAttributeFlag& attr, soModuleAccesser* moduleAccesser, s32 index, bool keepFrame, float frame); // 0x1C
+    virtual void resetInterpreter(s32 id, soModuleAccesser* moduleAccesser, s32 index, float frame); // 0x20
+    virtual void resetInterpreter(s32 id, const acAnimCmdConv* cmd, soModuleAccesser* moduleAccesser); // 0x24
+    virtual void resetInterpreter(const soAttributeFlag& attr, const acAnimCmdConv* cmd, soModuleAccesser* moduleAccesser, bool runNow, u32 flag); // 0x28
+    virtual void resetInterpreter(const soArray<soAnimCmdAddressPackConv>* packs, soModuleAccesser* moduleAccesser, const soAttributeFlag& attr); // 0x2C
+    virtual bool isInterpreterAnimCmd(const soAttributeFlag& attr, s32 index); // 0x30
+    virtual void stopInterpreter(const soAttributeFlag& attr, soModuleAccesser* moduleAccesser); // 0x34
+    virtual void skipNextMotionGroup(const soAttributeFlag& attr, soModuleAccesser* moduleAccesser); // 0x38
+    virtual bool isAnimCmdEnd(s32 id); // 0x3C
+    virtual float getAnimCmdFrame(s32 id); // 0x40
+    virtual void getCmdAddressPack(soArray<soAnimCmdAddressPackConv>* outArr, s32 index, const soAttributeFlag& attr); // 0x44
+    virtual void setAddressPackList(s32 id, soAnimCmdAddressPackArraySeparate* list); // 0x48
+    virtual u32 getInterpreterNum(); // 0x4C
+    virtual ~soAnimCmdModule() { } // 0x50
+#else
     virtual void registInterpreter(const soAnimCmdControlUnit& unit, const soAttributeFlag& attr);
     // HYPOTHESIS: signature from soStatusModuleImpl (frame 0 or 1 with an attribute mask of the command groups to run).
     virtual void interpretCmd(soModuleAccesser* moduleAccesser, const soAttributeFlag& attr, float frame);
@@ -235,6 +271,7 @@ public:
 #endif
     virtual void activate(soModuleAccesser*);
     virtual void deactivate(soModuleAccesser*);
+#endif
 };
 
 namespace soAnimCmdControlUnitKind {
@@ -276,7 +313,38 @@ public:
     virtual bool isObserv(char group);
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, soAnimCmdEventS32 unk3);
 #endif
+#ifdef SO_ANIM_CMD_MODULE_IMPL_UNIT
+    soAnimCmdControlUnit* getControlUnit(s32 id) {
+        s32 idx = m_animCmdThreads->getIndex(id);
+        if (idx < 0) {
+            return nullptr;
+        }
+        return &m_animCmdThreads->atIndexFast(idx);
+    }
+    virtual s32 registInterpreter(soAnimCmdControlUnit& unit, const soAttributeFlag& attr);
+    virtual void interpretCmdAdjust(soModuleAccesser* moduleAccesser, const soAttributeFlag& attr, float frame, float endFrame);
+    virtual void interpretCmd(s32 id, soModuleAccesser* moduleAccesser, float frame);
+    virtual void resetInterpreter(const soAttributeFlag& attr, soModuleAccesser* moduleAccesser, s32 index, bool keepFrame, float frame);
+    virtual void resetInterpreter(s32 id, soModuleAccesser* moduleAccesser, s32 index, float frame);
+    virtual void resetInterpreter(s32 id, const acAnimCmdConv* cmd, soModuleAccesser* moduleAccesser);
+    virtual void resetInterpreter(const soAttributeFlag& attr, const acAnimCmdConv* cmd, soModuleAccesser* moduleAccesser, bool runNow, u32 flag);
+    virtual void resetInterpreter(const soArray<soAnimCmdAddressPackConv>* packs, soModuleAccesser* moduleAccesser, const soAttributeFlag& attr);
+    virtual bool isInterpreterAnimCmd(const soAttributeFlag& attr, s32 index);
+    virtual void stopInterpreter(const soAttributeFlag& attr, soModuleAccesser* moduleAccesser);
+    virtual void skipNextMotionGroup(const soAttributeFlag& attr, soModuleAccesser* moduleAccesser);
+    virtual bool isAnimCmdEnd(s32 id);
+    virtual float getAnimCmdFrame(s32 id);
+    virtual void getCmdAddressPack(soArray<soAnimCmdAddressPackConv>* outArr, s32 index, const soAttributeFlag& attr);
+    virtual void setAddressPackList(s32 id, soAnimCmdAddressPackArraySeparate* list);
+    virtual u32 getInterpreterNum();
+    virtual ~soAnimCmdModuleImpl();
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+    virtual bool isObserv(char group);
+    virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
+    soInstanceManagerFullProperty<soAnimCmdControlUnit>* m_animCmdThreads; // 0x20
+#else
     soInstanceManagerFullPropertyVector<soAnimCmdControlUnit, soAnimCmdControlUnitKind::Count>* m_animCmdThreads; // 0x20
+#endif
 };
 static_assert(sizeof(soAnimCmdModuleImpl) == 0x24, "Class is the wrong size!");
 

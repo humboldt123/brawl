@@ -5,6 +5,9 @@
 #include <types.h>
 
 class soAnimChr {
+#ifdef SO_MOTION_MODULE_IMPL_UNIT
+    friend class soMotionModuleImpl;
+#endif
     nw4r::g3d::AnmObjChrRes* m_anmChrRes;
     float m_animFrame;
     float m_startFrame;

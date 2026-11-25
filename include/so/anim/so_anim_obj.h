@@ -12,6 +12,9 @@
 // unresolved; these declarations preserve the observed pointer argument ABI.
 // create selects each resource by animationName, or index zero when it is null.
 class soAnimObj {
+#ifdef SO_MOTION_MODULE_IMPL_UNIT
+    friend class soMotionModuleImpl;
+#endif
     union {
         u32 unk0[10];
         struct {
