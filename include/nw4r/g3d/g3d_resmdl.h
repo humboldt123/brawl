@@ -43,6 +43,9 @@ namespace nw4r {
             inline ResMdl(void* data) : ResCommon(data) {}
 
             ResMat GetResMat(const char* name) const;
+#ifdef CS_FIGURE_RESMDL_GETRESMAT_INT
+            ResMat GetResMat(int index) const;
+#endif
             ResMat GetResMat(u32 index) const;
             u32 GetResMatNumEntries() const;
             u32 GetResNodeNumEntries();
