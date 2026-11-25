@@ -82,7 +82,11 @@ public:
 
     int preloadArchive(gfArchive* param, gfArchive* brres, gfArchive* enmCommon, gfArchive* primFaceBrres, EnemyKind enemyKind, bool isSoundRequest);
     bool isCompArchive(int createId);
+#ifdef ST_ADVENTURE2_IMPL
+    int isCompArchiveAll();
+#else
     bool isCompArchiveAll();
+#endif
     void removeArchive(int createId);
     void removeArchiveAll();
     Entry* getEntryPreloadArchivePtrFromIndex(u32 index);

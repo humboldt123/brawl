@@ -150,7 +150,13 @@ public:
 
     int getLanguage();
     static GameGlobal* getInstance();
+#ifdef ST_ADVENTURE2_IMPL
+    gmGlobalModeMelee* getGlobalVsMeleeCondition() { return m_modeMelee; }
+#endif
 };
 static_assert(sizeof(GameGlobal) == 0x50, "Class is wrong size!");
 
 extern GameGlobal* g_GameGlobal;
+#ifdef ST_ADVENTURE2_IMPL
+inline GameGlobal* GameGlobal::getInstance() { return g_GameGlobal; }
+#endif

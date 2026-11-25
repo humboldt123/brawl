@@ -68,6 +68,9 @@ public:
     void setBeltConveyorParam(grGimmickBeltConveyorData* belt);
     //void setBeltConveyorParam(grGimmickTriBeltConveyorData* belt);
     void setWaterParam(grGimmickWaterData* water);
+#ifdef ST_ADVENTURE2_IMPL
+    bool* getIsValidPtr() { return &m_isValid; }
+#endif
 
 
 };
@@ -82,9 +85,15 @@ public:
         }
     }
 
+#ifdef ST_ADVENTURE2_IMPL
+    virtual void updateBegin() { }
+    virtual void updateFixPosition() { }
+    virtual void updateEnd() { }
+#else
     void updateBegin() { }
     void updateFixPosition() { }
     void updateEnd() { }
+#endif
 };
 
 // HYPOTHESIS: unk8 is initialized by a non-virtual base, before the derived vtable store.

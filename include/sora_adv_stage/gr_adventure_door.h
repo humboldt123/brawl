@@ -19,6 +19,14 @@ struct grGimmickDoorData {
             int unk48;
             u8 unk4C[4];
         };
+#ifdef ST_ADVENTURE2_IMPL
+        struct {
+            u8 _pad30[0x30];
+            u32 m_jumpData;
+            u8 _pad34[2];
+            u8 m_mdlIndex;
+        };
+#endif
     };
     stTriggerData m_validTrigger; // 0x50
 };

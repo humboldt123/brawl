@@ -132,5 +132,15 @@ public:
     void enableHitCircle(bool isEnable, u8 groupIndex, int team, u32 id); // HYPOTHESIS: parameter types
     void enableHitCircle(bool isEnable, u8 groupIndex); // HYPOTHESIS: parameter types
     void setPos(Vec2f* pos, u8 groupIndex, int team, u32 id); // HYPOTHESIS: parameter types
+#ifdef ST_ADVENTURE2_IMPL
+    static void remove();
+#endif
 };
 static_assert(sizeof(grHitCircleObserver) == 0x54, "Class is wrong size!");
+#ifdef ST_ADVENTURE2_IMPL
+extern grHitCircleObserver* lbl_27_bss_6148;
+inline void grHitCircleObserver::remove() {
+    lbl_27_bss_6148->exit();
+    lbl_27_bss_6148 = NULL;
+}
+#endif

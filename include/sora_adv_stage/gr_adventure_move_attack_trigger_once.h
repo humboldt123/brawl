@@ -9,7 +9,13 @@
 // HYPOTHESIS: The type name is from the sora_adv_stage map (createGimmickFunc<34grGimmickMoveAttackTriggerOnceData, ...>); only
 // the attack that frowStart sets is described.
 struct grGimmickMoveAttackTriggerOnceData {
+#ifdef ST_ADVENTURE2_IMPL
+    u8 unk0[0x44];
+    u8 m_mdlIndex;
+    u8 unk45[0x1A7];
+#else
     u8 unk0[0x1EC];
+#endif
     grGimmick::AttackData m_attackData; // 0x1EC
 };
 

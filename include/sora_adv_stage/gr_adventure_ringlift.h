@@ -11,6 +11,10 @@
 struct grAdventureRingLiftData {
     u8 unk0[8];
     float m_motionSpeeds[15]; // 0x8
+#ifdef ST_ADVENTURE2_IMPL
+    u8 m_mdlIndex;            // 0x44
+    u8 m_collIndex;           // 0x45
+#endif
 };
 
 class grAdventureRingLift : public grAdventureMoveGround, public grAdventureNotifyGimmickTriggerStatus {

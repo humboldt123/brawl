@@ -9,7 +9,14 @@
 // HYPOTHESIS: the type name is from the sora_adv_stage map (createGimmickFunc<24grGimmickMove4GroundData, ...>); only the fields its recovered methods read are named.
 struct grGimmickMove4GroundData {
     float m_motionSpeed;        // 0x0, HYPOTHESIS: the frame speed of a resumed path
+#ifdef ST_ADVENTURE2_IMPL
+    u8 unk4[0x40];
+    u8 m_mdlIndex;
+    u8 m_collIndex;
+    u8 unk46[0x1CA];
+#else
     u8 unk4[0x20C];
+#endif
     stTriggerData m_validTrigger;    // 0x210
     stTriggerData m_pathTriggers[4]; // 0x214, HYPOTHESIS: a set trigger puts its path at its end at startup
     stTriggerData m_landTrigger;     // 0x224, HYPOTHESIS: set when a fighter lands on the ground

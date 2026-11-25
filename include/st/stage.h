@@ -358,7 +358,11 @@ public:
     virtual float getEnemyDeadEffectSizeRate();
     virtual float getEnableZ();
     virtual int getBgmID() { return 0; }
+#ifdef ST_ADVENTURE2_IMPL
+    virtual int getBgmID(u32 step) { return 0; }
+#else
     virtual int getBgmID() const { return 0; }
+#endif
     virtual int getNowStepBgmID() { return 0; }
     virtual int getBgmOptionID() { return 0; }
     virtual bool isBgmChange() { return m_unk2; }
@@ -433,17 +437,31 @@ public:
     virtual void setStageOutEffectInit();                          // TODO
 #endif
     virtual void setStageInEffectInit();                           // TODO
+#ifdef ST_ADVENTURE2_IMPL
+    virtual bool helperStarWarp(bool force = false) { return false; }
+#else
     virtual int helperStarWarp() { return 0; }
+#endif
+#ifdef ST_ADVENTURE2_IMPL
+    virtual bool initializeFighterAttackRatio(int playerNo, float ratio) { return false; }
+#else
     virtual int initializeFighterAttackRatio() { return 0; }
+#endif
     virtual void startFighterEvent() {}
     virtual int getZoneState(); // TODO
     virtual void getZonePos(Vec3f* pos);
     virtual float getMagmaHeight();   // TODO
     virtual float getAcidHeight();    // TODO
     virtual u8 getIteamDropStatus();
+#ifdef ST_ADVENTURE2_IMPL
+    virtual bool createWind2ndOnly() { return false; }
+    virtual grGimmickWindData2nd* getWind2ndOnlyData() { return NULL; }
+    virtual void updateWind2ndOnly() { }
+#else
     virtual bool createWind2ndOnly();
     virtual grGimmickWindData2nd* getWind2ndOnlyData(); // TODO
     virtual void updateWind2ndOnly();
+#endif
     virtual void setVision(u8);
 
     inline static Stage* getInstance() { return g_Stage; }

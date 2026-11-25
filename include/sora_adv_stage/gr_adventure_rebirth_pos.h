@@ -47,6 +47,9 @@ public:
     }
     void clear() { m_count = 0; }
     grAdventureRebirthPosData* get(int index) { return &m_entries[index]; }
+#ifdef ST_ADVENTURE2_IMPL
+    u16 getCount() const { return m_count; }
+#endif
 };
 static_assert(sizeof(grAdventureRebirthPosList) == 0x8, "Class is wrong size!");
 
@@ -62,6 +65,9 @@ public:
 
     grAdventureRebirthPosData* getRebirthPos(int index);
     void setRebirthPosData();
+#ifdef ST_ADVENTURE2_IMPL
+    u16 getRebirthPointNum() { return m_rebirthPosList.getCount(); }
+#endif
 
     static grAdventureRebirthPos* create(int mdlIndex, const char* taskName);
 };

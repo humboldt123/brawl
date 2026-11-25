@@ -24,6 +24,30 @@ struct cmAdventurePolygonCollection {
 
 class cmAdventureController : public gfCameraController {
 public:
+#ifdef ST_ADVENTURE2_IMPL
+    union {
+        struct {
+            u32 unk8_mode : 8;
+            u32 unk9_mode : 8;
+        };
+        struct {
+            char _8[3];
+            union {
+                u8 unkB;
+                struct {
+                    u8 unkB_0 : 1;
+                    u8 unkB_1 : 1;
+                    u8 unkB_2 : 1;
+                    u8 unkB_3 : 1;
+                    u8 unkB_4 : 1;
+                    u8 unkB_5 : 1;
+                    u8 unkB_6 : 1;
+                    u8 unkB_7 : 1;
+                };
+            };
+        };
+    };
+#else
     char _8[3];
     union {
         u8 unkB;
@@ -38,6 +62,7 @@ public:
             u8 unkB_7 : 1;
         };
     };
+#endif
     u16 m_damage;
     u8 _E;
     u8 _F;

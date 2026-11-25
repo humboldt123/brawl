@@ -13,6 +13,10 @@ struct grAdventureElevatorData {
     u8 unk0[0x28];
     float unk28;
     float unk2C;
+#ifdef ST_ADVENTURE2_IMPL
+    u8 m_mdlIndex;
+    u8 m_collIndex;
+#endif
 };
 
 class grAdventureElevator : public grYakumono {

@@ -31,6 +31,9 @@ public:
 
     // HYPOTHESIS: a four-character resource id, read as one big-endian word.
     static u32 createResId(const char* name);
+#ifdef ST_ADVENTURE2_IMPL
+    u32 getDataNum() { return m_filedata->m_numFiles; }
+#endif
 
     u32 m_headerSize;
     stDataContainerData* m_filedata;
@@ -85,5 +88,12 @@ public:
     u32 getContainerDataNum(u32 targetMagic, u32 nodeIdx);
 
     static stDataMultiContainer* create(stDataContainerData* filedata, HeapType destHeap);
+#ifdef ST_ADVENTURE2_IMPL
+#ifdef ST_ADVENTURE2_IMPL
+    bool isMultiContainer() { return g_BlocMagic.data == m_filedata->m_MAGIC; }
+#else
+    bool isMultiContainer() { return m_filedata->m_MAGIC == g_BlocMagic.data; }
+#endif
+#endif
 };
 static_assert(sizeof(stDataMultiContainer) == 0x14, "Class is wrong size!");

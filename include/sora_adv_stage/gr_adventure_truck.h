@@ -14,6 +14,12 @@ struct grGimmickTruckData {
             float unk0_float;
             u8 unk4[0x1DC];
         };
+#ifdef ST_ADVENTURE2_IMPL
+        struct {
+            u8 _pad44[0x44];
+            u8 m_mdlIndex;
+        };
+#endif
     };
     stTriggerData m_validTrigger; // 0x1E0
     u8 unk1E4[8];

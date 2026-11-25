@@ -30,7 +30,16 @@ static_assert(sizeof(grYakumonoSwitch) == 0x160, "Class is wrong size!");
 struct grGimmickAttackSwitchData {
     u8 unk0[0xC];
     float m_onTime; // 0xC, HYPOTHESIS: seconds the switch stays on (0 keeps it on)
+#ifdef ST_ADVENTURE2_IMPL
+    u8 unk10;
+    u8 m_mdlIndex;
+    u8 m_collIndex;
+    u8 unk13[0x1D];
+    stTriggerData m_trigger;
+    u8 unk34[0x3C];
+#else
     u8 unk10[0x60];
+#endif
     soCollisionHitData::Simple m_hit; // 0x70
 };
 

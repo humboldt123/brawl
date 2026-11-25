@@ -20,7 +20,14 @@ public:
     short m_0x2c;
     char _0x30[38];
     u8 m_itemPosCount;
+#ifdef ST_ADVENTURE2_IMPL
+    char _0x55[12];
+    u8 unk61;
+    u8 unk62;
+    char _0x63[1];
+#else
     char _0x55[15];
+#endif
 
     static stPositions* create(nw4r::g3d::ResFile resFile);
     static stPositions* create();

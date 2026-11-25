@@ -26,6 +26,9 @@ public:
     };
 
     Slot m_slots[2];    // 0x08
+#ifdef ST_ADVENTURE2_IMPL
+    bool unk58;         // 0x58
+#endif
 
     virtual ~stAdventureInfoEmZako() { }
     virtual void update();
@@ -37,4 +40,6 @@ public:
     void notifyDead(u32 createId);
     void remove();
 };
+#ifndef ST_ADVENTURE2_IMPL
 static_assert(sizeof(stAdventureInfoEmZako) == 0x58, "Class is wrong size!");
+#endif

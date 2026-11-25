@@ -662,11 +662,25 @@ struct gmAdvData {
             u8 unk606_7 : 1;
             u8 unk606_6 : 1;
             u8 : 6;
+#ifdef ST_ADVENTURE2_IMPL
+            u8 unk607_80 : 1;
+            u8 unk607_40 : 1;
+            u8 unk607_20 : 1;
+            u8 unk607_10 : 1;
+            u8 unk607_lo : 4;
+            char _608[4];
+#else
             char _607[5];
+#endif
         };
     };
     u32 unk60C;                  // 0x60C
+#ifdef ST_ADVENTURE2_IMPL
+    char _610[0x8];
+    u32 unk618;                  // 0x618
+#else
     char _610[0xC];
+#endif
     u32 unk61C;                  // 0x61C
     int m_itemGenKind;           // 0x620: the item generator sheet of the stage
     s32 unk624;

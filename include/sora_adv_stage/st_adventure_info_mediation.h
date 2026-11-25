@@ -13,9 +13,15 @@ public:
     stAdventureInfoEmBoss m_emBoss;     // 0x40
     stAdventureInfoEmCorps m_emCorps;   // 0x9C
     stAdventureInfoEmZako m_emZako;     // 0xA4
+#ifndef ST_ADVENTURE2_IMPL
     bool unkFC;                         // 0xFC
+#endif
 
-    stAdventureInfoMediation() : gfTask("stAdventureInfoMediation", Category_Stage, 1, 13, true) { unkFC = false; }
+    stAdventureInfoMediation() : gfTask("stAdventureInfoMediation", Category_Stage, 1, 13, true) {
+#ifndef ST_ADVENTURE2_IMPL
+        unkFC = false;
+#endif
+    }
     virtual void processUpdate();
     virtual void processEnd();
     virtual ~stAdventureInfoMediation();
