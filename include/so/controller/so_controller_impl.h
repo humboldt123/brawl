@@ -180,8 +180,58 @@ public:
 };
 static_assert(sizeof(soControllerImpl) == 140, "Class is wrong size!");
 
+#ifdef SO_NULL_CONTROLLER_FULL // so_null.cpp defines the Null controller's overrides
+class soControllerNull : public soController {
+public:
+    virtual void resetFlick();
+    virtual void resetButton();
+    virtual void resetTrigger();
+    virtual void resetMainStickX();
+    virtual void setMainStickX(float);
+    virtual void resetMainStickY();
+    virtual void setMainStickY(float);
+    virtual void resetMainStick();
+    virtual void resetSubStickX();
+    virtual void resetSubStickY();
+    virtual void resetSubStick();
+    virtual void reset();
+    virtual void update(Input*, bool);
+    virtual void resetFlickX();
+    virtual void resetFlickY();
+    virtual void setOff(bool);
+    virtual float getStickX();
+    virtual float getStickPrevX();
+    virtual float getStickY();
+    virtual float getStickPrevY();
+    virtual u8 getFlickX();
+    virtual s8 getFlickXDir();
+    virtual u8 getFlickY();
+    virtual s8 getFlickYDir();
+    virtual u8 getFlickNoResetX();
+    virtual u8 getFlickNoResetY();
+    virtual u8 getFlickAfterX();
+    virtual s8 getFlickAfterXDir();
+    virtual u8 getFlickAfterY();
+    virtual float getSubStickX();
+    virtual float getSubStickPrevX();
+    virtual float getSubStickY();
+    virtual float getSubStickPrevY();
+    virtual int getTrigger();
+    virtual u8 getTriggerCount(u8 index);
+    virtual u8 getTriggerCountPrev(u8 index);
+    virtual int getButton();
+    virtual int getRelease();
+    virtual float getLr();
+    virtual u8 getFlickBonus();
+    virtual u8 getFlickBonusLr();
+    virtual void resetFlickBonus();
+    virtual void resetFlickBonusLr();
+    virtual ~soControllerNull();
+};
+#else
 class soControllerNull : public soController {
 
 };
+#endif
 
 extern soControllerNull g_soControllerNull;
