@@ -90,7 +90,7 @@ extern int fn_803D7168(char *, s32);
 extern int PFCACHE_InitCaches(char *);
 extern int PFENT_GetRootDir(char *, char *);
 extern int PFENT_MakeRootDir(char *);
-extern int fn_803E1E24(char *);
+extern int PFFAT_InitFATRegion(char *);
 extern void fn_803EBBDC(s32 *);
 #define lbl_805644C0 ((char*)&lbl_805644C0)
 
@@ -166,7 +166,7 @@ done:
     if (var_r3 == 0 && (*(u16 *)(arg0 + 0x1F8C) & 0x40)) {
         var_r3 = fn_803D7168(arg0, *(s32 *)(arg0 + 0x1FC4));
         if (var_r3 == 0 && !(*(u16 *)(arg0 + 0x1F8C) & 0x80)) {
-            var_r3 = fn_803E1E24(arg0);
+            var_r3 = PFFAT_InitFATRegion(arg0);
             if (var_r3 == 0)
                 var_r3 = PFENT_MakeRootDir(arg0);
         }

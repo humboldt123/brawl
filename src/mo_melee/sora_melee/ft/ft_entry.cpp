@@ -1,3 +1,5 @@
+#define FT_ENTRY_UNIT
+#define WN_EVENT_UNIT_DTOR_INLINE
 #include <ft/ft_entry.h>
 #include <ft/ft_entry_manager.h>
 #include <ft/ft_manager.h>
@@ -427,6 +429,40 @@ void ftEntryManager::endSwap(bool unk) {
     if (m_isProcessHeartSwap == true) {
         fn_27_11967C(this, 0, *reinterpret_cast<int*>(reinterpret_cast<u8*>(this) + 0x44),
                      *reinterpret_cast<int*>(reinterpret_cast<u8*>(this) + 0x48), unk, -1);
+    }
+}
+
+ftEntry::~ftEntry() {
+}
+
+void ftEntry::startResult() {
+    Vec3f pos = m_owner->getStartPos();
+    int startMode = 5;
+    gmResultInfo* resultInfo = g_GameGlobal->m_resultInfo;
+    gmGlobalModeMelee* modeMelee = g_GameGlobal->m_modeMelee;
+    if (resultInfo->m_decisionKind == gmResultInfo::Decision_NoContest) {
+        ftOutsideEventPresenter presenter(m_entryId, g_ftManager->m_eventManageModule.getManageId());
+        presenter.notifyOutsideEventResultWin(0);
+    } else if ((bool)g_ftManager->m_isTeams == true) {
+        if (resultInfo->m_winningTeam == (u8)modeMelee->m_playersInitData[m_playerNo].m_teamNo) {
+            startMode = 4;
+        }
+    } else {
+        u8 idx = modeMelee->m_playersInitData[m_playerNo].m_playerNo;
+        if (resultInfo->m_playersResultInfo[idx].m_rank == 0) {
+            startMode = 4;
+        }
+    }
+    if (_0xe & 1) {
+        getActiveFighter(this)->start(&pos, 1.0f, 0.0f, startMode, false);
+        m_instances[3].m_fighter->trainerStart(1.0f, &pos, &pos, startMode, false);
+    } else if (_0xe & 2) {
+        m_instances[0].m_fighter->start(&pos, 1.0f, 0.0f, startMode, false);
+        if (!m_owner->isSubFighterStartStandby()) {
+            m_instances[1].m_fighter->start(&pos, 1.0f, 0.0f, startMode, false);
+        }
+    } else {
+        getActiveFighter(this)->start(&pos, 1.0f, 0.0f, startMode, false);
     }
 }
 

@@ -525,6 +525,7 @@ void ftKineticTransactor::changeKineticSub26(bool*, void* pools, Vec2f* speed, s
     soKineticUtility::resetEnableEnergy(0, moduleAccesser, 2, speed, &Vec3f(0.0f, 0.0f, 0.0f));
 }
 
+#pragma auto_inline off
 Vec2f ftKineticTransactHelper::preHelpProcess(soModuleAccesser* moduleAccesser, bool clearKind, bool clearSpeed) {
     Vec2f speed = moduleAccesser->getKineticModule().getSumSpeed(soKineticEnergy::AttributeFlag(1));
     if (clearSpeed == true) {
@@ -534,6 +535,24 @@ Vec2f ftKineticTransactHelper::preHelpProcess(soModuleAccesser* moduleAccesser, 
     moduleAccesser->getKineticModule().getEnergy(6)->enable();
     return speed;
 }
+
+void ftKineticTransactor::changeKinetic(int mode, void* pools, soModuleAccesser* moduleAccesser) {
+    if (mode <= -1 || mode >= 0x52) {
+        return;
+    }
+    Vec2f speed = ftKineticTransactHelper::preHelpProcess(moduleAccesser, true, mode != 0x31);
+    changeKineticImpl(mode, pools, &speed, moduleAccesser);
+    if (moduleAccesser->getWorkManageModule().isFlag(0x2200000d) == 1) {
+        moduleAccesser->getKineticModule().getEnergy(5)->disable();
+        moduleAccesser->getKineticModule().getEnergy(7)->disable();
+    } else {
+        moduleAccesser->getKineticModule().getEnergy(5)->enable();
+        moduleAccesser->getKineticModule().getEnergy(7)->enable();
+    }
+    moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x1100000f);
+    moduleAccesser->getWorkManageModule().setFloat(0.0f, 0x11000010);
+}
+#pragma auto_inline reset
 
 #include <so/work/so_work_manage_module_impl.h>
 #include <mt/mt_vector.h>

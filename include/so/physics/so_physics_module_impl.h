@@ -23,15 +23,25 @@ class soStatusData;
 class soPhysicsModule : private soNull, public soNullable {
 public:
     virtual ~soPhysicsModule();
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void constructController(u32 binResId, u32 fileIndex2nd, u32 fileIndexIk, int param4, u32 fileIndex2nd2, const f32* solverParam, int param7, s32 archiveId) = 0;
+#else
     virtual void constructController() = 0;
+#endif
     virtual void destructController() = 0;
     virtual void deactivate() = 0;
     virtual void activate() = 0;
     virtual void begin() = 0;
     virtual void setUpMtxIK() = 0;
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void setUpMtx2ndBoth(bool reverse) = 0;
+    virtual bool isNcessarySetUpMtx2ndBoth(bool reverse) = 0;
+    virtual bool correct2ndBoth(const Vec3f* pos, float scale) = 0;
+#else
     virtual void setUpMtx2ndBoth() = 0;
     virtual bool isNcessarySetUpMtx2ndBoth() = 0;
     virtual void correct2ndBoth() = 0;
+#endif
     virtual void setUpMtx2ndPreCollision() = 0;
     virtual void setUpMtx2nd() = 0;
     virtual void setUpVisibility() = 0;
@@ -43,13 +53,22 @@ public:
     virtual void set2ndSleep(bool sleep) = 0;
     virtual void set2ndType(int type) = 0;
     virtual void set2ndStatus(int status) = 0;
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndEndPos(const Vec3f* pos1, const Vec3f* pos2) = 0;
+#else
     virtual void set2ndEndPos(const Vec3f* pos) = 0;
+#endif
     virtual void set2ndPreCollisionNode(int nodeId) = 0;
     virtual int get2ndLineCount() = 0;
     virtual float get2ndLineLength(int lineId) = 0;
     virtual void set2ndLineLength(int lineId, float length) = 0;
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndLineInertia(bool on) = 0;
+    virtual void set2ndLineInertiaValue(float a, float b, float c) = 0;
+#else
     virtual void set2ndLineInertia(int lineId, float inertia) = 0;
     virtual void set2ndLineInertiaValue(int lineId, float inertia) = 0;
+#endif
     virtual void set2ndLineLengthBothAll(float length) = 0;
     virtual int get2ndActiveNodeNum() = 0;
     virtual void set2ndActiveNodeNum(int num) = 0;
@@ -66,12 +85,24 @@ public:
     virtual void set2ndBothWaver(int waver) = 0;
     virtual void set2ndBothHitStat(int hitStat) = 0;
     virtual void set2ndBothReverseFlag(int flag) = 0;
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndPower(int param1, const Vec3f* pos) = 0;
+#else
     virtual void set2ndPower(float power) = 0;
+#endif
     virtual u32 get2ndNodeId(int lineId) = 0;
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndLinePos(int lineId, Vec3f* outPos) = 0;
+#else
     virtual void set2ndLinePos(const Vec3f* pos) = 0;
+#endif
     virtual void set2ndPosSplit(int split) = 0;
     virtual bool is2ndHitCollision() = 0;
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndWind(bool on) = 0;
+#else
     virtual void set2ndWind(const Vec3f* wind) = 0;
+#endif
     virtual void set2ndWeaponScale(float scale) = 0;
     virtual void set2ndCliffDir(float lr) = 0;
     virtual void sync2ndSavedPosition() = 0;
@@ -103,18 +134,31 @@ public:
 
     soPhysicsModuleImpl(soModuleAccesser* acc, void* ikData, soArray<soPhysicsIKHandle>* handles, int n);
     void init(void* ikData);
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+#else
     // HYPOTHESIS: the selector is boolean, tested against zero and one.
     bool isNcessarySetUpMtx2ndBoth(bool reverse);
+#endif
     virtual ~soPhysicsModuleImpl();
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void constructController(u32 binResId, u32 fileIndex2nd, u32 fileIndexIk, int param4, u32 fileIndex2nd2, const f32* solverParam, int param7, s32 archiveId);
+#else
     virtual void constructController();
+#endif
     virtual void destructController();
     virtual void deactivate();
     virtual void activate();
     virtual void begin();
     virtual void setUpMtxIK();
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void setUpMtx2ndBoth(bool reverse);
+    virtual bool isNcessarySetUpMtx2ndBoth(bool reverse);
+    virtual bool correct2ndBoth(const Vec3f* pos, float scale);
+#else
     virtual void setUpMtx2ndBoth();
     virtual bool isNcessarySetUpMtx2ndBoth();
     virtual void correct2ndBoth();
+#endif
     virtual void setUpMtx2ndPreCollision();
     virtual void setUpMtx2nd();
     virtual void setUpVisibility();
@@ -126,13 +170,22 @@ public:
     virtual void set2ndSleep(bool sleep);
     virtual void set2ndType(int type);
     virtual void set2ndStatus(int status);
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndEndPos(const Vec3f* pos1, const Vec3f* pos2);
+#else
     virtual void set2ndEndPos(const Vec3f* pos);
+#endif
     virtual void set2ndPreCollisionNode(int nodeId);
     virtual int get2ndLineCount();
     virtual float get2ndLineLength(int lineId);
     virtual void set2ndLineLength(int lineId, float length);
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndLineInertia(bool on);
+    virtual void set2ndLineInertiaValue(float a, float b, float c);
+#else
     virtual void set2ndLineInertia(int lineId, float inertia);
     virtual void set2ndLineInertiaValue(int lineId, float inertia);
+#endif
     virtual void set2ndLineLengthBothAll(float length);
     virtual int get2ndActiveNodeNum();
     virtual void set2ndActiveNodeNum(int num);
@@ -149,12 +202,24 @@ public:
     virtual void set2ndBothWaver(int waver);
     virtual void set2ndBothHitStat(int hitStat);
     virtual void set2ndBothReverseFlag(int flag);
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndPower(int param1, const Vec3f* pos);
+#else
     virtual void set2ndPower(float power);
+#endif
     virtual u32 get2ndNodeId(int lineId);
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndLinePos(int lineId, Vec3f* outPos);
+#else
     virtual void set2ndLinePos(const Vec3f* pos);
+#endif
     virtual void set2ndPosSplit(int split);
     virtual bool is2ndHitCollision();
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void set2ndWind(bool on);
+#else
     virtual void set2ndWind(const Vec3f* wind);
+#endif
     virtual void set2ndWeaponScale(float scale);
     virtual void set2ndCliffDir(float lr);
     virtual void sync2ndSavedPosition();
@@ -166,9 +231,16 @@ public:
     virtual const char* getIKEndNodeName(int ikId, int index);
     virtual void setToeAngleLimit(int ikId, float limit);
 
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+#else
     virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+#endif
     virtual bool isObserv(char group);
     virtual bool notifyEventAnimCmd(acAnimCmd* acmd, soModuleAccesser* moduleAccesser, s32 unk3);
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void notifyEventChangeStatus(int statusKind, int prevStatusKind, soStatusData* statusData, soModuleAccesser* moduleAccesser);
+#else
+#endif
 };
 static_assert(sizeof(soPhysicsModuleImpl) == 0x48, "Class is wrong size!");
 #endif

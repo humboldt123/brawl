@@ -307,6 +307,11 @@ struct muWifiAIDInfo {
             u32 _pad78_mode9 : 23;
             s32 unk7B_9 : 9;
         };
+        struct {
+            u32 _pad78_wifi;
+            u32 unk7C_b27 : 5;
+            u32 _pad7C_b0 : 27;
+        };
 #endif
         struct {
             char _pad78[0x6C];
@@ -687,6 +692,11 @@ public:
     bool isRequestedExchangeFriendKey(int index);
     bool getWifiPlayerInfo(int index, int* character, u8* color, bool* connected);
     static s32 exchangeDWCErrorCode(u32 code);
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    // HYPOTHESIS: internal methods recovered from sora.map.
+    void exchangeFriendCode();
+    void reOpenMatching();
+#endif
 };
 static_assert(sizeof(muWifiInterfaceTask) == 0x1058, "Class is wrong size!");
 

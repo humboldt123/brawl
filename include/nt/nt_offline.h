@@ -59,8 +59,25 @@ public:
         };
     };
     UnkClass1 unk350[FriendRosterLimit];
+#ifdef MU_WIFI_INTERFACE_TASK_INTERNAL
+    struct FriendStatusEntry {
+        u8 unk0[0xA];
+        u8 unkA[0x7F];
+    };
+    union {
+        struct {
+            u8 unk450[0x163];
+            UnkClass2 unk5B3[FriendRosterLimit];
+        };
+        struct {
+            u8 _pad450[0x131];
+            FriendStatusEntry unk581[FriendRosterLimit];
+        };
+    };
+#else
     u8 unk450[0x163];
     UnkClass2 unk5B3[FriendRosterLimit];
+#endif
 };
 // TODO size assertion
 

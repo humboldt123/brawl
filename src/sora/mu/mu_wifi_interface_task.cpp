@@ -4605,3 +4605,132 @@ extern "C" bool fn_800D0908(muWifiInterfaceTask* self, u32 aid, int localPlayer)
     netReport(base + 0x1390, aid, localPlayer);
     return false;
 }
+
+static inline u8 muWifiGetMyAIDClamped() {
+    u8 aid = Network::getMyAID();
+    if (aid == 0xFF) {
+        aid = 4;
+    }
+    return aid;
+}
+
+static inline muWifiAIDInfo* muWifiGetParentAIDInfo(muWifiInterfaceTask* task) {
+    u8 aid = Network::getParentAID();
+    if (aid == 0xFF) {
+        return NULL;
+    }
+    return &task->m_aidInfos[aid];
+}
+
+static inline muWifiAIDInfo* muWifiGetSafeParentAIDInfo(muWifiInterfaceTask* task) {
+    u8 parentAID = Network::getParentAID();
+    if (parentAID == 0xFF) {
+        return &task->m_aidInfos[muWifiGetMyAIDClamped()];
+    }
+    muWifiAIDInfo* info = &task->m_aidInfos[parentAID];
+    if (!info->unk78_b7) {
+        return &task->m_aidInfos[muWifiGetMyAIDClamped()];
+    }
+    return info;
+}
+
+static inline bool muWifiIsAIDLive(muWifiInterfaceTask* task, u8 aid) {
+    if (aid >= 4) {
+        return false;
+    }
+    return muWifiGetSafeParentAIDInfo(task)->unk68[aid] == 1;
+}
+
+static inline void muWifiSendAIDInfo(muWifiInterfaceTask* task, bool flag, u8 mask) {
+    task->m_aidInfos[muWifiGetMyAIDClamped()].unk56_b0_1 = flag;
+    fn_800D0AE0(task);
+    fn_80145B98(lbl_805A03A8, mask);
+}
+
+extern "C" s32 fn_80147784(NtMatching* self, u64 id, s32 flag);
+
+void muWifiInterfaceTask::exchangeFriendCode() {
+    u8 myAid = muWifiGetMyAIDClamped();
+    if (myAid == 4) {
+        return;
+    }
+    muWifiAIDInfo* myInfo = &m_aidInfos[muWifiGetMyAIDClamped()];
+    for (u8 aid = 0; aid < 4; aid++) {
+        if (!muWifiIsAIDLive(this, aid)) {
+            continue;
+        }
+        muWifiAIDInfo* other = &m_aidInfos[aid];
+        if (myInfo->unk58_b0 & (1 << aid)) {
+            continue;
+        }
+        if (!(other->unk58_b4 & (1 << myAid))) {
+            continue;
+        }
+        if (other->m_friendAIDIndex >= 0) {
+            netReport("既に友達のAID%dから友達登録が要求されたので自動的に交換要求を返答しました\n", aid);
+            myInfo->unk58_b0 |= (1 << aid);
+            myInfo->unk58_b4 |= (1 << aid);
+            muWifiSendAIDInfo(this, false, aid);
+        } else if (myInfo->unk58_b4 & (1 << aid)) {
+            myInfo->unk58_b0 |= (1 << aid);
+            netReport("自分のAID%dとAID%dが友達コードを交換します\n", myAid, aid);
+            s32 friendIdx = fn_80147784(lbl_805A0434, other->unk10, 0);
+            muWifiAIDInfo* cur = &m_aidInfos[muWifiGetMyAIDClamped()];
+            unsigned oldRoom = cur->unk57_b6;
+            unsigned room = static_cast<s32>(lbl_805A0434->unk3408) < 0x40;
+            cur->unk57_b6 = room;
+            if (oldRoom != room) {
+                muWifiSendAIDInfo(this, false, 0xFE);
+            }
+            if (friendIdx >= 0) {
+                memcpy(ntFriendInfo::getInstance()->unk0->unk581[friendIdx].unk0, other->unk1E0, 0xA);
+            }
+        }
+    }
+}
+
+#define MU_WIFI_PUT_STATUS(task, statusVal)                                     \
+    do {                                                                        \
+        UnkFriendInfo* fi = ntFriendInfo::getInstance()->unk0;                  \
+        fi->unk450[0x127] = (statusVal);                                        \
+        g_Network.m_userData->unk0[0x33F4] = 1;                                 \
+        netReport(lbl_8045726C, (statusVal));                                   \
+        netMinReport__FPCce(lbl_8045726C, (statusVal));                         \
+        if (NtBase::isParent()) {                                               \
+            muWifiAIDInfo* info = muWifiGetParentAIDInfo((task));               \
+            if (info != NULL) {                                                 \
+                info->unk7C_b27 = (statusVal);                                  \
+                muWifiSendAIDInfo((task), false, 0xFE);                         \
+            }                                                                   \
+        }                                                                       \
+    } while (0)
+
+void muWifiInterfaceTask::reOpenMatching() {
+    if (!NtBase::isParent()) {
+        return;
+    }
+    switch (unk6CData) {
+    case 0:
+        if (NtBase::isParent()) {
+            muWifiAIDInfo* parent = muWifiGetParentAIDInfo(this);
+            parent->unk78_b4 = 0;
+            muWifiSendAIDInfo(this, false, 0xFE);
+            union {
+                u8 u;
+                bool b;
+            } liveBitmap;
+            liveBitmap.u = getGlobalLiveAIDBitmap();
+            u8 parentAid = Network::getParentAID();
+            netReport("親AID%dがマッチングの再開を要求しました。\n", parentAid);
+            lbl_805A0434->requestSuspendMatching(false, liveBitmap.b);
+        }
+        if (unkFD6 < 4) {
+            MU_WIFI_PUT_STATUS(this, 0x17);
+        } else {
+            MU_WIFI_PUT_STATUS(this, 3);
+        }
+        break;
+    default:
+        break;
+    }
+}

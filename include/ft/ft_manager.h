@@ -185,6 +185,10 @@ inline ftOutsideEventPresenter::ftOutsideEventPresenter(s16 manageId, int entryI
 #else
     soEventPresenter<ftOutsideEventObserver>(manageId, 0, true), m_entryId(entryId) { }
 #endif
+#ifdef FT_ENTRY_UNIT
+inline ftOutsideEventPresenter::ftOutsideEventPresenter(int entryId, s16 manageId) :
+    soEventPresenter<ftOutsideEventObserver>(manageId, 0, soEventPresenterLocalStoreTag()), m_entryId(entryId) { }
+#endif
 
 class ftManagerAbstract : public soNull, public gfTask, public ftOutsideEventObserver, public soDisposeInstanceEventObserver, public soLogEventObserver {
     // Note: Done so that vtable placement is proper

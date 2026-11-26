@@ -42,7 +42,11 @@ public:
     void draw();
     void initCallBack(const nw4r::math::MTX34* matrices, nw4r::g3d::ResMdl resMdl); // HYPOTHESIS: parameter types
     void initNode(nw4r::math::MTX34* matrices, nw4r::g3d::ResMdl resMdl); // HYPOTHESIS: parameter types
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    bool applyFeedback(f32 scale, int a, nw4r::g3d::ResMdl resMdl, Vec3f* position); // HYPOTHESIS: returns bool
+#else
     void applyFeedback(f32 scale, int a, nw4r::g3d::ResMdl resMdl, Vec3f* position); // HYPOTHESIS: parameter types
+#endif
 
     hkArray<ph2ndaryLine*> m_lines;   // 0x00 (data, count, capacity)
     u8 unk0C;                         // 0x0C
@@ -86,7 +90,11 @@ public:
     u8 unkE0[0xE4 - 0xE0];            // 0xE0
     int m_awakeIndex;                 // 0xE4, index of the line awakened by setAwake
     u8 unkE8;                         // 0xE8
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    bool unkE9;                       // 0xE9
+#else
     u8 unkE9;                         // 0xE9
+#endif
     u8 unkEA[0xEC - 0xEA];            // 0xEA
     u32 m_flags;                      // 0xEC
     f32 m_weaponScale;                // 0xF0, set by soPhysicsModuleImpl::set2ndWeaponScale
@@ -102,7 +110,11 @@ public:
     bool isHitCollisionLastNode2Pos();
     void setUndispNode(nw4r::g3d::ScnMdl* scnMdl);
     int get2ndaryUndispNode(u32* nodes, nw4r::g3d::ResMdl resMdl);
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    bool applyFeedback(f32 scale, int a, nw4r::g3d::ResMdl resMdl, Vec3f* position); // HYPOTHESIS: returns bool
+#else
     void applyFeedback(f32 scale, int a, nw4r::g3d::ResMdl resMdl, Vec3f* position); // HYPOTHESIS: parameter types
+#endif
 
     ph2ndaryController* m_controller[2];   // 0x00, 0x04
     u8 unk08[3];                           // 0x08..0x0A

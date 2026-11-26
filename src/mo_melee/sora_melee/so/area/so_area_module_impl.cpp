@@ -1,6 +1,105 @@
+#define SO_AREA_MODULE_IMPL_FULL
+#define SO_SITUATION_OBSERVER_CTOR_INLINE
 #include <so/area/so_area_module_impl.h>
 #include <so/area/so_area_instance.h>
+#include <so/so_module_accesser.h>
 #include <types.h>
+
+extern "C" void fn_27_A6C80(soAreaInstance* inst, soModuleAccesser* moduleAccesser);
+extern "C" u8 fn_27_A75A4(soAreaInstance* inst);
+
+soAreaModuleImpl::soAreaModuleImpl(
+    soModuleAccesser* acc,
+    u8 category,
+    soArray<soAreaInstance>* instances,
+    soArray<soAreaContactLog>* contactLogs,
+    soAreaEnviromentElementChecker* checker,
+    soArray<soAreaWind>* winds,
+    soEventObserverRegistrationDesc* regDesc,
+    int unk8)
+    : soAnimCmdEventObserver(
+          regDesc->checkAnimCmd() == true
+              ? static_cast<soEventManager&>(acc->getEventManageModule()).getManageId()
+              : (s16)-1,
+          (s8)-1),
+      soStatusEventObserver(
+          regDesc->checkStatus() == true
+              ? static_cast<soEventManager&>(acc->getEventManageModule()).getManageId()
+              : (s16)-1,
+          (s8)-1),
+      soSituationEventObserver(
+          regDesc->checkSituation() == true
+              ? static_cast<soEventManager&>(acc->getEventManageModule()).getManageId()
+              : (s16)-1,
+          (s8)-1),
+      m_areaInstanceArray(instances),
+      m_areaContactLogArray(contactLogs),
+      m_enviromentElementChecker(checker),
+      m_areaWindArray(winds),
+      m_0x40(unk8),
+      m_category(static_cast<soAreaData::Category>(category)),
+      m_logOverThrough(false),
+      m_isWhole(true),
+      m_moduleAccesser(acc) {
+}
+
+soAreaModuleImpl::~soAreaModuleImpl() {
+    clean();
+}
+
+void soAreaModuleImpl::enableArea(int index, bool enable, int frame) {
+    if (index == -1) {
+        int num = m_areaInstanceArray->size();
+        for (int i = 0; i < num; i++) {
+            if (m_areaInstanceArray->at(i).m_isCreated) {
+                enableArea(i, enable, frame);
+            }
+        }
+    } else {
+        m_areaInstanceArray->at(index).enable(enable, frame);
+        if (!enable) {
+            if (m_enviromentElementChecker->isEnable() == true &&
+                m_enviromentElementChecker->isWaterAreaIndex(index) == true) {
+                m_enviromentElementChecker->clearWaterInfo();
+            }
+        }
+    }
+}
+
+void soAreaModuleImpl::resetArea(int index) {
+    if (index == -1) {
+        int num = m_areaInstanceArray->size();
+        for (int i = 0; i < num; i++) {
+            if (m_areaInstanceArray->at(i).m_isCreated) {
+                fn_27_A6C80(&m_areaInstanceArray->at(i), m_moduleAccesser);
+            }
+        }
+    } else {
+        fn_27_A6C80(&m_areaInstanceArray->at(index), m_moduleAccesser);
+    }
+}
+
+void soAreaModuleImpl::setAreaShape(u32 index, Vec2f* pos, Vec2f* range) {
+    m_areaInstanceArray->at(index).setShape(*pos, *range);
+}
+
+void soAreaModuleImpl::setAreaShape(u32 index, Vec2f* pos, float radius) {
+    m_areaInstanceArray->at(index).setShape(*pos, radius);
+}
+
+void soAreaModuleImpl::setCenterX0(u32 index, bool centerX0) {
+    m_areaInstanceArray->at(index).m_isCenterX0 = centerX0;
+}
+
+void soAreaModuleImpl::createWind(u32 windIndex, u32 areaIndex, stMovementData* data) {
+    soAreaInstance& inst = m_areaInstanceArray->at(areaIndex);
+    if (fn_27_A75A4(&inst) == gfArea::Stage_Group_Space_Wind) {
+        inst.unsetWind();
+        inst.setWind(*data);
+        enableArea(areaIndex, true, -1);
+        m_areaWindArray->at(windIndex).m_areaIndex = areaIndex;
+    }
+}
 
 void soAreaModuleImpl::deactivate() {
     setWhole(false);

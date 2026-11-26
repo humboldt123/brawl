@@ -1,4 +1,7 @@
 #define SO_PHYSICS_MODULE_IMPL_FULL
+#define SO_PHYSICS_MODULE_IMPL_UNIT
+#define SO_EVENT_OBSERVER_DEFAULTS_INLINE
+#include <nw4r/math/math_triangular.h>
 #include <ph/ph_2ndary_constraint.h>
 #include <ph/phIkController.h>
 #include <ph/ph_2ndary_controller.h>
@@ -9,8 +12,39 @@
 
 extern "C" void fn_8008F3E0(ph2ndary2Controller* controller, int status);
 extern "C" void fn_80095990(ph2ndaryController* controller, const int* winding);
+extern "C" void fn_800969E0(phIkController* controller, Matrix* worldMtx);
+extern "C" void fn_80097C94(phIkController* controller, int idx, const f32* pos);
+extern "C" void fn_80097E94(phIkController* controller, int idx, const f32* pos);
+extern "C" void fn_80098094(phIkController* controller, int idx, const f32* normal);
+extern "C" void fn_80098188(phIkController* controller, int idx, float weight);
 
 soPhysicsModule::~soPhysicsModule() {
+}
+
+soPhysicsModuleImpl::soPhysicsModuleImpl(soModuleAccesser* acc, void* ikData, soArray<soPhysicsIKHandle>* handles, int n)
+    : soStatusEventObserver(static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(), (s8)-1),
+      soAnimCmdEventObserver(static_cast<soEventManager&>(acc->getEventManageModule()).getManageId(), (s8)-1),
+      m_moduleAccesser(acc),
+      m_2ndaryController(NULL),
+      m_2ndary2Controller(NULL),
+      unk30(NULL),
+      m_ikHandles(handles),
+      m_ikData(ikData),
+      m_2ndPreCollisionNode(-1),
+      m_2ndDefault(1),
+      unk44_80(0),
+      m_2ndSleep(0),
+      unk44_20(1),
+      unk44_10(0),
+      unk44_08(n) {
+    int count = m_ikHandles->size();
+    for (int i = 0; i < count; i++) {
+        m_ikHandles->at(i).unk34 = 0.0f;
+    }
+}
+
+soPhysicsModuleImpl::~soPhysicsModuleImpl() {
+    destructController();
 }
 
 void soPhysicsModuleImpl::init(void* ikData) {
@@ -447,7 +481,7 @@ void soPhysicsModuleImpl::set2ndRewind(int rewind) {
 }
 
 void soPhysicsModuleImpl::off2ndWind() {
-    set2ndWind(NULL);
+    set2ndWind(false);
     unk44_10 = 1;
 }
 
@@ -527,5 +561,159 @@ void soPhysicsModuleImpl::activate() {
     int count = m_ikHandles->size();
     for (int i = 0; i < count; i++) {
         setIK(i, 0.0f);
+    }
+}
+
+void soPhysicsModuleImpl::set2ndWind(bool on) {
+    ph2ndaryController* controller = m_2ndaryController;
+    if (controller != NULL) {
+        if (!unk44_10 && unk44_20 != on) {
+            controller->unkE9 = !on;
+            m_moduleAccesser->getLinkModule().setConstraint2ndWind(on);
+            unk44_20 = on;
+        }
+    }
+}
+
+static inline int get2ndBothStatusInline(ph2ndary2Controller* controller) {
+    ph2ndaryController& first = *controller->m_controller[0];
+    int state = first.unk57;
+    int status;
+    ph2ndaryController* second = controller->m_controller[1];
+    if (second != NULL && !first.unk20 && !second->unk20) {
+        if (state == 8) {
+            status = 3;
+        } else {
+            status = 6;
+        }
+    } else if (state == 0) {
+        if (first.m_winding) {
+            status = 4;
+        } else {
+            status = 0;
+        }
+    } else if (state == 4) {
+        if (first.m_winding) {
+            status = 5;
+        } else {
+            status = 1;
+        }
+    } else if (state == 5) {
+        status = 2;
+    } else if (state == 6) {
+        if (first.m_winding) {
+            status = 5;
+        } else {
+            status = 1;
+        }
+    } else if (state == 7) {
+        status = 6;
+    } else if (state == 9) {
+        status = 7;
+    } else if (state == 10) {
+        status = 8;
+    } else {
+        status = 3;
+    }
+    return status;
+}
+
+bool soPhysicsModuleImpl::is2ndBoth() {
+    if (m_2ndary2Controller != NULL) {
+        return get2ndBothStatusInline(m_2ndary2Controller) != 3 &&
+               get2ndBothStatusInline(m_2ndary2Controller) != 2;
+    }
+    return false;
+}
+
+static inline nw4r::math::MTX34 getCtrlLineMtx(ph2ndaryController* ctrl, int lineId) {
+    return ctrl->m_lines[lineId]->unkDC;
+}
+
+static inline nw4r::math::MTX34 getCtrl2LineMtx(ph2ndary2Controller* ctrl2, int lineId) {
+    if ((int)ctrl2->m_controller[0]->unk57 != 5) {
+        return ctrl2->m_controller[0]->m_lines[lineId]->unkDC;
+    }
+    if (ctrl2->m_controller[1] != NULL) {
+        return ctrl2->m_controller[1]->m_lines[lineId]->unkDC;
+    }
+    nw4r::math::MTX34 zero;
+    nw4r::math::MTX34Zero(&zero);
+    return zero;
+}
+
+static inline void setCtrlLineMtx(ph2ndaryController* ctrl, int lineId, nw4r::math::MTX34 mtx) {
+    ctrl->m_lines[lineId]->unkDC = mtx;
+}
+
+static inline void setCtrl2LineMtx(ph2ndary2Controller* ctrl2, int lineId, const nw4r::math::MTX34& mtx) {
+    if ((int)ctrl2->m_controller[0]->unk57 != 5) {
+        setCtrlLineMtx(ctrl2->m_controller[0], lineId, mtx);
+    } else if (ctrl2->m_controller[1] != NULL) {
+        setCtrlLineMtx(ctrl2->m_controller[1], lineId, mtx);
+    }
+}
+
+void soPhysicsModuleImpl::set2ndLinePos(int lineId, Vec3f* pos) {
+    nw4r::math::MTX34 mtx;
+    if (m_2ndaryController != NULL) {
+        mtx = getCtrlLineMtx(m_2ndaryController, lineId);
+    } else if (m_2ndary2Controller != NULL) {
+        mtx = getCtrl2LineMtx(m_2ndary2Controller, lineId);
+    }
+    mtx.m[0][3] = pos->m_x;
+    mtx.m[1][3] = pos->m_y;
+    mtx.m[2][3] = pos->m_z;
+    if (m_2ndaryController != NULL) {
+        setCtrlLineMtx(m_2ndaryController, lineId, mtx);
+    } else if (m_2ndary2Controller != NULL) {
+        setCtrl2LineMtx(m_2ndary2Controller, lineId, mtx);
+    }
+}
+
+static inline bool vec3Eq(const Vec3f& a, const Vec3f& b) {
+    return a.m_x == b.m_x && a.m_y == b.m_y && a.m_z == b.m_z;
+}
+
+bool soPhysicsModuleImpl::correct2ndBoth(const Vec3f* pos, float scale) {
+    if (m_2ndary2Controller != NULL && is2ndBothReverse() == true) {
+        soModelModule& model = m_moduleAccesser->getModelModule();
+        int activeNum = get2ndActiveNodeNum();
+        u32 nodeId = get2ndNodeId(activeNum);
+        Vec3f nodePos = model.getNodeGlobalPosition(nodeId, false);
+        if (vec3Eq(nodePos, *pos)) {
+            return true;
+        }
+        Matrix* worldMtx = m_moduleAccesser->getModelModule().getWorldMtxArray();
+        nw4r::g3d::ResMdl resMdl = m_moduleAccesser->getModelModule().getScnMdl()->m_resMdl;
+        if (m_2ndary2Controller->applyFeedback(scale, (int)worldMtx, resMdl, const_cast<Vec3f*>(pos)) == true) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void soPhysicsModuleImpl::setUpMtxIK() {
+    if (unk30 != NULL && isIK() == true) {
+        bool any = false;
+        for (int i = 0; i < m_ikHandles->size(); i++) {
+            fn_80098188(unk30, m_ikHandles->at(i).unk0, m_ikHandles->at(i).unk34);
+            if (isIK(i) == true) {
+                fn_80097C94(unk30, m_ikHandles->at(i).unk0, (f32*)&m_ikHandles->at(i).unk4);
+                fn_80097E94(unk30, m_ikHandles->at(i).unk0, (f32*)&m_ikHandles->at(i).unk1c);
+                unk30->setStressReferencePoint(m_ikHandles->at(i).unk0, (f32*)&m_ikHandles->at(i).unk28);
+                if (*(float*)&m_ikHandles->at(i).unk10.unk0 != 0.0f ||
+                    *(float*)&m_ikHandles->at(i).unk10.unk4 != 0.0f ||
+                    *(float*)&m_ikHandles->at(i).unk18 != 0.0f) {
+                    fn_80098094(unk30, m_ikHandles->at(i).unk0, (f32*)&m_ikHandles->at(i).unk10);
+                }
+                any = true;
+            }
+        }
+        if (any == true) {
+            Matrix* worldMtx = m_moduleAccesser->getModelModule().getWorldMtxArray();
+            m_moduleAccesser->getModelModule().getScnMdl();
+            fn_800969E0(unk30, worldMtx);
+        }
     }
 }

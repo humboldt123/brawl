@@ -35,11 +35,30 @@ public:
                 };
             };
             u8 m_shapeType;
+#ifdef SO_AREA_MODULE_IMPL_FULL
+            union {
+                struct {
+                    u8 m_isEnable : 1;
+                    u8 m_isCreated : 1;
+                    u8 m_isWindSet : 1;
+                    u8 m_isCenterX0_u8 : 1;
+                    u8 m_unk1D_lo : 4;
+                };
+                struct {
+                    bool m_isEnable_b : 1;
+                    bool m_isCreated_b : 1;
+                    bool m_isWindSet_b : 1;
+                    bool m_isCenterX0 : 1;
+                    bool m_unk1D_lo_b : 4;
+                };
+            };
+#else
             u8 m_isEnable : 1;
             u8 m_isCreated : 1; // HYPOTHESIS: getId only reads the area id while this is set
             u8 m_isWindSet : 1; // HYPOTHESIS: the destructor erases the stage wind area while this is set
             u8 m_isCenterX0 : 1;
             u8 m_unk1D_lo : 4;
+#endif
             char _0x1e[2];
         };
     };

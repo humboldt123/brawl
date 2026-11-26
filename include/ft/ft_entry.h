@@ -8,6 +8,11 @@
 #include <ft/ft_input.h>
 #include <gm/gm_lib.h>
 #include <mt/mt_vector.h>
+#ifdef FT_ENTRY_UNIT
+#include <ft/ft_change_succeed_work.h>
+#include <ft/ft_event_unit_instance.h>
+#include <so/event/so_event_manage_module_impl.h>
+#endif
 
 class Fighter;
 class soDamageAttackerInfo;
@@ -217,6 +222,9 @@ static_assert(sizeof(ftEntryEventObserver) == 12, "Class is wrong size!");
 
 class ftEntry {
 public:
+#ifdef FT_ENTRY_UNIT
+    ftEntry();
+#endif
     virtual ~ftEntry();
 
     struct Instance {
@@ -260,7 +268,16 @@ public:
     int m_playerNo;
     gmCharacterKind m_characterKind;
     int m_pointTeam;
+#ifdef FT_ENTRY_UNIT
+    char _0x64[0x14];
+    ftChangeSucceedWork m_changeSucceedWork; // 0x78
+    char _0x190[0x1C];
+    soInstanceManagerSimpleEntity<soEventUnit*, soArrayVector<soInstanceUnit<soEventUnit*>, 1> > m_eventManageEntity; // 0x1AC
+    soEventManageModuleImpl m_eventManageModule; // 0x1D4
+    soEventUnitWithWorkArea<ftEntryEventObserver, 4> m_eventUnit; // 0x1E8
+#else
     char _0x64[480];
+#endif
 
     bool isHeartSwapped() const { return unk11_02; } // HYPOTHESIS: see unk11_02
     void createInstance();
@@ -307,5 +324,8 @@ public:
     void notifyPikminFinalAttack(float unk1, int unk2);
     int getRank();
     int getRankPoint();
+#ifdef FT_ENTRY_UNIT
+    void startResult();
+#endif
 };
 static_assert(sizeof(ftEntry) == 0x244, "Class is wrong size!");

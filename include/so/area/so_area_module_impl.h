@@ -110,13 +110,21 @@ struct soAreaContactLog {
 static_assert(sizeof(soAreaContactLog) == 0x18, "Class is wrong size!");
 
 struct soAreaWind {
+#ifdef SO_AREA_MODULE_IMPL_FULL
+    int m_areaIndex; // HYPOTHESIS: index into m_areaInstanceArray, -1 when unused
+#else
     char _0x0[4];
+#endif
 };
 static_assert(sizeof(soAreaWind) == 0x4, "Class is wrong size!");
 
 class soAreaModule : public soNullable {
 public:
+#ifdef SO_AREA_MODULE_IMPL_FULL
+    virtual ~soAreaModule() {}
+#else
     virtual ~soAreaModule();
+#endif
     virtual void activate(int ownerId);
     virtual void deactivate();
     virtual void update();
@@ -159,7 +167,11 @@ class soAreaModuleImpl : public soAreaModule, public gfAreaEventReciver, public 
     };
     soArray<soAreaWind>* m_areaWindArray;
     int m_0x40;
+#ifdef SO_AREA_MODULE_IMPL_FULL
+    u8 m_category;
+#else
     soAreaData::Category m_category : 8;
+#endif
     u8 m_logOverThrough : 1;
     u8 m_isWhole : 1;
     u8 m_unk45_lo : 6;

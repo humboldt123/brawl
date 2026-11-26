@@ -96,8 +96,8 @@ s32 PFDIR_p_mkdir(PF2_VOLUME* p_vol, PF_STR* p_path, u32 unk2, u32 unk3);
 s32 PFCACHE_FlushFATCache(PF2_VOLUME* p_vol);
 s32 PFCACHE_FlushDataCacheSpecific(PF2_VOLUME* p_vol, void* signature);
 int PFDIR_mkdir(PF_STR* p_path);
-int fn_803DD390(PF_FFD* p_ffd, PF2_DIR_ENT* p_ent, u32 index, PF2_STR* pattern, u8 attr_required, u8 attr_unwanted, u32* p_lpos, u32* p_ppos);  // PFENT_findEntryPos
-int fn_803DD674(PF2_DIR_ENT* p_ent, u8 num_entries, PF_FFD* p_ffd, u32* p_next_chain, PF2_STR* p_filename, u32* p_pos);  // PFENT_allocateEntryPos
+s32 PFENT_findEntryPos(PF_FFD* p_ffd, PF2_DIR_ENT* p_ent, u32 index, PF2_STR* pattern, u8 attr_required, u8 attr_unwanted, u32* p_lpos, u32* p_ppos);
+s32 PFENT_allocateEntryPos(PF2_DIR_ENT* p_ent, u8 num_entries, PF_FFD* p_ffd, u32* p_next_chain, PF2_STR* p_filename, u32* p_pos);
 int fn_803DE800(PF2_ENT_ITER* iter, PF2_DIR_ENT* ent, PF2_VOLUME* vol, PF2_STR* path, u32 wildcard, u32 no_look_last_token);
 u32 fn_803E12B4(PF_FFD* p_ffd, u32 index, u32 mode, u32 size, u32* p_cluster);  // PFFAT_GetClusterInChain
 u32 PFFAT_GetSectorSpecified(PF_FFD* p_ffd, u32 index, u32 may_allocate, u32* p_cluster);

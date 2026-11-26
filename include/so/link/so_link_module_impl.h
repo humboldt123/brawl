@@ -89,7 +89,11 @@ public:
     virtual float getLinkScale() = 0;
     virtual float getParentScale(u32 index) = 0;
     virtual void adjustLinkGroundCollision(int, float*) = 0;
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void setConstraint2ndWind(bool) = 0;
+#else
     virtual void setConstraint2ndWind(u8) = 0;
+#endif
     virtual Vec3f getParentModelNodeGlobalPosition(u32 index, u32 correctNodeId, bool) = 0;
     virtual Vec3f getParentModelNodeGlobalPosition(u32 index, const char *nodeName, bool) = 0;
     virtual float getParentMotionFrame(u32 index) = 0;
@@ -217,7 +221,11 @@ public:
     virtual float getLinkScale();
     virtual float getParentScale(u32 index);
     virtual void adjustLinkGroundCollision(int, float*);
+#ifdef SO_PHYSICS_MODULE_IMPL_UNIT
+    virtual void setConstraint2ndWind(bool);
+#else
     virtual void setConstraint2ndWind(u8);
+#endif
     virtual Vec3f getParentModelNodeGlobalPosition(u32 index, u32 correctNodeId, bool);
     virtual Vec3f getParentModelNodeGlobalPosition(u32 index, const char *nodeName, bool);
     virtual float getParentMotionFrame(u32 index);

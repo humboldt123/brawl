@@ -20,6 +20,9 @@ class ftOutsideEventPresenter : public soEventPresenter<ftOutsideEventObserver> 
 
 public:
     inline ftOutsideEventPresenter(s16 manageId, int entryId);
+#ifdef FT_ENTRY_UNIT
+    inline ftOutsideEventPresenter(int entryId, s16 manageId);
+#endif
     virtual ~ftOutsideEventPresenter() { }
 
     void notifyEventPikminMakeBloomAll();
